@@ -1,7 +1,9 @@
 @(party : Party, form : controllers.Party.EditForm, authorizeForms : Seq[(Party,Form[Authorize])], authorizeWhich : Option[Boolean], authorizeSearch : Form[String], authorizeResults : Seq[(Party,Form[Authorize])])(implicit request : UserRequest[_])
 
 
-@common(party, "admin") {
+@template.crud("Admin Party: " + party.toString()) {
+    <article>
+        <h1>@party.toString()</h1>
 
 	@helper.form(routes.Party.change(party.id)) {
 		@helper.inputText(form("name"))
@@ -14,8 +16,9 @@
 		}
 		<button type='submit'>Change</button>
 	}
-	@formErrors(form)
+	@widget.formErrors(form)
 
 	<h2>Authorizations</h2>
 	@authorizeAdmin(party, authorizeForms, authorizeWhich, authorizeSearch, authorizeResults)
+ </article>  
 }

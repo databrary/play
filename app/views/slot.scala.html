@@ -1,14 +1,17 @@
 @(slot : Slot)(implicit request : SiteRequest[_])
 
-@common(slot) {
+@template.crud("Slot: " + slot.toString()) {
+    <article>
+        <h1>@slot.toString()</h1>
 
 	@if(slot.permission >= Permission.EDIT) {
 		<a href='@routes.Slot.edit(slot.id)'>edit</a>
 	}
 
-	@assetList(slot)
+	@widget.assetList(slot)
 
-	@comments(Some(routes.Comment.postSlot(slot.id)), slot.comments(true)(request.db)) { c =>
+	@region.comments(Some(routes.Comment.postSlot(slot.id)), slot.comments(true)(request.db)) { c =>
 		@display(c.who)
 	}
+    </article>
 }

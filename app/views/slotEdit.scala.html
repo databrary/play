@@ -1,11 +1,14 @@
 @(slot : Slot, editForm : controllers.Slot.SlotForm)(implicit request : SiteRequest[_])
 
-@common(slot, "edit") {
+@template.crud("Edit Slot: " + slot.toString()) {
+    <article>
+        <h1>@slot.toString()</h1>
 
 	@helper.form(routes.Slot.change(slot.id)) {
-		@enumSelect(editForm("consent"), Consent)
+		@widget.enumSelect(editForm("consent"), Consent)
 		@helper.inputDate(editForm("date"))
 		<button type='submit'>Change</button>
 	}
-	@formErrors(editForm)
+	@widget.formErrors(editForm)
+    </article>
 }

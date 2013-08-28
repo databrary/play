@@ -3,36 +3,11 @@
 @fileData(asset : FileAsset) = {
 }
 
-@common(link) {
+@template.crud("Edit Asset: " + link.toString()) {
+    <article>
+        <h1>@link.toString()</h1>
 
-	<p>@link.description</p>
-
-	<dl>
-		<dt>Format</dt>
-		<dd>@link.asset(request.db).format.name</dd>
-	@link.asset(request.db) match {
-	case ts : Timeseries => {
-		@fileData(ts)
-		<dt>Duration</dt>
-		<dd>@ts.duration</dd>
-	}
-	case f : FileAsset => {
-		@fileData(f)
-	}
-	case e : Clip => {
-		<dt>Offset</dt>
-		<dd>@e.segment.lowerBound.get</dd>
-		<dt>Duration</dt>
-		<dd>@e.duration</dd>
-	}
-	}
-		<dt>Consent</dt>
-		<dd>@link.asset(request.db).consent</dd>
-	</dl>
-
-	@if(link.permission >= Permission.EDIT) {
-		<a href='@routes.Asset.edit(link.containerId, link.assetId)'>edit</a>
-	}
+        <p>@link.description</p>
 
 	@if(link.permission >= Permission.DOWNLOAD) {
 
@@ -53,6 +28,7 @@
 		<a href='@routes.Asset.download(link.containerId, link.assetId, false)'>download</a>
 	}
 
-	@comments(Some(routes.Comment.postAssetLink(link.containerId, link.assetId)), link.comments()(request.db)) { c => 
-		@display(c.who) }
+        @region.comments(Some(routes.Comment.postAssetLink(link.containerId, link.assetId)), link.comments()(request.db)) { c =>
+            @display(c.who) }
+    </article>
 }
