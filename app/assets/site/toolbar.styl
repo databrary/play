@@ -1,20 +1,36 @@
 // styles
+sandbox-height = 2
+toolbar-height = 1.5
 
 body
   .main
-    margin-top 1.5
+    margin-top toolbar-height
+    &.sandbox
+      margin-top toolbar-height+sandbox-height
 
 .toolbar
   top 0
   z-index 1000
   position fixed
   width 100%
-  height 1.5
-  line-height 1.5
   box-shadow box-shadow-def
+  height toolbar-height
+  &.sandbox
+    height toolbar-height+sandbox-height
+  
+.toolbar-sandbox
+  height sandbox-height
+  background-color orange51
+  padding b2
+  text-align center
+  font-size 0.8em
+  
+  
+.toolbar-main
+  height toolbar-height
+  line-height 1.5
   background-color white
   font-family heading-family
-
   .row
     position relative
 
@@ -49,7 +65,10 @@ body
     &:hover
       color blue52
 
-
+    &.sandbox
+      background url('/public/images/logo/databrary-demo.svg') no-repeat 0 center
+      background-size 114px 24px 
+      
 .toolbar-nav
   display inline-block
   position relative
