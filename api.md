@@ -9,7 +9,7 @@ Databrary 2.0 API
 
 - **/**
 	- _GET_
-		- [main.main.func1](/databrary.go#L112)
+		- [main.main.func1](/databrary.go#L117)
 
 </details>
 <details>
@@ -18,7 +18,7 @@ Databrary 2.0 API
 - **/api**
 	- **/autocomplete-affil**
 		- _GET_
-			- [AutoCompleteAffil](/routes/api.go#L63)
+			- [AutoCompleteAffil](/routes/api.go#L66)
 
 </details>
 <details>
@@ -36,7 +36,7 @@ Databrary 2.0 API
 - **/api**
 	- **/report-error**
 		- _POST_
-			- [ReportError](/routes/api.go#L123)
+			- [ReportError](/routes/api.go#L126)
 
 </details>
 <details>
@@ -45,7 +45,7 @@ Databrary 2.0 API
 - **/api**
 	- **/site-stats**
 		- _GET_
-			- [GetSiteStats](/routes/api.go#L135)
+			- [GetSiteStats](/routes/api.go#L138)
 
 </details>
 <details>
@@ -100,7 +100,7 @@ Databrary 2.0 API
 				- _GET_
 					- [GetProfile](/routes/user.go#L648)
 				- _PATCH_
-					- [PatchProfile](/routes/user.go#L703)
+					- [PatchProfile](/routes/user.go#L680)
 
 </details>
 <details>
@@ -134,6 +134,18 @@ Databrary 2.0 API
 
 </details>
 <details>
+<summary>`/api/user/volume/*`</summary>
+
+- **/api**
+	- **/user**
+		- **/volume**
+			- **/***
+				- **/**
+					- _GET_
+						- [GetUserVolumes](/routes/volume.go#L25)
+
+</details>
+<details>
 <summary>`/public`</summary>
 
 - **/public**
@@ -150,5 +162,5 @@ Databrary 2.0 API
 
 </details>
 
-Total # of routes: 15
+Total # of routes: 16
 

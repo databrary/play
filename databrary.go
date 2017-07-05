@@ -14,6 +14,7 @@ import (
 	"github.com/databrary/databrary/routes"
 	"github.com/databrary/databrary/services/redis"
 	"github.com/databrary/databrary/services/sessions"
+	"github.com/databrary/sqlboiler/boil"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/docgen"
 	"github.com/pressly/chi/middleware"
@@ -59,6 +60,10 @@ func init() {
 	}
 
 	redis.InitRedisStore(config.GetConf())
+
+	if config.GetConf().GetString("log.level") == "DEBUG" {
+		boil.DebugMode = true
+	}
 }
 
 func main() {

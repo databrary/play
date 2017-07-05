@@ -57,7 +57,9 @@ func user(r chi.Router) {
 			r.Get("/", GetProfile)
 			r.Patch("/", PatchProfile)
 		})
+		r.Route("/volume", volume)
 	})
+
 }
 
 func AutoCompleteAffil(w http.ResponseWriter, r *http.Request) {
@@ -135,11 +137,11 @@ func ReportError(w http.ResponseWriter, r *http.Request) {
 func GetSiteStats(w http.ResponseWriter, r *http.Request) {
 	nInfo := NetInfoLogEntry(r)
 	/*
-		  ac <- dbQuery [pgSQL|SELECT site, count(child) FROM authorize_view WHERE parent = 0 AND child > 4 GROUP BY site|]
-	  v <- dbQuery1' [pgSQL|SELECT count(id) FROM volume WHERE id > 0|]
-	  vs <- dbQuery1' [pgSQL|SELECT count(volume) FROM volume_access WHERE volume > 0 AND party = 0 AND children >= 'PUBLIC'|]
-	  (a, ad, ab) <- dbQuery1' [pgSQL|SELECT count(id), sum(duration), sum(size) FROM asset JOIN slot_asset ON asset = id WHERE volume > 0|]
-	  rc <- dbQuery [pgSQL|SELECT category, count(id) FROM record GROUP BY category ORDER BY category|]
+			  ac <- dbQuery [pgSQL|SELECT site, count(child) FROM authorize_view WHERE parent = 0 AND child > 4 GROUP BY site|]
+		  v <- dbQuery1' [pgSQL|SELECT count(id) FROM volume WHERE id > 0|]
+		  vs <- dbQuery1' [pgSQL|SELECT count(volume) FROM volume_access WHERE volume > 0 AND party = 0 AND children >= 'PUBLIC'|]
+		  (a, ad, ab) <- dbQuery1' [pgSQL|SELECT count(id), sum(duration), sum(size) FROM asset JOIN slot_asset ON asset = id WHERE volume > 0|]
+		  rc <- dbQuery [pgSQL|SELECT category, count(id) FROM record GROUP BY category ORDER BY category|]
 	*/
 
 	data := struct {
