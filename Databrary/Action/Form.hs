@@ -1,3 +1,5 @@
+{- for parsing forms (stored on disk (somewhere?))
+-}
 module Databrary.Action.Form
   ( getFormData
   ) where
@@ -14,9 +16,9 @@ import Databrary.HTTP.Parse
 import Databrary.Action.Types
 
 getFormData :: FileContent a => [(BS.ByteString, Word64)] -> ActionM (FormData a)
-getFormData fs = do
+getFormData forms = do
   f <- peeks $ FormData . Map.fromList . Wai.queryString
-  c <- parseRequestContent (fromMaybe 0 . (`lookup` fs))
+  c <- parseRequestContent (fromMaybe 0 . (`lookup` forms))
   return $ case c of
     ContentForm p u -> f (Map.fromList p) Nothing (Map.fromList u)
     ContentJSON j -> f Map.empty (Just j) Map.empty

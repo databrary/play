@@ -24,6 +24,7 @@ data RequestContext = RequestContext
   , requestIdentity :: !Identity
   }
 
+-- the quotes are template haskell non-sense
 makeHasRec ''RequestContext ['requestContext, 'contextRequest, 'requestIdentity]
 
 newtype ActionM a = ActionM { unActionM :: ReaderT RequestContext IO a }
