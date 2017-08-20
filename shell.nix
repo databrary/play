@@ -18,5 +18,6 @@ pkgs.databrary-dev.env.overrideAttrs (attrs: {
      nixpkgs.nodePackages.json.all
      nixpkgs.postfix
      nixpkgs.postgresql96
+     nixpkgs.jdk #required by Solr
     ]; 
 })
