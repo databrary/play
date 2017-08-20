@@ -1,8 +1,10 @@
-{ reflex-platform ? import ./reflex-platform {},
-  nodePackages ? import ./node-default.nix {},
+{ reflex-platform ? import ./reflex-platform {}
+, nodePackages ? import ./node-default.nix {}
+, databraryRoot ? ./.
+, conf ? import ./conf.nix { inherit databraryRoot; }
 }:
 
-let 
+let
 	nixpkgs = reflex-platform.nixpkgs;
   dontCheck = nixpkgs.haskell.lib.dontCheck;
   overrideCabal = nixpkgs.haskell.lib.overrideCabal;
@@ -34,4 +36,4 @@ let
 		 	invertible = dontCheck super.invertible;
     };
   };
-in { inherit nixpkgs pkgs nodePackages; } 
+in { inherit nixpkgs pkgs nodePackages conf; }
