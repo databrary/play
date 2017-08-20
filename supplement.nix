@@ -832,102 +832,166 @@ let
         sha1 = "1eade7acc012034ad84e2396767ead9fa5495821";
       };
     };
+    "cli-1.0.1" = {
+      name = "cli";
+      packageName = "cli";
+      version = "1.0.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/cli/-/cli-1.0.1.tgz";
+        sha1 = "22817534f24bfa4950c34d532d48ecbc621b8c14";
+      };
+    };
+    "glob-7.1.2" = {
+      name = "glob";
+      packageName = "glob";
+      version = "7.1.2";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/glob/-/glob-7.1.2.tgz";
+        sha1 = "c19c9df9a028702d678612384a6552404c636d15";
+      };
+    };
+    "commander-2.11.0" = {
+      name = "commander";
+      packageName = "commander";
+      version = "2.11.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/commander/-/commander-2.11.0.tgz";
+        sha1 = "157152fd1e7a6c8d98a5b715cf376df928004563";
+      };
+    };
   };
-  args = {
-    name = "databrary";
-    packageName = "databrary";
-    version = "0.0.0";
-    src = ./.;
+in
+{
+  jshint = nodeEnv.buildNodePackage {
+    name = "jshint";
+    packageName = "jshint";
+    version = "2.9.5";
+    src = fetchurl {
+      url = "https://registry.npmjs.org/jshint/-/jshint-2.9.5.tgz";
+      sha1 = "1e7252915ce681b40827ee14248c46d34e9aa62c";
+    };
     dependencies = [
-      sources."@flowjs/ng-flow-2.7.1"
-      sources."angular-1.4.14"
-      sources."angular-route-1.4.14"
-      sources."angular-ui-slider-0.4.0"
-      (sources."autoprefixer-stylus-0.9.4" // {
+      (sources."cli-1.0.1" // {
         dependencies = [
-          (sources."autoprefixer-6.3.7" // {
+          (sources."glob-7.1.2" // {
             dependencies = [
-              sources."postcss-value-parser-3.3.0"
-              sources."normalize-range-0.1.2"
-              sources."num2fraction-1.2.2"
-              sources."browserslist-1.3.6"
-              sources."caniuse-db-1.0.30000716"
-            ];
-          })
-          (sources."multi-stage-sourcemap-0.2.1" // {
-            dependencies = [
-              (sources."source-map-0.1.43" // {
+              sources."fs.realpath-1.0.0"
+              (sources."inflight-1.0.6" // {
                 dependencies = [
-                  sources."amdefine-1.0.1"
+                  sources."wrappy-1.0.2"
                 ];
               })
-            ];
-          })
-          (sources."postcss-5.0.21" // {
-            dependencies = [
-              (sources."supports-color-3.2.3" // {
+              sources."inherits-2.0.3"
+              (sources."once-1.4.0" // {
                 dependencies = [
-                  sources."has-flag-1.0.0"
+                  sources."wrappy-1.0.2"
                 ];
               })
-              sources."source-map-0.5.6"
-              sources."js-base64-2.1.9"
+              sources."path-is-absolute-1.0.1"
             ];
           })
         ];
       })
-      sources."coffee-script-1.12.7"
-      sources."jquery-1.12.4"
-      sources."jquery-ui-dist-1.12.1"
-      (sources."jshint-2.8.0" // {
+      (sources."console-browserify-1.1.0" // {
         dependencies = [
-          (sources."cli-0.6.6" // {
+          sources."date-now-0.1.4"
+        ];
+      })
+      sources."exit-0.1.2"
+      (sources."htmlparser2-3.8.3" // {
+        dependencies = [
+          sources."domhandler-2.3.0"
+          (sources."domutils-1.5.1" // {
             dependencies = [
-              (sources."glob-3.2.11" // {
+              (sources."dom-serializer-0.1.0" // {
                 dependencies = [
-                  sources."inherits-2.0.3"
-                  (sources."minimatch-0.3.0" // {
-                    dependencies = [
-                      sources."lru-cache-2.7.3"
-                      sources."sigmund-1.0.1"
-                    ];
-                  })
+                  sources."domelementtype-1.1.3"
+                  sources."entities-1.1.1"
                 ];
               })
             ];
           })
-          (sources."console-browserify-1.1.0" // {
+          sources."domelementtype-1.3.0"
+          (sources."readable-stream-1.1.14" // {
             dependencies = [
-              sources."date-now-0.1.4"
+              sources."core-util-is-1.0.2"
+              sources."isarray-0.0.1"
+              sources."string_decoder-0.10.31"
+              sources."inherits-2.0.3"
             ];
           })
-          sources."exit-0.1.2"
-          (sources."htmlparser2-3.8.3" // {
+          sources."entities-1.0.0"
+        ];
+      })
+      (sources."minimatch-3.0.4" // {
+        dependencies = [
+          (sources."brace-expansion-1.1.8" // {
             dependencies = [
-              sources."domhandler-2.3.0"
-              (sources."domutils-1.5.1" // {
-                dependencies = [
-                  (sources."dom-serializer-0.1.0" // {
-                    dependencies = [
-                      sources."domelementtype-1.1.3"
-                      sources."entities-1.1.1"
-                    ];
-                  })
-                ];
-              })
-              sources."domelementtype-1.3.0"
-              (sources."readable-stream-1.1.14" // {
-                dependencies = [
-                  sources."core-util-is-1.0.2"
-                  sources."isarray-0.0.1"
-                  sources."string_decoder-0.10.31"
-                  sources."inherits-2.0.3"
-                ];
-              })
-              sources."entities-1.0.0"
+              sources."balanced-match-1.0.0"
+              sources."concat-map-0.0.1"
             ];
           })
-          (sources."minimatch-2.0.10" // {
+        ];
+      })
+      sources."shelljs-0.3.0"
+      sources."strip-json-comments-1.0.4"
+      sources."lodash-3.7.0"
+    ];
+    buildInputs = globalBuildInputs;
+    meta = {
+      description = "Static analysis tool for JavaScript";
+      homepage = http://jshint.com/;
+      license = "(MIT AND JSON)";
+    };
+    production = true;
+  };
+  coffee-script = nodeEnv.buildNodePackage {
+    name = "coffee-script";
+    packageName = "coffee-script";
+    version = "1.12.7";
+    src = fetchurl {
+      url = "https://registry.npmjs.org/coffee-script/-/coffee-script-1.12.7.tgz";
+      sha1 = "c05dae0cb79591d05b3070a8433a98c9a89ccc53";
+    };
+    buildInputs = globalBuildInputs;
+    meta = {
+      description = "Unfancy JavaScript";
+      homepage = http://coffeescript.org/;
+      license = "MIT";
+    };
+    production = true;
+  };
+  stylus = nodeEnv.buildNodePackage {
+    name = "stylus";
+    packageName = "stylus";
+    version = "0.54.5";
+    src = fetchurl {
+      url = "https://registry.npmjs.org/stylus/-/stylus-0.54.5.tgz";
+      sha1 = "42b9560931ca7090ce8515a798ba9e6aa3d6dc79";
+    };
+    dependencies = [
+      sources."css-parse-1.7.0"
+      (sources."mkdirp-0.5.1" // {
+        dependencies = [
+          sources."minimist-0.0.8"
+        ];
+      })
+      (sources."debug-3.0.0" // {
+        dependencies = [
+          sources."ms-2.0.0"
+        ];
+      })
+      sources."sax-0.5.8"
+      (sources."glob-7.0.6" // {
+        dependencies = [
+          sources."fs.realpath-1.0.0"
+          (sources."inflight-1.0.6" // {
+            dependencies = [
+              sources."wrappy-1.0.2"
+            ];
+          })
+          sources."inherits-2.0.3"
+          (sources."minimatch-3.0.4" // {
             dependencies = [
               (sources."brace-expansion-1.1.8" // {
                 dependencies = [
@@ -937,135 +1001,46 @@ let
               })
             ];
           })
-          sources."shelljs-0.3.0"
-          sources."strip-json-comments-1.0.4"
-          sources."lodash-3.7.0"
+          (sources."once-1.4.0" // {
+            dependencies = [
+              sources."wrappy-1.0.2"
+            ];
+          })
+          sources."path-is-absolute-1.0.1"
         ];
       })
-      sources."lodash-3.10.1"
-      sources."nib-1.1.2"
-      sources."normalize.styl-3.0.3"
-      sources."pivottable-2.14.0"
-      (sources."uglify-js-2.8.29" // {
+      (sources."source-map-0.1.43" // {
         dependencies = [
-          sources."source-map-0.5.6"
-          (sources."yargs-3.10.0" // {
-            dependencies = [
-              sources."camelcase-1.2.1"
-              (sources."cliui-2.1.0" // {
-                dependencies = [
-                  (sources."center-align-0.1.3" // {
-                    dependencies = [
-                      (sources."align-text-0.1.4" // {
-                        dependencies = [
-                          (sources."kind-of-3.2.2" // {
-                            dependencies = [
-                              sources."is-buffer-1.1.5"
-                            ];
-                          })
-                          sources."longest-1.0.1"
-                          sources."repeat-string-1.6.1"
-                        ];
-                      })
-                      sources."lazy-cache-1.0.4"
-                    ];
-                  })
-                  (sources."right-align-0.1.3" // {
-                    dependencies = [
-                      (sources."align-text-0.1.4" // {
-                        dependencies = [
-                          (sources."kind-of-3.2.2" // {
-                            dependencies = [
-                              sources."is-buffer-1.1.5"
-                            ];
-                          })
-                          sources."longest-1.0.1"
-                          sources."repeat-string-1.6.1"
-                        ];
-                      })
-                    ];
-                  })
-                  sources."wordwrap-0.0.2"
-                ];
-              })
-              sources."decamelize-1.2.0"
-              sources."window-size-0.1.0"
-            ];
-          })
-          sources."uglify-to-browserify-1.0.2"
-        ];
-      })
-      (sources."stylus-0.54.5" // {
-        dependencies = [
-          sources."css-parse-1.7.0"
-          (sources."mkdirp-0.5.1" // {
-            dependencies = [
-              sources."minimist-0.0.8"
-            ];
-          })
-          (sources."debug-3.0.0" // {
-            dependencies = [
-              sources."ms-2.0.0"
-            ];
-          })
-          sources."sax-0.5.8"
-          (sources."glob-7.0.6" // {
-            dependencies = [
-              sources."fs.realpath-1.0.0"
-              (sources."inflight-1.0.6" // {
-                dependencies = [
-                  sources."wrappy-1.0.2"
-                ];
-              })
-              sources."inherits-2.0.3"
-              (sources."minimatch-3.0.4" // {
-                dependencies = [
-                  (sources."brace-expansion-1.1.8" // {
-                    dependencies = [
-                      sources."balanced-match-1.0.0"
-                      sources."concat-map-0.0.1"
-                    ];
-                  })
-                ];
-              })
-              (sources."once-1.4.0" // {
-                dependencies = [
-                  sources."wrappy-1.0.2"
-                ];
-              })
-              sources."path-is-absolute-1.0.1"
-            ];
-          })
-          (sources."source-map-0.1.43" // {
-            dependencies = [
-              sources."amdefine-1.0.1"
-            ];
-          })
-        ];
-      })
-      (sources."stylus-loader-3.0.1" // {
-        dependencies = [
-          (sources."loader-utils-1.1.0" // {
-            dependencies = [
-              sources."big.js-3.1.3"
-              sources."emojis-list-2.1.0"
-              sources."json5-0.5.1"
-            ];
-          })
-          sources."lodash.clonedeep-4.5.0"
-          sources."when-3.6.4"
+          sources."amdefine-1.0.1"
         ];
       })
     ];
     buildInputs = globalBuildInputs;
     meta = {
-      description = "Databrary web build-time dependencies";
+      description = "Robust, expressive, and feature-rich CSS superset";
+      homepage = https://github.com/stylus/stylus;
+      license = "MIT";
     };
     production = true;
   };
-in
-{
-  tarball = nodeEnv.buildNodeSourceDist args;
-  package = nodeEnv.buildNodePackage args;
-  shell = nodeEnv.buildNodeShell args;
+  uglify-js = nodeEnv.buildNodePackage {
+    name = "uglify-js";
+    packageName = "uglify-js";
+    version = "3.0.28";
+    src = fetchurl {
+      url = "https://registry.npmjs.org/uglify-js/-/uglify-js-3.0.28.tgz";
+      sha1 = "96b8495f0272944787b5843a1679aa326640d5f7";
+    };
+    dependencies = [
+      sources."commander-2.11.0"
+      sources."source-map-0.5.6"
+    ];
+    buildInputs = globalBuildInputs;
+    meta = {
+      description = "JavaScript parser, mangler/compressor and beautifier toolkit";
+      homepage = http://lisperator.net/uglifyjs;
+      license = "BSD-2-Clause";
+    };
+    production = true;
+  };
 }

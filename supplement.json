@@ -1,0 +1,6 @@
+[
+  "jshint",
+  "coffee-script",
+  "stylus",
+  "uglify-js"
+]
