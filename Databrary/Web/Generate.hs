@@ -12,7 +12,6 @@ import System.Directory (createDirectoryIfMissing)
 import System.FilePath (splitFileName, takeDirectory)
 import System.Posix.Files (createLink, rename)
 
-import Paths_databrary (getDataFileName)
 import Databrary.Files
 import Databrary.Model.Time
 import Databrary.Web
@@ -64,7 +63,7 @@ staticWebGenerate g (w, _) = liftIO $ do
 
 webLinkDataFile :: FilePath -> WebGenerator
 webLinkDataFile s fo@(f, _) = do
-  wf <- liftIO $ getDataFileName s
+  let wf = "." </> s
   webRegenerate (do
     r <- removeFile f
     unless r $ createDirectoryIfMissing False $ takeDirectory (webFileAbs f)
