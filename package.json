@@ -10,7 +10,6 @@
     "angular-route": "~1.4",
     "angular-ui-slider": "0.4.0",
     "autoprefixer-stylus": "^0.9.4",
-    "bower": "*",
     "coffee-script": "^1.7.1",
     "jquery": "^1.12.3",
     "jquery-ui-dist": "^1.12.1",

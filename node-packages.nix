@@ -4,85 +4,13 @@
 
 let
   sources = {
-    "bower-1.8.0" = {
-      name = "bower";
-      packageName = "bower";
-      version = "1.8.0";
+    "@flowjs/ng-flow-2.7.1" = {
+      name = "@flowjs/ng-flow";
+      packageName = "@flowjs/ng-flow";
+      version = "2.7.1";
       src = fetchurl {
-        url = "https://registry.npmjs.org/bower/-/bower-1.8.0.tgz";
-        sha1 = "55dbebef0ad9155382d9e9d3e497c1372345b44a";
-      };
-    };
-    "coffee-script-1.12.7" = {
-      name = "coffee-script";
-      packageName = "coffee-script";
-      version = "1.12.7";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/coffee-script/-/coffee-script-1.12.7.tgz";
-        sha1 = "c05dae0cb79591d05b3070a8433a98c9a89ccc53";
-      };
-    };
-    "jshint-2.8.0" = {
-      name = "jshint";
-      packageName = "jshint";
-      version = "2.8.0";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/jshint/-/jshint-2.8.0.tgz";
-        sha1 = "1d09a3bd913c4cadfa81bf18d582bd85bffe0d44";
-      };
-    };
-    "uglify-js-2.8.29" = {
-      name = "uglify-js";
-      packageName = "uglify-js";
-      version = "2.8.29";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/uglify-js/-/uglify-js-2.8.29.tgz";
-        sha1 = "29c5733148057bb4e1f75df35b7a9cb72e6a59dd";
-      };
-    };
-    "stylus-0.54.5" = {
-      name = "stylus";
-      packageName = "stylus";
-      version = "0.54.5";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/stylus/-/stylus-0.54.5.tgz";
-        sha1 = "42b9560931ca7090ce8515a798ba9e6aa3d6dc79";
-      };
-    };
-    "nib-1.1.2" = {
-      name = "nib";
-      packageName = "nib";
-      version = "1.1.2";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/nib/-/nib-1.1.2.tgz";
-        sha1 = "6a69ede4081b95c0def8be024a4c8ae0c2cbb6c7";
-      };
-    };
-    "normalize.styl-3.0.3" = {
-      name = "normalize.styl";
-      packageName = "normalize.styl";
-      version = "3.0.3";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/normalize.styl/-/normalize.styl-3.0.3.tgz";
-        sha1 = "1a2fbc02b37e6980572e469464005260d6aa53e4";
-      };
-    };
-    "autoprefixer-stylus-0.9.4" = {
-      name = "autoprefixer-stylus";
-      packageName = "autoprefixer-stylus";
-      version = "0.9.4";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/autoprefixer-stylus/-/autoprefixer-stylus-0.9.4.tgz";
-        sha1 = "760914695dce321c9980b490d81a4385c08d914d";
-      };
-    };
-    "jquery-1.12.4" = {
-      name = "jquery";
-      packageName = "jquery";
-      version = "1.12.4";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/jquery/-/jquery-1.12.4.tgz";
-        sha1 = "01e1dfba290fe73deba77ceeacb0f9ba2fec9e0c";
+        url = "https://registry.npmjs.org/@flowjs/ng-flow/-/ng-flow-2.7.1.tgz";
+        sha1 = "04dbb4b799ea6d2ad2056f19a13718ad041ccdf8";
       };
     };
     "angular-1.4.14" = {
@@ -103,13 +31,58 @@ let
         sha1 = "2e5dbfe1239423c678165c39bb38601ad66a0794";
       };
     };
-    "@flowjs/ng-flow-2.7.1" = {
-      name = "@flowjs/ng-flow";
-      packageName = "@flowjs/ng-flow";
-      version = "2.7.1";
+    "angular-ui-slider-0.4.0" = {
+      name = "angular-ui-slider";
+      packageName = "angular-ui-slider";
+      version = "0.4.0";
       src = fetchurl {
-        url = "https://registry.npmjs.org/@flowjs/ng-flow/-/ng-flow-2.7.1.tgz";
-        sha1 = "04dbb4b799ea6d2ad2056f19a13718ad041ccdf8";
+        url = "https://registry.npmjs.org/angular-ui-slider/-/angular-ui-slider-0.4.0.tgz";
+        sha1 = "d76c0a54648d0d18d59c87e6c8338fae74135c75";
+      };
+    };
+    "autoprefixer-stylus-0.9.4" = {
+      name = "autoprefixer-stylus";
+      packageName = "autoprefixer-stylus";
+      version = "0.9.4";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/autoprefixer-stylus/-/autoprefixer-stylus-0.9.4.tgz";
+        sha1 = "760914695dce321c9980b490d81a4385c08d914d";
+      };
+    };
+    "coffee-script-1.12.7" = {
+      name = "coffee-script";
+      packageName = "coffee-script";
+      version = "1.12.7";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/coffee-script/-/coffee-script-1.12.7.tgz";
+        sha1 = "c05dae0cb79591d05b3070a8433a98c9a89ccc53";
+      };
+    };
+    "jquery-1.12.4" = {
+      name = "jquery";
+      packageName = "jquery";
+      version = "1.12.4";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/jquery/-/jquery-1.12.4.tgz";
+        sha1 = "01e1dfba290fe73deba77ceeacb0f9ba2fec9e0c";
+      };
+    };
+    "jquery-ui-dist-1.12.1" = {
+      name = "jquery-ui-dist";
+      packageName = "jquery-ui-dist";
+      version = "1.12.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/jquery-ui-dist/-/jquery-ui-dist-1.12.1.tgz";
+        sha1 = "5c0815d3cc6f90ff5faaf5b268a6e23b4ca904fa";
+      };
+    };
+    "jshint-2.8.0" = {
+      name = "jshint";
+      packageName = "jshint";
+      version = "2.8.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/jshint/-/jshint-2.8.0.tgz";
+        sha1 = "1d09a3bd913c4cadfa81bf18d582bd85bffe0d44";
       };
     };
     "lodash-3.10.1" = {
@@ -121,13 +94,22 @@ let
         sha1 = "5bf45e8e49ba4189e17d482789dfd15bd140b7b6";
       };
     };
-    "angular-ui-slider-0.4.0" = {
-      name = "angular-ui-slider";
-      packageName = "angular-ui-slider";
-      version = "0.4.0";
+    "nib-1.1.2" = {
+      name = "nib";
+      packageName = "nib";
+      version = "1.1.2";
       src = fetchurl {
-        url = "https://registry.npmjs.org/angular-ui-slider/-/angular-ui-slider-0.4.0.tgz";
-        sha1 = "d76c0a54648d0d18d59c87e6c8338fae74135c75";
+        url = "https://registry.npmjs.org/nib/-/nib-1.1.2.tgz";
+        sha1 = "6a69ede4081b95c0def8be024a4c8ae0c2cbb6c7";
+      };
+    };
+    "normalize.styl-3.0.3" = {
+      name = "normalize.styl";
+      packageName = "normalize.styl";
+      version = "3.0.3";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/normalize.styl/-/normalize.styl-3.0.3.tgz";
+        sha1 = "1a2fbc02b37e6980572e469464005260d6aa53e4";
       };
     };
     "pivottable-2.14.0" = {
@@ -137,6 +119,141 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/pivottable/-/pivottable-2.14.0.tgz";
         sha1 = "ba000d0baa385c24a37a629cc3f52d4180495737";
+      };
+    };
+    "uglify-js-2.8.29" = {
+      name = "uglify-js";
+      packageName = "uglify-js";
+      version = "2.8.29";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/uglify-js/-/uglify-js-2.8.29.tgz";
+        sha1 = "29c5733148057bb4e1f75df35b7a9cb72e6a59dd";
+      };
+    };
+    "autoprefixer-6.3.7" = {
+      name = "autoprefixer";
+      packageName = "autoprefixer";
+      version = "6.3.7";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/autoprefixer/-/autoprefixer-6.3.7.tgz";
+        sha1 = "8edf3166dd9fd6116533662c8bb36a03c0efc874";
+      };
+    };
+    "multi-stage-sourcemap-0.2.1" = {
+      name = "multi-stage-sourcemap";
+      packageName = "multi-stage-sourcemap";
+      version = "0.2.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/multi-stage-sourcemap/-/multi-stage-sourcemap-0.2.1.tgz";
+        sha1 = "b09fc8586eaa17f81d575c4ad02e0f7a3f6b1105";
+      };
+    };
+    "postcss-5.0.21" = {
+      name = "postcss";
+      packageName = "postcss";
+      version = "5.0.21";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/postcss/-/postcss-5.0.21.tgz";
+        sha1 = "d4cf6f19774648c492ac57c298f6afb3c04caefe";
+      };
+    };
+    "postcss-value-parser-3.3.0" = {
+      name = "postcss-value-parser";
+      packageName = "postcss-value-parser";
+      version = "3.3.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/postcss-value-parser/-/postcss-value-parser-3.3.0.tgz";
+        sha1 = "87f38f9f18f774a4ab4c8a232f5c5ce8872a9d15";
+      };
+    };
+    "normalize-range-0.1.2" = {
+      name = "normalize-range";
+      packageName = "normalize-range";
+      version = "0.1.2";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/normalize-range/-/normalize-range-0.1.2.tgz";
+        sha1 = "2d10c06bdfd312ea9777695a4d28439456b75942";
+      };
+    };
+    "num2fraction-1.2.2" = {
+      name = "num2fraction";
+      packageName = "num2fraction";
+      version = "1.2.2";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/num2fraction/-/num2fraction-1.2.2.tgz";
+        sha1 = "6f682b6a027a4e9ddfa4564cd2589d1d4e669ede";
+      };
+    };
+    "browserslist-1.3.6" = {
+      name = "browserslist";
+      packageName = "browserslist";
+      version = "1.3.6";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/browserslist/-/browserslist-1.3.6.tgz";
+        sha1 = "952ff48d56463d3b538f85ef2f8eaddfd284b133";
+      };
+    };
+    "caniuse-db-1.0.30000716" = {
+      name = "caniuse-db";
+      packageName = "caniuse-db";
+      version = "1.0.30000716";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/caniuse-db/-/caniuse-db-1.0.30000716.tgz";
+        sha1 = "b0717765d157662e8c74a61562c84c9fc3604a49";
+      };
+    };
+    "source-map-0.1.43" = {
+      name = "source-map";
+      packageName = "source-map";
+      version = "0.1.43";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/source-map/-/source-map-0.1.43.tgz";
+        sha1 = "c24bc146ca517c1471f5dacbe2571b2b7f9e3346";
+      };
+    };
+    "amdefine-1.0.1" = {
+      name = "amdefine";
+      packageName = "amdefine";
+      version = "1.0.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/amdefine/-/amdefine-1.0.1.tgz";
+        sha1 = "4a5282ac164729e93619bcfd3ad151f817ce91f5";
+      };
+    };
+    "supports-color-3.2.3" = {
+      name = "supports-color";
+      packageName = "supports-color";
+      version = "3.2.3";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/supports-color/-/supports-color-3.2.3.tgz";
+        sha1 = "65ac0504b3954171d8a64946b2ae3cbb8a5f54f6";
+      };
+    };
+    "source-map-0.5.6" = {
+      name = "source-map";
+      packageName = "source-map";
+      version = "0.5.6";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/source-map/-/source-map-0.5.6.tgz";
+        sha1 = "75ce38f52bf0733c5a7f0c118d81334a2bb5f412";
+      };
+    };
+    "js-base64-2.1.9" = {
+      name = "js-base64";
+      packageName = "js-base64";
+      version = "2.1.9";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/js-base64/-/js-base64-2.1.9.tgz";
+        sha1 = "f0e80ae039a4bd654b5f281fc93f04a914a7fcce";
+      };
+    };
+    "has-flag-1.0.0" = {
+      name = "has-flag";
+      packageName = "has-flag";
+      version = "1.0.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/has-flag/-/has-flag-1.0.0.tgz";
+        sha1 = "9d9e793165ce017a00f00418c43f942a7b1d11fa";
       };
     };
     "cli-0.6.6" = {
@@ -391,13 +508,130 @@ let
         sha1 = "d8a96bd77fd68df7793a73036a3ba0d5405d477b";
       };
     };
-    "source-map-0.5.6" = {
-      name = "source-map";
-      packageName = "source-map";
-      version = "0.5.6";
+    "stylus-0.54.5" = {
+      name = "stylus";
+      packageName = "stylus";
+      version = "0.54.5";
       src = fetchurl {
-        url = "https://registry.npmjs.org/source-map/-/source-map-0.5.6.tgz";
-        sha1 = "75ce38f52bf0733c5a7f0c118d81334a2bb5f412";
+        url = "https://registry.npmjs.org/stylus/-/stylus-0.54.5.tgz";
+        sha1 = "42b9560931ca7090ce8515a798ba9e6aa3d6dc79";
+      };
+    };
+    "css-parse-1.7.0" = {
+      name = "css-parse";
+      packageName = "css-parse";
+      version = "1.7.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/css-parse/-/css-parse-1.7.0.tgz";
+        sha1 = "321f6cf73782a6ff751111390fc05e2c657d8c9b";
+      };
+    };
+    "mkdirp-0.5.1" = {
+      name = "mkdirp";
+      packageName = "mkdirp";
+      version = "0.5.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/mkdirp/-/mkdirp-0.5.1.tgz";
+        sha1 = "30057438eac6cf7f8c4767f38648d6697d75c903";
+      };
+    };
+    "debug-3.0.0" = {
+      name = "debug";
+      packageName = "debug";
+      version = "3.0.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/debug/-/debug-3.0.0.tgz";
+        sha1 = "1d2feae53349047b08b264ec41906ba17a8516e4";
+      };
+    };
+    "sax-0.5.8" = {
+      name = "sax";
+      packageName = "sax";
+      version = "0.5.8";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/sax/-/sax-0.5.8.tgz";
+        sha1 = "d472db228eb331c2506b0e8c15524adb939d12c1";
+      };
+    };
+    "glob-7.0.6" = {
+      name = "glob";
+      packageName = "glob";
+      version = "7.0.6";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/glob/-/glob-7.0.6.tgz";
+        sha1 = "211bafaf49e525b8cd93260d14ab136152b3f57a";
+      };
+    };
+    "minimist-0.0.8" = {
+      name = "minimist";
+      packageName = "minimist";
+      version = "0.0.8";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/minimist/-/minimist-0.0.8.tgz";
+        sha1 = "857fcabfc3397d2625b8228262e86aa7a011b05d";
+      };
+    };
+    "ms-2.0.0" = {
+      name = "ms";
+      packageName = "ms";
+      version = "2.0.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/ms/-/ms-2.0.0.tgz";
+        sha1 = "5608aeadfc00be6c2901df5f9861788de0d597c8";
+      };
+    };
+    "fs.realpath-1.0.0" = {
+      name = "fs.realpath";
+      packageName = "fs.realpath";
+      version = "1.0.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/fs.realpath/-/fs.realpath-1.0.0.tgz";
+        sha1 = "1504ad2523158caa40db4a2787cb01411994ea4f";
+      };
+    };
+    "inflight-1.0.6" = {
+      name = "inflight";
+      packageName = "inflight";
+      version = "1.0.6";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/inflight/-/inflight-1.0.6.tgz";
+        sha1 = "49bd6331d7d02d0c09bc910a1075ba8165b56df9";
+      };
+    };
+    "minimatch-3.0.4" = {
+      name = "minimatch";
+      packageName = "minimatch";
+      version = "3.0.4";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/minimatch/-/minimatch-3.0.4.tgz";
+        sha1 = "5166e286457f03306064be5497e8dbb0c3d32083";
+      };
+    };
+    "once-1.4.0" = {
+      name = "once";
+      packageName = "once";
+      version = "1.4.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/once/-/once-1.4.0.tgz";
+        sha1 = "583b1aa775961d4b113ac17d9c50baef9dd76bd1";
+      };
+    };
+    "path-is-absolute-1.0.1" = {
+      name = "path-is-absolute";
+      packageName = "path-is-absolute";
+      version = "1.0.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/path-is-absolute/-/path-is-absolute-1.0.1.tgz";
+        sha1 = "174b9268735534ffbc7ace6bf53a5a9e1b5c5f5f";
+      };
+    };
+    "wrappy-1.0.2" = {
+      name = "wrappy";
+      packageName = "wrappy";
+      version = "1.0.2";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/wrappy/-/wrappy-1.0.2.tgz";
+        sha1 = "b5243d8f3ec1aa35f1364605bc0d1036e30ab69f";
       };
     };
     "yargs-3.10.0" = {
@@ -535,240 +769,6 @@ let
         sha1 = "1f3b26ef613b214b88cbca23cc6c01d87961eecc";
       };
     };
-    "css-parse-1.7.0" = {
-      name = "css-parse";
-      packageName = "css-parse";
-      version = "1.7.0";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/css-parse/-/css-parse-1.7.0.tgz";
-        sha1 = "321f6cf73782a6ff751111390fc05e2c657d8c9b";
-      };
-    };
-    "mkdirp-0.5.1" = {
-      name = "mkdirp";
-      packageName = "mkdirp";
-      version = "0.5.1";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/mkdirp/-/mkdirp-0.5.1.tgz";
-        sha1 = "30057438eac6cf7f8c4767f38648d6697d75c903";
-      };
-    };
-    "debug-3.0.0" = {
-      name = "debug";
-      packageName = "debug";
-      version = "3.0.0";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/debug/-/debug-3.0.0.tgz";
-        sha1 = "1d2feae53349047b08b264ec41906ba17a8516e4";
-      };
-    };
-    "sax-0.5.8" = {
-      name = "sax";
-      packageName = "sax";
-      version = "0.5.8";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/sax/-/sax-0.5.8.tgz";
-        sha1 = "d472db228eb331c2506b0e8c15524adb939d12c1";
-      };
-    };
-    "glob-7.0.6" = {
-      name = "glob";
-      packageName = "glob";
-      version = "7.0.6";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/glob/-/glob-7.0.6.tgz";
-        sha1 = "211bafaf49e525b8cd93260d14ab136152b3f57a";
-      };
-    };
-    "source-map-0.1.43" = {
-      name = "source-map";
-      packageName = "source-map";
-      version = "0.1.43";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/source-map/-/source-map-0.1.43.tgz";
-        sha1 = "c24bc146ca517c1471f5dacbe2571b2b7f9e3346";
-      };
-    };
-    "minimist-0.0.8" = {
-      name = "minimist";
-      packageName = "minimist";
-      version = "0.0.8";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/minimist/-/minimist-0.0.8.tgz";
-        sha1 = "857fcabfc3397d2625b8228262e86aa7a011b05d";
-      };
-    };
-    "ms-2.0.0" = {
-      name = "ms";
-      packageName = "ms";
-      version = "2.0.0";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/ms/-/ms-2.0.0.tgz";
-        sha1 = "5608aeadfc00be6c2901df5f9861788de0d597c8";
-      };
-    };
-    "fs.realpath-1.0.0" = {
-      name = "fs.realpath";
-      packageName = "fs.realpath";
-      version = "1.0.0";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/fs.realpath/-/fs.realpath-1.0.0.tgz";
-        sha1 = "1504ad2523158caa40db4a2787cb01411994ea4f";
-      };
-    };
-    "inflight-1.0.6" = {
-      name = "inflight";
-      packageName = "inflight";
-      version = "1.0.6";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/inflight/-/inflight-1.0.6.tgz";
-        sha1 = "49bd6331d7d02d0c09bc910a1075ba8165b56df9";
-      };
-    };
-    "minimatch-3.0.4" = {
-      name = "minimatch";
-      packageName = "minimatch";
-      version = "3.0.4";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/minimatch/-/minimatch-3.0.4.tgz";
-        sha1 = "5166e286457f03306064be5497e8dbb0c3d32083";
-      };
-    };
-    "once-1.4.0" = {
-      name = "once";
-      packageName = "once";
-      version = "1.4.0";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/once/-/once-1.4.0.tgz";
-        sha1 = "583b1aa775961d4b113ac17d9c50baef9dd76bd1";
-      };
-    };
-    "path-is-absolute-1.0.1" = {
-      name = "path-is-absolute";
-      packageName = "path-is-absolute";
-      version = "1.0.1";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/path-is-absolute/-/path-is-absolute-1.0.1.tgz";
-        sha1 = "174b9268735534ffbc7ace6bf53a5a9e1b5c5f5f";
-      };
-    };
-    "wrappy-1.0.2" = {
-      name = "wrappy";
-      packageName = "wrappy";
-      version = "1.0.2";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/wrappy/-/wrappy-1.0.2.tgz";
-        sha1 = "b5243d8f3ec1aa35f1364605bc0d1036e30ab69f";
-      };
-    };
-    "amdefine-1.0.1" = {
-      name = "amdefine";
-      packageName = "amdefine";
-      version = "1.0.1";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/amdefine/-/amdefine-1.0.1.tgz";
-        sha1 = "4a5282ac164729e93619bcfd3ad151f817ce91f5";
-      };
-    };
-    "autoprefixer-6.3.7" = {
-      name = "autoprefixer";
-      packageName = "autoprefixer";
-      version = "6.3.7";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/autoprefixer/-/autoprefixer-6.3.7.tgz";
-        sha1 = "8edf3166dd9fd6116533662c8bb36a03c0efc874";
-      };
-    };
-    "multi-stage-sourcemap-0.2.1" = {
-      name = "multi-stage-sourcemap";
-      packageName = "multi-stage-sourcemap";
-      version = "0.2.1";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/multi-stage-sourcemap/-/multi-stage-sourcemap-0.2.1.tgz";
-        sha1 = "b09fc8586eaa17f81d575c4ad02e0f7a3f6b1105";
-      };
-    };
-    "postcss-5.0.21" = {
-      name = "postcss";
-      packageName = "postcss";
-      version = "5.0.21";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/postcss/-/postcss-5.0.21.tgz";
-        sha1 = "d4cf6f19774648c492ac57c298f6afb3c04caefe";
-      };
-    };
-    "postcss-value-parser-3.3.0" = {
-      name = "postcss-value-parser";
-      packageName = "postcss-value-parser";
-      version = "3.3.0";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/postcss-value-parser/-/postcss-value-parser-3.3.0.tgz";
-        sha1 = "87f38f9f18f774a4ab4c8a232f5c5ce8872a9d15";
-      };
-    };
-    "normalize-range-0.1.2" = {
-      name = "normalize-range";
-      packageName = "normalize-range";
-      version = "0.1.2";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/normalize-range/-/normalize-range-0.1.2.tgz";
-        sha1 = "2d10c06bdfd312ea9777695a4d28439456b75942";
-      };
-    };
-    "num2fraction-1.2.2" = {
-      name = "num2fraction";
-      packageName = "num2fraction";
-      version = "1.2.2";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/num2fraction/-/num2fraction-1.2.2.tgz";
-        sha1 = "6f682b6a027a4e9ddfa4564cd2589d1d4e669ede";
-      };
-    };
-    "browserslist-1.3.6" = {
-      name = "browserslist";
-      packageName = "browserslist";
-      version = "1.3.6";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/browserslist/-/browserslist-1.3.6.tgz";
-        sha1 = "952ff48d56463d3b538f85ef2f8eaddfd284b133";
-      };
-    };
-    "caniuse-db-1.0.30000715" = {
-      name = "caniuse-db";
-      packageName = "caniuse-db";
-      version = "1.0.30000715";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/caniuse-db/-/caniuse-db-1.0.30000715.tgz";
-        sha1 = "0b9b5c795950dfbaf301a8806bafe87f126da8ca";
-      };
-    };
-    "supports-color-3.2.3" = {
-      name = "supports-color";
-      packageName = "supports-color";
-      version = "3.2.3";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/supports-color/-/supports-color-3.2.3.tgz";
-        sha1 = "65ac0504b3954171d8a64946b2ae3cbb8a5f54f6";
-      };
-    };
-    "js-base64-2.1.9" = {
-      name = "js-base64";
-      packageName = "js-base64";
-      version = "2.1.9";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/js-base64/-/js-base64-2.1.9.tgz";
-        sha1 = "f0e80ae039a4bd654b5f281fc93f04a914a7fcce";
-      };
-    };
-    "has-flag-1.0.0" = {
-      name = "has-flag";
-      packageName = "has-flag";
-      version = "1.0.0";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/has-flag/-/has-flag-1.0.0.tgz";
-        sha1 = "9d9e793165ce017a00f00418c43f942a7b1d11fa";
-      };
-    };
   };
   args = {
     name = "databrary";
@@ -776,8 +776,46 @@ let
     version = "0.0.0";
     src = ./.;
     dependencies = [
-      sources."bower-1.8.0"
+      sources."@flowjs/ng-flow-2.7.1"
+      sources."angular-1.4.14"
+      sources."angular-route-1.4.14"
+      sources."angular-ui-slider-0.4.0"
+      (sources."autoprefixer-stylus-0.9.4" // {
+        dependencies = [
+          (sources."autoprefixer-6.3.7" // {
+            dependencies = [
+              sources."postcss-value-parser-3.3.0"
+              sources."normalize-range-0.1.2"
+              sources."num2fraction-1.2.2"
+              sources."browserslist-1.3.6"
+              sources."caniuse-db-1.0.30000716"
+            ];
+          })
+          (sources."multi-stage-sourcemap-0.2.1" // {
+            dependencies = [
+              (sources."source-map-0.1.43" // {
+                dependencies = [
+                  sources."amdefine-1.0.1"
+                ];
+              })
+            ];
+          })
+          (sources."postcss-5.0.21" // {
+            dependencies = [
+              (sources."supports-color-3.2.3" // {
+                dependencies = [
+                  sources."has-flag-1.0.0"
+                ];
+              })
+              sources."source-map-0.5.6"
+              sources."js-base64-2.1.9"
+            ];
+          })
+        ];
+      })
       sources."coffee-script-1.12.7"
+      sources."jquery-1.12.4"
+      sources."jquery-ui-dist-1.12.1"
       (sources."jshint-2.8.0" // {
         dependencies = [
           (sources."cli-0.6.6" // {
@@ -841,6 +879,61 @@ let
           sources."lodash-3.7.0"
         ];
       })
+      sources."lodash-3.10.1"
+      (sources."nib-1.1.2" // {
+        dependencies = [
+          (sources."stylus-0.54.5" // {
+            dependencies = [
+              sources."css-parse-1.7.0"
+              (sources."mkdirp-0.5.1" // {
+                dependencies = [
+                  sources."minimist-0.0.8"
+                ];
+              })
+              (sources."debug-3.0.0" // {
+                dependencies = [
+                  sources."ms-2.0.0"
+                ];
+              })
+              sources."sax-0.5.8"
+              (sources."glob-7.0.6" // {
+                dependencies = [
+                  sources."fs.realpath-1.0.0"
+                  (sources."inflight-1.0.6" // {
+                    dependencies = [
+                      sources."wrappy-1.0.2"
+                    ];
+                  })
+                  sources."inherits-2.0.3"
+                  (sources."minimatch-3.0.4" // {
+                    dependencies = [
+                      (sources."brace-expansion-1.1.8" // {
+                        dependencies = [
+                          sources."balanced-match-1.0.0"
+                          sources."concat-map-0.0.1"
+                        ];
+                      })
+                    ];
+                  })
+                  (sources."once-1.4.0" // {
+                    dependencies = [
+                      sources."wrappy-1.0.2"
+                    ];
+                  })
+                  sources."path-is-absolute-1.0.1"
+                ];
+              })
+              (sources."source-map-0.1.43" // {
+                dependencies = [
+                  sources."amdefine-1.0.1"
+                ];
+              })
+            ];
+          })
+        ];
+      })
+      sources."normalize.styl-3.0.3"
+      sources."pivottable-2.14.0"
       (sources."uglify-js-2.8.29" // {
         dependencies = [
           sources."source-map-0.5.6"
@@ -890,96 +983,6 @@ let
           sources."uglify-to-browserify-1.0.2"
         ];
       })
-      (sources."stylus-0.54.5" // {
-        dependencies = [
-          sources."css-parse-1.7.0"
-          (sources."mkdirp-0.5.1" // {
-            dependencies = [
-              sources."minimist-0.0.8"
-            ];
-          })
-          (sources."debug-3.0.0" // {
-            dependencies = [
-              sources."ms-2.0.0"
-            ];
-          })
-          sources."sax-0.5.8"
-          (sources."glob-7.0.6" // {
-            dependencies = [
-              sources."fs.realpath-1.0.0"
-              (sources."inflight-1.0.6" // {
-                dependencies = [
-                  sources."wrappy-1.0.2"
-                ];
-              })
-              sources."inherits-2.0.3"
-              (sources."minimatch-3.0.4" // {
-                dependencies = [
-                  (sources."brace-expansion-1.1.8" // {
-                    dependencies = [
-                      sources."balanced-match-1.0.0"
-                      sources."concat-map-0.0.1"
-                    ];
-                  })
-                ];
-              })
-              (sources."once-1.4.0" // {
-                dependencies = [
-                  sources."wrappy-1.0.2"
-                ];
-              })
-              sources."path-is-absolute-1.0.1"
-            ];
-          })
-          (sources."source-map-0.1.43" // {
-            dependencies = [
-              sources."amdefine-1.0.1"
-            ];
-          })
-        ];
-      })
-      sources."nib-1.1.2"
-      sources."normalize.styl-3.0.3"
-      (sources."autoprefixer-stylus-0.9.4" // {
-        dependencies = [
-          (sources."autoprefixer-6.3.7" // {
-            dependencies = [
-              sources."postcss-value-parser-3.3.0"
-              sources."normalize-range-0.1.2"
-              sources."num2fraction-1.2.2"
-              sources."browserslist-1.3.6"
-              sources."caniuse-db-1.0.30000715"
-            ];
-          })
-          (sources."multi-stage-sourcemap-0.2.1" // {
-            dependencies = [
-              (sources."source-map-0.1.43" // {
-                dependencies = [
-                  sources."amdefine-1.0.1"
-                ];
-              })
-            ];
-          })
-          (sources."postcss-5.0.21" // {
-            dependencies = [
-              (sources."supports-color-3.2.3" // {
-                dependencies = [
-                  sources."has-flag-1.0.0"
-                ];
-              })
-              sources."source-map-0.5.6"
-              sources."js-base64-2.1.9"
-            ];
-          })
-        ];
-      })
-      sources."jquery-1.12.4"
-      sources."angular-1.4.14"
-      sources."angular-route-1.4.14"
-      sources."@flowjs/ng-flow-2.7.1"
-      sources."lodash-3.10.1"
-      sources."angular-ui-slider-0.4.0"
-      sources."pivottable-2.14.0"
     ];
     buildInputs = globalBuildInputs;
     meta = {
