@@ -8,6 +8,15 @@ INTERNAL NOTE: A script should be added to handle pre-requesites and part of
 the pre-building process. Include:
     *(Check/Download) Postgresql
     *(Check/Download) Solr
+      --solr-6.6.0 has been added to this repository
+      --Run: 
+      ```bash
+      $solr-6.6.0/bin/solr start
+      $solr-6.6.0/bin/solr create -c databrary_solr_store
+      ```
+      To start solr and create the solr store:
+      TODO: Import schema and Items from solr/ directory
+
     *(Check/Download) Cabal
 ---------------------------------------------------------------------------
 Welcome to the Jungle! Clone the Databrary Repo and checkout the
