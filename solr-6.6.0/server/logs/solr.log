@@ -1,0 +1,63 @@
+2017-08-20 17:12:44.071 INFO  (main) [   ] o.e.j.s.Server jetty-9.3.14.v20161028
+2017-08-20 17:12:44.444 INFO  (main) [   ] o.a.s.s.SolrDispatchFilter  ___      _       Welcome to Apache Solr™ version 6.6.0
+2017-08-20 17:12:44.444 INFO  (main) [   ] o.a.s.s.SolrDispatchFilter / __| ___| |_ _   Starting in standalone mode on port 8983
+2017-08-20 17:12:44.444 INFO  (main) [   ] o.a.s.s.SolrDispatchFilter \__ \/ _ \ | '_|  Install dir: /home/zigpolymath/Documents/Obsidian/databrary/solr-6.6.0
+2017-08-20 17:12:44.457 INFO  (main) [   ] o.a.s.s.SolrDispatchFilter |___/\___/_|_|    Start time: 2017-08-20T17:12:44.445Z
+2017-08-20 17:12:44.458 INFO  (main) [   ] o.a.s.s.StartupLoggingUtils Property solr.log.muteconsole given. Muting ConsoleAppender named CONSOLE
+2017-08-20 17:12:44.473 INFO  (main) [   ] o.a.s.c.SolrResourceLoader Using system property solr.solr.home: /home/zigpolymath/Documents/Obsidian/databrary/solr-6.6.0/server/solr
+2017-08-20 17:12:44.479 INFO  (main) [   ] o.a.s.c.SolrXmlConfig Loading container configuration from /home/zigpolymath/Documents/Obsidian/databrary/solr-6.6.0/server/solr/solr.xml
+2017-08-20 17:12:44.785 INFO  (main) [   ] o.a.s.u.UpdateShardHandler Creating UpdateShardHandler HTTP client with params: socketTimeout=600000&connTimeout=60000&retry=true
+2017-08-20 17:12:44.958 INFO  (main) [   ] o.a.s.c.CorePropertiesLocator Found 0 core definitions underneath /home/zigpolymath/Documents/Obsidian/databrary/solr-6.6.0/server/solr
+2017-08-20 17:12:44.999 INFO  (main) [   ] o.e.j.s.Server Started @1429ms
+2017-08-20 17:17:46.275 INFO  (qtp564160838-17) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/info/system params={wt=json} status=0 QTime=31
+2017-08-20 17:17:46.325 INFO  (qtp564160838-16) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/info/system params={wt=json} status=0 QTime=5
+2017-08-20 17:17:46.336 INFO  (qtp564160838-18) [   ] o.a.s.c.TransientSolrCoreCacheDefault Allocating transient cache for 2147483647 transient cores
+2017-08-20 17:17:46.336 INFO  (qtp564160838-18) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/cores params={core=databrary_solr_store&action=STATUS&wt=json} status=0 QTime=1
+2017-08-20 17:17:46.360 INFO  (qtp564160838-16) [   ] o.a.s.h.a.CoreAdminOperation core create command name=databrary_solr_store&action=CREATE&instanceDir=databrary_solr_store&wt=json
+2017-08-20 17:17:46.435 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.c.SolrResourceLoader [databrary_solr_store] Added 51 libs to classloader, from paths: [/home/zigpolymath/Documents/Obsidian/databrary/solr-6.6.0/contrib/clustering/lib, /home/zigpolymath/Documents/Obsidian/databrary/solr-6.6.0/contrib/extraction/lib, /home/zigpolymath/Documents/Obsidian/databrary/solr-6.6.0/contrib/langid/lib, /home/zigpolymath/Documents/Obsidian/databrary/solr-6.6.0/contrib/velocity/lib, /home/zigpolymath/Documents/Obsidian/databrary/solr-6.6.0/dist]
+2017-08-20 17:17:46.583 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.c.SolrConfig Using Lucene MatchVersion: 6.6.0
+2017-08-20 17:17:46.831 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.s.IndexSchema [databrary_solr_store] Schema name=example-data-driven-schema
+2017-08-20 17:17:47.434 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.s.IndexSchema Loaded schema example-data-driven-schema/1.6 with uniqueid field id
+2017-08-20 17:17:47.477 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.c.CoreContainer Creating SolrCore 'databrary_solr_store' using configuration from instancedir /home/zigpolymath/Documents/Obsidian/databrary/solr-6.6.0/server/solr/databrary_solr_store, trusted=true
+2017-08-20 17:17:47.499 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.c.SolrCore solr.RecoveryStrategy.Builder
+2017-08-20 17:17:47.504 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.c.SolrCore [[databrary_solr_store] ] Opening new SolrCore at [/home/zigpolymath/Documents/Obsidian/databrary/solr-6.6.0/server/solr/databrary_solr_store], dataDir=[/home/zigpolymath/Documents/Obsidian/databrary/solr-6.6.0/server/solr/databrary_solr_store/data/]
+2017-08-20 17:17:47.614 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.r.XSLTResponseWriter xsltCacheLifetimeSeconds=5
+2017-08-20 17:17:48.007 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.u.UpdateHandler Using UpdateLog implementation: org.apache.solr.update.UpdateLog
+2017-08-20 17:17:48.007 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.u.UpdateLog Initializing UpdateLog: dataDir= defaultSyncLevel=FLUSH numRecordsToKeep=100 maxNumLogsToKeep=10 numVersionBuckets=65536
+2017-08-20 17:17:48.019 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.u.CommitTracker Hard AutoCommit: if uncommited for 15000ms; 
+2017-08-20 17:17:48.019 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.u.CommitTracker Soft AutoCommit: disabled
+2017-08-20 17:17:48.038 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.s.SolrIndexSearcher Opening [Searcher@545967ab[databrary_solr_store] main]
+2017-08-20 17:17:48.049 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.r.ManagedResourceStorage File-based storage initialized to use dir: /home/zigpolymath/Documents/Obsidian/databrary/solr-6.6.0/server/solr/databrary_solr_store/conf
+2017-08-20 17:17:48.065 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.h.c.SpellCheckComponent Initializing spell checkers
+2017-08-20 17:17:48.070 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.s.DirectSolrSpellChecker init: {name=default,field=_text_,classname=solr.DirectSolrSpellChecker,distanceMeasure=internal,accuracy=0.5,maxEdits=2,minPrefix=1,maxInspections=5,minQueryLength=4,maxQueryFrequency=0.01}
+2017-08-20 17:17:48.073 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.h.c.QueryElevationComponent Loading QueryElevation from: /home/zigpolymath/Documents/Obsidian/databrary/solr-6.6.0/server/solr/databrary_solr_store/conf/elevate.xml
+2017-08-20 17:17:48.088 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.h.ReplicationHandler Commits will be reserved for  10000
+2017-08-20 17:17:48.131 INFO  (searcherExecutor-7-thread-1-processing-x:databrary_solr_store) [   x:databrary_solr_store] o.a.s.c.QuerySenderListener QuerySenderListener sending requests to Searcher@545967ab[databrary_solr_store] main{ExitableDirectoryReader(UninvertingDirectoryReader())}
+2017-08-20 17:17:48.132 INFO  (searcherExecutor-7-thread-1-processing-x:databrary_solr_store) [   x:databrary_solr_store] o.a.s.c.QuerySenderListener QuerySenderListener done.
+2017-08-20 17:17:48.132 INFO  (searcherExecutor-7-thread-1-processing-x:databrary_solr_store) [   x:databrary_solr_store] o.a.s.h.c.SpellCheckComponent Loading spell index for spellchecker: default
+2017-08-20 17:17:48.134 INFO  (searcherExecutor-7-thread-1-processing-x:databrary_solr_store) [   x:databrary_solr_store] o.a.s.c.SolrCore [databrary_solr_store] Registered new searcher Searcher@545967ab[databrary_solr_store] main{ExitableDirectoryReader(UninvertingDirectoryReader())}
+2017-08-20 17:17:48.138 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.u.UpdateLog Could not find max version in index or recent updates, using new clock 1576271314302271488
+2017-08-20 17:17:48.145 INFO  (qtp564160838-16) [   x:databrary_solr_store] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/cores params={name=databrary_solr_store&action=CREATE&instanceDir=databrary_solr_store&wt=json} status=0 QTime=1785
+2017-08-20 17:18:31.967 INFO  (qtp564160838-16) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/cores params={indexInfo=false&wt=json&_=1503249511704} status=0 QTime=1
+2017-08-20 17:18:31.977 INFO  (qtp564160838-12) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/info/system params={wt=json&_=1503249511705} status=0 QTime=10
+2017-08-20 17:18:32.020 INFO  (qtp564160838-21) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/info/system params={wt=json&_=1503249511705} status=0 QTime=27
+2017-08-20 17:18:47.972 INFO  (qtp564160838-13) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/cores params={indexInfo=false&wt=json&_=1503249511704} status=0 QTime=0
+2017-08-20 17:18:47.976 INFO  (qtp564160838-19) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/info/logging params={wt=json&_=1503249527964&since=0} status=0 QTime=1
+2017-08-20 17:18:47.980 INFO  (qtp564160838-16) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/info/system params={wt=json&_=1503249511705} status=0 QTime=7
+2017-08-20 17:18:57.971 INFO  (qtp564160838-18) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/info/logging params={wt=json&_=1503249527964&since=0} status=0 QTime=0
+2017-08-20 17:19:07.972 INFO  (qtp564160838-13) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/info/logging params={wt=json&_=1503249527964&since=0} status=0 QTime=0
+2017-08-20 17:19:08.144 INFO  (qtp564160838-12) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/cores params={indexInfo=false&wt=json&_=1503249511704} status=0 QTime=0
+2017-08-20 17:19:08.153 INFO  (qtp564160838-21) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/info/properties params={wt=json&_=1503249548138} status=0 QTime=0
+2017-08-20 17:19:08.161 INFO  (qtp564160838-14) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/info/system params={wt=json&_=1503249511705} status=0 QTime=8
+2017-08-20 17:19:11.759 INFO  (qtp564160838-20) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/cores params={indexInfo=false&wt=json&_=1503249511704} status=0 QTime=0
+2017-08-20 17:19:11.799 INFO  (qtp564160838-19) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/info/system params={wt=json&_=1503249511705} status=0 QTime=35
+2017-08-20 17:19:11.805 INFO  (qtp564160838-16) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/info/threads params={wt=json&_=1503249551754} status=0 QTime=39
+2017-08-20 17:19:14.325 INFO  (qtp564160838-20) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/cores params={indexInfo=false&wt=json&_=1503249511704} status=0 QTime=0
+2017-08-20 17:19:14.365 INFO  (qtp564160838-12) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/info/system params={wt=json&_=1503249511705} status=0 QTime=36
+2017-08-20 17:19:14.382 INFO  (qtp564160838-20) [   ] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/info/system params={wt=json&_=1503249511705} status=0 QTime=12
+2017-08-20 17:21:46.110 INFO  (qtp564160838-18) [   ] /solr SolrRestApi: [Restlet] ServerServlet: component class is null
+2017-08-20 17:21:46.191 INFO  (qtp564160838-18) [   ] /solr SolrRestApi: [Restlet] Attaching application: org.apache.solr.rest.SolrSchemaRestApi@77cdc9cd to URI: /solr/schema
+2017-08-20 17:21:46.207 INFO  (qtp564160838-18) [   ] o.a.s.r.SolrSchemaRestApi createInboundRoot started for /schema
+2017-08-20 17:21:46.213 INFO  (qtp564160838-18) [   ] o.a.s.r.SolrSchemaRestApi createInboundRoot started for /schema
+2017-08-20 17:21:46.249 INFO  (qtp564160838-18) [   ] o.a.s.r.SolrSchemaRestApi createInboundRoot started for /schema
+2017-08-20 17:21:46.252 INFO  (qtp564160838-18) [   ] o.a.s.r.SolrSchemaRestApi createInboundRoot started for /schema
