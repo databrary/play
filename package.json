@@ -18,11 +18,9 @@
     "nib": "^1.1.2",
     "normalize.styl": "^3.0.0",
     "pivottable": "^2.0",
-    "uglify-js": "^2.4.21"
-  },
-  "scripts": {},
-  "devDependencies": {
+    "uglify-js": "^2.8.29",
     "stylus": "^0.54.5",
     "stylus-loader": "^3.0.1"
-  }
+  },
+  "scripts": {}
 }
