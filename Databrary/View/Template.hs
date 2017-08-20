@@ -40,20 +40,6 @@ htmlHeader canon hasjs = do
   H.link
     H.! HA.rel "shortcut icon"
     H.! HA.href (builderValue $ actionURL Nothing webFile (Just $ staticPath ["icons", "favicon.png"]) [])
-
-  H.link 
-    H.! HA.rel "stylesheet"
-    H.! HA.src "/fake.css"
-  H.script H.! HA.src "/web/lib/jquery.js" $ H.text ""
-  H.script H.! HA.src "https://code.jquery.com/ui/1.12.0/jquery-ui.js" $ H.text ""
-  H.script H.! HA.src "/web/lib/angular.js" $ H.text ""
-  H.script H.! HA.src "/web/lib/slider.js" $ H.text ""
-  H.script H.! HA.src "/web/lib/angular-route.js" $ H.text ""
-  H.script H.! HA.src "/web/lib/ng-flow-standalone.js" $ H.text ""
-  H.script H.! HA.src "/web/lib/pivot.js" $ H.text ""
-  H.script H.! HA.src "/web/lib/lodash.js" $ H.text ""
-
-
   H.link
     H.! HA.rel "start"
     H.! actionLink viewRoot HTML hasjs

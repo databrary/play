@@ -27,21 +27,11 @@ jsDeps = -- included in all
   , ("angular-route",       "angular-route")
   , ("ng-flow-standalone",  "@flowjs/ng-flow/dist")
   , ("pivot",               "pivottable/dist")
-  , ("lodash",              "lodash")
+  , ("index",               "lodash")
   ]
 jsIncludes = -- included in app (along with our js)
-  map (\n -> (n, "jquery-ui/ui")) ["core", "widget"] ++
-  map (\n -> (n, "jquery-ui/ui/widgets"))
-    [ "mouse"
-    -- TODO add slider back to this list.
-    -- Currently it might collide with "angular-ui-slider/src/slider"
-    -- This was previously not a problem since bower jquery-ui libs
-    -- were prefixed with jquery.ui.${libname}, but now all js deps
-    -- come from npm.
-    -- , "slider"
-    , "sortable"
-    ] ++
-  [ ("slider",              "angular-ui-slider/src") ]
+  [ ("jquery-ui", "jquery-ui-dist") ] ++
+  [ ("slider", "angular-ui-slider/src") ]
 jsAll = jsDeps ++ jsIncludes
 
 extensions :: [FilePath]
