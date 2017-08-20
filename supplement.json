@@ -1,6 +1,5 @@
-[
-  "jshint",
-  "coffee-script",
-  "stylus",
-  "uglify-js"
+[ "jshint"
+, "coffee-script"
+, "stylus"
+, "uglify-js"
 ]
