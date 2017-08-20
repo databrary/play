@@ -45,7 +45,7 @@ generateLib fo@(f, _)
   | otherwise = mzero
 
 webJS :: Bool -> [(FilePath, FilePath)] -> [WebFilePath]
-webJS mn = map (fromString . ("lib" </>) . (<.> if False then ".min.js" else ".js") . fst)
+webJS mn = map (fromString . ("lib" </>) . (<.> if mn then ".min.js" else ".js") . fst)
 
 webDeps :: Bool -> [WebFilePath]
 webDeps debug = webJS (not debug) jsDeps
