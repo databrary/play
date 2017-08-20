@@ -38,6 +38,9 @@ STEP 3:
   ```bash
   $main
   ```
+Point your browser to localhost:8000 and observe the current status of the
+application. 
+
 Note: In order to clean your database & cabal test environment, it is best to
 execute the following commands in this order: 
 ```bash
