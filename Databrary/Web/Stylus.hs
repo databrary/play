@@ -22,7 +22,7 @@ generateStylusCSS fo@(f, _) = do
   sl <- liftIO $ findWebFiles ".styl"
   webRegenerate
     (callProcess
-      "./node_modules/.bin/stylus" $
+      "stylus" $
     (if takeExtensions (webFileRel f) == ".min.css" then ("-c":) else id) 
     ["-u", "nib", "-u", "autoprefixer-stylus", "-o", webFileAbs f, webFileAbs src])
     [] 
