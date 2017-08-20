@@ -30,6 +30,11 @@ import Databrary.Routes.API (swagger)
 import Databrary.Warp (runWarp)
 import Databrary.EZID.Volume (updateEZID)
 
+import Data.Monoid
+import System.Directory
+import System.Process
+import qualified Data.Text as Text
+
 data Flag
   = FlagConfig FilePath
   | FlagWeb
@@ -58,6 +63,16 @@ main = do
   putStrLn "2" 
   let (flags, args', err) = Opt.getOpt Opt.Permute opts args
       (configs, flags') = partitionEithers $ map flagConfig flags
+
+  cwd <- getCurrentDirectory
+  databraryConfPath <- readCreateProcess
+    (shell $ "nix-build ./build.nix --no-out-link -A conf --argstr databraryRoot " <> cwd)
+    ""
+  -- Drop newline from process output
+  let databraryConfPath' = Text.strip $ Text.pack databraryConfPath
+  print databraryConfPath'
+  callCommand $ Text.unpack $ mconcat ["ln --force -s ", databraryConfPath', " ./databrary.conf"]
+
   conf <- mconcat <$> mapM Conf.load (case configs of
     [] -> ["databrary.conf"]
     l -> l)

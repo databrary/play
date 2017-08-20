@@ -18,21 +18,30 @@ import Databrary.Web.Types
 import Databrary.Web.Generate
 
 prefix :: FilePath
-prefix = "bower_components"
+prefix = "node_modules"
 
 jsDeps, jsIncludes, jsAll :: [(FilePath, FilePath)]
 jsDeps = -- included in all
   [ ("jquery",              "jquery/dist")
   , ("angular",             "angular")
   , ("angular-route",       "angular-route")
-  , ("ng-flow-standalone",  "ng-flow/dist")
+  , ("ng-flow-standalone",  "@flowjs/ng-flow/dist")
   , ("pivot",               "pivottable/dist")
   , ("lodash",              "lodash")
   ]
 jsIncludes = -- included in app (along with our js)
-  map (\n -> ("jquery.ui." ++ n, "jquery-ui/ui")) ["core", "widget", "mouse", "slider", "sortable"] ++
-  [ ("slider",              "angular-ui-slider/src")
-  ]
+  map (\n -> (n, "jquery-ui/ui")) ["core", "widget"] ++
+  map (\n -> (n, "jquery-ui/ui/widgets"))
+    [ "mouse"
+    -- TODO add slider back to this list.
+    -- Currently it might collide with "angular-ui-slider/src/slider"
+    -- This was previously not a problem since bower jquery-ui libs
+    -- were prefixed with jquery.ui.${libname}, but now all js deps
+    -- come from npm.
+    -- , "slider"
+    , "sortable"
+    ] ++
+  [ ("slider",              "angular-ui-slider/src") ]
 jsAll = jsDeps ++ jsIncludes
 
 extensions :: [FilePath]
