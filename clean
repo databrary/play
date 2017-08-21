@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+git clean -f -X ./web/
+rm web/lib 
+rm web/all.min.* 
+rm web/app.min.*
