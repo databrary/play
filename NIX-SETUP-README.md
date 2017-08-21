@@ -21,6 +21,10 @@ From the root directory of this project, run
 # Enter environment for building/running databrary
 > nix-shell
 
+# Generate configuration
+> ./confgen.hs
+
+
 # Set up the postgresql database along with required schemas
 > ./init-db
 ```
