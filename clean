@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 git clean -f -X ./web/
+rm -r dist
 rm -r web/lib
 rm web/all.min.* 
 rm web/app.min.*
