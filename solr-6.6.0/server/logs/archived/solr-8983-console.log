@@ -1,6 +1,0 @@
-2017-08-20 16:58:51.705 INFO  (main) [   ] o.e.j.s.Server jetty-9.3.14.v20161028
-2017-08-20 16:58:52.074 INFO  (main) [   ] o.a.s.s.SolrDispatchFilter  ___      _       Welcome to Apache Solr™ version 6.6.0
-2017-08-20 16:58:52.074 INFO  (main) [   ] o.a.s.s.SolrDispatchFilter / __| ___| |_ _   Starting in standalone mode on port 8983
-2017-08-20 16:58:52.074 INFO  (main) [   ] o.a.s.s.SolrDispatchFilter \__ \/ _ \ | '_|  Install dir: /home/zigpolymath/Documents/Obsidian/databrary/solr-6.6.0
-2017-08-20 16:58:52.087 INFO  (main) [   ] o.a.s.s.SolrDispatchFilter |___/\___/_|_|    Start time: 2017-08-20T16:58:52.075Z
-2017-08-20 16:58:52.087 INFO  (main) [   ] o.a.s.s.StartupLoggingUtils Property solr.log.muteconsole given. Muting ConsoleAppender named CONSOLE
