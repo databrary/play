@@ -4,8 +4,12 @@ Guide for setting up a development environment for Databrary.
 Please update this document with fixes as they are deployed.
 
 ---------------------------------------------------------------------------
-Welcome to the Jungle! Clone the Databrary Repo and checkout the
-obsidian-develop branch. 
+Welcome to the Jungle!
+
+If you don't have the nix package manager installed, get it here:
+https://nixos.org/nix/
+
+Clone the Databrary Repo and checkout the obsidian-develop branch. 
 ```bash
 > git clone git@github.com:databrary/databrary.git
 > git checkout obsidian-develop
