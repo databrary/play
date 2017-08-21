@@ -47,13 +47,12 @@ When cabal repl finishes loading, run
 
 Point your browser to localhost:8888
 
+Note: In order to stop your database, you can:
+```bash
+./stop-db
+```
 
 Note: In order to remove your database & cabal test environment, you can:
 ```bash
-./teardown
+./teardown-db
 ```
-
-----------------------------------------------------------------------------
-INTERNAL NOTE: A script should be added to handle pre-requesites and part of
-the pre-building process. Include:
-    *(Check/Download) Cabal
