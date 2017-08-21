@@ -12,6 +12,8 @@
 # , dbPoolSize ? "5"
 , databraryRoot ? ../databrary
 , pkgs ? (import ./reflex-platform {}).nixpkgs
+
+, solrPort ? "8984"
 }: pkgs.writeText name ''
 # Example settings for databrary.conf
 # This file will be looked for in the current directory whenever databrary is run, or where specied by the -c flag.
@@ -90,7 +92,7 @@ solr {
   run = false
   host = "localhost"
   ## Port solr should listen on.
-  port = 8983
+  port = ${solrPort}
   ## Directory to store solr cores.
   home = "${databraryRoot}/solr"
   ## Name of solr core to use.

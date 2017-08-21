@@ -28,4 +28,5 @@
 /tags
 /.cabal-sandbox/
 cabal.sandbox.config
-
+logfile
+solr-6.6.0/server/logs
