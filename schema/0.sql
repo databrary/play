@@ -980,6 +980,7 @@ INSERT INTO "volume_doi" VALUES (1, '10.17910/B7159Q');
 
 INSERT INTO volume_access (volume, party, individual, children) VALUES (1, 1, 'ADMIN', 'NONE');
 INSERT INTO volume_access (volume, party, individual, children) VALUES (1, 3, 'ADMIN', 'NONE');
+INSERT INTO volume_access (volume, party, individual, children) VALUES (1, 7, 'ADMIN', 'NONE');
 INSERT INTO volume_access (volume, party, individual, children) VALUES (1, -1, 'PUBLIC', 'PUBLIC');
 
 INSERT INTO asset (id, volume, format, release, duration, name, sha1) VALUES (1, 1, -800, 'PUBLIC', interval '40', 'counting', '\x3dda3931202cbe06a9e4bbb5f0873c879121ef0a');
