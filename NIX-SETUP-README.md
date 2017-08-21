@@ -18,7 +18,7 @@ From the root directory of this project, run
 > nix-shell
 
 # Set up the postgresql database along with required schemas
-> ./bar
+> ./init-db
 ```
 
 ### STEP 2
