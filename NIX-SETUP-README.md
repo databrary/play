@@ -40,14 +40,9 @@ When cabal repl finishes loading, run
 Point your browser to localhost:8888
 
 
-Note: In order to clean your database & cabal test environment, it is best to
-execute the following commands in this order: 
+Note: In order to remove your database & cabal test environment, you can:
 ```bash
-$dropdb databrary
-$dropuser databrary
-$pg_ctl -D databrary-db -l logfile stop
-$rm -rf databrary-db/
-$rm -rf dist/
+./teardown
 ```
 
 ----------------------------------------------------------------------------
