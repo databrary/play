@@ -7,7 +7,7 @@ module Databrary.Solr.Service
   ) where
 
 import Control.Monad (when, forM_)
-import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.IO.Class
 import Data.Maybe (isNothing, fromMaybe)
 import qualified Network.HTTP.Client as HC
 import System.Directory (makeAbsolute, createDirectoryIfMissing, getDirectoryContents, copyFile, getCurrentDirectory)
@@ -48,8 +48,7 @@ confSolr src dst = do
 
 initSolr :: Bool -> C.Config -> IO Solr
 initSolr fg conf = do
-  --home <- makeAbsolute $ conf C.! "home"
-  home <- getCurrentDirectory
+  home <- makeAbsolute $ conf C.! "home"
 
 {-
   dir <- makeAbsolute =<< getDataFileName "solr"
@@ -60,14 +59,19 @@ initSolr fg conf = do
   confSolr (dir </> "conf") (home </> core </> "conf")
 -}
 
-  dir <- getCurrentDirectory 
+  -- dir <- getCurrentDirectory
   env <- getEnvironment
   out <- maybe (return Proc.Inherit) (\f -> Proc.UseHandle <$> openFile f AppendMode) $ conf C.! "log"
-  p <- fromMaybe fg (conf C.! "run") ?$> Proc.createProcess (Proc.proc (fromMaybe "solr" $ conf C.! "bin") ["start", "-Djetty.host=" ++ host, "-p", show port, "-f", "-s", home])
+  let run = conf C.! "run"
+  print $ "RUN" ++ show run
+  print $ "HOME" ++ show home
+  p <- fromMaybe fg run ?$>
+       Proc.createProcess (Proc.proc (fromMaybe "solr" $ conf C.! "bin")
+                            ["start", "-Djetty.host=" ++ host, "-p", show port, "-f", "-s", home])
     { Proc.std_out = out
     , Proc.std_err = out
     , Proc.close_fds = True
-    , Proc.env = Just $ env ++ [("SOLR_PID_DIR", home), ("LOG4J_PROPS", dir </> "log4j.properties")]
+    , Proc.env = Just $ env ++ [("SOLR_PID_DIR", home), ("LOG4J_PROPS", home </> "log4j.properties")]
     , Proc.create_group = True
     }
 

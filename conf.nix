@@ -87,9 +87,9 @@ store {
 
 solr {
   ## Path to solr binary, defaulting to "solr" in PATH.
-  #bin = "/usr/local/bin/solr"
+  bin = "${databraryRoot}/solr-6.6.0/bin/solr"
   ## Alternatively, a host to connect to an already-running solr (untested).
-  run = false
+  run = true
   host = "localhost"
   ## Port solr should listen on.
   port = ${solrPort}

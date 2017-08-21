@@ -34,3 +34,4 @@ solr-6.6.0/bin/*.pid
 databrary-db/
 TAGS
 node_modules
+databrary_logs/solr_log
