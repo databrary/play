@@ -7,8 +7,8 @@
 , lifted-base, memory, mime-mail
 , monad-control, mtl, network, network-uri, npm ? import ./node-packages.nix, parsec
 , posix-paths, postgresql-typed, process, range-set-list
-, regex-posix, resource-pool, resourcet, scientific, stdenv
-, streaming-commons, template-haskell, text, th-lift
+, regex-posix, resource-pool, resourcet, scientific, smtp-mail
+, stdenv , streaming-commons, template-haskell, text, th-lift
 , th-lift-instances, time, transformers, transformers-base, unix
 , unordered-containers, utf8-string, vector, wai, wai-extra, warp
 , warp-tls, web-inv-route, xml, zlib
@@ -28,7 +28,7 @@ mkDerivation {
     hjsonschema http-client http-client-tls http-types invertible
     lifted-base memory mime-mail monad-control mtl network network-uri
     parsec posix-paths postgresql-typed process range-set-list
-    regex-posix resource-pool resourcet scientific streaming-commons
+    regex-posix resource-pool resourcet scientific smtp-mail streaming-commons
     template-haskell text th-lift th-lift-instances time transformers
     transformers-base unix unordered-containers utf8-string vector wai
     wai-extra warp warp-tls web-inv-route xml zlib
