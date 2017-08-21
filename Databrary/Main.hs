@@ -58,9 +58,7 @@ main :: IO ()
 main = do
   putStrLn "Starting Main..."
   prog <- getProgName
-  putStrLn "1" 
   args <- getArgs
-  putStrLn "2" 
   let (flags, args', err) = Opt.getOpt Opt.Permute opts args
       (configs, flags') = partitionEithers $ map flagConfig flags
 
@@ -76,7 +74,6 @@ main = do
   conf <- mconcat <$> mapM Conf.load (case configs of
     [] -> ["databrary.conf"]
     l -> l)
-  putStrLn "3" 
   case (flags', args', err) of
     ([FlagWeb], [], []) -> do
       putStrLn "generating files..." 
