@@ -31,3 +31,6 @@ cabal.sandbox.config
 logfile
 solr-6.6.0/server/logs
 solr-6.6.0/bin/*.pid
+databrary-db/
+TAGS
+node_modules
