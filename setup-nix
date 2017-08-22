@@ -3,6 +3,4 @@ set -eu
 
 curl https://nixos.org/nix/install | sh
 
-echo "Creating /etc/nix/nix.conf for binary cache configuration. sudo required:"
-sudo mkdir -p /etc/nix
-echo "binary-caches = http://obsidian.webhop.org:8950/ https://cache.nixos.org/" | sudo tee -a /etc/nix/nix.conf 
+sudo ./setup-binary-caches
