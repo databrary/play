@@ -6,9 +6,6 @@ Please update this document with fixes as they are deployed.
 ---------------------------------------------------------------------------
 Welcome to the Jungle!
 
-If you don't have the nix package manager installed, get it here:
-https://nixos.org/nix/
-
 Clone the Databrary Repo and checkout the obsidian-develop branch. 
 ```bash
 > git clone git@github.com:databrary/databrary.git
@@ -18,6 +15,8 @@ Clone the Databrary Repo and checkout the obsidian-develop branch.
 ### STEP 1
 From the root directory of this project, run
 ```bash
+# Get nix!
+> ./setup-nix
 # Enter environment for building/running databrary
 > nix-shell
 
