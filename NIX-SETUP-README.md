@@ -18,14 +18,9 @@ From the root directory of this project, run
 # If you don't already have nix, get it! (If you do have it, skip this step)
 > ./setup-nix
 # If you just want to add the binary caches to your nix config (note that this is run by setup-nix, so you don't need to run both):
-> ./setup-binary-caches
+> sudo ./setup-binary-caches
 # Enter environment for building/running databrary
 > nix-shell
-
-# Generate configuration
-> ./confgen.hs
-
-
 # Set up the postgresql database along with required schemas
 > ./init-db
 ```
