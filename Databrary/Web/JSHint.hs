@@ -25,7 +25,7 @@ checkJSHint fo@(f, _)
       ht <- fmap snd <$> fileInfo h
       ft <- modificationTimestamp <$> getFileStatus f
       when (all (ft >) ht) $ do
-        callProcess (binDir </> "jshint") [webFileAbs f]
+        callProcess ("jshint") [webFileAbs f]
         maybe
           (openFd h WriteOnly (Just 0o666) defaultFileFlags >>= closeFd)
           (\_ -> setFileTimestamps h ft ft)

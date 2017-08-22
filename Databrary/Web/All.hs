@@ -32,7 +32,7 @@ generateMerged l fo@(f, _) = do
   z = 32768
 
 generateAllJS :: WebGenerator
-generateAllJS = generateMerged (webDeps False ++ ["app.min.js"])
+generateAllJS = generateMerged (webDeps True ++ ["app.min.js"])
 
 generateAllCSS :: WebGenerator
 generateAllCSS = generateMerged (cssWebDeps False)

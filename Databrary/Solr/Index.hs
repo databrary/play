@@ -217,7 +217,7 @@ updateIndex = do
           w <- runInvert $ runReaderT (writeUpdate writeAllDocuments) ctx
           wf $ fold <$> w
         , HC.requestHeaders = (hContentType, "application/json") : HC.requestHeaders req
-        , HC.responseTimeout = Just 100000000
+        , HC.responseTimeout = HC.responseTimeoutMicro 100000000
         }
       t' <- liftIO getCurrentTime
       focusIO $ logMsg t' ("solr update complete " ++ show (diffUTCTime t' t))

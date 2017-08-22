@@ -25,7 +25,7 @@ initEZID conf = conf C.! "ns" `forM` \ns -> do
   return $ EZID
     { ezidRequest = HC.applyBasicAuth (conf C.! "user") (conf C.! "pass") req
       { HC.requestHeaders = (hContentType, "text/plain") : HC.requestHeaders req
-      , HC.responseTimeout = Just 100000000
+      , HC.responseTimeout = HC.responseTimeoutMicro 100000000
       , HC.redirectCount = 1
       }
     , ezidNS = ns
