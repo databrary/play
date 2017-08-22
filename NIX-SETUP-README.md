@@ -15,8 +15,10 @@ Clone the Databrary Repo and checkout the obsidian-develop branch.
 ### STEP 1
 From the root directory of this project, run
 ```bash
-# Get nix!
+# If you don't already have nix, get it! (If you do have it, skip this step)
 > ./setup-nix
+# If you just want to add the binary caches to your nix config (note that this is run by setup-nix, so you don't need to run both):
+> ./setup-binary-caches
 # Enter environment for building/running databrary
 > nix-shell
 
