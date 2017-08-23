@@ -18,21 +18,20 @@ import Databrary.Web.Types
 import Databrary.Web.Generate
 
 prefix :: FilePath
-prefix = "bower_components"
+prefix = "node_modules"
 
 jsDeps, jsIncludes, jsAll :: [(FilePath, FilePath)]
 jsDeps = -- included in all
   [ ("jquery",              "jquery/dist")
   , ("angular",             "angular")
   , ("angular-route",       "angular-route")
-  , ("ng-flow-standalone",  "ng-flow/dist")
+  , ("ng-flow-standalone",  "@flowjs/ng-flow/dist")
   , ("pivot",               "pivottable/dist")
-  , ("lodash",              "lodash")
+  , ("index",               "lodash")
   ]
 jsIncludes = -- included in app (along with our js)
-  map (\n -> ("jquery.ui." ++ n, "jquery-ui/ui")) ["core", "widget", "mouse", "slider", "sortable"] ++
-  [ ("slider",              "angular-ui-slider/src")
-  ]
+  [ ("jquery-ui", "jquery-ui-dist") ] ++
+  [ ("slider", "angular-ui-slider/src") ]
 jsAll = jsDeps ++ jsIncludes
 
 extensions :: [FilePath]

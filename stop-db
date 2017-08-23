@@ -1,0 +1,1 @@
+nix-shell --run "pg_ctl -D databrary-db -l logfile stop"

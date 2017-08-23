@@ -70,7 +70,7 @@ search SearchQuery{..} = do
   focusIO $ HC.httpLbs req
     { HC.path = HC.path req <> "search"
     , HC.queryString = renderSimpleQuery True query
-    , HC.checkStatus = \_ _ _ -> Nothing
+    , HC.checkResponse = \_ _ -> putStrLn "Search Error"
     }
   where
   query =

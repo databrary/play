@@ -42,7 +42,8 @@ instance Show WebFilePath where
   showsPrec p = showsPrec p . ("web" FP.</>) . webFileRel
 
 webDir :: FilePath
-webDir = unsafeDupablePerformIO $ getDataFileName "web"
+--webDir = unsafeDupablePerformIO $ getDataFileName "web"
+webDir = "./web"
 
 webDirRaw :: RawFilePath
 webDirRaw = toRawFilePath webDir

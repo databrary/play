@@ -1,0 +1,6 @@
+{
+  "url": "git://github.com/ghcjs/ghcjs-boot",
+  "rev": "19e1711abb81c43e6d4373e25cf63d21d85a3229",
+  "sha256": "0kc01rs0ydfx4d9ic0z2s56imx2iwpabiglsjd5rj95agp334nhc",
+  "fetchSubmodules": true
+}

@@ -1,0 +1,1 @@
+nix-shell --run "ghcid -c\"cabal repl databrary\""
