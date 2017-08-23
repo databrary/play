@@ -48,7 +48,3 @@ Note: In order to stop your database, you can:
 ./stop-db
 ```
 
-Note: In order to remove your database & cabal test environment, you can:
-```bash
-./teardown-db
-```

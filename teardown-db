@@ -1,1 +1,0 @@
-nix-shell --run "dropdb databrary; dropuser databrary; pg_ctl -D databrary-db -l logfile stop; rm -rf databrary-db; rm -rf dist"
