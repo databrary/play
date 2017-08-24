@@ -9,7 +9,6 @@ pkgs.databrary-dev.env.overrideAttrs (attrs: {
     [nixpkgs.ffmpeg
      nodePackages.shell.nodeDependencies
      nixpkgs.nodejs-8_x
-     nixpkgs.postfix
      nixpkgs.postgresql96
      nixpkgs.jdk #required by Solr
      nixpkgs.haskellPackages.cabal-install

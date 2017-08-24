@@ -33,7 +33,7 @@ mkDerivation {
     transformers-base unix unordered-containers utf8-string vector wai
     wai-extra warp warp-tls web-inv-route xml zlib
   ];
-  executableSystemDepends = [ cracklib ]; #add postfix here
+  executableSystemDepends = [ cracklib ];
   executablePkgconfigDepends = [
     ffmpeg
   ];
