@@ -41,7 +41,7 @@ When cabal repl finishes loading, run
 > main
 ```
 
-Point your browser to localhost:8888
+Point your browser to localhost:8000
 
 Note: In order to stop your database, you can:
 ```bash
