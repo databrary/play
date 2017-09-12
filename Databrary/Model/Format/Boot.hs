@@ -17,6 +17,12 @@ loadFormats = do
   l <- runTDB 
          $ dbQuery 
             $(selectQuery 
-                (selectColumns 'makeFormat "format" ["id", "mimetype", "extension", "name"]) 
+                (Selector
+                   (OutputJoin 
+                      False 
+                      'makeFormat 
+                      (map (SelectColumn "format") ["id", "mimetype", "extension", "name"]))
+                   "format"
+                   ",format")
                 "ORDER BY id")
   TH.lift l
