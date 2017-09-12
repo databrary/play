@@ -13,14 +13,10 @@ import Databrary.Model.Party.Types
 import Databrary.Model.Party.SQL (selectSiteAuth)
 import Databrary.Model.Token.Types
 
-tokenRow :: String -- ^ table name
-  -> Selector -- ^ @'Token'@
-tokenRow table = selectColumns 'Token table ["token", "expires"]
-
 accountTokenRow :: String -- ^ table name
   -> Selector -- ^ @'AccountToken'@
 accountTokenRow table = selectJoin 'AccountToken
-  [ tokenRow table
+  [ selectColumns 'Token table ["token", "expires"]
   , joinOn (table ++ ".account = account.id") selectSiteAuth
   ]
 
@@ -37,4 +33,4 @@ makeUpload t n z u = Upload (AccountToken t u) n z
 
 selectUpload :: Selector -- @'SiteAuth' -> 'Upload'@
 selectUpload =
-  addSelects 'makeUpload (tokenRow "upload") [SelectColumn "upload" "filename", SelectColumn "upload" "size"]
+  addSelects 'makeUpload (selectColumns 'Token "upload" ["token", "expires"]) [SelectColumn "upload" "filename", SelectColumn "upload" "size"]
