@@ -11,7 +11,7 @@ import qualified Language.Haskell.TH.Syntax as TH
 import Databrary.Service.DB
 import Databrary.Model.SQL (selectQuery)
 import Databrary.Model.SQL.Select
-import Databrary.Model.Format.SQL
+import Databrary.Model.Format.Types (makeFormat)
 
 loadFormats :: TH.ExpQ
 loadFormats = do
