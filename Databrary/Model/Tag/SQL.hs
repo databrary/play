@@ -1,7 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Databrary.Model.Tag.SQL
-  ( selectTag
-  , selectTagUseRow
+  ( selectTagUseRow
   , insertTagUse
   , deleteTagUse
   , selectTagWeight
@@ -22,12 +21,6 @@ import Databrary.Model.Segment
 import Databrary.Model.Slot.Types
 import Databrary.Model.Tag.Types
 
-tagRow :: Selector -- ^ @'Tag'@
-tagRow = selectColumns 'Tag "tag" ["id", "name"]
-
-selectTag :: Selector -- ^ @'Tag'@
-selectTag = tagRow
-
 tagUseTable :: Bool -> String
 tagUseTable False = "tag_use"
 tagUseTable True = "keyword_use"
@@ -44,7 +37,7 @@ selectTagUseRow :: Selector -- ^ @'TagUseId'@
 selectTagUseRow = selectJoin '($)
   [ tagUseRow
   , joinOn "tag_use.tag = tag.id"
-    tagRow
+    (selectColumns 'Tag "tag" ["id", "name"])
   ]
 
 insertTagUse :: Bool -- ^ keyword
@@ -83,7 +76,7 @@ makeTagWeight w t = TagWeight t w
 selectTagWeight :: String -> Selector -- ^ @'TagCoverage'@
 selectTagWeight q = selectJoin '($)
   [ selectTagGroup "tag_weight" q 'makeTagWeight tagWeightColumns
-  , joinOn "tag_weight.tag = tag.id" selectTag
+  , joinOn "tag_weight.tag = tag.id" (selectColumns 'Tag "tag" ["id", "name"])
   ]
 
 makeTagCoverage :: Int32 -> [Maybe Segment] -> [Maybe Segment] -> [Maybe Segment] -> Tag -> Container -> TagCoverage
@@ -109,5 +102,5 @@ selectSlotTagCoverage :: TH.Name -- ^ @'Party'@
   -> Selector -- ^ @'TagCoverage'@
 selectSlotTagCoverage acct slot = selectMap (`TH.AppE` (TH.VarE 'slotContainer `TH.AppE` TH.VarE slot)) $ selectJoin '($)
   [ selectTagCoverage acct $ "WHERE container = ${containerId $ containerRow $ slotContainer " ++ ss ++ "} AND segment && ${slotSegment " ++ ss ++ "}"
-  , joinOn "tag_coverage.tag = tag.id" selectTag
+  , joinOn "tag_coverage.tag = tag.id" (selectColumns 'Tag "tag" ["id", "name"]) 
   ] where ss = nameRef slot

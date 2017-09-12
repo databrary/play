@@ -56,7 +56,7 @@ selectTargetNotification = selectJoin '($)
   , maybeJoinOn "notification.volume = volume.id"
     $ selectVolumeRow
   , maybeJoinOn "notification.tag = tag.id"
-    $ selectTag
+    $ selectColumns 'Tag "tag" ["id", "name"] -- selectTag
   ]
 
 selectNotification :: Selector -- ^ @'Notification'@
