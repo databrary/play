@@ -22,12 +22,14 @@ import Data.Int (Int64)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import Database.PostgreSQL.Typed (pgSQL)
+import Database.PostgreSQL.Typed.Query (parseQueryFlags)
 
 import Databrary.Ops
 import Databrary.Has (peek)
 import qualified Databrary.JSON as JSON
 import Databrary.Service.DB
 import Databrary.Model.SQL
+import Databrary.Model.SQL.Select
 import Databrary.Model.Party.Types
 import Databrary.Model.Identity.Types
 import Databrary.Model.Volume.Types
@@ -38,14 +40,48 @@ import Databrary.Model.Tag.SQL
 
 lookupTag :: MonadDB c m => TagName -> m (Maybe Tag)
 lookupTag n =
-  dbQuery1 $(selectQuery selectTag "$WHERE tag.name = ${n}::varchar")
+  dbQuery1 
+      $(makeQuery
+          (fst (parseQueryFlags "$WHERE tag.name = ${n}::varchar"))
+          (\_ -> 
+                 "SELECT tag.id,tag.name"
+              ++ " FROM tag " 
+              ++ (snd (parseQueryFlags "$WHERE tag.name = ${n}::varchar")))
+          (OutputJoin
+             False 
+             'Tag 
+             [ SelectColumn "tag" "id"
+             , SelectColumn "tag" "name" ]))
 
 lookupTags :: MonadDB c m => m [Tag]
-lookupTags = dbQuery $(selectQuery selectTag "")
+lookupTags = 
+  dbQuery
+      $(makeQuery
+          (fst (parseQueryFlags ""))
+          (\_ -> 
+                 "SELECT tag.id,tag.name"
+              ++ " FROM tag " 
+              ++ (snd (parseQueryFlags "")))
+          (OutputJoin
+             False 
+             'Tag 
+             [ SelectColumn "tag" "id"
+             , SelectColumn "tag" "name" ]))
 
 findTags :: MonadDB c m => TagName -> Int -> m [Tag]
 findTags (TagName n) lim = -- TagName restrictions obviate pattern escaping
-  dbQuery $(selectQuery selectTag "$WHERE tag.name LIKE ${n `BSC.snoc` '%'}::varchar LIMIT ${fromIntegral lim :: Int64}")
+  dbQuery
+      $(makeQuery
+          (fst (parseQueryFlags "$WHERE tag.name LIKE ${n `BSC.snoc` '%'}::varchar LIMIT ${fromIntegral lim :: Int64}"))
+          (\_ -> 
+                 "SELECT tag.id,tag.name"
+              ++ " FROM tag " 
+              ++ (snd (parseQueryFlags "$WHERE tag.name LIKE ${n `BSC.snoc` '%'}::varchar LIMIT ${fromIntegral lim :: Int64}")))
+          (OutputJoin
+             False 
+             'Tag 
+             [ SelectColumn "tag" "id"
+             , SelectColumn "tag" "name" ]))
 
 addTag :: MonadDB c m => TagName -> m Tag
 addTag n =
@@ -88,7 +124,19 @@ lookupSlotTagCoverage slot lim = do
 
 lookupSlotKeywords :: (MonadDB c m) => Slot -> m [Tag]
 lookupSlotKeywords Slot{..} =
-  dbQuery $(selectQuery selectTag "JOIN keyword_use ON id = tag WHERE container = ${containerId $ containerRow slotContainer} AND segment = ${slotSegment}")
+  dbQuery
+      $(makeQuery
+          (fst (parseQueryFlags "JOIN keyword_use ON id = tag WHERE container = ${containerId $ containerRow slotContainer} AND segment = ${slotSegment}"))
+          (\_ -> 
+                 "SELECT tag.id,tag.name"
+              ++ " FROM tag " 
+              ++ (snd (parseQueryFlags "JOIN keyword_use ON id = tag WHERE container = ${containerId $ containerRow slotContainer} AND segment = ${slotSegment}")))
+          (OutputJoin
+             False 
+             'Tag 
+             [ SelectColumn "tag" "id"
+             , SelectColumn "tag" "name" ]))
+
 
 tagWeightJSON :: JSON.ToObject o => TagWeight -> JSON.Record TagName o
 tagWeightJSON TagWeight{..} = JSON.Record (tagName tagWeightTag) $
