@@ -13,13 +13,14 @@ import Data.Int (Int64)
 import Data.Maybe (listToMaybe)
 import Data.Monoid ((<>))
 import Database.PostgreSQL.Typed (pgSQL)
+import Database.PostgreSQL.Typed.Query (parseQueryFlags)
 
 import Databrary.Ops
 import Databrary.Has (peek, view)
 import qualified Databrary.JSON as JSON
 import Databrary.Service.DB
 import Databrary.Model.SQL
-import Databrary.Model.SQL.Select (selectColumns)
+import Databrary.Model.SQL.Select
 import Databrary.Model.Id.Types
 import Databrary.Model.Party
 import Databrary.Model.Identity
@@ -53,9 +54,21 @@ lookupSlotComments (Slot c s) n = do
 lookupVolumeCommentRows :: MonadDB c m => Volume -> m [CommentRow]
 lookupVolumeCommentRows v =
   dbQuery 
-    $(selectQuery 
-        (selectColumns 'makeCommentRow "comment" ["id", "container", "segment", "who", "time", "text"])
-	"JOIN container ON comment.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container")
+     $(makeQuery
+         (fst (parseQueryFlags "JOIN container ON comment.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container"))
+         (\_ -> 
+                "SELECT comment.id,comment.container,comment.segment,comment.who,comment.time,comment.text"
+             ++ " FROM comment " 
+             ++ (snd (parseQueryFlags "JOIN container ON comment.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container")))
+         (OutputJoin
+            False 
+            'makeCommentRow
+            [ SelectColumn "comment" "id"
+            , SelectColumn "comment" "container"
+            , SelectColumn "comment" "segment"
+            , SelectColumn "comment" "who"
+            , SelectColumn "comment" "time"
+            , SelectColumn "comment" "text" ]))
 
 addComment :: MonadDB c m => Comment -> m Comment
 addComment c@Comment{..} = do
