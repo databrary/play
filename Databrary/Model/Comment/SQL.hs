@@ -2,7 +2,6 @@
 module Databrary.Model.Comment.SQL
   ( selectContainerComment
   , selectComment
-  , selectCommentRow
   ) where
 
 import Data.Maybe (fromMaybe)
@@ -20,14 +19,11 @@ import Databrary.Model.Container.SQL
 import Databrary.Model.Segment
 import Databrary.Model.Slot.Types
 
-makeComment :: Id Comment -> Segment -> Timestamp -> T.Text -> [Maybe (Id Comment)] -> Account -> Container -> Comment
-makeComment i s t x p w c = Comment i w (Slot c s) t x (map (fromMaybe (error "NULL comment thread")) p)
-
-commentRow :: Selector -- ^ @'Account' -> 'Container' -> 'Comment'@
-commentRow = selectColumns 'makeComment "comment" ["id", "segment", "time", "text", "thread"]
-
 selectAccountContainerComment :: Selector -- ^ @'Account' -> 'Container' -> 'Comment'@
-selectAccountContainerComment = fromMap ("comment_thread AS " ++) commentRow
+selectAccountContainerComment = 
+  fromMap 
+    ("comment_thread AS " ++) 
+    (selectColumns 'makeComment "comment" ["id", "segment", "time", "text", "thread"])
 
 selectContainerComment :: TH.Name -- ^ @'Identity'@
   -> Selector -- ^ @'Container' -> 'Comment'@
@@ -44,12 +40,6 @@ selectComment ident = selectJoin '($)
   , joinOn "comment.container = container.id"
     $ selectContainer ident
   ]
-
-makeCommentRow :: Id Comment -> Id Container -> Segment -> Id Party -> Timestamp -> T.Text -> CommentRow
-makeCommentRow i c s w t x = CommentRow i w (SlotId c s) t x
-
-selectCommentRow :: Selector -- ^ @'CommentRow'@
-selectCommentRow = selectColumns 'makeCommentRow "comment" ["id", "container", "segment", "who", "time", "text"]
 
 _commentSets :: String -- ^ @'Comment'@
   -> [(String, String)]

@@ -19,6 +19,7 @@ import Databrary.Has (peek, view)
 import qualified Databrary.JSON as JSON
 import Databrary.Service.DB
 import Databrary.Model.SQL
+import Databrary.Model.SQL.Select (selectColumns)
 import Databrary.Model.Id.Types
 import Databrary.Model.Party
 import Databrary.Model.Identity
@@ -51,7 +52,10 @@ lookupSlotComments (Slot c s) n = do
 
 lookupVolumeCommentRows :: MonadDB c m => Volume -> m [CommentRow]
 lookupVolumeCommentRows v =
-  dbQuery $(selectQuery selectCommentRow "JOIN container ON comment.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container")
+  dbQuery 
+    $(selectQuery 
+        (selectColumns 'makeCommentRow "comment" ["id", "container", "segment", "who", "time", "text"])
+	"JOIN container ON comment.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container")
 
 addComment :: MonadDB c m => Comment -> m Comment
 addComment c@Comment{..} = do
