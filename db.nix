@@ -46,6 +46,4 @@ EOSQL
       ${postgres}/bin/psql databrary < "$file"
     done
   fi
-
-  ${postgres}/bin/psql databrary < ./pgranges/pgranges.sql
 ''
