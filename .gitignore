@@ -36,3 +36,4 @@ TAGS
 node_modules
 databrary_logs/solr_log
 solr/databrary_core/data
+pgranges/result
