@@ -29,14 +29,11 @@ import Databrary.Model.Audit.SQL
 import Databrary.Model.Volume.SQL
 import Databrary.Model.RecordSlot.Types
 
-slotRecordRow :: Selector -- ^ @'Segment'@
-slotRecordRow = selectColumn "slot_record" "segment"
-
 makeSlotRecord :: Segment -> Record -> Container -> RecordSlot
 makeSlotRecord seg r c = RecordSlot r (Slot c seg)
 
 selectRecordContainerSlotRecord :: Selector -- ^ @'Record' -> 'Container' -> 'RecordSlot'@
-selectRecordContainerSlotRecord = selectMap (TH.VarE 'makeSlotRecord `TH.AppE`) slotRecordRow
+selectRecordContainerSlotRecord = selectMap (TH.VarE 'makeSlotRecord `TH.AppE`) (selectColumn "slot_record" "segment")
 
 makeContainerSlotRecord :: (Record -> Container -> RecordSlot) -> (Volume -> Record) -> Container -> RecordSlot
 makeContainerSlotRecord f rf c = f (rf (view c)) c

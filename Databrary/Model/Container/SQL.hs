@@ -21,7 +21,7 @@ selectVolumeContainer :: Selector -- ^ @'Volume' -> 'Container'@
 selectVolumeContainer = selectJoin 'Container
   [ selectColumns 'ContainerRow "container" ["id", "top", "name", "date"]
   , maybeJoinOn "container.id = slot_release.container AND slot_release.segment = '(,)'"
-    releaseRow
+    (selectColumn "slot_release" "release")
   ]
 
 selectContainer :: TH.Name -- ^ @'Identity'@

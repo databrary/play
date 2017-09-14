@@ -13,15 +13,15 @@ import Database.PostgreSQL.Typed.Query (pgSQL)
 
 import Databrary.Service.DB
 import Databrary.Model.SQL
+import Databrary.Model.SQL.Select
 import Databrary.Model.Id.Types
 import Databrary.Model.Volume.Types
 import Databrary.Model.Category
 import Databrary.Model.Metric
-import Databrary.Model.VolumeMetric.SQL
 
 lookupVolumeMetrics :: (MonadDB c m) => Volume -> m [Id Metric]
 lookupVolumeMetrics v =
-  dbQuery $(selectQuery selectVolumeMetric "$WHERE volume = ${volumeId $ volumeRow v} ORDER BY metric")
+  dbQuery $(selectQuery (selectColumns 'id "volume_metric" ["metric"]) "$WHERE volume = ${volumeId $ volumeRow v} ORDER BY metric")
 
 addVolumeCategory :: (MonadDB c m) => Volume -> Id Category -> m [Id Metric]
 addVolumeCategory v c =

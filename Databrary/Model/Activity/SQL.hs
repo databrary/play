@@ -26,7 +26,7 @@ import Databrary.Model.Volume.SQL
 import Databrary.Model.VolumeAccess.SQL
 import Databrary.Model.Container.SQL
 import Databrary.Model.Container.Types (ContainerRow(..))
-import Databrary.Model.Slot.SQL
+import Databrary.Model.Slot.Types
 import Databrary.Model.Release.SQL
 import Databrary.Model.Asset.SQL
 import Databrary.Model.Activity.Types
@@ -74,7 +74,7 @@ selectActivityContainer = targetActivitySelector "container" $
 
 selectActivityRelease :: Selector
 selectActivityRelease = targetActivitySelector "slot_release" $
-  addSelects 'ActivityRelease (selectSlotId "slot_release") [selectOutput releaseRow]
+  addSelects 'ActivityRelease (selectColumns 'SlotId "slot_release" ["container", "segment"]) [selectOutput (selectColumn "slot_release" "release")]
 
 selectActivityAsset :: Selector
 selectActivityAsset = targetActivitySelector "asset" $
@@ -84,7 +84,7 @@ selectActivityAssetSlot :: Selector
 selectActivityAssetSlot = targetActivitySelector "slot_asset" $
   addSelects 'ActivityAssetSlot
     (selectColumn "slot_asset" "asset")
-    [selectOutput $ selectSlotId "slot_asset"]
+    [selectOutput $ selectColumns 'SlotId "slot_asset" ["container", "segment"]]
 
 selectActivityExcerpt :: Selector
 selectActivityExcerpt = targetActivitySelector "excerpt" $
