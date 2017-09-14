@@ -1,6 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Databrary.Model.Excerpt.SQL
-  ( selectAssetSlotExcerpt
+  ( -- selectAssetSlotExcerpt
+    makeExcerpt
   , selectContainerExcerpt
   , selectVolumeExcerpt
   , insertExcerpt
@@ -26,12 +27,6 @@ import Databrary.Model.AssetSegment.Types
 makeExcerpt :: Segment -> Maybe Release -> AssetSlot -> Excerpt
 makeExcerpt s r a = newExcerpt a s r
 
-excerptRow :: Selector -- ^ @'AssetSlot' -> 'Excerpt'@
-excerptRow = selectColumns 'makeExcerpt "excerpt" ["segment", "release"]
-
-selectAssetSlotExcerpt :: Selector -- ^ @'AssetSlot' -> 'Excerpt'@
-selectAssetSlotExcerpt = excerptRow
-
 makeAssetContainerExcerpt :: Segment -> (AssetSlot -> Excerpt) -> Asset -> Container -> Excerpt
 makeAssetContainerExcerpt as e a c = e $ makeSlotAsset a c as
 
@@ -39,7 +34,7 @@ selectAssetContainerExcerpt :: Selector -- ^ @'Asset' -> 'Container' -> 'Excerpt
 selectAssetContainerExcerpt = selectJoin 'makeAssetContainerExcerpt
   [ slotAssetRow
   , joinOn "slot_asset.asset = excerpt.asset"
-    excerptRow
+    (selectColumns 'makeExcerpt "excerpt" ["segment", "release"])
   ]
 
 makeContainerExcerpt :: (Asset -> Container -> Excerpt) -> AssetRow -> Container -> Excerpt
