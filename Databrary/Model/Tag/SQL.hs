@@ -29,9 +29,17 @@ makeTagUseRow :: Id Party -> Id Container -> Segment -> Maybe Bool -> Tag -> Tag
 makeTagUseRow w c s k t = TagUseRow t (fromMaybe False k) w (SlotId c s)
 
 tagUseRow :: Selector -- ' @'Tag' -> 'TagUseRow'@
-tagUseRow = addSelects '($)
-  (selectColumns 'makeTagUseRow "tag_use" ["who", "container", "segment"])
-  [SelectExpr "tag_use.tableoid = 'keyword_use'::regclass"]
+tagUseRow = 
+  Selector {
+    selectOutput = 
+      OutputJoin 
+        False 
+        '($) 
+        (selectOutput (selectColumns 'makeTagUseRow "tag_use" ["who", "container", "segment"])
+         : [SelectExpr "tag_use.tableoid = 'keyword_use'::regclass"])
+  , selectSource = "tag_use"
+  , selectJoined = ",tag_use"
+  }
 
 selectTagUseRow :: Selector -- ^ @'TagUseId'@
 selectTagUseRow = selectJoin '($)
