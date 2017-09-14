@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Databrary.Model.Category.SQL
-  ( categoryRow
+  ( -- categoryRow
   ) where
 
 import Databrary.Model.Category.Types

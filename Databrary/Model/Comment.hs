@@ -61,23 +61,6 @@ lookupVolumeCommentRows v = do
        (    "SELECT comment.id,comment.container,comment.segment,comment.who,comment.time,comment.text"
         ++ " FROM comment " 
         ++ "JOIN container ON comment.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container"))
-{-
-     $(makeQuery
-         (fst (parseQueryFlags "JOIN container ON comment.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container"))
-         (\_ -> 
-                "SELECT comment.id,comment.container,comment.segment,comment.who,comment.time,comment.text"
-             ++ " FROM comment " 
-             ++ (snd (parseQueryFlags "JOIN container ON comment.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container")))
-         (OutputJoin
-            False 
-            'makeCommentRow
-            [ SelectColumn "comment" "id"
-            , SelectColumn "comment" "container"
-            , SelectColumn "comment" "segment"
-            , SelectColumn "comment" "who"
-            , SelectColumn "comment" "time"
-            , SelectColumn "comment" "text" ]))
--}
   pure (fmap (\(cid, cont, seg, who, tme, txt) -> makeCommentRow cid cont seg who tme txt) rows)
 
 addComment :: MonadDB c m => Comment -> m Comment
