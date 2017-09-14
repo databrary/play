@@ -2,7 +2,7 @@
 module Databrary.Model.Token.SQL
   ( selectLoginToken
   , selectSession
-  , selectUpload
+  , makeUpload -- TODO: move to types
   ) where
 
 import qualified Data.ByteString as BS
@@ -30,7 +30,3 @@ selectSession =
 
 makeUpload :: Token -> BS.ByteString -> Int64 -> SiteAuth -> Upload
 makeUpload t n z u = Upload (AccountToken t u) n z
-
-selectUpload :: Selector -- @'SiteAuth' -> 'Upload'@
-selectUpload =
-  addSelects 'makeUpload (selectColumns 'Token "upload" ["token", "expires"]) [SelectColumn "upload" "filename", SelectColumn "upload" "size"]
