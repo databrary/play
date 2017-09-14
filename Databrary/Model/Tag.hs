@@ -22,7 +22,7 @@ import Data.Int (Int64)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import Database.PostgreSQL.Typed (pgSQL)
-import Database.PostgreSQL.Typed.Query (parseQueryFlags)
+import Database.PostgreSQL.Typed.Query (parseQueryFlags, makePGQuery, QueryFlags(..), simpleQueryFlags)
 
 import Databrary.Ops
 import Databrary.Has (peek)
@@ -38,50 +38,37 @@ import Databrary.Model.Slot.Types
 import Databrary.Model.Tag.Types
 import Databrary.Model.Tag.SQL
 
+$(useTDB)
+
 lookupTag :: MonadDB c m => TagName -> m (Maybe Tag)
-lookupTag n =
-  dbQuery1 
-      $(makeQuery
-          (fst (parseQueryFlags "$WHERE tag.name = ${n}::varchar"))
-          (\_ -> 
-                 "SELECT tag.id,tag.name"
-              ++ " FROM tag " 
-              ++ (snd (parseQueryFlags "$WHERE tag.name = ${n}::varchar")))
-          (OutputJoin
-             False 
-             'Tag 
-             [ SelectColumn "tag" "id"
-             , SelectColumn "tag" "name" ]))
+lookupTag n = do
+  mRow <- dbQuery1
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT tag.id,tag.name"
+           ++ " FROM tag " 
+           ++ "WHERE tag.name = ${n}::varchar"))
+  pure (fmap (\(tid,name) -> Tag tid name) mRow)
 
 lookupTags :: MonadDB c m => m [Tag]
-lookupTags = 
-  dbQuery
-      $(makeQuery
-          (fst (parseQueryFlags ""))
-          (\_ -> 
-                 "SELECT tag.id,tag.name"
-              ++ " FROM tag " 
-              ++ (snd (parseQueryFlags "")))
-          (OutputJoin
-             False 
-             'Tag 
-             [ SelectColumn "tag" "id"
-             , SelectColumn "tag" "name" ]))
+lookupTags = do
+  rows <- dbQuery
+      $(makePGQuery
+          (simpleQueryFlags)
+          (   "SELECT tag.id,tag.name"
+           ++ " FROM tag " 
+           ++ ""))
+  pure (fmap (\(tid,name) -> Tag tid name) rows)
 
 findTags :: MonadDB c m => TagName -> Int -> m [Tag]
-findTags (TagName n) lim = -- TagName restrictions obviate pattern escaping
-  dbQuery
-      $(makeQuery
-          (fst (parseQueryFlags "$WHERE tag.name LIKE ${n `BSC.snoc` '%'}::varchar LIMIT ${fromIntegral lim :: Int64}"))
-          (\_ -> 
-                 "SELECT tag.id,tag.name"
-              ++ " FROM tag " 
-              ++ (snd (parseQueryFlags "$WHERE tag.name LIKE ${n `BSC.snoc` '%'}::varchar LIMIT ${fromIntegral lim :: Int64}")))
-          (OutputJoin
-             False 
-             'Tag 
-             [ SelectColumn "tag" "id"
-             , SelectColumn "tag" "name" ]))
+findTags (TagName n) lim = do -- TagName restrictions obviate pattern escaping
+  rows <- dbQuery
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT tag.id,tag.name"
+           ++ " FROM tag " 
+           ++ "WHERE tag.name LIKE ${n `BSC.snoc` '%'}::varchar LIMIT ${fromIntegral lim :: Int64}"))
+  pure (fmap (\(tid,name) -> Tag tid name) rows)
 
 addTag :: MonadDB c m => TagName -> m Tag
 addTag n =
