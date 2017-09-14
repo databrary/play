@@ -3,18 +3,26 @@ module Databrary.Model.Party.Boot
   ( loadParty
   ) where
 
+import Database.PostgreSQL.Typed.Query (makePGQuery, simpleQueryFlags)
 import qualified Language.Haskell.TH as TH
 import qualified Language.Haskell.TH.Syntax as TH
 
 import Databrary.Service.DB
-import Databrary.Model.SQL (selectQuery)
-import Databrary.Model.SQL.Select
 import Databrary.Model.Id.Types
 import Databrary.Model.Permission.Types
 import Databrary.Model.Party.Types
-import Databrary.Model.Party.SQL
+
+$(useTDB)
 
 loadParty :: Id Party -> Permission -> TH.ExpQ -- ^ @'Party'@
 loadParty i perm = do
-  p <- runTDB $ dbQuery1' $(selectQuery (selectColumns 'PartyRow "party" ["id", "name", "prename", "orcid", "affiliation", "url"]) "WHERE party.id = ${i}")
-  TH.lift $ Party p Nothing perm Nothing
+  p <- runTDB $
+         dbQuery1'
+              $(makePGQuery 
+                  (simpleQueryFlags)
+                  (   "SELECT party.id,party.name,party.prename,party.orcid,party.affiliation,party.url"
+                   ++ " FROM party " 
+                   ++ "WHERE party.id = ${i}"))
+  let p' = (\(pi,nm,pn,orc,af,ur) -> PartyRow pi nm pn orc af ur) p
+  TH.lift $ Party p' Nothing perm Nothing
+  
