@@ -1,13 +1,13 @@
 {-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
 module Databrary.Model.Authorize.SQL
   ( authorizationRow
-  , authorizeRow
   , selectAuthorizeParent
   , selectAuthorizeChild
   , updateAuthorize
   , insertAuthorize
   , deleteAuthorize
   , selectAuthorizeActivity
+  , makeAuthorize -- move to Types
   ) where
 
 import qualified Language.Haskell.TH as TH
@@ -35,8 +35,13 @@ makeAuthorize a e c p = Authorize
   }
 
 authorizeRow :: Selector -- ^ @'Party' -> 'Party' -> 'Authorize'@
-authorizeRow = addSelects 'makeAuthorize
-  (accessRow "authorize") [SelectColumn "authorize" "expires"]
+authorizeRow =
+  Selector {
+    selectOutput =
+      OutputJoin False 'makeAuthorize (selectOutput (selectColumns 'Access "authorize" ["site", "member"]) : [SelectColumn "authorize" "expires"])
+  , selectSource = "authorize"
+  , selectJoined = ",authorize"
+  }
 
 selectAuthorizeParent :: TH.Name -- ^ child 'Party'
   -> TH.Name -- ^ 'Identity'
