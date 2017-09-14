@@ -110,20 +110,14 @@ lookupSlotTagCoverage slot lim = do
   dbQuery $(selectQuery (selectSlotTagCoverage 'ident 'slot) "$!ORDER BY weight DESC LIMIT ${fromIntegral lim :: Int64}")
 
 lookupSlotKeywords :: (MonadDB c m) => Slot -> m [Tag]
-lookupSlotKeywords Slot{..} =
-  dbQuery
-      $(makeQuery
-          (fst (parseQueryFlags "JOIN keyword_use ON id = tag WHERE container = ${containerId $ containerRow slotContainer} AND segment = ${slotSegment}"))
-          (\_ -> 
-                 "SELECT tag.id,tag.name"
-              ++ " FROM tag " 
-              ++ (snd (parseQueryFlags "JOIN keyword_use ON id = tag WHERE container = ${containerId $ containerRow slotContainer} AND segment = ${slotSegment}")))
-          (OutputJoin
-             False 
-             'Tag 
-             [ SelectColumn "tag" "id"
-             , SelectColumn "tag" "name" ]))
-
+lookupSlotKeywords Slot{..} = do
+  rows <- dbQuery
+      $(makePGQuery
+          (simpleQueryFlags)
+          (   "SELECT tag.id,tag.name"
+           ++ " FROM tag " 
+           ++ "JOIN keyword_use ON id = tag WHERE container = ${containerId $ containerRow slotContainer} AND segment = ${slotSegment}"))
+  pure (fmap (\(tid,name) -> Tag tid name) rows)
 
 tagWeightJSON :: JSON.ToObject o => TagWeight -> JSON.Record TagName o
 tagWeightJSON TagWeight{..} = JSON.Record (tagName tagWeightTag) $
