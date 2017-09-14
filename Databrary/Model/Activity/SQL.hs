@@ -20,6 +20,7 @@ import Databrary.Model.SQL.Select
 import Databrary.Model.Audit.Types
 import Databrary.Model.Audit.SQL
 import Databrary.Model.Party.SQL
+import Databrary.Model.Party.Types
 import Databrary.Model.Authorize.SQL
 import Databrary.Model.Volume.SQL
 import Databrary.Model.VolumeAccess.SQL
@@ -47,7 +48,7 @@ targetActivitySelector t Selector{ selectSource = ts } = error $ "targetActivity
 
 selectActivityParty :: Selector
 selectActivityParty = targetActivitySelector "party" $
-  selectMap (TH.ConE 'ActivityParty `TH.AppE`) selectPartyRow
+  selectMap (TH.ConE 'ActivityParty `TH.AppE`) (selectColumns 'PartyRow "party" ["id", "name", "prename", "orcid", "affiliation", "url"])
 
 selectActivityAccount :: Selector
 selectActivityAccount = targetActivitySelector "account" $
