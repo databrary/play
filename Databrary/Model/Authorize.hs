@@ -19,6 +19,7 @@ import Control.Monad (when)
 import Data.Int (Int64)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
+import Database.PostgreSQL.Typed.Query (makePGQuery, QueryFlags(..), simpleQueryFlags)
 
 import Databrary.Has (peek, view)
 import qualified Databrary.JSON as JSON
@@ -32,6 +33,8 @@ import Databrary.Model.Party
 import Databrary.Model.Identity.Types
 import Databrary.Model.Authorize.Types
 import Databrary.Model.Authorize.SQL
+
+$(useTDB)
 
 selfAuthorize :: Party -> Authorize
 selfAuthorize p =
@@ -54,8 +57,14 @@ lookupAuthorizedChildren parent perm = do
     perm
 
 lookupAuthorize :: (MonadDB c m, MonadHasIdentity c m) => Party -> Party -> m (Maybe Authorize)
-lookupAuthorize child parent =
-  dbQuery1 $ (\a -> a child parent) <$> $(selectQuery authorizeRow "$WHERE authorize.child = ${partyId $ partyRow child} AND authorize.parent = ${partyId $ partyRow parent} AND (expires IS NULL OR expires > CURRENT_TIMESTAMP)")
+lookupAuthorize child parent = do
+  mRow <- dbQuery1
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT authorize.site,authorize.member,authorize.expires"
+           ++ " FROM authorize " 
+           ++ "WHERE authorize.child = ${partyId $ partyRow child} AND authorize.parent = ${partyId $ partyRow parent} AND (expires IS NULL OR expires > CURRENT_TIMESTAMP)"))
+  pure (fmap (\(si,me,ex) -> makeAuthorize (Access si me) ex child parent) mRow)
 
 lookupAuthorizeParent :: (MonadDB c m, MonadHasIdentity c m) => Party -> Id Party -> m (Maybe Authorize)
 lookupAuthorizeParent child parent = do

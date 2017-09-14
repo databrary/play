@@ -40,7 +40,7 @@ delim _ = False
 makeActivity :: Audit -> ActivityTarget -> Activity
 makeActivity a x = Activity a x Nothing Nothing Nothing
 
-targetActivitySelector :: String -> Selector -> Selector
+targetActivitySelector :: String -> Selector -> Selector  -- TODO: remove
 targetActivitySelector t Selector{ selectOutput = o, selectSource = ts, selectJoined = (',':tj) }
   | Just s <- stripPrefix t ts, delim s, ts == tj =
     selector ("audit." ++ ts) $ OutputJoin False 'makeActivity [selectOutput (selectAudit t), o]
