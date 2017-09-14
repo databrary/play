@@ -26,12 +26,9 @@ makeTranscodeRow :: Segment -> [Maybe String] -> Maybe Timestamp -> Maybe Int32 
 makeTranscodeRow s f t p l u a =
   Transcode a u s (map (fromMaybe (error "NULL transcode options")) f) t p l
 
-selectTranscodeRow :: Selector -- ^ @'SiteAuth' -> 'Asset' -> 'Asset' -> 'Transcode'@
-selectTranscodeRow = selectColumns 'makeTranscodeRow "transcode" ["segment", "options", "start", "process", "log"]
-
 selectAssetRevisionTranscode :: Selector -- ^ @'AssetRevision' -> 'Transcode'@
 selectAssetRevisionTranscode = selectJoin '($)
-  [ selectTranscodeRow
+  [ selectColumns 'makeTranscodeRow "transcode" ["segment", "options", "start", "process", "log"]
   , joinOn "transcode.owner = party.id"
     selectSiteAuth
   ]

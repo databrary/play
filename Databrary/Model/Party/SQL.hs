@@ -29,12 +29,6 @@ import Databrary.Model.Id.Types
 import Databrary.Model.Identity.Types
 import Databrary.Model.Party.Types
 
--- selectPartyRow :: Selector -- ^ @'PartyRow'@
--- selectPartyRow = selectColumns 'PartyRow "party" ["id", "name", "prename", "orcid", "affiliation", "url"]
-
--- accountRow :: Selector -- ^ @'Party' -> 'Account'@
--- accountRow = selectColumns 'Account "account" ["email"]
-
 makeParty :: PartyRow -> Maybe (Party -> Account) -> Permission -> Maybe Access -> Party
 makeParty pr ac perm a = p where
   p = Party pr (fmap ($ p) ac) perm a

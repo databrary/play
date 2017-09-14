@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Model.Release.SQL
-  ( releaseRow
-  , insertRelease
+  ( -- releaseRow
+    insertRelease
   , updateRelease
   , deleteRelease
   ) where
@@ -11,9 +11,6 @@ import qualified Language.Haskell.TH as TH
 import Databrary.Model.SQL.Select
 import Databrary.Model.Audit.SQL
 import Databrary.Model.Slot.SQL
-
-releaseRow :: Selector -- ^ @'Release'@
-releaseRow = selectColumn "slot_release" "release"
 
 releaseSets :: String -- ^ @'Release'@
   -> [(String, String)]

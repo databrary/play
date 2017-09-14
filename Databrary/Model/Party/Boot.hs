@@ -23,6 +23,6 @@ loadParty i perm = do
                   (   "SELECT party.id,party.name,party.prename,party.orcid,party.affiliation,party.url"
                    ++ " FROM party " 
                    ++ "WHERE party.id = ${i}"))
-  let p' = (\(pi,nm,pn,orc,af,ur) -> PartyRow pi nm pn orc af ur) p
+  let p' = (\(pid,nm,pn,orc,af,ur) -> PartyRow pid nm pn orc af ur) p
   TH.lift $ Party p' Nothing perm Nothing
   
