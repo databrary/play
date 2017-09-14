@@ -22,7 +22,7 @@ import Data.Int (Int64)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import Database.PostgreSQL.Typed (pgSQL)
-import Database.PostgreSQL.Typed.Query (parseQueryFlags, makePGQuery, QueryFlags(..), simpleQueryFlags)
+import Database.PostgreSQL.Typed.Query (makePGQuery, QueryFlags(..), simpleQueryFlags)
 
 import Databrary.Ops
 import Databrary.Has (peek)
