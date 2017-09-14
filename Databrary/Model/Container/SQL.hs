@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
 module Databrary.Model.Container.SQL
-  ( selectContainerRow
-  , selectVolumeContainer
+  (-- selectContainerRow
+    selectVolumeContainer
   , selectContainer
   , insertContainer
   , updateContainer
@@ -17,12 +17,9 @@ import Databrary.Model.Volume.SQL
 import Databrary.Model.Release.SQL
 import Databrary.Model.Container.Types
 
-selectContainerRow :: Selector -- ^ @'ContainerRow'@
-selectContainerRow = selectColumns 'ContainerRow "container" ["id", "top", "name", "date"]
-
 selectVolumeContainer :: Selector -- ^ @'Volume' -> 'Container'@
 selectVolumeContainer = selectJoin 'Container
-  [ selectContainerRow
+  [ selectColumns 'ContainerRow "container" ["id", "top", "name", "date"]
   , maybeJoinOn "container.id = slot_release.container AND slot_release.segment = '(,)'"
     releaseRow
   ]

@@ -24,6 +24,7 @@ import Databrary.Model.Authorize.SQL
 import Databrary.Model.Volume.SQL
 import Databrary.Model.VolumeAccess.SQL
 import Databrary.Model.Container.SQL
+import Databrary.Model.Container.Types (ContainerRow(..))
 import Databrary.Model.Slot.SQL
 import Databrary.Model.Release.SQL
 import Databrary.Model.Asset.SQL
@@ -66,7 +67,9 @@ selectActivityAccess vol ident = targetActivitySelector "volume_access" $
 
 selectActivityContainer :: Selector
 selectActivityContainer = targetActivitySelector "container" $
-  selectMap (TH.ConE 'ActivityContainer `TH.AppE`) selectContainerRow
+  selectMap 
+    (TH.ConE 'ActivityContainer `TH.AppE`) 
+    (selectColumns 'ContainerRow "container" ["id", "top", "name", "date"])
 
 selectActivityRelease :: Selector
 selectActivityRelease = targetActivitySelector "slot_release" $

@@ -14,7 +14,7 @@ module Databrary.Model.Funding
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Database.PostgreSQL.Typed (pgSQL)
-import Database.PostgreSQL.Typed.Query (parseQueryFlags)
+import Database.PostgreSQL.Typed.Query (makePGQuery, QueryFlags(..), simpleQueryFlags)
 
 import qualified Databrary.JSON as JSON
 import Databrary.Service.DB
@@ -25,36 +25,27 @@ import Databrary.Model.Volume.Types
 import Databrary.Model.Funding.Types
 import Databrary.Model.Funding.SQL
 
-lookupFunder :: MonadDB c m => Id Funder -> m (Maybe Funder)
-lookupFunder fi =
-  dbQuery1
-   $(makeQuery
-       (fst (parseQueryFlags "$WHERE funder.fundref_id = ${fi}"))
-       (\_ -> 
-              "SELECT funder.fundref_id,funder.name"
-           ++ " FROM funder " 
-           ++ (snd (parseQueryFlags "$WHERE funder.fundref_id = ${fi}")))
-       (OutputJoin
-          False 
-          'Funder
-          [ SelectColumn "funder" "fundref_id"
-          , SelectColumn "funder" "name" ]))
+$(useTDB)
 
+lookupFunder :: MonadDB c m => Id Funder -> m (Maybe Funder)
+lookupFunder fi = do
+  mRow <- dbQuery1
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT funder.fundref_id,funder.name"
+           ++ " FROM funder " 
+           ++ "WHERE funder.fundref_id = ${fi}"))
+  pure (fmap (\(fid,name) -> Funder fid name) mRow)
 
 findFunders :: MonadDB c m => T.Text -> m [Funder]
-findFunders q =
-  dbQuery
-   $(makeQuery
-       (fst (parseQueryFlags "$WHERE funder.name ILIKE '%' || ${q} || '%'"))
-       (\_ -> 
-              "SELECT funder.fundref_id,funder.name"
+findFunders q = do
+  rows <- dbQuery
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT funder.fundref_id,funder.name"
            ++ " FROM funder " 
-           ++ (snd (parseQueryFlags "$WHERE funder.name ILIKE '%' || ${q} || '%'")))
-       (OutputJoin
-          False 
-          'Funder
-          [ SelectColumn "funder" "fundref_id"
-          , SelectColumn "funder" "name" ]))
+           ++ "WHERE funder.name ILIKE '%' || ${q} || '%'"))
+  pure (fmap (\(fid,name) -> Funder fid name) rows)
 
 addFunder :: MonadDB c m => Funder -> m ()
 addFunder f =
