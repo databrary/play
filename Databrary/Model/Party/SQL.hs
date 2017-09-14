@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
 module Databrary.Model.Party.SQL
-  ( selectPartyRow
-  , selectParty
+  ( -- selectPartyRow
+    selectParty
   , selectPartyAuthorization
   , selectAuthParty
   , selectAccount
@@ -29,11 +29,11 @@ import Databrary.Model.Id.Types
 import Databrary.Model.Identity.Types
 import Databrary.Model.Party.Types
 
-selectPartyRow :: Selector -- ^ @'PartyRow'@
-selectPartyRow = selectColumns 'PartyRow "party" ["id", "name", "prename", "orcid", "affiliation", "url"]
+-- selectPartyRow :: Selector -- ^ @'PartyRow'@
+-- selectPartyRow = selectColumns 'PartyRow "party" ["id", "name", "prename", "orcid", "affiliation", "url"]
 
-accountRow :: Selector -- ^ @'Party' -> 'Account'@
-accountRow = selectColumns 'Account "account" ["email"]
+-- accountRow :: Selector -- ^ @'Party' -> 'Account'@
+-- accountRow = selectColumns 'Account "account" ["email"]
 
 makeParty :: PartyRow -> Maybe (Party -> Account) -> Permission -> Maybe Access -> Party
 makeParty pr ac perm a = p where
@@ -41,8 +41,8 @@ makeParty pr ac perm a = p where
 
 selectPermissionParty :: Selector -- ^ @'Permission' -> Maybe 'Access' -> 'Party'@
 selectPermissionParty = selectJoin 'makeParty
-  [ selectPartyRow
-  , maybeJoinUsing ["id"] accountRow
+  [ selectColumns 'PartyRow "party" ["id", "name", "prename", "orcid", "affiliation", "url"]
+  , maybeJoinUsing ["id"] (selectColumns 'Account "account" ["email"])
   ]
 
 permissionParty :: Has (Id Party) a => (Permission -> Maybe Access -> a) -> Maybe Access -> Identity -> a
@@ -84,8 +84,8 @@ makeAccount pr ac perm ma = a where
 
 selectPermissionAccount :: Selector -- ^ @'Permission' -> Maybe 'Access' -> 'Account'@
 selectPermissionAccount = selectJoin 'makeAccount
-  [ selectPartyRow
-  , joinUsing ["id"] accountRow
+  [ selectColumns 'PartyRow "party" ["id", "name", "prename", "orcid", "affiliation", "url"]
+  , joinUsing ["id"] (selectColumns 'Account "account" ["email"])
   ]
 
 selectAccount :: TH.Name -- ^ 'Identity'
@@ -159,7 +159,7 @@ insertParty :: TH.Name -- ^ @'AuditIdentity'
   -> TH.ExpQ -- ^ @'PartyRow'@
 insertParty ident p = auditInsert ident "party"
   (partySets ps)
-  (Just $ selectOutput selectPartyRow)
+  (Just $ selectOutput (selectColumns 'PartyRow "party" ["id", "name", "prename", "orcid", "affiliation", "url"]))
   where ps = nameRef p
 
 insertAccount :: TH.Name -- ^ @'AuditIdentity'
