@@ -1,7 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Databrary.Model.Excerpt.SQL
   ( makeExcerpt
-  , selectContainerExcerpt
   , makeAssetContainerExcerpt
   , makeContainerExcerpt -- TODO: this and above to Types
   , selectVolumeExcerpt
@@ -40,14 +39,6 @@ selectAssetContainerExcerpt = selectJoin 'makeAssetContainerExcerpt
 
 makeContainerExcerpt :: (Asset -> Container -> Excerpt) -> AssetRow -> Container -> Excerpt
 makeContainerExcerpt f ar c = f (Asset ar (containerVolume c)) c
-
-selectContainerExcerpt :: Selector -- ^ @'Container' -> 'Excerpt'@
-selectContainerExcerpt = selectJoin 'makeContainerExcerpt
-  [ selectAssetContainerExcerpt
-  , joinOn "slot_asset.asset = asset.id"
-     (selectColumns 'makeAssetRow "asset" ["id", "format", "release", "duration", "name", "sha1", "size"])
-      -- XXX volumes match?
-  ]
 
 makeVolumeExcerpt :: (Asset -> Container -> Excerpt) -> AssetRow -> (Volume -> Container) -> Volume -> Excerpt
 makeVolumeExcerpt f ar cf v = f (Asset ar v) (cf v)
