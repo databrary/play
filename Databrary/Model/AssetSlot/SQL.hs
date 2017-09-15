@@ -4,13 +4,13 @@ module Databrary.Model.AssetSlot.SQL
   , makeSlotAsset
   , selectAssetSlotAsset
   , selectVolumeSlotAsset
-  , selectVolumeSlotIdAsset
   , selectSlotAsset
   , selectAssetSlot
   , insertSlotAsset
   , updateSlotAsset
   , deleteSlotAsset
-  , makeContainerSlotAsset
+  , makeContainerSlotAsset -- TODO: Move these to Types
+  , makeVolumeSlotIdAsset 
   ) where
 
 import Data.Maybe (fromMaybe)
@@ -43,13 +43,6 @@ makeContainerSlotAsset s ar c = makeSlotAsset (Asset ar $ view c) c s
 
 makeVolumeSlotIdAsset :: SlotId -> AssetRow -> Volume -> (Asset, SlotId)
 makeVolumeSlotIdAsset s ar v = (Asset ar v, s)
-
-selectVolumeSlotIdAsset :: Selector -- ^ @'Volume' -> ('Asset', 'SlotId')@
-selectVolumeSlotIdAsset = selectJoin 'makeVolumeSlotIdAsset
-  [ selectColumns 'SlotId "slot_asset" ["container", "segment"]
-  , joinOn "slot_asset.asset = asset.id"
-    selectAssetRow -- XXX volumes match?
-  ]
 
 makeAssetSlotAsset :: Segment -> (Volume -> Container) -> Asset -> AssetSlot
 makeAssetSlotAsset s cf a = makeSlotAsset a (cf (view a)) s
