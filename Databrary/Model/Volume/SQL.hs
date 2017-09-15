@@ -1,6 +1,8 @@
 {-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
 module Databrary.Model.Volume.SQL
   ( selectVolumeRow
+  , setCreation
+  , makeVolume -- TODO: move to Types
   , selectPermissionVolume
   , selectVolume
   , updateVolume
