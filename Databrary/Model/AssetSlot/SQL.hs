@@ -2,7 +2,6 @@
 module Databrary.Model.AssetSlot.SQL
   ( slotAssetRow
   , makeSlotAsset
-  , selectContainerSlotAsset
   , selectAssetSlotAsset
   , selectVolumeSlotAsset
   , selectVolumeSlotIdAsset
@@ -11,6 +10,7 @@ module Databrary.Model.AssetSlot.SQL
   , insertSlotAsset
   , updateSlotAsset
   , deleteSlotAsset
+  , makeContainerSlotAsset
   ) where
 
 import Data.Maybe (fromMaybe)
@@ -40,13 +40,6 @@ _selectAssetContainerSlotAsset = selectMap (TH.VarE 'makeSlotAsset `TH.AppE`) sl
 
 makeContainerSlotAsset :: Segment -> AssetRow -> Container -> AssetSlot
 makeContainerSlotAsset s ar c = makeSlotAsset (Asset ar $ view c) c s
-
-selectContainerSlotAsset :: Selector -- ^ @'Container' -> 'AssetSlot'@
-selectContainerSlotAsset = selectJoin 'makeContainerSlotAsset
-  [ slotAssetRow
-  , joinOn "slot_asset.asset = asset.id"
-    selectAssetRow -- XXX volumes match?
-  ]
 
 makeVolumeSlotIdAsset :: SlotId -> AssetRow -> Volume -> (Asset, SlotId)
 makeVolumeSlotIdAsset s ar v = (Asset ar v, s)
