@@ -79,8 +79,21 @@ lookupVolumeAssetSlots v top =
   dbQuery $ ($ v) <$> $(selectQuery selectVolumeSlotAsset "$WHERE asset.volume = ${volumeId $ volumeRow v} AND (container.top OR ${not top}) ORDER BY container.id")
 
 lookupVolumeAssetSlotIds :: (MonadDB c m) => Volume -> m [(Asset, SlotId)]
-lookupVolumeAssetSlotIds v =
-  dbQuery $ ($ v) <$> $(selectQuery selectVolumeSlotIdAsset "$WHERE asset.volume = ${volumeId $ volumeRow v} ORDER BY container")
+lookupVolumeAssetSlotIds v = do
+  rows <- dbQuery   -- XXX volumes match?
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT slot_asset.container,slot_asset.segment,asset.id,asset.format,asset.release,asset.duration,asset.name,asset.sha1,asset.size"
+           ++ " FROM slot_asset JOIN asset ON slot_asset.asset = asset.id " 
+           ++ "WHERE asset.volume = ${volumeId $ volumeRow v} ORDER BY container"))
+  pure 
+    (fmap 
+       (\(cn,sg,aid,fm,rl,dr,nm,sh,sz) -> 
+          makeVolumeSlotIdAsset
+            (SlotId cn sg)
+            (makeAssetRow aid fm rl dr nm sh sz)
+            v)
+       rows)
 
 changeAssetSlot :: (MonadAudit c m) => AssetSlot -> m Bool
 changeAssetSlot as = do
