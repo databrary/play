@@ -1,8 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Databrary.Model.Excerpt.SQL
-  ( -- selectAssetSlotExcerpt
-    makeExcerpt
+  ( makeExcerpt
   , selectContainerExcerpt
+  , makeAssetContainerExcerpt
+  , makeContainerExcerpt -- TODO: this and above to Types
   , selectVolumeExcerpt
   , insertExcerpt
   , updateExcerpt
@@ -32,7 +33,7 @@ makeAssetContainerExcerpt as e a c = e $ makeSlotAsset a c as
 
 selectAssetContainerExcerpt :: Selector -- ^ @'Asset' -> 'Container' -> 'Excerpt'@
 selectAssetContainerExcerpt = selectJoin 'makeAssetContainerExcerpt
-  [ slotAssetRow
+  [ selectColumn "slot_asset" "segment"
   , joinOn "slot_asset.asset = excerpt.asset"
     (selectColumns 'makeExcerpt "excerpt" ["segment", "release"])
   ]
@@ -44,7 +45,8 @@ selectContainerExcerpt :: Selector -- ^ @'Container' -> 'Excerpt'@
 selectContainerExcerpt = selectJoin 'makeContainerExcerpt
   [ selectAssetContainerExcerpt
   , joinOn "slot_asset.asset = asset.id"
-    selectAssetRow -- XXX volumes match?
+     (selectColumns 'makeAssetRow "asset" ["id", "format", "release", "duration", "name", "sha1", "size"])
+      -- XXX volumes match?
   ]
 
 makeVolumeExcerpt :: (Asset -> Container -> Excerpt) -> AssetRow -> (Volume -> Container) -> Volume -> Excerpt
@@ -54,7 +56,7 @@ selectVolumeExcerpt :: Selector -- ^ @'Volume' -> 'Excerpt'@
 selectVolumeExcerpt = selectJoin 'makeVolumeExcerpt
   [ selectAssetContainerExcerpt
   , joinOn "slot_asset.asset = asset.id"
-    selectAssetRow
+     (selectColumns 'makeAssetRow "asset" ["id", "format", "release", "duration", "name", "sha1", "size"])
   , joinOn "slot_asset.container = container.id AND asset.volume = container.volume"
     selectVolumeContainer
   ]

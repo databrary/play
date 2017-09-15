@@ -24,6 +24,7 @@ import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
 import Databrary.Model.Slot.Types
 import Databrary.Model.Asset.Types
+import Databrary.Model.Asset.SQL (makeAssetRow)
 import Databrary.Model.AssetSlot.Types
 import Databrary.Model.AssetSegment
 import Databrary.Model.Excerpt.SQL
@@ -41,8 +42,24 @@ lookupAssetExcerpts a = do
   pure (fmap (\(mseg,rls) -> makeExcerpt mseg rls a) rows)
 
 lookupSlotExcerpts :: MonadDB c m => Slot -> m [Excerpt]
-lookupSlotExcerpts (Slot c s) =
-  dbQuery $ ($ c) <$> $(selectQuery selectContainerExcerpt "$WHERE slot_asset.container = ${containerId $ containerRow c} AND excerpt.segment && ${s}")
+lookupSlotExcerpts (Slot c s) = do
+  rows <- dbQuery
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT slot_asset.segment,excerpt.segment,excerpt.release,asset.id,asset.format,asset.release,asset.duration,asset.name,asset.sha1,asset.size"
+           ++ " FROM slot_asset JOIN excerpt ON slot_asset.asset = excerpt.asset "
+           ++                  "JOIN asset ON slot_asset.asset = asset.id "
+           ++ "WHERE slot_asset.container = ${containerId $ containerRow c} AND excerpt.segment && ${s}"))
+  pure 
+    (fmap 
+       (\(ssg,esg,erl,aid,fm,arl,dr,nm,sh,sz) -> 
+          makeContainerExcerpt
+            (makeAssetContainerExcerpt 
+               ssg
+               (makeExcerpt esg erl))
+            (makeAssetRow aid fm arl dr nm sh sz)
+            c)
+       rows)
 
 lookupVolumeExcerpts :: MonadDB c m => Volume -> m [Excerpt]
 lookupVolumeExcerpts v =
