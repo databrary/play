@@ -59,7 +59,6 @@ lookupVolume vi = do
             own
             prm)
        rows)
-  -- dbQuery1 $(selectQuery (selectVolume 'ident) "$WHERE volume.id = ${vi}")
 
 changeVolume :: MonadAudit c m => Volume -> m ()
 changeVolume v = do
@@ -123,8 +122,19 @@ volumeFilter VolumeFilter{..} = BS.concat
 findVolumes :: (MonadHasIdentity c m, MonadDB c m) => VolumeFilter -> m [Volume]
 findVolumes pf = do
   ident <- peek
-  dbQuery $ unsafeModifyQuery $(selectQuery (selectVolume 'ident) "")
-    (<> volumeFilter pf)
+  rows <- dbQuery
+    (unsafeModifyQuery
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT volume.id,volume.name,volume.body,volume.alias,volume.doi,volume_creation(volume.id),volume_owners.owners,volume_permission.permission"
+           ++ " FROM volume LEFT JOIN volume_owners ON volume.id = volume_owners.volume JOIN LATERAL (VALUES (CASE WHEN ${identitySuperuser ident} THEN enum_last(NULL::permission) ELSE volume_access_check(volume.id, ${view ident :: Id Party}) END)) AS volume_permission (permission) ON volume_permission.permission >= 'PUBLIC'::permission "
+           ++ ""))
+      (<> volumeFilter pf))
+  pure 
+    (fmap 
+       (\(vid, nm, bd, als, doi, cr, own, prm) -> 
+          makeVolume (setCreation (VolumeRow vid nm bd als doi) cr) own prm)
+       rows)
 
 updateVolumeIndex :: MonadDB c m => m ()
 updateVolumeIndex =
