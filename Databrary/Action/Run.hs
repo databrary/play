@@ -60,7 +60,7 @@ forkAction :: ActionM a -> RequestContext -> (Either SomeException a -> IO ()) -
 forkAction f (RequestContext c r i) = forkFinally $
   runContextM (withActionM r i f) (contextService c)
 
--- just lifting bools to action
+-- convenience functions for generating Action with desired actionAuth value
 withAuth :: ActionM Response -> Action
 withAuth = Action True
 
