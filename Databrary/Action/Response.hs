@@ -154,7 +154,7 @@ result = liftIO . throwIO . Result
 unsafeResult :: Response -> a
 unsafeResult = throw . Result
 
-{- nshepperd_> Ah, yeah. "runResult = handle (return . resultResponse)" what the heck
+{- TODO: document this
 -}
 runResult :: IO Response -> IO Response
 runResult = handle (return . resultResponse)
