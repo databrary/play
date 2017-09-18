@@ -1,7 +1,8 @@
 {-
 this is basically a setup script. it's run during installation/compilation by cabal.
-it's atually another silly design choice because it plays havoc with stack. this is usually just
-a two line file
+Cabal has Simple and Custom setups (maybe more). This uses the deprecated Custom setup, 
+and performs typical shell script tasks hooking into phases of the Haskell build. Custom setups
+can interfere with stack and other build tools.
 -}
 
 import Control.Monad (when)
