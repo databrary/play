@@ -1,7 +1,3 @@
-{- i'm not exactly sure but i think this is just for parsing lists
-   (or ranges i guess though i don't know what the notation for the range is)
-   ids posted to the app by the client.  
--}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Data.RangeSet.Parse
   ( showRangeSet
