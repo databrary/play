@@ -24,7 +24,8 @@ data RequestContext = RequestContext
   , requestIdentity :: !Identity
   }
 
--- the quotes are template haskell non-sense
+-- Example of a invoking Template Haskell code generation. This invokes the makeHasRec code generator, 
+--   which generates convenience functions to access the fields of a RequestContext
 makeHasRec ''RequestContext ['requestContext, 'contextRequest, 'requestIdentity]
 
 newtype ActionM a = ActionM { unActionM :: ReaderT RequestContext IO a }
