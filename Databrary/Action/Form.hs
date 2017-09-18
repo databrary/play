@@ -1,5 +1,3 @@
-{- for parsing forms (stored on disk (somewhere?))
--}
 module Databrary.Action.Form
   ( getFormData
   ) where
