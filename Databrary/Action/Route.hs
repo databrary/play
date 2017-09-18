@@ -73,7 +73,7 @@ data API
   | JSON
   deriving (Eq, Show)
 
--- just returns empty string (because the html path starts at the end of the domain)
+-- always succeeds in matching, used as a default when "api" isn't detected
 pathHTML :: PathParser ()
 pathHTML = R.unit
 
