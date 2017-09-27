@@ -100,7 +100,7 @@ htmlPartySearch pf pl req = htmlForm "Search users" queryParties HTML
   req
 
 htmlPartyAdmin :: PartyFilter -> [Party] -> RequestContext -> FormHtml f
-htmlPartyAdmin pf pl req = htmlForm "party admin" adminParties ()
+htmlPartyAdmin pf pl req = htmlForm "Party Admin" adminParties ()
   (htmlPartySearchForm pf)
   (\js -> htmlPaginate
     (\pl' -> H.table $ do
