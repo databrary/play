@@ -33,7 +33,7 @@ selectPartyRow :: Selector -- ^ @'PartyRow'@
 selectPartyRow = selectColumns 'PartyRow "party" ["id", "name", "prename", "orcid", "affiliation", "url"]
 
 accountRow :: Selector -- ^ @'Party' -> 'Account'@
-accountRow = selectColumns 'Account "account" ["email"]
+accountRow = selectColumns 'Account "account" ["email", "username"]
 
 makeParty :: PartyRow -> Maybe (Party -> Account) -> Permission -> Maybe Access -> Party
 makeParty pr ac perm a = p where
@@ -132,6 +132,7 @@ accountSets :: String -- ^ @'Account'@
   -> [(String, String)]
 accountSets a =
   [ ("email", "${accountEmail " ++ a ++ "}")
+  , ("username", "${accountUsername " ++ a ++ "}")
   ]
 
 updateParty :: TH.Name -- ^ @'AuditIdentity'

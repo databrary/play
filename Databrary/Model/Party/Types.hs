@@ -42,6 +42,7 @@ data Party = Party
 
 data Account = Account
   { accountEmail :: BS.ByteString
+  , accountUsername :: BS.ByteString
   , accountParty :: Party
   }
 

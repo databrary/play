@@ -76,6 +76,10 @@ partyEmail :: Party -> Maybe BS.ByteString
 partyEmail p =
   guard (partyPermission p >= emailPermission) >> accountEmail <$> partyAccount p
 
+partyUsername :: Party -> Maybe BS.ByteString
+partyUsername p =
+  guard (partyPermission p >= emailPermission) >> accountUsername <$> partyAccount p
+
 partyRowJSON :: JSON.ToObject o => PartyRow -> JSON.Record (Id Party) o
 partyRowJSON PartyRow{..} = JSON.Record partyId $
      "sortname" JSON..= partySortName
@@ -89,6 +93,7 @@ partyJSON p@Party{..} = partyRowJSON partyRow JSON..<>
      "institution" JSON..=? (True <? isNothing partyAccount)
   <> "email" JSON..=? partyEmail p
   <> "permission" JSON..=? (partyPermission <? partyPermission > PermissionREAD)
+  <> "username" JSON..=? partyUsername p
 
 changeParty :: MonadAudit c m => Party -> m ()
 changeParty p = do
