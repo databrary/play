@@ -115,9 +115,10 @@ routeMap = routes
   , route createSlotAsset
   , route viewSlotAssetCreate
 
-  , route viewAssetSegment
-  , route downloadAssetSegment
-  , route thumbAssetSegment
+  , route (viewAssetSegment False)
+  , route downloadAssetSegment -- SOW2
+  , route downloadOrigAssetSegment --SOW2 
+  , route (thumbAssetSegment False) --SOW2
   , route postExcerpt
   , route deleteExcerpt
 

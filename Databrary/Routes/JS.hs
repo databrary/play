@@ -72,9 +72,9 @@ jsRoutes =
   , jsRoute "viewRecord" viewRecord (HTML, record)
 
   , jsRoute "viewFormats" viewFormats ()
-  , jsRoute "viewAssetSegment" viewAssetSegment (HTML, Just volume, slot, asset)
-  , jsRoute "downloadAssetSegment" downloadAssetSegment (slot, asset)
-  , jsRoute "thumbAssetSegment" thumbAssetSegment (slot, asset)
+  , jsRoute "viewAssetSegment" (viewAssetSegment False) (HTML, Just volume, slot, asset) --SOW2
+  , jsRoute "downloadAssetSegment" downloadAssetSegment (slot, asset) --SOW2
+  , jsRoute "thumbAssetSegment" (thumbAssetSegment False) (slot, asset) --SOW2
   , jsRoute "downloadAsset" downloadAsset (asset, fullSegment)
   , jsRoute "thumbAsset" thumbAsset (asset, fullSegment)
 
@@ -142,7 +142,7 @@ jsRoutes =
   , jsRoute "deleteVolumeState" deleteVolumeState (volume, "")
 
   , jsRoute "getAsset" viewAsset (JSON, asset)
-  , jsRoute "getAssetSegment" viewAssetSegment (JSON, Just volume, slot, asset)
+  , jsRoute "getAssetSegment" (viewAssetSegment False) (JSON, Just volume, slot, asset) -- SOW2
   , jsRoute "postAsset" postAsset (JSON, asset)
   , jsRoute "createAsset" createAsset (JSON, volume)
   , jsRoute "deleteAsset" deleteAsset (JSON, asset)
