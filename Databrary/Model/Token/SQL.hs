@@ -2,7 +2,7 @@
 module Databrary.Model.Token.SQL
   ( selectLoginToken
   , selectSession
-  , selectUpload
+  , makeUpload -- TODO: move to types
   ) where
 
 import qualified Data.ByteString as BS
@@ -13,14 +13,10 @@ import Databrary.Model.Party.Types
 import Databrary.Model.Party.SQL (selectSiteAuth)
 import Databrary.Model.Token.Types
 
-tokenRow :: String -- ^ table name
-  -> Selector -- ^ @'Token'@
-tokenRow table = selectColumns 'Token table ["token", "expires"]
-
 accountTokenRow :: String -- ^ table name
   -> Selector -- ^ @'AccountToken'@
 accountTokenRow table = selectJoin 'AccountToken
-  [ tokenRow table
+  [ selectColumns 'Token table ["token", "expires"]
   , joinOn (table ++ ".account = account.id") selectSiteAuth
   ]
 
@@ -34,7 +30,3 @@ selectSession =
 
 makeUpload :: Token -> BS.ByteString -> Int64 -> SiteAuth -> Upload
 makeUpload t n z u = Upload (AccountToken t u) n z
-
-selectUpload :: Selector -- @'SiteAuth' -> 'Upload'@
-selectUpload =
-  addSelects 'makeUpload (tokenRow "upload") [SelectColumn "upload" "filename", SelectColumn "upload" "size"]

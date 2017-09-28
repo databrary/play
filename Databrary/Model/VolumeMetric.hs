@@ -10,6 +10,7 @@ module Databrary.Model.VolumeMetric
 import Control.Exception.Lifted (handleJust)
 import Control.Monad (guard)
 import Database.PostgreSQL.Typed.Query (pgSQL)
+import Database.PostgreSQL.Typed.Query (makePGQuery, QueryFlags(..), simpleQueryFlags)
 
 import Databrary.Service.DB
 import Databrary.Model.SQL
@@ -17,11 +18,18 @@ import Databrary.Model.Id.Types
 import Databrary.Model.Volume.Types
 import Databrary.Model.Category
 import Databrary.Model.Metric
-import Databrary.Model.VolumeMetric.SQL
+
+$(useTDB)
 
 lookupVolumeMetrics :: (MonadDB c m) => Volume -> m [Id Metric]
-lookupVolumeMetrics v =
-  dbQuery $(selectQuery selectVolumeMetric "$WHERE volume = ${volumeId $ volumeRow v} ORDER BY metric")
+lookupVolumeMetrics v = do
+  rows <- dbQuery
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT volume_metric.metric"
+           ++ " FROM volume_metric " 
+           ++ "WHERE volume = ${volumeId $ volumeRow v} ORDER BY metric"))
+  pure (fmap id rows)
 
 addVolumeCategory :: (MonadDB c m) => Volume -> Id Category -> m [Id Metric]
 addVolumeCategory v c =

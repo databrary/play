@@ -50,13 +50,13 @@ selectTargetNotification :: Selector -- ^ @'Account' -> 'Notification'@
 selectTargetNotification = selectJoin '($)
   [ notificationRow
   , joinOn "notification.agent = agent.id"
-    $ selectPartyRow `fromAlias` "agent"
+    $ (selectColumns 'PartyRow "party" ["id", "name", "prename", "orcid", "affiliation", "url"]) `fromAlias` "agent"
   , maybeJoinOn "notification.party = nparty.id"
-    $ selectPartyRow `fromAlias` "nparty"
+    $ (selectColumns 'PartyRow "party" ["id", "name", "prename", "orcid", "affiliation", "url"]) `fromAlias` "nparty"
   , maybeJoinOn "notification.volume = volume.id"
     $ selectVolumeRow
   , maybeJoinOn "notification.tag = tag.id"
-    $ selectTag
+    $ selectColumns 'Tag "tag" ["id", "name"] -- selectTag
   ]
 
 selectNotification :: Selector -- ^ @'Notification'@
