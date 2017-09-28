@@ -13,12 +13,14 @@ import Data.Int (Int64)
 import Data.Maybe (listToMaybe)
 import Data.Monoid ((<>))
 import Database.PostgreSQL.Typed (pgSQL)
+import Database.PostgreSQL.Typed.Query (makePGQuery, QueryFlags(..), simpleQueryFlags)
 
 import Databrary.Ops
 import Databrary.Has (peek, view)
 import qualified Databrary.JSON as JSON
 import Databrary.Service.DB
 import Databrary.Model.SQL
+import Databrary.Model.SQL.Select
 import Databrary.Model.Id.Types
 import Databrary.Model.Party
 import Databrary.Model.Identity
@@ -28,6 +30,8 @@ import Databrary.Model.Segment
 import Databrary.Model.Slot
 import Databrary.Model.Comment.Types
 import Databrary.Model.Comment.SQL
+
+$(useTDB)
 
 blankComment :: Account -> Slot -> Comment
 blankComment who slot = Comment
@@ -50,8 +54,14 @@ lookupSlotComments (Slot c s) n = do
   dbQuery $ ($ c) <$> $(selectQuery (selectContainerComment 'ident) "$!WHERE comment.container = ${containerId $ containerRow c} AND comment.segment && ${s} ORDER BY comment.thread LIMIT ${fromIntegral n :: Int64}")
 
 lookupVolumeCommentRows :: MonadDB c m => Volume -> m [CommentRow]
-lookupVolumeCommentRows v =
-  dbQuery $(selectQuery selectCommentRow "JOIN container ON comment.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container")
+lookupVolumeCommentRows v = do
+  rows <- dbQuery 
+    $(makePGQuery
+       (simpleQueryFlags)
+       (    "SELECT comment.id,comment.container,comment.segment,comment.who,comment.time,comment.text"
+        ++ " FROM comment " 
+        ++ "JOIN container ON comment.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container"))
+  pure (fmap (\(cid, cont, seg, who, tme, txt) -> makeCommentRow cid cont seg who tme txt) rows)
 
 addComment :: MonadDB c m => Comment -> m Comment
 addComment c@Comment{..} = do

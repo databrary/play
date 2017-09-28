@@ -32,9 +32,17 @@ selectVolumeRow :: Selector -- ^ @'VolumeRow'@
 selectVolumeRow = selectColumns 'VolumeRow "volume" ["id", "name", "body", "alias", "doi"]
 
 selectPermissionVolume :: Selector -- ^ @'Permission' -> 'Volume'@
-selectPermissionVolume = addSelects 'setCreation
-  selectVolumeRow
-  [SelectExpr "volume_creation(volume.id)"] -- XXX explicit table references (throughout)
+selectPermissionVolume =
+  Selector {
+    selectOutput =
+       OutputJoin
+         False
+         'setCreation
+         ((selectOutput selectVolumeRow)
+          : [SelectExpr "volume_creation(volume.id)"]) -- XXX explicit table references (throughout)
+  , selectSource = "volume"
+  , selectJoined = ",volume"
+  }
 
 selectVolume :: TH.Name -- ^ @'Identity'@
   -> Selector -- ^ @'Volume'@

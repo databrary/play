@@ -21,7 +21,7 @@ import Data.ByteArray.Encoding (convertToBase, Base(Base64URLUnpadded))
 import qualified Data.ByteString as BS
 import Data.Int (Int64)
 import Database.PostgreSQL.Typed (pgSQL)
-import Database.PostgreSQL.Typed.Query (simpleQueryFlags)
+import Database.PostgreSQL.Typed.Query (makePGQuery, QueryFlags(..), simpleQueryFlags)
 
 import Databrary.Ops
 import Databrary.Has
@@ -33,7 +33,6 @@ import Databrary.Service.DB
 import Databrary.Store.Types
 import Databrary.Store.Upload
 import Databrary.Model.SQL (selectQuery)
-import Databrary.Model.SQL.Select (makeQuery, selectOutput)
 import Databrary.Model.Offset
 import Databrary.Model.Id.Types
 import Databrary.Model.Identity.Types
@@ -41,6 +40,8 @@ import Databrary.Model.Volume.Types
 import Databrary.Model.Party
 import Databrary.Model.Token.Types
 import Databrary.Model.Token.SQL
+
+$(useTDB)
 
 loginTokenId :: (MonadHas Entropy c m, MonadHas Secret c m, MonadIO m) => LoginToken -> m (Id LoginToken)
 loginTokenId tok = Id <$> sign (unId (view tok :: Id Token))
@@ -57,7 +58,13 @@ lookupSession tok =
 lookupUpload :: (MonadDB c m, MonadHasIdentity c m) => BS.ByteString -> m (Maybe Upload)
 lookupUpload tok = do
   auth <- peek
-  dbQuery1 $ fmap ($ auth) $(selectQuery selectUpload "$!WHERE upload.token = ${tok} AND expires > CURRENT_TIMESTAMP AND upload.account = ${view auth :: Id Party}")
+  mRow <- dbQuery1
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [], flagNullable = Just False })
+          (   "SELECT upload.token,upload.expires,upload.filename,upload.size"
+           ++ " FROM upload " 
+           ++ "WHERE upload.token = ${tok} AND expires > CURRENT_TIMESTAMP AND upload.account = ${view auth :: Id Party}"))
+  pure (fmap (\(tk,expi,fn,sz) -> makeUpload (Token tk expi) fn sz auth) mRow)
 
 entropyBase64 :: Int -> Entropy -> IO BS.ByteString
 entropyBase64 n e = (convertToBase Base64URLUnpadded :: Bytes -> BS.ByteString) <$> entropyBytes n e
@@ -140,6 +147,11 @@ removeUpload tok = do
 
 cleanTokens :: (MonadDB c m, MonadStorage c m) => m ()
 cleanTokens = do
-  toks <- dbQuery $ ($ nobodySiteAuth) <$> $(makeQuery simpleQueryFlags ("DELETE FROM upload WHERE expires < CURRENT_TIMESTAMP RETURNING " ++) (selectOutput selectUpload))
+  rows <- dbQuery
+      $(makePGQuery
+          (simpleQueryFlags)
+          (   "DELETE FROM upload WHERE expires < CURRENT_TIMESTAMP RETURNING "
+           ++ "upload.token,upload.expires,upload.filename,upload.size"))
+  let toks = fmap (\(tk,expi,fn,sz) -> makeUpload (Token tk expi) fn sz nobodySiteAuth) rows
   mapM_ removeUploadFile toks
   dbExecute_ "DELETE FROM token WHERE expires < CURRENT_TIMESTAMP"

@@ -1,9 +1,11 @@
 {-# LANGUAGE TemplateHaskell, OverloadedStrings, TypeFamilies #-}
 module Databrary.Model.Format.Types
   ( Format(..)
+  , makeFormat
   ) where
 
 import qualified Data.ByteString as BS
+import Data.Maybe (fromMaybe)
 import Data.Function (on)
 import Data.Int (Int16)
 import Data.Ord (comparing)
@@ -36,3 +38,6 @@ instance Ord Format where
 
 makeHasRec ''Format ['formatId]
 deriveLift ''Format
+
+makeFormat :: Id Format -> BS.ByteString -> [Maybe BS.ByteString] -> T.Text -> Format
+makeFormat i m e n = Format i m (map (fromMaybe (error "NULL format.extension")) e) n
