@@ -7,6 +7,8 @@ import Databrary.Model.Asset.Types
 import Databrary.Model.AssetSegment.Types
 import Databrary.Action
 
-viewAssetSegment :: ActionRoute (API, Maybe (Id Volume), Id Slot, Id Asset)
+viewAssetSegment :: Bool-> ActionRoute (API, Maybe (Id Volume), Id Slot, Id Asset)
 serveAssetSegment :: Bool -> AssetSegment -> ActionM Response
+-- SOW2 changed type signature to take a bool flag to determine
+-- whether or not the original file should be downloaded
 downloadAssetSegment :: ActionRoute (Id Slot, Id Asset)

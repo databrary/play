@@ -156,7 +156,7 @@ mailNotification msg Notification{..} = case notificationNotice of
   volumeEdit = mailLink viewVolumeEdit (maybe noId volumeId notificationVolume)
   perm = fromMaybe PermissionNONE notificationPermission
   slot = Id $ SlotId (fromMaybe noId notificationContainerId) (fromMaybe fullSegment notificationSegment)
-  assetSegment = mailLink viewAssetSegment (HTML, volumeId <$> notificationVolume, slot, fromMaybe noId notificationAssetId) []
+  assetSegment = mailLink (viewAssetSegment False) (HTML, volumeId <$> notificationVolume, slot, fromMaybe noId notificationAssetId) []
   slotVolume
     | isJust notificationContainerId = mailLink viewSlot (HTML, (volumeId <$> notificationVolume, slot))
     | otherwise = mailLink viewVolume (HTML, maybe noId volumeId notificationVolume)
@@ -251,7 +251,7 @@ htmlNotification msg Notification{..} = case notificationNotice of
   volumeEdit = link viewVolumeEdit (maybe noId volumeId notificationVolume)
   perm = fromMaybe PermissionNONE notificationPermission
   slot = Id $ SlotId (fromMaybe noId notificationContainerId) (fromMaybe fullSegment notificationSegment)
-  assetSegment = link viewAssetSegment (HTML, volumeId <$> notificationVolume, slot, fromMaybe noId notificationAssetId) []
+  assetSegment = link (viewAssetSegment False)(HTML, volumeId <$> notificationVolume, slot, fromMaybe noId notificationAssetId) []
   slotVolume q t = H.a H.! HA.href (if isJust notificationContainerId
     then actionValue viewSlot (HTML, (volumeId <$> notificationVolume, slot)) (q :: [(BSC.ByteString, BSC.ByteString)]) <> t
     else actionValue viewVolume (HTML, maybe noId volumeId notificationVolume) q <> t)

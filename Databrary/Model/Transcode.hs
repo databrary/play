@@ -80,7 +80,7 @@ addTranscode orig seg@(Segment rng) opts (ProbeAV _ fmt av) = do
     , transcodeOwner = own
     , transcodeSegment = seg
     , transcodeOptions = opts
-    , transcodeStart = Nothing -- actually now, whatever
+    , transcodeStart = Nothing 
     , transcodeProcess = Nothing
     , transcodeLog = Nothing
     }
