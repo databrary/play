@@ -957,13 +957,13 @@ COMMENT ON TABLE audit."analytic" IS 'Analytics data collected and reported by t
 
 ----------------------------------------------------------- bootstrap/test data
 
-INSERT INTO party (id, prename, sortname, orcid, affiliation) VALUES (1, 'Dylan', 'Simon', '0000000227931679', 'Databrary');
+INSERT INTO party (id, prename, sortname, affiliation) VALUES (1, 'Admin', 'Admin', 'Databrary');
 INSERT INTO party (id, prename, sortname, affiliation) VALUES (3, 'Lisa', 'Steiger', 'Databrary');
 INSERT INTO party (id, prename, sortname, affiliation) VALUES (5, 'Karen', 'Adolph', 'New York University');
 INSERT INTO party (id, prename, sortname, affiliation) VALUES (6, 'Rick', 'Gilmore', 'Penn State University');
 SELECT setval('party_id_seq', 6);
 
-INSERT INTO account (id, email, password, openid) VALUES (1, 'dylan@databrary.org', '$2a$10$X5mY45HXhBHz/1SmtWHVMOGbmPA.qjqX59A5d7RKwr0K9Wl.G/Pfq', 'http://dylex.net/');
+INSERT INTO account (id, email, password) VALUES (1, 'admin@databrary.org', '$2a$12$mMp6Qflw72NkK/x.8xgni.Z/S8ajjWezMoylHI0Yo0nkAq5J/Dm5y');
 INSERT INTO account (id, email, openid) VALUES (3, 'lisa@databrary.org', NULL);
 
 INSERT INTO authorize (child, parent, site, member) VALUES (1, 0, 'ADMIN', 'ADMIN');
