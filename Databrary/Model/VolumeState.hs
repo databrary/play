@@ -8,17 +8,25 @@ module Databrary.Model.VolumeState
 
 import Control.Monad (void)
 import Database.PostgreSQL.Typed.Query (pgSQL)
+import Database.PostgreSQL.Typed.Query (makePGQuery, QueryFlags(..), simpleQueryFlags)
 
 import Databrary.Service.DB
 import Databrary.Model.SQL
 import Databrary.Model.Permission.Types
 import Databrary.Model.Volume.Types
 import Databrary.Model.VolumeState.Types
-import Databrary.Model.VolumeState.SQL
+
+$(useTDB)
 
 lookupVolumeState :: (MonadDB c m) => Volume -> m [VolumeState]
-lookupVolumeState v =
-  dbQuery $ ($ v) <$> $(selectQuery selectVolumeState "$WHERE volume = ${volumeId $ volumeRow v} AND (public OR ${volumePermission v >= PermissionEDIT})")
+lookupVolumeState v = do
+  rows <- dbQuery
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT volume_state.key,volume_state.value,volume_state.public"
+           ++ " FROM volume_state " 
+           ++ "WHERE volume = ${volumeId $ volumeRow v} AND (public OR ${volumePermission v >= PermissionEDIT})"))
+  pure (fmap (\(ky,vl,pb) -> VolumeState ky vl pb v) rows)
 
 changeVolumeState :: (MonadDB c m) => VolumeState -> m ()
 changeVolumeState VolumeState{..} = void $ updateOrInsert

@@ -11,11 +11,13 @@ module Databrary.Model.Excerpt
   ) where
 
 import Control.Monad (guard)
+import Database.PostgreSQL.Typed.Query (makePGQuery, QueryFlags(..), simpleQueryFlags)
 
 import Databrary.Has (view)
 import qualified Databrary.JSON as JSON
 import Databrary.Service.DB
 import Databrary.Model.SQL
+import Databrary.Model.SQL.Select
 import Databrary.Model.Permission
 import Databrary.Model.Audit
 import Databrary.Model.Volume.Types
@@ -26,9 +28,17 @@ import Databrary.Model.AssetSlot.Types
 import Databrary.Model.AssetSegment
 import Databrary.Model.Excerpt.SQL
 
+$(useTDB)
+
 lookupAssetExcerpts :: MonadDB c m => AssetSlot -> m [Excerpt]
-lookupAssetExcerpts a =
-  dbQuery $ ($ a) <$> $(selectQuery selectAssetSlotExcerpt "$WHERE excerpt.asset = ${assetId $ assetRow $ slotAsset a}")
+lookupAssetExcerpts a = do
+  rows <- dbQuery
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT excerpt.segment,excerpt.release "
+           ++ " FROM excerpt " 
+           ++ "WHERE excerpt.asset = ${assetId $ assetRow $ slotAsset a}"))
+  pure (fmap (\(mseg,rls) -> makeExcerpt mseg rls a) rows)
 
 lookupSlotExcerpts :: MonadDB c m => Slot -> m [Excerpt]
 lookupSlotExcerpts (Slot c s) =

@@ -1,3 +1,6 @@
+{- utility functions for creating escaped strings to be consumed
+   blaze html (the templating system)
+-}
 module Data.ByteString.Builder.Escape where
 
 import qualified Data.ByteString as S

@@ -8,9 +8,12 @@ module Databrary.Model.Citation
   , changeVolumeLinks
   ) where
 
+import Database.PostgreSQL.Typed.Query (makePGQuery, QueryFlags(..), simpleQueryFlags)
+
 import Databrary.Has (peek, view)
 import Databrary.Service.DB
 import Databrary.Model.SQL
+import Databrary.Model.SQL.Select
 import Databrary.Model.Audit
 import Databrary.Model.Id.Types
 import Databrary.Model.Identity.Types
@@ -19,9 +22,16 @@ import Databrary.Model.Volume.Types
 import Databrary.Model.Citation.Types
 import Databrary.Model.Citation.SQL
 
+$(useTDB)
+
 lookupVolumeCitation :: (MonadDB c m) => Volume -> m (Maybe Citation)
 lookupVolumeCitation vol =
-  dbQuery1 $ fmap ($ Just (volumeName $ volumeRow vol)) $(selectQuery selectVolumeCitation "$WHERE volume_citation.volume = ${volumeId $ volumeRow vol}")
+  dbQuery1 
+    $ fmap 
+        ($ Just (volumeName $ volumeRow vol)) 
+        $(selectQuery 
+           (selectColumns 'Citation "volume_citation" ["head", "url", "year"])
+           "$WHERE volume_citation.volume = ${volumeId $ volumeRow vol}")
 
 lookupVolumesCitations :: (MonadDB c m, MonadHasIdentity c m) => m [(Volume, Maybe Citation)]
 lookupVolumesCitations = do

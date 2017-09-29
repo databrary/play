@@ -14,22 +14,38 @@ module Databrary.Model.Funding
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Database.PostgreSQL.Typed (pgSQL)
+import Database.PostgreSQL.Typed.Query (makePGQuery, QueryFlags(..), simpleQueryFlags)
 
 import qualified Databrary.JSON as JSON
 import Databrary.Service.DB
 import Databrary.Model.SQL
+import Databrary.Model.SQL.Select
 import Databrary.Model.Id.Types
 import Databrary.Model.Volume.Types
 import Databrary.Model.Funding.Types
 import Databrary.Model.Funding.SQL
 
+$(useTDB)
+
 lookupFunder :: MonadDB c m => Id Funder -> m (Maybe Funder)
-lookupFunder fi =
-  dbQuery1 $(selectQuery selectFunder "$WHERE funder.fundref_id = ${fi}")
+lookupFunder fi = do
+  mRow <- dbQuery1
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT funder.fundref_id,funder.name"
+           ++ " FROM funder " 
+           ++ "WHERE funder.fundref_id = ${fi}"))
+  pure (fmap (\(fid,name) -> Funder fid name) mRow)
 
 findFunders :: MonadDB c m => T.Text -> m [Funder]
-findFunders q =
-  dbQuery $(selectQuery selectFunder "$WHERE funder.name ILIKE '%' || ${q} || '%'")
+findFunders q = do
+  rows <- dbQuery
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT funder.fundref_id,funder.name"
+           ++ " FROM funder " 
+           ++ "WHERE funder.name ILIKE '%' || ${q} || '%'"))
+  pure (fmap (\(fid,name) -> Funder fid name) rows)
 
 addFunder :: MonadDB c m => Funder -> m ()
 addFunder f =
