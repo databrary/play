@@ -74,6 +74,7 @@ jsRoutes =
   , jsRoute "viewFormats" viewFormats ()
   , jsRoute "viewAssetSegment" (viewAssetSegment False) (HTML, Just volume, slot, asset) --SOW2
   , jsRoute "downloadAssetSegment" downloadAssetSegment (slot, asset) --SOW2
+  , jsRoute "downloadOrigAssetSegment" downloadOrigAssetSegment (slot, asset) --SOW2
   , jsRoute "thumbAssetSegment" (thumbAssetSegment False) (slot, asset) --SOW2
   , jsRoute "downloadAsset" downloadAsset (asset, fullSegment)
   , jsRoute "thumbAsset" thumbAsset (asset, fullSegment)

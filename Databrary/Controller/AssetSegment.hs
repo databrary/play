@@ -101,13 +101,14 @@ serveAssetSegment dl as = do
   where
   a = slotAsset $ segmentAsset as
 
--- SOW2: Add Boolean flag to toggle the choice of downloading the original asset file. 
+-- SOW2: add getAssetSegement with Bool flag set to False to obtain transcoded asset file
 downloadAssetSegment :: ActionRoute (Id Slot, Id Asset)
 downloadAssetSegment = action GET (pathSlotId </> pathId </< "download") $ \(si, ai) -> withAuth $ do
   as <- getAssetSegment False PermissionPUBLIC Nothing si ai
   inline <- peeks $ boolQueryParameter "inline"
   serveAssetSegment (not inline) as
 
+-- SOW2: add getAssetSegement with Bool flag set to True to obtain original asset file
 downloadOrigAssetSegment :: ActionRoute (Id Slot, Id Asset)
 downloadOrigAssetSegment = action GET (pathSlotId </> pathId </< "downloadOrig") $ \(si, ai) -> withAuth $ do
   as <- getAssetSegment True PermissionPUBLIC Nothing si ai
