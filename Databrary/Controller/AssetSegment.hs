@@ -51,7 +51,17 @@ import Databrary.Controller.Format
 -- SOW2: Add Boolean flag to toggle the choice of downloading the original asset file. 
 getAssetSegment :: Bool -> Permission -> Maybe (Id Volume) -> Id Slot -> Id Asset -> ActionM AssetSegment
 getAssetSegment getOrig p mv s a =
-  checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupSlotAssetSegment s a
+  case getOrig of 
+       True -> do 
+         liftIO $ putStrLn "getAssetSegment True" --DEBUG
+         tester <- lookupOrigSlotAssetSegment s a
+         liftIO $ print tester --DEBUG
+         checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupOrigSlotAssetSegment s a
+       False -> do 
+         liftIO $ putStrLn "getAssetSegment False" --DEBUG
+         tester <- lookupSlotAssetSegment s a
+         liftIO $ print tester --DEBUG
+         checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupSlotAssetSegment s a
 
 assetSegmentJSONField :: AssetSegment -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
 assetSegmentJSONField a "asset" _ = return $ Just $ JSON.recordEncoding $ assetSlotJSON (segmentAsset a)

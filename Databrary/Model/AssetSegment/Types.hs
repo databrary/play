@@ -33,6 +33,7 @@ data AssetSegment = AssetSegment
   , assetSegment :: !Segment
   , assetExcerpt :: Maybe Excerpt
   }
+  deriving (Show)
 
 assetAssumedSegment :: AssetSlot -> Segment
 assetAssumedSegment a
@@ -101,6 +102,8 @@ data Excerpt = Excerpt
   { excerptAsset :: !AssetSegment
   , excerptRelease :: !(Maybe Release)
   }
+instance Show Excerpt where
+  show _ = "Excerpt"
 
 newExcerpt :: AssetSlot -> Segment -> Maybe Release -> Excerpt
 newExcerpt a s r = e where
