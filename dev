@@ -1,20 +1,38 @@
 #!/bin/sh -e
-declare -A opt
-while getopts 'fnpi' o ; do
-	opt[$o]=$OPTARG
-done
-shift $[OPTIND-1]
-if [[ -n ${opt[f]+set} ]] ; then
-	cabal install --only-dependencies --force-reinstalls
-fi
-setup=dist/setup/setup
-mkdir -p `dirname $setup`
-ghc -Wall -fwarn-tabs --make -odir dist/setup -hidir dist/setup -i. Setup.hs -o $setup
-[[ -z ${opt[f]+set} && -f dist/setup-config ]] || $setup configure --user -f ${opt[p]+-}devel
-$setup build ${opt[p]--j3}
-if [[ -n ${opt[i]+set} ]] ; then
-	$setup install "$@"
-elif [[ -z ${opt[n]+set}${opt[p]+set} ]] ; then
-	echo "Starting databrary..."
-	databrary_datadir=. databrary_sysconfdir=. dist/build/databrary/databrary "$@"
-fi
+echo "========Cleaning up stale artifacts from prior build============================================"
+cabal clean
+
+echo "========Installing any new dependencies========================================================="
+cabal install --only-dependencies --force-reinstalls
+
+#setup=dist/setup/setup
+#mkdir -p `dirname $setup`
+#ghc -Wall -fwarn-tabs --make -odir dist/setup -hidir dist/setup -i. Setup.hs -o $setup
+#[[ -z ${opt[f]+set} && -f dist/setup-config ]] || $setup configure --user -f ${opt[p]+-}devel
+echo "========Determine version from git commit======================================================"
+echo "========Configuring build settings=============================================================="
+echo "========Download lastest node dependencies====================================================="
+cabal configure --user
+
+##$setup build ${opt[p]--j3}
+#cabal build
+
+echo "========Determine version from git commit======================================================"
+echo "========Download lastest node dependencies====================================================="
+echo "========Run any DB Migrations=================================================================="
+echo "========Build into dist/build=================================================================="
+echo "========Generate web assets===================================================================="
+echo "========Set transcode scripts as executable===================================================="
+echo "========Add version suffix to executable name=================================================="
+#if [[ -n ${opt[i]+set} ]] ; then
+#	$setup install "$@"
+#elif [[ -z ${opt[n]+set}${opt[p]+set} ]] ; then
+#	echo "Starting databrary..."
+#	databrary_datadir=. databrary_sysconfdir=. dist/build/databrary/databrary "$@"
+#fi
+cabal install
+echo "========The prefix of this version will provide you with the version built: `git describe`====="
+
+echo "========Build/Install sucessful.================================================================"
+echo "========Run ~build/.cabal/bin/databrary-X.Y.Z.NN================================================"
+echo "========Run from inside a directory containing databrary.conf (/home/databrary)================="
