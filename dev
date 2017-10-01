@@ -14,6 +14,11 @@ ghc -Wall -fwarn-tabs --make -odir dist/setup -hidir dist/setup -i. Setup.hs -o 
 $setup build ${opt[p]--j3}
 if [[ -n ${opt[i]+set} ]] ; then
 	$setup install "$@"
+        version=`cat databrary.cabal | grep -i "^version:" | tr '[:upper:]' '[:lower:]' | sed -E 's/version: *([0-9\.a-bA-Z0-9]*) */\1/'`
+        pushd ~/.cabal/bin
+        mv databrary databrary-$version
+        mv schemabrary schemabrary-$version
+        popd
 elif [[ -z ${opt[n]+set}${opt[p]+set} ]] ; then
 	echo "Starting databrary..."
 	databrary_datadir=. databrary_sysconfdir=. dist/build/databrary/databrary "$@"
