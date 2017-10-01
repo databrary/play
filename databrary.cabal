@@ -62,6 +62,7 @@ Flag sandbox
 Library
   exposed-modules: Data.RangeSet.Parse
                  , Databrary.Store.AV
+                 , Databrary.Model.ORCID
   c-sources: Databrary/Store/avFrame.c
 
   build-depends:
@@ -256,6 +257,7 @@ test-suite unit-test
   type:           exitcode-stdio-1.0
   hs-source-dirs: test
   main-is:        UnitTest.hs
+  other-modules:  Fixtures
   build-depends:  base
                 , databrary
                 , range-set-list

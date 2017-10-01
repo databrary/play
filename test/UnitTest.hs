@@ -3,6 +3,7 @@ import Test.Tasty.HUnit
 
 import Data.RangeSet.Parse
 import qualified Data.RangeSet.List as R
+import Fixtures
 
 main :: IO ()
 main = defaultMain tests
