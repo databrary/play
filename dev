@@ -9,14 +9,16 @@ cabal install --only-dependencies --force-reinstalls
 #mkdir -p `dirname $setup`
 #ghc -Wall -fwarn-tabs --make -odir dist/setup -hidir dist/setup -i. Setup.hs -o $setup
 #[[ -z ${opt[f]+set} && -f dist/setup-config ]] || $setup configure --user -f ${opt[p]+-}devel
+echo "========Build Setup script into dist/setup/setup==============================================="
 echo "========Determine version from git commit======================================================"
-echo "========Configuring build settings=============================================================="
+echo "========Configuring build settings============================================================="
 echo "========Download lastest node dependencies====================================================="
 cabal configure --user
 
 ##$setup build ${opt[p]--j3}
 #cabal build
 
+echo "========Build Setup script into dist/setup/setup==============================================="
 echo "========Determine version from git commit======================================================"
 echo "========Download lastest node dependencies====================================================="
 echo "========Run any DB Migrations=================================================================="
