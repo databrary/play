@@ -13,6 +13,7 @@ module Databrary.Controller.Asset
   , viewSlotAssetCreate
   , deleteAsset
   , downloadAsset
+  , downloadOrigAsset
   , thumbAsset
   , assetDownloadName
   ) where
