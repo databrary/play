@@ -21,6 +21,7 @@ import Data.Either (isRight)
 import Data.Monoid ((<>))
 import Data.Time.Format (formatTime, defaultTimeLocale)
 import Database.PostgreSQL.Typed.Query (pgSQL)
+import Database.PostgreSQL.Typed.Query (makePGQuery, QueryFlags(..), simpleQueryFlags)
 
 import Databrary.Ops
 import Databrary.Has (view, peek)
@@ -34,8 +35,11 @@ import Databrary.Model.Party.Types
 import Databrary.Model.Identity
 import Databrary.Model.Audit
 import Databrary.Model.Volume.Types
+import Databrary.Model.Volume.SQL (makeVolume, setCreation)
 import Databrary.Model.Container.Types
 import Databrary.Model.Container.SQL
+
+$(useTDB)
 
 blankContainer :: Volume -> Container
 blankContainer vol = Container
@@ -52,19 +56,63 @@ blankContainer vol = Container
 lookupContainer :: (MonadDB c m, MonadHasIdentity c m) => Id Container -> m (Maybe Container)
 lookupContainer ci = do
   ident <- peek
-  dbQuery1 $(selectQuery (selectContainer 'ident) "$WHERE container.id = ${ci}")
+  mRow <- dbQuery1
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT container.id,container.top,container.name,container.date,slot_release.release,volume.id,volume.name,volume.body,volume.alias,volume.doi,volume_creation(volume.id),volume_owners.owners,volume_permission.permission"
+           ++ " FROM container LEFT JOIN slot_release ON container.id = slot_release.container AND slot_release.segment = '(,)' JOIN volume LEFT JOIN volume_owners ON volume.id = volume_owners.volume JOIN LATERAL (VALUES (CASE WHEN ${identitySuperuser ident} THEN enum_last(NULL::permission) ELSE volume_access_check(volume.id, ${view ident :: Id Party}) END)) AS volume_permission (permission) ON volume_permission.permission >= 'PUBLIC'::permission ON container.volume = volume.id "
+           ++ "WHERE container.id = ${ci}" ))
+  pure 
+    (fmap 
+       (\(cid,ctp,cnm,cdt,srl,vid2,vnm,vbd,vals,vdoi,vcr,vow,vpr) -> 
+          ($)
+            (Container (ContainerRow cid ctp cnm cdt) srl)
+            (makeVolume
+              (setCreation (VolumeRow vid2 vnm vbd vals vdoi) vcr)
+              vow
+              vpr))
+       mRow)
 
 lookupVolumeContainer :: MonadDB c m => Volume -> Id Container -> m (Maybe Container)
-lookupVolumeContainer vol ci =
-  dbQuery1 $ fmap ($ vol) $(selectQuery selectVolumeContainer "$WHERE container.id = ${ci} AND container.volume = ${volumeId $ volumeRow vol}")
+lookupVolumeContainer vol ci = do
+  mRow <- dbQuery1
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT container.id,container.top,container.name,container.date,slot_release.release"
+           ++ " FROM container LEFT JOIN slot_release ON container.id = slot_release.container AND slot_release.segment = '(,)'"
+           ++ " WHERE container.id = ${ci} AND container.volume = ${volumeId $ volumeRow vol}" ))
+  pure 
+    (fmap 
+       (\(vid, tp, nm, dt, rl) -> 
+          Container (ContainerRow vid tp nm dt) rl vol)
+       mRow)
 
 lookupVolumeContainers :: MonadDB c m => Volume -> m [Container]
-lookupVolumeContainers vol =
-  dbQuery $ fmap ($ vol) $(selectQuery selectVolumeContainer "$WHERE container.volume = ${volumeId $ volumeRow vol} ORDER BY container.id")
+lookupVolumeContainers vol = do
+  rows <- dbQuery
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT container.id,container.top,container.name,container.date,slot_release.release"
+           ++ " FROM container LEFT JOIN slot_release ON container.id = slot_release.container AND slot_release.segment = '(,)'"
+           ++ " WHERE container.volume = ${volumeId $ volumeRow vol} ORDER BY container.id" ))
+  pure 
+    (fmap 
+       (\(vid, tp, nm, dt, rl) -> 
+          Container (ContainerRow vid tp nm dt) rl vol)
+       rows)
 
 lookupVolumeTopContainer :: MonadDB c m => Volume -> m Container
-lookupVolumeTopContainer vol =
-  dbQuery1' $ fmap ($ vol) $(selectQuery selectVolumeContainer "$WHERE container.volume = ${volumeId $ volumeRow vol} ORDER BY container.id LIMIT 1")
+lookupVolumeTopContainer vol = do
+  row <- dbQuery1'
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT container.id,container.top,container.name,container.date,slot_release.release"
+           ++ " FROM container LEFT JOIN slot_release ON container.id = slot_release.container AND slot_release.segment = '(,)'"
+           ++ " WHERE container.volume = ${volumeId $ volumeRow vol} ORDER BY container.id LIMIT 1" ))
+  pure
+     ((\(vid, tp, nm, dt, rl) -> 
+        Container (ContainerRow vid tp nm dt) rl vol)
+      row)
 
 containerIsVolumeTop :: MonadDB c m => Container -> m Bool
 containerIsVolumeTop Container{ containerRow = ContainerRow{ containerTop = False } } = return False
