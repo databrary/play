@@ -109,7 +109,7 @@ routeMap = routes
   , route viewAssetEdit
   , route deleteAsset
   , route downloadAsset
-  , route downloadOrigAsset
+  , route downloadOrigAsset --SOW2
   , route thumbAsset
   , route viewAssetCreate
   , route createAsset

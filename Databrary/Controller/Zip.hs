@@ -51,14 +51,17 @@ import Databrary.Controller.Angular
 import Databrary.Controller.IdSet
 import Databrary.View.Zip
 
-assetZipEntry :: AssetSlot -> ActionM ZipEntry
-assetZipEntry AssetSlot{ slotAsset = a@Asset{ assetRow = ar } } = do
+-- SOW2 Boolean flag added to toggle original or databrary-prepended filename upon download 
+assetZipEntry :: Bool -> AssetSlot -> ActionM ZipEntry
+assetZipEntry isOrigName AssetSlot{ slotAsset = a@Asset{ assetRow = ar } } = do
   Just f <- getAssetFile a
   req <- peek
   -- (t, _) <- assetCreation a
   -- Just (t, s) <- fileInfo f
   return blankZipEntry
-    { zipEntryName = makeFilename (assetDownloadName ar) `addFormatExtension` assetFormat ar
+    { zipEntryName = case isOrigName of
+       False -> makeFilename (assetDownloadName ar) `addFormatExtension` assetFormat ar
+       True -> last $ BSC.split ',' $ makeFilename (assetDownloadName ar) `addFormatExtension` assetFormat ar
     , zipEntryTime = Nothing
     , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewAsset (HTML, assetId ar) []
     , zipEntryContent = ZipEntryFile (fromIntegral $ fromJust $ assetSize ar) f
@@ -67,7 +70,7 @@ assetZipEntry AssetSlot{ slotAsset = a@Asset{ assetRow = ar } } = do
 containerZipEntry :: Container -> [AssetSlot] -> ActionM ZipEntry
 containerZipEntry c l = do
   req <- peek
-  a <- mapM assetZipEntry l
+  a <- mapM (assetZipEntry False) l
   return blankZipEntry
     { zipEntryName = makeFilename (containerDownloadName c)
     , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewContainer (HTML, (Nothing, containerId $ containerRow c)) []
@@ -110,7 +113,7 @@ volumeZipEntry v top cs csv al = do
         }]))
     }
   where
-  ent [a@AssetSlot{ assetSlot = Nothing }] = assetZipEntry a
+  ent [a@AssetSlot{ assetSlot = Nothing }] = assetZipEntry False a
   ent l@(AssetSlot{ assetSlot = Just s } : _) = containerZipEntry (slotContainer s) l
   ent _ = fail "volumeZipEntry"
 

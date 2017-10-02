@@ -77,7 +77,7 @@ jsRoutes =
   , jsRoute "downloadOrigAssetSegment" downloadOrigAssetSegment (slot, asset) --SOW2
   , jsRoute "thumbAssetSegment" (thumbAssetSegment False) (slot, asset) --SOW2
   , jsRoute "downloadAsset" downloadAsset (asset, fullSegment)
-  , jsRoute "downloadOrigAsset" downloadOrigAsset (asset, fullSegment)
+  , jsRoute "downloadOrigAsset" downloadOrigAsset (asset, fullSegment) --SOW2
   , jsRoute "thumbAsset" thumbAsset (asset, fullSegment)
 
   , jsRoute "viewSearch" postSearch (HTML)
