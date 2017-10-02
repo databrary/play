@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Controller.Asset
   ( getAsset
+  , getOrigAsset
   , assetJSONField
   , viewAsset
   , AssetTarget(..)
@@ -76,6 +77,10 @@ import Control.Monad.IO.Class
 getAsset :: Permission -> Id Asset -> ActionM AssetSlot
 getAsset p i =
   checkPermission p =<< maybeAction =<< lookupAssetSlot i
+
+getOrigAsset :: Permission -> Id Asset -> ActionM AssetSlot
+getOrigAsset p i =
+  checkPermission p =<< maybeAction =<< lookupOrigAssetSlot i
 
 assetJSONField :: AssetSlot -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
 assetJSONField a "container" _ =
@@ -286,6 +291,12 @@ deleteAsset = action DELETE (pathAPI </> pathId) $ \(api, ai) -> withAuth $ do
 downloadAsset :: ActionRoute (Id Asset, Segment)
 downloadAsset = action GET (pathId </> pathSegment </< "download") $ \(ai, seg) -> withAuth $ do
   a <- getAsset PermissionPUBLIC ai
+  inline <- peeks $ lookupQueryParameters "inline"
+  serveAssetSegment (null inline) $ newAssetSegment a seg Nothing
+
+downloadOrigAsset :: ActionRoute (Id Asset, Segment)
+downloadOrigAsset = action GET (pathId </> pathSegment </< "downloadOrig") $ \(ai, seg) -> withAuth $ do
+  a <- getOrigAsset PermissionPUBLIC ai
   inline <- peeks $ lookupQueryParameters "inline"
   serveAssetSegment (null inline) $ newAssetSegment a seg Nothing
 

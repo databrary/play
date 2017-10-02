@@ -2,6 +2,7 @@
 module Databrary.Model.AssetSlot
   ( module Databrary.Model.AssetSlot.Types
   , lookupAssetSlot
+  , lookupOrigAssetSlot 
   , lookupAssetAssetSlot
   , lookupSlotAssets
   , lookupContainerAssets
@@ -44,6 +45,11 @@ lookupAssetSlot :: (MonadHasIdentity c m, MonadDB c m) => Id Asset -> m (Maybe A
 lookupAssetSlot ai = do
   ident <- peek
   dbQuery1 $(selectQuery (selectAssetSlot 'ident) "$WHERE asset.id = ${ai}")
+
+lookupOrigAssetSlot :: (MonadHasIdentity c m, MonadDB c m) => Id Asset -> m (Maybe AssetSlot)
+lookupOrigAssetSlot ai = do
+  ident <- peek
+  dbQuery1 $(selectQuery (selectAssetSlot 'ident) "$left join asset_revision ar on ar.orig = asset.id WHERE ar.asset = ${ai}")
 
 lookupAssetAssetSlot :: (MonadDB c m) => Asset -> m AssetSlot
 lookupAssetAssetSlot a = fromMaybe assetNoSlot
