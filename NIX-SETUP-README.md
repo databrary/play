@@ -34,6 +34,9 @@ From the same root directory of this project inside the nix-shell, run
 ### STEP 3
 When cabal repl finishes loading, run
 ```bash
+# for reload, to cause Haskell to rebuild
+> :r
+
 # Generate frontend assets
 > :main -w
 
