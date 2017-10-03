@@ -2,6 +2,8 @@
 module Databrary.Model.Transcode.SQL
   ( selectOrigTranscode
   , selectTranscode
+  , makeTranscodeRow -- TODO: move to types
+  , makeOrigTranscode
   ) where
 
 import qualified Data.ByteString as BS
@@ -40,7 +42,7 @@ selectOrigTranscode :: Selector -- ^ @'Asset' -> 'Transcode'@
 selectOrigTranscode = selectJoin 'makeOrigTranscode
   [ selectAssetRevisionTranscode
   , joinOn "transcode.asset = asset.id"
-    selectAssetRow
+    (selectColumns 'makeAssetRow "asset" ["id", "format", "release", "duration", "name", "sha1", "size"])
   ]
 
 makeTranscode :: (Asset -> Transcode) -> AssetRow -> (Permission -> Volume) -> Transcode

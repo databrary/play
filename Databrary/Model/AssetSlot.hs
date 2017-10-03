@@ -20,6 +20,7 @@ import Data.Maybe (fromMaybe, isNothing)
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Database.PostgreSQL.Typed (pgSQL)
+import Database.PostgreSQL.Typed.Query (makePGQuery, QueryFlags(..), simpleQueryFlags)
 
 import Databrary.Ops
 import Databrary.Has (peek, view)
@@ -35,10 +36,13 @@ import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
 import Databrary.Model.Slot.Types
 import Databrary.Model.Asset
+import Databrary.Model.Asset.SQL (makeAssetRow)
 import Databrary.Model.Audit
 import Databrary.Model.SQL
 import Databrary.Model.AssetSlot.Types
 import Databrary.Model.AssetSlot.SQL
+
+$(useTDB)
 
 lookupAssetSlot :: (MonadHasIdentity c m, MonadDB c m) => Id Asset -> m (Maybe AssetSlot)
 lookupAssetSlot ai = do
@@ -51,8 +55,21 @@ lookupAssetAssetSlot a = fromMaybe assetNoSlot
   <*> return a
 
 lookupSlotAssets :: (MonadDB c m) => Slot -> m [AssetSlot]
-lookupSlotAssets (Slot c s) =
-  dbQuery $ ($ c) <$> $(selectQuery selectContainerSlotAsset "$WHERE slot_asset.container = ${containerId $ containerRow c} AND slot_asset.segment && ${s} AND asset.volume = ${volumeId $ volumeRow $ containerVolume c}")
+lookupSlotAssets (Slot c s) = do
+  rows <- dbQuery   -- XXX volumes match?
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT slot_asset.segment,asset.id,asset.format,asset.release,asset.duration,asset.name,asset.sha1,asset.size"
+           ++ " FROM slot_asset JOIN asset ON slot_asset.asset = asset.id " 
+           ++ "WHERE slot_asset.container = ${containerId $ containerRow c} AND slot_asset.segment && ${s} AND asset.volume = ${volumeId $ volumeRow $ containerVolume c}"))
+  pure 
+    (fmap 
+       (\(sg,aid,fm,rl,dr,nm,sh,sz) -> 
+          makeContainerSlotAsset
+            sg 
+            (makeAssetRow aid fm rl dr nm sh sz)
+            c)
+       rows)
 
 lookupContainerAssets :: (MonadDB c m) => Container -> m [AssetSlot]
 lookupContainerAssets = lookupSlotAssets . containerSlot
@@ -62,8 +79,21 @@ lookupVolumeAssetSlots v top =
   dbQuery $ ($ v) <$> $(selectQuery selectVolumeSlotAsset "$WHERE asset.volume = ${volumeId $ volumeRow v} AND (container.top OR ${not top}) ORDER BY container.id")
 
 lookupVolumeAssetSlotIds :: (MonadDB c m) => Volume -> m [(Asset, SlotId)]
-lookupVolumeAssetSlotIds v =
-  dbQuery $ ($ v) <$> $(selectQuery selectVolumeSlotIdAsset "$WHERE asset.volume = ${volumeId $ volumeRow v} ORDER BY container")
+lookupVolumeAssetSlotIds v = do
+  rows <- dbQuery   -- XXX volumes match?
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT slot_asset.container,slot_asset.segment,asset.id,asset.format,asset.release,asset.duration,asset.name,asset.sha1,asset.size"
+           ++ " FROM slot_asset JOIN asset ON slot_asset.asset = asset.id " 
+           ++ "WHERE asset.volume = ${volumeId $ volumeRow v} ORDER BY container"))
+  pure 
+    (fmap 
+       (\(cn,sg,aid,fm,rl,dr,nm,sh,sz) -> 
+          makeVolumeSlotIdAsset
+            (SlotId cn sg)
+            (makeAssetRow aid fm rl dr nm sh sz)
+            v)
+       rows)
 
 changeAssetSlot :: (MonadAudit c m) => AssetSlot -> m Bool
 changeAssetSlot as = do
