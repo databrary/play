@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 
 top=${1:-$HOME}
 yasm=1.3.0

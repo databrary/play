@@ -16,7 +16,12 @@ let
   # 
 	# pkgs =	nixpkgs.pkgs.haskell.packages.ghc7103.override {
     overrides = self: super: rec {
-      databrary = self.callPackage ./. {inherit (nixpkgs) ffmpeg;};
+      databrary = self.callPackage ./. {
+        ffmpeg = nixpkgs.ffmpeg-full.override {
+          nonfreeLicensing = true;
+          fdkaacExtlib = true;
+        };
+      };
       
       databrary-dev = overrideCabal databrary (drv: {
         libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [self.ghcid];
