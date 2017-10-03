@@ -8,8 +8,10 @@ Welcome to the Jungle!
 
 Clone the Databrary Repo and checkout the obsidian-develop branch. 
 ```bash
-> git clone git@github.com:databrary/databrary.git
+> git clone https://github.com/databrary/databrary.git
+> cd databrary
 > git checkout obsidian-develop
+
 ```
 
 ### STEP 1
@@ -17,6 +19,8 @@ From the root directory of this project, run
 ```bash
 # If you don't already have nix, get it! (If you do have it, skip this step)
 > ./setup-nix
+# After it completes run the following to update environment or restart the shell
+> source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
 # If you just want to add the binary caches to your nix config (note that this is run by setup-nix, so you don't need to run both):
 > sudo ./setup-binary-caches
 # Enter environment for building/running databrary
