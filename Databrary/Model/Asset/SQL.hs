@@ -4,6 +4,7 @@ module Databrary.Model.Asset.SQL
   , selectAsset
   , insertAsset
   , updateAsset
+  , makeAssetRow -- TODO: move to Types
   ) where
 
 import qualified Data.ByteString as BS

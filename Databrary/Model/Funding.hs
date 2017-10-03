@@ -19,7 +19,6 @@ import Database.PostgreSQL.Typed.Query (makePGQuery, QueryFlags(..), simpleQuery
 import qualified Databrary.JSON as JSON
 import Databrary.Service.DB
 import Databrary.Model.SQL
-import Databrary.Model.SQL.Select
 import Databrary.Model.Id.Types
 import Databrary.Model.Volume.Types
 import Databrary.Model.Funding.Types
@@ -52,8 +51,14 @@ addFunder f =
   dbExecute1' [pgSQL|INSERT INTO funder (fundref_id, name) VALUES (${funderId f}, ${funderName f})|]
 
 lookupVolumeFunding :: (MonadDB c m) => Volume -> m [Funding]
-lookupVolumeFunding vol =
-  dbQuery $(selectQuery selectVolumeFunding "$WHERE volume_funding.volume = ${volumeId $ volumeRow vol}")
+lookupVolumeFunding vol = do
+  rows <- dbQuery
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT volume_funding.awards,funder.fundref_id,funder.name "
+           ++ " FROM volume_funding JOIN funder ON volume_funding.funder = funder.fundref_id "
+           ++ "WHERE volume_funding.volume = ${volumeId $ volumeRow vol}"))
+  pure (fmap (\(aws, fid, nm) -> ($) (makeFunding aws) (Funder fid nm)) rows)
 
 changeVolumeFunding :: MonadDB c m => Volume -> Funding -> m Bool
 changeVolumeFunding v Funding{..} =
