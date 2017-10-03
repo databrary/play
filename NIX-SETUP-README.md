@@ -25,6 +25,8 @@ From the root directory of this project, run
 > sudo ./setup-binary-caches
 # Enter environment for building/running databrary
 > nix-shell
+# For MacOSX, please delete nixpkgs.postfix line from shell.nix
+#
 # Set up the postgresql database along with required schemas
 > ./init-db
 ```
