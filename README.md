@@ -1,7 +1,7 @@
 # Databrary
 
 * http://databrary.org/
-* http://databrary.github.io/databrary/
+
 
 ## Installation
 
