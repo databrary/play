@@ -76,7 +76,7 @@
         <div class="profile-section-header">
           <strong>Affiliates</strong>
           <a ng-href="{{::party.editRoute('grant')}}" class="button icon edit neutral"></a>
-          <div ng-if="::!parties.children.length">
+          <div ng-if="::!parties.children.length" class="small" style="margin: 10px 0;">
               You have no affiliates at this time. <a ng-href="{{::party.editRoute('grant')}}">
               Click here to add an affiliate.</a>
           </div> 
