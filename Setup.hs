@@ -22,7 +22,6 @@ import System.FilePath ((<.>), (</>))
 
 -- node and git are scripted through haskell. the node scripting is 
 -- basically a handrolled webpack
-import Databrary.Setup.Git
 import Databrary.Setup.Node
 
 run :: Verbosity -> PackageDescription -> LocalBuildInfo -> String -> [String] -> IO ()
@@ -49,12 +48,6 @@ main :: IO ()
 main = defaultMainWithHooks simpleUserHooks 
   -- hook in node and npm and the list of default hooked programs
   { hookedPrograms = [nodeProgram, npmProgram] ++ hookedPrograms simpleUserHooks
-    -- at the config step get the library version from git and check for the -devel flag
-  , confHook = \(d, i) f -> do
-    d' <- setGitVersion d
-    let f' | Fold.or (lookup (FlagName "devel") (configConfigurationsFlags f)) || Fold.any (not . null . fromPathTemplate) (flagToMaybe $ configProgSuffix f) = f
-           | otherwise = f{ configProgSuffix = Flag $ toPathTemplate "-$version" }
-    confHook simpleUserHooks (d', i) f'
     -- update all node dependencies after configuring
   , postConf = \args flag desc lbi -> do
     postConf simpleUserHooks args flag desc lbi
