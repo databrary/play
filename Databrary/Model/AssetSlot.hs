@@ -6,6 +6,7 @@ module Databrary.Model.AssetSlot
   , lookupAssetAssetSlot
   , lookupSlotAssets
   , lookupContainerAssets
+  , lookupOrigContainerAssets
   , lookupVolumeAssetSlots
   , lookupVolumeAssetSlotIds
   , changeAssetSlot
@@ -16,10 +17,11 @@ module Databrary.Model.AssetSlot
   , assetSlotJSON
   ) where
 
-import Control.Monad (when, guard)
+import Control.Monad (when, guard, forM)
 import Data.Maybe (fromMaybe, isNothing)
 import Data.Monoid ((<>))
 import qualified Data.Text as T
+import qualified Data.ByteString as BS
 import Database.PostgreSQL.Typed (pgSQL)
 
 import Databrary.Ops
@@ -38,8 +40,10 @@ import Databrary.Model.Slot.Types
 import Databrary.Model.Asset
 import Databrary.Model.Audit
 import Databrary.Model.SQL
+import Databrary.Model.SQL.Select
 import Databrary.Model.AssetSlot.Types
 import Databrary.Model.AssetSlot.SQL
+import Databrary.Model.Format.Types
 
 lookupAssetSlot :: (MonadHasIdentity c m, MonadDB c m) => Id Asset -> m (Maybe AssetSlot)
 lookupAssetSlot ai = do
@@ -60,8 +64,25 @@ lookupSlotAssets :: (MonadDB c m) => Slot -> m [AssetSlot]
 lookupSlotAssets (Slot c s) =
   dbQuery $ ($ c) <$> $(selectQuery selectContainerSlotAsset "$WHERE slot_asset.container = ${containerId $ containerRow c} AND slot_asset.segment && ${s} AND asset.volume = ${volumeId $ volumeRow $ containerVolume c}")
 
+lookupOrigSlotAssets :: (MonadDB c m) => Slot -> m [AssetSlot]
+lookupOrigSlotAssets slot@(Slot c s) = do
+  xs <-  dbQuery [pgSQL|
+    SELECT asset.id,asset.release,asset.duration,asset.name,asset.sha1,asset.size 
+    FROM slot_asset 
+    INNER JOIN asset_revision ON slot_asset.asset = asset_revision.asset
+    INNER JOIN asset ON asset_revision.orig = asset.id
+    WHERE slot_asset.container = ${containerId $ containerRow c}
+    |]
+  return $ flip fmap xs $ \(assetId,release,duration,name,sha1,size) -> 
+    let format = Format (Id (-800)) "video/mp4" [] ""
+        assetRow = AssetRow (Id assetId) format release duration name sha1 size
+    in AssetSlot (Asset assetRow (containerVolume c)) (Just slot)
+
 lookupContainerAssets :: (MonadDB c m) => Container -> m [AssetSlot]
 lookupContainerAssets = lookupSlotAssets . containerSlot
+
+lookupOrigContainerAssets :: (MonadDB c m) => Container -> m [AssetSlot]
+lookupOrigContainerAssets = lookupOrigSlotAssets . containerSlot
 
 lookupVolumeAssetSlots :: (MonadDB c m) => Volume -> Bool -> m [AssetSlot]
 lookupVolumeAssetSlots v top =

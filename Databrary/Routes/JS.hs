@@ -84,8 +84,10 @@ jsRoutes =
 
   , jsRoute "viewSearch" postSearch (HTML)
 
-  , jsRoute "zipSlot" zipContainer (Just volume, container)
-  , jsRoute "zipVolume" zipVolume (volume)
+  , jsRoute "zipSlot" (zipContainer False) (Just volume, container) --SOW2
+  , jsRoute "zipOrigSlot" (zipContainer True) (Just volume, container) --SOW2
+  , jsRoute "zipVolume" (zipVolume False) (volume) --SOW2
+  , jsRoute "zipOrigVolume" (zipVolume True) (volume) --SOW2
   , jsRoute "viewVolumeDescription" viewVolumeDescription (volume)
 
   , jsRoute "get" viewRoot (JSON)
