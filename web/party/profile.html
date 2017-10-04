@@ -72,12 +72,16 @@
           </li>
         </ul>
       </div>
-      <div class="profile-section foot-2" ng-if="::parties.children.length">
+      <div class="profile-section foot-2">
         <div class="profile-section-header">
           <strong>Affiliates</strong>
           <a ng-href="{{::party.editRoute('grant')}}" class="button icon edit neutral"></a>
+          <div ng-if="::!parties.children.length">
+              You have no affiliates at this time. <a ng-href="{{::party.editRoute('grant')}}">
+              Click here to add an affiliate.</a>
+          </div> 
         </div>
-        <div ng-repeat="(member, cl) in ::parties.children track by member" ng-if="::cl.length" ng-class="{'profile-affiliate-highlight': member && selected.self.children}">
+        <div ng-repeat="(member, cl) in ::parties.children track by member" ng-if="::cl.length && parties.children.length" ng-class="{'profile-affiliate-highlight': member && selected.self.children}">
           <div class="profile-subsection-header small">
             <span ng-if="member" class="icon network"></span> 
             <strong ng-bind="::'auth.member.'+page.constants.permission[member]+'.title' | message"></strong>: 
