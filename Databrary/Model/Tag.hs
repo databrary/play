@@ -75,8 +75,20 @@ addTag n =
   dbQuery1' $ (`Tag` n) <$> [pgSQL|!SELECT get_tag(${n})|]
 
 lookupVolumeTagUseRows :: MonadDB c m => Volume -> m [TagUseRow]
-lookupVolumeTagUseRows v =
-  dbQuery $(selectQuery selectTagUseRow "JOIN container ON tag_use.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container.id")
+lookupVolumeTagUseRows v = do
+  rows <- dbQuery
+      $(makePGQuery
+          (simpleQueryFlags)
+          (   "SELECT tag_use.who,tag_use.container,tag_use.segment,tag_use.tableoid = 'keyword_use'::regclass,tag.id,tag.name"
+           ++ " FROM tag_use JOIN tag ON tag_use.tag = tag.id " 
+           ++ "JOIN container ON tag_use.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container.id"))
+  pure 
+    (fmap 
+       (\(wh, cn, sg, k, tid, nm) -> 
+          ($)
+            (($) (makeTagUseRow wh cn sg k))
+            (Tag tid nm))
+       rows)
 
 addTagUse :: MonadDB c m => TagUse -> m Bool
 addTagUse t = either (const False) id <$> do

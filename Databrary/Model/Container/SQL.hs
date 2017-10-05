@@ -24,7 +24,7 @@ selectVolumeContainer = selectJoin 'Container
     (selectColumn "slot_release" "release")
   ]
 
-selectContainer :: TH.Name -- ^ @'Identity'@
+selectContainer :: TH.Name -- ^ @'Identity'@  -- only used by Comment now
   -> Selector -- ^ @'Container'@
 selectContainer ident = selectJoin '($)
   [ selectVolumeContainer
