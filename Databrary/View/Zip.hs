@@ -113,7 +113,7 @@ htmlVolumeDescription inzip Volume{ volumeRow = VolumeRow{..}, ..} cite fund glo
             H.text $ partyName $ partyRow $ view req
       else do
         H.dt $ H.a H.! actionLink (zipVolume False) volumeId (idSetQuery cs) $
-          void "Download(View/Zip.hs)"
+          void "Download Transcoded"
     unless (idSetIsFull cs) $ H.p $ msg "download.zip.partial"
     H.p $ do
       msg "download.warning"

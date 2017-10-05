@@ -64,7 +64,7 @@ jsRoutes =
   , jsRoute "csvVolume" csvVolume (volume)
   , jsRoute "viewVolumeActivity" viewVolumeActivity (HTML, volume)
 
-  , jsRoute "viewSlot" viewSlot (HTML, (Just volume, slot))
+  , jsRoute "viewSlot" (viewSlot False) (HTML, (Just volume, slot)) -- SOW2
   , jsRoute "viewSlotEdit" viewContainerEdit (Just volume, container)
   , jsRoute "viewSlotActivity" viewContainerActivity (HTML, (Just volume, container))
   , jsRoute "thumbSlot" thumbSlot (Just volume, slot)
@@ -86,8 +86,8 @@ jsRoutes =
 
   , jsRoute "zipSlot" (zipContainer False) (Just volume, container) --SOW2
   , jsRoute "zipOrigSlot" (zipContainer True) (Just volume, container) --SOW2
-  , jsRoute "zipVolume" (zipVolume False) (volume) --SOW2
-  , jsRoute "zipOrigVolume" (zipVolume True) (volume) --SOW2
+  , jsRoute "zipVolume" (zipVolume False) (volume) -- SOW2
+  , jsRoute "zipOrigVolume" (zipVolume True) (volume) -- SOW2
   , jsRoute "viewVolumeDescription" viewVolumeDescription (volume)
 
   , jsRoute "get" viewRoot (JSON)
@@ -127,7 +127,7 @@ jsRoutes =
   , jsRoute "getFunders" queryFunder ()
   , jsRoute "getCitation" getCitation ()
 
-  , jsRoute "getSlot" viewSlot (JSON, (Nothing, slot))
+  , jsRoute "getSlot" (viewSlot False) (JSON, (Nothing, slot))
   , jsRoute "postContainer" postContainer (JSON, container)
   , jsRoute "deleteContainer" deleteContainer (JSON, container)
   , jsRoute "createContainer" createContainer (JSON, volume)

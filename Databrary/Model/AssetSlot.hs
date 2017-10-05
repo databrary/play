@@ -5,6 +5,7 @@ module Databrary.Model.AssetSlot
   , lookupOrigAssetSlot 
   , lookupAssetAssetSlot
   , lookupSlotAssets
+  , lookupOrigSlotAssets
   , lookupContainerAssets
   , lookupOrigContainerAssets
   , lookupVolumeAssetSlots

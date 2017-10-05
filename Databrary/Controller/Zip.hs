@@ -19,7 +19,6 @@ import Network.HTTP.Types (hContentType, hCacheControl, hContentLength)
 import System.Posix.FilePath ((<.>))
 import qualified Text.Blaze.Html5 as Html
 import qualified Text.Blaze.Html.Renderer.Utf8 as Html
-import Control.Monad.IO.Class
 
 import Databrary.Ops
 import Databrary.Has (view, peek, peeks)
@@ -62,13 +61,13 @@ assetZipEntry isOrigName AssetSlot{ slotAsset = a@Asset{ assetRow = ar } } = do
   return blankZipEntry
     { zipEntryName = case isOrigName of
        False -> makeFilename (assetDownloadName ar) `addFormatExtension` assetFormat ar
-       True -> last $ BSC.split ',' $ makeFilename (assetDownloadName ar) `addFormatExtension` assetFormat ar
+       True -> last $ BSC.split '-' $ makeFilename (assetDownloadName ar) `addFormatExtension` assetFormat ar
     , zipEntryTime = Nothing
     , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewAsset (HTML, assetId ar) []
     , zipEntryContent = ZipEntryFile (fromIntegral $ fromJust $ assetSize ar) f
     }
 
--- SOW2 Boolean flag added to toggle zip of original assets
+-- SOW2 original zip container toggle added
 containerZipEntry :: Bool -> Container -> [AssetSlot] -> ActionM ZipEntry
 containerZipEntry isOrig c l = do
   req <- peek
@@ -91,6 +90,7 @@ volumeDescription inzip v (_, glob) cs al = do
   me (Just x) (Just y) = x == y
   me _ _ = False
 
+-- SOW2 original zip container toggle added
 volumeZipEntry :: Bool -> Volume -> (Container, [RecordSlot]) -> IdSet Container -> Maybe BSB.Builder -> [AssetSlot] -> ActionM ZipEntry
 volumeZipEntry isOrig v top cs csv al = do
   req <- peek
@@ -115,7 +115,7 @@ volumeZipEntry isOrig v top cs csv al = do
         }]))
     }
   where
-  ent [a@AssetSlot{ assetSlot = Nothing }] = assetZipEntry isOrig a
+  ent [a@AssetSlot{ assetSlot = Nothing }] = assetZipEntry False a
   ent l@(AssetSlot{ assetSlot = Just s } : _) = containerZipEntry isOrig (slotContainer s) l
   ent _ = fail "volumeZipEntry"
 
@@ -139,16 +139,20 @@ zipEmpty _ = False
 checkAsset :: AssetSlot -> Bool
 checkAsset a = dataPermission a > PermissionNONE && assetBacked (view a)
 
+-- SOW2 original zip container toggle added
 zipContainer :: Bool -> ActionRoute (Maybe (Id Volume), Id Slot)
-zipContainer isOrig = action GET (pathMaybe pathId </> pathSlotId </< "zip") $ \(vi, ci) -> withAuth $ do
-  liftIO $ print "ZIP CONTAINER..."
-  c <- getContainer PermissionPUBLIC vi ci True
-  assetSlots <- case isOrig of 
-       True -> lookupContainerAssets c
-       False -> lookupContainerAssets c
-  z <- containerZipEntry isOrig c $ filter checkAsset assetSlots
-  auditSlotDownload (not $ zipEmpty z) (containerSlot c)
-  zipResponse ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) [z]
+zipContainer isOrig = 
+  let zipPath = case isOrig of 
+                     True -> pathMaybe pathId </> pathSlotId </< "zip" </< "true"
+                     False -> pathMaybe pathId </> pathSlotId </< "zip" </< "false"
+  in action GET zipPath $ \(vi, ci) -> withAuth $ do
+    c <- getContainer PermissionPUBLIC vi ci True
+    assetSlots <- case isOrig of 
+                       True -> lookupOrigContainerAssets c 
+                       False -> lookupContainerAssets c
+    z <- containerZipEntry isOrig c $ filter checkAsset assetSlots
+    auditSlotDownload (not $ zipEmpty z) (containerSlot c)
+    zipResponse ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) [z]
 
 getVolumeInfo :: Id Volume -> ActionM (Volume, IdSet Container, [AssetSlot])
 getVolumeInfo vi = do
@@ -159,7 +163,11 @@ getVolumeInfo vi = do
   return (v, s, a)
 
 zipVolume :: Bool -> ActionRoute (Id Volume)
-zipVolume isOrig = action GET (pathId </< "zip") $ \vi -> withAuth $ do
+zipVolume isOrig = 
+  let zipPath = case isOrig of 
+                     True -> pathId </< "zip" </< "true"
+                     False -> pathId </< "zip" </< "false"
+  in action GET zipPath $ \vi -> withAuth $ do
   (v, s, a) <- getVolumeInfo vi
   top:cr <- lookupVolumeContainersRecords v
   let cr' = filter ((`RS.member` s) . containerId . containerRow . fst) cr
