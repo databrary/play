@@ -19,13 +19,11 @@ cabal configure --user
 #cabal build
 
 echo "========Build Setup script into dist/setup/setup==============================================="
-echo "========Determine version from git commit======================================================"
 echo "========Download lastest node dependencies====================================================="
 echo "========Run any DB Migrations=================================================================="
 echo "========Build into dist/build=================================================================="
 echo "========Generate web assets===================================================================="
 echo "========Set transcode scripts as executable===================================================="
-echo "========Add version suffix to executable name=================================================="
 #if [[ -n ${opt[i]+set} ]] ; then
 #	$setup install "$@"
 #elif [[ -z ${opt[n]+set}${opt[p]+set} ]] ; then
@@ -33,6 +31,12 @@ echo "========Add version suffix to executable name=============================
 #	databrary_datadir=. databrary_sysconfdir=. dist/build/databrary/databrary "$@"
 #fi
 cabal install
+echo "========Add version suffix to executable name=================================================="
+version=`cat databrary.cabal | grep -i "^version:" | tr '[:upper:]' '[:lower:]' | sed -E 's/version: *([0-9\.a-bA-Z0-9]*) */\1/'`
+pushd ~/.cabal/bin
+cp databrary databrary-$version
+cp schemabrary schemabrary-$version
+popd
 echo "========The prefix of this version will provide you with the version built: `git describe`====="
 
 echo "========Build/Install sucessful.================================================================"
