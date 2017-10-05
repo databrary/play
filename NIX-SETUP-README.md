@@ -28,8 +28,9 @@ From the root directory of this project, run
 ### STEP 2
 From the same root directory of this project inside the nix-shell, run
 ```bash
-> cabal repl databrary
+> databrary_datadir=. cabal repl databrary
 ```
+Note: provide datadir to workaround issue with auto-generated Paths_databrary module in cabal repl
 
 ### STEP 3
 When cabal repl finishes loading, run
