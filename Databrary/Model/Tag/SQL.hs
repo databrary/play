@@ -1,11 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Databrary.Model.Tag.SQL
-  ( selectTagUseRow
-  , insertTagUse
+  ( insertTagUse
   , deleteTagUse
   , selectTagWeight
   , selectTagCoverage
   , selectSlotTagCoverage
+  , makeTagUseRow -- TODO: move to Types
   ) where
 
 import Data.List (intercalate)
@@ -27,26 +27,6 @@ tagUseTable True = "keyword_use"
 
 makeTagUseRow :: Id Party -> Id Container -> Segment -> Maybe Bool -> Tag -> TagUseRow
 makeTagUseRow w c s k t = TagUseRow t (fromMaybe False k) w (SlotId c s)
-
-tagUseRow :: Selector -- ' @'Tag' -> 'TagUseRow'@
-tagUseRow = 
-  Selector {
-    selectOutput = 
-      OutputJoin 
-        False 
-        '($) 
-        (selectOutput (selectColumns 'makeTagUseRow "tag_use" ["who", "container", "segment"])
-         : [SelectExpr "tag_use.tableoid = 'keyword_use'::regclass"])
-  , selectSource = "tag_use"
-  , selectJoined = ",tag_use"
-  }
-
-selectTagUseRow :: Selector -- ^ @'TagUseId'@
-selectTagUseRow = selectJoin '($)
-  [ tagUseRow
-  , joinOn "tag_use.tag = tag.id"
-    (selectColumns 'Tag "tag" ["id", "name"])
-  ]
 
 insertTagUse :: Bool -- ^ keyword
   -> TH.Name -- ^ @'TagUse'@

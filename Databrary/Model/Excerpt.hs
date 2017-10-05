@@ -24,6 +24,7 @@ import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
 import Databrary.Model.Slot.Types
 import Databrary.Model.Asset.Types
+import Databrary.Model.Asset.SQL (makeAssetRow)
 import Databrary.Model.AssetSlot.Types
 import Databrary.Model.AssetSegment
 import Databrary.Model.Excerpt.SQL
@@ -41,8 +42,24 @@ lookupAssetExcerpts a = do
   pure (fmap (\(mseg,rls) -> makeExcerpt mseg rls a) rows)
 
 lookupSlotExcerpts :: MonadDB c m => Slot -> m [Excerpt]
-lookupSlotExcerpts (Slot c s) =
-  dbQuery $ ($ c) <$> $(selectQuery selectContainerExcerpt "$WHERE slot_asset.container = ${containerId $ containerRow c} AND excerpt.segment && ${s}")
+lookupSlotExcerpts (Slot c s) = do
+  rows <- dbQuery        -- XXX volumes match?
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT slot_asset.segment,excerpt.segment,excerpt.release,asset.id,asset.format,asset.release,asset.duration,asset.name,asset.sha1,asset.size"
+           ++ " FROM slot_asset JOIN excerpt ON slot_asset.asset = excerpt.asset "
+           ++                  "JOIN asset ON slot_asset.asset = asset.id "
+           ++ "WHERE slot_asset.container = ${containerId $ containerRow c} AND excerpt.segment && ${s}"))
+  pure 
+    (fmap 
+       (\(ssg,esg,erl,aid,fm,arl,dr,nm,sh,sz) -> 
+          makeContainerExcerpt
+            (makeAssetContainerExcerpt 
+               ssg
+               (makeExcerpt esg erl))
+            (makeAssetRow aid fm arl dr nm sh sz)
+            c)
+       rows)
 
 lookupVolumeExcerpts :: MonadDB c m => Volume -> m [Excerpt]
 lookupVolumeExcerpts v =
@@ -50,13 +67,29 @@ lookupVolumeExcerpts v =
 
 lookupSlotThumb :: MonadDB c m => Slot -> m (Maybe AssetSegment)
 lookupSlotThumb (Slot c s) = do
-  dbQuery1 $ assetSegmentInterp 0 . excerptAsset . ($ c) <$> $(selectQuery selectContainerExcerpt "$\
-    \JOIN format ON asset.format = format.id \
-    \WHERE slot_asset.container = ${containerId $ containerRow c} AND excerpt.segment && ${s} \
-      \AND COALESCE(GREATEST(excerpt.release, asset.release), ${containerRelease c}) >= ${readRelease (view c)}::release \
-      \AND (asset.duration IS NOT NULL AND format.mimetype LIKE 'video/%' OR format.mimetype LIKE 'image/%') \
-      \AND asset.sha1 IS NOT NULL \
-    \LIMIT 1")
+  rows <- dbQuery1
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT slot_asset.segment,excerpt.segment,excerpt.release,asset.id,asset.format,asset.release,asset.duration,asset.name,asset.sha1,asset.size"
+           ++ " FROM slot_asset JOIN excerpt ON slot_asset.asset = excerpt.asset "
+           ++                  "JOIN asset ON slot_asset.asset = asset.id "
+           ++ "JOIN format ON asset.format = format.id \
+            \WHERE slot_asset.container = ${containerId $ containerRow c} AND excerpt.segment && ${s} \
+              \AND COALESCE(GREATEST(excerpt.release, asset.release), ${containerRelease c}) >= ${readRelease (view c)}::release \
+              \AND (asset.duration IS NOT NULL AND format.mimetype LIKE 'video/%' OR format.mimetype LIKE 'image/%') \
+              \AND asset.sha1 IS NOT NULL \
+            \LIMIT 1"))
+  let excerpts = 
+       (fmap 
+          (\(ssg,esg,erl,aid,fm,arl,dr,nm,sh,sz) -> 
+             makeContainerExcerpt
+               (makeAssetContainerExcerpt 
+                  ssg
+                  (makeExcerpt esg erl))
+               (makeAssetRow aid fm arl dr nm sh sz)
+               c)
+          rows)
+  pure (fmap (assetSegmentInterp 0 . excerptAsset) excerpts)
 
 lookupVolumeThumb :: MonadDB c m => Volume -> m (Maybe AssetSegment)
 lookupVolumeThumb v = do
