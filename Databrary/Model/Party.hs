@@ -28,6 +28,7 @@ module Databrary.Model.Party
 import Control.Applicative ((<|>))
 import Control.Exception.Lifted (handleJust)
 import Control.Monad (guard)
+import Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString as BS
 import Data.Int (Int64)
 import Data.List (intercalate)
@@ -150,6 +151,7 @@ lookupAuthParty i = do
 
 lookupSiteAuthByEmail :: MonadDB c m => Bool -> BS.ByteString -> m (Maybe SiteAuth)
 lookupSiteAuthByEmail ic e = do
+  liftIO $ print "before lookup site auth"
   r <- dbQuery1 $(selectQuery selectSiteAuth "WHERE account.email = ${e}")
   if ic && isNothing r
     then do
@@ -157,14 +159,15 @@ lookupSiteAuthByEmail ic e = do
       return $ case a of
         [x] -> Just x
         _ -> Nothing
-    else
+    else do
+      liftIO $ print "finishing lookup site auth"
       return r
 
-auditAccountLogin :: (MonadHasRequest c m, MonadDB c m) => Bool -> Party -> BS.ByteString -> m ()
-auditAccountLogin success who email = do
+auditAccountLogin :: (MonadHasRequest c m, MonadDB c m) => Bool -> Party -> BS.ByteString -> BS.ByteString -> m ()
+auditAccountLogin success who email username = do
   ip <- getRemoteIp
-  dbExecute1' [pgSQL|INSERT INTO audit.account (audit_action, audit_user, audit_ip, id, email) VALUES
-    (${if success then AuditActionOpen else AuditActionAttempt}, -1, ${ip}, ${partyId $ partyRow who}, ${email})|]
+  dbExecute1' [pgSQL|INSERT INTO audit.account (audit_action, audit_user, audit_ip, id, email, username) VALUES
+    (${if success then AuditActionOpen else AuditActionAttempt}, -1, ${ip}, ${partyId $ partyRow who}, ${email}, ${username})|]
 
 recentAccountLogins :: MonadDB c m => Party -> m Int64
 recentAccountLogins who = fromMaybe 0 <$>

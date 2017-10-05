@@ -12,6 +12,7 @@ module Databrary.Controller.Login
 import Control.Applicative ((<|>))
 import Control.Monad (when, unless)
 import Control.Monad.Trans.Class (lift)
+import Control.Monad.IO.Class (liftIO)
 import qualified Crypto.BCrypt as BCrypt
 import qualified Data.ByteString as BS
 import Data.Function (on)
@@ -42,6 +43,7 @@ import {-# SOURCE #-} Databrary.Controller.Party
 
 loginAccount :: API -> SiteAuth -> Bool -> ActionM Response
 loginAccount api auth su = do
+  liftIO $ print "starting loginAccount"
   sess <- createSession auth su
   let Token (Id tok) ex = view sess
   cook <- setSignedCookie "session" tok ex
@@ -61,17 +63,20 @@ checkPassword p = any (`BCrypt.validatePassword` p) . accountPasswd
 
 postLogin :: ActionRoute API
 postLogin = action POST (pathAPI </< "user" </< "login") $ \api -> withoutAuth $ do
+  liftIO $ print "about to run login form"
   (Just auth, su) <- runForm (api == HTML ?> htmlLogin) $ do
     email <- "email" .:> emailTextForm
     password <- "password" .:> deform
     superuser <- "superuser" .:> deform
+    liftIO $ print "about to lookup site auth"
     auth <- lift $ lookupSiteAuthByEmail True email
     let p = view <$> auth
         su = superuser && any ((PermissionADMIN ==) . accessMember) auth
     attempts <- lift $ maybe (return 0) recentAccountLogins p
     let pass = checkPassword password `any` auth
         block = attempts > 4
-    lift $ auditAccountLogin pass (fromMaybe nobodyParty p) email
+    liftIO $ print "about to audit login"
+    lift $ auditAccountLogin pass (fromMaybe nobodyParty p) email (maybe "" (accountUsername . siteAccount) auth)
     when block $ "email" .:> deformError "Too many login attempts. Try again later."
     unless pass $ "password" .:> deformError "Incorrect email address or password. Both are case-sensitive, and institutional addresses are preferred."
     return (auth, su)

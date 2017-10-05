@@ -10,6 +10,7 @@ module Databrary.Controller.Register
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import Data.Monoid ((<>))
+import Control.Monad.IO.Class (liftIO)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
@@ -39,6 +40,7 @@ resetPasswordMail (Left email) subj body =
   sendMail [Left email] [] subj (body Nothing)
 resetPasswordMail (Right auth) subj body = do
   tok <- loginTokenId =<< createLoginToken auth True
+  liftIO $ print ("login tok", tok)
   req <- peek
   sendMail [Right $ view auth] [] subj
     (body $ Just $ TLE.decodeLatin1 $ BSB.toLazyByteString $ actionURL (Just req) viewLoginToken (HTML, tok) [])
@@ -69,6 +71,7 @@ postRegister = action POST (pathAPI </< "user" </< "register") $ \api -> without
         a = Account
           { accountParty = p
           , accountEmail = email
+          , accountUsername = BS.take 5 email
           }
     return a
   auth <- maybe (SiteAuth <$> addAccount reg <*- Nothing <*- mempty) return =<< lookupSiteAuthByEmail False (accountEmail reg)

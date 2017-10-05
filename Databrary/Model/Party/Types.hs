@@ -88,6 +88,7 @@ nobodySiteAuth = SiteAuth
       , partyPermission = PermissionREAD
       , partyAccess = Just minBound
       }
+    , accountUsername = "nobodyuser"
     }
   , accountPasswd = Nothing
   , siteAccess = mempty
@@ -112,4 +113,5 @@ blankAccount :: Account
 blankAccount = Account
   { accountParty = blankParty{ partyAccount = Just blankAccount }
   , accountEmail = error "blankAccount"
+  , accountUsername = error "blankUser"
   }
