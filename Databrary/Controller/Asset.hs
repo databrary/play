@@ -168,7 +168,6 @@ processAsset api target = do
     liftIO $ putStrLn "upfile cased..." --DEBUG
     let fmt = maybe (assetFormat $ assetRow a) (probeFormat . fileUploadProbe) up
     liftIO $ putStrLn "format upload probe..." --DEBUG
-    -- TODO: SOW2_PointOfInterest found, dropFormatExtension modifies asset name
     name <- "name" .:> maybe (assetName $ assetRow a) (TE.decodeUtf8 . dropFormatExtension fmt <$>) <$> deformOptional (deformNonEmpty deform)
     liftIO $ putStrLn "renamed asset..." --DEBUG
     classification <- "classification" .:> fromMaybe (assetRelease $ assetRow a) <$> deformOptional (deformNonEmpty deform)

@@ -152,7 +152,7 @@ zipContainer isOrig =
     c <- getContainer PermissionPUBLIC vi ci True
     assetSlots <- case isOrig of 
                        True -> lookupOrigContainerAssets c 
-                       False -> lookupOrigContainerAssets c
+                       False -> lookupContainerAssets c
     z <- containerZipEntry isOrig c $ filter checkAsset assetSlots
     auditSlotDownload (not $ zipEmpty z) (containerSlot c)
     zipResponse ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) [z]
