@@ -53,13 +53,16 @@ import Databrary.View.Zip
 
 -- SOW2 Boolean flag added to toggle original or databrary-prepended filename upon download 
 assetZipEntry :: Bool -> AssetSlot -> ActionM ZipEntry
-assetZipEntry isOrigName AssetSlot{ slotAsset = a@Asset{ assetRow = ar } } = do
-  Just f <- getAssetFile a
+assetZipEntry isOrig AssetSlot{ slotAsset = a@Asset{ assetRow = ar@AssetRow{ assetId = aid}}} = do
+  origAsset <- lookupOrigAsset aid   
+  Just f <- case isOrig of 
+                 True -> getAssetFile $ fromJust origAsset
+                 False -> getAssetFile a
   req <- peek
   -- (t, _) <- assetCreation a
   -- Just (t, s) <- fileInfo f
   return blankZipEntry
-    { zipEntryName = case isOrigName of
+    { zipEntryName = case isOrig of
        False -> makeFilename (assetDownloadName ar) `addFormatExtension` assetFormat ar
        True -> last $ BSC.split '-' $ makeFilename (assetDownloadName ar) `addFormatExtension` assetFormat ar
     , zipEntryTime = Nothing
@@ -115,7 +118,7 @@ volumeZipEntry isOrig v top cs csv al = do
         }]))
     }
   where
-  ent [a@AssetSlot{ assetSlot = Nothing }] = assetZipEntry False a
+  ent [a@AssetSlot{ assetSlot = Nothing }] = assetZipEntry isOrig a
   ent l@(AssetSlot{ assetSlot = Just s } : _) = containerZipEntry isOrig (slotContainer s) l
   ent _ = fail "volumeZipEntry"
 
@@ -149,7 +152,7 @@ zipContainer isOrig =
     c <- getContainer PermissionPUBLIC vi ci True
     assetSlots <- case isOrig of 
                        True -> lookupOrigContainerAssets c 
-                       False -> lookupContainerAssets c
+                       False -> lookupOrigContainerAssets c
     z <- containerZipEntry isOrig c $ filter checkAsset assetSlots
     auditSlotDownload (not $ zipEmpty z) (containerSlot c)
     zipResponse ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) [z]
