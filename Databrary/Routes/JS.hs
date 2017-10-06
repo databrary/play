@@ -64,7 +64,7 @@ jsRoutes =
   , jsRoute "csvVolume" csvVolume (volume)
   , jsRoute "viewVolumeActivity" viewVolumeActivity (HTML, volume)
 
-  , jsRoute "viewSlot" (viewSlot False) (HTML, (Just volume, slot)) -- SOW2
+  , jsRoute "viewSlot" (viewSlot False) (HTML, (Just volume, slot)) 
   , jsRoute "viewSlotEdit" viewContainerEdit (Just volume, container)
   , jsRoute "viewSlotActivity" viewContainerActivity (HTML, (Just volume, container))
   , jsRoute "thumbSlot" thumbSlot (Just volume, slot)
@@ -72,22 +72,22 @@ jsRoutes =
   , jsRoute "viewRecord" viewRecord (HTML, record)
 
   , jsRoute "viewFormats" viewFormats ()
-  , jsRoute "viewAssetSegment" (viewAssetSegment False) (HTML, Just volume, slot, asset) --SOW2
-  , jsRoute "viewOrigAssetSegment" (viewAssetSegment True) (HTML, Just volume, slot, asset) --SOW2
-  , jsRoute "downloadAssetSegment" downloadAssetSegment (slot, asset) --SOW2
-  , jsRoute "downloadOrigAssetSegment" downloadOrigAssetSegment (slot, asset) --SOW2
-  , jsRoute "thumbAssetSegment" (thumbAssetSegment False) (slot, asset) --SOW2
-  , jsRoute "thumbOrigAssetSegment" (thumbAssetSegment True) (slot, asset) --SOW2
+  , jsRoute "viewAssetSegment" (viewAssetSegment False) (HTML, Just volume, slot, asset)
+  , jsRoute "viewOrigAssetSegment" (viewAssetSegment True) (HTML, Just volume, slot, asset)
+  , jsRoute "downloadAssetSegment" downloadAssetSegment (slot, asset) --SOW2 download transcoded asset segment
+  , jsRoute "downloadOrigAssetSegment" downloadOrigAssetSegment (slot, asset) --SOW2 download original asset segment 
+  , jsRoute "thumbAssetSegment" (thumbAssetSegment False) (slot, asset) 
+  , jsRoute "thumbOrigAssetSegment" (thumbAssetSegment True) (slot, asset)
   , jsRoute "downloadAsset" downloadAsset (asset, fullSegment)
-  , jsRoute "downloadOrigAsset" downloadOrigAsset (asset, fullSegment) --SOW2
+  , jsRoute "downloadOrigAsset" downloadOrigAsset (asset, fullSegment) --SOW2 download original asset
   , jsRoute "thumbAsset" thumbAsset (asset, fullSegment)
 
   , jsRoute "viewSearch" postSearch (HTML)
 
-  , jsRoute "zipSlot" (zipContainer False) (Just volume, container) --SOW2
-  , jsRoute "zipOrigSlot" (zipContainer True) (Just volume, container) --SOW2
-  , jsRoute "zipVolume" (zipVolume False) (volume) -- SOW2
-  , jsRoute "zipOrigVolume" (zipVolume True) (volume) -- SOW2
+  , jsRoute "zipSlot" (zipContainer False) (Just volume, container) --SOW2 zip transcoded slot
+  , jsRoute "zipOrigSlot" (zipContainer True) (Just volume, container) --SOW2 zip orignal slot
+  , jsRoute "zipVolume" (zipVolume False) (volume) -- SOW2 zip volume full of transcoded assets
+  , jsRoute "zipOrigVolume" (zipVolume True) (volume) -- SOW2 zip volume full of original assets
   , jsRoute "viewVolumeDescription" viewVolumeDescription (volume)
 
   , jsRoute "get" viewRoot (JSON)
