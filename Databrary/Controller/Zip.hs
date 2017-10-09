@@ -157,12 +157,14 @@ zipContainer isOrig =
     auditSlotDownload (not $ zipEmpty z) (containerSlot c)
     zipResponse ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) [z]
 
-getVolumeInfo :: Id Volume -> ActionM (Volume, IdSet Container, [AssetSlot])
-getVolumeInfo vi = do
+getVolumeInfo :: Bool -> Id Volume -> ActionM (Volume, IdSet Container, [AssetSlot])
+getVolumeInfo getOrig vi = do
   v <- getVolume PermissionPUBLIC vi
   s <- peeks requestIdSet
-  a <- filter (\a@AssetSlot{ assetSlot = Just c } -> checkAsset a && RS.member (containerId $ containerRow $ slotContainer c) s) <$>
-    lookupVolumeAssetSlots v False
+  let lookupV = case getOrig of 
+                  True -> lookupOrigVolumeAssetSlots v False
+                  False -> lookupVolumeAssetSlots v False
+  a <- filter (\a@AssetSlot{ assetSlot = Just c } -> checkAsset a && RS.member (containerId $ containerRow $ slotContainer c) s) <$> lookupV
   return (v, s, a)
 
 zipVolume :: Bool -> ActionRoute (Id Volume)
@@ -171,7 +173,7 @@ zipVolume isOrig =
                      True -> pathId </< "zip" </< "true"
                      False -> pathId </< "zip" </< "false"
   in action GET zipPath $ \vi -> withAuth $ do
-  (v, s, a) <- getVolumeInfo vi
+  (v, s, a) <- getVolumeInfo isOrig vi
   top:cr <- lookupVolumeContainersRecords v
   let cr' = filter ((`RS.member` s) . containerId . containerRow . fst) cr
   csv <- null cr' ?!$> volumeCSV v cr'
@@ -182,7 +184,7 @@ zipVolume isOrig =
 viewVolumeDescription :: ActionRoute (Id Volume)
 viewVolumeDescription = action GET (pathId </< "description") $ \vi -> withAuth $ do
   angular
-  (v, s, a) <- getVolumeInfo vi
+  (v, s, a) <- getVolumeInfo False vi
   top <- lookupVolumeTopContainer v
   glob <- lookupSlotRecords $ containerSlot top
   (desc, _, _) <- volumeDescription False v (top, glob) s a

@@ -9,7 +9,9 @@ module Databrary.Model.AssetSlot
   , lookupContainerAssets
   , lookupOrigContainerAssets
   , lookupVolumeAssetSlots
+  , lookupOrigVolumeAssetSlots
   , lookupVolumeAssetSlotIds
+  , lookupOrigVolumeAssetSlotIds
   , changeAssetSlot
   , changeAssetSlotDuration
   , fixAssetSlotDuration
@@ -21,6 +23,8 @@ module Databrary.Model.AssetSlot
 import Control.Monad (when, guard, forM)
 import Data.Maybe (fromMaybe, isNothing)
 import Data.Monoid ((<>))
+import Data.Text.Encoding (encodeUtf8)
+import Data.Maybe (fromJust)
 import qualified Data.Text as T
 import qualified Data.ByteString as BS
 import Database.PostgreSQL.Typed (pgSQL)
@@ -32,6 +36,7 @@ import Databrary.Service.DB
 import Databrary.Model.Offset
 import Databrary.Model.Permission
 import Databrary.Model.Segment
+import Databrary.Model.Format (getFormatByExtension)
 import Databrary.Model.Id
 import Databrary.Model.Party.Types
 import Databrary.Model.Identity.Types
@@ -75,7 +80,7 @@ lookupOrigSlotAssets slot@(Slot c s) = do
     WHERE slot_asset.container = ${containerId $ containerRow c}
     |]
   return $ flip fmap xs $ \(assetId,release,duration,name,sha1,size) -> 
-    let format = Format (Id (-800)) "video/mp4" [] ""
+    let format = Format (Id (-800)) "video/mp4" [] "" {-fromJust . getFormatByExtension $ encodeUtf8 $ fromJust name-} 
         assetRow = AssetRow (Id assetId) format release duration name sha1 size
     in AssetSlot (Asset assetRow (containerVolume c)) (Just slot)
 
@@ -89,9 +94,17 @@ lookupVolumeAssetSlots :: (MonadDB c m) => Volume -> Bool -> m [AssetSlot]
 lookupVolumeAssetSlots v top =
   dbQuery $ ($ v) <$> $(selectQuery selectVolumeSlotAsset "$WHERE asset.volume = ${volumeId $ volumeRow v} AND (container.top OR ${not top}) ORDER BY container.id")
 
+lookupOrigVolumeAssetSlots :: (MonadDB c m) => Volume -> Bool -> m [AssetSlot]
+lookupOrigVolumeAssetSlots v top =
+  dbQuery $ ($ v) <$> $(selectQuery selectVolumeSlotAsset "$left join asset_revision ar on ar.orig = asset.id WHERE asset.volume = ${volumeId $ volumeRow v} AND (container.top OR ${not top}) ORDER BY container.id")
+
 lookupVolumeAssetSlotIds :: (MonadDB c m) => Volume -> m [(Asset, SlotId)]
 lookupVolumeAssetSlotIds v =
   dbQuery $ ($ v) <$> $(selectQuery selectVolumeSlotIdAsset "$WHERE asset.volume = ${volumeId $ volumeRow v} ORDER BY container")
+
+lookupOrigVolumeAssetSlotIds :: (MonadDB c m) => Volume -> m [(Asset, SlotId)]
+lookupOrigVolumeAssetSlotIds v =
+  dbQuery $ ($ v) <$> $(selectQuery selectVolumeSlotIdAsset "$left join asset_revision ar on ar.orig = asset.id WHERE asset.volume = ${volumeId $ volumeRow v} ORDER BY container")
 
 changeAssetSlot :: (MonadAudit c m) => AssetSlot -> m Bool
 changeAssetSlot as = do
