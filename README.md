@@ -1,6 +1,7 @@
 # Databrary
 
 * http://databrary.org/
+* https://projects.databrary.org/confluence/display/DTD/Databrary+Technical+Documentation
 
 
 ## Installation
