@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Controller.Asset
   ( getAsset
+  , getOrigAsset
   , assetJSONField
   , viewAsset
   , AssetTarget(..)
@@ -12,6 +13,7 @@ module Databrary.Controller.Asset
   , viewSlotAssetCreate
   , deleteAsset
   , downloadAsset
+  , downloadOrigAsset
   , thumbAsset
   , assetDownloadName
   ) where
@@ -71,9 +73,15 @@ import Databrary.Controller.Notification
 import {-# SOURCE #-} Databrary.Controller.AssetSegment
 import Databrary.View.Asset
 
+import Control.Monad.IO.Class
+
 getAsset :: Permission -> Id Asset -> ActionM AssetSlot
 getAsset p i =
   checkPermission p =<< maybeAction =<< lookupAssetSlot i
+
+getOrigAsset :: Permission -> Id Asset -> ActionM AssetSlot
+getOrigAsset p i =
+  checkPermission p =<< maybeAction =<< lookupOrigAssetSlot i
 
 assetJSONField :: AssetSlot -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
 assetJSONField a "container" _ =
@@ -99,7 +107,7 @@ viewAsset = action GET (pathAPI </> pathId) $ \(api, i) -> withAuth $ do
   case api of
     JSON -> okResponse [] <$> (assetJSONQuery asset =<< peeks Wai.queryString)
     HTML
-      | Just s <- assetSlot asset -> peeks $ otherRouteResponse [] viewAssetSegment (api, Just (view asset), slotId s, assetId $ assetRow $ slotAsset asset)
+      | Just s <- assetSlot asset -> peeks $ otherRouteResponse [] (viewAssetSegment False) (api, Just (view asset), slotId s, assetId $ assetRow $ slotAsset asset)
       | otherwise -> return $ okResponse [] $ T.pack $ show $ assetId $ assetRow $ slotAsset asset -- TODO
 
 data AssetTarget
@@ -143,9 +151,12 @@ processAsset api target = do
         AssetTargetSlot t -> AssetSlot (blankAsset (view t)) (Just t)
         AssetTargetAsset t -> t
   (as', up') <- runFormFiles [("file", maxAssetSize)] (api == HTML ?> htmlAssetEdit target) $ do
+    liftIO $ putStrLn "runFormFiles..."--DEBUG
     csrfForm
     file <- "file" .:> deform
+    liftIO $ putStrLn "deformed file..." --DEBUG
     upload <- "upload" .:> deformLookup "Uploaded file not found." lookupUpload
+    liftIO $ putStrLn "upload file..." --DEBUG
     upfile <- case (file, upload) of
       (Just f, Nothing) -> return $ Just $ FileUploadForm f
       (Nothing, Just u) -> return $ Just $ FileUploadToken u
@@ -154,9 +165,13 @@ processAsset api target = do
         | otherwise -> Nothing <$ deformError "File or upload required."
       _ -> Nothing <$ deformError "Conflicting uploaded files found."
     up <- mapM detectUpload upfile
+    liftIO $ putStrLn "upfile cased..." --DEBUG
     let fmt = maybe (assetFormat $ assetRow a) (probeFormat . fileUploadProbe) up
+    liftIO $ putStrLn "format upload probe..." --DEBUG
     name <- "name" .:> maybe (assetName $ assetRow a) (TE.decodeUtf8 . dropFormatExtension fmt <$>) <$> deformOptional (deformNonEmpty deform)
+    liftIO $ putStrLn "renamed asset..." --DEBUG
     classification <- "classification" .:> fromMaybe (assetRelease $ assetRow a) <$> deformOptional (deformNonEmpty deform)
+    liftIO $ putStrLn "classification deformed..." --DEBUG
     slot <-
       "container" .:> (<|> slotContainer <$> s) <$> deformLookup "Container not found." (lookupVolumeContainer (assetVolume a))
       >>= mapM (\c -> "position" .:> do
@@ -166,6 +181,7 @@ processAsset api target = do
         Slot c . maybe fullSegment
           (\l -> Segment $ Range.bounded l (l + fromMaybe 0 ((segmentLength =<< seg) <|> dur)))
           <$> orElseM p (mapM (lift . probeAutoPosition c . Just . fileUploadProbe) (guard (isNothing s && isJust dur) >> up)))
+    liftIO $ putStrLn "slot assigned..." --DEBUG
     return
       ( as
         { slotAsset = a
@@ -211,7 +227,9 @@ processAsset api target = do
       })
     up'
   a' <- changeAsset (slotAsset as'') Nothing
+  liftIO $ putStrLn "changed asset..." --DEBUG
   _ <- changeAssetSlot as''
+  liftIO $ putStrLn "change asset slot..." --DEBUG
   when (assetRelease (assetRow a') == Just ReleasePUBLIC && assetRelease (assetRow a) /= Just ReleasePUBLIC) $
     createVolumeNotification (assetVolume a') $ \n -> (n NoticeReleaseAsset)
       { notificationContainerId = containerId . containerRow . slotContainer <$> assetSlot as''
@@ -220,8 +238,12 @@ processAsset api target = do
       , notificationRelease = assetRelease $ assetRow a'
       }
   case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON as''
-    HTML -> peeks $ otherRouteResponse [] viewAsset (api, assetId $ assetRow $ slotAsset as'')
+    JSON -> do
+      liftIO $ putStrLn "JSON ok response..." --DEBUG
+      return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON as''
+    HTML -> do 
+      liftIO $ putStrLn "returning HTML other route reponse..." --DEBUG
+      peeks $ otherRouteResponse [] viewAsset (api, assetId $ assetRow $ slotAsset as'')
 
 postAsset :: ActionRoute (API, Id Asset)
 postAsset = multipartAction $ action POST (pathAPI </> pathId) $ \(api, ai) -> withAuth $ do
@@ -269,6 +291,12 @@ deleteAsset = action DELETE (pathAPI </> pathId) $ \(api, ai) -> withAuth $ do
 downloadAsset :: ActionRoute (Id Asset, Segment)
 downloadAsset = action GET (pathId </> pathSegment </< "download") $ \(ai, seg) -> withAuth $ do
   a <- getAsset PermissionPUBLIC ai
+  inline <- peeks $ lookupQueryParameters "inline"
+  serveAssetSegment (null inline) $ newAssetSegment a seg Nothing
+
+downloadOrigAsset :: ActionRoute (Id Asset, Segment)
+downloadOrigAsset = action GET (pathId </> pathSegment </< "downloadOrig") $ \(ai, seg) -> withAuth $ do
+  a <- getOrigAsset PermissionPUBLIC ai
   inline <- peeks $ lookupQueryParameters "inline"
   serveAssetSegment (null inline) $ newAssetSegment a seg Nothing
 

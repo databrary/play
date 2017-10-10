@@ -103,7 +103,7 @@ postRecordSlot = action POST (pathAPI </>> pathSlotId </> pathId) $ \(api, si, r
     "src" .:> deformNonEmpty deform
   r <- moveRecordSlot (RecordSlot rec slot{ slotSegment = fromMaybe emptySegment src }) (slotSegment slot)
   case api of
-    HTML | r      -> peeks $ otherRouteResponse [] viewSlot (api, (Just (view slot), slotId slot))
+    HTML | r      -> peeks $ otherRouteResponse [] (viewSlot False) (api, (Just (view slot), slotId slot))
       | otherwise -> peeks $ otherRouteResponse [] viewRecord (api, recordId $ recordRow rec)
     JSON | r      -> return $ okResponse [] $ JSON.recordEncoding $ recordSlotJSON (RecordSlot rec slot)
       | otherwise -> return $ okResponse [] $ JSON.recordEncoding $ recordJSON rec

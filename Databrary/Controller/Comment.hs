@@ -54,4 +54,4 @@ postComment = action POST (pathAPI </> pathSlotId </< "comment") $ \(api, si) ->
     }
   case api of
     JSON -> return $ okResponse [] $ JSON.recordEncoding $ commentJSON c'
-    HTML -> peeks $ otherRouteResponse [] viewSlot (api, (Just (view c'), slotId (commentSlot c')))
+    HTML -> peeks $ otherRouteResponse [] (viewSlot False) (api, (Just (view c'), slotId (commentSlot c')))

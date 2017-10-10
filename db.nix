@@ -2,10 +2,15 @@
 , dbPath ? "databrary-db"
 }:
 let
+  # Definition of nixpkgs, version controlled by Reflex-FRP
   nixpkgs = reflex-platform.nixpkgs;
+  # PostgreSQL 9.6
   pg = nixpkgs.postgresql96;
+  # Posgres ranges extension
   pgranges = nixpkgs.callPackage ./pgranges {};
 
+  # Custom Postgresql environment
+  # set PGLIBDIR
   postgres = nixpkgs.buildEnv {
     name = "postgres96withRanges";
     paths = [ pg pg.lib pgranges ];
@@ -19,7 +24,8 @@ let
       wrapProgram $out/bin/postgres --set NIX_PGLIBDIR $out/lib
     '';
   };
-in
+in 
+#bash script to initialize db user, db and import schema
 nixpkgs.writeScript "run-webdriver-tests" ''
   if [ -d ${dbPath} ]; then
      # Start the db if it's not running.

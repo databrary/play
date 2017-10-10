@@ -4,6 +4,7 @@ module Databrary.Controller.AssetSegment
   , viewAssetSegment
   , serveAssetSegment
   , downloadAssetSegment
+  , downloadOrigAssetSegment
   , thumbAssetSegment
   ) where
 
@@ -47,9 +48,20 @@ import Databrary.Controller.Slot
 import Databrary.Controller.Asset
 import Databrary.Controller.Format
 
-getAssetSegment :: Permission -> Maybe (Id Volume) -> Id Slot -> Id Asset -> ActionM AssetSegment
-getAssetSegment p mv s a =
-  checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupSlotAssetSegment s a
+-- SOW2: Add Boolean flag to toggle the choice of downloading the original asset file. 
+getAssetSegment :: Bool -> Permission -> Maybe (Id Volume) -> Id Slot -> Id Asset -> ActionM AssetSegment
+getAssetSegment getOrig p mv s a =
+  case getOrig of 
+       True -> do 
+         liftIO $ putStrLn "getAssetSegment True" --DEBUG
+         tester <- lookupOrigSlotAssetSegment s a
+         liftIO $ print tester --DEBUG
+         checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupOrigSlotAssetSegment s a
+       False -> do 
+         liftIO $ putStrLn "getAssetSegment False" --DEBUG
+         tester <- lookupSlotAssetSegment s a
+         liftIO $ print tester --DEBUG
+         checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupSlotAssetSegment s a
 
 assetSegmentJSONField :: AssetSegment -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
 assetSegmentJSONField a "asset" _ = return $ Just $ JSON.recordEncoding $ assetSlotJSON (segmentAsset a)
@@ -62,15 +74,15 @@ assetSegmentDownloadName :: AssetSegment -> [T.Text]
 assetSegmentDownloadName a =
   volumeDownloadName (view a) ++ foldMap slotDownloadName (assetSlot $ segmentAsset a) ++ assetDownloadName (assetRow $ view a)
 
-viewAssetSegment :: ActionRoute (API, Maybe (Id Volume), Id Slot, Id Asset)
-viewAssetSegment = action GET (pathAPI </>>> pathMaybe pathId </>> pathSlotId </> pathId) $ \(api, vi, si, ai) -> withAuth $ do
+viewAssetSegment :: Bool -> ActionRoute (API, Maybe (Id Volume), Id Slot, Id Asset)
+viewAssetSegment getOrig = action GET (pathAPI </>>> pathMaybe pathId </>> pathSlotId </> pathId) $ \(api, vi, si, ai) -> withAuth $ do
   when (api == HTML && isJust vi) angular
-  as <- getAssetSegment PermissionPUBLIC vi si ai
+  as <- getAssetSegment getOrig PermissionPUBLIC vi si ai
   case api of
     JSON -> okResponse [] <$> (assetSegmentJSONQuery as =<< peeks Wai.queryString)
     HTML
       | isJust vi -> return $ okResponse [] $ T.pack $ show $ assetId $ assetRow $ slotAsset $ segmentAsset as -- TODO
-      | otherwise -> peeks $ redirectRouteResponse movedPermanently301 [] viewAssetSegment (api, Just (view as), slotId $ view as, view as)
+      | otherwise -> peeks $ redirectRouteResponse movedPermanently301 [] (viewAssetSegment getOrig) (api, Just (view as), slotId $ view as, view as)
 
 serveAssetSegment :: Bool -> AssetSegment -> ActionM Response
 serveAssetSegment dl as = do
@@ -89,15 +101,24 @@ serveAssetSegment dl as = do
   where
   a = slotAsset $ segmentAsset as
 
+-- SOW2: add getAssetSegement with Bool flag set to False to obtain transcoded asset file
 downloadAssetSegment :: ActionRoute (Id Slot, Id Asset)
 downloadAssetSegment = action GET (pathSlotId </> pathId </< "download") $ \(si, ai) -> withAuth $ do
-  as <- getAssetSegment PermissionPUBLIC Nothing si ai
+  as <- getAssetSegment False PermissionPUBLIC Nothing si ai
   inline <- peeks $ boolQueryParameter "inline"
   serveAssetSegment (not inline) as
 
-thumbAssetSegment :: ActionRoute (Id Slot, Id Asset)
-thumbAssetSegment = action GET (pathSlotId </> pathId </< "thumb") $ \(si, ai) -> withAuth $ do
-  as <- getAssetSegment PermissionPUBLIC Nothing si ai
+-- SOW2: add getAssetSegement with Bool flag set to True to obtain original asset file
+downloadOrigAssetSegment :: ActionRoute (Id Slot, Id Asset)
+downloadOrigAssetSegment = action GET (pathSlotId </> pathId </< "downloadOrig") $ \(si, ai) -> withAuth $ do
+  as <- getAssetSegment True PermissionPUBLIC Nothing si ai
+  inline <- peeks $ boolQueryParameter "inline"
+  serveAssetSegment (not inline) as
+
+
+thumbAssetSegment :: Bool -> ActionRoute (Id Slot, Id Asset)
+thumbAssetSegment getOrig = action GET (pathSlotId </> pathId </< "thumb") $ \(si, ai) -> withAuth $ do
+  as <- getAssetSegment getOrig PermissionPUBLIC Nothing si ai
   let as' = assetSegmentInterp 0.25 as
   if formatIsImage (view as') && assetBacked (view as) && dataPermission as' > PermissionNONE
     then peeks $ otherRouteResponse [] downloadAssetSegment (slotId $ view as', assetId $ assetRow $ view as')

@@ -57,7 +57,7 @@ containerDownloadName Container{ containerRow = ContainerRow{..} } =
     T.pack (show containerId) : maybeToList containerName
 
 viewContainer :: ActionRoute (API, (Maybe (Id Volume), Id Container))
-viewContainer = second (second $ slotContainerId . unId I.:<->: containerSlotId) `R.mapActionRoute` viewSlot
+viewContainer = second (second $ slotContainerId . unId I.:<->: containerSlotId) `R.mapActionRoute` (viewSlot False)
 
 containerForm :: Container -> DeformActionM () Container
 containerForm c = do
@@ -109,7 +109,7 @@ postContainer = action POST (pathAPI </> pathSlotId) $ \(api, ci) -> withAuth $ 
         }
   case api of
     JSON -> return $ okResponse [] $ JSON.recordEncoding $ containerJSON c'
-    HTML -> peeks $ otherRouteResponse [] viewSlot (api, (Just (view c'), ci))
+    HTML -> peeks $ otherRouteResponse [] (viewSlot False) (api, (Just (view c'), ci))
 
 deleteContainer :: ActionRoute (API, Id Slot)
 deleteContainer = action DELETE (pathAPI </> pathSlotId) $ \(api, ci) -> withAuth $ do
