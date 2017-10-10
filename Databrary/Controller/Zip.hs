@@ -20,6 +20,9 @@ import System.Posix.FilePath ((<.>))
 import qualified Text.Blaze.Html5 as Html
 import qualified Text.Blaze.Html.Renderer.Utf8 as Html
 
+import Control.Monad.IO.Class
+import Control.Monad (sequence)
+
 import Databrary.Ops
 import Databrary.Has (view, peek, peeks)
 import Databrary.Store.Asset
@@ -157,15 +160,18 @@ zipContainer isOrig =
     auditSlotDownload (not $ zipEmpty z) (containerSlot c)
     zipResponse ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) [z]
 
-getVolumeInfo :: Bool -> Id Volume -> ActionM (Volume, IdSet Container, [AssetSlot])
-getVolumeInfo getOrig vi = do
+getVolumeInfo :: Id Volume -> ActionM (Volume, IdSet Container, [AssetSlot])
+getVolumeInfo vi = do
+  liftIO $ print "inside of getVolumeInfo" --DEBUG
   v <- getVolume PermissionPUBLIC vi
   s <- peeks requestIdSet
-  let lookupV = case getOrig of 
-                  True -> lookupOrigVolumeAssetSlots v False
-                  False -> lookupVolumeAssetSlots v False
-  a <- filter (\a@AssetSlot{ assetSlot = Just c } -> checkAsset a && RS.member (containerId $ containerRow $ slotContainer c) s) <$> lookupV
+  -- let isMember = maybe (const False) (\c -> RS.member (containerId $ containerRow $ slotContainer $ c))
+  -- non-exhaustive pattern found here ...v , implment in case of Nothing (Keep in mind originalAssets will not have containers, or Volumes)
+  a <- filter (\a@AssetSlot{ assetSlot = Just c } -> checkAsset a && RS.member (containerId $ containerRow $ slotContainer $ c) s) <$> lookupVolumeAssetSlots v False
   return (v, s, a)
+
+filterFormat :: [AssetSlot] -> (Format -> Bool)-> [AssetSlot]
+filterFormat as f = filter (f . assetFormat . assetRow . slotAsset ) as
 
 zipVolume :: Bool -> ActionRoute (Id Volume)
 zipVolume isOrig = 
@@ -173,7 +179,10 @@ zipVolume isOrig =
                      True -> pathId </< "zip" </< "true"
                      False -> pathId </< "zip" </< "false"
   in action GET zipPath $ \vi -> withAuth $ do
-  (v, s, a) <- getVolumeInfo isOrig vi
+  (v, s, a') <- getVolumeInfo vi
+  a <- case isOrig of 
+            False -> return a' 
+            True -> lookupOrigVolumeAssetSlots' a' -- swap [AssetSlot] with [AssetSlot] of RAW original assets
   top:cr <- lookupVolumeContainersRecords v
   let cr' = filter ((`RS.member` s) . containerId . containerRow . fst) cr
   csv <- null cr' ?!$> volumeCSV v cr'
@@ -184,7 +193,7 @@ zipVolume isOrig =
 viewVolumeDescription :: ActionRoute (Id Volume)
 viewVolumeDescription = action GET (pathId </< "description") $ \vi -> withAuth $ do
   angular
-  (v, s, a) <- getVolumeInfo False vi
+  (v, s, a) <- getVolumeInfo vi
   top <- lookupVolumeTopContainer v
   glob <- lookupSlotRecords $ containerSlot top
   (desc, _, _) <- volumeDescription False v (top, glob) s a
