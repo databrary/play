@@ -176,4 +176,4 @@ htmlVolumeDescription inzip Volume{ volumeRow = VolumeRow{..}, ..} cite fund glo
     H.td $ maybe mempty (H.string . show) $ assetDuration a
     H.td $ maybe mempty (lazyByteStringHtml . BSB.toLazyByteString . BSB.byteStringHex) $ assetSHA1 a
     where
-    fn = last $ BSC.split '-' $ makeFilename (assetDownloadName a) `addFormatExtension` assetFormat a
+    fn = last $ BSC.split '-' $ makeFilename (assetDownloadName True a) `addFormatExtension` assetFormat a

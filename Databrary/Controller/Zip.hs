@@ -66,8 +66,8 @@ assetZipEntry isOrig AssetSlot{ slotAsset = a@Asset{ assetRow = ar@AssetRow{ ass
   -- Just (t, s) <- fileInfo f
   return blankZipEntry
     { zipEntryName = case isOrig of
-       False -> makeFilename (assetDownloadName ar) `addFormatExtension` assetFormat ar
-       True -> last $ BSC.split '-' $ makeFilename (assetDownloadName ar) `addFormatExtension` assetFormat ar
+       False -> makeFilename (assetDownloadName True ar) `addFormatExtension` assetFormat ar
+       True -> makeFilename (assetDownloadName False ar) `addFormatExtension` assetFormat ar
     , zipEntryTime = Nothing
     , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewAsset (HTML, assetId ar) []
     , zipEntryContent = ZipEntryFile (fromIntegral $ fromJust $ assetSize ar) f
