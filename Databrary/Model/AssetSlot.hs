@@ -106,7 +106,7 @@ lookupOrigVolumeAssetSlots' slotList = do
   liftIO $ print "inside of lookupOrigVolumeAssetsSlots"
   catMaybes <$> mapM originFinder slotList
   where 
-    originFinder (AssetSlot (Asset (AssetRow aid _ _ _ _ _ _) _) _ ) = lookupOrigAssetSlot aid
+    originFinder (AssetSlot { slotAsset = Asset {assetRow = AssetRow { assetId = aid }}}) = lookupOrigAssetSlot aid
 
 lookupVolumeAssetSlotIds :: (MonadDB c m) => Volume -> m [(Asset, SlotId)]
 lookupVolumeAssetSlotIds v =

@@ -182,7 +182,10 @@ zipVolume isOrig =
   (v, s, a') <- getVolumeInfo vi
   a <- case isOrig of 
             False -> return a' 
-            True -> lookupOrigVolumeAssetSlots' a' -- swap [AssetSlot] with [AssetSlot] of RAW original assets
+            True -> do 
+              origs <- lookupOrigVolumeAssetSlots' a' -- swap [AssetSlot] with [AssetSlot] of RAW original assets and add pdfs
+              let pdfs = filterFormat a' formatNotAV
+              return $ pdfs ++ origs
   top:cr <- lookupVolumeContainersRecords v
   let cr' = filter ((`RS.member` s) . containerId . containerRow . fst) cr
   csv <- null cr' ?!$> volumeCSV v cr'
