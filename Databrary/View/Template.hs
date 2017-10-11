@@ -52,13 +52,13 @@ htmlAddress :: H.Html
 htmlAddress =
   H.p H.! HA.class_ "footer-address" $ do
     H.strong $ do
-      void "Databrary New York University"
+      void "Databrary"
     H.br
-    void "196 Mercer Street, Room 807"
+    void "New York University"
     H.br
-    void "New York, NY 10012"
+    void "196 Mercer Street, Room 807 | New York, NY 10012"
     H.br
-    void "212-998-5800"
+    void "212.998.5800"
     
 htmlSocialMedia :: H.Html
 htmlSocialMedia =
