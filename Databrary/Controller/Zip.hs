@@ -20,6 +20,9 @@ import System.Posix.FilePath ((<.>))
 import qualified Text.Blaze.Html5 as Html
 import qualified Text.Blaze.Html.Renderer.Utf8 as Html
 
+import Control.Monad.IO.Class
+import Control.Monad (sequence)
+
 import Databrary.Ops
 import Databrary.Has (view, peek, peeks)
 import Databrary.Store.Asset
@@ -51,23 +54,30 @@ import Databrary.Controller.Angular
 import Databrary.Controller.IdSet
 import Databrary.View.Zip
 
-assetZipEntry :: AssetSlot -> ActionM ZipEntry
-assetZipEntry AssetSlot{ slotAsset = a@Asset{ assetRow = ar } } = do
-  Just f <- getAssetFile a
+-- SOW2 Boolean flag added to toggle original or databrary-prepended filename upon download 
+assetZipEntry :: Bool -> AssetSlot -> ActionM ZipEntry
+assetZipEntry isOrig AssetSlot{ slotAsset = a@Asset{ assetRow = ar@AssetRow{ assetId = aid}}} = do
+  origAsset <- lookupOrigAsset aid   
+  Just f <- case isOrig of 
+                 True -> getAssetFile $ fromJust origAsset
+                 False -> getAssetFile a
   req <- peek
   -- (t, _) <- assetCreation a
   -- Just (t, s) <- fileInfo f
   return blankZipEntry
-    { zipEntryName = makeFilename (assetDownloadName ar) `addFormatExtension` assetFormat ar
+    { zipEntryName = case isOrig of
+       False -> makeFilename (assetDownloadName True ar) `addFormatExtension` assetFormat ar
+       True -> makeFilename (assetDownloadName False ar) `addFormatExtension` assetFormat ar
     , zipEntryTime = Nothing
     , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewAsset (HTML, assetId ar) []
     , zipEntryContent = ZipEntryFile (fromIntegral $ fromJust $ assetSize ar) f
     }
 
-containerZipEntry :: Container -> [AssetSlot] -> ActionM ZipEntry
-containerZipEntry c l = do
+-- SOW2 original zip container toggle added
+containerZipEntry :: Bool -> Container -> [AssetSlot] -> ActionM ZipEntry
+containerZipEntry isOrig c l = do
   req <- peek
-  a <- mapM assetZipEntry l
+  a <- mapM (assetZipEntry isOrig) l
   return blankZipEntry
     { zipEntryName = makeFilename (containerDownloadName c)
     , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewContainer (HTML, (Nothing, containerId $ containerRow c)) []
@@ -86,8 +96,9 @@ volumeDescription inzip v (_, glob) cs al = do
   me (Just x) (Just y) = x == y
   me _ _ = False
 
-volumeZipEntry :: Volume -> (Container, [RecordSlot]) -> IdSet Container -> Maybe BSB.Builder -> [AssetSlot] -> ActionM ZipEntry
-volumeZipEntry v top cs csv al = do
+-- SOW2 original zip container toggle added
+volumeZipEntry :: Bool -> Volume -> (Container, [RecordSlot]) -> IdSet Container -> Maybe BSB.Builder -> [AssetSlot] -> ActionM ZipEntry
+volumeZipEntry isOrig v top cs csv al = do
   req <- peek
   (desc, at, ab) <- volumeDescription True v top cs al
   zt <- mapM ent at
@@ -110,8 +121,8 @@ volumeZipEntry v top cs csv al = do
         }]))
     }
   where
-  ent [a@AssetSlot{ assetSlot = Nothing }] = assetZipEntry a
-  ent l@(AssetSlot{ assetSlot = Just s } : _) = containerZipEntry (slotContainer s) l
+  ent [a@AssetSlot{ assetSlot = Nothing }] = assetZipEntry isOrig a
+  ent l@(AssetSlot{ assetSlot = Just s } : _) = containerZipEntry isOrig (slotContainer s) l
   ent _ = fail "volumeZipEntry"
 
 zipResponse :: BS.ByteString -> [ZipEntry] -> ActionM Response
@@ -134,28 +145,51 @@ zipEmpty _ = False
 checkAsset :: AssetSlot -> Bool
 checkAsset a = dataPermission a > PermissionNONE && assetBacked (view a)
 
-zipContainer :: ActionRoute (Maybe (Id Volume), Id Slot)
-zipContainer = action GET (pathMaybe pathId </> pathSlotId </< "zip") $ \(vi, ci) -> withAuth $ do
-  c <- getContainer PermissionPUBLIC vi ci True
-  z <- containerZipEntry c . filter checkAsset =<< lookupContainerAssets c
-  auditSlotDownload (not $ zipEmpty z) (containerSlot c)
-  zipResponse ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) [z]
+-- SOW2 original zip container toggle added
+zipContainer :: Bool -> ActionRoute (Maybe (Id Volume), Id Slot)
+zipContainer isOrig = 
+  let zipPath = case isOrig of 
+                     True -> pathMaybe pathId </> pathSlotId </< "zip" </< "true"
+                     False -> pathMaybe pathId </> pathSlotId </< "zip" </< "false"
+  in action GET zipPath $ \(vi, ci) -> withAuth $ do
+    c <- getContainer PermissionPUBLIC vi ci True
+    assetSlots <- case isOrig of 
+                       True -> lookupOrigContainerAssets c 
+                       False -> lookupContainerAssets c
+    z <- containerZipEntry isOrig c $ filter checkAsset assetSlots
+    auditSlotDownload (not $ zipEmpty z) (containerSlot c)
+    zipResponse ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) [z]
 
 getVolumeInfo :: Id Volume -> ActionM (Volume, IdSet Container, [AssetSlot])
 getVolumeInfo vi = do
+  liftIO $ print "inside of getVolumeInfo" --DEBUG
   v <- getVolume PermissionPUBLIC vi
   s <- peeks requestIdSet
-  a <- filter (\a@AssetSlot{ assetSlot = Just c } -> checkAsset a && RS.member (containerId $ containerRow $ slotContainer c) s) <$>
-    lookupVolumeAssetSlots v False
+  -- let isMember = maybe (const False) (\c -> RS.member (containerId $ containerRow $ slotContainer $ c))
+  -- non-exhaustive pattern found here ...v , implment in case of Nothing (Keep in mind originalAssets will not have containers, or Volumes)
+  a <- filter (\a@AssetSlot{ assetSlot = Just c } -> checkAsset a && RS.member (containerId $ containerRow $ slotContainer $ c) s) <$> lookupVolumeAssetSlots v False
   return (v, s, a)
 
-zipVolume :: ActionRoute (Id Volume)
-zipVolume = action GET (pathId </< "zip") $ \vi -> withAuth $ do
-  (v, s, a) <- getVolumeInfo vi
+filterFormat :: [AssetSlot] -> (Format -> Bool)-> [AssetSlot]
+filterFormat as f = filter (f . assetFormat . assetRow . slotAsset ) as
+
+zipVolume :: Bool -> ActionRoute (Id Volume)
+zipVolume isOrig = 
+  let zipPath = case isOrig of 
+                     True -> pathId </< "zip" </< "true"
+                     False -> pathId </< "zip" </< "false"
+  in action GET zipPath $ \vi -> withAuth $ do
+  (v, s, a') <- getVolumeInfo vi
+  a <- case isOrig of 
+            False -> return a' 
+            True -> do 
+              origs <- lookupOrigVolumeAssetSlots' a' -- swap [AssetSlot] with [AssetSlot] of RAW original assets and add pdfs
+              let pdfs = filterFormat a' formatNotAV
+              return $ pdfs ++ origs
   top:cr <- lookupVolumeContainersRecords v
   let cr' = filter ((`RS.member` s) . containerId . containerRow . fst) cr
   csv <- null cr' ?!$> volumeCSV v cr'
-  z <- volumeZipEntry v top s (buildCSV <$> csv) a
+  z <- volumeZipEntry isOrig v top s (buildCSV <$> csv) a
   auditVolumeDownload (not $ null a) v
   zipResponse (BSC.pack $ "databrary-" ++ show (volumeId $ volumeRow v) ++ if idSetIsFull s then "" else "-partial") [z]
 

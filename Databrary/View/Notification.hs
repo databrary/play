@@ -115,10 +115,10 @@ mailNotification msg Notification{..} = case notificationNotice of
     <> volumeEdit [("page", "access")]
   NoticeReleaseSlot ->
     agent <> " set the release level of a folder in " <> volume <> " to " <> TL.fromStrict (releaseTitle notificationRelease msg) <> ". To review this change, go to: "
-    <> mailLink viewSlot (HTML, (volumeId <$> notificationVolume, slot)) []
+    <> mailLink (viewSlot False) (HTML, (volumeId <$> notificationVolume, slot)) []
   NoticeReleaseAsset ->
     agent <> " set the release level of a file in your volume (" <> volume <> ") to " <> TL.fromStrict (releaseTitle notificationRelease msg) <> ". To review this change, go to: "
-    <> mailLink viewSlot (HTML, (volumeId <$> notificationVolume, slot)) [("asset", foldMap (BSC.pack . show) notificationAssetId)]
+    <> mailLink (viewSlot False) (HTML, (volumeId <$> notificationVolume, slot)) [("asset", foldMap (BSC.pack . show) notificationAssetId)]
   NoticeReleaseExcerpt ->
     agent <> " set the release level of a highlight in your volume (" <> volume <> ") to " <> TL.fromStrict (releaseTitle notificationRelease msg) <> ". To review this change, go to: "
     <> assetSegment
@@ -156,9 +156,9 @@ mailNotification msg Notification{..} = case notificationNotice of
   volumeEdit = mailLink viewVolumeEdit (maybe noId volumeId notificationVolume)
   perm = fromMaybe PermissionNONE notificationPermission
   slot = Id $ SlotId (fromMaybe noId notificationContainerId) (fromMaybe fullSegment notificationSegment)
-  assetSegment = mailLink viewAssetSegment (HTML, volumeId <$> notificationVolume, slot, fromMaybe noId notificationAssetId) []
+  assetSegment = mailLink (viewAssetSegment False) (HTML, volumeId <$> notificationVolume, slot, fromMaybe noId notificationAssetId) []
   slotVolume
-    | isJust notificationContainerId = mailLink viewSlot (HTML, (volumeId <$> notificationVolume, slot))
+    | isJust notificationContainerId = mailLink (viewSlot False) (HTML, (volumeId <$> notificationVolume, slot))
     | otherwise = mailLink viewVolume (HTML, maybe noId volumeId notificationVolume)
 
 mailNotifications :: Messages -> [Notification] -> TL.Text
@@ -209,10 +209,10 @@ htmlNotification msg Notification{..} = case notificationNotice of
     agent >> " set " >> party's >> " "
     >> volumeEdit [("page", "access")] "access" >> " to " >> H.text (volumeAccessTitle perm msg) >> " on " >> volume >> "."
   NoticeReleaseSlot ->
-    agent >> " set a " >> link viewSlot (HTML, (volumeId <$> notificationVolume, slot)) [] "folder"
+    agent >> " set a " >> link (viewSlot False) (HTML, (volumeId <$> notificationVolume, slot)) [] "folder"
     >> " in " >> volume >> " to " >> H.text (releaseTitle notificationRelease msg) >> "."
   NoticeReleaseAsset ->
-    agent >> " set a " >> link viewSlot (HTML, (volumeId <$> notificationVolume, slot)) [("asset", foldMap (BSC.pack . show) notificationAssetId)] "file"
+    agent >> " set a " >> link (viewSlot False) (HTML, (volumeId <$> notificationVolume, slot)) [("asset", foldMap (BSC.pack . show) notificationAssetId)] "file"
     >> " in " >> volume >> " to " >> H.text (releaseTitle notificationRelease msg) >> "."
   NoticeReleaseExcerpt ->
     agent >> " set a " >> assetSegment "highlight"
@@ -251,9 +251,9 @@ htmlNotification msg Notification{..} = case notificationNotice of
   volumeEdit = link viewVolumeEdit (maybe noId volumeId notificationVolume)
   perm = fromMaybe PermissionNONE notificationPermission
   slot = Id $ SlotId (fromMaybe noId notificationContainerId) (fromMaybe fullSegment notificationSegment)
-  assetSegment = link viewAssetSegment (HTML, volumeId <$> notificationVolume, slot, fromMaybe noId notificationAssetId) []
+  assetSegment = link (viewAssetSegment False)(HTML, volumeId <$> notificationVolume, slot, fromMaybe noId notificationAssetId) []
   slotVolume q t = H.a H.! HA.href (if isJust notificationContainerId
-    then actionValue viewSlot (HTML, (volumeId <$> notificationVolume, slot)) (q :: [(BSC.ByteString, BSC.ByteString)]) <> t
+    then actionValue (viewSlot False) (HTML, (volumeId <$> notificationVolume, slot)) (q :: [(BSC.ByteString, BSC.ByteString)]) <> t
     else actionValue viewVolume (HTML, maybe noId volumeId notificationVolume) q <> t)
 
 noId :: Num (IdType a) => Id a

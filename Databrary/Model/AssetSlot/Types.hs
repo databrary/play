@@ -31,6 +31,7 @@ data AssetSlot = AssetSlot
   { slotAsset :: Asset
   , assetSlot :: Maybe Slot
   }
+  deriving (Show)
 
 assetSlotId :: AssetSlot -> Id AssetSlot
 assetSlotId (AssetSlot a s) = Id $ AssetSlotId (assetId $ assetRow a) (slotId <$> s)
