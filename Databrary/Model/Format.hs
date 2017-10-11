@@ -116,10 +116,10 @@ formatIsAudio :: Format -> Bool
 formatIsAudio Format{ formatMimeType = t } = "audio/" `BS.isPrefixOf` t
 
 formatIsAV :: Format -> Bool
-formatIsAV fmat = formatIsVideo fmat || formatIsAudio fmat || formatIsImage fmat
+formatIsAV fmat = formatIsVideo fmat || formatIsAudio fmat
 
 formatNotAV :: Format -> Bool
-formatNotAV fmat = not (formatIsVideo fmat || formatIsAudio fmat || formatIsImage fmat)
+formatNotAV fmat = not (formatIsVideo fmat || formatIsAudio fmat)
 
 formatTranscodable :: Format -> Maybe Format
 formatTranscodable f
