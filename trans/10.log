@@ -1,5 +1,0 @@
-31876 10
-[swscaler @ 0x1cf4be0] deprecated pixel format used, make sure you did set range correctly
-[mp4 @ 0x1cdaf00] Using AVStream.codec to pass codec parameters to muxers is deprecated, use AVStream.codecpar instead.
-    Last message repeated 1 times
-18892 10.mp4
