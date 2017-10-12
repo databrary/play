@@ -150,6 +150,8 @@ Executable databrary
     range-set-list,
     invertible,
     web-inv-route,
+    gargoyle,
+    gargoyle-nix,
     smtp-mail
 
   default-language: Haskell2010
