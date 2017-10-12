@@ -1,1 +1,7 @@
-nix-shell --run "pg_ctl -D databrary-db -l logfile stop"
+#!/usr/bin/env bash
+
+set -eu -o pipefail 
+
+dbPath=${0:-databrary-db}
+
+pg_ctl -D "${dbPath}" -l logfile stop

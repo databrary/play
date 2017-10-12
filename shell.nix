@@ -1,6 +1,6 @@
 let
 #bring into scope output variables from build.nix
-inherit (import ./build.nix {}) pkgs nixpkgs nodePackages;
+inherit (import ./. {}) pkgs nixpkgs nodePackages;
 in
 # override buildInput attribute during mkDerivation process
 pkgs.databrary-dev.env.overrideAttrs (attrs: {

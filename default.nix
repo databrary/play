@@ -1,43 +1,50 @@
-{ mkDerivation, aeson, aeson-better-errors, array, attoparsec, base
-, bcrypt, blaze-builder, blaze-html, blaze-markup, bytestring
-, case-insensitive, containers, cookie, cracklib, cryptonite
-, data-default-class, digest, directory, fast-logger, ffmpeg
-, file-embed, filepath, hashable, haskell-src-meta, hjsonschema
-, http-client, http-client-tls, http-types, invertible
-, lifted-base, memory, mime-mail
-, monad-control, mtl, network, network-uri, parsec, posix-paths
-, postgresql-typed, process, range-set-list, regex-posix
-, resource-pool, resourcet, scientific, smtp-mail, stdenv
-, streaming-commons, template-haskell, text, th-lift
-, th-lift-instances, time, transformers, transformers-base, unix
-, unordered-containers, utf8-string, vector, wai, wai-extra, warp
-, warp-tls, web-inv-route, xml, zlib
+{ reflex-platform ? import ./reflex-platform {}
+, nodePackages ? import ./node-default.nix {}
+, databraryRoot ? ./.
+, conf ? import ./conf.nix { inherit databraryRoot; }
 }:
-mkDerivation {
-  pname = "databrary";
-  doCheck = false;
-  version = "1";
-  src = ./.;
-  isLibrary = false;
-  isExecutable = true;
-  executableHaskellDepends = [
-    aeson aeson-better-errors array attoparsec base bcrypt
-    blaze-builder blaze-html blaze-markup bytestring case-insensitive
-    containers cookie cryptonite data-default-class digest directory
-    fast-logger file-embed filepath hashable haskell-src-meta
-    hjsonschema http-client http-client-tls http-types invertible
-    lifted-base memory mime-mail monad-control mtl network network-uri
-    parsec posix-paths postgresql-typed process range-set-list
-    regex-posix resource-pool resourcet scientific smtp-mail
-    streaming-commons template-haskell text th-lift th-lift-instances
-    time transformers transformers-base unix unordered-containers
-    utf8-string vector wai wai-extra warp warp-tls web-inv-route xml
-    zlib
-  ];
-  executableSystemDepends = [ cracklib ];
-  executablePkgconfigDepends = [
-    ffmpeg
-  ];
-  description = "Databrary";
-  license = stdenv.lib.licenses.gpl3;
-}
+
+let
+  # Definition of nixpkgs, version controlled by Reflex-FRP
+	nixpkgs = reflex-platform.nixpkgs;
+  # nixpkgs functions used to regulate Haskell overrides
+  dontCheck = nixpkgs.haskell.lib.dontCheck;
+  overrideCabal = nixpkgs.haskell.lib.overrideCabal;
+	doJailbreak = nixpkgs.haskell.lib.doJailbreak;
+  postgresql = import ./db.nix { inherit reflex-platform; };
+
+  # Define GHC compiler override
+  pkgs = reflex-platform.ghc.override {
+
+    overrides = self: super: rec {
+      databrary = self.callPackage ./databrary.nix {
+        # postgresql with ranges plugin
+        inherit postgresql;
+        # ffmpeg override with with --enable-libfdk-aac and --enable-nonfree flags set
+        ffmpeg = nixpkgs.ffmpeg-full.override {
+          nonfreeLicensing = true;
+          fdkaacExtlib = true;
+        };
+      };
+      
+      # cabal override to enable ghcid (GHCi daemon) development tool
+      databrary-dev = overrideCabal databrary (drv: {
+        libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [self.ghcid];
+      });
+
+      # Define postgresql-typed package with explicit version number
+    	postgresql-typed = dontCheck (self.callHackage  "postgresql-typed" "0.4.5" {});
+			
+			#partial-isomorphisms is for GHC7 only!
+			# partial-isomorphisms= dontCheck (self.callHackage  "partial-isomorphisms"
+      #"0.2" {});
+
+      # Define hjsonschema  package with explicit version number
+			hjsonschema = dontCheck (doJailbreak (self.callHackage "hjsonschema" "0.9.0.0" {}));	
+      # Define hjsonpointer  package with explicit version number
+			hjsonpointer = dontCheck (doJailbreak (self.callHackage "hjsonpointer" "0.3.0.2" {}));
+      # Define invertible as invertible from reflex-platform 
+		 	invertible = dontCheck super.invertible;
+    };
+  };
+in { inherit nixpkgs pkgs nodePackages conf; }

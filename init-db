@@ -2,5 +2,31 @@
 
 set -eu -o pipefail
 
-$(nix-build db.nix --no-out-link)
+dbPath=${0:-databrary-db}
+
+if [ -d "${dbPath}" ]; then
+   # Start the db if it's not running.
+   set +e
+   pg_ctl status -D "${dbPath}"
+   if [ $? -eq 3 ]; then
+     pg_ctl start -w -D "${dbPath}"
+   fi
+   set -e
+else
+  initdb -D "${dbPath}"
+  pg_ctl start -w -D "${dbPath}"
+  createuser -s postgres
+  psql -v ON_ERROR_STOP=1 --username "postgres" <<-EOSQL
+      CREATE USER databrary;
+      CREATE DATABASE databrary;
+      GRANT ALL PRIVILEGES ON DATABASE databrary TO databrary;
+      ALTER USER databrary WITH PASSWORD 'databrary123';
+      ALTER USER databrary WITH SUPERUSER;
+EOSQL
+
+  for file in ./schema/*
+  do
+    psql databrary < "$file"
+  done
+fi
 
