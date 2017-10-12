@@ -2,13 +2,16 @@
 
 set -eu -o pipefail
 
-dbPath=${0:-databrary-db}
+dbPath=${1:-databrary-db}
+
+chmod 0700 "${dbPath}"
 
 if [ -d "${dbPath}" ]; then
    # Start the db if it's not running.
    set +e
    pg_ctl status -D "${dbPath}"
    if [ $? -eq 3 ]; then
+     set -e
      pg_ctl start -w -D "${dbPath}"
    fi
    set -e

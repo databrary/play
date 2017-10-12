@@ -2,6 +2,6 @@
 
 set -eu -o pipefail 
 
-dbPath=${0:-databrary-db}
+dbPath=${1:-databrary-db}
 
 pg_ctl -D "${dbPath}" -l logfile stop
