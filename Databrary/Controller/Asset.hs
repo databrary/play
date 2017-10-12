@@ -98,8 +98,11 @@ assetJSONField _ _ _ = return Nothing
 assetJSONQuery :: AssetSlot -> JSON.Query -> ActionM (JSON.Record (Id Asset) JSON.Series)
 assetJSONQuery o q = (assetSlotJSON o JSON..<>) <$> JSON.jsonQuery (assetJSONField o) q
 
-assetDownloadName :: AssetRow -> [T.Text]
-assetDownloadName a = T.pack (show $ assetId a) : maybeToList (assetName a)
+assetDownloadName :: Bool -> AssetRow -> [T.Text]
+assetDownloadName addPrefix a =
+  if addPrefix
+    then T.pack (show $ assetId a) : maybeToList (assetName a)
+    else maybeToList (assetName a)
 
 viewAsset :: ActionRoute (API, Id Asset)
 viewAsset = action GET (pathAPI </> pathId) $ \(api, i) -> withAuth $ do
