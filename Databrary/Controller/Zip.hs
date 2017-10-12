@@ -153,9 +153,13 @@ zipContainer isOrig =
                      False -> pathMaybe pathId </> pathSlotId </< "zip" </< "false"
   in action GET zipPath $ \(vi, ci) -> withAuth $ do
     c <- getContainer PermissionPUBLIC vi ci True
+    c'<- lookupContainerAssets c
     assetSlots <- case isOrig of 
-                       True -> lookupOrigContainerAssets c 
-                       False -> lookupContainerAssets c
+                       True -> do 
+                        origs <- lookupOrigContainerAssets c
+                        let pdfs = filterFormat c' formatNotAV
+                        return $ pdfs ++ origs
+                       False -> return c'
     z <- containerZipEntry isOrig c $ filter checkAsset assetSlots
     auditSlotDownload (not $ zipEmpty z) (containerSlot c)
     zipResponse ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) [z]
