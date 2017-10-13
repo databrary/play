@@ -16,7 +16,7 @@ let
   # Define GHC compiler override
   pkgs = reflex-platform.ghc.override {
 
-    overrides = self: super: rec {
+    overrides = self: super: {
       databrary = self.callPackage ./databrary.nix {
         # postgresql with ranges plugin
         inherit postgresql;
@@ -28,12 +28,13 @@ let
       };
       
       # cabal override to enable ghcid (GHCi daemon) development tool
-      databrary-dev = overrideCabal databrary (drv: {
+      databrary-dev = overrideCabal self.databrary (drv: {
         libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [self.ghcid];
       });
 
       # Define postgresql-typed package with explicit version number
     	postgresql-typed = dontCheck (self.callHackage  "postgresql-typed" "0.4.5" {});
+    	postgresql-binary = dontCheck (self.callHackage  "postgresql-binary" "0.10" {});
 			
 			#partial-isomorphisms is for GHC7 only!
 			# partial-isomorphisms= dontCheck (self.callHackage  "partial-isomorphisms"
@@ -45,6 +46,8 @@ let
 			hjsonpointer = dontCheck (doJailbreak (self.callHackage "hjsonpointer" "0.3.0.2" {}));
       # Define invertible as invertible from reflex-platform 
 		 	invertible = dontCheck super.invertible;
+
+      gargoyle = dontCheck (self.callHackage "gargoyle" "0.1" {}); 
     };
   };
 in { inherit nixpkgs pkgs nodePackages conf; }
