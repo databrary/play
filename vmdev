@@ -33,7 +33,7 @@ echo "========Set transcode scripts as executable===============================
 cabal install
 echo "========Add version suffix to executable name=================================================="
 version=`cat databrary.cabal | grep -i "^version:" | tr '[:upper:]' '[:lower:]' | sed -E 's/version: *([0-9\.a-bA-Z0-9]*) */\1/'`
-exedir="~/.cabal/bin"
+exedir=".cabal-sandbox/bin"
 pushd $exedir
 cp databrary databrary-$version
 cp schemabrary schemabrary-$version
