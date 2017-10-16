@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, ConstraintKinds, DefaultSignatures, GeneralizedNewtypeDeriving, TypeFamilies, OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, ConstraintKinds, DefaultSignatures, GeneralizedNewtypeDeriving, TypeFamilies, OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Service.DB
   ( DBPool
   , DBConn
@@ -29,7 +29,7 @@ module Databrary.Service.DB
 
 import Control.Exception (tryJust, bracket)
 import Control.Monad (unless)
-import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Trans.Control (MonadBaseControl, liftBaseOp_)
 import Control.Monad.Trans.Reader (ReaderT(..))
 import qualified Data.ByteString.Lazy as BSL
@@ -45,6 +45,16 @@ import System.IO.Unsafe (unsafePerformIO)
 
 import Databrary.Has
 import qualified Databrary.Store.Config as C
+
+import Network.URI
+import Gargoyle
+import Gargoyle.PostgreSQL
+import Database.PostgreSQL.Simple
+import qualified Data.ByteString.Char8 as BS
+import Database.PostgreSQL.Simple.URL
+import Data.Monoid
+
+
 
 confPGDatabase :: C.Config -> PGDatabase
 confPGDatabase conf = defaultPGDatabase
@@ -173,7 +183,37 @@ useTDB = do
     then return []
     else loadTDB
 
+toTPGDatabase :: ConnectInfo -> PGDatabase
+toTPGDatabase info = defaultPGDatabase
+  { pgDBHost = "localhost"
+    --"/home/zigpolymath/Documents/databrary/../../databrary-local-db/work"
+    -- connectHost info
+  , pgDBPort = PortNumber $ fromIntegral $ connectPort info -- if isJust host
+  -- , pgDBPort = if isJust host
+  --     then PortNumber (maybe 5432 fromInteger $ conf C.! "port")
+  --     else UnixSocket (fromMaybe "/tmp/.s.PGSQL.5432" $ conf C.! "sock")
+  , pgDBName = "databrary" -- fromMaybe user $ conf C.! "db"
+  , pgDBUser = BS.pack $ connectUser info
+  , pgDBPass = BS.pack $ connectPassword info
+  , pgDBDebug = False -- fromMaybe False $ conf C.! "debug"
+  }
+  -- where
+  -- host = conf C.! "host"
+  -- user = conf C.! "user"
+
 runTDB :: DBM a -> TH.Q a
 runTDB f = do
-  _ <- useTDB
-  TH.runIO $ withTPGConnection $ runReaderT f
+ -- _ <- useTDB
+  --TH.runIO $ withTPGConnection $ runReaderT f
+  TH.runIO $ withGargoyle defaultPostgres "../../databrary-local-db" $ \dbURI -> do 
+    let dbURI' = BS.unpack . ("postgres:" <>) <$> BS.stripPrefix "postgresql:" dbURI
+    liftIO $ print dbURI'
+    case parseDatabaseUrl =<< dbURI' of
+      Nothing -> error $ "failed to parse:: " ++ BS.unpack dbURI
+      Just (uri :: ConnectInfo) -> do
+        putStrLn "==> IT WORKED"
+        print $ connectHost uri
+        connection <- pgConnect $ toTPGDatabase uri --TODO maybe... write own pgConnect that can handle this case.
+        print uri
+        runReaderT f connection
+    -- withTPGConnection $ runReaderT f

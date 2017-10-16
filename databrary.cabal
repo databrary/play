@@ -73,11 +73,16 @@ Executable schemabrary
     template-haskell,
     filepath,
     directory,
+    gargoyle,
+    gargoyle-postgresql,
     text,
     unordered-containers,
     parsec >= 3,
+    postgresql-simple,
+    postgresql-simple-url,
     resource-pool,
     network,
+    network-uri, 
     postgresql-typed,
     vector,
     aeson
@@ -128,6 +133,8 @@ Executable databrary
     resource-pool,
     scientific,
     postgresql-typed,
+    postgresql-simple,
+    postgresql-simple-url,
     memory >= 0.8,
     cryptonite,
     resourcet,
@@ -151,7 +158,7 @@ Executable databrary
     invertible,
     web-inv-route,
     gargoyle,
-    gargoyle-nix,
+    gargoyle-postgresql,
     smtp-mail
 
   default-language: Haskell2010
