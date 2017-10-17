@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds, OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds #-}
 module Databrary.Model.Notification.Boot
   ( makeNotice
   ) where
@@ -6,7 +6,7 @@ module Databrary.Model.Notification.Boot
 import Data.Int (Int16)
 import Data.Ix (Ix)
 import Data.Typeable (Typeable)
-import Database.PostgreSQL.Typed.Query (pgSQL, PGQuery)
+import Database.PostgreSQL.Typed.Query (pgSQL)
 import qualified Language.Haskell.TH as TH
 
 import Databrary.Service.DB
@@ -15,7 +15,7 @@ useTDB
 
 makeNotice :: TH.DecsQ
 makeNotice = do
-  nl <- runTDB $ dbQuery ("SELECT id, name FROM notice WHERE id >= 0 ORDER BY id" :: PGQuery)
+  nl <- runTDB $ dbQuery [pgSQL|SELECT id, name FROM notice WHERE id >= 0 ORDER BY id|]
 
   xs <- mapM TH.conT [''Eq, ''Ord, ''Enum, ''Ix, ''Bounded, ''Typeable]
   return

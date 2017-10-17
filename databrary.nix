@@ -18,7 +18,7 @@ mkDerivation rec {
   doCheck = false;
   version = "1";
   src = builtins.filterSource 
-    (path: type: type == "directory" || baseNameOf path != ".git" || baseNameOf path == ".cabal")
+    (path: type: type == "directory" || baseNameOf path != ".git" || baseNameOf path == ".cabal" || path != "databrary-nix-db")
     ./.;
   isLibrary = false;
   isExecutable = true;
@@ -45,27 +45,7 @@ mkDerivation rec {
   ];
   description = "Databrary";
   license = stdenv.lib.licenses.gpl3;
-  # dbPath = "${./.}" ++ "databrary-local-db";
-  # dbPath = "databrary-local-db";
   preBuild = '' 
-    set -x
-    # set -v
-    mkdir -v -p $out
-    # mkdir -v -p "$out/databrary-local-db"
-    echo $out
-    ${gargoyle-postgresql}/bin/gargoyle-psql $out/databrary-local-db <<-EOSQL
-     CREATE USER databrary;
-     CREATE DATABASE databrary;
-     GRANT ALL PRIVILEGES ON DATABASE databrary TO databrary;
-     ALTER USER databrary WITH PASSWORD 'databrary123';
-     ALTER USER databrary WITH SUPERUSER;
-EOSQL
-
-    for file in ./schema/*
-    do
-      ${gargoyle-postgresql}/bin/gargoyle-psql "$out/databrary-local-db" < "$file"
-    done
-    
-    ${gargoyle-postgresql}/bin/gargoyle-psql "$out/databrary-local-db" & 
+    ./initializeDB.sh
   '';
 }
