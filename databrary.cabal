@@ -149,7 +149,8 @@ Executable databrary
     zlib,
     range-set-list,
     invertible,
-    web-inv-route
+    web-inv-route,
+    smtp-mail >= 0.1.0.0
 
   default-language: Haskell2010
   default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
