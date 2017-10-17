@@ -61,13 +61,11 @@ mkDerivation rec {
      ALTER USER databrary WITH SUPERUSER;
 EOSQL
 
-    for file in ./schema/0.sql ./schema/1.sql
+    for file in ./schema/*
     do
       ${gargoyle-postgresql}/bin/gargoyle-psql "$out/databrary-local-db" < "$file"
     done
-    sleep 2
-    rm $out/databrary-local-db/work/postmaster.pid
-    mkdir -p $out/socket
-    postgres -D $out/databrary-local-db/work -k $out/socket 
+    
+    ${gargoyle-postgresql}/bin/gargoyle-psql "$out/databrary-local-db" & 
   '';
 }
