@@ -469,7 +469,7 @@ app.directive 'spreadsheet', [
               cell.classList.add('clickable')
               cell.onclick = (event) ->
                 window.location.href = if Editing then slot.editRoute(t) else slot.route(t)
-              icon = a.appendChild(document.createElement('img'))
+              icon = cell.appendChild(document.createElement('img'))
               asset = info.asset
               icon.src = asset.icon
               icon.className = "format hint-format-" + asset.format.extension
