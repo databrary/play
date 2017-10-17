@@ -467,13 +467,13 @@ app.directive 'spreadsheet', [
           if info.col.first && info.d
             if info.c == 'asset'
               cell.classList.add('clickable')
-              a = cell.appendChild(document.createElement('a'))
+              cell.onclick = (event) ->
+                window.location.href = if Editing then slot.editRoute(t) else slot.route(t)
               icon = a.appendChild(document.createElement('img'))
               asset = info.asset
               icon.src = asset.icon
               icon.className = "format hint-format-" + asset.format.extension
               t = {asset:asset.id}
-              a.setAttribute('href', if Editing then slot.editRoute(t) else slot.route(t))
               icon = cell.appendChild(document.createElement('span'))
               icon.className = 'icon release ' + constants.release[asset.release] + ' hint-release-' + constants.release[asset.release]
             else
