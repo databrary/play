@@ -22,7 +22,7 @@ module Databrary.Service.DB
   , dbTransaction
   , dbTransaction'
 
-  , runDBConnection
+  -- , runDBConnection
   , useTDB
   , runTDB
   ) where
@@ -165,11 +165,11 @@ dbTransaction' f = do
 loadPGDatabase :: IO PGDatabase
 loadPGDatabase = confPGDatabase . C.get "db" <$> C.load "databrary.conf"
 
-runDBConnection :: DBM a -> IO a
-runDBConnection f = bracket
-  (pgConnect =<< loadPGDatabase)
-  pgDisconnect
-  (runReaderT f)
+-- runDBConnection :: DBM a -> IO a
+-- runDBConnection f = bracket
+--   (pgConnect =<< loadPGDatabase)
+--   pgDisconnect
+--   (runReaderT f)
 
 loadTDB :: TH.DecsQ
 loadTDB = useTPGDatabase =<< TH.runIO loadPGDatabase
@@ -182,14 +182,16 @@ useTDB = do
   d <- TH.runIO $ atomicModifyIORef' usedTDB ((,) True)
   if d
     then return []
-    else loadTDB
+    else do  
+      database <- TH.runIO $ useGargoyle return
+      useTPGDatabase database
 
 toTPGDatabase :: ConnectInfo -> PGDatabase
 toTPGDatabase info = defaultPGDatabase
   { pgDBHost = ""
     --"/home/zigpolymath/Documents/databrary/../../databrary-local-db/work"
     -- connectHost info
-  , pgDBPort = UnixSocket "/home/zigpolymath/Documents/databrary/shit/.s.PGSQL.5432" -- TODO normalize the socket path
+  --, pgDBPort = _--UnixSocket "/home/zigpolymath/Documents/databrary/shit/.s.PGSQL.5432" -- TODO normalize the socket path
   -- , pgDBPort = PortNumber $ fromIntegral $ connectPort info -- if isJust host
   -- , pgDBPort = if isJust host
   --     then PortNumber (maybe 5432 fromInteger $ conf C.! "port")
@@ -206,21 +208,35 @@ toTPGDatabase info = defaultPGDatabase
 --TODO normalize the socket path
 runTDB :: DBM a -> TH.Q a
 runTDB f = do
- -- _ <- useTDB
+  TH.runIO $ print "starting runTDB..."
+  -- _ <- useTDB
   --TH.runIO $ withTPGConnection $ runReaderT f
-  TH.runIO $ withGargoyle defaultPostgres "../../databrary-local-db" $ \dbURI -> do 
-    cwd <- getCurrentDirectory
-    liftIO $ print cwd
-    let dbURI' = BS.unpack . ("postgres:" <>) <$> BS.stripPrefix "postgresql:" dbURI
-    liftIO $ print dbURI'
-    case parseDatabaseUrl =<< dbURI' of
-      Nothing -> error $ "failed to parse:: " ++ BS.unpack dbURI
-      Just (uri :: ConnectInfo) -> do
-        putStrLn "==> IT WORKED"
-        print $ connectUser uri
-        --TODO maybe... write own pgConnect that can handle this case.
-        let tpgDatabase = toTPGDatabase uri 
-        connection <- pgConnect $ tpgDatabase { pgDBPort = UnixSocket (cwd ++ "/socket/.s.PGSQL.5432") }
-        print uri
+  TH.runIO $ useGargoyle $ \database -> do
+        connection <- pgConnect database
         runReaderT f connection
+
+  
+
+useGargoyle f = do 
+  cwd <- getCurrentDirectory
+  let dbPath = (cwd ++ "/../../databrary-local-db")
+  liftIO $ print dbPath
+  let socketPath = (dbPath ++ "/work/.s.PGSQL.5432")
+  -- withGargoyle defaultPostgres dbPath $ \dbURI -> do 
+  do
+  --  let dbURI' = BS.unpack . ("postgres:" <>) <$> BS.stripPrefix "postgresql:" dbURI
+  --  liftIO $ print dbURI'
+  --  case parseDatabaseUrl =<< dbURI' of
+  --    Nothing -> error $ "failed to parse:: " ++ BS.unpack dbURI
+  --    Just (uri :: ConnectInfo) -> do
+  --      putStrLn "==> IT WORKED"
+  --      print $ connectUser uri
+  --      --TODO maybe... write own pgConnect that can handle this case.
+  --      let tpgDatabase = toTPGDatabase uri 
+  --      liftIO $ print socketPath 
+  --      let tpgDatabase' = tpgDatabase { pgDBPort = UnixSocket socketPath }
+        --connection <- pgConnect $ tpgDatabase'
+        --print uri
+        --runReaderT f connection
     -- withTPGConnection $ runReaderT f
+        f tpgDatabase'
