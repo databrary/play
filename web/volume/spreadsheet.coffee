@@ -331,7 +331,7 @@ app.directive 'spreadsheet', [
           if slot
             slot = undefined
             cats = all.filter((c) -> $scope.showGlobal || (Cats[c.id] ? Editing))
-            cats.push(pseudoCategory.asset)
+            cats.unshift(pseudoCategory.asset)
             cats.unshift(pseudoCategory.slot)
             $scope.anyGlobal = all.some((c) -> Cats[c.id] == false)
           else
