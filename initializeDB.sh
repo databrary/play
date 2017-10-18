@@ -1,9 +1,9 @@
 #!/bin/sh 
 set -x
+set -v
 dbName=databrary-nix-db
 dbPath=$dbName
 echo $dbPath
-chmod 700 $dbPath/work
 gargoyle-psql "$dbPath" <<-EOSQL
      CREATE USER databrary;
      CREATE DATABASE databrary;
@@ -11,7 +11,7 @@ gargoyle-psql "$dbPath" <<-EOSQL
      ALTER USER databrary WITH PASSWORD 'databrary123';
      ALTER USER databrary WITH SUPERUSER;
 EOSQL
-
+chmod 700 $dbPath/work
+echo "HERE IS WHAT IS IN /work..."
+ls -al $dbPath/work
 cat ./schema/* | gargoyle-psql "$dbPath" 
-gargoyle-psql "$dbPath" & 
-

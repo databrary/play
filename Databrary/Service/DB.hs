@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, ConstraintKinds, DefaultSignatures, GeneralizedNewtypeDeriving, TypeFamilies, OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, ConstraintKinds, DefaultSignatures, GeneralizedNewtypeDeriving, TypeFamilies, OverloadedStrings, StandaloneDeriving #-}
 module Databrary.Service.DB
   ( DBPool
   , DBConn
@@ -33,7 +33,7 @@ import Control.Monad.Trans.Control (MonadBaseControl, liftBaseOp_)
 import Control.Monad.Trans.Reader (ReaderT(..))
 import qualified Data.ByteString.Lazy as BSL
 import Data.IORef (IORef, newIORef, atomicModifyIORef')
-import Data.Maybe (fromMaybe, isJust)
+import Data.Maybe (fromMaybe, isJust, fromJust)
 import Data.Pool (Pool, withResource, createPool, destroyAllResources)
 import Database.PostgreSQL.Typed.Protocol
 import Database.PostgreSQL.Typed.Query
@@ -41,6 +41,8 @@ import Database.PostgreSQL.Typed.TH (withTPGConnection, useTPGDatabase)
 import qualified Language.Haskell.TH as TH
 import Network (PortID(..))
 import System.IO.Unsafe (unsafePerformIO)
+import System.Directory
+import System.Process
 
 import Databrary.Has
 import qualified Databrary.Store.Config as C
@@ -48,13 +50,13 @@ import qualified Databrary.Store.Config as C
 confPGDatabase :: C.Config -> PGDatabase
 confPGDatabase conf = defaultPGDatabase
   { pgDBHost = fromMaybe "localhost" host
-  , pgDBPort = if isJust host
-      then PortNumber (maybe 5432 fromInteger $ conf C.! "port")
-      else UnixSocket (fromMaybe "/tmp/.s.PGSQL.5432" $ conf C.! "sock")
+  , pgDBPort = --if isJust host
+     -- then PortNumber (maybe 5432 fromInteger $ conf C.! "port")
+     UnixSocket (fromJust $ conf C.! "sock")
   , pgDBName = fromMaybe user $ conf C.! "db"
   , pgDBUser = user
   , pgDBPass = fromMaybe "" $ conf C.! "pass"
-  , pgDBDebug = fromMaybe False $ conf C.! "debug"
+  , pgDBDebug = True -- fromMaybe False $ conf C.! "debug"
   }
   where
   host = conf C.! "host"
@@ -160,7 +162,18 @@ runDBConnection f = bracket
   (runReaderT f)
 
 loadTDB :: TH.DecsQ
-loadTDB = useTPGDatabase =<< TH.runIO loadPGDatabase
+loadTDB = do 
+  database <- TH.runIO loadPGDatabase 
+  TH.runIO $ print "INSIDE OF loadTDB......................."
+  case pgDBPort database of 
+       UnixSocket path -> TH.runIO $ do 
+         print path
+         result <- doesFileExist path
+         ld <- listDirectory =<< getCurrentDirectory
+         print ld
+         print result
+       _ -> return () 
+  useTPGDatabase database
 
 {-# NOINLINE usedTDB #-}
 usedTDB :: IORef Bool
