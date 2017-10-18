@@ -25,4 +25,3 @@ builtexe=`ls -t $exe_dir/databrary-* | head -1` #extract exact version from git 
 echo "=== Start"
 ls databrary.conf
 databrary_datadir="$data_basedir/databrary-1" `$builtexe`
-echo "... Started!"
