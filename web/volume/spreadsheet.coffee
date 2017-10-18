@@ -331,7 +331,7 @@ app.directive 'spreadsheet', [
           if slot
             slot = undefined
             cats = all.filter((c) -> $scope.showGlobal || (Cats[c.id] ? Editing))
-            cats.push(pseudoCategory.asset)
+            cats.unshift(pseudoCategory.asset)
             cats.unshift(pseudoCategory.slot)
             $scope.anyGlobal = all.some((c) -> Cats[c.id] == false)
           else
@@ -467,6 +467,8 @@ app.directive 'spreadsheet', [
           if info.col.first && info.d
             if info.c == 'asset'
               cell.classList.add('clickable')
+              cell.onclick = (event) ->
+                window.location.href = if Editing then slot.editRoute(t) else slot.route(t)
               a = cell.appendChild(document.createElement('a'))
               icon = a.appendChild(document.createElement('img'))
               asset = info.asset
@@ -474,7 +476,7 @@ app.directive 'spreadsheet', [
               icon.className = "format hint-format-" + asset.format.extension
               t = {asset:asset.id}
               a.setAttribute('href', if Editing then slot.editRoute(t) else slot.route(t))
-              icon = cell.appendChild(document.createElement('span'))
+              icon = a.appendChild(document.createElement('span'))
               icon.className = 'icon release ' + constants.release[asset.release] + ' hint-release-' + constants.release[asset.release]
             else
               if Editing && Key.id == info.c
