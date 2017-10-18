@@ -20,7 +20,7 @@ git pull
 
 echo "=== Run new db migrations, build, install"
 ./dev
-builtexe=`ls -lt $exe_dir/databrary-* | head -1` #extract exact version from git describe instead
+builtexe=`ls -t $exe_dir/databrary-* | head -1` #extract exact version from git describe instead
 
 echo "=== Start"
 ls databrary.conf
