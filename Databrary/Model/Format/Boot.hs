@@ -13,6 +13,6 @@ import Databrary.Model.Format.SQL
 
 loadFormats :: TH.ExpQ
 loadFormats = do
-  liftIO $ print "INSIDE OF THE loadFormats FUNCTION!!!!!"
+  TH.runIO $ print "INSIDE OF THE loadFormats FUNCTION!!!!!"
   l <- runTDB $ dbQuery $(selectQuery formatRow "ORDER BY id")
   TH.lift l
