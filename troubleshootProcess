@@ -1,0 +1,12 @@
+1. clone databrary
+2. checkout obsidian-deploy2 branch
+
+
+----ghcid----
+1. nix-shell      
+#will create database and load schema, takes path as an argument
+2. ./initializeDB.sh [dbpath]
+#start gargoyle-psql to create the socket that postgresql-typed will connect to
+3. gargoyle-psql [dbpath]
+#start ghcid in it's own nix-shell
+4. ./ghcid-backend                 

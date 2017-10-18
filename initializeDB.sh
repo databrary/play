@@ -1,7 +1,7 @@
 #!/bin/sh 
 set -x
 set -v
-dbName=databrary-nix-db
+dbName=${1:-databrary-nix-db}
 dbPath=$dbName
 echo $dbPath
 gargoyle-psql "$dbPath" <<-EOSQL
