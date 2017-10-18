@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 build_user="centos"
-clone_path="$build_user/src/databrary"
+clone_path="~$build_user/src/databrary"
 exe_dir="~$build_user/.cabal/bin"
 data_basedir="~$build_user/.cabal/share/x86_64-linux-ghc-7.10.3"
 branch="develop"
