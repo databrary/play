@@ -2,5 +2,13 @@
 
 set -eu -o pipefail
 
-$(nix-build db.nix --no-out-link)
+dbName="databrary-nix-db"
+./initializeDB.sh $dbName
+sleep 5
+socketPath=./$dbName/work/
+if [ -d "$socketPath" ]; then
+  echo "connection to postgres socket..."
+  postgres -D $socketPath -k . -h "" &
+fi 
+# $(nix-build db.nix --no-out-link)
 
