@@ -27,7 +27,7 @@ git stash save # need in case there were manual, conflicting changes that would 
 git pull
 
 echo "=== Run new db migrations, build, install"
-# ./dev
+./dev
 built_exe=`ls -t $exe_dir/databrary-* | head -1` #extract exact version from git describe instead
 
 echo "=== Starting $built_exe"
