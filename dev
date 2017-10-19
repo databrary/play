@@ -16,10 +16,15 @@ echo "========Determine version from git commit=================================
 echo "========Download lastest node dependencies====================================================="
 echo "========Run any DB Migrations=================================================================="
 echo "========Build into dist/build=================================================================="
-echo "========Generate web assets===================================================================="
 echo "========Set transcode scripts as executable===================================================="
 echo "========Add version suffix to executable name=================================================="
 cabal install
+echo "========Generate web assets===================================================================="
+build_user=`whoami`
+exe_dir="/home/$build_user/.cabal/bin"
+data_basedir="/home/$build_user/.cabal/share/x86_64-linux-ghc-7.10.3"
+built_exe=`ls -t $exe_dir/databrary-* | head -1`
+databrary_datadir="$data_basedir/databrary-1" `$built_exe` -w
 echo "========The prefix of this version will provide you with the version built: `git describe`====="
 
 echo "========Build/Install sucessful.================================================================"
