@@ -49,13 +49,13 @@ import qualified Databrary.Store.Config as C
 confPGDatabase :: C.Config -> PGDatabase
 confPGDatabase conf = defaultPGDatabase
   { pgDBHost = fromMaybe "localhost" host
-  , pgDBPort = --if isJust host
-     -- then PortNumber (maybe 5432 fromInteger $ conf C.! "port")
-     UnixSocket (fromJust $ conf C.! "sock")
+  , pgDBPort = if isJust host
+     then PortNumber (maybe 5432 fromInteger $ conf C.! "port")
+     else UnixSocket (fromJust $ conf C.! "sock")
   , pgDBName = fromMaybe user $ conf C.! "db"
   , pgDBUser = user
   , pgDBPass = fromMaybe "" $ conf C.! "pass"
-  , pgDBDebug = True -- fromMaybe False $ conf C.! "debug"
+  , pgDBDebug = fromMaybe False $ conf C.! "debug"
   }
   where
   host = conf C.! "host"
@@ -163,15 +163,6 @@ runDBConnection f = bracket
 loadTDB :: TH.DecsQ
 loadTDB = do 
   database <- TH.runIO loadPGDatabase 
-  TH.runIO $ print "INSIDE OF loadTDB......................."
-  case pgDBPort database of 
-       UnixSocket path -> TH.runIO $ do 
-         print path
-         result <- doesFileExist path
-         ld <- listDirectory =<< getCurrentDirectory
-         print ld
-         print result
-       _ -> return () 
   useTPGDatabase database
 
 {-# NOINLINE usedTDB #-}
