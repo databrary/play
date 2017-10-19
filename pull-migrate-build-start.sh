@@ -21,7 +21,7 @@ echo "=== Current working copy status"
 git status
 
 echo "=== Stash, pull latest from $branch"
-git stash save # need in case there were manual, conflicting changes to prevent pulling from succeeding
+git stash save # need in case there were manual, conflicting changes that would prevent pulling from succeeding
 git pull
 
 echo "=== Run new db migrations, build, install"
@@ -29,5 +29,5 @@ echo "=== Run new db migrations, build, install"
 builtexe=`ls -t $exe_dir/databrary-* | head -1` #extract exact version from git describe instead
 
 echo "=== Starting $builtexe"
-ls databrary.conf
+conf_exists=`ls databrary.conf`
 databrary_datadir="$data_basedir/databrary-1" `$builtexe`
