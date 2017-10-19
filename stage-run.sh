@@ -1,8 +1,10 @@
 #!/bin/bash
 set -e
+build_user="build"
 run_user="demo"
 run_working_dir="/home/$run_user"
 exe_dir="/home/$build_user/.cabal/bin"
+data_basedir="/home/$build_user/.cabal/share/x86_64-linux-ghc-7.10.3"
 
 echo "=== Changing to working directory $run_working_dir"
 cd $run_working_dir
