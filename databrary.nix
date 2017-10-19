@@ -12,6 +12,7 @@
 , th-lift-instances, time, transformers, transformers-base, unix
 , unordered-containers, utf8-string, vector, wai, wai-extra, warp
 , warp-tls, web-inv-route, xml, zlib, gargoyle, gargoyle-postgresql, postgresql-simple, postgresql-simple-url
+, nodePackages, nodejs
 }:
 mkDerivation rec {
   pname = "databrary";
@@ -42,6 +43,9 @@ mkDerivation rec {
   ];
   executableToolDepends = [
     postgresql.pg
+    # Put coffee, uglifyjs, etc in scope
+    nodePackages.shell.nodeDependencies
+    nodejs
   ];
   description = "Databrary";
   license = stdenv.lib.licenses.gpl3;
@@ -61,6 +65,7 @@ mkDerivation rec {
     ls -la $socket_path
   '';
   postBuild = ''
+    dist/build/databrary/databrary -w
     kill -INT `head -1 $socket_path/postmaster.pid`
   '';
 }

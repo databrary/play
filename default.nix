@@ -26,7 +26,7 @@ let
     overrides = self: super: rec {
       databrary = self.callPackage ./databrary.nix {
         # postgresql with ranges plugin
-        inherit postgresql;
+        inherit postgresql nodePackages;
         # ffmpeg override with with --enable-libfdk-aac and --enable-nonfree flags set
         ffmpeg = nixpkgs.ffmpeg-full.override {
           nonfreeLicensing = true;
@@ -58,4 +58,4 @@ let
 
     };
   };
-in { inherit nixpkgs pkgs nodePackages conf; }
+in { inherit nixpkgs pkgs nodePackages conf postgresql; }
