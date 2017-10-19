@@ -11,6 +11,10 @@ echo "Reading branch from ../databrary-branch.txt"
 branch=`cat ../databrary-branch.txt` # trim whitespace
 current_branch=`git rev-parse --abbrev-ref HEAD`
 echo "Current branch is $current_branch."
+if [ "$branch" != "$current_branch" ]
+then
+  "Expected branch to be $branch. Please correct."
+fi
 
 echo "=== Current working copy status"
 git status
