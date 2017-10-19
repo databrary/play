@@ -5,7 +5,9 @@ clone_path="/home/$build_user/src/databrary"
 exe_dir="/home/$build_user/.cabal/bin"
 data_basedir="/home/$build_user/.cabal/share/x86_64-linux-ghc-7.10.3"
 
+echo "=== Changing to repository root directory $clone_path"
 cd $clone_path
+
 echo "=== Check branch matches required branch in ../databrary-branch.txt"
 echo "Reading branch from ../databrary-branch.txt"
 branch=`cat ../databrary-branch.txt | tr -d '[:space:]'` # trims any whitespace char
@@ -26,8 +28,8 @@ git pull
 
 echo "=== Run new db migrations, build, install"
 # ./dev
-builtexe=`ls -t $exe_dir/databrary-* | head -1` #extract exact version from git describe instead
+built_exe=`ls -t $exe_dir/databrary-* | head -1` #extract exact version from git describe instead
 
-echo "=== Starting $builtexe"
+echo "=== Starting $built_exe"
 conf_exists=`ls databrary.conf`
-databrary_datadir="$data_basedir/databrary-1" `$builtexe`
+databrary_datadir="$data_basedir/databrary-1" `$built_exe`
