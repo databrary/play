@@ -13,7 +13,8 @@ current_branch=`git rev-parse --abbrev-ref HEAD`
 echo "Current branch is $current_branch."
 if [ "$branch" != "$current_branch" ]
 then
-  "Expected branch to be $branch. Please correct."
+  echo "Expected branch to be $branch. Please correct."
+  exit 1
 fi
 
 echo "=== Current working copy status"
