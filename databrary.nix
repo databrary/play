@@ -12,7 +12,7 @@
 , th-lift-instances, time, transformers, transformers-base, unix
 , unordered-containers, utf8-string, vector, wai, wai-extra, warp
 , warp-tls, web-inv-route, xml, zlib, gargoyle, gargoyle-postgresql, postgresql-simple, postgresql-simple-url
-, nodePackages, nodejs
+, nodePackages, nodejs, openssl
 }:
 mkDerivation rec {
   pname = "databrary";
@@ -37,7 +37,7 @@ mkDerivation rec {
     utf8-string vector wai wai-extra warp warp-tls web-inv-route xml
     zlib gargoyle gargoyle-postgresql postgresql-simple postgresql-simple-url
   ];
-  executableSystemDepends = [ cracklib ];
+  executableSystemDepends = [ cracklib openssl openssl.dev ];
   executablePkgconfigDepends = [
     ffmpeg
   ];
