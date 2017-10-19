@@ -11,3 +11,5 @@ gargoyle-psql "$dbPath" <<-EOSQL
      ALTER USER databrary WITH SUPERUSER;
 EOSQL
 chmod 700 $dbPath/work
+# load the schema into the db
+cat ./schema/* | gargoyle-psql "$dbPath"
