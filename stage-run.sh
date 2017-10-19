@@ -13,4 +13,4 @@ echo "Newest installed exe found is: $built_exe"
 
 echo "=== Starting $built_exe"
 conf_exists=`ls databrary.conf`
-databrary_datadir="$data_basedir/databrary-1" `$built_exe`
+databrary_datadir="$data_basedir/databrary-1" `$built_exe` +RTS -s
