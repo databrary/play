@@ -45,22 +45,20 @@ mkDerivation rec {
   ];
   description = "Databrary";
   license = stdenv.lib.licenses.gpl3;
-  preBuild = '' 
+  preBuild = ''
     set -x
     ./initializeDB.sh
-    gargoyle-psql databrary-nix-db &
-    gpsql_pid=$!
-    echo $gpsql_pid "GAAARRRRRGOOOOOOOYYYYLLLEEEEEE"
-    #sleep 10
-    #watch 'ps aux | grep $gpsql_pid'
+
     socket_path=$(pwd)/databrary-nix-db/work/
     echo "$socket_path"
+
+    postgres -D $socket_path -k . -h "" &
+
     cat databrary.conf
     ls -la $(dirname $socket_path)
     ls -la $socket_path
   '';
   postBuild = ''
-    echo $gpsql_pid 
-    ps aux | grep $gpsql_pid
+    kill -INT `head -1 $socket_path/postmaster.pid`
   '';
 }
