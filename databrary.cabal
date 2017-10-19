@@ -174,4 +174,4 @@ Executable databrary
     cpp-options: -DSANDBOX
 
   pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
-  extra-libraries: crack
+  extra-libraries: crack, crypto
