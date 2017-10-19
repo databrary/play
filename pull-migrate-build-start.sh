@@ -6,8 +6,9 @@ exe_dir="/home/$build_user/.cabal/bin"
 data_basedir="/home/$build_user/.cabal/share/x86_64-linux-ghc-7.10.3"
 
 cd $clone_path
-branch=`cat ../databrary-branch.txt`
 echo "=== Check branch matches required branch in ../databrary-branch.txt"
+echo "Reading branch from ../databrary-branch.txt"
+branch=`cat ../databrary-branch.txt` # trim whitespace
 current_branch=`git rev-parse --abbrev-ref HEAD`
 echo "Current branch is $current_branch."
 
@@ -19,9 +20,9 @@ git stash save # need in case there were manual, conflicting changes to prevent 
 git pull
 
 echo "=== Run new db migrations, build, install"
-./dev
+# ./dev
 builtexe=`ls -t $exe_dir/databrary-* | head -1` #extract exact version from git describe instead
 
-echo "=== Start"
+echo "=== Starting $builtexe"
 ls databrary.conf
 databrary_datadir="$data_basedir/databrary-1" `$builtexe`
