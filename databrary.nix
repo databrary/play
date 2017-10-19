@@ -65,7 +65,8 @@ mkDerivation rec {
     ls -la $socket_path
   '';
   postBuild = ''
-    dist/build/databrary/databrary -w
     kill -INT `head -1 $socket_path/postmaster.pid`
+    ln -s ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
+    dist/build/databrary/databrary -w
   '';
 }
