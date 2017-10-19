@@ -12,14 +12,14 @@
 , th-lift-instances, time, transformers, transformers-base, unix
 , unordered-containers, utf8-string, vector, wai, wai-extra, warp
 , warp-tls, web-inv-route, xml, zlib, gargoyle, gargoyle-postgresql, postgresql-simple, postgresql-simple-url
-, nodePackages, nodejs, openssl
+, nodePackages, nodejs, openssl, dbName ? "databrary-nix-db"
 }:
 mkDerivation rec {
   pname = "databrary";
   doCheck = false;
   version = "1";
   src = builtins.filterSource 
-    (path: type: type == "directory" || baseNameOf path != ".git" || baseNameOf path == ".cabal" || path != "databrary-nix-db")
+    (path: type: type == "directory" || baseNameOf path != ".git" || baseNameOf path == ".cabal" || path != dbName)
     ./.;
   isLibrary = false;
   isExecutable = true;
@@ -55,7 +55,7 @@ mkDerivation rec {
     # ensure gargoyle-psql had enough time to shudown postgres
     sleep 5
 
-    socket_path=$(pwd)/databrary-nix-db/work/
+    socket_path=$(pwd)/${dbName}/work/
     echo "$socket_path"
 
     postgres -D $socket_path -k . -h "" &
