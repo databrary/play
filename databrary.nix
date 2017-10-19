@@ -48,6 +48,8 @@ mkDerivation rec {
   preBuild = ''
     set -x
     ./initializeDB.sh
+    # ensure gargoyle-psql had enough time to shudown postgres
+    sleep 5
 
     socket_path=$(pwd)/databrary-nix-db/work/
     echo "$socket_path"
