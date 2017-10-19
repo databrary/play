@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 build_user="build"
-clone_path="/home/$build_user/src/databrary"
+clone_path="/home/$build_user/databrary"
 exe_dir="/home/$build_user/.cabal/bin"
 
 echo "=== Changing to repository root directory $clone_path"
