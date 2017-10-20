@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -e
+rcvr=$1
+$(nix-build -A pkgs.databrary --show-trace)
+$(nix-copy-closure --to rcvr $(type -p databrary-1))
