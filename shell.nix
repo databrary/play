@@ -1,6 +1,6 @@
 let
 #bring into scope output variables from build.nix
-inherit (import ./. {}) pkgs nixpkgs nodePackages;
+inherit (import ./. {}) pkgs nixpkgs nodePackages postgresql;
 in
 # override buildInput attribute during mkDerivation process
 pkgs.databrary-dev.env.overrideAttrs (attrs: {
@@ -9,5 +9,6 @@ pkgs.databrary-dev.env.overrideAttrs (attrs: {
      nixpkgs.nodejs-8_x
      nixpkgs.jdk #required by Solr
      nixpkgs.haskellPackages.cabal-install
+     postgresql
     ];
 })
