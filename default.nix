@@ -1,6 +1,5 @@
 { nodePackages ? import ./node-default.nix {}
 , databraryRoot ? ./.
-, conf ? import ./conf.nix { inherit databraryRoot; }
 }:
 
 let
@@ -57,4 +56,4 @@ let
       postgresql-typed = dontCheck (self.callHackage  "postgresql-typed" "0.4.5" {});
     };
   };
-in { inherit nixpkgs pkgs nodePackages conf postgresql; }
+in { inherit nixpkgs pkgs nodePackages postgresql; }
