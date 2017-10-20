@@ -1,10 +1,16 @@
-{ reflex-platform ? import ./reflex-platform {}
-, nodePackages ? import ./node-default.nix {}
+{ nodePackages ? import ./node-default.nix {}
 , databraryRoot ? ./.
 , conf ? import ./conf.nix { inherit databraryRoot; }
 }:
 
 let
+  reflex-platform = import
+    ((import <nixpkgs> {}).fetchFromGitHub {
+      owner= "reflex-frp";
+      repo = "reflex-platform";
+      rev = "08cff0f6724767724592c6649c249d3c83d0eea8";
+      sha256 = "02jjhfwx41q7a8kivic05d7mgbani4z8ww9db9flyz13vgx240b0";
+    }) {};
   # Definition of nixpkgs, version controlled by Reflex-FRP
 	nixpkgs = reflex-platform.nixpkgs;
   fetchFromGitHub = nixpkgs.fetchFromGitHub;
@@ -12,7 +18,7 @@ let
   dontCheck = nixpkgs.haskell.lib.dontCheck;
   overrideCabal = nixpkgs.haskell.lib.overrideCabal;
 	doJailbreak = nixpkgs.haskell.lib.doJailbreak;
-  postgresql = import ./db.nix { inherit reflex-platform; };
+  postgresql = import ./db.nix { inherit nixpkgs; };
   gargoyleSrc = fetchFromGitHub {
         owner= "obsidiansystems";
         repo = "gargoyle";
@@ -33,29 +39,22 @@ let
           fdkaacExtlib = true;
         };
       };
-      
       # cabal override to enable ghcid (GHCi daemon) development tool
       databrary-dev = overrideCabal databrary (drv: {
         libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ [self.ghcid];
       });
-
-      # Define postgresql-typed package with explicit version number
-    	postgresql-typed = dontCheck (self.callHackage  "postgresql-typed" "0.4.5" {});
-			
-			#partial-isomorphisms is for GHC7 only!
-			# partial-isomorphisms= dontCheck (self.callHackage  "partial-isomorphisms"
-      #"0.2" {});
-
+      gargoyle = self.callPackage "${gargoyleSrc}/gargoyle" {};
+      gargoyle-postgresql= self.callPackage "${gargoyleSrc}/gargoyle-postgresql" {};
       # Define hjsonschema  package with explicit version number
-			hjsonschema = dontCheck (doJailbreak (self.callHackage "hjsonschema" "0.9.0.0" {}));	
+			hjsonschema = dontCheck (doJailbreak (self.callHackage "hjsonschema" "0.9.0.0" {}));
       # Define hjsonpointer  package with explicit version number
 			hjsonpointer = dontCheck (doJailbreak (self.callHackage "hjsonpointer" "0.3.0.2" {}));
       # Define invertible as invertible from reflex-platform 
 		 	invertible = dontCheck super.invertible;
-
-      gargoyle = self.callPackage "${gargoyleSrc}/gargoyle" {} ;
-      gargoyle-postgresql= self.callPackage "${gargoyleSrc}/gargoyle-postgresql" {} ;
-
+      # postgresql-typed 0.4.5 requires a version <= 0.10
+      postgresql-binary = dontCheck (self.callHackage  "postgresql-binary" "0.10" {});
+      # Define postgresql-typed package with explicit version number
+      postgresql-typed = dontCheck (self.callHackage  "postgresql-typed" "0.4.5" {});
     };
   };
 in { inherit nixpkgs pkgs nodePackages conf postgresql; }
