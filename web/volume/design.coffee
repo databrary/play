@@ -10,6 +10,10 @@ app.directive 'volumeDesign', [
       volume = $scope.volume
       form = $scope.volumeDesign
 
+      $element.on 'click', (e) ->
+        angular.element(e.target).closest('li.clickable').find('input').trigger 'click'
+        return
+
       $scope.select = (c) ->
         form.metric = {}
         return unless ($scope.selected = constants.category[c])?
