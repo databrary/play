@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail 
+
 rcvr=$1
-$(nix-build -A pkgs.databrary --show-trace)
-$(nix-copy-closure --to rcvr $(type -p databrary-1))
+
+nix-copy-closure --to rcvr $(nix-build -A pkgs.databrary --show-trace)
