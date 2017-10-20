@@ -12,7 +12,7 @@
 , th-lift-instances, time, transformers, transformers-base, unix
 , unordered-containers, utf8-string, vector, wai, wai-extra, warp
 , warp-tls, web-inv-route, xml, zlib, gargoyle, gargoyle-postgresql, postgresql-simple, postgresql-simple-url
-, nodePackages, nodejs, openssl, dbName ? "databrary-nix-db"
+, nodePackages, nodejs, openssl, dbName ? "databrary-nix-db", jdk
 }:
 mkDerivation rec {
   pname = "databrary";
@@ -46,6 +46,7 @@ mkDerivation rec {
     # Put coffee, uglifyjs, etc in scope
     nodePackages.shell.nodeDependencies
     nodejs
+    jdk
   ];
   description = "Databrary";
   license = stdenv.lib.licenses.gpl3;
