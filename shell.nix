@@ -8,7 +8,6 @@ pkgs.databrary-dev.env.overrideAttrs (attrs: {
     [nodePackages.shell.nodeDependencies
      nixpkgs.nodejs-8_x
      nixpkgs.jdk #required by Solr
-     nixpkgs.haskellPackages.cabal-install
      postgresql.postgres
     ];
 })

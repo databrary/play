@@ -7,9 +7,9 @@ let
     ((import <nixpkgs> {}).fetchFromGitHub {
       owner= "reflex-frp";
       repo = "reflex-platform";
-      rev = "08cff0f6724767724592c6649c249d3c83d0eea8";
-      sha256 = "02jjhfwx41q7a8kivic05d7mgbani4z8ww9db9flyz13vgx240b0";
-    }) {};
+      rev = "2884a9abb9eec7fdbc7373cafcb2d42bfdf1f67a";
+      sha256 = "0qnmxbpxzkiqp477d2msy93gv4cm4npcxs2cyvbpkj4x1b5j08m2";
+  }) {};
   # Definition of nixpkgs, version controlled by Reflex-FRP
 	nixpkgs = reflex-platform.nixpkgs;
   fetchFromGitHub = nixpkgs.fetchFromGitHub;
@@ -24,7 +24,6 @@ let
         rev = "87039dac83a8899a6c66fa681e6e77140b3ddacc";
         sha256 = "04xr8bl9mfcv0lmbb4y8ach7h44qbiyq925wjcl5x039bmz24f4k";
   };
-
   # Define GHC compiler override
   pkgs = reflex-platform.ghc.override {
 
