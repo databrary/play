@@ -73,11 +73,13 @@ main = defaultMainWithHooks simpleUserHooks
     build args
     {- after build bundle all the web assets and js (that's the -w flag)
     -}
+{-
   , postBuild = \args flag desc lbi -> do
     let verb = fromFlag $ buildVerbosity flag
     notice verb "Generating web ..."
     run verb desc lbi "databrary" ["-w"]
     postBuild simpleUserHooks args flag desc lbi
+-}
     -- do the chmod +x thing to transcode and transctl.sh
   , postCopy = \args flag desc lbi -> do
     fixPerms desc lbi (fromFlag $ copyDest flag)
