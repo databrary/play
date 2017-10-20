@@ -42,7 +42,7 @@ mkDerivation rec {
     ffmpeg
   ];
   executableToolDepends = [
-    postgresql.pg
+    postgresql.postgres
     # Put coffee, uglifyjs, etc in scope
     nodePackages.shell.nodeDependencies
     nodejs

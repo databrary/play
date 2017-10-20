@@ -18,4 +18,4 @@ let
       wrapProgram $out/bin/postgres --set NIX_PGLIBDIR $out/lib
     '';
   };
-in {inherit postgres pgranges pg; }
+in {inherit postgres pgranges; }
