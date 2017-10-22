@@ -27,7 +27,7 @@ module Databrary.JSON
 
 import Data.Aeson
 import Data.Aeson.Types
-import Data.Aeson.Encode (encodeToTextBuilder)
+import Data.Aeson.Text (encodeToTextBuilder)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as B
 import qualified Data.ByteString.Builder.Prim as BP
@@ -131,6 +131,9 @@ eitherJSON = resultToEither . fromJSON
 
 instance ToJSON BS.ByteString where
   toJSON = String . TE.decodeUtf8 -- questionable
+
+instance ToJSONKey BS.ByteString where
+  toJSONKey = toJSONKeyText TE.decodeUtf8
 
 instance FromJSON BS.ByteString where
   parseJSON = fmap TE.encodeUtf8 . parseJSON
