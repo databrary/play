@@ -89,6 +89,8 @@ Executable schemabrary
     vector,
     aeson
 
+  default-extensions: FlexibleInstances
+
 Executable databrary
   main-is: Databrary/Main.hs
   other-modules: Databrary.Store.AV
