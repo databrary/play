@@ -64,6 +64,7 @@ Executable schemabrary
   default-language: Haskell2010
   build-depends:
     base,
+    blaze-html,
     bytestring >= 0.10,
     transformers,
     transformers-base,
@@ -75,6 +76,7 @@ Executable schemabrary
     directory,
     gargoyle,
     gargoyle-postgresql,
+    http-types,
     text,
     unordered-containers,
     parsec >= 3,
