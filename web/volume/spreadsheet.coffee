@@ -467,6 +467,8 @@ app.directive 'spreadsheet', [
           if info.col.first && info.d
             if info.c == 'asset'
               cell.classList.add('clickable')
+              cell.onclick = (event) ->
+                window.location.href = if Editing then slot.editRoute(t) else slot.route(t)
               a = cell.appendChild(document.createElement('a'))
               icon = a.appendChild(document.createElement('img'))
               asset = info.asset
