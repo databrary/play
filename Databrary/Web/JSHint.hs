@@ -11,7 +11,6 @@ import System.Posix.FilePath (splitFileName, addExtension)
 import System.Posix.IO.ByteString (openFd, OpenMode(WriteOnly), defaultFileFlags, closeFd)
 import System.Process (callProcess)
 
-import Paths_databrary.Node
 import Databrary.Files
 import Databrary.Web
 import Databrary.Web.Types
@@ -25,7 +24,7 @@ checkJSHint fo@(f, _)
       ht <- fmap snd <$> fileInfo h
       ft <- modificationTimestamp <$> getFileStatus f
       when (all (ft >) ht) $ do
-        callProcess ("jshint") [webFileAbs f]
+        callProcess "jshint" [webFileAbs f]
         maybe
           (openFd h WriteOnly (Just 0o666) defaultFileFlags >>= closeFd)
           (\_ -> setFileTimestamps h ft ft)

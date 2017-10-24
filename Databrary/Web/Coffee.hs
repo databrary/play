@@ -7,7 +7,6 @@ import Control.Monad (mzero)
 import System.FilePath (takeDirectory)
 import System.Process (callProcess)
 
-import Paths_databrary.Node
 import Databrary.Files
 import Databrary.Web
 import Databrary.Web.Types
