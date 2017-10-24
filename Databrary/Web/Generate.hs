@@ -67,7 +67,7 @@ staticWebGenerate g (w, _) = liftIO $ do
 webLinkDataFile :: FilePath -> WebGenerator
 webLinkDataFile s fo@(f, _) = do
   -- wf <- liftIO $ canonicalizePath s
-  wf <- liftIO $ getDataFileName s
+  wf <- liftIO $ canonicalizePath =<< getDataFileName s
   liftIO $ print wf
   webRegenerate (do
     r <- removeFile f
