@@ -12,11 +12,17 @@ let
   }) {};
   # Definition of nixpkgs, version controlled by Reflex-FRP
 	nixpkgs = reflex-platform.nixpkgs;
-  fetchFromGitHub = nixpkgs.fetchFromGitHub;
+  inherit (nixpkgs) fetchFromGitHub writeScriptBin;
   # nixpkgs functions used to regulate Haskell overrides
-  dontCheck = nixpkgs.haskell.lib.dontCheck;
-  overrideCabal = nixpkgs.haskell.lib.overrideCabal;
-	doJailbreak = nixpkgs.haskell.lib.doJailbreak;
+  inherit (nixpkgs.haskell.lib) dontCheck overrideCabal doJailbreak;
+  ghciDatabrary = writeScriptBin "ghci-databrary" ''
+    if [ ! -d "node_modules" ]; then
+      echo linking node_modules
+      ln -s ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
+    fi
+    cabal configure --datadir=. --datasubdir=.
+    cabal repl databrary
+  '';
   postgresql = import ./db.nix { inherit nixpkgs; };
   gargoyleSrc = fetchFromGitHub {
         owner= "obsidiansystems";
@@ -26,7 +32,6 @@ let
   };
   # Define GHC compiler override
   pkgs = reflex-platform.ghc.override {
-
     overrides = self: super: rec {
       databrary = self.callPackage ./databrary.nix {
         # postgresql with ranges plugin
@@ -39,7 +44,7 @@ let
       };
       # cabal override to enable ghcid (GHCi daemon) development tool
       databrary-dev = overrideCabal databrary (drv: {
-        libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ (with self; [ghcid cabal-install]);
+        libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ (with self; [ghcid cabal-install ghciDatabrary]);
       });
       gargoyle = self.callPackage "${gargoyleSrc}/gargoyle" {};
       gargoyle-postgresql= self.callPackage "${gargoyleSrc}/gargoyle-postgresql" {};
