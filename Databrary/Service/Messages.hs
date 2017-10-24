@@ -19,8 +19,7 @@ newtype Messages = Messages C.Config
   deriving (JSON.ToJSON)
 
 messagesFile :: IO FilePath
---messagesFile = getDataFileName "messages.conf"
-messagesFile = return "./messages.conf"
+messagesFile = getDataFileName "messages.conf"
 
 loadMessagesFrom :: FilePath -> IO Messages
 loadMessagesFrom f = Messages <$> C.load f

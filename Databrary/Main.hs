@@ -94,8 +94,7 @@ main = do
   putStrLn "evaluating routemap...withService..."
   withService True conf $ \rc -> do
 #ifndef DEVEL
-    --schema <- getDataFileName "schema"
-    let  schema = "./schema" :: FilePath
+    schema <- getDataFileName "schema"
     putStrLn "updating schema"
     withDB (serviceDB rc) $ runReaderT $ updateDBSchema schema
     putStrLn "updating schema completed"
