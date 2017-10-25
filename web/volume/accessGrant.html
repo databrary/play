@@ -26,7 +26,7 @@
         <div class="access-grant-owner-order" ng-if="accessGrantForm.data.individual == page.permission.ADMIN">
           <input type="number" name="sort" ng-model="accessGrantForm.data.sort" min="1" max="32767" placeholder="Appearance order"></input>
         </div>
-        <fieldset class="skinny sub-top clean radio-set access-grant-checkbox">
+        <fieldset class="skinny sub-top clean radio-set access-grant-checkbox" tooltip="'access.grant.confirmation' | message">
           <div ng-if="::!access.party.institution">
             <input type="checkbox" ng-model="accessGrantForm.data.extend" ng-init="accessGrantForm.data.extend=false">
             <label class="option inline">
