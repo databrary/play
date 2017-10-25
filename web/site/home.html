@@ -57,8 +57,8 @@
           <a ng-href="{{::page.router.login()}}">Login</a> or 
           <a ng-href="{{::page.router.register()}}">Register</a></span>
       </div>
-      <a ng-href="{{::page.router.profile()}}">
-        <div class="bigbutton" ng-if="::page.models.Login.isLoggedIn()">
+      <a ng-href="{{::page.router.profile()}}" ng-if="::page.models.Login.isLoggedIn()">
+        <div class="bigbutton">
           <img src="/web/icons/home-profile.svg"/>
           <span class="button-title">Your Profile</span>
           <p class="hide-mobile">Manage your data and authorizations.</p>
