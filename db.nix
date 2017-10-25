@@ -1,14 +1,11 @@
-{ reflex-platform ? import ./reflex-platform {}
-, dbPath ? "databrary-db"
+{ nixpkgs ? (import ./. {}).nixpkgs
 }:
 let
-  nixpkgs = reflex-platform.nixpkgs;
-  pg = nixpkgs.postgresql96;
+  inherit (nixpkgs) postgresql96;
   pgranges = nixpkgs.callPackage ./pgranges {};
-
   postgres = nixpkgs.buildEnv {
     name = "postgres96withRanges";
-    paths = [ pg pg.lib pgranges ];
+    paths = [ postgresql96 postgresql96.lib pgranges ];
     buildInputs = [ nixpkgs.makeWrapper ];
     postBuild = ''
       mv $out/bin $out/old_bin
@@ -18,4 +15,4 @@ let
       wrapProgram $out/bin/postgres --set NIX_PGLIBDIR $out/lib
     '';
   };
-in {inherit postgres pgranges; }
+in { inherit postgres pgranges; }

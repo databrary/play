@@ -11,7 +11,6 @@ import System.FilePath (takeExtensions)
 import System.Process (readCreateProcess, shell)
 import System.Posix.Files (createSymbolicLink)
 
-import Paths_databrary.Node
 import Databrary.Files
 import Databrary.Web
 import Databrary.Web.Types

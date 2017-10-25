@@ -14,6 +14,7 @@ import System.FilePath (splitFileName, takeDirectory)
 import System.Posix.Files (createLink, createSymbolicLink, rename)
 import System.Process
 
+import Paths_databrary (getDataFileName)
 import Databrary.Files
 import Databrary.Model.Time
 import Databrary.Web
@@ -65,7 +66,8 @@ staticWebGenerate g (w, _) = liftIO $ do
 
 webLinkDataFile :: FilePath -> WebGenerator
 webLinkDataFile s fo@(f, _) = do
-  wf <- liftIO $ canonicalizePath s
+  -- wf <- liftIO $ canonicalizePath s
+  wf <- liftIO $ canonicalizePath =<< getDataFileName s
   liftIO $ print wf
   webRegenerate (do
     r <- removeFile f

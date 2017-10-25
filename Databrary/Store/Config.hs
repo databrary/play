@@ -35,6 +35,7 @@ import qualified Text.Parsec as P
 import qualified Text.Parsec.ByteString.Lazy as P
 import qualified Text.Parsec.Token as PT
 
+import Databrary.JSON ()
 import Databrary.Ops
 
 type Key = BS.ByteString
@@ -219,9 +220,9 @@ instance JSON.ToJSON Config where
   toJSON = JSON.toJSON . configMap
   toEncoding = JSON.toEncoding . configMap
 
-instance JSON.ToJSON ConfigMap where
-  toJSON = JSON.object . map (TE.decodeUtf8 *** JSON.toJSON) . HM.toList
-  toEncoding = JSON.pairs . HM.foldrWithKey (\k v -> (TE.decodeUtf8 k JSON..= v <>)) mempty
+-- instance JSON.ToJSON ConfigMap where
+--   toJSON = JSON.object . map (TE.decodeUtf8 *** JSON.toJSON) . HM.toList
+--   toEncoding = JSON.pairs . HM.foldrWithKey (\k v -> (TE.decodeUtf8 k JSON..= v <>)) mempty
 
 instance JSON.ToJSON Value where
   toJSON Empty = JSON.Null
