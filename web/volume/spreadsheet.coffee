@@ -468,7 +468,7 @@ app.directive 'spreadsheet', [
             if info.c == 'asset'
               cell.classList.add('clickable')
               cell.onclick = (event) ->
-                window.location.href = if Editing then slot.editRoute(t) else slot.route(t)
+                $location.url(if Editing then slot.editRoute(t) else slot.route(t))
               a = cell.appendChild(document.createElement('a'))
               icon = a.appendChild(document.createElement('img'))
               asset = info.asset
@@ -1059,7 +1059,7 @@ app.directive 'spreadsheet', [
                 return
               if info.c == 'asset'
                 # for now, just go to slot edit
-                $location.url(info.slot.editRoute())
+                $location.url(info.slot.editRoute() + '?file=open')
                 return
               c = info.category
               editInput.value = (info.d?.id ? 'remove')+''
