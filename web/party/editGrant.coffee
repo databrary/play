@@ -46,6 +46,14 @@ app.directive 'partyEditGrantForm', [
           authSearchSelectFn(p, searchForm)
         return
 
+      $scope.getClass = (date) ->
+        today = Date.now()
+        if new Date(date) > today
+          return 'permission-auth cf peg anchor show'
+        else  
+         return 'permission-auth cf peg anchor hide'
+        return
+
       if (p = $location.search().party)?
         $location.search('party', null)
         models.Party.get(p).then($scope.authSearchSelectFn)
