@@ -18,7 +18,7 @@ echo "========Run any DB Migrations=============================================
 echo "========Build into dist/build=================================================================="
 echo "========Set transcode scripts as executable===================================================="
 echo "========Add version suffix to executable name=================================================="
-# cabal install
+cabal install
 echo "========Generate web assets===================================================================="
 build_user=`whoami`
 exe_dir="/home/$build_user/.cabal/bin"
