@@ -4,4 +4,4 @@ set -euo pipefail
 
 rcvr=$1
 
-nix-copy-closure --to rcvr $(nix-build -A pkgs.databrary --show-trace)
+nix-copy-closure --to $rcvr $(nix-build -A pkgs.databrary --show-trace)
