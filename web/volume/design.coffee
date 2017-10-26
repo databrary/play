@@ -11,7 +11,7 @@ app.directive 'volumeDesign', [
       form = $scope.volumeDesign
 
       $element.on 'click', (e) ->
-        angular.element(e.target).closest('li.clickable').find('input').trigger 'click'
+        angular.element(e.target).not('input').closest('li.clickable').find('input').trigger 'click'
         return
 
       $scope.select = (c) ->
