@@ -15,8 +15,8 @@ Cabal-version:       >=1.22
 data-files:
   messages.conf,
   schema/*.sql,
-  transctl.sh,
-  transcode,
+--  transctl.sh,
+--  transcode,
   volume.json,
 --  web/all.min.css,
 --  web/all.min.css.gz,
