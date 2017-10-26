@@ -11,16 +11,17 @@ echo "========Configuring build settings========================================
 echo "========Download lastest node dependencies====================================================="
 cabal configure --user
 
-echo "========Build Setup script into dist/setup/setup==============================================="
+build_user=`whoami`
+echo "========Run DB Migrations on build db=========================================================="
+cabal build schemabrary
+distbuild_dir="dist/build"
+yes | databrary_datadir="." $distbuild_dir/schemabrary/schemabrary
 echo "========Determine version from git commit======================================================"
 echo "========Download lastest node dependencies====================================================="
-echo "========Run any DB Migrations=================================================================="
 echo "========Build into dist/build=================================================================="
-echo "========Set transcode scripts as executable===================================================="
 echo "========Add version suffix to executable name=================================================="
 cabal install
 echo "========Generate web assets===================================================================="
-build_user=`whoami`
 exe_dir="/home/$build_user/.cabal/bin"
 data_basedir="/home/$build_user/.cabal/share/x86_64-linux-ghc-7.10.3"
 data_outputdir="$data_basedir/databrary-1"
@@ -30,6 +31,7 @@ databrary_datadir="." $built_exe -w
 pushd web
 cp all.min.css all.min.css.gz all.min.js all.min.js.gz constants.json constants.json.gz $data_outputwebdir/
 popd
+echo "========Set transcode scripts as executable===================================================="
 cp transcode transctl.sh $data_outputdir
 chmod +x $data_outputdir/transcode $data_outputdir/transctl.sh
 echo "========The prefix of this version will provide you with the version built: `git describe`====="

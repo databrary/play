@@ -25,14 +25,18 @@ import System.FilePath ((<.>), (</>))
 import Databrary.Setup.Git
 import Databrary.Setup.Node
 
+{-
 run :: Verbosity -> PackageDescription -> LocalBuildInfo -> String -> [String] -> IO ()
 run verb desc lbi cmd args = do
   env <- getEnvironment
   cwd <- getCurrentDirectory
+  print ("running ", show $ buildDir lbi </> cmd </> cmd <.> exeExtension)
+  print ("with datadir ", show $ cwd </> dataDir desc)
   rawSystemExitWithEnv verb (buildDir lbi </> cmd </> cmd <.> exeExtension) args
     $ (pkgPathEnvVar desc "datadir", cwd </> dataDir desc)
     : (pkgPathEnvVar desc "sysconfdir", cwd)
     : env
+-}
 
 -- chmod +x on transctl.sh and transcode scripts
 {-
@@ -69,9 +73,11 @@ main = defaultMainWithHooks simpleUserHooks
     nodeModuleGenerate verb desc lbi
     let args = buildArgs flag
         build c = buildHook simpleUserHooks desc lbi hooks flag{ buildArgs = c }
+    {-
     when (null args) $ do
       build ["schemabrary"]
       run verb desc lbi "schemabrary" []
+    -}
     build args
     {- after build bundle all the web assets and js (that's the -w flag)
     -}
