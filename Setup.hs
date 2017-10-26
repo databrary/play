@@ -35,11 +35,13 @@ run verb desc lbi cmd args = do
     : env
 
 -- chmod +x on transctl.sh and transcode scripts
+{-
 fixPerms :: PackageDescription -> LocalBuildInfo -> CopyDest -> IO ()
 fixPerms desc lbi copy = do
   setFileExecutable (dir </> "transctl.sh")
   setFileExecutable (dir </> "transcode")
   where dir = datadir $ absoluteInstallDirs desc lbi copy
+-}
 
 main :: IO ()
 {- defaultMainWithHooks does the default build things but also
@@ -80,6 +82,7 @@ main = defaultMainWithHooks simpleUserHooks
     run verb desc lbi "databrary" ["-w"]
     postBuild simpleUserHooks args flag desc lbi
 -}
+{-
     -- do the chmod +x thing to transcode and transctl.sh
   , postCopy = \args flag desc lbi -> do
     fixPerms desc lbi (fromFlag $ copyDest flag)
@@ -87,4 +90,5 @@ main = defaultMainWithHooks simpleUserHooks
   , postInst = \args flag desc lbi -> do
     fixPerms desc lbi NoCopyDest
     postInst simpleUserHooks args flag desc lbi
+-}
   }
