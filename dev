@@ -11,15 +11,19 @@ echo "========Configuring build settings========================================
 echo "========Download lastest node dependencies====================================================="
 cabal configure --user
 
+build_user=`whoami`
 echo "========Build Setup script into dist/setup/setup==============================================="
 echo "========Determine version from git commit======================================================"
 echo "========Download lastest node dependencies====================================================="
-echo "========Run any DB Migrations=================================================================="
+echo "========Run DB Migrations on build db=========================================================="
+cabal build schemabrary
+distbuild_dir="dist/build"
+yes | databrary_datadir="." $distbuild_dir/schemabrary/schemabrary
+
 echo "========Build into dist/build=================================================================="
 echo "========Add version suffix to executable name=================================================="
 cabal install
 echo "========Generate web assets===================================================================="
-build_user=`whoami`
 exe_dir="/home/$build_user/.cabal/bin"
 data_basedir="/home/$build_user/.cabal/share/x86_64-linux-ghc-7.10.3"
 data_outputdir="$data_basedir/databrary-1"
