@@ -68,7 +68,7 @@
         <span ng-if="page.models.Login.isLoggedIn()">
           <a href="" ng-click="hoverToggle('notifications', $event)" tooltip="'Notifications'">
             <span class="toolbar-icon icon notification" ng-class="{new:page.models.Login.user.notifications}"></span>
-            <span class="hide-mobile"><span class="hide-tablet">My </span>Notifications</span>
+            <span class="hide-mobile hide-tablet">My Notifications</span>
           </a>
 
           <a href="" ng-class="::{'toolbar-superuser': page.models.Login.user.superuser !== undefined, on: !!page.models.Login.user.superuser}" ng-click="hoverToggle('user', $event)">
