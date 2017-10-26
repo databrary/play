@@ -28,7 +28,7 @@
           <a ng-if="volumeDesign.category[selected.id]" class="button mini small" ng-click="manage()" tooltip="'wizard.volume-edit-design.options-tooltip' | message">Define options</a>
         </div>
         <ul class="volume-design-fields flat" ng-class="{'disabled':!volumeDesign.category[selected.id]}">
-          <li ng-repeat="m in selected.metrics track by m.id" ng-if="::m.type!=='void'">
+          <li ng-repeat="m in selected.metrics track by m.id" ng-if="::m.type!=='void'" class="clickable">
             <input type="checkbox" ng-disabled="!volumeDesign.category[selected.id] || m.required" ng-model="volumeDesign.metric[m.id]" ng-change="change(selected.id, m.id)">
             <span class="icon release" ng-class="::page.constants.release[m.release]" tooltip="'release.'+page.constants.release[m.release]+'.metric' | message"></span>
             <span ng-bind="::m.name" class="b"></span>: 
