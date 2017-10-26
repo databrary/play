@@ -74,7 +74,6 @@
           <a href="" ng-class="::{'toolbar-superuser': page.models.Login.user.superuser !== undefined, on: !!page.models.Login.user.superuser}" ng-click="hoverToggle('user', $event)">
             <img ng-src="{{::page.models.Login.user.avatarRoute()}}" class="toolbar-avatar">
             <span class="username hide-mobile hide-tablet" ng-bind="::page.models.Login.user.name"></span>
-            <span class="show-tablet">Profile</span>
           </a>
         </span>
 
