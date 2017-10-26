@@ -12,14 +12,12 @@ echo "========Download lastest node dependencies================================
 cabal configure --user
 
 build_user=`whoami`
-echo "========Build Setup script into dist/setup/setup==============================================="
-echo "========Determine version from git commit======================================================"
-echo "========Download lastest node dependencies====================================================="
 echo "========Run DB Migrations on build db=========================================================="
 cabal build schemabrary
 distbuild_dir="dist/build"
 yes | databrary_datadir="." $distbuild_dir/schemabrary/schemabrary
-
+echo "========Determine version from git commit======================================================"
+echo "========Download lastest node dependencies====================================================="
 echo "========Build into dist/build=================================================================="
 echo "========Add version suffix to executable name=================================================="
 cabal install
