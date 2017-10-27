@@ -9,9 +9,9 @@ app.directive 'partyEditGrantForm', [
       form = $scope.partyEditGrantForm
       form.data = $scope.party.children.slice()
 
-     (($) ->
+      (($) ->
 
-       $.fn.goTo = (yoffset) ->
+        $.fn.goTo = (yoffset) ->
           if yoffset
             scrolloffset = yoffset
           else
@@ -19,7 +19,7 @@ app.directive 'partyEditGrantForm', [
           $('html, body').animate { scrollTop: $(this).offset().top + scrolloffset + 'px' }, 'fast'
           this
 
-       return
+        return
       ) jQuery
 
       authSearchSelectFn = (found, searchForm) ->
