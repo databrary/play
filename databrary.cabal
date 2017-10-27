@@ -65,17 +65,19 @@ test-suite unit-test
   main-is: UnitTest.hs
   other-modules:
            Data.RangeSet.ParseTest
+         , Databrary.EZID.ANVLTest
          , Databrary.OpsTest
          , Databrary.Model.TimeTest
          , Databrary.StringTest
 
          , Data.RangeSet.Parse
+         , Databrary.EZID.ANVL
          , Databrary.Model.Time
          , Databrary.Ops
          , Databrary.String
   build-depends: 
     base == 4.8.*,
-    -- bytestring >= 0.10,
+    bytestring >= 0.10,
     -- containers,
     -- array,
     transformers == 0.4.*,
@@ -94,12 +96,12 @@ test-suite unit-test
     -- directory,
     -- process,
     -- data-default-class,
-    -- text,
+    text,
     -- utf8-string,
     -- hashable >= 1.2.1,
     -- unordered-containers,
     -- parsec >= 3,
-    -- attoparsec,
+    attoparsec,
     -- network,
     -- network-uri,
     -- http-types,
