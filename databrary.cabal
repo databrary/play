@@ -65,9 +65,11 @@ test-suite unit-test
   main-is: UnitTest.hs
   other-modules:
            Data.RangeSet.ParseTest
+         , Databrary.OpsTest
          , Databrary.StringTest
 
          , Data.RangeSet.Parse
+         , Databrary.Ops
          , Databrary.String
   build-depends: base == 4.8.*
                , range-set-list
