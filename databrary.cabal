@@ -66,6 +66,7 @@ test-suite unit-test
   other-modules:
            Data.RangeSet.ParseTest
          , Databrary.EZID.ANVLTest
+         , Databrary.HTTP.RequestTest
          , Databrary.OpsTest
          , Databrary.Model.TimeTest
          , Databrary.StringTest
@@ -103,9 +104,9 @@ test-suite unit-test
     -- parsec >= 3,
     attoparsec,
     -- network,
-    -- network-uri,
-    -- http-types,
-    -- wai,
+    network-uri,
+    http-types,
+    wai,
     -- wai-extra,
     -- warp,
     -- warp-tls,

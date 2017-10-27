@@ -6,6 +6,7 @@ import qualified Databrary.EZID.ANVLTest
 import qualified Databrary.Model.TimeTest
 import qualified Databrary.StringTest
 import qualified Databrary.OpsTest
+import qualified Databrary.HTTP.RequestTest
 
 main :: IO ()
 main = defaultMain tests
@@ -17,5 +18,6 @@ tests = testGroup "Unit"
   , Databrary.Model.TimeTest.tests
   , Databrary.StringTest.tests
   , Databrary.OpsTest.tests
+  , Databrary.HTTP.RequestTest.tests
   ]
 
