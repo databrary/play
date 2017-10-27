@@ -64,10 +64,12 @@ test-suite unit-test
   hs-source-dirs: test/unit, .
   main-is: UnitTest.hs
   other-modules:
-           Data.RangeSet.ParseTest         
+           Data.RangeSet.ParseTest
+         , Databrary.StringTest
 
          , Data.RangeSet.Parse
-  build-depends: base
+         , Databrary.String
+  build-depends: base == 4.8.*
                , range-set-list
                , tasty  
                , tasty-hunit
