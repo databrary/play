@@ -13,6 +13,7 @@ cabal configure --user
 
 build_user=`whoami`
 echo "========Run DB Migrations on build db=========================================================="
+conf_exists=`ls databrary.conf`
 cabal build schemabrary
 distbuild_dir="dist/build"
 yes | databrary_datadir="." $distbuild_dir/schemabrary/schemabrary
