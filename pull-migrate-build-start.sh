@@ -30,8 +30,9 @@ echo "=== Run new db migrations on build db, build, install"
 ./dev
 built_exe=`ls -t $exe_dir/databrary-* | head -1` #extract exact version from git describe instead
 
-echo "=== Run new db migrations on live db, starting $built_exe"
+echo "=== Run new db migrations on live db"
 conf_exists=`ls databrary.conf`
 built_schemabrary=`ls -t $exe_dir/schemabrary-* | head -1`
-databrary_datadir="$data_basedir/databrary-1" $built_schemabrary
+yes | databrary_datadir="$data_basedir/databrary-1" $built_schemabrary
+echo "=== Starting $built_exe"
 databrary_datadir="$data_basedir/databrary-1" $built_exe
