@@ -26,10 +26,12 @@ echo "=== Stash, pull latest from $branch"
 git stash save # need in case there were manual, conflicting changes that would prevent pulling from succeeding
 git pull
 
-echo "=== Run new db migrations, build, install"
+echo "=== Run new db migrations on build db, build, install"
 ./dev
 built_exe=`ls -t $exe_dir/databrary-* | head -1` #extract exact version from git describe instead
 
-echo "=== Starting $built_exe"
+echo "=== Run new db migrations on live db, starting $built_exe"
 conf_exists=`ls databrary.conf`
-databrary_datadir="$data_basedir/databrary-1" `$built_exe`
+built_schemabrary=`ls -t $exe_dir/schemabrary-* | head -1'
+databrary_datadir="$data_basedir/databrary-1" $built_schemabrary
+databrary_datadir="$data_basedir/databrary-1" $built_exe
