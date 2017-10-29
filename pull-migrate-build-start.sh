@@ -32,6 +32,6 @@ built_exe=`ls -t $exe_dir/databrary-* | head -1` #extract exact version from git
 
 echo "=== Run new db migrations on live db, starting $built_exe"
 conf_exists=`ls databrary.conf`
-built_schemabrary=`ls -t $exe_dir/schemabrary-* | head -1'
+built_schemabrary=`ls -t $exe_dir/schemabrary-* | head -1`
 databrary_datadir="$data_basedir/databrary-1" $built_schemabrary
 databrary_datadir="$data_basedir/databrary-1" $built_exe
