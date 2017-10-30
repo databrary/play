@@ -61,7 +61,7 @@ lookupAssetSlot ai = do
 lookupOrigAssetSlot :: (MonadHasIdentity c m, MonadDB c m) => Id Asset -> m (Maybe AssetSlot)
 lookupOrigAssetSlot ai = do
   ident <- peek
-  dbQuery1 $(selectQuery (selectAssetSlot 'ident) "$left join asset_revision ar on ar.orig = asset.id WHERE ar.asset = ${ai}")
+  dbQuery1 $(selectQuery (selectAssetSlot 'ident) "$left join transcode tc on tc.orig = asset.id WHERE tc.asset = ${ai}")
 
 lookupAssetAssetSlot :: (MonadDB c m) => Asset -> m AssetSlot
 lookupAssetAssetSlot a = fromMaybe assetNoSlot

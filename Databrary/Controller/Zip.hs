@@ -66,8 +66,8 @@ assetZipEntry isOrig AssetSlot{ slotAsset = a@Asset{ assetRow = ar@AssetRow{ ass
   -- Just (t, s) <- fileInfo f
   return blankZipEntry
     { zipEntryName = case isOrig of
-       False -> makeFilename (assetDownloadName ar) `addFormatExtension` assetFormat ar
-       True -> last $ BSC.split '-' $ makeFilename (assetDownloadName ar) `addFormatExtension` assetFormat ar
+       False -> makeFilename (assetDownloadName True ar) `addFormatExtension` assetFormat ar
+       True -> makeFilename (assetDownloadName False ar) `addFormatExtension` assetFormat ar
     , zipEntryTime = Nothing
     , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewAsset (HTML, assetId ar) []
     , zipEntryContent = ZipEntryFile (fromIntegral $ fromJust $ assetSize ar) f
@@ -153,9 +153,13 @@ zipContainer isOrig =
                      False -> pathMaybe pathId </> pathSlotId </< "zip" </< "false"
   in action GET zipPath $ \(vi, ci) -> withAuth $ do
     c <- getContainer PermissionPUBLIC vi ci True
+    c'<- lookupContainerAssets c
     assetSlots <- case isOrig of 
-                       True -> lookupOrigContainerAssets c 
-                       False -> lookupContainerAssets c
+                       True -> do 
+                        origs <- lookupOrigContainerAssets c
+                        let pdfs = filterFormat c' formatNotAV
+                        return $ pdfs ++ origs
+                       False -> return c'
     z <- containerZipEntry isOrig c $ filter checkAsset assetSlots
     auditSlotDownload (not $ zipEmpty z) (containerSlot c)
     zipResponse ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) [z]
