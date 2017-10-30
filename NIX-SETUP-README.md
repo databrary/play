@@ -35,6 +35,9 @@ Note: provide datadir to workaround issue with auto-generated Paths_databrary mo
 ### STEP 3
 When cabal repl finishes loading, run
 ```bash
+#Bring Main module into scope
+> :m + Main
+
 # Generate frontend assets
 > :main -w
 
