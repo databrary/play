@@ -59,7 +59,303 @@ Flag sandbox
   default: False
   manual: True
 
-test-suite unit-test
+test-suite dbrary-env-unit-test
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test/unit, .
+  main-is: DbraryEnvUnitTest.hs
+  other-modules:
+      Databrary.Store.Config
+    , Databrary.Store.ConfigTest
+  build-depends: 
+    base == 4.8.*,
+    bytestring >= 0.10,
+    -- containers,
+    -- array,
+    -- transformers == 0.4.*,
+    -- transformers-base,
+    -- mtl >= 2.2.1,
+    -- monad-control >= 1,
+    -- lifted-base,
+    -- template-haskell,
+    -- th-lift,
+    -- th-lift-instances,
+    -- haskell-src-meta,
+    -- time,
+    -- unix,
+    -- filepath,
+    -- posix-paths,
+    -- directory,
+    -- process,
+    -- data-default-class,
+    text,
+    -- utf8-string,
+    -- hashable >= 1.2.1,
+    unordered-containers,
+    parsec >= 3,
+    -- attoparsec,
+    -- network,
+    -- network-uri,
+    -- http-types,
+    -- wai,
+    -- wai-extra,
+    -- warp,
+    -- warp-tls,
+    -- case-insensitive,
+    aeson,
+    vector,
+    -- cookie,
+    -- resource-pool,
+    -- scientific,
+    -- postgresql-typed == 0.4.5,
+    -- memory >= 0.8,
+    -- cryptonite,
+    -- resourcet,
+    -- streaming-commons,
+    -- blaze-builder >= 0.4,
+    -- blaze-markup,
+    -- blaze-html,
+    -- regex-posix,
+    -- bcrypt,
+    -- http-client,
+    -- http-client-tls,
+    -- mime-mail,
+    -- fast-logger,
+    -- digest,
+    -- hjsonschema == 0.9.*,
+    -- file-embed == 0.0.9.1,
+    -- aeson-better-errors > 0.9.0,
+    -- xml,
+    -- zlib,
+    -- range-set-list,
+    -- invertible,
+    -- web-inv-route,
+    tasty,
+    tasty-hunit
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  default-language: Haskell2010
+  default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
+
+test-suite dbrary-mail-unit-test
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test/unit, .
+  main-is: DbraryMailUnitTest.hs
+  other-modules:
+      Databrary.Service.Mail
+    -- mail brings in many modules, not listed below
+    , Databrary.Service.MailTest
+  build-depends: 
+    base == 4.8.*,
+    bytestring >= 0.10,
+    containers,
+    transformers == 0.4.*,
+    transformers-base,
+    mtl >= 2.2.1,
+    monad-control >= 1,
+    lifted-base,
+    template-haskell,
+    th-lift,
+    th-lift-instances,
+    time,
+    posix-paths,
+    data-default-class,
+    text,
+    utf8-string,
+    hashable >= 1.2.1,
+    unordered-containers,
+    parsec >= 3,
+    network,
+    network-uri,
+    http-types,
+    wai,
+    wai-extra,
+    case-insensitive,
+    aeson,
+    vector,
+    resource-pool,
+    scientific,
+    postgresql-typed == 0.4.5,
+    blaze-markup,
+    blaze-html,
+    mime-mail,
+    fast-logger,
+    web-inv-route,
+    tasty,
+    tasty-hunit
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  default-language: Haskell2010
+  default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
+
+test-suite dbrary-authent-unit-test
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test/unit, .
+  main-is: DbraryAuthentUnitTest.hs
+  other-modules:
+      Databrary.Service.Passwd
+    , Databrary.Service.PasswdTest
+  build-depends: 
+    base == 4.8.*,
+    bytestring >= 0.10,
+    bcrypt,
+    tasty,
+    tasty-hunit
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  default-language: Haskell2010
+  default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
+  extra-libraries: crack
+
+test-suite dbrary-solr-unit-test
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test/unit, .
+  main-is: DbrarySolrUnitTest.hs
+  other-modules:
+              Databrary.Solr.Service
+            , Databrary.Solr.ServiceTest
+  build-depends: 
+    base == 4.8.*,
+    bytestring >= 0.10,
+    containers,
+    -- array,
+    transformers == 0.4.*,
+    transformers-base,
+    mtl >= 2.2.1,
+    monad-control >= 1,
+    lifted-base,
+    template-haskell,
+    th-lift,
+    -- th-lift-instances,
+    -- haskell-src-meta,
+    time,
+    -- unix,
+    filepath,
+    -- posix-paths,
+    directory,
+    process,
+    -- data-default-class,
+    text,
+    utf8-string,
+    -- hashable >= 1.2.1,
+    unordered-containers,
+    parsec >= 3,
+    attoparsec,
+    network,
+    network-uri,
+    http-types,
+    wai,
+    wai-extra,
+    -- warp,
+    -- warp-tls,
+    case-insensitive,
+    aeson,
+    vector,
+    -- cookie,
+    resource-pool,
+    scientific,
+    postgresql-typed == 0.4.5,
+    -- memory >= 0.8,
+    -- cryptonite,
+    -- resourcet,
+    -- streaming-commons,
+    -- blaze-builder >= 0.4,
+    blaze-markup,
+    blaze-html,
+    -- regex-posix,
+    -- bcrypt,
+    http-client,
+    http-client-tls,
+    -- mime-mail,
+    -- fast-logger,
+    -- digest,
+    -- hjsonschema == 0.9.*,
+    -- file-embed == 0.0.9.1,
+    -- aeson-better-errors > 0.9.0,
+    -- xml,
+    -- zlib,
+    range-set-list,
+    -- invertible,
+    web-inv-route,
+    tasty,
+    tasty-hunit
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  default-language: Haskell2010
+  default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
+
+test-suite dbrary-store-unit-test
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test/unit, .
+  main-is: DbraryStoreUnitTest.hs
+  other-modules:
+      Databrary.Files
+    , Databrary.Store.Filename
+    , Databrary.Store.Asset
+    , Databrary.Store.Types
+    , Databrary.Store.Stage
+    , Databrary.Store.Temp
+    , Databrary.Store.Upload
+    , Databrary.Store.Zip
+    -- AV is only here to enable building
+    , Databrary.Store.AV
+    , Databrary.FilesTest
+  c-sources: Databrary/Store/avFrame.c
+  build-depends: 
+    base == 4.8.*,
+    bytestring >= 0.10,
+    containers,
+    array,
+    transformers == 0.4.*,
+    transformers-base,
+    mtl >= 2.2.1,
+    monad-control >= 1,
+    lifted-base,
+    template-haskell,
+    th-lift,
+    th-lift-instances,
+    time,
+    unix,
+    filepath,
+    posix-paths,
+    directory,
+    process,
+    data-default-class,
+    text,
+    utf8-string,
+    hashable >= 1.2.1,
+    unordered-containers,
+    parsec >= 3,
+    attoparsec,
+    network,
+    network-uri,
+    http-types,
+    wai,
+    wai-extra,
+    case-insensitive,
+    aeson,
+    vector,
+    cookie,
+    resource-pool,
+    scientific,
+    postgresql-typed == 0.4.5,
+    memory >= 0.8,
+    cryptonite,
+    resourcet,
+    blaze-markup,
+    blaze-html,
+    regex-posix,
+    bcrypt,
+    http-client,
+    http-client-tls,
+    fast-logger,
+    digest,
+    invertible,
+    web-inv-route,
+    tasty,
+    tasty-hunit
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  default-language: Haskell2010
+  default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
+  pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
+  extra-libraries: crack
+
+test-suite dbrary-unit-test
   type: exitcode-stdio-1.0
   hs-source-dirs: test/unit, .
   main-is: UnitTest.hs
@@ -70,7 +366,6 @@ test-suite unit-test
          , Databrary.OpsTest
          , Databrary.Model.TimeTest
          , Databrary.StringTest
-
          , Data.RangeSet.Parse
          , Databrary.EZID.ANVL
          , Databrary.Model.Time
@@ -139,7 +434,6 @@ test-suite unit-test
     range-set-list,
     -- invertible,
     -- web-inv-route,
-
     tasty,
     tasty-hunit
   ghc-options: -threaded -rtsopts -with-rtsopts=-N

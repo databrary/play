@@ -2,6 +2,8 @@
 module Databrary.Service.Mail
   ( MonadMail
   , sendMail
+  -- below for testing
+  , wrapText
   ) where
 
 import Control.Monad.IO.Class (liftIO)
