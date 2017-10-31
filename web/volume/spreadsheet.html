@@ -1,5 +1,5 @@
-<div class="div-grey">Changes are saved automatically</div>
-<p class="volume-hide">See our <a href="/asset/formats">list of accepted file types</a>.</p>
+<div ng-if="::editing" class="div-grey">Changes are saved automatically</div>
+<p ng-if="::editing">See our <a href="/asset/formats">list of accepted file types</a>.</p>
 <ng-form name="form">
 <div class="spreadsheet-dynamic-info" ng-if="::editing">
   <a href="" ng-click="showConsents=false" ng-show="showConsents">
