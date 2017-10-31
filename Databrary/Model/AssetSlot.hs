@@ -60,8 +60,13 @@ lookupAssetSlot ai = do
 
 lookupOrigAssetSlot :: (MonadHasIdentity c m, MonadDB c m) => Id Asset -> m (Maybe AssetSlot)
 lookupOrigAssetSlot ai = do
-  ident <- peek
-  dbQuery1 $(selectQuery (selectAssetSlot 'ident) "$left join transcode tc on tc.orig = asset.id WHERE tc.asset = ${ai}")
+  initAsset <- lookupAssetSlot ai
+  let format = formatName . assetFormat . assetRow . slotAsset $ fromJust initAsset
+  case format of 
+    ".pdf" -> lookupAssetSlot ai --TODO format name should support all doc types
+    _ -> do 
+      ident <- peek
+      dbQuery1 $(selectQuery (selectAssetSlot 'ident) "$left join transcode tc on tc.orig = asset.id WHERE tc.asset = ${ai}")
 
 lookupAssetAssetSlot :: (MonadDB c m) => Asset -> m AssetSlot
 lookupAssetAssetSlot a = fromMaybe assetNoSlot
