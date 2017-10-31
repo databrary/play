@@ -9,6 +9,7 @@ import qualified Databrary.OpsTest
 import qualified Databrary.HTTP.RequestTest
 import qualified Databrary.Action.RequestTest
 import qualified Databrary.JSONTest
+import qualified Databrary.Model.EnumTest
 
 main :: IO ()
 main = defaultMain tests
@@ -23,5 +24,6 @@ tests = testGroup "Unit"
   , Databrary.HTTP.RequestTest.tests
   , Databrary.Action.RequestTest.tests
   , Databrary.JSONTest.tests
+  , Databrary.Model.EnumTest.tests
   ]
 

@@ -366,6 +366,7 @@ test-suite dbrary-unit-test
          , Databrary.HTTP.RequestTest
          , Databrary.OpsTest
          , Databrary.Model.TimeTest
+         , Databrary.Model.EnumTest
          , Databrary.StringTest
          , Databrary.Action.RequestTest
          , Data.RangeSet.Parse
@@ -378,18 +379,19 @@ test-suite dbrary-unit-test
          -- , Databrary.Action.Types
          , Databrary.JSON
          , Databrary.EZID.ANVL
+         , Databrary.Model.Enum
          , Databrary.Model.Time
          , Databrary.Ops
          , Databrary.String
   build-depends: 
     base == 4.8.*,
     bytestring >= 0.10,
-    -- containers,
+    containers,
     -- array,
     transformers == 0.4.*,
     transformers-base,
     mtl >= 2.2.1,
-    -- monad-control >= 1,
+    monad-control >= 1,
     -- lifted-base,
     template-haskell,
     th-lift,
@@ -403,31 +405,31 @@ test-suite dbrary-unit-test
     -- process,
     -- data-default-class,
     text,
-    -- utf8-string,
+    utf8-string,
     -- hashable >= 1.2.1,
     unordered-containers,
-    -- parsec >= 3,
+    parsec >= 3,
     attoparsec,
-    -- network,
+    network,
     network-uri,
     http-types,
     wai,
-    -- wai-extra,
+    wai-extra,
     -- warp,
     -- warp-tls,
-    -- case-insensitive,
+    case-insensitive,
     aeson,
     vector,
     -- cookie,
-    -- resource-pool,
-    -- scientific,
-    -- postgresql-typed == 0.4.5,
+    resource-pool,
+    scientific,
+    postgresql-typed == 0.4.5,
     -- memory >= 0.8,
     -- cryptonite,
     -- resourcet,
     -- streaming-commons,
     -- blaze-builder >= 0.4,
-    -- blaze-markup,
+    blaze-markup,
     blaze-html,
     -- regex-posix,
     -- bcrypt,
@@ -443,7 +445,7 @@ test-suite dbrary-unit-test
     -- zlib,
     range-set-list,
     -- invertible,
-    -- web-inv-route,
+    web-inv-route,
     tasty,
     tasty-hunit
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
