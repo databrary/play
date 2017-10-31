@@ -108,11 +108,9 @@
                 </div>
               </div>
             </li>
-            <li ng-if="hasExpired(cl)" >
-              <div class="small" style="margin: 10px 0;">You have expired affiliates.
-              </div>
-            </li>
           </ul>
+        </div>
+        <div ng-if="hasExpired(parties.children)" class="small" style="margin: 10px 0;">You have expired affiliates.
         </div>
       </div>
       <div class="profile-section foot-2 hide-mobile" ng-if="::parties.collaborators.length">
