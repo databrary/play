@@ -1,12 +1,12 @@
 <div class="div-grey">Changes are saved automatically</div>
 <p class="volume-hide">See our <a href="/asset/formats">list of accepted file types</a>.</p>
 <ng-form name="form">
-<div class="spreadsheet-dynamic-info" ng-if="::editing" ng-show="key.id === 'slot'">
+<div class="spreadsheet-dynamic-info" ng-if="::editing">
   <a href="" ng-click="showConsents=false" ng-show="showConsents">
-    Hide legend of session release levels
+    Hide Databrary release levels
   </a>
   <a href="" ng-click="showConsents=true" ng-hide="showConsents">
-    Show legend of session release levels
+    Show Databrary release levels
   </a>
   <ul class="release-legend flat" ng-show="showConsents">
     <li ng-repeat="c in ::page.constants.releases">
@@ -37,28 +37,21 @@
   <slot-filter></slot-filter>
 </div>
 
-<div class="spreadsheet-dynamic-section" ng-if="::editing">
-  <div>
-    <span class="b"> You are in the <span ng-bind="key.name" class="spreadsheet-header-style"></span> view. </span>
-    <div ng-if="views.length > 1" class="inline-block spreadsheet-switch-view">
-      <button class="icon-text mini" ng-click="tabOptionsToggle($event)" tooltip="'spreadsheet.switchview' | message">
-        <span class="icon list"></span>
-        <span>Switch</span>
-      </button>
-      <ul class="flat spreadsheet-tab-options" click-elsewhere="tabOptionsToggle($event)" ng-if="tabOptionsClick">
-        <li ng-repeat="c in views track by c.id" class="spreadsheet-tab-option clickable" ng-click="setKey(c.id)" ng-if="key !== c">
-          <span ng-if="::key.id !== 'slot' && c.id === 'slot'" ng-bind="::'back to '+c.name+' view'" class="default"></span>
-          <span ng-if="::key.id !== c.id && c.id !== 'slot'" ng-bind="::c.name+' view'"></span>
-        </li>
-      </ul>
-    </div>
+<div class="spreadsheet-dynamic-section" ng-if="::editing && views.length > 1">
+  <div class="inline-block spreadsheet-switch-view">
+    Summarize by: &nbsp;
+    <ul class="flat spreadsheet-tab-options">
+      <li ng-repeat="c in views track by c.id" ng-click="setKey(c.id)" ng-class="c.name == key.name ? 'spreadsheet-tab-option clickable selected': 'spreadsheet-tab-option clickable'">
+        <span ng-bind="::c.name"></span>
+      </li>
+    </ul>
   </div>
-  <div class="small reminder top-2" ng-if="key.id != 'slot' || anyGlobal">
-    <span ng-show="key.id !== 'slot'">Here you can manage the list of options in this category.</span>
-    <span ng-show="anyGlobal">Some categories are {{showGlobal ? 'shown': 'hidden'}}. <button class="link" ng-click="showHideGlobal()">Click to {{showGlobal ? 'hide all' : 'show all'}}.</button> </span><br>
-    <span ng-show="key.id == 'slot'">Switch to list data, define options, and set whole-volume description by other categories.</span>
+  <div class="small reminder top-2">
+    <span ng-if="!anyGlobal">Here you can manage the list of options in this category.</span>
+    <span ng-if="anyGlobal">Some categories are {{showGlobal ? 'shown': 'hidden'}}. <button class="link" ng-click="showHideGlobal()">Click to {{showGlobal ? 'hide all' : 'show all'}}.</button> </span><br>
   </div>
 </div>
+
 
 <div class="spreadsheet" ng-class="::{'edit': editing, 'view': !editing}">
   <table class="spreadsheet-table" ng-click="click($event)">
