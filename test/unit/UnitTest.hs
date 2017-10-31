@@ -7,6 +7,7 @@ import qualified Databrary.Model.TimeTest
 import qualified Databrary.StringTest
 import qualified Databrary.OpsTest
 import qualified Databrary.HTTP.RequestTest
+import qualified Databrary.Action.RequestTest
 
 main :: IO ()
 main = defaultMain tests
@@ -19,5 +20,6 @@ tests = testGroup "Unit"
   , Databrary.StringTest.tests
   , Databrary.OpsTest.tests
   , Databrary.HTTP.RequestTest.tests
+  , Databrary.Action.RequestTest.tests
   ]
 
