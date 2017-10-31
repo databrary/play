@@ -81,9 +81,6 @@
               Click here to add an affiliate.</a>
           </div>
         </div>
-        <div>
-          <pre>{{parties.children | json:4}}</pre>
-        </div>
         <div ng-repeat="(member, cl) in ::parties.children track by member" ng-if="::cl.length" ng-class="{'profile-affiliate-highlight': member && selected.self.children}">
           <ul>
             <li ng-repeat="p in cl" ng-class="{'profile-highlight': !!p.selected}" ng-if="!isExpired(p.child)">
