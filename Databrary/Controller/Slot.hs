@@ -44,7 +44,6 @@ getSlot :: Permission -> Maybe (Id Volume) -> Id Slot -> ActionM Slot
 getSlot p mv i =
   checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupSlot i
 
---SOW2 allow getOrig flag to JSON query original asset
 slotJSONField :: Bool -> Slot -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
 slotJSONField getOrig o "assets" _ =
   case getOrig of 
@@ -64,14 +63,12 @@ slotJSONField getOrig o "filename" _ =
   return $ Just $ JSON.toEncoding $ makeFilename $ slotDownloadName o
 slotJSONField _ _ _ _ = return Nothing
 
---SOW2 allow origQ flag to JSON query original asset
 slotJSONQuery :: Bool -> Slot -> JSON.Query -> ActionM (JSON.Record (Id Container) JSON.Series)
 slotJSONQuery origQ o q = (slotJSON o JSON..<>) <$> JSON.jsonQuery (slotJSONField origQ o) q
 
 slotDownloadName :: Slot -> [T.Text]
 slotDownloadName s = containerDownloadName (slotContainer s)
 
---SOW2 allow viewOrig flag to JSON query original asset
 viewSlot :: Bool -> ActionRoute (API, (Maybe (Id Volume), Id Slot))
 viewSlot viewOrig = action GET (pathAPI </> pathMaybe pathId </> pathSlotId) $ \(api, (vi, i)) -> withAuth $ do
   when (api == HTML && isJust vi) angular
@@ -79,7 +76,7 @@ viewSlot viewOrig = action GET (pathAPI </> pathMaybe pathId </> pathSlotId) $ \
   case api of
     JSON -> okResponse [] <$> (slotJSONQuery viewOrig c =<< peeks Wai.queryString)
     HTML
-      | isJust vi -> return $ okResponse [] $ BSC.pack $ show $ containerId $ containerRow $ slotContainer c -- TODO
+      | isJust vi -> return $ okResponse [] $ BSC.pack $ show $ containerId $ containerRow $ slotContainer c
       | otherwise -> peeks $ redirectRouteResponse movedPermanently301 [] (viewSlot viewOrig) (api, (Just (view c), slotId c))
 
 thumbSlot :: ActionRoute (Maybe (Id Volume), Id Slot)

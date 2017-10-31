@@ -48,7 +48,6 @@ import Databrary.Controller.Slot
 import Databrary.Controller.Asset
 import Databrary.Controller.Format
 
--- SOW2: Add Boolean flag to toggle the choice of downloading the original asset file. 
 getAssetSegment :: Bool -> Permission -> Maybe (Id Volume) -> Id Slot -> Id Asset -> ActionM AssetSegment
 getAssetSegment getOrig p mv s a =
   case getOrig of 
@@ -81,7 +80,7 @@ viewAssetSegment getOrig = action GET (pathAPI </>>> pathMaybe pathId </>> pathS
   case api of
     JSON -> okResponse [] <$> (assetSegmentJSONQuery as =<< peeks Wai.queryString)
     HTML
-      | isJust vi -> return $ okResponse [] $ T.pack $ show $ assetId $ assetRow $ slotAsset $ segmentAsset as -- TODO
+      | isJust vi -> return $ okResponse [] $ T.pack $ show $ assetId $ assetRow $ slotAsset $ segmentAsset as 
       | otherwise -> peeks $ redirectRouteResponse movedPermanently301 [] (viewAssetSegment getOrig) (api, Just (view as), slotId $ view as, view as)
 
 serveAssetSegment :: Bool -> AssetSegment -> ActionM Response
@@ -101,14 +100,12 @@ serveAssetSegment dl as = do
   where
   a = slotAsset $ segmentAsset as
 
--- SOW2: add getAssetSegement with Bool flag set to False to obtain transcoded asset file
 downloadAssetSegment :: ActionRoute (Id Slot, Id Asset)
 downloadAssetSegment = action GET (pathSlotId </> pathId </< "download") $ \(si, ai) -> withAuth $ do
   as <- getAssetSegment False PermissionPUBLIC Nothing si ai
   inline <- peeks $ boolQueryParameter "inline"
   serveAssetSegment (not inline) as
 
--- SOW2: add getAssetSegement with Bool flag set to True to obtain original asset file
 downloadOrigAssetSegment :: ActionRoute (Id Slot, Id Asset)
 downloadOrigAssetSegment = action GET (pathSlotId </> pathId </< "downloadOrig") $ \(si, ai) -> withAuth $ do
   as <- getAssetSegment True PermissionPUBLIC Nothing si ai

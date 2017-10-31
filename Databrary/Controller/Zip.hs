@@ -54,7 +54,7 @@ import Databrary.Controller.Angular
 import Databrary.Controller.IdSet
 import Databrary.View.Zip
 
--- SOW2 Boolean flag added to toggle original or databrary-prepended filename upon download 
+-- isOrig flags have been added to toggle the ability to access the pre-transcoded asset
 assetZipEntry :: Bool -> AssetSlot -> ActionM ZipEntry
 assetZipEntry isOrig AssetSlot{ slotAsset = a@Asset{ assetRow = ar@AssetRow{ assetId = aid}}} = do
   origAsset <- lookupOrigAsset aid   
@@ -73,7 +73,6 @@ assetZipEntry isOrig AssetSlot{ slotAsset = a@Asset{ assetRow = ar@AssetRow{ ass
     , zipEntryContent = ZipEntryFile (fromIntegral $ fromJust $ assetSize ar) f
     }
 
--- SOW2 original zip container toggle added
 containerZipEntry :: Bool -> Container -> [AssetSlot] -> ActionM ZipEntry
 containerZipEntry isOrig c l = do
   req <- peek
@@ -96,7 +95,6 @@ volumeDescription inzip v (_, glob) cs al = do
   me (Just x) (Just y) = x == y
   me _ _ = False
 
--- SOW2 original zip container toggle added
 volumeZipEntry :: Bool -> Volume -> (Container, [RecordSlot]) -> IdSet Container -> Maybe BSB.Builder -> [AssetSlot] -> ActionM ZipEntry
 volumeZipEntry isOrig v top cs csv al = do
   req <- peek
@@ -145,7 +143,6 @@ zipEmpty _ = False
 checkAsset :: AssetSlot -> Bool
 checkAsset a = dataPermission a > PermissionNONE && assetBacked (view a)
 
--- SOW2 original zip container toggle added
 zipContainer :: Bool -> ActionRoute (Maybe (Id Volume), Id Slot)
 zipContainer isOrig = 
   let zipPath = case isOrig of 

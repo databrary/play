@@ -74,20 +74,20 @@ jsRoutes =
   , jsRoute "viewFormats" viewFormats ()
   , jsRoute "viewAssetSegment" (viewAssetSegment False) (HTML, Just volume, slot, asset)
   , jsRoute "viewOrigAssetSegment" (viewAssetSegment True) (HTML, Just volume, slot, asset)
-  , jsRoute "downloadAssetSegment" downloadAssetSegment (slot, asset) --SOW2 download transcoded asset segment
-  , jsRoute "downloadOrigAssetSegment" downloadOrigAssetSegment (slot, asset) --SOW2 download original asset segment 
+  , jsRoute "downloadAssetSegment" downloadAssetSegment (slot, asset) --download transcoded asset segment
+  , jsRoute "downloadOrigAssetSegment" downloadOrigAssetSegment (slot, asset) --download original asset segment 
   , jsRoute "thumbAssetSegment" (thumbAssetSegment False) (slot, asset) 
   , jsRoute "thumbOrigAssetSegment" (thumbAssetSegment True) (slot, asset)
   , jsRoute "downloadAsset" downloadAsset (asset, fullSegment)
-  , jsRoute "downloadOrigAsset" downloadOrigAsset (asset, fullSegment) --SOW2 download original asset
+  , jsRoute "downloadOrigAsset" downloadOrigAsset (asset, fullSegment) --download original asset
   , jsRoute "thumbAsset" thumbAsset (asset, fullSegment)
 
   , jsRoute "viewSearch" postSearch (HTML)
 
-  , jsRoute "zipSlot" (zipContainer False) (Just volume, container) --SOW2 zip transcoded slot
-  , jsRoute "zipOrigSlot" (zipContainer True) (Just volume, container) --SOW2 zip orignal slot
-  , jsRoute "zipVolume" (zipVolume False) (volume) -- SOW2 zip volume full of transcoded assets
-  , jsRoute "zipOrigVolume" (zipVolume True) (volume) -- SOW2 zip volume full of original assets
+  , jsRoute "zipSlot" (zipContainer False) (Just volume, container) --zip transcoded slot
+  , jsRoute "zipOrigSlot" (zipContainer True) (Just volume, container) --zip orignal slot
+  , jsRoute "zipVolume" (zipVolume False) (volume) -- zip volume full of transcoded assets
+  , jsRoute "zipOrigVolume" (zipVolume True) (volume) -- zip volume full of original assets
   , jsRoute "viewVolumeDescription" viewVolumeDescription (volume)
 
   , jsRoute "get" viewRoot (JSON)
@@ -148,7 +148,7 @@ jsRoutes =
   , jsRoute "deleteVolumeState" deleteVolumeState (volume, "")
 
   , jsRoute "getAsset" viewAsset (JSON, asset)
-  , jsRoute "getAssetSegment" (viewAssetSegment False) (JSON, Just volume, slot, asset) -- SOW2
+  , jsRoute "getAssetSegment" (viewAssetSegment False) (JSON, Just volume, slot, asset)
   , jsRoute "postAsset" postAsset (JSON, asset)
   , jsRoute "createAsset" createAsset (JSON, volume)
   , jsRoute "deleteAsset" deleteAsset (JSON, asset)

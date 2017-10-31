@@ -48,7 +48,6 @@ selectContainerSlotAsset = selectJoin 'makeContainerSlotAsset
   , joinOn "slot_asset.asset = asset.id" selectAssetRow -- XXX volumes match?
   ]
 
--- SOW2 join asset_revision for original file identity. 
 selectOrigContainerSlotAsset :: Selector -- ^ @'Container' -> 'AssetSlot'@
 selectOrigContainerSlotAsset = selectJoin 'makeContainerSlotAsset
   [ slotAssetRow
