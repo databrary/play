@@ -25,7 +25,7 @@ app.directive 'partyEditGrantForm', [
       authSearchSelectFn = (found, searchForm) ->
         messages.clear(searchForm) if searchForm
         exp = new Date()
-        exp.setFullYear(exp.getFullYear()+2)
+        exp.setFullYear(exp.getFullYear()+1)
         form.data.push
           new: true
           party: found

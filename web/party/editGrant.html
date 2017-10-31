@@ -1,13 +1,3 @@
-<style>
- .clearfix:after {
-    content: "";
-    display: table;
-    clear: both;
-}
-article {
-  margin-bottom: 40px !important;
-}
-</style>
 <ng-form name="partyEditGrantForm">
   <scroll-float>
     <fieldset class="clean">
@@ -19,8 +9,8 @@ article {
     </fieldset>
   </scroll-float>
   <fieldset ng-show="partyEditGrantForm.data.length > 0" style="border:none;">
-    <div class="affiliatediv" style="border-top: 1px solid #ccc;position: relative;height: 60px;">
-      <legend message="auth.grant.legend" style="position: absolute;margin-top: -14px;background-color: #fff;"></legend>
+    <div class="affiliatediv">
+      <legend message="auth.grant.legend"></legend>
     </div>
     <article ng-repeat="auth in partyEditGrantForm.data track by auth.party.id" id="auth-{{::auth.party.id}}" ng-if="getClass(auth.expires)" class="permission-auth cf peg anchor clearfix">
       <div class="col">
@@ -44,8 +34,8 @@ article {
         </div>
       </div>
     </article>
-    <div id="expiredaff" class="affiliatediv" style="border-top: 1px solid #ccc;position: relative;height: 60px;">
-      <legend message="auth.grant.expired.legend" style="position: absolute;margin-top: -14px;background-color: #fff;"></legend>
+    <div id="expiredaff" class="affiliatediv">
+      <legend message="auth.grant.expired.legend"></legend>
     </div>
     <article ng-repeat="auth in partyEditGrantForm.data track by auth.party.id" id="auth-{{::auth.party.id}}" ng-if="!getClass(auth.expires)" class="permission-auth cf peg anchor clearfix">
       <div class="col">
