@@ -83,13 +83,13 @@
         </div>
         <div ng-repeat="(member, cl) in ::parties.children track by member" ng-if="::cl.length" ng-class="{'profile-affiliate-highlight': member && selected.self.children}">
           <ul>
-            <li ng-repeat="p in cl" ng-class="{'profile-highlight': !!p.selected}">
-              <div class="profile-subsection-header small" ng-if="!isExpired(p.child)">
+            <li ng-repeat="p in cl" ng-class="{'profile-highlight': !!p.selected}" ng-if="!isExpired(p.child)">
+              <div class="profile-subsection-header small">
                 <span ng-if="member" class="icon network"></span> 
                 <strong ng-bind="::'auth.member.'+page.constants.permission[member]+'.title' | message"></strong>: 
                 <span ng-bind="::'auth.member.'+page.constants.permission[member]+'.description' | possessive:party"></span> 
               </div>
-              <div ng-if="!isExpired(p.child)">
+              <div>
                 <div class="profile-left-icons clickable hide-mobile">
                   <span ng-click="p.select()" class="icon" ng-class="p.class()" tooltip="'Click to highlight ' + ('profile.parties.selected' | message:'this individual')"></span>
                 </div>
@@ -104,7 +104,9 @@
                   <a href="" ng-click="p.edit('grant')" ng-class="!p.selected && selected && selected.constructor !== p.constructor ? 'profile-hover-link-show add' : 'edit'" class="icon button mini profile-hover-link"></a>
                 </div>
               </div>
-              <div ng-if="isExpired(p.child)" class="small" style="margin: 10px 0;">You have expired affiliates.
+            </li>
+            <li ng-if="hasExpired(cl)" >
+              <div class="small" style="margin: 10px 0;">You have expired affiliates.
               </div>
             </li>
           </ul>
