@@ -32,7 +32,7 @@
     td.add:hover
       background-color green52
       color white
-    .input-completer-choices
+    .input-completer-choices li
       background-color rgba(255,255,255,0.85)
     td.prompt
       text-align initial
@@ -256,6 +256,17 @@
 
 .spreadsheet-tab-options
   left 0
+
+.spreadsheet-dynamic-section .spreadsheet-tab-options
+  display inline-block
+  margin-bottom 0
+  position relative
+  overflow-y initial
+  box-shadow none
+  border none
+  border-radius 0
+  -webkit-border-radius 0
+
 .spreadsheet-tab-option
   text-align left
   text-transform none
@@ -264,8 +275,19 @@
   .default
     color green
     font-weight bold
-.spreadsheet-tab-option:hover
+.spreadsheet-tab-option:hover, .spreadsheet-tab-option.selected
   background-color yellow51
+
+.spreadsheet-dynamic-section .spreadsheet-tab-option
+  border 1px solid gray
+  border-top-right-radius 15px
+  border-top-left-radius 15px
+  display inline-block
+
+.spreadsheet-dynamic-section .spreadsheet-tab-option:hover, .spreadsheet-dynamic-section .spreadsheet-tab-option.selected
+  padding-top 10px
+  -webkit-transition padding-top .15s linear
+  transition padding-top .15s linear
 
 .spreadsheet-report-manage
   padding-width 2.5%
@@ -295,10 +317,15 @@ select.spreadsheet-pivot-part
   border-radius b4
   border 1px solid neutral53
 
+.spreadsheet-dynamic-section .small.reminder.top-2
+  margin-top 63px
+
 .spreadsheet-switch-view
   position relative
   ul
     width max-content
+.spreadsheet-dynamic-section .spreadsheet-switch-view
+  position absolute
 
 .spreadsheet-header-style
   border-top-left-radius b3
