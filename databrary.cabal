@@ -361,6 +361,7 @@ test-suite dbrary-unit-test
   main-is: UnitTest.hs
   other-modules:
            Data.RangeSet.ParseTest
+         , Databrary.JSONTest
          , Databrary.EZID.ANVLTest
          , Databrary.HTTP.RequestTest
          , Databrary.OpsTest
@@ -375,6 +376,7 @@ test-suite dbrary-unit-test
          --, Databrary.Action.Route
          --, Databrary.Action.Run
          -- , Databrary.Action.Types
+         , Databrary.JSON
          , Databrary.EZID.ANVL
          , Databrary.Model.Time
          , Databrary.Ops
@@ -403,7 +405,7 @@ test-suite dbrary-unit-test
     text,
     -- utf8-string,
     -- hashable >= 1.2.1,
-    -- unordered-containers,
+    unordered-containers,
     -- parsec >= 3,
     attoparsec,
     -- network,
@@ -415,7 +417,7 @@ test-suite dbrary-unit-test
     -- warp-tls,
     -- case-insensitive,
     aeson,
-    -- vector,
+    vector,
     -- cookie,
     -- resource-pool,
     -- scientific,
@@ -426,7 +428,7 @@ test-suite dbrary-unit-test
     -- streaming-commons,
     -- blaze-builder >= 0.4,
     -- blaze-markup,
-    -- blaze-html,
+    blaze-html,
     -- regex-posix,
     -- bcrypt,
     -- http-client,
