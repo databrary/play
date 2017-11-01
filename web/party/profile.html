@@ -87,7 +87,7 @@
             <strong ng-bind="::'auth.member.'+page.constants.permission[member]+'.title' | message"></strong>:
             <span ng-bind="::'auth.member.'+page.constants.permission[member]+'.description' | possessive:party"></span>
           </div>
-          <ul>
+          <ul ng-if="memberhasCurrent(cl)">
             <li ng-repeat="p in cl" ng-class="{'profile-highlight': !!p.selected}" ng-if="!isExpired(p.child)">
               <div class="profile-left-icons clickable hide-mobile">
                 <span ng-click="p.select()" class="icon" ng-class="p.class()" tooltip="'Click to highlight ' + ('profile.parties.selected' | message:'this individual')"></span>
