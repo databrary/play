@@ -16,7 +16,6 @@ import Data.Function (on)
 import Data.Hashable (Hashable(..))
 import Data.String (IsString(..))
 import qualified System.FilePath as FP
-import System.IO.Unsafe (unsafeDupablePerformIO)
 import qualified System.Posix.FilePath as RFP
 
 import Paths_databrary (getDataFileName)

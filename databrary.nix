@@ -4,7 +4,7 @@
 , data-default-class, digest, directory, fast-logger, ffmpeg
 , file-embed, filepath, hashable, haskell-src-meta, hjsonschema
 , http-client, http-client-tls, http-types, invertible
-, lifted-base, memory, mime-mail, postgresql
+, lifted-base, memory, mime-mail, mime-types, postgresql
 , monad-control, mtl, network, network-uri, parsec, posix-paths
 , postgresql-typed, process, range-set-list, regex-posix
 , resource-pool, resourcet, scientific, smtp-mail, stdenv
@@ -29,8 +29,8 @@ mkDerivation rec {
     containers cookie cryptonite data-default-class digest directory
     fast-logger file-embed filepath hashable haskell-src-meta
     hjsonschema http-client http-client-tls http-types invertible
-    lifted-base memory mime-mail monad-control mtl network network-uri
-    parsec posix-paths postgresql-typed process range-set-list
+    lifted-base memory mime-mail mime-types monad-control mtl network
+    network-uri parsec posix-paths postgresql-typed process range-set-list
     regex-posix resource-pool resourcet scientific smtp-mail
     streaming-commons template-haskell text th-lift th-lift-instances
     time transformers transformers-base unix unordered-containers

@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, ViewPatterns, TupleSections #-}
+{-# LANGUAGE OverloadedStrings, ViewPatterns, TupleSections, CPP #-}
 module Databrary.Web.Rules
   ( generateWebFile
   , generateWebFiles
@@ -11,15 +11,17 @@ import Control.Monad.Trans.Except (runExceptT, withExceptT)
 import qualified Data.HashMap.Strict as HM
 import qualified System.Posix.FilePath as RF
 
-import Databrary.Ops
-import Databrary.Files
-import Databrary.Web
-import Databrary.Web.Types
-import Databrary.Web.Files
-import Databrary.Web.Info
-import Databrary.Web.Generate
+import Databrary.Ops (fromMaybeM)
+import Databrary.Files (RawFilePath)
+import Databrary.Web (WebFilePath (..), makeWebFilePath)
+import Databrary.Web.Types (WebGenerator, WebGeneratorM, WebFileInfo (..), WebFileMap)
+import Databrary.Web.Files (findWebFiles)
+import Databrary.Web.Info (makeWebFileInfo)
+import Databrary.Web.Generate (fileNewer)
+#ifndef NODB
 import Databrary.Web.Constants
 import Databrary.Web.Routes
+#endif
 import Databrary.Web.Templates
 import Databrary.Web.Messages
 import Databrary.Web.Coffee
@@ -31,11 +33,15 @@ import Databrary.Web.All
 import Databrary.Web.GZip
 
 staticGenerators :: [(RawFilePath, WebGenerator)]
+#ifdef NODB
+staticGenerators = []
+#else
 staticGenerators =
   [ ("constants.json", generateConstantsJSON)
   , ("constants.js",   generateConstantsJS)
   , ("routes.js",      generateRoutesJS)
   ]
+#endif
 
 fixedGenerators :: [(RawFilePath, WebGenerator)]
 fixedGenerators =
@@ -63,7 +69,6 @@ generateRules a f = msum $ map ($ f)
     generateFixed a
   , generateCoffeeJS
   , generateLib
-  --, checkJSHint
   , generateGZip
   , generateStatic
   ]
