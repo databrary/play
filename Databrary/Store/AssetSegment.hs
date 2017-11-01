@@ -17,7 +17,7 @@ import qualified Data.Streaming.Process as P
 import qualified Database.PostgreSQL.Typed.Range as Range
 import System.IO (Handle, hClose)
 import System.Posix.FilePath (takeDirectory)
-import System.Posix.Files.ByteString (setFileMode)
+import System.Posix.Files.ByteString (setFileMode, fileExist)
 
 import Databrary.Ops
 import Databrary.Has
@@ -53,17 +53,21 @@ stream s h = loop where
     unless (BS.null b) $ loop
 
 genVideoClip :: AV -> RawFilePath -> Maybe (Range.Range Offset) -> Maybe Word16 -> Either Stream RawFilePath -> IO ()
-genVideoClip _ src (Just clip) _ dst | Nothing <- Range.getPoint clip =
+genVideoClip _ src (Just clip) _ dst | Nothing <- Range.getPoint clip = do
+  srcfp <- unRawFilePath src
+  dstfp <- case dst of
+    Left _ -> return "-"
+    Right rp -> unRawFilePath rp
   P.withCheckedProcess (P.proc "ffmpeg" $
     [ "-y", "-accurate_seek"
     , "-loglevel", "error"
     , "-threads", "1"
     , "-ss", sb lb
-    , "-i", toFilePath src ]
+    , "-i", srcfp ]
     ++ maybe [] (\u -> ["-t", sb $ u - lb]) ub ++
     [ "-codec", "copy"
     , "-f", "mp4"
-    , either (const "-") toFilePath dst ])
+    , dstfp ])
     { P.std_out = P.CreatePipe
     , P.close_fds = True
     }

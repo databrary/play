@@ -10,17 +10,20 @@ import System.IO (withBinaryFile, IOMode(WriteMode), hPutStr)
 
 import qualified Databrary.JSON as JSON
 import Databrary.Service.Messages
+import Databrary.Files
 import Databrary.Web
 import Databrary.Web.Types
 import Databrary.Web.Generate
 
 generateMessagesJS :: WebGenerator
-generateMessagesJS fo@(f, _) = do
+generateMessagesJS = \fo@(f, _) -> do
   mf <- liftIO messagesFile
+  mfRawFilePath <- liftIO $ rawFilePath mf
+  fp <- liftIO $ unRawFilePath $ webFileAbs f
   webRegenerate (do
     msg <- liftIO $ loadMessagesFrom mf
-    withBinaryFile (webFileAbs f) WriteMode $ \h -> do
+    withBinaryFile fp WriteMode $ \h -> do
       hPutStr h "app.constant('messageData',"
       BSB.hPutBuilder h $ JSON.fromEncoding $ JSON.value $ JSON.toJSON msg
       hPutStr h ");")
-    [mf] [] fo
+    [mfRawFilePath] [] fo
