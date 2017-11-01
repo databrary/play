@@ -21,6 +21,7 @@ import Network.HTTP.Types.Status (movedPermanently301)
 import qualified Network.Wai as Wai
 import Text.Read (readMaybe)
 
+import Databrary.Files (unRawFilePath)
 import Databrary.Ops
 import Databrary.Has (view, peeks)
 import qualified Databrary.JSON as JSON
@@ -48,6 +49,7 @@ import Databrary.Controller.Slot
 import Databrary.Controller.Asset
 import Databrary.Controller.Format
 
+-- Boolean flag to toggle the choice of downloading the original asset file. 
 getAssetSegment :: Bool -> Permission -> Maybe (Id Volume) -> Id Slot -> Id Asset -> ActionM AssetSegment
 getAssetSegment getOrig p mv s a =
   case getOrig of 
@@ -95,7 +97,8 @@ serveAssetSegment dl as = do
     (return . okResponse hd)
     (\f -> do
       Just (z, _) <- liftIO $ fileInfo f
-      return $ okResponse hd (f, z <$ part))
+      fp <- liftIO $ unRawFilePath f
+      return $ okResponse hd (fp, z <$ part))
     =<< getAssetSegmentStore as sz
   where
   a = slotAsset $ segmentAsset as

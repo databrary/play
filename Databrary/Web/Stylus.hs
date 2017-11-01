@@ -19,18 +19,20 @@ import Databrary.Web.Generate
 import Data.Monoid
 
 generateStylusCSS :: WebGenerator
-generateStylusCSS fo@(f, _) = do
+generateStylusCSS = \fo@(f, _) -> do
   let src = "app.styl"
-  -- liftIO $ print $ webFileAbs f <> " " <> webFileAbs src
   sl <- liftIO $ findWebFiles ".styl"
+  fpRel <- liftIO $ unRawFilePath $ webFileRel f
+  fpAbs <- liftIO $ unRawFilePath $ webFileAbs f
+  srcAbs <- liftIO $ (unRawFilePath . webFileAbs) =<< makeWebFilePath =<< rawFilePath src
   webRegenerate
     (callProcess
       "stylus" $
-    (if takeExtensions (webFileRel f) == ".min.css" then ("-c":) else id) 
+    (if takeExtensions fpRel == ".min.css" then ("-c":) else id) 
     [ "-u", "nib"
     , "-u", "autoprefixer-stylus"
-    , "-o", webFileAbs f
-    , webFileAbs src
+    , "-o", fpAbs
+    , srcAbs
     ])
     [] 
     sl 

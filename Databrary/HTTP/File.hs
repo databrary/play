@@ -43,4 +43,5 @@ fileResponse file fmt save etag = do
 serveFile :: RawFilePath -> Format -> Maybe BS.ByteString -> BS.ByteString -> ActionM Response
 serveFile file fmt save etag = do
   (h, part) <- fileResponse file fmt save etag
-  return $ okResponse h (file, part)
+  fp <- liftIO $ unRawFilePath file
+  return $ okResponse h (fp, part)

@@ -5,6 +5,7 @@ module Databrary.Web.GZip
 
 import qualified Codec.Compression.GZip as GZ
 import Control.Monad (mzero)
+import Control.Monad.IO.Class
 import qualified Data.ByteString.Lazy as BSL
 import System.FilePath (takeExtension)
 
@@ -14,10 +15,13 @@ import Databrary.Web.Types
 import Databrary.Web.Generate
 
 generateGZip :: WebGenerator
-generateGZip fo@(f, _)
-  | (b, ".gz") <- splitWebExtension f
-  , takeExtension (webFileRel b) `notElem` [".png"] -- things that don't compress
-  = webRegenerate
-      (BSL.writeFile (toFilePath f) . GZ.compress =<< BSL.readFile (toFilePath b))
-      [] [b] fo
-  | otherwise = mzero
+generateGZip fo@(f, _) = do
+  (b, ext) <- liftIO $ splitWebExtension f
+  b' <- liftIO $ unRawFilePath $ webFileAbs b
+  if takeExtension b' `notElem` [".png"] && ext == ".gz" -- things that don't compress
+    then do
+      f' <- liftIO $ unRawFilePath $ webFileAbs f
+      webRegenerate
+        (BSL.writeFile f' . GZ.compress =<< BSL.readFile b')
+        [] [b] fo
+    else mzero

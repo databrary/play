@@ -151,6 +151,7 @@ Executable databrary
     http-client,
     http-client-tls,
     mime-mail,
+    mime-types,
     fast-logger,
     digest,
     hjsonschema == 0.9.0.0,
@@ -179,3 +180,46 @@ Executable databrary
 
   pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
   extra-libraries: crack, crypto
+
+Executable generate
+  main-is: generate.hs
+
+  build-depends:
+    aeson,
+    base,
+    blaze-html,
+    bytestring >= 0.10,
+    cryptonite,
+    directory,
+    filepath,
+    hashable >= 1.2.1,
+    http-types,
+    memory >= 0.8,
+    mime-types,
+    mtl >= 2.2.1,
+    parsec >= 3,
+    posix-paths,
+    process,
+    template-haskell,
+    text,
+    th-lift,
+    time,
+    transformers,
+    transformers-base,
+    unix,
+    unordered-containers,
+    vector,
+    zlib
+
+  default-language: Haskell2010
+  default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
+
+  ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields
+  cpp-options: -DNODB
+
+  if flag(devel)
+    cpp-options: -DDEVEL
+  else
+    ghc-options: -with-rtsopts -N
+  if flag(sandbox)
+    cpp-options: -DSANDBOX

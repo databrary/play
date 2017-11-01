@@ -58,8 +58,9 @@ transcodeArgs t@Transcode{..} = do
   Just f <- getAssetFile (transcodeOrig t)
   req <- peek
   auth <- peeks $ transcodeAuth t
+  fp <- liftIO $ unRawFilePath f
   return $
-    [ "-s", toFilePath f
+    [ "-s", fp
     , "-r", BSLC.unpack $ BSB.toLazyByteString $ routeURL (Just req) (R.requestActionRoute remoteTranscode (transcodeId t)) [("auth", Just auth)]
     , "--" ]
     ++ maybe [] (\l -> ["-ss", show l]) lb

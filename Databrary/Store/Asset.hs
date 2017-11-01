@@ -15,7 +15,7 @@ import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Lazy as BSL
 import Data.Word (Word64)
 import System.Posix.FilePath (takeDirectory)
-import System.Posix.Files.ByteString (fileSize, createLink)
+import System.Posix.Files.ByteString (fileSize, createLink, fileExist, getFileStatus)
 
 import Databrary.Ops
 import Databrary.Has (peek, peeks)
