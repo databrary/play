@@ -49,17 +49,17 @@ slotJSONField getOrig o "assets" _ =
   case getOrig of 
        True -> Just . JSON.mapRecords assetSlotJSON <$> lookupOrigSlotAssets o
        False -> Just . JSON.mapRecords assetSlotJSON <$> lookupSlotAssets o
-slotJSONField getOrig o "records" _ =
+slotJSONField _ o "records" _ =
   Just . JSON.mapRecords (\r -> recordSlotJSON r JSON..<> "record" JSON..=: recordJSON (slotRecord r)) <$> lookupSlotRecords o
-slotJSONField getOrig o "tags" n = do
+slotJSONField _ o "tags" n = do
   tc <- lookupSlotTagCoverage o (maybe 64 fst $ BSC.readInt =<< n)
   return $ Just $ JSON.objectEncoding $ JSON.recordMap $ map tagCoverageJSON tc
-slotJSONField getOrig o "comments" n = do
+slotJSONField _ o "comments" n = do
   c <- lookupSlotComments o (maybe 64 fst $ BSC.readInt =<< n)
   return $ Just $ JSON.mapRecords commentJSON c
-slotJSONField getOrig o "excerpts" _ =
+slotJSONField _ o "excerpts" _ =
   Just . JSON.mapObjects (\e -> excerptJSON e <> "asset" JSON..= (view e :: Id Asset)) <$> lookupSlotExcerpts o
-slotJSONField getOrig o "filename" _ =
+slotJSONField _ o "filename" _ =
   return $ Just $ JSON.toEncoding $ makeFilename $ slotDownloadName o
 slotJSONField _ _ _ _ = return Nothing
 

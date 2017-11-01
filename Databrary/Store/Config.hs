@@ -16,7 +16,7 @@ module Databrary.Store.Config
 import Prelude hiding (lookup)
 
 import Control.Applicative ((<|>))
-import Control.Arrow (first, (***))
+import Control.Arrow (first)
 import Control.Exception (Exception, throw)
 import Control.Monad ((<=<))
 import qualified Data.Aeson.Types as JSON

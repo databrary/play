@@ -21,14 +21,11 @@ module Databrary.Model.AssetSlot
   , assetSlotJSON
   ) where
 
-import Control.Monad (when, guard, forM)
-import Control.Monad.IO.Class
+import Control.Monad (when, guard)
 import Data.Maybe (fromMaybe, isNothing)
 import Data.Monoid ((<>))
-import Data.Text.Encoding (encodeUtf8)
 import Data.Maybe (fromJust, catMaybes)
 import qualified Data.Text as T
-import qualified Data.ByteString as BS
 import Database.PostgreSQL.Typed (pgSQL)
 
 import Databrary.Ops
@@ -38,7 +35,6 @@ import Databrary.Service.DB
 import Databrary.Model.Offset
 import Databrary.Model.Permission
 import Databrary.Model.Segment
-import Databrary.Model.Format (getFormatByExtension)
 import Databrary.Model.Id
 import Databrary.Model.Party.Types
 import Databrary.Model.Identity.Types
@@ -48,7 +44,6 @@ import Databrary.Model.Slot.Types
 import Databrary.Model.Asset
 import Databrary.Model.Audit
 import Databrary.Model.SQL
-import Databrary.Model.SQL.Select
 import Databrary.Model.AssetSlot.Types
 import Databrary.Model.AssetSlot.SQL
 import Databrary.Model.Format.Types
@@ -78,7 +73,7 @@ lookupSlotAssets (Slot c s) =
   dbQuery $ ($ c) <$> $(selectQuery selectContainerSlotAsset "$WHERE slot_asset.container = ${containerId $ containerRow c} AND slot_asset.segment && ${s} AND asset.volume = ${volumeId $ volumeRow $ containerVolume c}")
 
 lookupOrigSlotAssets :: (MonadDB c m) => Slot -> m [AssetSlot]
-lookupOrigSlotAssets slot@(Slot c s) = do
+lookupOrigSlotAssets slot@(Slot c _) = do
   xs <-  dbQuery [pgSQL|
     SELECT asset.id,asset.release,asset.duration,asset.name,asset.sha1,asset.size 
     FROM slot_asset 
@@ -108,7 +103,6 @@ lookupOrigVolumeAssetSlots v top = do
 
 lookupOrigVolumeAssetSlots' :: (MonadDB c m, MonadHasIdentity c m) => [AssetSlot] -> m [AssetSlot]
 lookupOrigVolumeAssetSlots' slotList = do
-  liftIO $ print "inside of lookupOrigVolumeAssetsSlots"
   catMaybes <$> mapM originFinder slotList
   where 
     originFinder (AssetSlot { slotAsset = Asset {assetRow = AssetRow { assetId = aid }}}) = lookupOrigAssetSlot aid

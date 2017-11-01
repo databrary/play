@@ -4,10 +4,7 @@ module Databrary.Web.Info
   , loadWebFileMap
   ) where
 
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.Char8 as BSC
 import qualified Data.HashMap.Strict as HM
-import Data.Maybe (fromMaybe)
 import Data.Text (pack)
 import qualified Network.Mime as Mime
 import System.FilePath (takeFileName)

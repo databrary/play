@@ -4,12 +4,10 @@ module Databrary.View.Angular
   ) where
 
 import Control.Monad (forM_)
-import Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Char8 as BSC
 import Data.Default.Class (def)
-import Data.Maybe (isJust)
 import Data.Monoid ((<>))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as HA
@@ -19,8 +17,7 @@ import qualified Databrary.JSON as JSON
 import Databrary.Service.Types
 import Databrary.Model.Identity
 import Databrary.Action.Types
-import Databrary.Web (WebFilePath (..), makeWebFilePath)
-import Databrary.Web.Libs (webDeps, cssWebDeps)
+import Databrary.Web (WebFilePath (..))
 import Databrary.Controller.Web
 import Databrary.View.Html
 import Databrary.View.Template

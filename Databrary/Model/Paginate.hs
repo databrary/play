@@ -4,10 +4,8 @@ module Databrary.Model.Paginate
   , def
   ) where
 
-import qualified Data.ByteString as BS
 import Data.Default.Class (Default(..))
 import Data.Int (Int32)
-import Data.Monoid ((<>))
 
 data Paginate = Paginate
   { paginateOffset, paginateLimit :: !Int32

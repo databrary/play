@@ -41,7 +41,6 @@ import Database.PostgreSQL.Typed.TH (withTPGConnection, useTPGDatabase)
 import qualified Language.Haskell.TH as TH
 import Network (PortID(..))
 import System.IO.Unsafe (unsafePerformIO)
-import System.Directory
 
 import Databrary.Has
 import qualified Databrary.Store.Config as C

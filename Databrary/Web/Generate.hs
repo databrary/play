@@ -8,12 +8,10 @@ module Databrary.Web.Generate
 import Control.Monad (when, unless)
 import Control.Monad.Except (throwError)
 import Control.Monad.IO.Class (liftIO)
-import qualified Data.Text as T
 import System.Directory (createDirectoryIfMissing, canonicalizePath)
 import System.FilePath (splitFileName, takeDirectory)
 import qualified System.FilePath as FP
-import System.Posix.Files.ByteString (createLink, createSymbolicLink, rename, fileExist, removeLink)
-import System.Process
+import System.Posix.Files.ByteString (createSymbolicLink, rename, fileExist, removeLink)
 
 import Paths_databrary (getDataFileName)
 import Databrary.Files

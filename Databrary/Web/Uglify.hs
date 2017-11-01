@@ -4,11 +4,10 @@ module Databrary.Web.Uglify
   , generateUglifyJS
   ) where
 
-import Control.Monad (guard, liftM2)
+import Control.Monad (guard)
 import Control.Monad.IO.Class (liftIO)
 import Data.ByteString (isPrefixOf)
 import Data.List (union)
-import qualified System.FilePath as FP
 import qualified System.Posix.FilePath as RF
 import System.Process (callProcess)
 

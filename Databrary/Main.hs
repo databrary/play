@@ -30,10 +30,6 @@ import Databrary.Routes.API (swagger)
 import Databrary.Warp (runWarp)
 import Databrary.EZID.Volume (updateEZID)
 
-import Data.Monoid
-import System.Directory
-import System.Process
-import qualified Data.Text as Text
 
 data Flag
   = FlagConfig FilePath

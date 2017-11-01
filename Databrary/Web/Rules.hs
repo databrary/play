@@ -28,7 +28,6 @@ import Databrary.Web.Coffee
 import Databrary.Web.Uglify
 import Databrary.Web.Stylus
 import Databrary.Web.Libs
-import Databrary.Web.JSHint
 import Databrary.Web.All
 import Databrary.Web.GZip
 

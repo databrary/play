@@ -6,7 +6,6 @@ module Databrary.Controller.Angular
   ) where
 
 import Control.Arrow (second)
-import Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString.Builder as BSB
 import Data.Default.Class (Default(..))
 import Network.HTTP.Types (hUserAgent, QueryLike(..))

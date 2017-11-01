@@ -28,7 +28,6 @@ import System.Posix.Types (FileOffset)
 import qualified Text.Blaze.Html as Html
 import qualified Text.Blaze.Html.Renderer.Utf8 as Html
 
-import Databrary.Files
 import qualified Databrary.JSON as JSON
 
 class ResponseData r where

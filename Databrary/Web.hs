@@ -9,13 +9,10 @@ module Databrary.Web
   , makeWebFilePath
   ) where
 
-import Control.Arrow (first)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
 import Data.Function (on)
 import Data.Hashable (Hashable(..))
-import Data.String (IsString(..))
-import qualified System.FilePath as FP
 import qualified System.Posix.FilePath as RFP
 
 import Paths_databrary (getDataFileName)
@@ -50,8 +47,8 @@ makeWebFilePath :: RawFilePath -> IO WebFilePath
 makeWebFilePath r = withWebDir $ \webDirRaw -> do
   return $ WebFilePath r (webDirRaw RFP.</> r)
 
-webFilePath :: RawFilePath -> IO WebFilePath
-webFilePath = makeWebFilePath
+--webFilePath :: RawFilePath -> IO WebFilePath
+--webFilePath = makeWebFilePath
 
 splitWebExtensions :: WebFilePath -> IO (WebFilePath, BS.ByteString)
 splitWebExtensions f = do

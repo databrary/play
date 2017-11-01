@@ -14,7 +14,6 @@ module Databrary.Model.Asset
   ) where
 
 import Control.Arrow (first)
-import Control.Monad.IO.Class
 import Data.Maybe (isNothing, isJust)
 import Data.Monoid ((<>))
 import qualified Data.Text as T

@@ -21,22 +21,18 @@ import Data.ByteArray (MemView(..))
 import qualified Data.ByteString as BS
 import Data.ByteString.Lazy.Internal (defaultChunkSize)
 import Data.Maybe (isJust)
-import Data.String (IsString(..))
-import Data.Time.Clock.POSIX (POSIXTime, posixSecondsToUTCTime, utcTimeToPOSIXSeconds)
+import Data.Time.Clock.POSIX (posixSecondsToUTCTime, utcTimeToPOSIXSeconds)
 import Foreign.Marshal.Alloc (allocaBytes)
 import qualified GHC.Foreign as GHC
 import GHC.IO.Encoding (getFileSystemEncoding)
 import System.Posix.ByteString.FilePath (RawFilePath)
-import qualified System.FilePath as F
 import System.Posix.FilePath ((</>))
-import qualified System.Posix.FilePath as RF
 import qualified System.Posix as P
 import qualified System.Posix.ByteString as RP
 import System.Posix.Types (FileMode)
 import System.IO (withBinaryFile, IOMode(ReadMode), hGetBufSome)
 import System.Posix.Types (FileOffset)
 import System.IO.Error (isDoesNotExistError, isAlreadyExistsError)
-import System.IO.Unsafe (unsafeDupablePerformIO)
 
 import Databrary.Ops
 import Databrary.Model.Time

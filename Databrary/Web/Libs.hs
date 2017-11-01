@@ -11,7 +11,6 @@ import Control.Monad (mzero)
 import Control.Monad.IO.Class (liftIO)
 import Data.Maybe (maybeToList)
 import Data.List (stripPrefix)
-import Data.String (fromString)
 import System.FilePath ((</>), splitFileName, (<.>))
 
 import Databrary.Web

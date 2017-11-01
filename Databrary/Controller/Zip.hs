@@ -20,9 +20,6 @@ import System.Posix.FilePath ((<.>))
 import qualified Text.Blaze.Html5 as Html
 import qualified Text.Blaze.Html.Renderer.Utf8 as Html
 
-import Control.Monad.IO.Class
-import Control.Monad (sequence)
-
 import Databrary.Ops
 import Databrary.Has (view, peek, peeks)
 import Databrary.Store.Asset
@@ -163,7 +160,6 @@ zipContainer isOrig =
 
 getVolumeInfo :: Id Volume -> ActionM (Volume, IdSet Container, [AssetSlot])
 getVolumeInfo vi = do
-  liftIO $ print "inside of getVolumeInfo" --DEBUG
   v <- getVolume PermissionPUBLIC vi
   s <- peeks requestIdSet
   -- let isMember = maybe (const False) (\c -> RS.member (containerId $ containerRow $ slotContainer $ c))

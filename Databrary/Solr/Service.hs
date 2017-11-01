@@ -6,45 +6,41 @@ module Databrary.Solr.Service
   , MonadSolr
   ) where
 
-import Control.Monad (when, forM_)
+import Control.Monad (when)
 import Control.Monad.IO.Class
 import Data.Maybe (isNothing, fromMaybe)
 import qualified Network.HTTP.Client as HC
-import System.Directory (makeAbsolute, createDirectoryIfMissing, getDirectoryContents, copyFile, getCurrentDirectory)
+import System.Directory (makeAbsolute)
 import System.Environment (getEnvironment)
 import System.FilePath ((</>))
-import System.IO (withFile, openFile, IOMode(AppendMode, WriteMode), hPutStrLn)
+import System.IO (openFile, IOMode(AppendMode))
 import qualified System.Process as Proc
 import System.Timeout (timeout)
 
-import Paths_databrary (getDataFileName)
 import Databrary.Ops
 import Databrary.Has
 import qualified Databrary.Store.Config as C
 import Databrary.HTTP.Client (HTTPClient)
-import Databrary.Model.Enum (pgEnumValues)
-import Databrary.Model.Permission.Types
-import Databrary.Model.Release.Types
 
 data Solr = Solr
   { solrRequest :: HC.Request
   , solrProcess :: Maybe Proc.ProcessHandle
   }
 
-confSolr :: FilePath -> FilePath -> IO ()
-confSolr src dst = do
-  mapM_ (\f -> when (head f /= '.') $ copyFile (src </> f) (dst </> f)) =<< getDirectoryContents src
-  withFile (dst </> "enum.xml") WriteMode $ \h -> do
-    hPutStrLn h "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
-    hPutStrLn h "<enumsConfig>"
-    pe h "permission" PermissionNONE
-    pe h "release" ReleasePRIVATE
-    hPutStrLn h "</enumsConfig>"
-  where
-  pe h n t = do
-    hPutStrLn h $ "<enum name=\"" ++ n ++ "\">"
-    forM_ pgEnumValues $ \(x, s) -> hPutStrLn h $ "  <value>" ++ const s (x `asTypeOf` t) ++ "</value>"
-    hPutStrLn h "</enum>"
+--confSolr :: FilePath -> FilePath -> IO ()
+--confSolr src dst = do
+--  mapM_ (\f -> when (head f /= '.') $ copyFile (src </> f) (dst </> f)) =<< getDirectoryContents src
+--  withFile (dst </> "enum.xml") WriteMode $ \h -> do
+--    hPutStrLn h "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
+--    hPutStrLn h "<enumsConfig>"
+--    pe h "permission" PermissionNONE
+--    pe h "release" ReleasePRIVATE
+--    hPutStrLn h "</enumsConfig>"
+--  where
+--  pe h n t = do
+--    hPutStrLn h $ "<enum name=\"" ++ n ++ "\">"
+--    forM_ pgEnumValues $ \(x, s) -> hPutStrLn h $ "  <value>" ++ const s (x `asTypeOf` t) ++ "</value>"
+--    hPutStrLn h "</enum>"
 
 initSolr :: Bool -> C.Config -> IO Solr
 initSolr fg conf = do

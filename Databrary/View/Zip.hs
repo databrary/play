@@ -149,7 +149,7 @@ htmlVolumeDescription inzip Volume{ volumeRow = VolumeRow{..}, ..} cite fund glo
       H.th "sha1 checksum"
     H.tbody $ abody acl
   abody [] = mempty
-  abody (~(a@AssetSlot{ assetSlot = Nothing }:l):al) = mempty
+  abody (~(AssetSlot{ assetSlot = Nothing }:_):_) = mempty
   abody (~(a@AssetSlot{ assetSlot = Just Slot{ slotContainer = c } }:l):al) = do
     H.tr $ do
       H.td H.! rs $ H.a !? (inzip ?> HA.href (byteStringValue fn)) $
