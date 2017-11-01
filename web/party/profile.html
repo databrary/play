@@ -81,28 +81,26 @@
               Click here to add an affiliate.</a>
           </div>
         </div>
-        <div ng-repeat="(member, cl) in ::parties.children track by member" ng-if="::cl.length" ng-class="{'profile-affiliate-highlight': member && selected.self.children}">
+        <div ng-repeat="(member, cl) in ::parties.children track by member" ng-if="::cl.length && parties.children.length" ng-class="{'profile-affiliate-highlight': member && selected.self.children}">
+          <div class="profile-subsection-header small" ng-if="memberhasCurrent(cl)">
+            <span ng-if="member" class="icon network"></span>
+            <strong ng-bind="::'auth.member.'+page.constants.permission[member]+'.title' | message"></strong>:
+            <span ng-bind="::'auth.member.'+page.constants.permission[member]+'.description' | possessive:party"></span>
+          </div>
           <ul>
             <li ng-repeat="p in cl" ng-class="{'profile-highlight': !!p.selected}" ng-if="!isExpired(p.child)">
-              <div class="profile-subsection-header small">
-                <span ng-if="member" class="icon network"></span> 
-                <strong ng-bind="::'auth.member.'+page.constants.permission[member]+'.title' | message"></strong>: 
-                <span ng-bind="::'auth.member.'+page.constants.permission[member]+'.description' | possessive:party"></span> 
+              <div class="profile-left-icons clickable hide-mobile">
+                <span ng-click="p.select()" class="icon" ng-class="p.class()" tooltip="'Click to highlight ' + ('profile.parties.selected' | message:'this individual')"></span>
               </div>
-              <div>
-                <div class="profile-left-icons clickable hide-mobile">
-                  <span ng-click="p.select()" class="icon" ng-class="p.class()" tooltip="'Click to highlight ' + ('profile.parties.selected' | message:'this individual')"></span>
-                </div>
-                <div class="profile-right-icons">
-                  <span class="icon site" ng-class="::page.constants.permission[p.child.site]" tooltip="('auth.site.'+page.constants.permission[p.child.site]+'.title' | message)+': '+('auth.site.'+page.constants.permission[p.child.site]+'.description' | possessive:party)"></span>
-                </div>
+              <div class="profile-right-icons">
+                <span class="icon site" ng-class="::page.constants.permission[p.child.site]" tooltip="('auth.site.'+page.constants.permission[p.child.site]+'.title' | message)+': '+('auth.site.'+page.constants.permission[p.child.site]+'.description' | possessive:party)"></span>
+              </div>
 
-                <div class="profile-link">
-                  <a ng-href="{{::p.party.route()}}" ng-bind="::p.party.name"></a><wbr>
-                  <span ng-if="::!(p.child.member || p.child.site)" class="permission-auth-pending" message="auth.pending"></span>
-                  <span ng-if="::(p.child.member || p.child.site)" class="date-time small" ng-bind="::p.child.expires | date:'yyyy/MM/dd'"></span><wbr>
-                  <a href="" ng-click="p.edit('grant')" ng-class="!p.selected && selected && selected.constructor !== p.constructor ? 'profile-hover-link-show add' : 'edit'" class="icon button mini profile-hover-link"></a>
-                </div>
+            <div class="profile-link">
+                <a ng-href="{{::p.party.route()}}" ng-bind="::p.party.name"></a><wbr>
+                <span ng-if="::!(p.child.member || p.child.site)" class="permission-auth-pending" message="auth.pending"></span>
+                <span ng-if="::(p.child.member || p.child.site)" class="date-time small" ng-bind="::p.child.expires | date:'yyyy/MM/dd'" ng-class="::{expired:isExpired(p.child)}"></span><wbr>
+                <a href="" ng-click="p.edit('grant')" ng-class="!p.selected && selected && selected.constructor !== p.constructor ? 'profile-hover-link-show add' : 'edit'" class="icon button mini profile-hover-link"></a>
               </div>
             </li>
           </ul>
