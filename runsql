@@ -5,10 +5,11 @@ umask 077
 top=`git rev-parse --show-cdup || echo "Assuming $PWD is top." >&2`
 schema=${top}schema
 
-if [[ ! -f ${schema}.sql ]] ; then
-	echo "${schema}.sql is missing.  You are probably in the wrong directory."
-	exit 1
-fi
+# removed schema.sql combined dump, so this check doesn't work anymore
+#if [[ ! -f ${schema}.sql ]] ; then
+#	echo "${schema}.sql is missing.  You are probably in the wrong directory."
+#	exit 1
+#fi
 
 if [[ ! -f ${top}databrary.conf ]] ; then
 	echo "${top}databrary.conf is missing.  See README."
