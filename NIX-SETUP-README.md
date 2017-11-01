@@ -47,10 +47,22 @@ When cabal repl finishes loading, run
 
 Point your browser to localhost:8000
 
-Note: In order to stop your database, you can:
+-----HOT RELOAD FOR FRONTEND DEVELOPERS-----
+
+After running the steps provided above, in a separate terminal you can run the following script 
+to watch for any changes the developer makes to frontend files located within the 'web/' directory: 
 ```bash
-./stop-db
+$ ./hotreload.sh 
 ```
+
+-----HOT RELOAD(ghcid) FOR BACKEND HASKELL DEVELOPERS-----
+After running 'Step 1'  provided above, in a separate terminal you can run the following commands 
+to watch for any changes the developer makes to backend files located within the 'Databrary/' directory: 
+```bash
+$nix-shell
+$ ./ghcid-backend
+```
+
 
 Sign-Up | Log-In | Email Confirmation
 

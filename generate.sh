@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+
+# This script builds the 'generate' executable used in the hot-reloading
+# of frontend web assets. 
+
 set -eu
 
 if [ ! -f ./dist/build/generate/generate ]; then
