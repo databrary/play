@@ -39,7 +39,7 @@ generateAllJS :: WebGenerator
 generateAllJS = \f -> do
   deps <- liftIO $ webDeps True
   appMinJs <- liftIO $ makeWebFilePath "app.min.js"
-  generateMerged (appMinJs : deps) f
+  generateMerged (deps ++ [appMinJs]) f
 
 generateAllCSS :: WebGenerator
 generateAllCSS = \f -> do
