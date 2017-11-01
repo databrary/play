@@ -38,5 +38,3 @@ chmod +x $data_outputdir/transcode $data_outputdir/transctl.sh
 echo "========The prefix of this version will provide you with the version built: `git describe`====="
 
 echo "========Build/Install sucessful.================================================================"
-echo "========Run ~build/.cabal/bin/databrary-X.Y.Z.NN================================================"
-echo "========Run from inside a directory containing databrary.conf (/home/databrary)================="
