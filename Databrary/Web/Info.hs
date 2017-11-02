@@ -17,7 +17,7 @@ import Databrary.Web.Types
 
 makeWebFileInfo :: WebFilePath -> IO WebFileInfo
 makeWebFileInfo f = do
-  fp <- unRawFilePath $ webFileAbs f
+  fp <- formatFilePath f
   let format = Mime.defaultMimeLookup (pack (takeFileName fp))
   hash <- hashFile $ webFileAbs f
   ts <- modificationTimestamp <$> getFileStatus (webFileAbs f)

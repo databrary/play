@@ -17,9 +17,9 @@ generateStylusCSS :: WebGenerator
 generateStylusCSS = \fo@(f, _) -> do
   let src = "app.styl"
   sl <- liftIO $ findWebFiles ".styl"
-  fpRel <- liftIO $ unRawFilePath $ webFileRel f
-  fpAbs <- liftIO $ unRawFilePath $ webFileAbs f
-  srcAbs <- liftIO $ (unRawFilePath . webFileAbs) =<< makeWebFilePath =<< rawFilePath src
+  fpRel <- liftIO $ formatFilePath f
+  fpAbs <- liftIO $ formatFilePath f
+  srcAbs <- liftIO $ formatFilePath =<< makeWebFilePath =<< rawFilePath src
   webRegenerate
     (callProcess
       "stylus" $
