@@ -18,13 +18,13 @@ generateCoffeeJS fo@(f, _) = do
   (b, e) <- liftIO $ splitWebExtensions f
   if e `elem` [".js", ".js.map"]
     then do
-      b' <- liftIO $ formatFilePath b
-      f' <- liftIO $ formatFilePath f
+      b' <- liftIO $ unRawFilePath $ webFileRel b
+      f' <- liftIO $ unRawFilePath $ webFileAbs f
       let src = b' <.> ".coffee"
       liftIO $ print src
       srcRaw <- liftIO $ makeWebFilePath =<< rawFilePath src
       liftIO $ print srcRaw
-      srcAbs <- liftIO $ formatFilePath srcRaw
+      srcAbs <- liftIO $ unRawFilePath $ webFileAbs srcRaw
       webRegenerate
         (callProcess "coffee" ["-b", "-c", "-m", "-o", takeDirectory f', srcAbs ])
         []

@@ -19,8 +19,8 @@ import Databrary.Web.Generate
 
 checkJSHint :: WebGenerator
 checkJSHint = \fo@(f, _) -> do
-  relPath <- liftIO $ formatFilePath f
-  absPath <- liftIO $ formatFilePath f
+  relPath <- liftIO $ unRawFilePath $ webFileRel f
+  absPath <- liftIO $ unRawFilePath $ webFileAbs f
   let (d, n) = splitFileName $ webFileAbs f
       h = d </> ('.' `BSC.cons` n `addExtension` ".hinted")
   if takeExtensions relPath == ".js"

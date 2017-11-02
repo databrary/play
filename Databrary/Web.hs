@@ -7,7 +7,6 @@ module Databrary.Web
   , splitWebExtension
   , replaceWebExtension
   , makeWebFilePath
-  , formatFilePath 
   ) where
 
 import qualified Data.ByteString as BS
@@ -50,9 +49,6 @@ makeWebFilePath r = withWebDir $ \webDirRaw -> do
 
 --webFilePath :: RawFilePath -> IO WebFilePath
 --webFilePath = makeWebFilePath
-
-formatFilePath :: WebFilePath -> IO FilePath
-formatFilePath = unRawFilePath . webFileAbs
 
 splitWebExtensions :: WebFilePath -> IO (WebFilePath, BS.ByteString)
 splitWebExtensions f = do

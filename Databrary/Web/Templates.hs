@@ -35,7 +35,7 @@ generateTemplatesJS :: WebGenerator
 generateTemplatesJS fo@(f, _) = do
   tl <- liftIO $ findWebFiles ".html"
   guard (not $ null tl)
-  fp <- liftIO $ formatFilePath f
+  fp <- liftIO $ unRawFilePath $ webFileAbs f
   webRegenerate
     (withBinaryFile fp WriteMode $ \h -> do
       hPutStrLn h "app.run(['$templateCache',function(t){"

@@ -10,18 +10,19 @@ import Foreign.Marshal.Alloc (allocaBytes)
 import System.IO (withBinaryFile, IOMode(ReadMode, WriteMode), hPutChar, hGetBufSome, hPutBuf)
 
 import Databrary.Web
+import Databrary.Files
 import Databrary.Web.Types
 import Databrary.Web.Generate
 import Databrary.Web.Libs
 
 generateMerged :: [WebFilePath] -> WebGenerator
 generateMerged l = \fo@(f, _) -> do
-  fp <- liftIO $ formatFilePath f
+  fp <- liftIO $ unRawFilePath $ webFileAbs f
   webRegenerate
     (allocaBytes z $ \b ->
       withBinaryFile fp WriteMode $ \h ->
         forM_ l $ \s -> do
-          fps <- formatFilePath s
+          fps <- unRawFilePath $ webFileAbs s
           withBinaryFile fps ReadMode $
             copy b h
           hPutChar h '\n')

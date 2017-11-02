@@ -19,7 +19,7 @@ generateMessagesJS :: WebGenerator
 generateMessagesJS = \fo@(f, _) -> do
   mf <- liftIO messagesFile
   mfRawFilePath <- liftIO $ rawFilePath mf
-  fp <- liftIO $ formatFilePath f
+  fp <- liftIO $ unRawFilePath $ webFileAbs f
   webRegenerate (do
     msg <- liftIO $ loadMessagesFrom mf
     withBinaryFile fp WriteMode $ \h -> do
