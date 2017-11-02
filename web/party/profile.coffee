@@ -158,6 +158,29 @@ app.controller 'party/profile', [
     $scope.isExpired = (a) ->
       new Date(a.expires) < today
 
+    $scope.hasExpired = (result) ->
+      expiredChildren = []
+      for key, value of result
+        for k, v of value
+          if new Date(v.child.expires) < today
+            expiredChildren.push(key)
+      if expiredChildren.length > 0
+        return true
+      else
+        return false
+      return
+
+    $scope.memberhasCurrent = (result) ->
+      currentChildren = []
+      for key, value of result
+        if new Date(value.child.expires) >= today
+          currentChildren.push(key)
+      if currentChildren.length > 0
+        return true
+      else
+        return false
+      return
+
     $scope.sortVolumes = (b) ->
       if $scope.volumeSort == b
         # volumes.individual.reverse()
