@@ -83,9 +83,11 @@
         </div>
         <div ng-repeat="(member, cl) in ::parties.children track by member" ng-if="::cl.length && parties.children.length" ng-class="{'profile-affiliate-highlight': member && selected.self.children}">
           <div class="profile-subsection-header small" ng-if="memberhasCurrent(cl)">
-            <span ng-if="member" class="icon network"></span>
-            <strong ng-bind="::'auth.member.'+page.constants.permission[member]+'.title' | message"></strong>:
-            <span ng-bind="::'auth.member.'+page.constants.permission[member]+'.description' | possessive:party"></span>
+            <span>
+              <span ng-if="member" class="icon network" style="margin-right:7px;"></span>
+              <strong ng-bind="::'auth.member.'+page.constants.permission[member]+'.title' | message"></strong>:&nbsp;
+              <span ng-bind="::'auth.member.'+page.constants.permission[member]+'.description' | possessive:party"></span>
+            </span>
           </div>
           <ul ng-if="memberhasCurrent(cl)">
             <li ng-repeat="p in cl" ng-class="{'profile-highlight': !!p.selected}" ng-if="!isExpired(p.child)">
