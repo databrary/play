@@ -11,19 +11,19 @@
           <wizard-step name="create">
             <ng-form name="registerForm">
               <validator name="prename" label="prename" class="grid-clear-left col-desktop-7 col-tablet-4 col-mobile-6">
-                <input id="field-prename" name="prename" type="text" ng-model="registerForm.data.prename" autocomplete="given-name" placeholder="First">
+                <input id="field-prename" name="prename" type="text" ng-model="registerForm.data.prename" autocomplete="off" placeholder="First">
               </validator>
 
               <validator name="sortname" label="sortname" class="grid-clear-right col-desktop-8 col-tablet-5 col-mobile-6">
-                <input id="field-sortname" name="sortname" type="text" ng-model="registerForm.data.sortname" ng-minlength="2" autocomplete="family-name" placeholder="Last" required>
+                <input id="field-sortname" name="sortname" type="text" ng-model="registerForm.data.sortname" ng-minlength="2" autocomplete="off" placeholder="Last" required>
               </validator>
 
               <validator name="email" label="email">
-                <input id="field-email" name="email" type="email" ng-model="registerForm.data.email" autocomplete="email" required>
+                <input id="field-email" name="email" type="email" ng-model="registerForm.data.email" autocomplete="off" required>
               </validator>
 
               <validator name="affiliation" label="affiliation">
-                <input id="field-affiliation" name="affiliation" type="text" ng-model="registerForm.data.affiliation" autocomplete="organization" placeholder="University" key-enter="proceed()">
+                <input id="field-affiliation" name="affiliation" type="text" ng-model="registerForm.data.affiliation" autocomplete="off" placeholder="University" key-enter="proceed()">
               </validator>
 
               <button class="green" type="submit" ng-disabled="registerForm.$pristine || registerForm.$invalid" ng-click="proceed()">Continue</button>
