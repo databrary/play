@@ -50,7 +50,7 @@ parseGeoName = JSON.withObject "geoname" $ \j -> do
     }
 
 geoNameReq :: HC.Request
-geoNameReq = (fromJust $ HC.parseUrl "http://api.geonames.org/getJSON")
+geoNameReq = (fromJust $ HC.parseRequest "http://api.geonames.org/getJSON")
   { HC.cookieJar = Nothing }
 
 lookupGeoName :: Id GeoName -> HTTPClient -> IO (Maybe GeoName)

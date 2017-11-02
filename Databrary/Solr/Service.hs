@@ -71,7 +71,7 @@ initSolr fg conf = do
     , Proc.create_group = True
     }
 
-  req <- HC.parseUrl $ "http://" ++ host ++ "/solr/" ++ core ++ "/"
+  req <- HC.parseRequest $ "http://" ++ host ++ "/solr/" ++ core ++ "/"
   return Solr
     { solrRequest = req
       { HC.port = port
