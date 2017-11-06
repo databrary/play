@@ -76,6 +76,9 @@ app.directive 'volumeOverview', [
           if v == 0
             delete summary[key][k]
 
+    generateAssetcount = (volume) ->
+      volume.assetCount = Object.keys(volume.assets).length
+      return volume.assetCount
 
     {
     restrict: 'E'
@@ -85,6 +88,7 @@ app.directive 'volumeOverview', [
       pre: ($scope) ->
         generateSummary($scope.volume) unless $scope.volume.summary
         generateReleasesummary($scope.volume)
+        generateAssetcount($scope.volume)
         return
     }
 ]
