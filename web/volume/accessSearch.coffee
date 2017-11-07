@@ -21,6 +21,7 @@ app.directive 'accessSearchForm', [
               form.validator.server {}
               for found in data
                 text: found.name
+                email: ' (' + found.email + ')' if found.email != undefined
                 select: select(found)
             , (res) ->
               form.validator.server res
