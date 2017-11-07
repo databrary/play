@@ -57,7 +57,10 @@ app.directive 'volumeOverview', [
       generateArray = (obj, array) ->
         for k, v of obj
           if constants.release[v.classification] == undefined
-            array.push('unreleased')
+            if constants.release[v.container.release] == undefined
+              array.push('private')
+            else
+              array.push((constants.release[v.container.release]).toLowerCase())
           else
             array.push((constants.release[v.classification]).toLowerCase())
       combineArray = (array, string) ->
