@@ -18,7 +18,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
 import Data.Time.Clock (getCurrentTime)
 import Network.Mail.Mime
-import Network.Mail.SMTP (sendMailWithLogin')
+import Network.Mail.SMTP (sendMailWithLogin', sendMail')
 
 import Databrary.Has
 import Databrary.Model.Party
@@ -64,14 +64,18 @@ sendMail to cc subj body = do
   t <- liftIO getCurrentTime
   liftIO $ putStrLn "Retrieving mail config..."
   Just (host, port :: Int, user, pass) <- fmap decode $ liftIO $ LBS.readFile "config/email"
-  focusIO $ logMsg t $ "mail " <> BS.intercalate ", " (map (either id accountEmail) to) <> ": " <> TE.encodeUtf8 subj
-  liftIO $ sendMailWithLogin' host (fromIntegral port) user pass $ addPart
+  focusIO $ logMsg t $ "mail " <> BS.intercalate ", " (map (either id accountEmail) to) <> ": " <> TE.encodeUtf8 subj 
+  liftIO $ sendMailImpl host port user pass $ addPart
     [Part "text/plain; charset=utf-8" None Nothing [] $ TLE.encodeUtf8 $ mailHeader <> wrapText 78 body <> mailFooter] baseMail
     { mailTo = map addr to
     , mailCc = map addr cc
     , mailHeaders = [("Subject", subj)]
     }
   where
+  sendMailImpl :: String -> Int -> String -> String ->  Mail -> IO ()
+  sendMailImpl host port "" _ = sendMail' host (fromIntegral port)
+  sendMailImpl host port user pass =
+    sendMailWithLogin' host (fromIntegral port) user pass
   addr (Left e) = Address Nothing (TE.decodeLatin1 e)
   addr (Right Account{ accountEmail = email, accountParty = p }) =
     Address (Just $ partyName $ partyRow p) (TE.decodeLatin1 email)
