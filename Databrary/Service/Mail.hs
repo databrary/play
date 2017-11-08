@@ -7,7 +7,9 @@ module Databrary.Service.Mail
   ) where
 
 import Control.Monad.IO.Class (liftIO)
+import Data.Aeson (decode)
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as LBS
 import Data.Int (Int64)
 import Data.Monoid ((<>))
 import qualified Data.Text as T
@@ -16,6 +18,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
 import Data.Time.Clock (getCurrentTime)
 import Network.Mail.Mime
+import Network.Mail.SMTP (sendMailWithLogin')
 
 import Databrary.Has
 import Databrary.Model.Party
@@ -59,8 +62,10 @@ sendMail :: MonadMail c m => [Either BS.ByteString Account] -> [Either BS.ByteSt
 sendMail [] [] _ _ = return ()
 sendMail to cc subj body = do
   t <- liftIO getCurrentTime
+  liftIO $ putStrLn "Retrieving mail config..."
+  Just (host, port :: Int, user, pass) <- fmap decode $ liftIO $ LBS.readFile "config/email"
   focusIO $ logMsg t $ "mail " <> BS.intercalate ", " (map (either id accountEmail) to) <> ": " <> TE.encodeUtf8 subj
-  liftIO $ renderSendMail $ addPart
+  liftIO $ sendMailWithLogin' host (fromIntegral port) user pass $ addPart
     [Part "text/plain; charset=utf-8" None Nothing [] $ TLE.encodeUtf8 $ mailHeader <> wrapText 78 body <> mailFooter] baseMail
     { mailTo = map addr to
     , mailCc = map addr cc
