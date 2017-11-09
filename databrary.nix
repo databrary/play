@@ -70,4 +70,8 @@ mkDerivation rec {
     ln -s ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
     databrary_datadir=. dist/build/databrary/databrary -w
   '';
+  postInstall = '' 
+    chmod +x $out/share/x86_64-linux-ghc-8.0.2/databrary-1/transctl.sh
+    chmod +x $out/share/x86_64-linux-ghc-8.0.2/databrary-1/transcode
+  '';
 }
