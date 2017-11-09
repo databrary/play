@@ -4,4 +4,6 @@ set -euo pipefail
 
 rcvr=$1
 
+echo "building Databrary binaries..."
 nix-copy-closure --to "$rcvr" "$(nix-build -A pkgs.databrary --show-trace)"
+echo "copy closure of Databrary binaries completed..."
