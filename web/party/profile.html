@@ -83,8 +83,8 @@
           <div class="profile-affiliate-sort" ng-if="::parties.children.length">
             <small>Sort affiliates by </small>
             <button class="mini white" ng-class="affiliateSort==='accesslevel' ? 'selected' : ''" ng-click="changeaffiliateSort('accesslevel')">Access Level</button>
-            <button class="mini white" ng-class="affiliateSort==='name' ? 'selected' : ''" ng-click="changeaffiliateSort('name')">Name</button>
-            <button class="mini white" ng-class="affiliateSort==='expirationdate' ? 'selected' : ''" ng-click="changeaffiliateSort('expirationdate')">Expiration Date
+            <button class="mini white togglebtn" ng-class="affiliateSort==='name' ? 'selected' : ''" ng-click="changeaffiliateSort('name')">Name</button>
+            <button class="mini white togglebtn" ng-class="affiliateSort==='expirationdate' ? 'selected' : ''" ng-click="changeaffiliateSort('expirationdate')">Expiration Date
             </button>
           </div>
         </div>
