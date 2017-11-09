@@ -209,18 +209,34 @@ app.controller 'party/profile', [
 
     $scope.affiliateSort = 'accesslevel'
 
+    namest = false
+    expirationdatest = false
     $scope.changeaffiliateSort = (x) ->
       $scope.affiliateSort = x
       angular.element('.affilatesortdiv').not('.' + x + '-div').hide()
       angular.element('.affilatesortdiv.' + x + '-div').show()
       if x == "name"
-        parties.childrensort.sort (a, b) ->
-          stringSort(a.party.prename, b.party.prename)
-        parties.childrensort.sort (a, b) ->
-          partySort(a, b)
+        if namest == false
+          parties.childrensort.sort (a, b) ->
+            stringSort(a.party.prename, b.party.prename)
+          parties.childrensort.sort (a, b) ->
+            partySort(a, b)
+          namest = true
+        else
+          parties.childrensort.sort (a, b) ->
+            stringSort(b.party.prename, a.party.prename)
+          parties.childrensort.sort (a, b) ->
+            partySort(b, a)
+          namest = false
       else if x == "expirationdate"
-        parties.childrensort.sort (a, b) ->
-          new Date(a.child.expires) - new Date(b.child.expires)
+        if expirationdatest == false
+          parties.childrensort.sort (a, b) ->
+            new Date(a.child.expires) - new Date(b.child.expires)
+          expirationdatest = true
+        else
+          parties.childrensort.sort (a, b) ->
+            new Date(b.child.expires) - new Date(a.child.expires)
+          expirationdatest = false
       return
 
     return
