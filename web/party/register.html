@@ -76,19 +76,38 @@
               <div>
                 <input type="radio" ng-model="authSearchForm.principal" ng-value="'principal'">
                 <label class="option">
-                  <strong>Authorized Investigator</strong> (Researchers who are eligible to conduct independent research at their institution may become Authorized Investigators and may also authorize and manage Affiliates.)
+                  <strong>Authorized Investigator</strong>
                 </label>
               </div>
 
               <div>
                 <input type="radio" ng-model="authSearchForm.principal" ng-value="'affiliate'">
                 <label class="option">
-                  <strong>Affiliate</strong> (Individuals working with Authorized Investigators may be authorized as Affiliates.)
+                  <strong>Affiliate</strong>
                 </label>
               </div>
             </div>
 
             <auth-search-form ng-show="authSearchForm.principal"></auth-search-form>
+
+            <div style="margin-top: 30px">
+              <p>An <strong>Authorized Investigator</strong>, granted access to Databrary by his/her Institution, is generally the following:
+                <br/>
+                <ul>
+                  <li>Eligible to conduct independent research at their institution</li>
+                  <li>Has a faculty or tenure-track appointment</li>
+                  <li>Has the Principal Investigator (PI) status or can submit funding proposals as the lead investigator</li>
+                </ul>
+              </p>
+              <p>An <strong>Affiliate</strong>, granted access to Databrary by an approved Authorized Investigator, is generally the following:
+                <br/>
+                <ul>
+                  <li>Student</li>
+                  <li>Staff</li>
+                  <li>Postdoc</li>
+                </ul>
+              </p>
+            </div>
           </wizard-step>
 
           <wizard-step name="request">
