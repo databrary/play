@@ -201,5 +201,43 @@ app.controller 'party/profile', [
       return
     $scope.sortVolumes('permission')
 
+    parties.childrensort = []
+    for key, value of parties.children
+      for x of value
+        value[x]['member'] = key
+        parties.childrensort.push(value[x])
+
+    $scope.affiliateSort = 'accesslevel'
+
+    namest = false
+    expirationdatest = false
+    $scope.changeaffiliateSort = (x) ->
+      $scope.affiliateSort = x
+      angular.element('.affilatesortdiv').not('.' + x + '-div').hide()
+      angular.element('.affilatesortdiv.' + x + '-div').show()
+      if x == "name"
+        if namest == false
+          parties.childrensort.sort (a, b) ->
+            stringSort(a.party.prename, b.party.prename)
+          parties.childrensort.sort (a, b) ->
+            partySort(a, b)
+          namest = true
+        else
+          parties.childrensort.sort (a, b) ->
+            stringSort(b.party.prename, a.party.prename)
+          parties.childrensort.sort (a, b) ->
+            partySort(b, a)
+          namest = false
+      else if x == "expirationdate"
+        if expirationdatest == false
+          parties.childrensort.sort (a, b) ->
+            new Date(a.child.expires) - new Date(b.child.expires)
+          expirationdatest = true
+        else
+          parties.childrensort.sort (a, b) ->
+            new Date(b.child.expires) - new Date(a.child.expires)
+          expirationdatest = false
+      return
+
     return
 ]
