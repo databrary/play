@@ -42,6 +42,8 @@ import Databrary.Model.Party
 import Databrary.Model.Token.Types
 import Databrary.Model.Token.SQL
 
+import Database.PostgreSQL.Simple 
+
 loginTokenId :: (MonadHas Entropy c m, MonadHas Secret c m, MonadIO m) => LoginToken -> m (Id LoginToken)
 loginTokenId tok = Id <$> sign (unId (view tok :: Id Token))
 
@@ -49,6 +51,16 @@ lookupLoginToken :: (MonadDB c m, MonadHas Secret c m) => Id LoginToken -> m (Ma
 lookupLoginToken =
   flatMapM (\t -> dbQuery1 $(selectQuery selectLoginToken "$!WHERE login_token.token = ${t} AND expires > CURRENT_TIMESTAMP"))
     <=< unSign . unId
+
+-- postgresql-simple version
+lookupLoginToken' :: (MonadHas Secret c m) => Id LoginToken -> IO (m (Maybe LoginToken))
+lookupLoginToken' lt = do 
+  token <- unSign $ unId lt
+  conn <- simpleDB 
+  res <- query conn "SELECT token, expires FROM login_token WHERE login_token.token = (?) AND expires > CURRENT_TIMESTAMP" [token]
+  case res of 
+       [] -> undefined
+       [x:_] -> undefined
 
 lookupSession :: MonadDB c m => BS.ByteString -> m (Maybe Session)
 lookupSession tok =

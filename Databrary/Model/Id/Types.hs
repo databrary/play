@@ -17,6 +17,8 @@ import Text.Read (Read(..))
 
 import Databrary.HTTP.Form.Deform (Deform(..))
 
+import Database.PostgreSQL.Simple.FromField
+
 type family IdType a
 newtype Id a = Id { unId :: IdType a }
 
@@ -54,3 +56,6 @@ instance Deform f (IdType a) => Deform f (Id a) where
 
 instance TH.Lift (IdType a) => TH.Lift (Id a) where
   lift (Id i) = TH.conE 'Id `TH.appE` TH.lift i
+
+instance FromField (IdType a) => FromField (Id a) where 
+  fromField x y = Id <$> fromField x y 

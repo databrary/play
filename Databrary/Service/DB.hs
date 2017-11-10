@@ -3,6 +3,8 @@ module Databrary.Service.DB
   ( DBPool
   , DBConn
   , initDB
+  , initDB'
+  , simpleDB
   , finiDB
   , withDB
   , MonadDB
@@ -45,6 +47,9 @@ import System.IO.Unsafe (unsafePerformIO)
 import Databrary.Has
 import qualified Databrary.Store.Config as C
 
+import Database.PostgreSQL.Simple
+import qualified Databrary.Store.Config as Conf
+
 confPGDatabase :: C.Config -> PGDatabase
 confPGDatabase conf = defaultPGDatabase
   { pgDBHost = fromMaybe "localhost" host
@@ -60,6 +65,18 @@ confPGDatabase conf = defaultPGDatabase
   host = conf C.! "host"
   user = conf C.! "user"
 
+-- postgresql-simple version
+confPGDatabase' :: C.Config -> ConnectInfo
+confPGDatabase' conf = ConnectInfo 
+  { connectHost = fromMaybe "localhost" host
+  , connectPort = maybe 5432 fromInteger $ conf C.! "port"
+  , connectUser = user
+  , connectPassword = fromMaybe "" $ conf C.! "pass"
+  , connectDatabase = fromMaybe user $ conf C.! "db"
+  }
+  where
+  host = conf C.! "host"
+  user = conf C.! "user"
 
 newtype DBPool = PGPool (Pool PGConnection)
 type DBConn = PGConnection
@@ -75,6 +92,15 @@ initDB conf =
   stripes = fromMaybe 1 $ conf C.! "stripes"
   idle = fromMaybe 300 $ conf C.! "idle"
   conn = fromMaybe 16 $ conf C.! "maxconn"
+
+-- postgresql-simple version
+initDB' :: C.Config -> IO Connection
+initDB' conf =  connect $ confPGDatabase' conf 
+
+simpleDB :: IO Connection
+simpleDB = do 
+  conf <- Conf.load "databrary.conf"
+  initDB' $ conf C.! "db"
 
 finiDB :: DBPool -> IO ()
 finiDB (PGPool p) = do

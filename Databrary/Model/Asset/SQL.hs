@@ -11,6 +11,9 @@ import Data.Int (Int64)
 import qualified Data.Text as T
 import qualified Language.Haskell.TH as TH
 
+import Database.PostgreSQL.Simple
+import Databrary.Service.DB (simpleDB)
+
 import Databrary.Model.Offset
 import Databrary.Model.Format
 import Databrary.Model.Id.Types
@@ -32,6 +35,19 @@ selectAsset ident = selectJoin 'Asset
   [ selectAssetRow
   , joinOn "asset.volume = volume.id" $ selectVolume ident
   ]
+
+-- selectAsset' :: IO AssetRow
+-- selectAsset' = do
+--   conn <- simpleDB
+--   [(id, fmat, rel, dur, name, sha, size)] <- query_ conn "SELECT id, format, release, duration, name, sha1, size FROM asset JOIN volume ON asset.volume = volume.id LIMIT 1"
+--   return $ AssetRow { assetId = id
+--                     , assetFormat = fmat
+--                     , assetRelease = rel
+--                     , assetDuration = dur
+--                     , assetName = name
+--                     , assetSHA1 = sha
+--                     , assetSize = size
+--                     }
 
 assetKeys :: String -- ^ @'Asset'@
   -> [(String, String)]

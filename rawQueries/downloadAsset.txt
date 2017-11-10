@@ -1,0 +1,31 @@
+2017-11-09 13:37:27 Warp: Client closed connection prematurely
+LOG:  execute 0: 
+	SELECT session.token,session.expires,party.id,party.name,party.prename,party.orcid,party.affiliation,party.url,account.email,account.password,authorize_view.site,authorize_view.member,session.verf,session.superuser 
+	FROM session JOIN party JOIN account USING (id) LEFT JOIN authorize_view ON account.id = authorize_view.child AND authorize_view.parent = 0 ON session.account = account.id 
+	WHERE session.token = $1 AND expires > CURRENT_TIMESTAMP
+
+DETAIL:  parameters: $1 = 'WRvLE0QCBp92R-RG1y-3Do8wJVFmN3dW'
+
+LOG:  execute 19: 
+	SELECT slot_asset.segment,asset_segment.segment,excerpt.segment,excerpt.release,asset.id,asset.format,asset.release,asset.duration,asset.name,asset.sha1,asset.size,container.id,container.top,container.name,container.date,slot_release.release,volume.id,volume.name,volume.body,volume.alias,volume.doi,volume_creation(volume.id),volume_owners.owners,volume_permission.permission 
+	FROM slot_asset CROSS JOIN LATERAL (VALUES (slot_asset.segment * $1)) AS asset_segment (segment) LEFT JOIN excerpt ON slot_asset.asset = excerpt.asset AND asset_segment.segment <@ excerpt.segment JOIN asset ON slot_asset.asset = asset.id JOIN container LEFT JOIN slot_release ON container.id = slot_release.container AND slot_release.segment = '(,)' ON slot_asset.container = container.id AND asset.volume = container.volume JOIN volume LEFT JOIN volume_owners ON volume.id = volume_owners.volume JOIN LATERAL (VALUES (CASE WHEN $2 THEN enum_last(NULL::permission) ELSE volume_access_check(volume.id, $3) END)) AS volume_permission (permission) ON volume_permission.permission >= 'PUBLIC'::permission ON asset.volume = volume.id 
+	WHERE slot_asset.container = $4 AND slot_asset.asset = $5 AND slot_asset.segment && $6
+
+DETAIL:  parameters: $1 = '[PT0S,PT0S]', $2 = 'f', $3 = '7', $4 = '7', $5 = '4', $6 = '[PT0S,PT0S]'
+Just (AssetSegment {segmentAsset = AssetSlot {slotAsset = Asset {assetRow = AssetRow {assetId = 4, assetFormat = Format {formatId = 6, formatMimeType = "application/pdf", formatExtension = ["pdf"], formatName = "Portable document"}, assetRelease = Just PRIVATE, assetDuration = Nothing, assetName = Just "pdf-sample", assetSHA1 = Just "\252\128\213\152w\180\174!\145\NAK\145\181\&6d\178\218\DC3$\207%", assetSize = Just 7945}, assetVolume = Volume {volumeRow = VolumeRow {volume
+Id = 2, volumeName = "The Waterfall Volume", volumeBody = Just "drip drop", volumeAlias = Just "waterfall", volumeDOI = Nothing}, volumeCreation = 2017-11-09 16:58:17.004409 UTC, volumeOwners = [(7,"Tesla, Testarosa")], volumePermission = 
+ADMIN}}, assetSlot = Just Slot}, assetSegment = 00:00.0, assetExcerpt = Nothing})
+
+LOG:  execute 19: 
+	SELECT slot_asset.segment,asset_segment.segment,excerpt.segment,excerpt.release,asset.id,asset.format,asset.release,asset.duration,asset.name,asset.sha1,asset.size,container.id,container.top,container.name,container.date,slot_release.release,volume.id,volume.name,volume.body,volume.alias,volume.doi,volume_creation(volume.id),volume_owners.owners,volume_permission.permission 
+	FROM slot_asset CROSS JOIN LATERAL (VALUES (slot_asset.segment * $1)) AS asset_segment (segment) LEFT JOIN excerpt ON slot_asset.asset = excerpt.asset AND asset_segment.segment <@ excerpt.segment JOIN asset ON slot_asset.asset = asset.id JOIN container LEFT JOIN slot_release ON container.id = slot_release.container AND slot_release.segment = '(,)' ON slot_asset.container = container.id AND asset.volume = container.volume JOIN volume LEFT JOIN volume_owners ON volume.id = volume_owners.volume JOIN LATERAL (VALUES (CASE WHEN $2 THEN enum_last(NULL::permission) ELSE volume_access_check(volume.id, $3) END)) AS volume_permission (permission) ON volume_permission.permission >= 'PUBLIC'::permission ON asset.volume = volume.id 
+	WHERE slot_asset.container = $4 AND slot_asset.asset = $5 AND slot_asset.segment && $6
+
+DETAIL:  parameters: $1 = '[PT0S,PT0S]', $2 = 'f', $3 = '7', $4 = '7', $5 = '4', $6 = '[PT0S,PT0S]'
+
+LOG:  execute 20: 
+	INSERT INTO audit.slot_asset (audit_action, audit_user, audit_ip, container, segment, asset) VALUES ($1, $2, $3, $4, $5, $6)
+
+DETAIL:  parameters: $1 = 'open', $2 = '7', $3 = '127.0.0.1', $4 = '7', $5 = '[PT0S,PT0S]', $6 = '4'
+2017-11-09 13:37:27 127.0.0.1       200    7   28 GET /slot/7/0/asset/4/download?inline=false - "http://localhost:8000/volume/2/slot/7/-/asset/4" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
+

@@ -16,7 +16,10 @@ import Databrary.Model.Id.Types
 import Databrary.Model.Volume.Types
 import Databrary.Model.Format.Types
 
+import Database.PostgreSQL.Simple.FromRow
+
 type instance IdType Asset = Int32
+
 
 data AssetRow = AssetRow
   { assetId :: Id Asset
@@ -28,6 +31,7 @@ data AssetRow = AssetRow
   , assetSize :: Maybe Int64
   }
   deriving (Show)
+
 data Asset = Asset
   { assetRow :: !AssetRow
   , assetVolume :: Volume
@@ -36,6 +40,10 @@ data Asset = Asset
 
 instance Kinded Asset where
   kindOf _ = "asset"
+
+-- instance created for postgresql-simple queries
+--instance FromRow AssetRow where
+--    fromRow = AssetRow <$> field <*> field <*> field <*> field <*> field <*> field <*> field
 
 makeHasRec ''AssetRow ['assetId, 'assetFormat, 'assetRelease]
 makeHasRec ''Asset ['assetRow, 'assetVolume]
