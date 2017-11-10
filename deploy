@@ -9,6 +9,9 @@ nix-copy-closure --to "$rcvr" "$RESULT"
 echo "copy closure of Databrary binaries completed..."
 
 ssh "$rcvr" bash -x <<EOF 
-echo "Hello, Databrary is attempting to create a link to it's application executable found in the nix-store"
-nix-env -i "$RESULT"
+# echo "Hello, Databrary is attempting to create a link to it's application executable found in the nix-store"
+# nix-env -i "$RESULT"
+rm -f /home/demo/run.sh
+echo "$RESULT" > /home/demo/run.sh
+chmod +x /home/demo/run.sh
 EOF
