@@ -3,7 +3,16 @@
 set -euo pipefail 
 
 rcvr=$1
-
+RESULT="$(nix-build -A pkgs.databrary --show-trace)"
+appDir="databraryApp"
 echo "building Databrary binaries..."
-nix-copy-closure --to "$rcvr" "$(nix-build -A pkgs.databrary --show-trace)"
+nix-copy-closure --to "$rcvr" "$RESULT"
 echo "copy closure of Databrary binaries completed..."
+
+ssh "$rcvr" echo "Hello, Databrary is attempting to create a link to it's application executable found in the nix-store"
+if [ ! -d "$appDir" ]; then 
+  mkdir "$appDir" 
+  echo "$appDir dir created..." 
+fi 
+nix-env -p "$appDir" --set "$RESULT"
+echo "$appDir updated."
