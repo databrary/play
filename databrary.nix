@@ -73,5 +73,6 @@ mkDerivation rec {
   postInstall = '' 
     chmod +x $out/share/x86_64-linux-ghc-8.0.2/databrary-1/transctl.sh
     chmod +x $out/share/x86_64-linux-ghc-8.0.2/databrary-1/transcode
+    cp cracklib $out/share/x86_64-linux-ghc-8.0.2/databrary-1/
   '';
 }
