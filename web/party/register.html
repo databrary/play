@@ -72,23 +72,46 @@
           </wizard-step>
 
           <wizard-step name="agent">
+            <div>
+              <p>To access Databrary resources, you must be authorized either as an <strong>Authorized Investigator</strong> through your institution, or as an <strong>Affiliate</strong> by an Authorized Investigator.
+              </p>
+              <p>An <strong>Authorized Investigator</strong> must meet the following requirements:
+                <br/>
+                <ol>
+                  <li>Belong to an institution that maintains an ethics or Institutional Review Board with U.S.-equivalent standards that reviews and approves research involving human subjects; </li>
+                  <li>Have current research ethics training that addresses human subjects policy and issues; and </li>
+                  <li>Be eligible to conduct independent research at their institution.</li>
+                </ol>
+              </p>
+              <p>An <strong>Affiliate</strong> status is generally more appropriate for the following:
+                <br/>
+                <ul>
+                  <li>Students (undergraduate, Masters, or Ph.D. level)</li>
+                  <li>Lab staff</li>
+                  <li>Postdocs</li>
+                </ul>
+              </p>
+              <p>Select the appropriate option below, then search for your institution or sponsor. If they are not listed, select 'Other' to provide more information.
+              </p>
+            </div>
             <div class="radio-set">
               <div>
                 <input type="radio" ng-model="authSearchForm.principal" ng-value="'principal'">
                 <label class="option">
-                  <strong>Authorized Investigator</strong> (Researchers who are eligible to conduct independent research at their institution may become Authorized Investigators and may also authorize and manage Affiliates.)
+                  <strong>Authorized Investigator</strong>
                 </label>
               </div>
 
               <div>
                 <input type="radio" ng-model="authSearchForm.principal" ng-value="'affiliate'">
                 <label class="option">
-                  <strong>Affiliate</strong> (Individuals working with Authorized Investigators may be authorized as Affiliates.)
+                  <strong>Affiliate</strong>
                 </label>
               </div>
             </div>
 
             <auth-search-form ng-show="authSearchForm.principal"></auth-search-form>
+
           </wizard-step>
 
           <wizard-step name="request">
