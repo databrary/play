@@ -3,15 +3,21 @@
 set -euo pipefail 
 
 rcvr=$1
-RESULT="$(nix-build -A pkgs.databrary --show-trace)"
 echo "building Databrary binaries..."
+RESULT="$(nix-build --attr pkgs.databrary --show-trace)"
 nix-copy-closure --to "$rcvr" "$RESULT"
+# TODO: copy and ssh to rcvr2 as well
 echo "copy closure of Databrary binaries completed..."
 
 ssh "$rcvr" bash -x <<EOF 
-# echo "Hello, Databrary is attempting to create a link to it's application executable found in the nix-store"
-# nix-env -i "$RESULT"
-rm -f /home/demo/run.sh
-echo "$RESULT" > /home/demo/run.sh
-chmod +x /home/demo/run.sh
+# TODO: uninstall all previous versions
+echo "Hello, Databrary is attempting to create a link to it's application executable found in the nix-store"
+# QUESTION: will installing here ensure it won't be garbage collected?
+nix-env --install "$RESULT"
+echo "Replacing symlink at /home/demo/databraryExeLink"
+sudo su - demo
+cd /home/demo
+# rm, then create link to avoid possible issues with running process preventing overwrite
+rm -f databraryExeLink # -f to not consider missing file an error
+ln -s "$RESULT/bin/databrary" databraryExeLink
 EOF
