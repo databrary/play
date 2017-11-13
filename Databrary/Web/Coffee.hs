@@ -7,7 +7,7 @@ import Control.Monad (mzero)
 import System.FilePath (takeDirectory)
 import System.Process (callProcess)
 
-import Paths_databrary.Node
+-- import Paths_databrary.Node
 import Databrary.Files
 import Databrary.Web
 import Databrary.Web.Types
@@ -18,6 +18,12 @@ generateCoffeeJS fo@(f, _)
   | (b, e) <- splitWebExtensions f, e `elem` [".js", ".js.map"] = do
     let src = b <.> ".coffee"
     webRegenerate
-      (callProcess (binDir </> "coffee") ["-b", "-c", "-m", "-o", takeDirectory (webFileAbs f), webFileAbs src])
+      (do print (takeDirectory (webFileAbs f))
+          print $ webFileAbs src
+          callProcess ("coffee") ["-b", "-c", "-m", "-o", takeDirectory (webFileAbs f), webFileAbs src]
+      )
+      --  (callProcess (binDir </> "coffee") ["-b", "-c", "-m", "-o", takeDirectory (webFileAbs f), webFileAbs src])
       [] [src] fo
   | otherwise = mzero
+
+
