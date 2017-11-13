@@ -9,7 +9,8 @@ nix-copy-closure --to "$rcvr" "$RESULT"
 # TODO: copy and ssh to rcvr2 as well
 echo "copy closure of Databrary binaries completed..."
 
-ssh -t "$rcvr" bash -x <<EOF 
+# -t -t when you really mean it! needed when ssh input comes from stdin
+ssh -t -t "$rcvr" bash -x <<EOF 
 # TODO: uninstall all previous versions
 echo "Hello, Databrary is attempting to create a link to it's application executable found in the nix-store"
 # QUESTION: will installing here ensure it won't be garbage collected?
