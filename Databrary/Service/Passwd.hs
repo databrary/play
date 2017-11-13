@@ -34,7 +34,7 @@ passwdCheck :: BS.ByteString -> BS.ByteString -> BS.ByteString -> Passwd -> IO (
 passwdCheck passwd _ _ (Passwd lock) =
   withMVar lock $ \() ->
     BS.useAsCString passwd $ \p -> do
-      pw_dict <- getDataFileName "pw_dict"
+      pw_dict <- getDataFileName "cracklib/pw_dict"
       BS.useAsCString (BSC.pack pw_dict) $ \dict -> do
         r <- cracklibCheck p dict
         r /= nullPtr ?$> BS.packCString r
