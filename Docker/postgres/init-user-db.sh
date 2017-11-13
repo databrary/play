@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -e
 PGPASSWORD=mysecretpassword psql -v ON_ERROR_STOP=1 --username "postgres" <<-EOSQL
     CREATE USER databrary;
