@@ -578,10 +578,6 @@ app.factory('modelService', [
       return router.volumeZip([this.id], params);
     };
 
-    Volume.prototype.zipOrigRoute = function (params) {
-      return router.volumeZipOrig([this.id], params);
-    };
-
     Volume.prototype.csvRoute = function () {
       return router.volumeCSV([this.id]);
     };
@@ -951,10 +947,6 @@ app.factory('modelService', [
 
     Slot.prototype.zipRoute = function () {
       return router.slotZip([this.volume.id, this.container.id]);
-    };
-
-    Slot.prototype.zipOrigRoute = function () {
-      return router.slotOrigZip([this.volume.id, this.container.id]);
     };
 
     Slot.prototype.thumbRoute = function (size) {

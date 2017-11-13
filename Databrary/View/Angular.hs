@@ -8,6 +8,7 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Char8 as BSC
 import Data.Default.Class (def)
+import Data.Maybe (isJust)
 import Data.Monoid ((<>))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as HA
@@ -17,7 +18,8 @@ import qualified Databrary.JSON as JSON
 import Databrary.Service.Types
 import Databrary.Model.Identity
 import Databrary.Action.Types
-import Databrary.Web (WebFilePath (..))
+import Databrary.Web (WebFilePath, webFileRelRaw)
+import Databrary.Web.Libs (webDeps, cssWebDeps)
 import Databrary.Controller.Web
 import Databrary.View.Html
 import Databrary.View.Template
@@ -28,8 +30,8 @@ ngAttribute = H.customAttribute . H.stringTag . ("ng-" <>)
 webURL :: BS.ByteString -> H.AttributeValue
 webURL p = actionValue webFile (Just $ StaticPath p) ([] :: Query)
 
-htmlAngular :: [WebFilePath] -> [WebFilePath] -> BSB.Builder -> RequestContext -> H.Html
-htmlAngular cssDeps jsDeps nojs auth = H.docTypeHtml H.! ngAttribute "app" "databraryModule" $ do
+htmlAngular :: Maybe [WebFilePath] -> BSB.Builder -> RequestContext -> H.Html
+htmlAngular debug nojs auth = H.docTypeHtml H.! ngAttribute "app" "databraryModule" $ do
   H.head $ do
     htmlHeader Nothing def
     H.noscript $
@@ -50,10 +52,10 @@ htmlAngular cssDeps jsDeps nojs auth = H.docTypeHtml H.! ngAttribute "app" "data
         H.! HA.rel "apple-touch-icon-precomposed"
         H.! HA.href (webURL $ "icons/apple-touch-icon" <> maybe "" (BSC.cons '-') size <> ".png")
         !? (HA.sizes . byteStringValue <$> size)
-    forM_ cssDeps $ \css ->
+    forM_ (if isJust debug then cssWebDeps True else ["all.min.css"]) $ \css ->
       H.link
         H.! HA.rel "stylesheet"
-        H.! HA.href (webURL $ webFileRel css)
+        H.! HA.href (webURL $ webFileRelRaw css)
     H.script $ do
       H.preEscapedString "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src= 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f); })(window,document,'script','dataLayer','GTM-NW6PSFL');"
     H.script $ do
@@ -65,9 +67,9 @@ htmlAngular cssDeps jsDeps nojs auth = H.docTypeHtml H.! ngAttribute "app" "data
         H.preEscapedString ",down:"
         H.unsafeLazyByteString $ JSON.encode msg
       H.preEscapedString "};"
-    forM_ jsDeps $ \js ->
+    forM_ (maybe ["all.min.js"] ((webDeps True ++) . ("debug.js" :)) debug) $ \js ->
       H.script
-        H.! HA.src (webURL $ webFileRel js)
+        H.! HA.src (webURL $ webFileRelRaw js)
         $ return ()
   H.body
     H.! H.customAttribute "flow-prevent-drop" mempty
