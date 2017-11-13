@@ -39,7 +39,7 @@ queryTags = action GET (pathJSON >/> "tags" >/> pathMaybe R.parameter) $ \t -> w
 
 tagResponse :: API -> TagUse -> ActionM Response
 tagResponse JSON t = okResponse [] . JSON.recordEncoding . tagCoverageJSON <$> lookupTagCoverage (useTag t) (containerSlot $ slotContainer $ tagSlot t)
-tagResponse HTML t = peeks $ otherRouteResponse [] (viewSlot False) (HTML, (Just (view t), slotId (tagSlot t)))
+tagResponse HTML t = peeks $ otherRouteResponse [] viewSlot (HTML, (Just (view t), slotId (tagSlot t)))
 
 postTag :: ActionRoute (API, Id Slot, TagId)
 postTag = action POST (pathAPI </>> pathSlotId </> pathTagId) $ \(api, si, TagId kw tn) -> withAuth $ do

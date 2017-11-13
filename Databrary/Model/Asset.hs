@@ -4,7 +4,6 @@ module Databrary.Model.Asset
   , blankAsset
   , assetBacked
   , lookupAsset
-  , lookupOrigAsset
   , lookupVolumeAsset
   , addAsset
   , changeAsset
@@ -18,6 +17,7 @@ import Data.Maybe (isNothing, isJust)
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Database.PostgreSQL.Typed (pgSQL)
+import Database.PostgreSQL.Typed.Query (makePGQuery, QueryFlags(..), simpleQueryFlags)
 
 import Databrary.Ops
 import Databrary.Has (view, peek)
@@ -33,9 +33,12 @@ import Databrary.Model.Id
 import Databrary.Model.Identity
 import Databrary.Model.Party
 import Databrary.Model.Volume
+import Databrary.Model.Volume.SQL (makeVolume, setCreation)
 import Databrary.Model.Format
 import Databrary.Model.Asset.Types
 import Databrary.Model.Asset.SQL
+
+$(useTDB)
 
 blankAsset :: Volume -> Asset
 blankAsset vol = Asset
@@ -57,14 +60,24 @@ assetBacked = isJust . assetSHA1 . assetRow
 lookupAsset :: (MonadHasIdentity c m, MonadDB c m) => Id Asset -> m (Maybe Asset)
 lookupAsset ai = do
   ident <- peek
-  dbQuery1 $(selectQuery (selectAsset 'ident) "$WHERE asset.id = ${ai}")
+  mRow <- dbQuery1
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT asset.id,asset.format,asset.release,asset.duration,asset.name,asset.sha1,asset.size,volume.id,volume.name,volume.body,volume.alias,volume.doi,volume_creation(volume.id),volume_owners.owners,volume_permission.permission"
+           ++ " FROM asset JOIN volume LEFT JOIN volume_owners ON volume.id = volume_owners.volume JOIN LATERAL (VALUES (CASE WHEN ${identitySuperuser ident} THEN enum_last(NULL::permission) ELSE volume_access_check(volume.id, ${view ident :: Id Party}) END)) AS volume_permission (permission) ON volume_permission.permission >= 'PUBLIC'::permission ON asset.volume = volume.id "
+           ++ "WHERE asset.id = ${ai}" ))
+  pure 
+    (fmap 
+       (\(aid,afm,arl,adr,anm,ash,asz,vid,vnm,vbd,vals,vdoi,vcr,vow,vpr) -> 
+          ($)
+            (Asset (makeAssetRow aid afm arl adr anm ash asz))
+            (makeVolume
+              (setCreation (VolumeRow vid vnm vbd vals vdoi) vcr)
+              vow
+              vpr))
+       mRow)
 
-lookupOrigAsset :: (MonadHasIdentity c m, MonadDB c m) => Id Asset -> m (Maybe Asset)
-lookupOrigAsset ai = do
-  ident <- peek
-  dbQuery1 $(selectQuery (selectAsset 'ident) "$left join transcode tc on tc.orig = asset.id WHERE asset.id = ${ai}")
-
-lookupVolumeAsset :: (MonadDB c m) => Volume -> Id Asset -> m (Maybe Asset)
+lookupVolumeAsset :: (MonadDB c m) => Volume -> Id Asset -> m (Maybe Asset) -- TODO: expand soon
 lookupVolumeAsset vol ai = do
   dbQuery1 $ (`Asset` vol) <$> $(selectQuery selectAssetRow "WHERE asset.id = ${ai} AND asset.volume = ${volumeId $ volumeRow vol}")
 

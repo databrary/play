@@ -4,7 +4,6 @@ module Databrary.Model.AssetSegment
   , lookupAssetSegment
   , lookupSlotAssetSegment
   , lookupAssetSlotSegment
-  , lookupOrigSlotAssetSegment
   , lookupSlotSegmentThumb
   , auditAssetSegmentDownload
   , assetSegmentJSON
@@ -42,15 +41,7 @@ lookupAssetSegment seg ai = do
 lookupSlotAssetSegment :: (MonadHasIdentity c m, MonadDB c m) => Id Slot -> Id Asset -> m (Maybe AssetSegment)
 lookupSlotAssetSegment (Id (SlotId ci seg)) ai = do
   ident :: Identity <- peek
-  dbQuery1 $(selectQuery (selectAssetSegment 'ident 'seg) 
-    "$WHERE slot_asset.container = ${ci} AND slot_asset.asset = ${ai} AND slot_asset.segment && ${seg}")
-
-lookupOrigSlotAssetSegment :: (MonadHasIdentity c m, MonadDB c m) => Id Slot -> Id Asset -> m (Maybe AssetSegment)
-lookupOrigSlotAssetSegment (Id (SlotId ci seg)) ai = do
-  ident :: Identity <- peek
-  dbQuery1 $(selectQuery (selectAssetSegment 'ident 'seg) 
-    "$inner join asset_revision ar on ar.asset = asset.id WHERE slot_asset.container = ${ci} AND slot_asset.asset = ${ai} AND slot_asset.segment && ${seg}")
-
+  dbQuery1 $(selectQuery (selectAssetSegment 'ident 'seg) "$WHERE slot_asset.container = ${ci} AND slot_asset.asset = ${ai} AND slot_asset.segment && ${seg}")
 
 lookupAssetSlotSegment :: MonadDB c m => AssetSlot -> Segment -> m (Maybe AssetSegment)
 lookupAssetSlotSegment a s =

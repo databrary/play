@@ -5,25 +5,21 @@ module Databrary.Web.All
   ) where
 
 import Control.Monad (when, forM_)
-import Control.Monad.IO.Class (liftIO)
 import Foreign.Marshal.Alloc (allocaBytes)
 import System.IO (withBinaryFile, IOMode(ReadMode, WriteMode), hPutChar, hGetBufSome, hPutBuf)
 
 import Databrary.Web
-import Databrary.Files
 import Databrary.Web.Types
 import Databrary.Web.Generate
 import Databrary.Web.Libs
 
 generateMerged :: [WebFilePath] -> WebGenerator
-generateMerged l = \fo@(f, _) -> do
-  fp <- liftIO $ unRawFilePath $ webFileAbs f
+generateMerged l fo@(f, _) = do
   webRegenerate
     (allocaBytes z $ \b ->
-      withBinaryFile fp WriteMode $ \h ->
+      withBinaryFile (webFileAbs f) WriteMode $ \h ->
         forM_ l $ \s -> do
-          fps <- unRawFilePath $ webFileAbs s
-          withBinaryFile fps ReadMode $
+          withBinaryFile (webFileAbs s) ReadMode $
             copy b h
           hPutChar h '\n')
     [] l fo
@@ -36,12 +32,7 @@ generateMerged l = \fo@(f, _) -> do
   z = 32768
 
 generateAllJS :: WebGenerator
-generateAllJS = \f -> do
-  deps <- liftIO $ webDeps True
-  appMinJs <- liftIO $ makeWebFilePath "app.min.js"
-  generateMerged (deps ++ [appMinJs]) f
+generateAllJS = generateMerged (webDeps False ++ ["app.min.js"])
 
 generateAllCSS :: WebGenerator
-generateAllCSS = \f -> do
-  css <- liftIO $ cssWebDeps False
-  generateMerged css f
+generateAllCSS = generateMerged (cssWebDeps False)

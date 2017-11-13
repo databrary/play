@@ -6,6 +6,9 @@ module Databrary.Controller.Angular
   ) where
 
 import Control.Arrow (second)
+#ifdef DEVEL
+import Control.Monad.IO.Class (liftIO)
+#endif
 import qualified Data.ByteString.Builder as BSB
 import Data.Default.Class (Default(..))
 import Network.HTTP.Types (hUserAgent, QueryLike(..))
@@ -21,8 +24,6 @@ import Databrary.Action
 import Databrary.HTTP (encodePath')
 import Databrary.HTTP.Request
 import Databrary.View.Angular
-import Databrary.Web
-import Databrary.Web.Libs
 
 data JSOpt
   = JSDisabled
@@ -76,16 +77,7 @@ angularResult nojs auth = do
 #else
     return Nothing
 #endif
-  cssDeps <- case debug of
-    Just _ -> cssWebDeps True
-    Nothing -> (:[]) <$> makeWebFilePath "all.min.css"
-  jsDeps <- case debug of
-    Just debug' -> do
-      w <- webDeps True
-      d <- makeWebFilePath "debug.js"
-      return $ w ++ (d : debug')
-    Nothing -> (:[]) <$> makeWebFilePath "all.min.js"
-  result $ okResponse [] (htmlAngular cssDeps jsDeps nojs auth)
+  result $ okResponse [] (htmlAngular debug nojs auth)
 
 angular :: ActionM ()
 angular = mapM_ (focusIO . angularResult) =<< peeks angularRequest

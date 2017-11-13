@@ -37,7 +37,7 @@ listFiles dir = loop "" where
         (ent b dh)
 
 allWebFiles :: IO [WebFilePath]
-allWebFiles = withWebDir $ \webDirRaw -> mapM makeWebFilePath =<< listFiles webDirRaw
+allWebFiles = map fromRawFilePath <$> listFiles webDirRaw
 
 findWebFiles :: BS.ByteString -> IO [WebFilePath]
-findWebFiles ext = filter ((ext ==) . takeExtensions . webFileRel) <$> allWebFiles
+findWebFiles ext = filter ((ext ==) . takeExtensions . webFileRelRaw) <$> allWebFiles

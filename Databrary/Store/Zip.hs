@@ -33,7 +33,7 @@ import System.IO (withBinaryFile, IOMode(ReadMode, WriteMode))
 import System.IO.Error (mkIOError, eofErrorType)
 import System.Posix.Directory.Foreign (dtDir, dtReg)
 import System.Posix.Directory.Traversals (getDirectoryContents)
-import System.Posix.Files.ByteString (isDirectory, modificationTimeHiRes, fileSize, getFileStatus)
+import System.Posix.Files.ByteString (isDirectory, modificationTimeHiRes, fileSize)
 
 import Databrary.Ops
 import Databrary.Files
@@ -220,14 +220,13 @@ streamZip entries comment write = do
         liftIO $ write $ B.lazyByteString b
       ZipEntryFile size f -> do
         header Nothing
-        fp <- liftIO $ unRawFilePath f
         let run c 0 _ = return c
             run c s h = do
               b <- BS.hGetSome h (fromIntegral $ min s $ fromIntegral B.defaultChunkSize)
-              when (BS.null b) $ ioError $ mkIOError eofErrorType "ZipEntryFile" (Just h) (Just fp)
+              when (BS.null b) $ ioError $ mkIOError eofErrorType "ZipEntryFile" (Just h) (Just $ toFilePath f)
               write $ B.byteString b
               run (crc32Update c b) (s - fromIntegral (BS.length b)) h
-        c <- liftIO $ withBinaryFile fp ReadMode $ run 0 size
+        c <- liftIO $ withBinaryFile (toFilePath f) ReadMode $ run 0 size
         modify' (size +)
         let s64 = size >= zip64Size
         send (if s64 then 24 else 16)

@@ -4,7 +4,7 @@ module Databrary.Ingest.JSON
   ) where
 
 import Control.Arrow (left)
-import Control.Monad (join, when, unless, void, mfilter, forM_, (<=<))
+import Control.Monad (join, when, unless, void, mfilter, forM_)
 import Control.Monad.Except (ExceptT(..), runExceptT, mapExceptT, catchError, throwError)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Control.Monad.Trans.Class (lift)
@@ -21,14 +21,13 @@ import Data.Time.Format (parseTimeM, defaultTimeLocale)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Database.PostgreSQL.Typed.Range as Range
-import System.FilePath ((</>))
 import System.IO (withBinaryFile, IOMode(ReadMode))
 
 import Paths_databrary
 import Databrary.Ops
 import Databrary.Has (Has, view, focusIO)
 import qualified Databrary.JSON as J
-import Databrary.Files hiding ((</>))
+import Databrary.Files
 import Databrary.Store.Stage
 import Databrary.Store.Probe
 import Databrary.Store.Transcode
@@ -97,10 +96,7 @@ data StageFile = StageFile
 asStageFile :: FilePath -> IngestM StageFile
 asStageFile b = do
   r <- (b </>) <$> JE.asString
-  a <- fromMaybeM (throwPE "stage file not found") <=< lift $ focusIO $ \a -> do
-    rfp <- rawFilePath r
-    stageFileRaw <- stageFile rfp a
-    mapM unRawFilePath stageFileRaw
+  a <- fromMaybeM (throwPE "stage file not found") =<< lift (focusIO (stageFile r))
   return $ StageFile r a
 
 ingestJSON :: Volume -> J.Value -> Bool -> Bool -> ActionM (Either [T.Text] [Container])
@@ -237,11 +233,9 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
     sa <- fromMaybeM
       (JE.key "file" $ do
         file <- asStageFile dir
-        stageFileRelRaw <- lift $ liftIO $ rawFilePath $ stageFileRel file
-        stageFileRelAbs <- lift $ liftIO $ rawFilePath $ stageFileAbs file
         (,) . Just . (,) file
           <$> (either throwPE return
-            =<< lift (probeFile stageFileRelRaw stageFileRelAbs))
+            =<< lift (probeFile (toRawFilePath $ stageFileRel file) (toRawFilePath $ stageFileAbs file)))
           <*> lift (lookupIngestAsset vol $ stageFileRel file))
       =<< (JE.keyMay "id" $ do
         maybe (throwPE "asset not found") (return . (,) Nothing . Just) =<< lift . lookupVolumeAsset vol . Id =<< JE.asIntegral)
@@ -269,7 +263,6 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
       (~(Just (file, probe)), Nothing) -> do
         release <- JE.key "release" asRelease
         name <- JE.keyMay "name" JE.asText
-        stageFileAbsRaw <- lift $ liftIO $ rawFilePath $ stageFileAbs file
         let ba = blankAsset vol
         a <- lift $ addAsset ba
           { assetRow = (assetRow ba)
@@ -277,7 +270,7 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
             , assetRelease = release
             , assetName = name
             }
-          } (Just stageFileAbsRaw)
+          } (Just $ toRawFilePath $ stageFileAbs file)
         lift $ addIngestAsset a (stageFileRel file)
         forM_ orig $ \o -> lift $ replaceAsset o a -- FIXME
         return a

@@ -64,7 +64,7 @@ jsRoutes =
   , jsRoute "csvVolume" csvVolume (volume)
   , jsRoute "viewVolumeActivity" viewVolumeActivity (HTML, volume)
 
-  , jsRoute "viewSlot" (viewSlot False) (HTML, (Just volume, slot)) 
+  , jsRoute "viewSlot" viewSlot (HTML, (Just volume, slot))
   , jsRoute "viewSlotEdit" viewContainerEdit (Just volume, container)
   , jsRoute "viewSlotActivity" viewContainerActivity (HTML, (Just volume, container))
   , jsRoute "thumbSlot" thumbSlot (Just volume, slot)
@@ -72,22 +72,16 @@ jsRoutes =
   , jsRoute "viewRecord" viewRecord (HTML, record)
 
   , jsRoute "viewFormats" viewFormats ()
-  , jsRoute "viewAssetSegment" (viewAssetSegment False) (HTML, Just volume, slot, asset)
-  , jsRoute "viewOrigAssetSegment" (viewAssetSegment True) (HTML, Just volume, slot, asset)
-  , jsRoute "downloadAssetSegment" downloadAssetSegment (slot, asset) --download transcoded asset segment
-  , jsRoute "downloadOrigAssetSegment" downloadOrigAssetSegment (slot, asset) --download original asset segment 
-  , jsRoute "thumbAssetSegment" (thumbAssetSegment False) (slot, asset) 
-  , jsRoute "thumbOrigAssetSegment" (thumbAssetSegment True) (slot, asset)
+  , jsRoute "viewAssetSegment" viewAssetSegment (HTML, Just volume, slot, asset)
+  , jsRoute "downloadAssetSegment" downloadAssetSegment (slot, asset)
+  , jsRoute "thumbAssetSegment" thumbAssetSegment (slot, asset)
   , jsRoute "downloadAsset" downloadAsset (asset, fullSegment)
-  , jsRoute "downloadOrigAsset" downloadOrigAsset (asset, fullSegment) --download original asset
   , jsRoute "thumbAsset" thumbAsset (asset, fullSegment)
 
   , jsRoute "viewSearch" postSearch (HTML)
 
-  , jsRoute "zipSlot" (zipContainer False) (Just volume, container) --zip transcoded slot
-  , jsRoute "zipOrigSlot" (zipContainer True) (Just volume, container) --zip orignal slot
-  , jsRoute "zipVolume" (zipVolume False) (volume) -- zip volume full of transcoded assets
-  , jsRoute "zipOrigVolume" (zipVolume True) (volume) -- zip volume full of original assets
+  , jsRoute "zipSlot" zipContainer (Just volume, container)
+  , jsRoute "zipVolume" zipVolume (volume)
   , jsRoute "viewVolumeDescription" viewVolumeDescription (volume)
 
   , jsRoute "get" viewRoot (JSON)
@@ -127,7 +121,7 @@ jsRoutes =
   , jsRoute "getFunders" queryFunder ()
   , jsRoute "getCitation" getCitation ()
 
-  , jsRoute "getSlot" (viewSlot False) (JSON, (Nothing, slot))
+  , jsRoute "getSlot" viewSlot (JSON, (Nothing, slot))
   , jsRoute "postContainer" postContainer (JSON, container)
   , jsRoute "deleteContainer" deleteContainer (JSON, container)
   , jsRoute "createContainer" createContainer (JSON, volume)
@@ -148,7 +142,7 @@ jsRoutes =
   , jsRoute "deleteVolumeState" deleteVolumeState (volume, "")
 
   , jsRoute "getAsset" viewAsset (JSON, asset)
-  , jsRoute "getAssetSegment" (viewAssetSegment False) (JSON, Just volume, slot, asset)
+  , jsRoute "getAssetSegment" viewAssetSegment (JSON, Just volume, slot, asset)
   , jsRoute "postAsset" postAsset (JSON, asset)
   , jsRoute "createAsset" createAsset (JSON, volume)
   , jsRoute "deleteAsset" deleteAsset (JSON, asset)

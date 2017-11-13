@@ -2,66 +2,75 @@ module Databrary.Web
   ( WebFilePath
   , webFileRel
   , webFileAbs
-  , withWebDir
+  , webFileRelRaw
+  , webFileAbsRaw
+  , webDir
+  , webDirRaw
   , splitWebExtensions
   , splitWebExtension
   , replaceWebExtension
-  , makeWebFilePath
   ) where
 
+import Control.Arrow (first)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
 import Data.Function (on)
 import Data.Hashable (Hashable(..))
+import Data.String (IsString(..))
+import qualified System.FilePath as FP
+import System.IO.Unsafe (unsafeDupablePerformIO)
 import qualified System.Posix.FilePath as RFP
 
 import Paths_databrary (getDataFileName)
 import Databrary.Files
 
 data WebFilePath = WebFilePath
-  { webFileRel :: RawFilePath
-  , webFileAbs :: RawFilePath
+  { webFileRel, webFileAbs :: FilePath
+  , webFileRelRaw, webFileAbsRaw :: RawFilePath
   }
-  deriving (Show)
 
 instance Eq WebFilePath where
-  (==) = (==) `on` webFileRel
-  (/=) = (/=) `on` webFileRel
+  (==) = (==) `on` webFileRelRaw
+  (/=) = (/=) `on` webFileRelRaw
 instance Ord WebFilePath where
-  compare = compare `on` webFileRel
+  compare = compare `on` webFileRelRaw
 instance Hashable WebFilePath where
-  hashWithSalt n = hashWithSalt n . webFileRel
-  hash = hash . webFileRel
+  hashWithSalt n = hashWithSalt n . webFileRelRaw
+  hash = hash . webFileRelRaw
 
-type WebDir = RawFilePath
+instance Show WebFilePath where
+  showsPrec p = showsPrec p . ("web" FP.</>) . webFileRel
 
-getWebDir :: IO WebDir
-getWebDir = do
-  webDir <- getDataFileName "web"
-  rawFilePath webDir
+webDir :: FilePath
+webDir = unsafeDupablePerformIO $ getDataFileName "web"
 
-withWebDir :: (WebDir -> IO a) -> IO a
-withWebDir f = getWebDir >>= (\rfp -> f rfp)
+webDirRaw :: RawFilePath
+webDirRaw = toRawFilePath webDir
 
-makeWebFilePath :: RawFilePath -> IO WebFilePath
-makeWebFilePath r = withWebDir $ \webDirRaw -> do
-  return $ WebFilePath r (webDirRaw RFP.</> r)
+makeWebFilePath :: FilePath -> RawFilePath -> WebFilePath
+makeWebFilePath f r = WebFilePath f (webDir FP.</> f) r (webDirRaw RFP.</> r)
 
---webFilePath :: RawFilePath -> IO WebFilePath
---webFilePath = makeWebFilePath
+webFilePath :: IsFilePath f => f -> WebFilePath
+webFilePath f = makeWebFilePath (toFilePath f) (toRawFilePath f)
 
-splitWebExtensions :: WebFilePath -> IO (WebFilePath, BS.ByteString)
-splitWebExtensions f = do
-  let (fn, ext) = RFP.splitExtensions $ webFileRel f
-  wfp <- makeWebFilePath fn
-  return (wfp, ext)
+instance IsString WebFilePath where
+  fromString = webFilePath
 
-splitWebExtension :: WebFilePath -> IO (WebFilePath, BS.ByteString)
-splitWebExtension f = do
-  let (fn, ext) = RFP.splitExtension $ webFileRel f
-  wfp <- makeWebFilePath fn
-  return (wfp, ext)
+instance IsFilePath WebFilePath where
+  toFilePath = webFileAbs
+  toRawFilePath = webFileAbsRaw
+  fromRawFilePath = webFilePath
+
+  WebFilePath f fa r ra </> WebFilePath f' _ r' _ = WebFilePath (f FP.</> f') (fa FP.</> f') (r RFP.</> r') (ra RFP.</> r')
+  WebFilePath f fa r ra <.> WebFilePath f' _ r' _ = WebFilePath (f FP.<.> f') (fa FP.<.> f') (r RFP.<.> r') (ra RFP.<.> r')
+
+splitWebExtensions :: WebFilePath -> (WebFilePath, BS.ByteString)
+splitWebExtensions f =
+  first (makeWebFilePath (FP.dropExtensions $ webFileRel f)) $ RFP.splitExtensions $ webFileRelRaw f
+
+splitWebExtension :: WebFilePath -> (WebFilePath, BS.ByteString)
+splitWebExtension f =
+  first (makeWebFilePath (FP.dropExtension $ webFileRel f)) $ RFP.splitExtension $ webFileRelRaw f
 
 replaceWebExtension :: String -> WebFilePath -> WebFilePath
-replaceWebExtension e (WebFilePath r ra) = WebFilePath (RFP.replaceExtension r re) (RFP.replaceExtension ra re)
-  where re = BSC.pack e
+replaceWebExtension e (WebFilePath f fa r ra) = WebFilePath (FP.replaceExtension f e) (FP.replaceExtension fa e) (RFP.replaceExtension r re) (RFP.replaceExtension ra re) where re = BSC.pack e

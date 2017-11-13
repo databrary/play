@@ -15,7 +15,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import Network.HTTP.Types (notFound404, hContentEncoding)
 import qualified Network.Wai as Wai
-import System.Posix.FilePath (joinPath, splitDirectories, (<.>))
+import System.Posix.FilePath (joinPath, splitDirectories)
 import qualified Web.Route.Invertible as R
 
 import Databrary.Ops
@@ -30,7 +30,6 @@ import Databrary.HTTP
 import Databrary.HTTP.Request
 import Databrary.HTTP.File
 import Databrary.HTTP.Path.Parser
-import Databrary.Web
 import Databrary.Web.Types
 import Databrary.Web.Cache
 
@@ -67,5 +66,5 @@ webFile = action GET ("web" >/> pathStatic) $ \sp -> withoutAuth $ do
     =<< focusIO (lookupWebFile p)
   agz <- any (bsLCEq "gzip") . concatMap splitHTTP <$> peeks (lookupRequestHeaders "accept-encoding")
   wgz <- if agz then rightJust <$> focusIO (lookupWebFile (p <.> ".gz")) else return Nothing
-  r <- serveFile (webFileAbs $ maybe wf fst wgz) (unknownFormat{ formatMimeType = webFileFormat wfi }) Nothing (convertToBase Base16 $ webFileHash wfi)
+  r <- serveFile (toRawFilePath $ maybe wf fst wgz) (unknownFormat{ formatMimeType = webFileFormat wfi }) Nothing (convertToBase Base16 $ webFileHash wfi)
   return $ if isJust wgz then Wai.mapResponseHeaders ((hContentEncoding, "gzip") :) r else r

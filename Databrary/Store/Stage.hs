@@ -6,9 +6,7 @@ import Databrary.Ops
 import Databrary.Files
 import Databrary.Store.Types
 
-import System.Posix.Files.ByteString (fileExist)
-
-stageFile :: RawFilePath -> Storage -> IO (Maybe RawFilePath)
+stageFile :: IsFilePath f => f -> Storage -> IO (Maybe f)
 stageFile f Storage{ storageStage = Just s } =
-  (sf <?) <$> fileExist sf where sf = s </> f
+  (sf <?) <$> fileExist sf where sf = fromRawFilePath s </> f
 stageFile _ _ = return Nothing
