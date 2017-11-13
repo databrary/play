@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Web.Messages
-    ( generateMessagesJS
-    ) where
+  ( generateMessagesJS
+  ) where
 
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.Aeson.Encoding as JSON

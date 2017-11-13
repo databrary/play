@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Web.Uglify
-    ( appWebJS
-    , generateUglifyJS
-    ) where
+  ( appWebJS
+  , generateUglifyJS
+  ) where
 
 import Control.Monad (guard, liftM2)
 import Control.Monad.IO.Class (liftIO)

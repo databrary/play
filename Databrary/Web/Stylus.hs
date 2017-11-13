@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Web.Stylus
-    ( generateStylusCSS
-    ) where
+  ( generateStylusCSS
+  ) where
 
 import Control.Monad.IO.Class (liftIO)
 import Control.Exception
@@ -26,12 +26,12 @@ generateStylusCSS fo@(f, _) = do
   webRegenerate
     (callProcess
       "stylus" $
-    (if takeExtensions (webFileRel f) == ".min.css" then ("-c":) else id)
+    (if takeExtensions (webFileRel f) == ".min.css" then ("-c":) else id) 
     [ "-u", "nib"
     , "-u", "autoprefixer-stylus"
     , "-o", webFileAbs f
     , webFileAbs src
     ])
-    []
-    sl
+    [] 
+    sl 
     fo

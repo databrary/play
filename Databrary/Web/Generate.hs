@@ -8,9 +8,11 @@ module Databrary.Web.Generate
 import Control.Monad (when, unless)
 import Control.Monad.Except (throwError)
 import Control.Monad.IO.Class (liftIO)
-import System.Directory (createDirectoryIfMissing)
+import qualified Data.Text as T
+import System.Directory (createDirectoryIfMissing, canonicalizePath)
 import System.FilePath (splitFileName, takeDirectory)
-import System.Posix.Files (createLink, rename)
+import System.Posix.Files (createLink, createSymbolicLink, rename)
+import System.Process
 
 import Paths_databrary (getDataFileName)
 import Databrary.Files
@@ -64,9 +66,11 @@ staticWebGenerate g (w, _) = liftIO $ do
 
 webLinkDataFile :: FilePath -> WebGenerator
 webLinkDataFile s fo@(f, _) = do
-  wf <- liftIO $ getDataFileName s
+  -- wf <- liftIO $ canonicalizePath s
+  wf <- liftIO $ canonicalizePath =<< getDataFileName s
+  liftIO $ print wf
   webRegenerate (do
     r <- removeFile f
     unless r $ createDirectoryIfMissing False $ takeDirectory (webFileAbs f)
-    createLink wf (webFileAbs f))
+    createSymbolicLink wf (webFileAbs f))
     [wf] [] fo
