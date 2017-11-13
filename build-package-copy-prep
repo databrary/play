@@ -9,16 +9,9 @@ nix-copy-closure --to "$rcvr" "$RESULT"
 # TODO: copy and ssh to rcvr2 as well
 echo "copy closure of Databrary binaries completed..."
 
-# -t -t when you really mean it! needed when ssh input comes from stdin
-ssh -t -t "$rcvr" bash -x <<EOF 
-# TODO: uninstall all previous versions
-echo "Hello, Databrary is attempting to create a link to it's application executable found in the nix-store"
-# QUESTION: will installing here ensure it won't be garbage collected?
-nix-env --install "$RESULT"
-echo "Replacing symlink at /home/demo/databraryExeLink"
-sudo su - demo
-cd /home/demo
-# rm, then create link to avoid possible issues with running process preventing overwrite
-rm -f databraryExeLink # -f to not consider missing file an error
-ln -s "$RESULT/bin/databrary" databraryExeLink
-EOF
+# TODO: uninstall previous version; run nix-collect-garbage after install
+# NOTE: this is overly complex, simplify using multiple lines later
+ssh -t "$rcvr" " \
+           nix-env --install $RESULT \
+        && sudo -u demo bash -c \"cd /home/demo && rm -f databraryExeLink && ln -s $RESULT/bin/databrary databraryExeLink \"  \
+"
