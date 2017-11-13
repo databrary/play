@@ -21,12 +21,12 @@ From the root directory of this project, run
 > sudo ./setup-binary-caches
 # Enter environment for building/running databrary
 > nix-shell
-# Set up the postgresql database along with required schemas
+# Set up the postgresql database along with required schemas (this is a synchronus procedure, use Ctrl-C to close db connection)
 > ./init-db
 ```
 
 ### STEP 2
-From the same root directory of this project inside the nix-shell, run
+In a separate shell, from the same root directory of this project, inside a nix-shell, run
 ```bash
 > databrary_datadir=. cabal repl databrary
 ```
