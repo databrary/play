@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Web.Messages
-  ( generateMessagesJS
-  ) where
+    ( generateMessagesJS
+    ) where
 
 import Control.Monad.IO.Class (liftIO)
-import qualified Data.Aeson.Encode as JSON
+import qualified Data.Aeson.Encoding as JSON
 import qualified Data.ByteString.Builder as BSB
 import System.IO (withBinaryFile, IOMode(WriteMode), hPutStr)
 
@@ -21,6 +21,6 @@ generateMessagesJS fo@(f, _) = do
     msg <- liftIO $ loadMessagesFrom mf
     withBinaryFile (webFileAbs f) WriteMode $ \h -> do
       hPutStr h "app.constant('messageData',"
-      BSB.hPutBuilder h $ JSON.encodeToBuilder $ JSON.toJSON msg
+      BSB.hPutBuilder h $ JSON.fromEncoding $ JSON.value $ JSON.toJSON msg
       hPutStr h ");")
     [mf] [] fo
