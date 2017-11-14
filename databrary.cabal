@@ -64,6 +64,7 @@ Executable schemabrary
   default-language: Haskell2010
   build-depends:
     base,
+    blaze-html,
     bytestring >= 0.10,
     transformers,
     transformers-base,
@@ -73,14 +74,22 @@ Executable schemabrary
     template-haskell,
     filepath,
     directory,
+    gargoyle,
+    gargoyle-postgresql,
+    http-types,
     text,
     unordered-containers,
     parsec >= 3,
+    postgresql-simple,
+    postgresql-simple-url,
     resource-pool,
     network,
+    network-uri, 
     postgresql-typed,
     vector,
     aeson
+
+  default-extensions: FlexibleInstances
 
 Executable databrary
   main-is: Databrary/Main.hs
@@ -128,6 +137,8 @@ Executable databrary
     resource-pool,
     scientific,
     postgresql-typed,
+    postgresql-simple,
+    postgresql-simple-url,
     memory >= 0.8,
     cryptonite,
     resourcet,
@@ -140,6 +151,7 @@ Executable databrary
     http-client,
     http-client-tls,
     mime-mail,
+    mime-types,
     fast-logger,
     digest,
     hjsonschema == 0.9.0.0,
@@ -150,6 +162,8 @@ Executable databrary
     range-set-list,
     invertible,
     web-inv-route,
+    gargoyle,
+    gargoyle-postgresql,
     smtp-mail
 
   default-language: Haskell2010
@@ -165,4 +179,47 @@ Executable databrary
     cpp-options: -DSANDBOX
 
   pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
-  extra-libraries: crack
+  extra-libraries: crack, crypto
+
+Executable generate
+  main-is: generate.hs
+
+  build-depends:
+    aeson,
+    base,
+    blaze-html,
+    bytestring >= 0.10,
+    cryptonite,
+    directory,
+    filepath,
+    hashable >= 1.2.1,
+    http-types,
+    memory >= 0.8,
+    mime-types,
+    mtl >= 2.2.1,
+    parsec >= 3,
+    posix-paths,
+    process,
+    template-haskell,
+    text,
+    th-lift,
+    time,
+    transformers,
+    transformers-base,
+    unix,
+    unordered-containers,
+    vector,
+    zlib
+
+  default-language: Haskell2010
+  default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
+
+  ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields
+  cpp-options: -DNODB
+
+  if flag(devel)
+    cpp-options: -DDEVEL
+  else
+    ghc-options: -with-rtsopts -N
+  if flag(sandbox)
+    cpp-options: -DSANDBOX

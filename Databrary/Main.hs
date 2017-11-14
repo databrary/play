@@ -6,7 +6,7 @@ import Control.Monad (void)
 #ifndef DEVEL
 import Control.Monad.Reader (runReaderT)
 #endif
-import qualified Data.Aeson.Encode as J (encodeToBuilder)
+import qualified Data.Aeson.Encoding as J
 import Data.ByteString.Builder (hPutBuilder)
 import Data.Either (partitionEithers)
 import qualified System.Console.GetOpt as Opt
@@ -30,10 +30,6 @@ import Databrary.Routes.API (swagger)
 import Databrary.Warp (runWarp)
 import Databrary.EZID.Volume (updateEZID)
 
-import Data.Monoid
-import System.Directory
-import System.Process
-import qualified Data.Text as Text
 
 data Flag
   = FlagConfig FilePath
@@ -73,7 +69,7 @@ main = do
       exitSuccess
     ([FlagAPI], [], []) -> do
       putStrLn "put web builder..."
-      hPutBuilder stdout $ J.encodeToBuilder swagger
+      hPutBuilder stdout $ J.fromEncoding $ J.value swagger
       putStrLn "finished web builder..."
       exitSuccess
     ([FlagEZID], [], []) -> do
@@ -94,8 +90,7 @@ main = do
   putStrLn "evaluating routemap...withService..."
   withService True conf $ \rc -> do
 #ifndef DEVEL
-    --schema <- getDataFileName "schema"
-    let  schema = "./schema" :: FilePath
+    schema <- getDataFileName "schema"
     putStrLn "updating schema"
     withDB (serviceDB rc) $ runReaderT $ updateDBSchema schema
     putStrLn "updating schema completed"

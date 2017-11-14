@@ -14,7 +14,6 @@ module Databrary.HTTP.Client
   ) where
 
 import Control.Arrow ((&&&))
-import Control.Exception (SomeException, toException)
 import Control.Exception.Lifted (handle)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Control (MonadBaseControl)
@@ -23,13 +22,11 @@ import qualified Data.Aeson as JSON
 import qualified Data.Attoparsec.ByteString as P
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
-import qualified Data.CaseInsensitive as CI
-import Data.Foldable (fold)
 import Data.Function (on)
 import Data.Monoid ((<>))
 import qualified Network.HTTP.Client as HC
 import Network.HTTP.Client.TLS (tlsManagerSettings)
-import Network.HTTP.Types (ResponseHeaders, hAccept, hContentType, Status, statusIsSuccessful)
+import Network.HTTP.Types (hAccept, hContentType, statusIsSuccessful)
 
 import Databrary.Has
 
@@ -61,8 +58,7 @@ contentTypeEq = (==) `on` f where
     | otherwise = s
 
 checkContentOk :: BS.ByteString -> HC.Request -> HC.Response HC.BodyReader -> IO ()
-checkContentOk ct req rsp = do
-  let mcj = HC.cookieJar req
+checkContentOk ct _ rsp = do
   if | not $ statusIsSuccessful $ HC.responseStatus rsp -> fail "checkContentOk: status unsuccessful"
      | not $ any (contentTypeEq ct) ht -> fail "checkContentOk: bad content type"
      | otherwise -> return ()
