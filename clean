@@ -4,3 +4,4 @@ rm -r dist
 rm -r web/lib
 rm web/all.min.* 
 rm web/app.min.*
+rm node_modules
