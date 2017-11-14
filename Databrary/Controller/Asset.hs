@@ -263,7 +263,9 @@ viewAssetEdit = action GET (pathHTML >/> pathId </< "edit") $ \ai -> withAuth $ 
 
 createAsset :: ActionRoute (API, Id Volume)
 createAsset = multipartAction $ action POST (pathAPI </> pathId </< "asset") $ \(api, vi) -> withAuth $ do
+  liftIO $ print "getting volume permission..."
   v <- getVolume PermissionEDIT vi
+  liftIO $ print "processing asset..."
   processAsset api $ AssetTargetVolume v
 
 viewAssetCreate :: ActionRoute (Id Volume)
