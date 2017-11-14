@@ -20,6 +20,10 @@ let
       echo linking node_modules
       ln -s ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
     fi
+    if [ ! -d "databrary_logs" ]; then
+      mkdir databrary_logs
+      touch databrary_logs/solr_log
+    fi 
     cabal configure --datadir=. --datasubdir=.
     cabal repl databrary
   '';
