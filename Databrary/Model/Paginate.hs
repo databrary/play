@@ -1,15 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Model.Paginate
   ( Paginate(..)
-  , paginateSQL
   , def
   ) where
 
-import qualified Data.ByteString as BS
 import Data.Default.Class (Default(..))
 import Data.Int (Int32)
-import Data.Monoid ((<>))
-import Database.PostgreSQL.Typed.Dynamic (pgLiteralRep)
 
 data Paginate = Paginate
   { paginateOffset, paginateLimit :: !Int32
@@ -28,6 +24,3 @@ instance Enum Paginate where
   pred (Paginate o l) = Paginate (o-l `max` 0) l
   toEnum i = Paginate (d*fromIntegral i) d where d = paginateLimit def
   fromEnum (Paginate o l) = fromIntegral $ o + l - 1 `div` l
-
-paginateSQL :: Paginate -> BS.ByteString
-paginateSQL (Paginate o l) = "LIMIT " <> pgLiteralRep l <> " OFFSET " <> pgLiteralRep o

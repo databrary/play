@@ -28,7 +28,6 @@ import System.Posix.Types (FileOffset)
 import qualified Text.Blaze.Html as Html
 import qualified Text.Blaze.Html.Renderer.Utf8 as Html
 
-import Databrary.Files
 import qualified Databrary.JSON as JSON
 
 class ResponseData r where
@@ -55,13 +54,13 @@ instance ResponseData ((BSB.Builder -> IO ()) -> IO ()) where
 instance ResponseData ((BS.ByteString -> IO ()) -> IO ()) where
   response s h f = responseStream s h (\w l -> f (\b -> if BS.null b then l else w (BSB.byteString b)))
 
-instance IsFilePath f => ResponseData (f, Maybe FilePart) where
-  response s h (f, p) = responseFile s h (toFilePath f) p
+instance ResponseData (FilePath, Maybe FilePart) where
+  response s h (f, p) = responseFile s h f p
 
-instance IsFilePath f => ResponseData (f, FilePart) where
+instance ResponseData (FilePath, FilePart) where
   response s h (f, p) = response s h (f, Just p)
 
-instance IsFilePath f => ResponseData (f, Maybe FileOffset) where
+instance ResponseData (FilePath, Maybe FileOffset) where
   response s h (f, z) = response s h (f, join (FilePart 0) . toInteger <$> z)
 
 instance ResponseData String where

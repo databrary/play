@@ -44,38 +44,40 @@ getSlot :: Permission -> Maybe (Id Volume) -> Id Slot -> ActionM Slot
 getSlot p mv i =
   checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupSlot i
 
-slotJSONField :: Slot -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
-slotJSONField o "assets" _ =
-  Just . JSON.mapRecords assetSlotJSON <$> lookupSlotAssets o
-slotJSONField o "records" _ =
+slotJSONField :: Bool -> Slot -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
+slotJSONField getOrig o "assets" _ =
+  case getOrig of 
+       True -> Just . JSON.mapRecords assetSlotJSON <$> lookupOrigSlotAssets o
+       False -> Just . JSON.mapRecords assetSlotJSON <$> lookupSlotAssets o
+slotJSONField _ o "records" _ =
   Just . JSON.mapRecords (\r -> recordSlotJSON r JSON..<> "record" JSON..=: recordJSON (slotRecord r)) <$> lookupSlotRecords o
-slotJSONField o "tags" n = do
+slotJSONField _ o "tags" n = do
   tc <- lookupSlotTagCoverage o (maybe 64 fst $ BSC.readInt =<< n)
   return $ Just $ JSON.objectEncoding $ JSON.recordMap $ map tagCoverageJSON tc
-slotJSONField o "comments" n = do
+slotJSONField _ o "comments" n = do
   c <- lookupSlotComments o (maybe 64 fst $ BSC.readInt =<< n)
   return $ Just $ JSON.mapRecords commentJSON c
-slotJSONField o "excerpts" _ =
+slotJSONField _ o "excerpts" _ =
   Just . JSON.mapObjects (\e -> excerptJSON e <> "asset" JSON..= (view e :: Id Asset)) <$> lookupSlotExcerpts o
-slotJSONField o "filename" _ =
+slotJSONField _ o "filename" _ =
   return $ Just $ JSON.toEncoding $ makeFilename $ slotDownloadName o
-slotJSONField _ _ _ = return Nothing
+slotJSONField _ _ _ _ = return Nothing
 
-slotJSONQuery :: Slot -> JSON.Query -> ActionM (JSON.Record (Id Container) JSON.Series)
-slotJSONQuery o q = (slotJSON o JSON..<>) <$> JSON.jsonQuery (slotJSONField o) q
+slotJSONQuery :: Bool -> Slot -> JSON.Query -> ActionM (JSON.Record (Id Container) JSON.Series)
+slotJSONQuery origQ o q = (slotJSON o JSON..<>) <$> JSON.jsonQuery (slotJSONField origQ o) q
 
 slotDownloadName :: Slot -> [T.Text]
 slotDownloadName s = containerDownloadName (slotContainer s)
 
-viewSlot :: ActionRoute (API, (Maybe (Id Volume), Id Slot))
-viewSlot = action GET (pathAPI </> pathMaybe pathId </> pathSlotId) $ \(api, (vi, i)) -> withAuth $ do
+viewSlot :: Bool -> ActionRoute (API, (Maybe (Id Volume), Id Slot))
+viewSlot viewOrig = action GET (pathAPI </> pathMaybe pathId </> pathSlotId) $ \(api, (vi, i)) -> withAuth $ do
   when (api == HTML && isJust vi) angular
   c <- getSlot PermissionPUBLIC vi i
   case api of
-    JSON -> okResponse [] <$> (slotJSONQuery c =<< peeks Wai.queryString)
+    JSON -> okResponse [] <$> (slotJSONQuery viewOrig c =<< peeks Wai.queryString)
     HTML
-      | isJust vi -> return $ okResponse [] $ BSC.pack $ show $ containerId $ containerRow $ slotContainer c -- TODO
-      | otherwise -> peeks $ redirectRouteResponse movedPermanently301 [] viewSlot (api, (Just (view c), slotId c))
+      | isJust vi -> return $ okResponse [] $ BSC.pack $ show $ containerId $ containerRow $ slotContainer c
+      | otherwise -> peeks $ redirectRouteResponse movedPermanently301 [] (viewSlot viewOrig) (api, (Just (view c), slotId c))
 
 thumbSlot :: ActionRoute (Maybe (Id Volume), Id Slot)
 thumbSlot = action GET (pathMaybe pathId </> pathSlotId </< "thumb") $ \(vi, i) -> withAuth $ do

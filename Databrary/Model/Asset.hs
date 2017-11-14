@@ -4,6 +4,7 @@ module Databrary.Model.Asset
   , blankAsset
   , assetBacked
   , lookupAsset
+  , lookupOrigAsset
   , lookupVolumeAsset
   , addAsset
   , changeAsset
@@ -57,6 +58,11 @@ lookupAsset :: (MonadHasIdentity c m, MonadDB c m) => Id Asset -> m (Maybe Asset
 lookupAsset ai = do
   ident <- peek
   dbQuery1 $(selectQuery (selectAsset 'ident) "$WHERE asset.id = ${ai}")
+
+lookupOrigAsset :: (MonadHasIdentity c m, MonadDB c m) => Id Asset -> m (Maybe Asset)
+lookupOrigAsset ai = do
+  ident <- peek
+  dbQuery1 $(selectQuery (selectAsset 'ident) "$left join transcode tc on tc.orig = asset.id WHERE asset.id = ${ai}")
 
 lookupVolumeAsset :: (MonadDB c m) => Volume -> Id Asset -> m (Maybe Asset)
 lookupVolumeAsset vol ai = do
