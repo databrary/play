@@ -87,21 +87,19 @@ routeMap = routes
   , route viewVolumeCreate
   , route createVolume
   , route queryVolumes
-  , route $ zipVolume False 
-  , route $ zipVolume True 
+  , route zipVolume
   , route viewVolumeDescription
   , route thumbVolume
   , route csvVolume
   , route viewVolumeActivity
 
   , route createContainer
-  , route $ viewSlot False 
+  , route viewSlot
   , route viewContainerEdit
   , route postContainer
   , route deleteContainer
   , route viewContainerActivity
-  , route $ zipContainer False 
-  , route $ zipContainer True 
+  , route zipContainer
   , route thumbSlot
 
   , route viewFormats
@@ -111,17 +109,15 @@ routeMap = routes
   , route viewAssetEdit
   , route deleteAsset
   , route downloadAsset
-  , route downloadOrigAsset 
   , route thumbAsset
   , route viewAssetCreate
   , route createAsset
   , route createSlotAsset
   , route viewSlotAssetCreate
 
-  , route (viewAssetSegment False)
-  , route downloadAssetSegment 
-  , route downloadOrigAssetSegment 
-  , route (thumbAssetSegment False) 
+  , route viewAssetSegment
+  , route downloadAssetSegment
+  , route thumbAssetSegment
   , route postExcerpt
   , route deleteExcerpt
 

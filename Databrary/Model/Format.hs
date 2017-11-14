@@ -19,8 +19,6 @@ module Databrary.Model.Format
   , formatTranscodable
   , formatSample
   , formatJSON
-  , formatIsAV
-  , formatNotAV
   ) where
 
 import qualified Data.ByteString as BS
@@ -114,12 +112,6 @@ formatIsImage Format{ formatMimeType = t } = "image/" `BS.isPrefixOf` t
 
 formatIsAudio :: Format -> Bool
 formatIsAudio Format{ formatMimeType = t } = "audio/" `BS.isPrefixOf` t
-
-formatIsAV :: Format -> Bool
-formatIsAV fmat = formatIsVideo fmat || formatIsAudio fmat
-
-formatNotAV :: Format -> Bool
-formatNotAV fmat = not (formatIsVideo fmat || formatIsAudio fmat)
 
 formatTranscodable :: Format -> Maybe Format
 formatTranscodable f

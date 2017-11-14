@@ -112,8 +112,8 @@ htmlVolumeDescription inzip Volume{ volumeRow = VolumeRow{..}, ..} cite fund glo
           H.a H.! HA.href (link viewParty (HTML, TargetParty $ view req)) $
             H.text $ partyName $ partyRow $ view req
       else do
-        H.dt $ H.a H.! actionLink (zipVolume True) volumeId (idSetQuery cs) $
-          void "Download Original"
+        H.dt $ H.a H.! actionLink zipVolume volumeId (idSetQuery cs) $
+          void "Download"
     unless (idSetIsFull cs) $ H.p $ msg "download.zip.partial"
     H.p $ do
       msg "download.warning"
@@ -149,7 +149,6 @@ htmlVolumeDescription inzip Volume{ volumeRow = VolumeRow{..}, ..} cite fund glo
       H.th "sha1 checksum"
     H.tbody $ abody acl
   abody [] = mempty
-  abody (~(AssetSlot{ assetSlot = Nothing }:_):_) = mempty
   abody (~(a@AssetSlot{ assetSlot = Just Slot{ slotContainer = c } }:l):al) = do
     H.tr $ do
       H.td H.! rs $ H.a !? (inzip ?> HA.href (byteStringValue fn)) $
@@ -176,4 +175,4 @@ htmlVolumeDescription inzip Volume{ volumeRow = VolumeRow{..}, ..} cite fund glo
     H.td $ maybe mempty (H.string . show) $ assetDuration a
     H.td $ maybe mempty (lazyByteStringHtml . BSB.toLazyByteString . BSB.byteStringHex) $ assetSHA1 a
     where
-    fn = last $ BSC.split '-' $ makeFilename (assetDownloadName True a) `addFormatExtension` assetFormat a
+    fn = makeFilename (assetDownloadName a) `addFormatExtension` assetFormat a

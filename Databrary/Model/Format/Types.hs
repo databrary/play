@@ -23,7 +23,6 @@ data Format = Format
   , formatExtension :: [BS.ByteString]
   , formatName :: T.Text
   }
-  deriving (Show)
 
 instance Kinded Format where
   kindOf _ = "format"
