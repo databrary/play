@@ -158,6 +158,29 @@ app.controller 'party/profile', [
     $scope.isExpired = (a) ->
       new Date(a.expires) < today
 
+    $scope.hasExpired = (result) ->
+      expiredChildren = []
+      for key, value of result
+        for k, v of value
+          if new Date(v.child.expires) < today
+            expiredChildren.push(key)
+      if expiredChildren.length > 0
+        return true
+      else
+        return false
+      return
+
+    $scope.memberhasCurrent = (result) ->
+      currentChildren = []
+      for key, value of result
+        if new Date(value.child.expires) >= today
+          currentChildren.push(key)
+      if currentChildren.length > 0
+        return true
+      else
+        return false
+      return
+
     $scope.sortVolumes = (b) ->
       if $scope.volumeSort == b
         # volumes.individual.reverse()
@@ -177,6 +200,44 @@ app.controller 'party/profile', [
       $scope.volumeSort = b
       return
     $scope.sortVolumes('permission')
+
+    parties.childrensort = []
+    for key, value of parties.children
+      for x of value
+        value[x]['member'] = key
+        parties.childrensort.push(value[x])
+
+    $scope.affiliateSort = 'accesslevel'
+
+    namest = false
+    expirationdatest = false
+    $scope.changeaffiliateSort = (x) ->
+      $scope.affiliateSort = x
+      angular.element('.affilatesortdiv').not('.' + x + '-div').hide()
+      angular.element('.affilatesortdiv.' + x + '-div').show()
+      if x == "name"
+        if namest == false
+          parties.childrensort.sort (a, b) ->
+            stringSort(a.party.prename, b.party.prename)
+          parties.childrensort.sort (a, b) ->
+            partySort(a, b)
+          namest = true
+        else
+          parties.childrensort.sort (a, b) ->
+            stringSort(b.party.prename, a.party.prename)
+          parties.childrensort.sort (a, b) ->
+            partySort(b, a)
+          namest = false
+      else if x == "expirationdate"
+        if expirationdatest == false
+          parties.childrensort.sort (a, b) ->
+            new Date(a.child.expires) - new Date(b.child.expires)
+          expirationdatest = true
+        else
+          parties.childrensort.sort (a, b) ->
+            new Date(b.child.expires) - new Date(a.child.expires)
+          expirationdatest = false
+      return
 
     return
 ]

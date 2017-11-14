@@ -1,3 +1,7 @@
+{- utility functions for creating escaped strings to be consumed
+   blaze html (the templating system)
+-}
+
 {-# LANGUAGE OverloadedStrings #-}
 module Blaze.ByteString.Builder.Html.Word
   ( wordHtmlEscaped

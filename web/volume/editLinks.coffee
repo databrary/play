@@ -22,7 +22,9 @@ app.directive 'volumeEditLinksForm', [
 
       update()
 
-      form.change = () -> blank() unless form.data[form.data.length-1].url == ''
+      form.change = () -> 
+        blank() unless form.data[form.data.length-1].url == ''
+        form.validator.server {}
 
       form.remove = (ref, i) ->
         ref.removed = true

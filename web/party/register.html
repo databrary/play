@@ -11,19 +11,19 @@
           <wizard-step name="create">
             <ng-form name="registerForm">
               <validator name="prename" label="prename" class="grid-clear-left col-desktop-7 col-tablet-4 col-mobile-6">
-                <input id="field-prename" name="prename" type="text" ng-model="registerForm.data.prename" autocomplete="given-name" placeholder="First">
+                <input id="field-prename" name="prename" type="text" ng-model="registerForm.data.prename" autocomplete="off" placeholder="First">
               </validator>
 
               <validator name="sortname" label="sortname" class="grid-clear-right col-desktop-8 col-tablet-5 col-mobile-6">
-                <input id="field-sortname" name="sortname" type="text" ng-model="registerForm.data.sortname" ng-minlength="2" autocomplete="family-name" placeholder="Last" required>
+                <input id="field-sortname" name="sortname" type="text" ng-model="registerForm.data.sortname" ng-minlength="2" autocomplete="off" placeholder="Last" required>
               </validator>
 
               <validator name="email" label="email">
-                <input id="field-email" name="email" type="email" ng-model="registerForm.data.email" autocomplete="email" required>
+                <input id="field-email" name="email" type="email" ng-model="registerForm.data.email" autocomplete="off" required>
               </validator>
 
               <validator name="affiliation" label="affiliation">
-                <input id="field-affiliation" name="affiliation" type="text" ng-model="registerForm.data.affiliation" autocomplete="organization" placeholder="University" key-enter="proceed()">
+                <input id="field-affiliation" name="affiliation" type="text" ng-model="registerForm.data.affiliation" autocomplete="off" placeholder="University" key-enter="proceed()">
               </validator>
 
               <button class="green" type="submit" ng-disabled="registerForm.$pristine || registerForm.$invalid" ng-click="proceed()">Continue</button>
@@ -38,7 +38,7 @@
                 <li>Respect participants' wishes about sharing their data just as you do in your lab.</li>
                 <li>Take care in authorizing other people (affiliates and collaborators) and take responsibility for their conduct and use of Databrary data, just as you do in your own lab.</li>
               </ol>
-              <p>Read the <a href="http://databrary.org/access/policies/agreement.html" target="_blank">Databrary Access Agreement</a>. You can also download the <a href=\"http://databrary.org/policies/agreement.pdf\" target=\"_blank\">full agreement as pdf</a>.</p>
+              <p>Read the <a href="http://databrary.org/access/policies/agreement.html" target="_blank">Databrary Access Agreement</a>. You can also download the <a href="http://databrary.org/policies/agreement.pdf" target="_blank">full agreement as pdf</a>.</p>
             </div>
 
             <p>
@@ -72,23 +72,46 @@
           </wizard-step>
 
           <wizard-step name="agent">
+            <div>
+              <p>To access Databrary resources, you must be authorized either as an <strong>Authorized Investigator</strong> through your institution, or as an <strong>Affiliate</strong> by an Authorized Investigator.
+              </p>
+              <p>An <strong>Authorized Investigator</strong> must meet the following requirements:
+                <br/>
+                <ol>
+                  <li>Belong to an institution that maintains an ethics or Institutional Review Board with U.S.-equivalent standards that reviews and approves research involving human subjects; </li>
+                  <li>Have current research ethics training that addresses human subjects policy and issues; and </li>
+                  <li>Be eligible to conduct independent research at their institution.</li>
+                </ol>
+              </p>
+              <p>An <strong>Affiliate</strong> status is generally more appropriate for the following:
+                <br/>
+                <ul>
+                  <li>Students (undergraduate, Masters, or Ph.D. level)</li>
+                  <li>Lab staff</li>
+                  <li>Postdocs</li>
+                </ul>
+              </p>
+              <p>Select the appropriate option below, then search for your institution or sponsor. If they are not listed, select 'Other' to provide more information.
+              </p>
+            </div>
             <div class="radio-set">
               <div>
                 <input type="radio" ng-model="authSearchForm.principal" ng-value="'principal'">
                 <label class="option">
-                  <strong>Authorized Investigator</strong> (Researchers who are eligible to conduct independent research at their institution may become Authorized Investigators and may also authorize and manage Affiliates.)
+                  <strong>Authorized Investigator</strong>
                 </label>
               </div>
 
               <div>
                 <input type="radio" ng-model="authSearchForm.principal" ng-value="'affiliate'">
                 <label class="option">
-                  <strong>Affiliate</strong> (Individuals working with Authorized Investigators may be authorized as Affiliates.)
+                  <strong>Affiliate</strong>
                 </label>
               </div>
             </div>
 
             <auth-search-form ng-show="authSearchForm.principal"></auth-search-form>
+
           </wizard-step>
 
           <wizard-step name="request">

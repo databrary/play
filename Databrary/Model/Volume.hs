@@ -21,6 +21,7 @@ import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Database.PostgreSQL.Typed.Query (pgSQL, unsafeModifyQuery)
 import Database.PostgreSQL.Typed.Dynamic (pgLiteralRep)
+import Database.PostgreSQL.Typed.Query (makePGQuery, QueryFlags(..), simpleQueryFlags)
 
 import Databrary.Has (peek, view)
 import Databrary.Service.DB
@@ -37,13 +38,28 @@ import Databrary.Model.Volume.Types
 import Databrary.Model.Volume.SQL
 import Databrary.Model.Volume.Boot
 
+$(useTDB)
+
 coreVolume :: Volume
 coreVolume = $(loadVolume (Id 0))
 
 lookupVolume :: (MonadDB c m, MonadHasIdentity c m) => Id Volume -> m (Maybe Volume)
 lookupVolume vi = do
   ident :: Identity <- peek
-  dbQuery1 $(selectQuery (selectVolume 'ident) "$WHERE volume.id = ${vi}")
+  rows <- dbQuery1
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT volume.id,volume.name,volume.body,volume.alias,volume.doi,volume_creation(volume.id),volume_owners.owners,volume_permission.permission"
+           ++ " FROM volume LEFT JOIN volume_owners ON volume.id = volume_owners.volume JOIN LATERAL (VALUES (CASE WHEN ${identitySuperuser ident} THEN enum_last(NULL::permission) ELSE volume_access_check(volume.id, ${view ident :: Id Party}) END)) AS volume_permission (permission) ON volume_permission.permission >= 'PUBLIC'::permission "
+           ++ " WHERE volume.id = ${vi} " ))
+  pure 
+    (fmap 
+       (\(vid, nm, bd, als, doi, cr, own, prm) -> 
+          makeVolume
+            (setCreation (VolumeRow vid nm bd als doi) cr)
+            own
+            prm)
+       rows)
 
 changeVolume :: MonadAudit c m => Volume -> m ()
 changeVolume v = do
@@ -107,8 +123,19 @@ volumeFilter VolumeFilter{..} = BS.concat
 findVolumes :: (MonadHasIdentity c m, MonadDB c m) => VolumeFilter -> m [Volume]
 findVolumes pf = do
   ident <- peek
-  dbQuery $ unsafeModifyQuery $(selectQuery (selectVolume 'ident) "")
-    (<> volumeFilter pf)
+  rows <- dbQuery
+    (unsafeModifyQuery
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT volume.id,volume.name,volume.body,volume.alias,volume.doi,volume_creation(volume.id),volume_owners.owners,volume_permission.permission"
+           ++ " FROM volume LEFT JOIN volume_owners ON volume.id = volume_owners.volume JOIN LATERAL (VALUES (CASE WHEN ${identitySuperuser ident} THEN enum_last(NULL::permission) ELSE volume_access_check(volume.id, ${view ident :: Id Party}) END)) AS volume_permission (permission) ON volume_permission.permission >= 'PUBLIC'::permission "
+           ++ ""))
+      (<> volumeFilter pf))
+  pure 
+    (fmap 
+       (\(vid, nm, bd, als, doi, cr, own, prm) -> 
+          makeVolume (setCreation (VolumeRow vid nm bd als doi) cr) own prm)
+       rows)
 
 updateVolumeIndex :: MonadDB c m => m ()
 updateVolumeIndex =

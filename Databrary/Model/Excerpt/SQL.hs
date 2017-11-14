@@ -1,7 +1,8 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Databrary.Model.Excerpt.SQL
-  ( selectAssetSlotExcerpt
-  , selectContainerExcerpt
+  ( makeExcerpt
+  , makeAssetContainerExcerpt
+  , makeContainerExcerpt -- TODO: this and above to Types
   , selectVolumeExcerpt
   , insertExcerpt
   , updateExcerpt
@@ -26,31 +27,18 @@ import Databrary.Model.AssetSegment.Types
 makeExcerpt :: Segment -> Maybe Release -> AssetSlot -> Excerpt
 makeExcerpt s r a = newExcerpt a s r
 
-excerptRow :: Selector -- ^ @'AssetSlot' -> 'Excerpt'@
-excerptRow = selectColumns 'makeExcerpt "excerpt" ["segment", "release"]
-
-selectAssetSlotExcerpt :: Selector -- ^ @'AssetSlot' -> 'Excerpt'@
-selectAssetSlotExcerpt = excerptRow
-
 makeAssetContainerExcerpt :: Segment -> (AssetSlot -> Excerpt) -> Asset -> Container -> Excerpt
 makeAssetContainerExcerpt as e a c = e $ makeSlotAsset a c as
 
 selectAssetContainerExcerpt :: Selector -- ^ @'Asset' -> 'Container' -> 'Excerpt'@
 selectAssetContainerExcerpt = selectJoin 'makeAssetContainerExcerpt
-  [ slotAssetRow
+  [ selectColumn "slot_asset" "segment"
   , joinOn "slot_asset.asset = excerpt.asset"
-    excerptRow
+    (selectColumns 'makeExcerpt "excerpt" ["segment", "release"])
   ]
 
 makeContainerExcerpt :: (Asset -> Container -> Excerpt) -> AssetRow -> Container -> Excerpt
 makeContainerExcerpt f ar c = f (Asset ar (containerVolume c)) c
-
-selectContainerExcerpt :: Selector -- ^ @'Container' -> 'Excerpt'@
-selectContainerExcerpt = selectJoin 'makeContainerExcerpt
-  [ selectAssetContainerExcerpt
-  , joinOn "slot_asset.asset = asset.id"
-    selectAssetRow -- XXX volumes match?
-  ]
 
 makeVolumeExcerpt :: (Asset -> Container -> Excerpt) -> AssetRow -> (Volume -> Container) -> Volume -> Excerpt
 makeVolumeExcerpt f ar cf v = f (Asset ar v) (cf v)
@@ -59,7 +47,7 @@ selectVolumeExcerpt :: Selector -- ^ @'Volume' -> 'Excerpt'@
 selectVolumeExcerpt = selectJoin 'makeVolumeExcerpt
   [ selectAssetContainerExcerpt
   , joinOn "slot_asset.asset = asset.id"
-    selectAssetRow
+     (selectColumns 'makeAssetRow "asset" ["id", "format", "release", "duration", "name", "sha1", "size"])
   , joinOn "slot_asset.container = container.id AND asset.volume = container.volume"
     selectVolumeContainer
   ]

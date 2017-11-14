@@ -1,3 +1,4 @@
+<div class="div-grey">Changes are saved automatically</div>
 <ng-form name="volumeDesign" class="volumeDesign">
   <div class="row">
     <div class="volume-design-section col-desktop-7 col-tablet-5 col-mobile-6">
@@ -6,8 +7,8 @@
         <small>Click the checkbox to add that category to your spreadsheet. To preview available fields for that category, click on the category definition.</small>
       </div>
       <ul class="volume-design-categories flat">
-        <li ng-repeat="c in ::page.constants.categories track by c.id" ng-class="{selected: c===selected}" ng-click="select(c.id)" class="clickable">
-          <input type="checkbox" ng-model="volumeDesign.category[c.id]" ng-change="change(c.id)">
+        <li ng-repeat="c in ::page.constants.categories track by c.id" ng-class="{selected: c===selected}" class="clickable">
+          <input type="checkbox" ng-model="volumeDesign.category[c.id]" ng-change="change(c.id); select(c.id);">
           <span ng-bind="::c.name" class="b"></span>: 
           <span class="small" ng-bind="::c.description"></span>
           <div ng-if="volume.metrics[c.id]">
@@ -28,7 +29,7 @@
           <a ng-if="volumeDesign.category[selected.id]" class="button mini small" ng-click="manage()" tooltip="'wizard.volume-edit-design.options-tooltip' | message">Define options</a>
         </div>
         <ul class="volume-design-fields flat" ng-class="{'disabled':!volumeDesign.category[selected.id]}">
-          <li ng-repeat="m in selected.metrics track by m.id" ng-if="::m.type!=='void'">
+          <li ng-repeat="m in selected.metrics track by m.id" ng-if="::m.type!=='void'" class="clickable">
             <input type="checkbox" ng-disabled="!volumeDesign.category[selected.id] || m.required" ng-model="volumeDesign.metric[m.id]" ng-change="change(selected.id, m.id)">
             <span class="icon release" ng-class="::page.constants.release[m.release]" tooltip="'release.'+page.constants.release[m.release]+'.metric' | message"></span>
             <span ng-bind="::m.name" class="b"></span>: 

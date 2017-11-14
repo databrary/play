@@ -331,7 +331,7 @@ app.directive 'spreadsheet', [
           if slot
             slot = undefined
             cats = all.filter((c) -> $scope.showGlobal || (Cats[c.id] ? Editing))
-            cats.push(pseudoCategory.asset)
+            cats.unshift(pseudoCategory.asset)
             cats.unshift(pseudoCategory.slot)
             $scope.anyGlobal = all.some((c) -> Cats[c.id] == false)
           else
@@ -467,6 +467,8 @@ app.directive 'spreadsheet', [
           if info.col.first && info.d
             if info.c == 'asset'
               cell.classList.add('clickable')
+              cell.onclick = (event) ->
+                $location.url(if Editing then slot.editRoute(t) else slot.route(t))
               a = cell.appendChild(document.createElement('a'))
               icon = a.appendChild(document.createElement('img'))
               asset = info.asset
@@ -1057,7 +1059,7 @@ app.directive 'spreadsheet', [
                 return
               if info.c == 'asset'
                 # for now, just go to slot edit
-                $location.url(info.slot.editRoute())
+                $location.url(info.slot.editRoute() + '?file=open')
                 return
               c = info.category
               editInput.value = (info.d?.id ? 'remove')+''

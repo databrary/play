@@ -46,8 +46,8 @@
       </validator>
     </div>
     <!-- description and alias -->
-    <validator name="body" label="volume.body" noclientval>
-      <textarea id="body" name="body" ng-model="volumeEditOverviewForm.data.body"></textarea>
+    <validator name="body" label="volume.body" noclientval required>
+      <textarea id="body" name="body" ng-model="volumeEditOverviewForm.data.body" placeholder='Please enter a complete description of the data contained in this volume, including the following: &#10;&#13;&bull; tasks (e.g., "book reading, mother-child play") &#10;&#13;&bull; demographic information about the participants (e.g., "low-income dual-language-learning 4-year-olds") &#10;&#13;&bull; filetypes (e.g., ".mp3 audio, .mp4 video, coding manual, Datavyu coding sheets")' required></textarea>
     </validator>
 
     <validator name="alias" label="volume.alias">

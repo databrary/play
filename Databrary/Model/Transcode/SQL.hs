@@ -2,6 +2,8 @@
 module Databrary.Model.Transcode.SQL
   ( selectOrigTranscode
   , selectTranscode
+  , makeTranscodeRow -- TODO: move to types
+  , makeOrigTranscode
   ) where
 
 import qualified Data.ByteString as BS
@@ -26,12 +28,9 @@ makeTranscodeRow :: Segment -> [Maybe String] -> Maybe Timestamp -> Maybe Int32 
 makeTranscodeRow s f t p l u a =
   Transcode a u s (map (fromMaybe (error "NULL transcode options")) f) t p l
 
-selectTranscodeRow :: Selector -- ^ @'SiteAuth' -> 'Asset' -> 'Asset' -> 'Transcode'@
-selectTranscodeRow = selectColumns 'makeTranscodeRow "transcode" ["segment", "options", "start", "process", "log"]
-
 selectAssetRevisionTranscode :: Selector -- ^ @'AssetRevision' -> 'Transcode'@
 selectAssetRevisionTranscode = selectJoin '($)
-  [ selectTranscodeRow
+  [ selectColumns 'makeTranscodeRow "transcode" ["segment", "options", "start", "process", "log"]
   , joinOn "transcode.owner = party.id"
     selectSiteAuth
   ]
@@ -43,7 +42,7 @@ selectOrigTranscode :: Selector -- ^ @'Asset' -> 'Transcode'@
 selectOrigTranscode = selectJoin 'makeOrigTranscode
   [ selectAssetRevisionTranscode
   , joinOn "transcode.asset = asset.id"
-    selectAssetRow
+    (selectColumns 'makeAssetRow "asset" ["id", "format", "release", "duration", "name", "sha1", "size"])
   ]
 
 makeTranscode :: (Asset -> Transcode) -> AssetRow -> (Permission -> Volume) -> Transcode

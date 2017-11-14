@@ -22,12 +22,14 @@ import Data.Int (Int64)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import Database.PostgreSQL.Typed (pgSQL)
+import Database.PostgreSQL.Typed.Query (makePGQuery, QueryFlags(..), simpleQueryFlags)
 
 import Databrary.Ops
 import Databrary.Has (peek)
 import qualified Databrary.JSON as JSON
 import Databrary.Service.DB
 import Databrary.Model.SQL
+import Databrary.Model.SQL.Select
 import Databrary.Model.Party.Types
 import Databrary.Model.Identity.Types
 import Databrary.Model.Volume.Types
@@ -36,24 +38,57 @@ import Databrary.Model.Slot.Types
 import Databrary.Model.Tag.Types
 import Databrary.Model.Tag.SQL
 
+$(useTDB)
+
 lookupTag :: MonadDB c m => TagName -> m (Maybe Tag)
-lookupTag n =
-  dbQuery1 $(selectQuery selectTag "$WHERE tag.name = ${n}::varchar")
+lookupTag n = do
+  mRow <- dbQuery1
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT tag.id,tag.name"
+           ++ " FROM tag " 
+           ++ "WHERE tag.name = ${n}::varchar"))
+  pure (fmap (\(tid,name) -> Tag tid name) mRow)
 
 lookupTags :: MonadDB c m => m [Tag]
-lookupTags = dbQuery $(selectQuery selectTag "")
+lookupTags = do
+  rows <- dbQuery
+      $(makePGQuery
+          (simpleQueryFlags)
+          (   "SELECT tag.id,tag.name"
+           ++ " FROM tag " 
+           ++ ""))
+  pure (fmap (\(tid,name) -> Tag tid name) rows)
 
 findTags :: MonadDB c m => TagName -> Int -> m [Tag]
-findTags (TagName n) lim = -- TagName restrictions obviate pattern escaping
-  dbQuery $(selectQuery selectTag "$WHERE tag.name LIKE ${n `BSC.snoc` '%'}::varchar LIMIT ${fromIntegral lim :: Int64}")
+findTags (TagName n) lim = do -- TagName restrictions obviate pattern escaping
+  rows <- dbQuery
+      $(makePGQuery
+          (simpleQueryFlags { flagPrepare = Just [] })
+          (   "SELECT tag.id,tag.name"
+           ++ " FROM tag " 
+           ++ "WHERE tag.name LIKE ${n `BSC.snoc` '%'}::varchar LIMIT ${fromIntegral lim :: Int64}"))
+  pure (fmap (\(tid,name) -> Tag tid name) rows)
 
 addTag :: MonadDB c m => TagName -> m Tag
 addTag n =
   dbQuery1' $ (`Tag` n) <$> [pgSQL|!SELECT get_tag(${n})|]
 
 lookupVolumeTagUseRows :: MonadDB c m => Volume -> m [TagUseRow]
-lookupVolumeTagUseRows v =
-  dbQuery $(selectQuery selectTagUseRow "JOIN container ON tag_use.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container.id")
+lookupVolumeTagUseRows v = do
+  rows <- dbQuery
+      $(makePGQuery
+          (simpleQueryFlags)
+          (   "SELECT tag_use.who,tag_use.container,tag_use.segment,tag_use.tableoid = 'keyword_use'::regclass,tag.id,tag.name"
+           ++ " FROM tag_use JOIN tag ON tag_use.tag = tag.id " 
+           ++ "JOIN container ON tag_use.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container.id"))
+  pure 
+    (fmap 
+       (\(wh, cn, sg, k, tid, nm) -> 
+          ($)
+            (($) (makeTagUseRow wh cn sg k))
+            (Tag tid nm))
+       rows)
 
 addTagUse :: MonadDB c m => TagUse -> m Bool
 addTagUse t = either (const False) id <$> do
@@ -87,8 +122,14 @@ lookupSlotTagCoverage slot lim = do
   dbQuery $(selectQuery (selectSlotTagCoverage 'ident 'slot) "$!ORDER BY weight DESC LIMIT ${fromIntegral lim :: Int64}")
 
 lookupSlotKeywords :: (MonadDB c m) => Slot -> m [Tag]
-lookupSlotKeywords Slot{..} =
-  dbQuery $(selectQuery selectTag "JOIN keyword_use ON id = tag WHERE container = ${containerId $ containerRow slotContainer} AND segment = ${slotSegment}")
+lookupSlotKeywords Slot{..} = do
+  rows <- dbQuery
+      $(makePGQuery
+          (simpleQueryFlags)
+          (   "SELECT tag.id,tag.name"
+           ++ " FROM tag " 
+           ++ "JOIN keyword_use ON id = tag WHERE container = ${containerId $ containerRow slotContainer} AND segment = ${slotSegment}"))
+  pure (fmap (\(tid,name) -> Tag tid name) rows)
 
 tagWeightJSON :: JSON.ToObject o => TagWeight -> JSON.Record TagName o
 tagWeightJSON TagWeight{..} = JSON.Record (tagName tagWeightTag) $

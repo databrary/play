@@ -1,12 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Databrary.Model.Tag.SQL
-  ( selectTag
-  , selectTagUseRow
-  , insertTagUse
+  ( insertTagUse
   , deleteTagUse
   , selectTagWeight
   , selectTagCoverage
   , selectSlotTagCoverage
+  , makeTagUseRow -- TODO: move to Types
   ) where
 
 import Data.List (intercalate)
@@ -22,30 +21,12 @@ import Databrary.Model.Segment
 import Databrary.Model.Slot.Types
 import Databrary.Model.Tag.Types
 
-tagRow :: Selector -- ^ @'Tag'@
-tagRow = selectColumns 'Tag "tag" ["id", "name"]
-
-selectTag :: Selector -- ^ @'Tag'@
-selectTag = tagRow
-
 tagUseTable :: Bool -> String
 tagUseTable False = "tag_use"
 tagUseTable True = "keyword_use"
 
 makeTagUseRow :: Id Party -> Id Container -> Segment -> Maybe Bool -> Tag -> TagUseRow
 makeTagUseRow w c s k t = TagUseRow t (fromMaybe False k) w (SlotId c s)
-
-tagUseRow :: Selector -- ' @'Tag' -> 'TagUseRow'@
-tagUseRow = addSelects '($)
-  (selectColumns 'makeTagUseRow "tag_use" ["who", "container", "segment"])
-  [SelectExpr "tag_use.tableoid = 'keyword_use'::regclass"]
-
-selectTagUseRow :: Selector -- ^ @'TagUseId'@
-selectTagUseRow = selectJoin '($)
-  [ tagUseRow
-  , joinOn "tag_use.tag = tag.id"
-    tagRow
-  ]
 
 insertTagUse :: Bool -- ^ keyword
   -> TH.Name -- ^ @'TagUse'@
@@ -83,7 +64,7 @@ makeTagWeight w t = TagWeight t w
 selectTagWeight :: String -> Selector -- ^ @'TagCoverage'@
 selectTagWeight q = selectJoin '($)
   [ selectTagGroup "tag_weight" q 'makeTagWeight tagWeightColumns
-  , joinOn "tag_weight.tag = tag.id" selectTag
+  , joinOn "tag_weight.tag = tag.id" (selectColumns 'Tag "tag" ["id", "name"])
   ]
 
 makeTagCoverage :: Int32 -> [Maybe Segment] -> [Maybe Segment] -> [Maybe Segment] -> Tag -> Container -> TagCoverage
@@ -109,5 +90,5 @@ selectSlotTagCoverage :: TH.Name -- ^ @'Party'@
   -> Selector -- ^ @'TagCoverage'@
 selectSlotTagCoverage acct slot = selectMap (`TH.AppE` (TH.VarE 'slotContainer `TH.AppE` TH.VarE slot)) $ selectJoin '($)
   [ selectTagCoverage acct $ "WHERE container = ${containerId $ containerRow $ slotContainer " ++ ss ++ "} AND segment && ${slotSegment " ++ ss ++ "}"
-  , joinOn "tag_coverage.tag = tag.id" selectTag
+  , joinOn "tag_coverage.tag = tag.id" (selectColumns 'Tag "tag" ["id", "name"]) 
   ] where ss = nameRef slot

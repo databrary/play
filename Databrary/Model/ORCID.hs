@@ -26,10 +26,6 @@ instance PGParameter "bpchar" ORCID where
 instance PGColumn "bpchar" ORCID where
   pgDecode t = ORCID . pgDecode t
   pgDecodeValue e t = ORCID . pgDecodeValue e t
-instance PGColumn "character varying" ORCID where
-  pgDecode t = ORCID . pgDecode t
-  pgDecodeValue e t = ORCID . pgDecodeValue e t
-
 
 deriveLift ''ORCID
 

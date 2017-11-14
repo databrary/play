@@ -91,6 +91,12 @@
       <div frame id="frame-link" frame-title="volume.link.title" fold>
         <cite-volume class="panel-overview-volume-citation"></cite-volume>
       </div>
+
+      <div frame id="frame-release" frame-title="volume.release.title" fold>
+        <release-table class="pvtTable" ng-if="!folded && volume.assetCount > 0" id="filelevelsummary">
+        </release-table>
+        <span ng-if="!folded && volume.assetCount == 0">There are no files associated with this volume.</span>
+      </div>
     </div>
   </div>
 

@@ -37,7 +37,7 @@ emailTemplate content = H.docTypeHtml $ do
             H.br
             void "New York, NY 10012"
             H.br
-            void "Office: 212-998-5536"
+            void "Office: 212-998-5800"
             H.br
             void "contact@databrary.org"
             H.br

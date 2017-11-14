@@ -102,7 +102,7 @@ app.directive('volumeEditOverviewForm', [
       };
 
       var validate = {};
-      ['name', 'body', 'alias', 'citation.head', 'citation.url', 'citation.year'].forEach(function (f) {
+      ['name', 'alias', 'citation.head', 'citation.url', 'citation.year'].forEach(function (f) {
         validate[f] = {
           tips: constants.message('volume.edit.' + f + '.help')
         };

@@ -1,3 +1,7 @@
+{- a single lone file for a single lone function that checks if any of the request headers
+   is "DatabraryClient"
+-}
+
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Action.Request
   ( isDatabraryClient
