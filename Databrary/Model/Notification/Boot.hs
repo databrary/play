@@ -16,13 +16,14 @@ useTDB
 makeNotice :: TH.DecsQ
 makeNotice = do
   nl <- runTDB $ dbQuery [pgSQL|SELECT id, name FROM notice WHERE id >= 0 ORDER BY id|]
+
+  xs <- mapM TH.conT [''Eq, ''Ord, ''Enum, ''Ix, ''Bounded, ''Typeable]
   return
-    [ TH.DataD [] typn [] (map (\(_, n) -> TH.NormalC (conn n) []) nl)
-      [''Eq, ''Ord, ''Enum, ''Ix, ''Bounded, ''Typeable]
-    , TH.InstanceD [] (TH.ConT ''Show `TH.AppT` TH.ConT typn)
-      [ TH.FunD 'show $ map (\(_, n) -> TH.Clause [TH.ConP (conn n) []]
-        (TH.NormalB $ TH.LitE $ TH.StringL n) []) nl
-      ]
+    [ TH.DataD [] typn [] Nothing (map (\(_, n) -> TH.NormalC (conn n) []) nl)  xs
+    , TH.InstanceD Nothing [] (TH.ConT ''Show `TH.AppT` TH.ConT typn)
+       [ TH.FunD 'show $ map (\(_, n) -> TH.Clause [TH.ConP (conn n) []]
+         (TH.NormalB $ TH.LitE $ TH.StringL n) []) nl
+       ]
     , TH.SigD (TH.mkName "noticeToId") (TH.ArrowT `TH.AppT` TH.ConT typn `TH.AppT` TH.ConT ''Int16)
     , TH.FunD (TH.mkName "noticeToId") $ map (\(i, n) -> TH.Clause [TH.ConP (conn n) []]
         (TH.NormalB $ TH.LitE $ liti i) []) nl

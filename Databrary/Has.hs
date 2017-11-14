@@ -62,7 +62,7 @@ focusIO f = liftIO . f =<< peek
 
 getFieldType :: TH.Name -> TH.Name -> TH.TypeQ
 getFieldType tn fn = do
-  TH.VarI _ (TH.ArrowT `TH.AppT` TH.ConT tn' `TH.AppT` ft) _ _ <- TH.reify fn
+  TH.VarI _ (TH.ArrowT `TH.AppT` TH.ConT tn' `TH.AppT` ft) _ <- TH.reify fn
   unless (tn' == tn) $ fail $ show tn ++ "." ++ show fn ++ ": field from wrong type: " ++ show tn'
   return ft
 
@@ -86,7 +86,7 @@ makeHasRec tn fs = do
   makeHasFor tn =<< mapM (\fn -> do
     ft <- getFieldType tn fn
     return (fn, ft, [ st
-      | TH.InstanceD _ (TH.ConT hs `TH.AppT` st `TH.AppT` ft') _ <- il
+      | TH.InstanceD _ _ (TH.ConT hs `TH.AppT` st `TH.AppT` ft') _ <- il
       , hs == ''Has
       , ft' == ft
       ]))

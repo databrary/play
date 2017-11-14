@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -euo pipefail 
+
+rcvr=$1
+echo "building Databrary binaries..."
+RESULT="$(nix-build --attr pkgs.databrary --show-trace)"
+nix-copy-closure --to "$rcvr" "$RESULT"
+# TODO: copy and ssh to rcvr2 as well
+echo "copy closure of Databrary binaries completed..."
+
+# TODO: uninstall previous version; run nix-collect-garbage after install
+# NOTE: this is overly complex, simplify using multiple lines later
+ssh -t "$rcvr" " \
+           nix-env --install $RESULT \
+        && sudo -u demo bash -c \"cd /home/demo && rm -f databraryExeLink && ln -s $RESULT/bin/databrary databraryExeLink \"  \
+"

@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 # Control interface for transcode jobs.
 # This is run directly from the application, on the webserver.
 # It calls transcode, possibly on transcode.host.

@@ -5,16 +5,22 @@
   "repository": "databrary/databrary",
   "private": true,
   "dependencies": {
-    "bower": "*",
+    "@flowjs/ng-flow": "2.7.1",
+    "angular": "~1.4",
+    "angular-route": "~1.4",
+    "angular-ui-slider": "0.4.0",
+    "autoprefixer-stylus": "^0.9.4",
     "coffee-script": "^1.7.1",
+    "jquery": "^1.12.3",
+    "jquery-ui-dist": "^1.12.1",
     "jshint": "~2.8.0",
-    "uglify-js": "^2.4.21",
-    "stylus": "^0.54.2",
-    "nib": "^1.1.0",
+    "lodash": "^3.0.0",
+    "nib": "^1.1.2",
     "normalize.styl": "^3.0.0",
-    "autoprefixer-stylus": "^0.9.2"
+    "pivottable": "^2.0",
+    "uglify-js": "^2.8.29",
+    "stylus": "^0.54.5",
+    "stylus-loader": "^3.0.1"
   },
-  "scripts": {
-    "postinstall": "bower install"
-  }
+  "scripts": {}
 }

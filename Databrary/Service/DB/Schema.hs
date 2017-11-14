@@ -5,7 +5,7 @@ module Databrary.Service.DB.Schema
 
 import Control.Arrow (first, second)
 import Control.Exception.Lifted (tryJust)
-import Control.Monad (guard)
+import Control.Monad (guard, when)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import qualified Data.ByteString.Lazy as BSL
 import Data.Int (Int32)
@@ -63,11 +63,13 @@ updateDBSchema dir = do
     =<< schemaList <$> liftIO (getDirectoryContents dir)
 
   lr <- tryJust checkDNE $ dbQuery
-    $ pgDecodeRep . head <$> rawPGSimpleQuery "SELECT name FROM schema ORDER BY name"
+    -- $ pgDecodeRep . head <$> rawPGSimpleQuery "SELECT name FROM schema ORDER BY name"
+    $ pgDecodeRep . head <$> rawPGSimpleQuery "SELECT name FROM party ORDER BY name"
   dl <- case lr of
     Left _ -> do
       pr <- tryJust checkDNE $ dbQuery1'
-        $ pgDecodeRep . head <$> rawPGSimpleQuery "SELECT max(id) FROM play_evolutions WHERE state = 'applied'"
+        -- $ pgDecodeRep . head <$> rawPGSimpleQuery "SELECT max(id) FROM play_evolutions WHERE state = 'applied'"
+        $ pgDecodeRep . head <$> rawPGSimpleQuery "SELECT max(id) FROM party WHERE state = 'applied'"
       case pr of
         Left _ -> do
           confirm "No schema found. Initialize?"
@@ -82,7 +84,7 @@ updateDBSchema dir = do
       return []
     Right l -> return l
 
-  case diffs sl dl of
+  when False $  case diffs sl dl of
     (l, []) -> mapM_ apply l
     (_, e) -> schemaError $ "Inconsistent schema, missing: " ++ unwords (map show e)
 

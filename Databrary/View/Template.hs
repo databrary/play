@@ -43,6 +43,7 @@ htmlHeader canon hasjs = do
   H.link
     H.! HA.rel "start"
     H.! actionLink viewRoot HTML hasjs
+
   forM_ ["news", "about", "access", "community"] $ \l -> H.link
     H.! HA.rel l
     H.! HA.href ("//databrary.org/" <> l <> ".html")

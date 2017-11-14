@@ -22,7 +22,7 @@ data Static = Static
 
 initStatic :: C.Config -> IO Static
 initStatic conf = do
-  fillin <- mapM HC.parseUrl $ conf C.! "fillin"
+  fillin <- mapM HC.parseRequest $ conf C.! "fillin"
   return $ Static
     { staticAuthorizeAddr = conf C.! "authorize"
     , staticAssistAddr = conf C.! "assist"

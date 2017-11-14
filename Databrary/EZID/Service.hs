@@ -21,11 +21,11 @@ initEZID :: C.Config -> IO (Maybe EZID)
 initEZID conf = conf C.! "ns" `forM` \ns -> do
   unless ("doi:10." `BSC.isPrefixOf` ns) $
     fail "ezid.ns must be for DOIs"
-  req <- HC.parseUrl "https://ezid.cdlib.org/"
+  req <- HC.parseRequest "https://ezid.cdlib.org/"
   return $ EZID
     { ezidRequest = HC.applyBasicAuth (conf C.! "user") (conf C.! "pass") req
       { HC.requestHeaders = (hContentType, "text/plain") : HC.requestHeaders req
-      , HC.responseTimeout = Just 100000000
+      , HC.responseTimeout = HC.responseTimeoutMicro 100000000
       , HC.redirectCount = 1
       }
     , ezidNS = ns
