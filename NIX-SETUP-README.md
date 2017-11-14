@@ -28,7 +28,7 @@ From the root directory of this project, run
 ### STEP 2
 In a separate shell, from the same root directory of this project, inside a nix-shell, run
 ```bash
-> databrary_datadir=. cabal repl databrary
+>ghci-databrary
 ```
 Note: provide datadir to workaround issue with auto-generated Paths_databrary module in cabal repl
 
