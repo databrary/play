@@ -25,7 +25,6 @@
 /target/
 .DS_Store
 *.swp
-*~
 /tags
 /.cabal-sandbox/
 cabal.sandbox.config
