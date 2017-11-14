@@ -93,7 +93,7 @@ parseFundRef = JSON.withObject "fundref" $ \j -> do
 
 lookupFundRef :: Id Funder -> HTTPClient -> IO (Maybe Funder)
 lookupFundRef fi hcm = runMaybeT $ do
-  req <- HC.parseUrl $ "http://data.fundref.org/fundref/funder/" ++ fundRefDOI ++ show fi
+  req <- HC.parseRequest $ "http://data.fundref.org/fundref/funder/" ++ fundRefDOI ++ show fi
   j <- MaybeT $ httpRequestJSON req hcm
   (f, gi) <- MaybeT $ return $ JSON.parseMaybe parseFundRef j
   g <- lift $ flatMapM (\i -> lookupGeoName i hcm) gi
@@ -120,7 +120,7 @@ parseFundRefs = JSON.withArray "fundrefs" $
     return $ annotateFunder (Funder i name) (fold alts) country
 
 fundRefReq :: HC.Request
-fundRefReq = (fromJust $ HC.parseUrl "http://search.crossref.org/funders")
+fundRefReq = (fromJust $ HC.parseRequest "http://search.crossref.org/funders")
   { HC.cookieJar = Nothing }
 
 searchFundRef :: T.Text -> HTTPClient -> IO [Funder]

@@ -22,7 +22,7 @@ import Databrary.Model.URL
 import Databrary.Model.Citation.Types
 
 crossRefUrl :: HC.Request
-crossRefUrl = (fromJust $ HC.parseUrl "http://data.crossref.org/")
+crossRefUrl = (fromJust $ HC.parseRequest "http://data.crossref.org/")
   { HC.cookieJar = Nothing
   }
 

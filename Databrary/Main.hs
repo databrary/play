@@ -6,7 +6,7 @@ import Control.Monad (void)
 #ifndef DEVEL
 import Control.Monad.Reader (runReaderT)
 #endif
-import qualified Data.Aeson.Encode as J (encodeToBuilder)
+import qualified Data.Aeson.Encoding as J
 import Data.ByteString.Builder (hPutBuilder)
 import Data.Either (partitionEithers)
 import qualified System.Console.GetOpt as Opt
@@ -30,6 +30,7 @@ import Databrary.Routes.API (swagger)
 import Databrary.Warp (runWarp)
 import Databrary.EZID.Volume (updateEZID)
 
+
 data Flag
   = FlagConfig FilePath
   | FlagWeb
@@ -51,33 +52,48 @@ flagConfig f = Right f
 
 main :: IO ()
 main = do
+  putStrLn "Starting Main..."
   prog <- getProgName
   args <- getArgs
   let (flags, args', err) = Opt.getOpt Opt.Permute opts args
       (configs, flags') = partitionEithers $ map flagConfig flags
+
   conf <- mconcat <$> mapM Conf.load (case configs of
     [] -> ["databrary.conf"]
     l -> l)
   case (flags', args', err) of
     ([FlagWeb], [], []) -> do
+      putStrLn "generating files..." 
       void generateWebFiles
+      putStrLn "finished generating web files..."
       exitSuccess
     ([FlagAPI], [], []) -> do
-      hPutBuilder stdout $ J.encodeToBuilder swagger
+      putStrLn "put web builder..."
+      hPutBuilder stdout $ J.fromEncoding $ J.value swagger
+      putStrLn "finished web builder..."
       exitSuccess
     ([FlagEZID], [], []) -> do
+      putStrLn "update EZID..."
       r <- withService False conf $ runContextM $ withBackgroundContextM updateEZID
+      putStrLn "update EZID finished..."
       if r == Just True then exitSuccess else exitFailure
-    ([], [], []) -> return ()
+    ([], [], []) -> do 
+      putStrLn "No flags or args...."
+      return ()
     _ -> do
       mapM_ putStrLn err
       putStrLn $ Opt.usageInfo ("Usage: " ++ prog ++ " [OPTION...]") opts
       exitFailure
 
+  putStrLn "evaluating routemap..."
   routes <- evaluate routeMap
+  putStrLn "evaluating routemap...withService..."
   withService True conf $ \rc -> do
 #ifndef DEVEL
     schema <- getDataFileName "schema"
+    putStrLn "updating schema"
     withDB (serviceDB rc) $ runReaderT $ updateDBSchema schema
+    putStrLn "updating schema completed"
 #endif
+    putStrLn "running warp"
     runWarp conf rc (runActionRoute routes rc)

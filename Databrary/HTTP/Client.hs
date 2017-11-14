@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TupleSections #-}
+{-# LANGUAGE MultiWayIf, OverloadedStrings, TupleSections #-}
 module Databrary.HTTP.Client
   ( HTTPClient
   , initHTTPClient
@@ -14,7 +14,6 @@ module Databrary.HTTP.Client
   ) where
 
 import Control.Arrow ((&&&))
-import Control.Exception (SomeException, toException)
 import Control.Exception.Lifted (handle)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Control (MonadBaseControl)
@@ -23,13 +22,11 @@ import qualified Data.Aeson as JSON
 import qualified Data.Attoparsec.ByteString as P
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
-import qualified Data.CaseInsensitive as CI
-import Data.Foldable (fold)
 import Data.Function (on)
 import Data.Monoid ((<>))
 import qualified Network.HTTP.Client as HC
 import Network.HTTP.Client.TLS (tlsManagerSettings)
-import Network.HTTP.Types (ResponseHeaders, hAccept, hContentType, Status, statusIsSuccessful)
+import Network.HTTP.Types (hAccept, hContentType, statusIsSuccessful)
 
 import Databrary.Has
 
@@ -60,17 +57,17 @@ contentTypeEq = (==) `on` f where
     | Just i <- BSC.elemIndex ';' s = BS.take i s
     | otherwise = s
 
-checkContentOk :: BS.ByteString -> Status -> ResponseHeaders -> HC.CookieJar -> Maybe SomeException
-checkContentOk ct s h cj
-  | not $ statusIsSuccessful s = Just $ toException $ HC.StatusCodeException s h cj
-  | not $ any (contentTypeEq ct) ht = Just $ toException $ HC.InvalidHeader $ CI.original hContentType <> ": " <> fold ht
-  | otherwise = Nothing
-  where ht = lookup hContentType h
+checkContentOk :: BS.ByteString -> HC.Request -> HC.Response HC.BodyReader -> IO ()
+checkContentOk ct _ rsp = do
+  if | not $ statusIsSuccessful $ HC.responseStatus rsp -> fail "checkContentOk: status unsuccessful"
+     | not $ any (contentTypeEq ct) ht -> fail "checkContentOk: bad content type"
+     | otherwise -> return ()
+  where ht = lookup hContentType $ HC.responseHeaders rsp
 
 requestAcceptContent :: BS.ByteString -> HC.Request -> HC.Request
 requestAcceptContent ct req = req
   { HC.requestHeaders = (hAccept, ct) : HC.requestHeaders req
-  , HC.checkStatus = checkContentOk ct
+  , HC.checkResponse = checkContentOk ct
   }
 
 httpParse :: P.Parser a -> HC.Response HC.BodyReader -> IO (P.Result a)

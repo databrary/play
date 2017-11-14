@@ -8,7 +8,7 @@ import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (ReaderT(..), ask)
 import Control.Monad.Trans.Class (lift)
 import qualified Data.Aeson as JSON
-import qualified Data.Aeson.Encode as JSON
+import qualified Data.Aeson.Encoding as JSON
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Char8 as BSC
@@ -169,7 +169,7 @@ writeBlock = lift . give
 writeDocuments :: [SolrDocument] -> SolrM ()
 writeDocuments [] = return ()
 writeDocuments d =
-  writeBlock $ BSL.toStrict $ BSB.toLazyByteString $ foldMap (("},\"add\":{\"doc\":" <>) . JSON.encodeToBuilder . JSON.toJSON) d
+  writeBlock $ BSL.toStrict $ BSB.toLazyByteString $ foldMap (("},\"add\":{\"doc\":" <>) . JSON.fromEncoding . JSON.value . JSON.toJSON) d
 
 writeUpdate :: SolrM () -> SolrM ()
 writeUpdate f = do
@@ -217,7 +217,7 @@ updateIndex = do
           w <- runInvert $ runReaderT (writeUpdate writeAllDocuments) ctx
           wf $ fold <$> w
         , HC.requestHeaders = (hContentType, "application/json") : HC.requestHeaders req
-        , HC.responseTimeout = Just 100000000
+        , HC.responseTimeout = HC.responseTimeoutMicro 100000000
         }
       t' <- liftIO getCurrentTime
       focusIO $ logMsg t' ("solr update complete " ++ show (diffUTCTime t' t))

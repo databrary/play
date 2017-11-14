@@ -46,6 +46,7 @@ import Databrary.HTTP.Request
 import Databrary.Model.Id
 import Databrary.Model.SQL
 import Databrary.Model.Paginate
+import Databrary.Model.Paginate.SQL
 import Databrary.Model.Permission
 import Databrary.Model.Audit
 import Databrary.Model.Audit.SQL

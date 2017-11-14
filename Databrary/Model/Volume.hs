@@ -27,7 +27,8 @@ import Databrary.Has (peek, view)
 import Databrary.Service.DB
 import qualified Databrary.JSON as JSON
 import Databrary.Model.SQL (selectQuery)
-import Databrary.Model.Paginate
+import Databrary.Model.Paginate (Paginate (..), def)
+import Databrary.Model.Paginate.SQL (paginateSQL)
 import Databrary.Model.Id
 import Databrary.Model.Permission
 import Databrary.Model.Audit

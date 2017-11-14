@@ -961,13 +961,16 @@ INSERT INTO party (id, prename, sortname, affiliation) VALUES (1, 'Admin', 'Admi
 INSERT INTO party (id, prename, sortname, affiliation) VALUES (3, 'Lisa', 'Steiger', 'Databrary');
 INSERT INTO party (id, prename, sortname, affiliation) VALUES (5, 'Karen', 'Adolph', 'New York University');
 INSERT INTO party (id, prename, sortname, affiliation) VALUES (6, 'Rick', 'Gilmore', 'Penn State University');
+INSERT INTO party (id, prename, sortname, affiliation) VALUES (7, 'Testarosa', 'Tesla', 'Carnegie Melon');
 SELECT setval('party_id_seq', 6);
 
 INSERT INTO account (id, email, password) VALUES (1, 'admin@databrary.org', '$2a$12$mMp6Qflw72NkK/x.8xgni.Z/S8ajjWezMoylHI0Yo0nkAq5J/Dm5y');
 INSERT INTO account (id, email, openid) VALUES (3, 'lisa@databrary.org', NULL);
+INSERT INTO account (id, email, password) VALUES (7, 'test@databrary.org', '$2b$12$EqM7gziee86vJZLNInxFgeU7pnZWSm3G7aHuH6NH8mUI/nqTTCRvy');
 
 INSERT INTO authorize (child, parent, site, member) VALUES (1, 0, 'ADMIN', 'ADMIN');
 INSERT INTO authorize (child, parent, site, member) VALUES (3, 0, 'ADMIN', 'ADMIN');
+INSERT INTO authorize (child, parent, site, member) VALUES (7, 0, 'ADMIN', 'ADMIN');
 
 INSERT INTO volume (id, name, body) VALUES (1, 'Databrary', 'Databrary is an open data library for developmental science. Share video, audio, and related metadata. Discover more, faster.
 Most developmental scientists rely on video recordings to capture the complexity and richness of behavior. However, researchers rarely share video data, and this has impeded scientific progress. By creating the cyber-infrastructure and community to enable open video sharing, the Databrary project aims to facilitate deeper, richer, and broader understanding of behavior.
@@ -977,6 +980,7 @@ INSERT INTO "volume_doi" VALUES (1, '10.17910/B7159Q');
 
 INSERT INTO volume_access (volume, party, individual, children) VALUES (1, 1, 'ADMIN', 'NONE');
 INSERT INTO volume_access (volume, party, individual, children) VALUES (1, 3, 'ADMIN', 'NONE');
+INSERT INTO volume_access (volume, party, individual, children) VALUES (1, 7, 'ADMIN', 'NONE');
 INSERT INTO volume_access (volume, party, individual, children) VALUES (1, -1, 'PUBLIC', 'PUBLIC');
 
 INSERT INTO asset (id, volume, format, release, duration, name, sha1) VALUES (1, 1, -800, 'PUBLIC', interval '40', 'counting', '\x3dda3931202cbe06a9e4bbb5f0873c879121ef0a');

@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, ConstraintKinds, DefaultSignatures, GeneralizedNewtypeDeriving, TypeFamilies, OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, ConstraintKinds, DefaultSignatures, GeneralizedNewtypeDeriving, TypeFamilies, OverloadedStrings, StandaloneDeriving #-}
 module Databrary.Service.DB
   ( DBPool
   , DBConn
@@ -21,7 +21,6 @@ module Databrary.Service.DB
   , dbQuery1'
   , dbTransaction
   , dbTransaction'
-
   , runDBConnection
   , useTDB
   , runTDB
@@ -34,7 +33,7 @@ import Control.Monad.Trans.Control (MonadBaseControl, liftBaseOp_)
 import Control.Monad.Trans.Reader (ReaderT(..))
 import qualified Data.ByteString.Lazy as BSL
 import Data.IORef (IORef, newIORef, atomicModifyIORef')
-import Data.Maybe (fromMaybe, isJust)
+import Data.Maybe (fromMaybe, isJust, fromJust)
 import Data.Pool (Pool, withResource, createPool, destroyAllResources)
 import Database.PostgreSQL.Typed.Protocol
 import Database.PostgreSQL.Typed.Query
@@ -50,8 +49,8 @@ confPGDatabase :: C.Config -> PGDatabase
 confPGDatabase conf = defaultPGDatabase
   { pgDBHost = fromMaybe "localhost" host
   , pgDBPort = if isJust host
-      then PortNumber (maybe 5432 fromInteger $ conf C.! "port")
-      else UnixSocket (fromMaybe "/tmp/.s.PGSQL.5432" $ conf C.! "sock")
+     then PortNumber (maybe 5432 fromInteger $ conf C.! "port")
+     else UnixSocket (fromJust $ conf C.! "sock")
   , pgDBName = fromMaybe user $ conf C.! "db"
   , pgDBUser = user
   , pgDBPass = fromMaybe "" $ conf C.! "pass"
@@ -161,7 +160,9 @@ runDBConnection f = bracket
   (runReaderT f)
 
 loadTDB :: TH.DecsQ
-loadTDB = useTPGDatabase =<< TH.runIO loadPGDatabase
+loadTDB = do 
+  database <- TH.runIO loadPGDatabase 
+  useTPGDatabase database
 
 {-# NOINLINE usedTDB #-}
 usedTDB :: IORef Bool
