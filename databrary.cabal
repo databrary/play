@@ -9,21 +9,21 @@ Maintainer:          dylan@dylex.net
 Stability:           Provisional
 Category:            Web
 Tested-with:         GHC == 7.10.3
-Build-type:          Simple
+Build-type:          Custom
 Cabal-version:       >=1.22
 
 data-files:
   messages.conf,
   schema/*.sql,
-  transctl.sh,
-  transcode,
+--  transctl.sh,
+--  transcode,
   volume.json,
-  web/all.min.css,
-  web/all.min.css.gz,
-  web/all.min.js,
-  web/all.min.js.gz,
-  web/constants.json,
-  web/constants.json.gz,
+--  web/all.min.css,
+--  web/all.min.css.gz,
+--  web/all.min.js,
+--  web/all.min.js.gz,
+--  web/constants.json,
+--  web/constants.json.gz,
   web/icons/*.ico,
   web/icons/*.png,
   web/icons/*.svg,
@@ -59,14 +59,407 @@ Flag sandbox
   default: False
   manual: True
 
+test-suite dbrary-env-unit-test
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test/unit, .
+  main-is: DbraryEnvUnitTest.hs
+  other-modules:
+      Databrary.Store.Config
+    , Databrary.Store.ConfigTest
+  build-depends: 
+    base == 4.8.*,
+    bytestring >= 0.10,
+    -- containers,
+    -- array,
+    -- transformers == 0.4.*,
+    -- transformers-base,
+    -- mtl >= 2.2.1,
+    -- monad-control >= 1,
+    -- lifted-base,
+    -- template-haskell,
+    -- th-lift,
+    -- th-lift-instances,
+    -- haskell-src-meta,
+    -- time,
+    -- unix,
+    -- filepath,
+    -- posix-paths,
+    -- directory,
+    -- process,
+    -- data-default-class,
+    text,
+    -- utf8-string,
+    -- hashable >= 1.2.1,
+    unordered-containers,
+    parsec >= 3,
+    -- attoparsec,
+    -- network,
+    -- network-uri,
+    -- http-types,
+    -- wai,
+    -- wai-extra,
+    -- warp,
+    -- warp-tls,
+    -- case-insensitive,
+    aeson,
+    vector,
+    -- cookie,
+    -- resource-pool,
+    -- scientific,
+    -- postgresql-typed == 0.4.5,
+    -- memory >= 0.8,
+    -- cryptonite,
+    -- resourcet,
+    -- streaming-commons,
+    -- blaze-builder >= 0.4,
+    -- blaze-markup,
+    -- blaze-html,
+    -- regex-posix,
+    -- bcrypt,
+    -- http-client,
+    -- http-client-tls,
+    -- mime-mail,
+    -- fast-logger,
+    -- digest,
+    -- hjsonschema == 0.9.*,
+    -- file-embed == 0.0.9.1,
+    -- aeson-better-errors > 0.9.0,
+    -- xml,
+    -- zlib,
+    -- range-set-list,
+    -- invertible,
+    -- web-inv-route,
+    tasty,
+    tasty-hunit
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  default-language: Haskell2010
+  default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
+
+test-suite dbrary-mail-unit-test
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test/unit, .
+  main-is: DbraryMailUnitTest.hs
+  other-modules:
+      Databrary.Service.Mail
+    -- mail brings in many modules, not listed below
+    , Databrary.Service.MailTest
+  build-depends: 
+    base == 4.8.*,
+    bytestring >= 0.10,
+    containers,
+    transformers == 0.4.*,
+    transformers-base,
+    mtl >= 2.2.1,
+    monad-control >= 1,
+    lifted-base,
+    template-haskell,
+    th-lift,
+    th-lift-instances,
+    time,
+    posix-paths,
+    data-default-class,
+    text,
+    utf8-string,
+    hashable >= 1.2.1,
+    unordered-containers,
+    parsec >= 3,
+    network,
+    network-uri,
+    http-types,
+    wai,
+    wai-extra,
+    case-insensitive,
+    aeson,
+    vector,
+    resource-pool,
+    scientific,
+    postgresql-typed == 0.4.5,
+    blaze-markup,
+    blaze-html,
+    mime-mail,
+    fast-logger,
+    web-inv-route,
+    smtp-mail >= 0.1.4.6,
+    tasty,
+    tasty-hunit
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  default-language: Haskell2010
+  default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
+
+test-suite dbrary-authent-unit-test
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test/unit, .
+  main-is: DbraryAuthentUnitTest.hs
+  other-modules:
+      Databrary.Service.Passwd
+    , Databrary.Service.PasswdTest
+  build-depends: 
+    base == 4.8.*,
+    bytestring >= 0.10,
+    bcrypt,
+    tasty,
+    tasty-hunit
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  default-language: Haskell2010
+  default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
+  extra-libraries: crack
+
+test-suite dbrary-solr-unit-test
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test/unit, .
+  main-is: DbrarySolrUnitTest.hs
+  other-modules:
+              Databrary.Solr.Service
+            , Databrary.Solr.ServiceTest
+  build-depends: 
+    base == 4.8.*,
+    bytestring >= 0.10,
+    containers,
+    -- array,
+    transformers == 0.4.*,
+    transformers-base,
+    mtl >= 2.2.1,
+    monad-control >= 1,
+    lifted-base,
+    template-haskell,
+    th-lift,
+    -- th-lift-instances,
+    -- haskell-src-meta,
+    time,
+    -- unix,
+    filepath,
+    -- posix-paths,
+    directory,
+    process,
+    -- data-default-class,
+    text,
+    utf8-string,
+    -- hashable >= 1.2.1,
+    unordered-containers,
+    parsec >= 3,
+    attoparsec,
+    network,
+    network-uri,
+    http-types,
+    wai,
+    wai-extra,
+    -- warp,
+    -- warp-tls,
+    case-insensitive,
+    aeson,
+    vector,
+    -- cookie,
+    resource-pool,
+    scientific,
+    postgresql-typed == 0.4.5,
+    -- memory >= 0.8,
+    -- cryptonite,
+    -- resourcet,
+    -- streaming-commons,
+    -- blaze-builder >= 0.4,
+    blaze-markup,
+    blaze-html,
+    -- regex-posix,
+    -- bcrypt,
+    http-client,
+    http-client-tls,
+    -- mime-mail,
+    -- fast-logger,
+    -- digest,
+    -- hjsonschema == 0.9.*,
+    -- file-embed == 0.0.9.1,
+    -- aeson-better-errors > 0.9.0,
+    -- xml,
+    -- zlib,
+    range-set-list,
+    -- invertible,
+    web-inv-route,
+    tasty,
+    tasty-hunit
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  default-language: Haskell2010
+  default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
+
+test-suite dbrary-store-unit-test
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test/unit, .
+  main-is: DbraryStoreUnitTest.hs
+  other-modules:
+      Databrary.Files
+    , Databrary.Store.Filename
+    , Databrary.Store.Asset
+    , Databrary.Store.Types
+    , Databrary.Store.Stage
+    , Databrary.Store.Temp
+    , Databrary.Store.Upload
+    , Databrary.Store.Zip
+    -- AV is only here to enable building
+    , Databrary.Store.AV
+    , Databrary.FilesTest
+  c-sources: Databrary/Store/avFrame.c
+  build-depends: 
+    base == 4.8.*,
+    bytestring >= 0.10,
+    containers,
+    array,
+    transformers == 0.4.*,
+    transformers-base,
+    mtl >= 2.2.1,
+    monad-control >= 1,
+    lifted-base,
+    template-haskell,
+    th-lift,
+    th-lift-instances,
+    time,
+    unix,
+    filepath,
+    posix-paths,
+    directory,
+    process,
+    data-default-class,
+    text,
+    utf8-string,
+    hashable >= 1.2.1,
+    unordered-containers,
+    parsec >= 3,
+    attoparsec,
+    network,
+    network-uri,
+    http-types,
+    wai,
+    wai-extra,
+    case-insensitive,
+    aeson,
+    vector,
+    cookie,
+    resource-pool,
+    scientific,
+    postgresql-typed == 0.4.5,
+    memory >= 0.8,
+    cryptonite,
+    resourcet,
+    blaze-markup,
+    blaze-html,
+    regex-posix,
+    bcrypt,
+    http-client,
+    http-client-tls,
+    fast-logger,
+    digest,
+    invertible,
+    web-inv-route,
+    tasty,
+    tasty-hunit
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  default-language: Haskell2010
+  default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
+  pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
+  extra-libraries: crack
+
+test-suite dbrary-unit-test
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test/unit, .
+  main-is: UnitTest.hs
+  other-modules:
+           Data.RangeSet.ParseTest
+         , Databrary.JSONTest
+         , Databrary.EZID.ANVLTest
+         , Databrary.HTTP.RequestTest
+         , Databrary.OpsTest
+         , Databrary.Model.TimeTest
+         , Databrary.Model.EnumTest
+         , Databrary.StringTest
+         , Databrary.Action.RequestTest
+         , Data.RangeSet.Parse
+         --, Databrary.Action
+         --, Databrary.Action.Form
+         , Databrary.Action.Request
+         --, Databrary.Action.Response
+         --, Databrary.Action.Route
+         --, Databrary.Action.Run
+         -- , Databrary.Action.Types
+         , Databrary.JSON
+         , Databrary.EZID.ANVL
+         , Databrary.Model.Enum
+         , Databrary.Model.Time
+         , Databrary.Ops
+         , Databrary.String
+  build-depends: 
+    base == 4.8.*,
+    bytestring >= 0.10,
+    containers,
+    -- array,
+    transformers == 0.4.*,
+    transformers-base,
+    mtl >= 2.2.1,
+    monad-control >= 1,
+    -- lifted-base,
+    template-haskell,
+    th-lift,
+    -- th-lift-instances,
+    -- haskell-src-meta,
+    time,
+    -- unix,
+    -- filepath,
+    -- posix-paths,
+    -- directory,
+    -- process,
+    -- data-default-class,
+    text,
+    utf8-string,
+    -- hashable >= 1.2.1,
+    unordered-containers,
+    parsec >= 3,
+    attoparsec,
+    network,
+    network-uri,
+    http-types,
+    wai,
+    wai-extra,
+    -- warp,
+    -- warp-tls,
+    case-insensitive,
+    aeson,
+    vector,
+    -- cookie,
+    resource-pool,
+    scientific,
+    postgresql-typed == 0.4.5,
+    -- memory >= 0.8,
+    -- cryptonite,
+    -- resourcet,
+    -- streaming-commons,
+    -- blaze-builder >= 0.4,
+    blaze-markup,
+    blaze-html,
+    -- regex-posix,
+    -- bcrypt,
+    -- http-client,
+    -- http-client-tls,
+    -- mime-mail,
+    -- fast-logger,
+    -- digest,
+    -- hjsonschema == 0.9.*,
+    -- file-embed == 0.0.9.1,
+    -- aeson-better-errors > 0.9.0,
+    -- xml,
+    -- zlib,
+    range-set-list,
+    -- invertible,
+    web-inv-route,
+    tasty,
+    tasty-hunit
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  default-language: Haskell2010
+  default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
+
 Executable schemabrary
   main-is: Databrary/Setup/DB.hs
   default-language: Haskell2010
   build-depends:
-    base,
-    blaze-html,
+    base == 4.8.*,
     bytestring >= 0.10,
-    transformers,
+    transformers == 0.4.*,
     transformers-base,
     mtl >= 2.2.1,
     monad-control >= 1,
@@ -74,34 +467,301 @@ Executable schemabrary
     template-haskell,
     filepath,
     directory,
-    gargoyle,
-    gargoyle-postgresql,
-    http-types,
     text,
     unordered-containers,
     parsec >= 3,
-    postgresql-simple,
-    postgresql-simple-url,
     resource-pool,
     network,
-    network-uri, 
     postgresql-typed,
     vector,
     aeson
 
-  default-extensions: FlexibleInstances
-
 Executable databrary
   main-is: Databrary/Main.hs
-  other-modules: Databrary.Store.AV
+  other-modules: 
+        Databrary.Store.AV,
+        Blaze.ByteString.Builder.Html.Word,
+        Control.Invert,
+        Data.ByteString.Builder.Escape,
+        Data.RangeSet.Parse,
+        Databrary.Action,
+        Databrary.Action.Form,
+        Databrary.Action.Request,
+        Databrary.Action.Response,
+        Databrary.Action.Route,
+        Databrary.Action.Run,
+        Databrary.Action.Types,
+        Databrary.Context,
+        Databrary.Controller.API,
+        Databrary.Controller.Activity,
+        Databrary.Controller.Analytics,
+        Databrary.Controller.Angular,
+        Databrary.Controller.Asset,
+        Databrary.Controller.AssetSegment,
+        Databrary.Controller.Authorize,
+        Databrary.Controller.CSV,
+        Databrary.Controller.Citation,
+        Databrary.Controller.Comment,
+        Databrary.Controller.Container,
+        Databrary.Controller.Excerpt,
+        Databrary.Controller.Form,
+        Databrary.Controller.Format,
+        Databrary.Controller.Funding,
+        Databrary.Controller.IdSet,
+        Databrary.Controller.Ingest,
+        Databrary.Controller.Login,
+        Databrary.Controller.Metric,
+        Databrary.Controller.Notification,
+        Databrary.Controller.Party,
+        Databrary.Controller.Paths,
+        Databrary.Controller.Periodic,
+        Databrary.Controller.Permission,
+        Databrary.Controller.Record,
+        Databrary.Controller.Register,
+        Databrary.Controller.Root,
+        Databrary.Controller.Search,
+        Databrary.Controller.Slot,
+        Databrary.Controller.Tag,
+        Databrary.Controller.Token,
+        Databrary.Controller.Transcode,
+        Databrary.Controller.Upload,
+        Databrary.Controller.Volume,
+        Databrary.Controller.VolumeAccess,
+        Databrary.Controller.VolumeState,
+        Databrary.Controller.Web,
+        Databrary.Controller.Zip,
+        Databrary.EZID.ANVL,
+        Databrary.EZID.API,
+        Databrary.EZID.DataCite,
+        Databrary.EZID.Service,
+        Databrary.EZID.Volume,
+        Databrary.Files,
+        Databrary.HTTP,
+        Databrary.HTTP.Client,
+        Databrary.HTTP.Cookie,
+        Databrary.HTTP.File,
+        Databrary.HTTP.Form,
+        Databrary.HTTP.Form.Data,
+        Databrary.HTTP.Form.Deform,
+        Databrary.HTTP.Form.Errors,
+        Databrary.HTTP.Form.View,
+        Databrary.HTTP.Method.Map,
+        Databrary.HTTP.Parse,
+        Databrary.HTTP.Path,
+        Databrary.HTTP.Path.JS,
+        Databrary.HTTP.Path.Parser,
+        Databrary.HTTP.Path.Swagger,
+        Databrary.HTTP.Request,
+        Databrary.HTTP.Route,
+        Databrary.Has,
+        Databrary.Ingest.Action,
+        Databrary.Ingest.JSON,
+        Databrary.Ingest.Service,
+        Databrary.JSON,
+        Databrary.Model.Activity,
+        Databrary.Model.Activity.SQL,
+        Databrary.Model.Activity.Types,
+        Databrary.Model.Age,
+        Databrary.Model.Asset,
+        Databrary.Model.Asset.SQL,
+        Databrary.Model.Asset.Types,
+        Databrary.Model.AssetRevision,
+        Databrary.Model.AssetRevision.SQL,
+        Databrary.Model.AssetRevision.Types,
+        Databrary.Model.AssetSegment,
+        Databrary.Model.AssetSegment.SQL,
+        Databrary.Model.AssetSegment.Types,
+        Databrary.Model.AssetSlot,
+        Databrary.Model.AssetSlot.SQL,
+        Databrary.Model.AssetSlot.Types,
+        Databrary.Model.Audit,
+        Databrary.Model.Audit.SQL,
+        Databrary.Model.Audit.Types,
+        Databrary.Model.Authorize,
+        Databrary.Model.Authorize.SQL,
+        Databrary.Model.Authorize.Types,
+        Databrary.Model.Category,
+        Databrary.Model.Category.Boot,
+        Databrary.Model.Category.Types,
+        Databrary.Model.Citation,
+        Databrary.Model.Citation.CrossRef,
+        Databrary.Model.Citation.SQL,
+        Databrary.Model.Citation.Types,
+        Databrary.Model.Comment,
+        Databrary.Model.Comment.SQL,
+        Databrary.Model.Comment.Types,
+        Databrary.Model.Container,
+        Databrary.Model.Container.SQL,
+        Databrary.Model.Container.Types,
+        Databrary.Model.Enum,
+        Databrary.Model.Excerpt,
+        Databrary.Model.Excerpt.SQL,
+        Databrary.Model.Format,
+        Databrary.Model.Format.Boot,
+        Databrary.Model.Format.Types,
+        Databrary.Model.Funding,
+        Databrary.Model.Funding.FundRef,
+        Databrary.Model.Funding.SQL,
+        Databrary.Model.Funding.Types,
+        Databrary.Model.GeoNames,
+        Databrary.Model.Id,
+        Databrary.Model.Id.Types,
+        Databrary.Model.Identity,
+        Databrary.Model.Identity.Types,
+        Databrary.Model.Ingest,
+        Databrary.Model.Kind,
+        Databrary.Model.Measure,
+        Databrary.Model.Measure.SQL,
+        Databrary.Model.Metric,
+        Databrary.Model.Metric.Boot,
+        Databrary.Model.Metric.SQL,
+        Databrary.Model.Metric.Types,
+        Databrary.Model.Notification,
+        Databrary.Model.Notification.Boot,
+        Databrary.Model.Notification.Notice,
+        Databrary.Model.Notification.Notify,
+        Databrary.Model.Notification.SQL,
+        Databrary.Model.Notification.Types,
+        Databrary.Model.ORCID,
+        Databrary.Model.Offset,
+        Databrary.Model.Paginate,
+        Databrary.Model.Party,
+        Databrary.Model.Party.Boot,
+        Databrary.Model.Party.SQL,
+        Databrary.Model.Party.Types,
+        Databrary.Model.Periodic,
+        Databrary.Model.Permission,
+        Databrary.Model.Permission.SQL,
+        Databrary.Model.Permission.Types,
+        Databrary.Model.Record,
+        Databrary.Model.Record.SQL,
+        Databrary.Model.Record.Types,
+        Databrary.Model.RecordSlot,
+        Databrary.Model.RecordSlot.SQL,
+        Databrary.Model.RecordSlot.Types,
+        Databrary.Model.Release,
+        Databrary.Model.Release.SQL,
+        Databrary.Model.Release.Types,
+        Databrary.Model.SQL,
+        Databrary.Model.SQL.Select,
+        Databrary.Model.Segment,
+        Databrary.Model.Slot,
+        Databrary.Model.Slot.SQL,
+        Databrary.Model.Slot.Types,
+        Databrary.Model.Stats,
+        Databrary.Model.Stats.Types,
+        Databrary.Model.Tag,
+        Databrary.Model.Tag.SQL,
+        Databrary.Model.Tag.Types,
+        Databrary.Model.Time,
+        Databrary.Model.Token,
+        Databrary.Model.Token.SQL,
+        Databrary.Model.Token.Types,
+        Databrary.Model.Transcode,
+        Databrary.Model.Transcode.SQL,
+        Databrary.Model.Transcode.Types,
+        Databrary.Model.URL,
+        Databrary.Model.Volume,
+        Databrary.Model.Volume.Boot,
+        Databrary.Model.Volume.SQL,
+        Databrary.Model.Volume.Types,
+        Databrary.Model.VolumeAccess,
+        Databrary.Model.VolumeAccess.SQL,
+        Databrary.Model.VolumeAccess.Types,
+        Databrary.Model.VolumeMetric,
+        Databrary.Model.VolumeState,
+        Databrary.Model.VolumeState.Types,
+        Databrary.Ops,
+        Databrary.Routes,
+        Databrary.Routes.API,
+        Databrary.Routes.JS,
+        Databrary.Service.Crypto,
+        Databrary.Service.DB,
+        Databrary.Service.DB.Schema,
+        Databrary.Service.Entropy,
+        Databrary.Service.Init,
+        Databrary.Service.Log,
+        Databrary.Service.Mail,
+        Databrary.Service.Messages,
+        Databrary.Service.Notification,
+        Databrary.Service.Passwd,
+        Databrary.Service.Periodic,
+        Databrary.Service.Types,
+        Databrary.Solr.Document,
+        Databrary.Solr.Index,
+        Databrary.Solr.Search,
+        Databrary.Solr.Service,
+        Databrary.Solr.Tag,
+        Databrary.Static.Fillin,
+        Databrary.Static.Service,
+        Databrary.Store.Asset,
+        Databrary.Store.AssetSegment,
+        Databrary.Store.CSV,
+        Databrary.Store.Config,
+        Databrary.Store.Filename,
+        Databrary.Store.Probe,
+        Databrary.Store.Service,
+        Databrary.Store.Stage,
+        Databrary.Store.Temp,
+        Databrary.Store.Transcode,
+        Databrary.Store.Transcoder,
+        Databrary.Store.Types,
+        Databrary.Store.Upload,
+        Databrary.Store.Zip,
+        Databrary.String,
+        Databrary.View.Activity,
+        Databrary.View.Angular,
+        Databrary.View.Asset,
+        Databrary.View.Authorize,
+        Databrary.View.Comment,
+        Databrary.View.Container,
+        Databrary.View.Error,
+        Databrary.View.Form,
+        Databrary.View.Format,
+        Databrary.View.Html,
+        Databrary.View.Ingest,
+        Databrary.View.Login,
+        Databrary.View.Notification,
+        Databrary.View.Paginate,
+        Databrary.View.Party,
+        Databrary.View.Periodic,
+        Databrary.View.Record,
+        Databrary.View.Register,
+        Databrary.View.Root,
+        Databrary.View.Template,
+        Databrary.View.Token,
+        Databrary.View.Transcode,
+        Databrary.View.Volume,
+        Databrary.View.VolumeAccess,
+        Databrary.View.Zip,
+        Databrary.Warp,
+        Databrary.Web,
+        Databrary.Web.All,
+        Databrary.Web.Cache,
+        Databrary.Web.Coffee,
+        Databrary.Web.Constants,
+        Databrary.Web.Files,
+        Databrary.Web.GZip,
+        Databrary.Web.Generate,
+        Databrary.Web.Info,
+        Databrary.Web.JSHint,
+        Databrary.Web.Libs,
+        Databrary.Web.Messages,
+        Databrary.Web.Routes,
+        Databrary.Web.Rules,
+        Databrary.Web.Service,
+        Databrary.Web.Stylus,
+        Databrary.Web.Templates,
+        Databrary.Web.Types,
+        Databrary.Web.Uglify
   c-sources: Databrary/Store/avFrame.c
 
   build-depends:
-    base,
+    base == 4.8.*,
     bytestring >= 0.10,
     containers,
     array,
-    transformers,
+    transformers == 0.4.*,
     transformers-base,
     mtl >= 2.2.1,
     monad-control >= 1,
@@ -136,9 +796,7 @@ Executable databrary
     cookie,
     resource-pool,
     scientific,
-    postgresql-typed,
-    postgresql-simple,
-    postgresql-simple-url,
+    postgresql-typed == 0.4.5,
     memory >= 0.8,
     cryptonite,
     resourcet,
@@ -151,20 +809,17 @@ Executable databrary
     http-client,
     http-client-tls,
     mime-mail,
-    mime-types,
     fast-logger,
     digest,
-    hjsonschema == 0.9.0.0,
-    file-embed,
+    hjsonschema == 0.9.*,
+    file-embed == 0.0.9.1,
     aeson-better-errors > 0.9.0,
     xml,
     zlib,
     range-set-list,
     invertible,
     web-inv-route,
-    gargoyle,
-    gargoyle-postgresql,
-    smtp-mail
+    smtp-mail >= 0.1.4.6
 
   default-language: Haskell2010
   default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
@@ -179,47 +834,5 @@ Executable databrary
     cpp-options: -DSANDBOX
 
   pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
-  extra-libraries: crack, crypto
-
-Executable generate
-  main-is: generate.hs
-
-  build-depends:
-    aeson,
-    base,
-    blaze-html,
-    bytestring >= 0.10,
-    cryptonite,
-    directory,
-    filepath,
-    hashable >= 1.2.1,
-    http-types,
-    memory >= 0.8,
-    mime-types,
-    mtl >= 2.2.1,
-    parsec >= 3,
-    posix-paths,
-    process,
-    template-haskell,
-    text,
-    th-lift,
-    time,
-    transformers,
-    transformers-base,
-    unix,
-    unordered-containers,
-    vector,
-    zlib
-
-  default-language: Haskell2010
-  default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
-
-  ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields
-  cpp-options: -DNODB
-
-  if flag(devel)
-    cpp-options: -DDEVEL
-  else
-    ghc-options: -with-rtsopts -N
-  if flag(sandbox)
-    cpp-options: -DSANDBOX
+  extra-libraries: crack
+  build-tools: npm
