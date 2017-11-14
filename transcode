@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Transcode job management.
 # This is run on transcode.host, called from conf/transctl.sh
 # It is also the SLURM script so is in fact run twice, once with arguments (up to the sbatch), once with variables.
