@@ -99,6 +99,8 @@ uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
     Wai.KnownLength l -> checkLength l
     _ -> return ()
   rb <- peeks Wai.requestBody
+  liftIO $ putStrLn "request body length"
+  liftIO $ print . BS.length =<< rb
   n <- liftIO $ bracket
     (openFd file WriteOnly Nothing defaultFileFlags)
     (\f -> putStrLn "closeFd..." >> closeFd f) $ \h -> do
