@@ -82,11 +82,11 @@ chunkForm = do
 
 uploadChunk :: ActionRoute ()
 uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
-  liftIO $ print "inside of uploadChunk..." --DEBUG
+  -- liftIO $ print "inside of uploadChunk..." --DEBUG
   (up, off, len) <- runForm Nothing chunkForm
-  liftIO $ print "uploadChunk: truple assigned..." --DEBUG
+  -- liftIO $ print "uploadChunk: truple assigned..." --DEBUG
   file <- peeks $ uploadFile up
-  liftIO $ print "uploadChunk: file assigned..." --DEBUG
+  -- liftIO $ print "uploadChunk: file assigned..." --DEBUG
   let checkLength n
         | n /= len = do
           t <- peek
@@ -99,8 +99,8 @@ uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
     Wai.KnownLength l -> checkLength l
     _ -> return ()
   rb <- peeks Wai.requestBody
-  liftIO $ putStrLn "request body length"
-  liftIO $ print . BS.length =<< rb
+  -- liftIO $ putStrLn "request body length"
+  -- liftIO $ print . BS.length =<< rb
   n <- liftIO $ bracket
     (openFd file WriteOnly Nothing defaultFileFlags)
     (\f -> putStrLn "closeFd..." >> closeFd f) $ \h -> do
