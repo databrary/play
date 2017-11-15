@@ -43,16 +43,22 @@ import Databrary.Controller.Paths
 import Databrary.Controller.Form
 import Databrary.Controller.Volume
 
+import Control.Monad.IO.Class
+
 fileSizeForm :: DeformActionM f Int64
 fileSizeForm = deformCheck "Invalid file size." (0 <) =<< deform
 
 uploadStart :: ActionRoute (Id Volume)
 uploadStart = action POST (pathJSON >/> pathId </< "upload") $ \vi -> withAuth $ do
+  liftIO $ print "inside of uploadStart..." --DEBUG
   vol <- getVolume PermissionEDIT vi
+  liftIO $ print "vol assigned...running form..." --DEBUG
   (filename, size) <- runForm Nothing $ (,)
     <$> ("filename" .:> (deformCheck "File format not supported." (isJust . getFormatByFilename) =<< deform))
     <*> ("size" .:> (deformCheck "File too large." ((maxAssetSize >=) . fromIntegral) =<< fileSizeForm))
+  liftIO $ print "creating Upload..." --DEBUG
   tok <- createUpload vol filename size
+  liftIO $ print "peeking..." --DEBUG
   file <- peeks $ uploadFile tok
   liftIO $ bracket
     (openFd file WriteOnly (Just 0o640) defaultFileFlags{ exclusive = True })
@@ -62,6 +68,7 @@ uploadStart = action POST (pathJSON >/> pathId </< "upload") $ \vi -> withAuth $
 
 chunkForm :: DeformActionM f (Upload, Int64, Word64)
 chunkForm = do
+  liftIO $ print "inside of chunkForm..." --DEBUG
   csrfForm
   up <- "flowIdentifier" .:> (lift . (maybeAction <=< lookupUpload) =<< deform)
   let z = uploadSize up
@@ -76,6 +83,7 @@ chunkForm = do
 
 uploadChunk :: ActionRoute ()
 uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
+  liftIO $ print "inside of uploadChunk..." --DEBUG
   (up, off, len) <- runForm Nothing chunkForm
   file <- peeks $ uploadFile up
   let checkLength n
@@ -113,6 +121,7 @@ uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
 
 testChunk :: ActionRoute ()
 testChunk = action GET (pathJSON </< "upload") $ \() -> withAuth $ do
+  liftIO $ print "inside of testChunk..." --DEBUG
   (up, off, len) <- runForm Nothing chunkForm
   file <- peeks $ uploadFile up
   r <- liftIO $ bracket
