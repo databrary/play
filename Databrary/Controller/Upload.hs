@@ -70,15 +70,22 @@ chunkForm :: DeformActionM f (Upload, Int64, Word64)
 chunkForm = do
   liftIO $ print "inside of chunkForm..." --DEBUG
   csrfForm
+  liftIO $ print "chunkForm: ran csrfForm..." --DEBUG
   up <- "flowIdentifier" .:> (lift . (maybeAction <=< lookupUpload) =<< deform)
+  liftIO $ print "chunkForm: up assigned..." --DEBUG
   let z = uploadSize up
   "flowFilename" .:> (deformGuard "Filename mismatch." . (uploadFilename up ==) =<< deform)
   "flowTotalSize" .:> (deformGuard "File size mismatch." . (z ==) =<< fileSizeForm)
+  liftIO $ print "chunkForm: z assigned..." --DEBUG
   c <- "flowChunkSize" .:> (deformCheck "Chunk size too small." (1024 <=) =<< deform)
+  liftIO $ print "chunkForm: c assigned..." --DEBUG
   n <- "flowTotalChunks" .:> (deformCheck "Chunk count mismatch." ((1 >=) . abs . (pred z `div` c -)) =<< deform)
+  liftIO $ print "chunkForm: n assigned..." --DEBUG
   i <- "flowChunkNumber" .:> (deformCheck "Chunk number out of range." (\i -> 0 <= i && i < n) =<< pred <$> deform)
+  liftIO $ print "chunkForm: i assigned..." --DEBUG
   let o = c * i
   l <- "flowCurrentChunkSize" .:> (deformCheck "Current chunk size out of range." (\l -> (c == l || i == pred n) && o + l <= z) =<< deform)
+  liftIO $ print "chunkForm: l assigned..." --DEBUG
   return (up, o, fromIntegral l)
 
 uploadChunk :: ActionRoute ()
