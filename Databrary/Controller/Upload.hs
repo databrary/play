@@ -111,7 +111,7 @@ uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
     (openFd file WriteOnly Nothing defaultFileFlags)
     closeFd $ \h -> do
     _ <- fdSeek h AbsoluteSeek (COff off)
-  liftIO $ print "uploadChunk:  fdSeek..." --DEBUG
+    liftIO $ print "uploadChunk:  fdSeek..." --DEBUG
     let block n = do
           b <- rb
           if BS.null b
