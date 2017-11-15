@@ -68,24 +68,16 @@ uploadStart = action POST (pathJSON >/> pathId </< "upload") $ \vi -> withAuth $
 
 chunkForm :: DeformActionM f (Upload, Int64, Word64)
 chunkForm = do
-  liftIO $ print "inside of chunkForm..." --DEBUG
   csrfForm
-  liftIO $ print "chunkForm: ran csrfForm..." --DEBUG
   up <- "flowIdentifier" .:> (lift . (maybeAction <=< lookupUpload) =<< deform)
-  liftIO $ print "chunkForm: up assigned..." --DEBUG
   let z = uploadSize up
   "flowFilename" .:> (deformGuard "Filename mismatch." . (uploadFilename up ==) =<< deform)
   "flowTotalSize" .:> (deformGuard "File size mismatch." . (z ==) =<< fileSizeForm)
-  liftIO $ print "chunkForm: z assigned..." --DEBUG
   c <- "flowChunkSize" .:> (deformCheck "Chunk size too small." (1024 <=) =<< deform)
-  liftIO $ print "chunkForm: c assigned..." --DEBUG
   n <- "flowTotalChunks" .:> (deformCheck "Chunk count mismatch." ((1 >=) . abs . (pred z `div` c -)) =<< deform)
-  liftIO $ print "chunkForm: n assigned..." --DEBUG
   i <- "flowChunkNumber" .:> (deformCheck "Chunk number out of range." (\i -> 0 <= i && i < n) =<< pred <$> deform)
-  liftIO $ print "chunkForm: i assigned..." --DEBUG
   let o = c * i
   l <- "flowCurrentChunkSize" .:> (deformCheck "Current chunk size out of range." (\l -> (c == l || i == pred n) && o + l <= z) =<< deform)
-  liftIO $ print "chunkForm: l assigned..." --DEBUG
   return (up, o, fromIntegral l)
 
 uploadChunk :: ActionRoute ()
@@ -109,34 +101,41 @@ uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
   rb <- peeks Wai.requestBody
   n <- liftIO $ bracket
     (openFd file WriteOnly Nothing defaultFileFlags)
-    closeFd $ \h -> do
-    _ <- fdSeek h AbsoluteSeek (COff off)
-    liftIO $ print "uploadChunk:  fdSeek..." --DEBUG
-    liftIO $ print h --DEBUG 
-    liftIO $ print off --DEBUG 
-    let block n = do
-          b <- rb
-          if BS.null b
-            then return n
-            else do
-              liftIO $ print "uploadChunk: b is not null, processing..." --DEBUG
-              let n' = n + fromIntegral (BS.length b)
-                  write b' = do
-                    liftIO $ print "uploadChunk: performing unsafeUseAsCStringLen..." --DEBUG
-                    w <- BSU.unsafeUseAsCStringLen b' $ \(buf, siz) -> fdWriteBuf h (castPtr buf) (fromIntegral siz)
-                    liftIO $ print "uploadChunk: w assigned  unsafeUseAsCStringLen..." --DEBUG
-                    if w < fromIntegral (BS.length b')
-                      then do 
-                        liftIO $ print "uploadChunk: w < length b'..." --DEBUG
-                        write $! BS.drop (fromIntegral w) b'
-                      else do 
-                        liftIO $ print "uploadChunk: !(w < length b')..." --DEBUG
-                        block n'
-              if n' > len
-                then return n'
-                else write b
-    block 0
-  liftIO $ print "uploadChunk:  running checkLength..." --DEBUG
+    (\f -> putStrLn "closeFd..." >> closeFd f) $ \h -> do
+      _ <- fdSeek h AbsoluteSeek (COff off)
+      liftIO $ print "uploadChunk:  fdSeek..." --DEBUG
+      liftIO $ print h --DEBUG 
+      liftIO $ print off --DEBUG 
+      let block n = do
+            liftIO $ putStrLn $ "block:" ++ show n --DEBUG
+            b <- rb
+            if BS.null b
+              then do 
+                liftIO $ putStrLn "b is null" --DEBUG
+                return n
+              else do
+                liftIO $ print "uploadChunk: b is not null, processing..." --DEBUG
+                let n' = n + fromIntegral (BS.length b)
+                    write b' = do
+                      liftIO $ print "uploadChunk: performing unsafeUseAsCStringLen..." --DEBUG
+                      w <- BSU.unsafeUseAsCStringLen b' $ \(buf, siz) -> fdWriteBuf h (castPtr buf) (fromIntegral siz)
+                      liftIO $ print "uploadChunk: w assigned  unsafeUseAsCStringLen..." --DEBUG
+                      if w < fromIntegral (BS.length b')
+                        then do 
+                          liftIO $ print "uploadChunk: w < length b'..." --DEBUG
+                          write $! BS.drop (fromIntegral w) b'
+                        else do 
+                          liftIO $ print "uploadChunk: !(w < length b')..." --DEBUG
+                          block n'
+                if n' > len
+                  then do 
+                    liftIO $ putStrLn $ "n' > len" ++ show (n',len)   --DEBUG
+                    return n'
+                  else do 
+                    liftIO $ putStrLn $ "n' > len" ++ show (n',len)   --DEBUG
+                    write b
+      block 0
+  liftIO $ putStrLn $ "n = " ++ show n --DEBUG
   checkLength n -- TODO: clear block (maybe wait for calloc)
   liftIO $ print "uploadChunk:  post checkLength..." --DEBUG
   return $ emptyResponse noContent204 []
