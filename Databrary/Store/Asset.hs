@@ -23,6 +23,8 @@ import Databrary.Files
 import Databrary.Store.Types
 import Databrary.Model.Asset.Types
 
+import Control.Monad.IO.Class
+
 maxAssetSize :: Word64
 maxAssetSize = 128*1024*1024*1024
 
@@ -50,8 +52,11 @@ getAssetFile a = do
 
 storeAssetFile :: MonadStorage c m => Asset -> RawFilePath -> m Asset
 storeAssetFile ba@Asset{ assetRow = bar } fp = peeks storageMaster >>= \sm -> liftIO $ do
+  liftIO $ print "inside storeAssetFile..." --DEBUG
   size <- (fromIntegral . fileSize              <$> getFileStatus fp) `fromMaybeM` assetSize bar
+  liftIO $ print "assetFile size recorded..." --DEBUG
   sha1 <- ((convert :: Digest SHA1 -> BS.ByteString) <$> hashFile fp) `fromMaybeM` assetSHA1 bar
+  liftIO $ print "assetFile sha1 recorded..." --DEBUG
   let a = ba{ assetRow = bar
         { assetSize = Just size
         , assetSHA1 = Just sha1
@@ -61,9 +66,11 @@ storeAssetFile ba@Asset{ assetRow = bar } fp = peeks storageMaster >>= \sm -> li
   ase <- fileExist as
   if ase
     then do
+      liftIO $ print "assetFile exists..." --DEBUG
       sf <- compareFiles fp as
       unless sf $ fail "storage hash collision"
     else do
+      liftIO $ print "assetFile does not exists..." --DEBUG
       _ <- createDir (takeDirectory as) 0o750
       createLink fp as
   return a
