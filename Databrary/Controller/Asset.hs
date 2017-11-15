@@ -143,7 +143,8 @@ deformLookup :: (Monad m, Functor m, Deform f a) => FormErrorMessage -> (a -> m 
 deformLookup e l = mapM (deformMaybe' e <=< lift . l) =<< deformNonEmpty deform
 
 detectUpload :: FileUploadFile -> DeformActionM TempFile FileUpload
-detectUpload u =
+detectUpload u = do
+  liftIO $ print "detectUpload..."
   either deformError' (return . FileUpload u)
     =<< lift (probeFile (fileUploadName u) =<< peeks (fileUploadPath u))
 
