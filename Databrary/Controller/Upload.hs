@@ -92,7 +92,9 @@ uploadChunk :: ActionRoute ()
 uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
   liftIO $ print "inside of uploadChunk..." --DEBUG
   (up, off, len) <- runForm Nothing chunkForm
+  liftIO $ print "uploadChunk: truple assigned..." --DEBUG
   file <- peeks $ uploadFile up
+  liftIO $ print "uploadChunk: file assigned..." --DEBUG
   let checkLength n
         | n /= len = do
           t <- peek
@@ -100,6 +102,7 @@ uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
           result $ response badRequest400 [] ("Incorrect content length: file being uploaded may have moved or changed" :: JSON.Value)
         | otherwise = return ()
   bl <- peeks Wai.requestBodyLength
+  liftIO $ print "uploadChunk: bl assigned..." --DEBUG
   case bl of
     Wai.KnownLength l -> checkLength l
     _ -> return ()
@@ -108,6 +111,7 @@ uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
     (openFd file WriteOnly Nothing defaultFileFlags)
     closeFd $ \h -> do
     _ <- fdSeek h AbsoluteSeek (COff off)
+  liftIO $ print "uploadChunk:  fdSeek..." --DEBUG
     let block n = do
           b <- rb
           if BS.null b
@@ -123,7 +127,9 @@ uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
                 then return n'
                 else write b
     block 0
+  liftIO $ print "uploadChunk:  running checkLength..." --DEBUG
   checkLength n -- TODO: clear block (maybe wait for calloc)
+  liftIO $ print "uploadChunk:  post checkLength..." --DEBUG
   return $ emptyResponse noContent204 []
 
 testChunk :: ActionRoute ()
