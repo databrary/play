@@ -112,17 +112,26 @@ uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
     closeFd $ \h -> do
     _ <- fdSeek h AbsoluteSeek (COff off)
     liftIO $ print "uploadChunk:  fdSeek..." --DEBUG
+    liftIO $ print h --DEBUG 
+    liftIO $ print off --DEBUG 
     let block n = do
           b <- rb
           if BS.null b
             then return n
             else do
+              liftIO $ print "uploadChunk: b is not null, processing..." --DEBUG
               let n' = n + fromIntegral (BS.length b)
                   write b' = do
+                    liftIO $ print "uploadChunk: performing unsafeUseAsCStringLen..." --DEBUG
                     w <- BSU.unsafeUseAsCStringLen b' $ \(buf, siz) -> fdWriteBuf h (castPtr buf) (fromIntegral siz)
+                    liftIO $ print "uploadChunk: w assigned  unsafeUseAsCStringLen..." --DEBUG
                     if w < fromIntegral (BS.length b')
-                      then write $! BS.drop (fromIntegral w) b'
-                      else block n'
+                      then do 
+                        liftIO $ print "uploadChunk: w < length b'..." --DEBUG
+                        write $! BS.drop (fromIntegral w) b'
+                      else do 
+                        liftIO $ print "uploadChunk: !(w < length b')..." --DEBUG
+                        block n'
               if n' > len
                 then return n'
                 else write b
