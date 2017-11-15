@@ -10,6 +10,7 @@ import Control.Monad ((<=<))
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Class (lift)
 import qualified Data.ByteString as BS
+-- import qualified Data.ByteString.Lazy as LBS
 import qualified Data.ByteString.Unsafe as BSU
 import Data.ByteString.Lazy.Internal (defaultChunkSize)
 import Data.Int (Int64)
@@ -111,7 +112,7 @@ uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
       liftIO $ print off --DEBUG 
       let block n = do
             liftIO $ putStrLn $ "block:" ++ show n --DEBUG
-            b <- rb
+            b <- BS.pack . BS.unpack <$> rb
             if BS.null b
               then do 
                 liftIO $ putStrLn "b is null" --DEBUG
