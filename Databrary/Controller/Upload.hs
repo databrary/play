@@ -20,7 +20,7 @@ import Foreign.Marshal.Array (allocaArray, peekArray)
 import Foreign.Ptr (castPtr)
 import Network.HTTP.Types (ok200, noContent204, badRequest400)
 import qualified Network.Wai as Wai
-import System.IO (SeekMode(AbsoluteSeek))
+import System.IO (SeekMode(AbsoluteSeek), stdout, hSetBuffering, BufferMode(..))
 import System.Posix.Files.ByteString (setFdSize)
 import System.Posix.IO.ByteString (openFd, OpenMode(ReadOnly, WriteOnly), defaultFileFlags, exclusive, closeFd, fdSeek, fdWriteBuf, fdReadBuf)
 import System.Posix.Types (COff(..))
@@ -82,6 +82,7 @@ chunkForm = do
 
 uploadChunk :: ActionRoute ()
 uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
+  liftIO $ hSetBuffering stdout NoBuffering -- DEBUG (ensure no delay in writing messages)
   -- liftIO $ print "inside of uploadChunk..." --DEBUG
   (up, off, len) <- runForm Nothing chunkForm
   -- liftIO $ print "uploadChunk: truple assigned..." --DEBUG
