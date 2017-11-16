@@ -3,7 +3,6 @@
 set -euo pipefail 
 
 rcvr=$1
-rcvr2=$2
 echo "building Databrary binaries..."
 RESULT="$(nix-build --attr pkgs.databrary --show-trace)"
 nix-copy-closure --to "$rcvr" "$RESULT"
@@ -19,6 +18,7 @@ ssh -t "$rcvr" " \
 
 if [ $# -eq 2 ]
 then
+    rcvr2=$2
     echo "Repeating for second server $rcvr2 ..."
     nix-copy-closure --to "$rcvr2" "$RESULT"
     ssh -t "$rcvr2" " \
