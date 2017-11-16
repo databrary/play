@@ -3,7 +3,7 @@
 set -euo pipefail 
 
 rcvr=$1
-rcvr2=$1
+rcvr2=$2
 echo "building Databrary binaries..."
 RESULT="$(nix-build --attr pkgs.databrary --show-trace)"
 nix-copy-closure --to "$rcvr" "$RESULT"
