@@ -831,6 +831,11 @@ app.controller('volume/slot', [
       blank.choose()
       blank
 
+    $scope.$on '$viewContentLoaded', ->
+      if target.file == 'open'
+        $scope.addBlank()
+      return
+
     $scope.fileAdded = (file) ->
       $flow = file.flowObj
       (!$scope.current?.file && $scope.current || $scope.addBlank()).upload(file) if editing

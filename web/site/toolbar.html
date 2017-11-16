@@ -4,7 +4,7 @@
   </div>
   <div class="wrap toolbar-main" ng-class="{'hover-nav-bg':hover==='nav'}">
     <div class="row">
-      <div class="title cf col-desktop-9" ng-class="{'col-tablet-6 col-mobile-3': (hover!=='nav')&&page.models.Login.isLoggedIn(), 'col-tablet-6 col-mobile-2': (hover!=='nav')&&!page.models.Login.isLoggedIn(),'col-mobile-6':hover==='nav'}">
+      <div class="title cf col-desktop-7" ng-class="{'col-tablet-5 col-mobile-3': (hover!=='nav')&&page.models.Login.isLoggedIn(), 'col-tablet-5 col-mobile-2': (hover!=='nav')&&!page.models.Login.isLoggedIn(),'col-mobile-5':hover==='nav'}">
         <div class="toolbar-site" ng-show="page.$route.current.controller!=='site/home'">
           <a ng-class="::{sandbox:page.constants.sandbox}" ng-href="{{::page.router.index()}}" title="Databrary: An Open Data Library"></a>
         </div>
@@ -68,6 +68,7 @@
         <span ng-if="page.models.Login.isLoggedIn()">
           <a href="" ng-click="hoverToggle('notifications', $event)" tooltip="'Notifications'">
             <span class="toolbar-icon icon notification" ng-class="{new:page.models.Login.user.notifications}"></span>
+            <span class="hide-mobile hide-tablet">My Notifications</span>
           </a>
 
           <a href="" ng-class="::{'toolbar-superuser': page.models.Login.user.superuser !== undefined, on: !!page.models.Login.user.superuser}" ng-click="hoverToggle('user', $event)">
