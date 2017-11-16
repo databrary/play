@@ -95,12 +95,11 @@ uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
           focusIO $ logMsg t ("uploadChunk: wrong size " ++ show n ++ "/" ++ show len)
           result $ response badRequest400 [] ("Incorrect content length: file being uploaded may have moved or changed" :: JSON.Value)
         | otherwise = return ()
-  bl <- peeks Wai.requestBodyLength
-  liftIO $ print "uploadChunk: bl assigned..." --DEBUG
-  case bl of
-    Wai.KnownLength l -> checkLength l
-    _ -> return ()
-  liftIO $ print ("uploadChunk: bl value was " ++ show bl) --DEBUG
+  -- bl <- peeks Wai.requestBodyLength -- DEBUG disable
+  -- liftIO $ print "uploadChunk: bl assigned..." --DEBUG
+  -- case bl of -- DEBUG disable
+  --   Wai.KnownLength l -> checkLength l -- DEBUG disable
+  --   _ -> return () -- DEBUG disable
   rb <- peeks Wai.requestBody
   -- liftIO $ putStrLn "request body length"
   -- liftIO $ print . BS.length =<< rb
