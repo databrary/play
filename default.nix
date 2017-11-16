@@ -62,8 +62,6 @@ let
       postgresql-binary = dontCheck (self.callHackage  "postgresql-binary" "0.10" {});
       # Define postgresql-typed package with explicit version number
       postgresql-typed = dontCheck (self.callHackage  "postgresql-typed" "0.4.5" {});
-      warp = dontCheck (self.callHackage  "warp" "3.2.6" {});
-      warp-tls = dontCheck (self.callHackage  "warp-tls" "3.2.1" {});
     };
   };
 in { inherit nixpkgs pkgs nodePackages postgresql; }
