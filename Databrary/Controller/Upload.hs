@@ -73,7 +73,7 @@ chunkForm = do
   let z = uploadSize up
   "flowFilename" .:> (deformGuard "Filename mismatch." . (uploadFilename up ==) =<< deform)
   "flowTotalSize" .:> (deformGuard "File size mismatch." . (z ==) =<< fileSizeForm)
-  c <- "flowChunkSize" .:> (deformCheck "Chunk size too small." (400 <=) =<< deform)
+  c <- "flowChunkSize" .:> (deformCheck "Chunk size too small." (1024 <=) =<< deform)
   n <- "flowTotalChunks" .:> (deformCheck "Chunk count mismatch." ((1 >=) . abs . (pred z `div` c -)) =<< deform)
   i <- "flowChunkNumber" .:> (deformCheck "Chunk number out of range." (\i -> 0 <= i && i < n) =<< pred <$> deform)
   let o = c * i
