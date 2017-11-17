@@ -41,7 +41,7 @@ let
         # postgresql with ranges plugin
         inherit postgresql nodePackages;
         # ffmpeg override with with --enable-libfdk-aac and --enable-nonfree flags set
-        ffmpeg = nixpkgs.ffmpeg_2_8.override {
+        ffmpeg = nixpkgs.ffmpeg-full.override {
           nonfreeLicensing = true;
           fdkaacExtlib = true;
         };
