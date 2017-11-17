@@ -64,6 +64,7 @@ mkDerivation rec {
     cat databrary.conf
     ls -la $(dirname $socket_path)
     ls -la $socket_path
+    export dontPatchShebangs=1
   '';
   postBuild = ''
     kill -INT `head -1 $socket_path/postmaster.pid`
