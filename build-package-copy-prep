@@ -15,3 +15,14 @@ ssh -t "$rcvr" " \
            nix-env --install $RESULT \
         && sudo -u demo bash -c \"cd /home/demo && rm -f databraryExeLink && ln -s $RESULT/bin/databrary databraryExeLink \"  \
 "
+
+if [ $# -eq 2 ]
+then
+    rcvr2=$2
+    echo "Repeating for second server $rcvr2 ..."
+    nix-copy-closure --to "$rcvr2" "$RESULT"
+    ssh -t "$rcvr2" " \
+               nix-env --install $RESULT \
+            && sudo -u databrary bash -c \"cd /home/databrary && rm -f databraryExeLink && ln -s $RESULT/bin/databrary databraryExeLink \"  \
+    "
+fi
