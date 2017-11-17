@@ -8,10 +8,10 @@ app.factory('uploadService', [
     flowOptions: () ->
       target: router.controllers.uploadChunk.route()
       method: 'octet'
-      # chunkSize: 4194304
-      chunkSize: 500
-      # forceChunkSize: false
-      forceChunkSize: true
+      chunkSize: 4194304
+      # chunkSize: 500
+      forceChunkSize: false
+      # forceChunkSize: true
       simultaneousUploads: 3
       testChunks: false
       chunkRetryInterval: 5000
