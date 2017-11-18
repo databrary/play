@@ -29,6 +29,7 @@ In a separate shell, from the same root directory of this project, inside a nix-
 ```bash
 >ghci-databrary
 ```
+Note: There will be some delay the first time this runs, as it downloads large packages initially.
 
 ### STEP 3
 When cabal repl finishes loading, run
