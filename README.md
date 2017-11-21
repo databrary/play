@@ -53,6 +53,8 @@ to watch for any changes the developer makes to frontend files located within th
 ```bash
 $ ./hotreload.sh 
 ```
+Note: If you're going to apply a batch change to multiple frontend source files(e.g., git checkout), 
+stop the hot-reload script
 
 -----HOT RELOAD(ghcid) FOR BACKEND HASKELL DEVELOPERS-----
 After running 'Step 1'  provided above, in a separate terminal you can run the following commands 
