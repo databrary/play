@@ -26,7 +26,8 @@ let
     if [ ! -d "databrary_logs" ]; then
       mkdir databrary_logs
       touch databrary_logs/solr_log
-    fi 
+    fi
+    rm -rf dist
     cabal configure --datadir=. --datasubdir=.
     cabal repl databrary
   '';
@@ -44,7 +45,7 @@ let
         # postgresql with ranges plugin
         inherit postgresql nodePackages;
         # ffmpeg override with with --enable-libfdk-aac and --enable-nonfree flags set
-        ffmpeg = nixpkgs.ffmpeg_2_8.override {
+        ffmpeg = nixpkgs.ffmpeg-full.override {
           nonfreeLicensing = true;
           fdkaacExtlib = true;
         };
