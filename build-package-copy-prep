@@ -4,9 +4,9 @@ set -euo pipefail
 
 rcvr=$1
 echo "building Databrary binaries..."
+# if /tmp is too small for major nix builds, create appropriate dir, then use TMPDIR=... build-package-copy-prep ...
 RESULT="$(nix-build --attr pkgs.databrary --show-trace)"
 nix-copy-closure --to "$rcvr" "$RESULT"
-# TODO: copy and ssh to rcvr2 as well
 echo "copy closure of Databrary binaries completed..."
 
 # TODO: uninstall previous version; run nix-collect-garbage after install
