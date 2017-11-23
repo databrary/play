@@ -46,7 +46,7 @@ When cabal repl finishes loading, run
 
 Point your browser to localhost:8000
 
------HOT RELOAD FOR FRONTEND DEVELOPERS-----
+#### -----HOT RELOAD FOR FRONTEND DEVELOPERS-----
 
 After running the steps provided above, in a separate terminal you can run the following script 
 to watch for any changes the developer makes to frontend files located within the 'web/' directory: 
@@ -56,7 +56,8 @@ $ ./hotreload.sh
 Note: If you're going to apply a batch change to multiple frontend source files(e.g., git checkout), 
 stop the hot-reload script
 
------HOT RELOAD(ghcid) FOR BACKEND HASKELL DEVELOPERS-----
+#### -----HOT RELOAD(ghcid) FOR BACKEND HASKELL DEVELOPERS-----
+
 After running 'Step 1'  provided above, in a separate terminal you can run the following commands 
 to watch for any changes the developer makes to backend files located within the 'Databrary/' directory: 
 ```bash
@@ -65,7 +66,7 @@ $ ./ghcid-backend
 ```
 
 
-Sign-Up | Log-In | Email Confirmation
+#### Sign-Up | Log-In | Email Confirmation
 
 In order Sign up for Databrary within your test envirionment, you will need to
 be able to receive the confirmation email. 
