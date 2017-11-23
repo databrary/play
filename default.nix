@@ -23,6 +23,11 @@ let
       echo linking node_modules
       ln -s ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
     fi
+    # make store related dirs
+    mkdir -p cache/tmp stage tmp trans upload
+    if [ ! -d "store" ]; then
+      cp -R install/store-seed store
+    fi
     if [ ! -d "databrary_logs" ]; then
       mkdir databrary_logs
       touch databrary_logs/solr_log
