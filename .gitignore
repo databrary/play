@@ -32,6 +32,7 @@
 
 # IDE temp files
 *.swp
+*~
 
 # compiler / dependency manager 
 /.cabal-sandbox/
