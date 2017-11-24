@@ -21,7 +21,7 @@ From the root directory of this project, run
 # Enter environment for running postgres database
 $ nix-shell
 
-# Set up the postgresql database along with required schemas (this is a synchronus procedure, use Ctrl-d or Ctrl-c to close psql and shutdown database)
+# Set up the postgresql database along with required schemas (this is a synchronus procedure, use Ctrl-d to close psql and shutdown database)
 [nix-shell:..]$ ./init-db-psql.sh
 ```
 
