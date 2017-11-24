@@ -21,22 +21,24 @@ From the root directory of this project, run
 # Enter environment for running postgres database
 $ nix-shell
 
-# Set up the postgresql database along with required schemas (this is a synchronus procedure, use Ctrl-d to close psql and shutdown database)
+# Set up the postgresql database along with required schemas
+# This is a synchronous procedure, use Ctrl-d to close psql and shutdown database.
 [nix-shell:..]$ ./init-db-psql.sh
 ```
+Note: Ensure Ctrl-d is used to shutdown psql and database when editing is complete. If you encounter any errors, use 
+ `ps aux | grep postgres` to find if a previous running postgresql database is still running and kill appropriately. 
 
 ### STEP 2
 In a separate shell, from the same root directory of this project, run
 ```bash
-# Enter environment for building/running databrary.
-# If missing, create directories and download dependencies.
-# Start haskell interactive interpreter.
+# Start Haskell interactive interpreter, within an environment sandboxed for building/running databrary.
+# If missing, create directories and download dependencies, before launching interpreter.
 $ nix-shell --run ghci-databrary
 ```
 Note: There will be some delay the first time this runs, as it downloads large packages initially.
 
 ### STEP 3
-When cabal repl (interpreter) finishes loading, run
+When Haskell interpreter finishes loading, run
 ```bash
 # Bring Main module into scope
 *...> :m + Main
