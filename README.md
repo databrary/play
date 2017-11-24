@@ -5,43 +5,47 @@ Guide for setting up a development environment for Databrary.
 ---------------------------------------------------------------------------
 Welcome to the Jungle!
 
-Clone the Databrary Repo and checkout the master branch. 
+### STEP 0
+From the root directory of this project, run
 ```bash
-> git clone git@github.com:databrary/databrary.git
-> git checkout master
+# If you don't already have nix, get it! (If you do have it, skip this step)
+> ./setup-nix
+
+# If you just want to add the binary caches to your nix config (note that this is run by setup-nix, so you don't need to run both):
+> sudo ./setup-binary-caches
 ```
 
 ### STEP 1
 From the root directory of this project, run
 ```bash
-# If you don't already have nix, get it! (If you do have it, skip this step)
-> ./setup-nix
-# If you just want to add the binary caches to your nix config (note that this is run by setup-nix, so you don't need to run both):
-> sudo ./setup-binary-caches
-# Enter environment for building/running databrary
-> nix-shell
-# Set up the postgresql database along with required schemas (this is a synchronus procedure, use Ctrl-C to close db connection)
-> ./init-db
+# Enter environment for running postgres database
+$ nix-shell
+
+# Set up the postgresql database along with required schemas (this is a synchronus procedure, use Ctrl-d or Ctrl-c to close psql and shutdown database)
+[nix-shell:..]$ ./init-db-psql.sh
 ```
 
 ### STEP 2
-In a separate shell, from the same root directory of this project, inside a nix-shell, run
+In a separate shell, from the same root directory of this project, run
 ```bash
->ghci-databrary
+# Enter environment for building/running databrary.
+# If missing, create directories and download dependencies.
+# Start haskell interactive interpreter.
+$ nix-shell --run ghci-databrary
 ```
 Note: There will be some delay the first time this runs, as it downloads large packages initially.
 
 ### STEP 3
-When cabal repl finishes loading, run
+When cabal repl (interpreter) finishes loading, run
 ```bash
-#Bring Main module into scope
-> :m + Main
+# Bring Main module into scope
+*...> :m + Main
 
 # Generate frontend assets
-> :main -w
+*... Main> :main -w
 
 # Start databrary backend
-> main
+*... Main> main
 ```
 
 Point your browser to localhost:8000
