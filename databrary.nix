@@ -64,6 +64,7 @@ mkDerivation rec {
     cat databrary.conf
     ls -la $(dirname $socket_path)
     ls -la $socket_path
+    # was only needed when trans scripts were being copied by data-files
     export dontPatchShebangs=1
   '';
   postBuild = ''
@@ -72,8 +73,26 @@ mkDerivation rec {
     databrary_datadir=. dist/build/databrary/databrary -w
   '';
   postInstall = '' 
-    chmod +x $out/share/x86_64-linux-ghc-8.0.2/databrary-1/transctl.sh
-    chmod +x $out/share/x86_64-linux-ghc-8.0.2/databrary-1/transcode
-    cp -r cracklib $out/share/x86_64-linux-ghc-8.0.2/databrary-1/
+  '';
+  postFixup = ''
+    data_basedir="$out/share/x86_64-linux-ghc-8.0.2"
+    data_outputdir="$data_basedir/databrary-1"
+    mkdir -p $data_outputdir
+
+    cp messages.conf volume.json $data_outputdir
+
+    mkdir $data_outputdir/web
+    cd web
+    cp all.min.css all.min.css.gz all.min.js all.min.js.gz constants.json constants.json.gz $data_outputdir/web
+    cp -r icons images $data_outputdir/web
+    cd - > /dev/null
+
+    cp transcode transctl.sh $data_outputdir
+
+    cp -r cracklib $data_outputdir
+    mkdir $data_outputdir/solr
+    cp -r solr/solr.xml solr/log4j.properties solr/conf $data_outputdir/solr
+
+    # should copy schema dir
   '';
 }
