@@ -3,9 +3,6 @@ module Main (main) where
 
 import Control.Exception (evaluate)
 import Control.Monad (void)
-#ifndef DEVEL
-import Control.Monad.Reader (runReaderT)
-#endif
 import qualified Data.Aeson.Encoding as J
 import Data.ByteString.Builder (hPutBuilder)
 import Data.Either (partitionEithers)
@@ -14,12 +11,6 @@ import System.Environment (getProgName, getArgs)
 import System.Exit (exitSuccess, exitFailure)
 import System.IO (stdout)
 
-#ifndef DEVEL
-import Paths_databrary (getDataFileName)
-import Databrary.Service.Types (serviceDB)
-import Databrary.Service.DB (withDB)
-import Databrary.Service.DB.Schema (updateDBSchema)
-#endif
 import qualified Databrary.Store.Config as Conf
 import Databrary.Service.Init (withService)
 import Databrary.Context
@@ -89,11 +80,7 @@ main = do
   routes <- evaluate routeMap
   putStrLn "evaluating routemap...withService..."
   withService True conf $ \rc -> do
-#ifndef DEVEL
-    schema <- getDataFileName "schema"
-    putStrLn "updating schema"
-    withDB (serviceDB rc) $ runReaderT $ updateDBSchema schema
-    putStrLn "updating schema completed"
-#endif
+    -- used to run migrations on startup when not in devel mode
+    -- should check migrations2 table for last migration against last entry in schema2 dir
     putStrLn "running warp"
     runWarp conf rc (runActionRoute routes rc)
