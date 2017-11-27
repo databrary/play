@@ -71,6 +71,14 @@ $nix-shell
 $ ./ghcid-backend
 ```
 
+#### -----Local Database Management-----
+
+The `init-db` script used above, by default, will create a database directory called `databrary-nix-db`.
+If a different database directory name is desired, `init-db` takes a single argument that will become the
+name of the database dir. 
+
+To remove or drop the entire local database. Simply remove the database directory with an `$rm -rf` command. 
+
 
 #### Sign-Up | Log-In | Email Confirmation
 
