@@ -8,9 +8,15 @@ app.factory('uploadService', [
     flowOptions: () ->
       target: router.controllers.uploadChunk.route()
       method: 'octet'
+      # this setting was used for a long time
       # chunkSize: 4194304
-      chunkSize: 500
+      # use this setting to be more cautious with restricted networks
+      chunkSize: 1048576
+      # this setting allows gets around VPN problems
+      # chunkSize: 500
+      # this setting was used for a long time
       # forceChunkSize: false
+      # use this this setting to be more cautious
       forceChunkSize: true
       simultaneousUploads: 3
       testChunks: false
