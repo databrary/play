@@ -73,6 +73,7 @@ routeMap = routes
   , route queryParties
   , route adminParties
   , route csvParties
+  , route csvDuplicateParties
 
   , route viewVolume
   , route postVolume

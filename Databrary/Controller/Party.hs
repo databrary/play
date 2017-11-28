@@ -12,6 +12,7 @@ module Databrary.Controller.Party
   , queryParties
   , adminParties
   , csvParties
+  , csvDuplicateParties
   ) where
 
 import Control.Applicative (optional)
@@ -243,3 +244,17 @@ csvParties = action GET ("party" </< "csv") $ \() -> withAuth $ do
       ]
     | (p, a, d) <- pl ] "party"
   where c = maybe BS.empty
+
+csvDuplicateParties :: ActionRoute ()
+csvDuplicateParties = action GET ("party" </< "duplicate" </< "csv") $ \() -> withAuth $ do
+  checkMemberADMIN
+  ps <- getDuplicateParties
+  return $ csvResponse 
+    [ [ BSC.pack $ show $ partyId $ partyRow1
+      , TE.encodeUtf8 $ partySortName $ partyRow1
+      , maybeEmpty TE.encodeUtf8 (partyPreName $ partyRow1)
+      ]
+    | partyRow1 <- ps ] "party"
+  where
+    maybeEmpty :: (a -> BS.ByteString) -> Maybe a -> BS.ByteString
+    maybeEmpty = maybe BS.empty

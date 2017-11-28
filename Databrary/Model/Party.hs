@@ -23,6 +23,7 @@ module Databrary.Model.Party
   , findParties
   , lookupAvatar
   , changeAvatar
+  , getDuplicateParties
   ) where
 
 import Control.Applicative ((<|>))
@@ -132,6 +133,15 @@ lookupParty i = do
   ident <- peek
   lookupFixedParty i ident `orElseM`
     dbQuery1 $(selectQuery (selectParty 'ident) "$WHERE party.id = ${i}")
+
+getDuplicateParties :: (MonadDB c m, MonadHasIdentity c m) => m [PartyRow]
+getDuplicateParties = do
+  dbQuery
+    $(selectQuery (selectPartyRow)
+        "$WHERE exists \
+        \ (select * \
+        \  from party p2 \
+        \  where p2.prename = party.prename and p2.name = party.name and party.id < p2.id) ")
 
 lookupPartyAuthorizations :: (MonadDB c m, MonadHasIdentity c m) => m [(Party, Maybe Permission)]
 lookupPartyAuthorizations = do
