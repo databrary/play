@@ -74,8 +74,10 @@ import Databrary.Controller.Notification
 import Databrary.View.Volume
 
 getVolume :: Permission -> Id Volume -> ActionM Volume
-getVolume p i =
-  checkPermission p =<< maybeAction =<< lookupVolume i
+getVolume p i = do
+  mVol <- lookupVolume i
+  vol <- maybeAction mVol
+  checkPermission p vol
 
 data VolumeCache = VolumeCache
   { volumeCacheAccess :: Maybe [VolumeAccess]
