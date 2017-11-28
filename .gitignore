@@ -23,6 +23,7 @@
 
 # application config
 /databrary.conf
+/config/email
 
 # IDE config
 .idea
