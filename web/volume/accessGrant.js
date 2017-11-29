@@ -10,7 +10,7 @@ app.directive('accessGrantForm', [
 
       form.data = {
         individual: access.individual,
-        extend: access.children == access.individual,
+        extend: access.children == 0 ? false : access.children == access.individual,
         sort: access.sort
       };
       if (!access.individual) {
