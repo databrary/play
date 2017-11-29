@@ -28,7 +28,7 @@
         </div>
         <fieldset class="skinny sub-top clean radio-set access-grant-checkbox" tooltip="'access.grant.confirmation' | message">
           <div ng-if="::!access.party.institution">
-            <input type="checkbox" ng-model="accessGrantForm.data.extend" ng-checked="access.children !== 0">
+            <input type="checkbox" ng-model="accessGrantForm.data.extend">
             <label class="option inline">
               <span class="icon network"></span>
               <span ng-bind="::'access.grant.inherit' | possessive:access.party"></span>
