@@ -422,6 +422,22 @@ app.provider('routerService', [
       }
     });
 
+    routes.slotOrigZip = makeRoute(controllers.zipOrigSlot, ['vid', 'id'], {
+      controller: 'volume/zip',
+      templateUrl: 'volume/zip.html',
+      resolve: {
+        slot: [
+          'pageService', function (page) {
+            return page.models.Volume.get(page.$route.current.params.vid).then(function(v) {
+              return v.getSlot(page.$route.current.params.id, page.$route.current.params.segment, ['assets']);
+            });
+          }
+        ],
+        volume: function () {
+        },
+      }
+    });
+
     routes.slotActivity = makeRoute(controllers.viewSlotActivity, ['vid', 'id'], {
       controller: 'volume/slotActivity',
       templateUrl: 'volume/slotActivity.html',
