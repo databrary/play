@@ -949,6 +949,10 @@ app.factory('modelService', [
       return router.slotZip([this.volume.id, this.container.id]);
     };
 
+    Slot.prototype.zipOrigRoute = function () {
+      return router.slotOrigZip([this.volume.id, this.container.id]);
+    };
+
     Slot.prototype.thumbRoute = function (size) {
       return router.slotThumb([this.volume.id, this.container.id, this.segment.format(), size]);
     };
