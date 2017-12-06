@@ -29,6 +29,7 @@ import Network.Wai.Parse (FileInfo(..))
 import Databrary.Ops
 import Databrary.Has
 import qualified Databrary.JSON as JSON
+import qualified Databrary.JSONQuery as JSON
 import Databrary.Model.Enum
 import Databrary.Model.Id
 import Databrary.Model.Permission

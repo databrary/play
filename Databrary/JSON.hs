@@ -19,8 +19,6 @@ module Databrary.JSON
   , (.=:)
   , recordMap
   , eitherJSON
-  , Query
-  , jsonQuery
   , escapeByteString
   , quoteByteString
   ) where
@@ -40,7 +38,6 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TLB
 import qualified Data.Vector as V
 import Data.Word (Word8)
-import Network.HTTP.Types (Query)
 
 newtype UnsafeEncoding = UnsafeEncoding Encoding
 
@@ -135,12 +132,6 @@ instance ToJSONKey BS.ByteString where
 
 instance FromJSON BS.ByteString where
   parseJSON = fmap TE.encodeUtf8 . parseJSON
-
-jsonQuery :: Monad m => (BS.ByteString -> Maybe BS.ByteString -> m (Maybe Encoding)) -> Query -> m Series
-jsonQuery _ [] = return mempty
-jsonQuery f ((k,v):q) = do
-  o <- f k v
-  maybe id ((<>) . (TE.decodeLatin1 k .=) . UnsafeEncoding) o <$> jsonQuery f q
 
 wordEscaped :: Char -> BP.BoundedPrim Word8
 wordEscaped q =

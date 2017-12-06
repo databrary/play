@@ -25,6 +25,7 @@ import Databrary.Files (unRawFilePath)
 import Databrary.Ops
 import Databrary.Has (view, peeks)
 import qualified Databrary.JSON as JSON
+import qualified Databrary.JSONQuery as JSON
 import Databrary.Files (fileInfo)
 import Databrary.Model.Id
 import Databrary.Model.Permission
