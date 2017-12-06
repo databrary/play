@@ -14,6 +14,7 @@ import Data.Maybe (isJust)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import Network.HTTP.Types (notFound404, hContentEncoding)
+import qualified Network.Mime as Mime
 import qualified Network.Wai as Wai
 import System.Posix.FilePath (joinPath, splitDirectories, (<.>))
 import qualified Web.Route.Invertible as R
@@ -67,5 +68,6 @@ webFile = action GET ("web" >/> pathStatic) $ \sp -> withoutAuth $ do
     =<< focusIO (lookupWebFile p)
   agz <- any (bsLCEq "gzip") . concatMap splitHTTP <$> peeks (lookupRequestHeaders "accept-encoding")
   wgz <- if agz then rightJust <$> focusIO (lookupWebFile (p <.> ".gz")) else return Nothing
-  r <- serveFile (webFileAbs $ maybe wf fst wgz) (unknownFormat{ formatMimeType = webFileFormat wfi }) Nothing (convertToBase Base16 $ webFileHash wfi)
+  let fmt = Mime.defaultMimeLookup (webFileExt wfi)
+  r <- serveFile (webFileAbs $ maybe wf fst wgz) (unknownFormat{ formatMimeType = fmt }) Nothing "" --(convertToBase Base16 $ webFileHash wfi)
   return $ if isJust wgz then Wai.mapResponseHeaders ((hContentEncoding, "gzip") :) r else r

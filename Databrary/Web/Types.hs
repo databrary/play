@@ -12,16 +12,17 @@ import Control.Concurrent.MVar (MVar)
 #endif
 import Control.Monad.Trans.Except (ExceptT)
 import Control.Monad.Trans.State.Strict (StateT)
-import Crypto.Hash (Digest, MD5)
+-- import Crypto.Hash (Digest, MD5)
 import qualified Data.ByteString as BS
 import qualified Data.HashMap.Strict as HM
+import qualified Data.Text as T
 
 import Databrary.Model.Time
 import Databrary.Web
 
 data WebFileInfo = WebFileInfo
-  { webFileFormat :: BS.ByteString
-  , webFileHash :: !(Digest MD5)
+  { webFileExt :: T.Text
+  , webFileHash :: !() -- !(Digest MD5)
   , webFileTimestamp :: !Timestamp
   }
 

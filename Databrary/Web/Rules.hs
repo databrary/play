@@ -90,7 +90,8 @@ generateAll :: WebGeneratorM ()
 generateAll = do
   mapM_ (generateWebFile True)
     <=< mapM (liftIO . makeWebFilePath)
-      $ ["constants.json", "constants.js", "routes.js"]
+      $ ["constants.json", "constants.js", "routes.js"
+        , "all.min.js", "all.min.css"]
 
 generateWebFiles :: IO WebFileMap
 generateWebFiles = do

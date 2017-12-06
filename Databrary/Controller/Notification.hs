@@ -27,6 +27,7 @@ import qualified Text.Regex.Posix as Regex
 import Databrary.Has
 import Databrary.Ops
 import qualified Databrary.JSON as JSON
+import Databrary.JSONHtml()
 import Databrary.Service.Types
 import Databrary.Service.DB
 import Databrary.Service.Notification
