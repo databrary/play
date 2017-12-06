@@ -126,7 +126,6 @@ Executable generate
     filepath >= 1.4.0.0,
     hashable >= 1.2.1,
     http-types >= 0.9,
-    memory >= 0.8,
     mtl >= 2.2.1,
     parsec >= 3,
     posix-paths >= 0.2.1.0,
