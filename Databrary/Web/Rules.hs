@@ -10,6 +10,7 @@ import Control.Monad.State.Strict (execStateT, modify, gets)
 import Control.Monad.Trans.Except (runExceptT, withExceptT)
 import qualified Data.HashMap.Strict as HM
 import qualified System.Posix.FilePath as RF
+import qualified System.Process as PR (callProcess, callCommand)
 
 import Databrary.Ops (fromMaybeM)
 import Databrary.Files (RawFilePath)
@@ -93,4 +94,9 @@ generateAll = do
 
 generateWebFiles :: IO WebFileMap
 generateWebFiles = do
-  execStateT (either fail return =<< runExceptT generateAll) HM.empty
+  fileMap <- execStateT (either fail return =<< runExceptT generateAll) HM.empty
+  PR.callProcess "gzip" ["--force", "--keep", "--fast", "web/constants.json"]
+  PR.callProcess "gzip" ["--force", "--keep", "--fast", "web/all.min.js"]
+  PR.callProcess "gzip" ["--force", "--keep", "--fast", "web/all.min.css"]
+  PR.callCommand "find web -type f -iname *.svg -exec gzip --force --keep --fast {} \\;"
+  pure fileMap
