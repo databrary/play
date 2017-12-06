@@ -85,16 +85,16 @@ data VolumeCache = VolumeCache
   , volumeCacheRecords :: Maybe (HML.HashMap (Id Record) Record)
   }
 
-type VolumeCacheActionM a = StateT VolumeCache ActionM a
+-- type VolumeCacheActionM a = StateT VolumeCache ActionM a
 
 instance Monoid VolumeCache where
   mempty = VolumeCache Nothing Nothing Nothing
   mappend (VolumeCache a1 t1 r1) (VolumeCache a2 t2 r2) = VolumeCache (a1 <|> a2) (t1 <|> t2) (r1 <> r2)
 
-runVolumeCache :: VolumeCacheActionM a -> ActionM a
+runVolumeCache :: StateT VolumeCache ActionM a -> ActionM a
 runVolumeCache f = evalStateT f mempty
 
-cacheVolumeAccess :: Volume -> Permission -> VolumeCacheActionM [VolumeAccess]
+cacheVolumeAccess :: Volume -> Permission -> StateT VolumeCache ActionM [VolumeAccess]
 cacheVolumeAccess vol perm = do
   vc <- get
   takeWhile ((perm <=) . volumeAccessIndividual) <$>
@@ -104,7 +104,7 @@ cacheVolumeAccess vol perm = do
       return a)
       (volumeCacheAccess vc)
 
-cacheVolumeRecords :: Volume -> VolumeCacheActionM ([Record], HML.HashMap (Id Record) Record)
+cacheVolumeRecords :: Volume -> StateT VolumeCache ActionM ([Record], HML.HashMap (Id Record) Record)
 cacheVolumeRecords vol = do
   vc <- get
   maybe (do
@@ -115,7 +115,7 @@ cacheVolumeRecords vol = do
     (return . (HML.elems &&& id))
     (volumeCacheRecords vc)
 
-cacheVolumeTopContainer :: Volume -> VolumeCacheActionM Container
+cacheVolumeTopContainer :: Volume -> StateT VolumeCache ActionM Container
 cacheVolumeTopContainer vol = do
   vc <- get
   fromMaybeM (do
@@ -129,7 +129,7 @@ leftJoin _ [] [] = []
 leftJoin _ [] _ = error "leftJoin: leftovers"
 leftJoin p (a:al) b = uncurry (:) $ (,) a *** leftJoin p al $ span (p a) b
 
-volumeJSONField :: Volume -> BS.ByteString -> Maybe BS.ByteString -> VolumeCacheActionM (Maybe JSON.Encoding)
+volumeJSONField :: Volume -> BS.ByteString -> Maybe BS.ByteString -> StateT VolumeCache ActionM (Maybe JSON.Encoding)
 volumeJSONField vol "access" ma = do
   Just . JSON.mapObjects volumeAccessPartyJSON
     <$> cacheVolumeAccess vol (fromMaybe PermissionNONE $ readDBEnum . BSC.unpack =<< ma)
@@ -162,9 +162,14 @@ volumeJSONField vol "containers" o = do
   nope = map (, [])
 volumeJSONField vol "top" _ =
   Just . JSON.recordEncoding . containerJSON <$> cacheVolumeTopContainer vol
-volumeJSONField vol "records" _ = do
-  (l, _) <- cacheVolumeRecords vol
-  return $ Just $ JSON.mapRecords recordJSON l
+volumeJSONField vol "records" _ =
+  if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
+  then
+    return Nothing
+  else do
+    (l, _) <- cacheVolumeRecords vol
+    return $ Just $ JSON.mapRecords recordJSON l
+
 volumeJSONField vol "metrics" _ = do
   Just . JSON.toEncoding <$> lookupVolumeMetrics vol
 volumeJSONField o "excerpts" _ =
@@ -187,7 +192,13 @@ volumeJSONField o "filename" _ =
 volumeJSONField _ _ _ = return Nothing
 
 volumeJSONQuery :: Volume -> JSON.Query -> ActionM (JSON.Record (Id Volume) JSON.Series)
-volumeJSONQuery vol q = runVolumeCache $ (volumeJSON vol JSON..<>) <$> JSON.jsonQuery (volumeJSONField vol) q
+volumeJSONQuery vol q =
+  let seriesCaching :: StateT VolumeCache ActionM JSON.Series
+      seriesCaching = JSON.jsonQuery (volumeJSONField vol) q
+      expandedVolJSONcaching :: StateT VolumeCache ActionM (JSON.Record (Id Volume) JSON.Series)
+      expandedVolJSONcaching = (\series -> volumeJSON vol JSON..<> series) <$> seriesCaching
+  in
+    runVolumeCache $ expandedVolJSONcaching
 
 volumeDownloadName :: Volume -> [T.Text]
 volumeDownloadName v =
@@ -200,7 +211,10 @@ viewVolume = action GET (pathAPI </> pathId) $ \(api, vi) -> withAuth $ do
   when (api == HTML) angular
   v <- getVolume PermissionPUBLIC vi
   case api of
-    JSON -> okResponse [] . JSON.recordEncoding <$> (volumeJSONQuery v =<< peeks Wai.queryString)
+    JSON ->
+      let idSeriesRecAct :: ActionM (JSON.Record (Id Volume) JSON.Series)
+          idSeriesRecAct = volumeJSONQuery v =<< peeks Wai.queryString
+      in okResponse [] . JSON.recordEncoding <$> idSeriesRecAct
     HTML -> do
       top <- lookupVolumeTopContainer v
       t <- lookupSlotKeywords $ containerSlot top
