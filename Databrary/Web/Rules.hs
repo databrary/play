@@ -59,9 +59,7 @@ generateFixed a = \fo@(f, _) -> do
     _ -> mzero
 
 generateStatic :: WebGenerator
-generateStatic fo@(f, _) = do
-  liftIO $ print ("got to generate static", f)
-  fileNewer (webFileAbs f) fo
+generateStatic fo@(f, _) = fileNewer (webFileAbs f) fo
 
 generateRules :: Bool -> WebGenerator
 generateRules a f = msum $ map ($ f)
