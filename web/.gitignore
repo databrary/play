@@ -1,5 +1,5 @@
 # /lib/
-*.min.*
+/*.min.*
 *.map
 *.js.hinted
 *.gz
