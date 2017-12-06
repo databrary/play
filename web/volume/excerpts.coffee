@@ -20,6 +20,8 @@ app.directive 'volumeExcerpts', [
       else
         $scope.excerpts = [$scope.volume.excerpts]
 
+      $scope.publicView = true
+
       $scope.setCurrent = (asset) ->
         $scope.current = asset
 
@@ -33,4 +35,5 @@ app.directive 'volumeExcerpts', [
             persist: true
             body: message.map($sce.trustAsHtml)
         return
+
 ]
