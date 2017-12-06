@@ -1,0 +1,1 @@
+/nix/store/s655ih3pc7b4kx6ilw3za8y4n8a4s0jf-node-dependencies-databrary-0.0.0/lib/node_modules/pivottable/dist/pivot.js
