@@ -78,7 +78,7 @@ mkDerivation rec {
     ln -s ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
     # db dependent generated files have been committed, so this only needs to be run when constants have changed
     # databrary_datadir=. dist/build/databrary/databrary -w
-    databrary_datadir=. dist/build/generate generate
+    databrary_datadir=. dist/build/generate/generate
   '';
   postInstall = '' 
   '';
