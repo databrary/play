@@ -11,7 +11,7 @@
 , streaming-commons, template-haskell, text, th-lift
 , th-lift-instances, time, transformers, transformers-base, unix
 , unordered-containers, utf8-string, vector, wai, wai-extra, warp
-, warp-tls, web-inv-route, xml, zlib, gargoyle, gargoyle-postgresql, postgresql-simple, postgresql-simple-url
+, warp-tls, web-inv-route, xml, gargoyle, gargoyle-postgresql, postgresql-simple, postgresql-simple-url
 , nodePackages, nodejs, openssl, dbName ? "databrary-nix-db", jdk
 }:
 mkDerivation rec {
@@ -35,7 +35,7 @@ mkDerivation rec {
     streaming-commons template-haskell text th-lift th-lift-instances
     time transformers transformers-base unix unordered-containers
     utf8-string vector wai wai-extra warp warp-tls web-inv-route xml
-    zlib gargoyle gargoyle-postgresql postgresql-simple postgresql-simple-url
+    gargoyle gargoyle-postgresql postgresql-simple postgresql-simple-url
   ];
   executableSystemDepends = [ cracklib openssl openssl.dev ];
   executablePkgconfigDepends = [
