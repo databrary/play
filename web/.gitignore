@@ -3,10 +3,10 @@
 *.map
 *.js.hinted
 *.gz
-/constants.js
-/constants.json
+# /constants.js
+# /constants.json
 /messages.js
-/routes.js
+# /routes.js
 /templates.js
 /app.css
 /asset/classificationSelect.js
