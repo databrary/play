@@ -8,7 +8,6 @@ module Databrary.Files
   , removeFile
   , createDir
   , compareFiles
-  , hashFile
   , rawFilePath
   , unRawFilePath
   ) where
@@ -16,13 +15,10 @@ module Databrary.Files
 import Control.Arrow ((&&&))
 import Control.Exception (handleJust)
 import Control.Monad (guard, liftM2)
-import Crypto.Hash (HashAlgorithm, hashInit, hashUpdate, hashFinalize, Digest)
-import Data.ByteArray (MemView(..))
 import qualified Data.ByteString as BS
 import Data.ByteString.Lazy.Internal (defaultChunkSize)
 import Data.Maybe (isJust)
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime, utcTimeToPOSIXSeconds)
-import Foreign.Marshal.Alloc (allocaBytes)
 import qualified GHC.Foreign as GHC
 import GHC.IO.Encoding (getFileSystemEncoding)
 import System.Posix.ByteString.FilePath (RawFilePath)
@@ -37,15 +33,15 @@ import System.IO.Error (isDoesNotExistError, isAlreadyExistsError)
 import Databrary.Ops
 import Databrary.Model.Time
 
-rawFilePath :: FilePath -> IO RawFilePath
-rawFilePath s = do
-  enc <- getFileSystemEncoding
-  GHC.withCStringLen enc s BS.packCStringLen
-
 unRawFilePath :: RawFilePath -> IO FilePath
 unRawFilePath b = do
   enc <- getFileSystemEncoding
   BS.useAsCStringLen b $ GHC.peekCStringLen enc
+
+rawFilePath :: FilePath -> IO RawFilePath
+rawFilePath s = do
+  enc <- getFileSystemEncoding
+  GHC.withCStringLen enc s BS.packCStringLen
 
 catchOnlyIO :: (IOError -> Bool) -> IO a -> IO (Maybe a)
 catchOnlyIO c f = handleJust (guard . c) (\_ -> return Nothing) $ Just <$> f
@@ -90,15 +86,3 @@ compareFiles f1 f2 = do
         then if BS.null b1 then return True else cmp h1 h2
         else return False
 
-hashFile :: (HashAlgorithm a) => RawFilePath -> IO (Digest a)
-hashFile f = do
-  f' <- unRawFilePath f
-  withBinaryFile f' ReadMode $ \h ->
-    allocaBytes z $ \b ->
-      run h b hashInit where
-  run h b s = do
-    n <- hGetBufSome h b z
-    if n == 0
-      then return $! hashFinalize s
-      else run h b $! hashUpdate s (MemView b n)
-  z = 32786

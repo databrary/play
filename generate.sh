@@ -6,10 +6,10 @@
 set -eu
 
 if [ ! -f ./dist/build/generate/generate ]; then
-  nix-shell --command "cabal build generate"
+  cabal build generate
 fi
 
-nix-shell --command 'databrary_datadir=. ./dist/build/generate/generate'
+databrary_datadir=. ./dist/build/generate/generate
 RESULT=$?
 NOW=`date`
 if [ $RESULT -eq 0 ]

@@ -10,6 +10,7 @@ import Control.Monad.State.Strict (execStateT, modify, gets)
 import Control.Monad.Trans.Except (runExceptT, withExceptT)
 import qualified Data.HashMap.Strict as HM
 import qualified System.Posix.FilePath as RF
+import qualified System.Process as PR (callProcess, callCommand)
 
 import Databrary.Ops (fromMaybeM)
 import Databrary.Files (RawFilePath)
@@ -29,7 +30,6 @@ import Databrary.Web.Uglify
 import Databrary.Web.Stylus
 import Databrary.Web.Libs
 import Databrary.Web.All
-import Databrary.Web.GZip
 
 staticGenerators :: [(RawFilePath, WebGenerator)]
 #ifdef NODB
@@ -68,7 +68,6 @@ generateRules a f = msum $ map ($ f)
     generateFixed a
   , generateCoffeeJS
   , generateLib
-  , generateGZip
   , generateStatic
   ]
 
@@ -89,13 +88,16 @@ generateWebFile a f = withExceptT (label $ show (webFileRel f)) $ do
 
 generateAll :: WebGeneratorM ()
 generateAll = do
-  svg <- liftIO $ findWebFiles ".svg"
-  mapM_ (generateWebFile True) <=< mapM (liftIO . makeWebFilePath) $ mconcat
-    [ (map fst staticGenerators)
-    , ["constants.json.gz", "all.min.js.gz", "all.min.css.gz"]
-    , map ((RF.<.> ".gz") . webFileRel) svg
-    ]
+  mapM_ (generateWebFile True)
+    <=< mapM (liftIO . makeWebFilePath)
+      $ ["constants.json", "constants.js", "routes.js"
+        , "all.min.js", "all.min.css"]
 
 generateWebFiles :: IO WebFileMap
 generateWebFiles = do
-  execStateT (either fail return =<< runExceptT generateAll) HM.empty
+  fileMap <- execStateT (either fail return =<< runExceptT generateAll) HM.empty
+  PR.callProcess "gzip" ["--force", "--keep", "--fast", "web/constants.json"]
+  PR.callProcess "gzip" ["--force", "--keep", "--fast", "web/all.min.js"]
+  PR.callProcess "gzip" ["--force", "--keep", "--fast", "web/all.min.css"]
+  PR.callCommand "find web -type f -iname *.svg -exec gzip --force --keep --fast {} \\;"
+  pure fileMap

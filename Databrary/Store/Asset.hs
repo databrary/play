@@ -20,6 +20,7 @@ import System.Posix.Files.ByteString (fileSize, createLink, fileExist, getFileSt
 import Databrary.Ops
 import Databrary.Has (peek, peeks)
 import Databrary.Files
+import Databrary.FilesHash
 import Databrary.Store.Types
 import Databrary.Model.Asset.Types
 

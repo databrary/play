@@ -6,7 +6,6 @@ module Databrary.Web.Info
 
 import qualified Data.HashMap.Strict as HM
 import Data.Text (pack)
-import qualified Network.Mime as Mime
 import System.FilePath (takeFileName)
 import System.Posix.ByteString (getFileStatus)
 
@@ -18,10 +17,12 @@ import Databrary.Web.Types
 makeWebFileInfo :: WebFilePath -> IO WebFileInfo
 makeWebFileInfo f = do
   fp <- unRawFilePath $ webFileAbs f
-  let format = Mime.defaultMimeLookup (pack (takeFileName fp))
-  hash <- hashFile $ webFileAbs f
+  -- let format = Mime.defaultMimeLookup (pack (takeFileName fp))
+  let ext = pack (takeFileName fp)
+  -- hash <- hashFile $ webFileAbs f
+  let hash = ()
   ts <- modificationTimestamp <$> getFileStatus (webFileAbs f)
-  return $ WebFileInfo format hash ts
+  return $ WebFileInfo ext hash ts
 
 loadWebFileMap :: IO WebFileMap
 loadWebFileMap = fmap HM.fromList . mapM (\f -> (f, ) <$> makeWebFileInfo f) =<< allWebFiles

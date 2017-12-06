@@ -17,6 +17,7 @@ import qualified Network.Wai as Wai
 
 import Databrary.Has (view, peeks)
 import qualified Databrary.JSON as JSON
+import qualified Databrary.JSONQuery as JSON
 import Databrary.Model.Id
 import Databrary.Model.Permission
 import Databrary.Model.Volume

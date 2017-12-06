@@ -21,6 +21,7 @@ import qualified Network.Wai as Wai
 import Databrary.Ops
 import Databrary.Has
 import qualified Databrary.JSON as JSON
+import qualified Databrary.JSONQuery as JSON
 import Databrary.Model.Id.Types
 import Databrary.Model.Party
 import Databrary.Model.Identity

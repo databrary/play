@@ -19,10 +19,11 @@ let
     if [ ! -d "solr-6.6.0" ]; then
       wget -qO- http://archive.apache.org/dist/lucene/solr/6.6.0/solr-6.6.0.tgz | tar -zxv
     fi
-    if [ ! -d "node_modules" ]; then
-      echo linking node_modules
-      ln -s ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
-    fi
+    # moved to shellHook
+    # if [ ! -d "node_modules" ]; then
+    #   echo linking node_modules
+    #   ln -s ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
+    # fi
     # make store related dirs
     mkdir -p cache/tmp stage tmp trans upload
     if [ ! -d "store" ]; then
@@ -57,7 +58,7 @@ let
       };
       # cabal override to enable ghcid (GHCi daemon) development tool
       databrary-dev = overrideCabal databrary (drv: {
-        libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ (with self; [ghcid cabal-install ghciDatabrary nixpkgs.wget]);
+        libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ (with self; [ghcid cabal-install ghciDatabrary nixpkgs.wget (import <nixpkgs> {}).entr]);  # can use pkgs.entr instead
       });
       gargoyle = self.callPackage "${gargoyleSrc}/gargoyle" {};
       gargoyle-postgresql= self.callPackage "${gargoyleSrc}/gargoyle-postgresql" {};

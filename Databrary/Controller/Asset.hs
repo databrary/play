@@ -34,6 +34,7 @@ import Network.Wai.Parse (FileInfo(..))
 import Databrary.Ops
 import Databrary.Has
 import qualified Databrary.JSON as JSON
+import qualified Databrary.JSONQuery as JSON
 import Databrary.Model.Segment
 import Databrary.Model.Permission
 import Databrary.Model.Release

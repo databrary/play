@@ -2,6 +2,6 @@
 git clean -f -X ./web/
 rm -r dist
 rm -r web/lib
-rm web/all.min.* 
-rm web/app.min.*
+# rm web/all.min.*  - already covered by git clean
+# rm web/app.min.* - already covered by git clean
 rm node_modules
