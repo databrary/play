@@ -10,6 +10,7 @@ import qualified System.Console.GetOpt as Opt
 import System.Environment (getProgName, getArgs)
 import System.Exit (exitSuccess, exitFailure)
 import System.IO (stdout)
+import qualified System.Process as PR (callProcess, callCommand)
 
 import qualified Databrary.Store.Config as Conf
 import Databrary.Service.Init (withService)
@@ -56,6 +57,10 @@ main = do
     ([FlagWeb], [], []) -> do
       putStrLn "generating files..." 
       void generateWebFiles
+      PR.callProcess "gzip" ["--force", "--keep", "--fast", "web/constants.json"]
+      PR.callProcess "gzip" ["--force", "--keep", "--fast", "web/all.min.js"]
+      PR.callProcess "gzip" ["--force", "--keep", "--fast", "web/all.min.css"]
+      PR.callCommand "find web -type f -iname *.svg -exec gzip --force --keep --fast {} \\;"
       putStrLn "finished generating web files..."
       exitSuccess
     ([FlagAPI], [], []) -> do

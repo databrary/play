@@ -29,7 +29,6 @@ import Databrary.Web.Uglify
 import Databrary.Web.Stylus
 import Databrary.Web.Libs
 import Databrary.Web.All
-import Databrary.Web.GZip
 
 staticGenerators :: [(RawFilePath, WebGenerator)]
 #ifdef NODB
@@ -60,7 +59,9 @@ generateFixed a = \fo@(f, _) -> do
     _ -> mzero
 
 generateStatic :: WebGenerator
-generateStatic fo@(f, _) = fileNewer (webFileAbs f) fo
+generateStatic fo@(f, _) = do
+  liftIO $ print ("got to generate static", f)
+  fileNewer (webFileAbs f) fo
 
 generateRules :: Bool -> WebGenerator
 generateRules a f = msum $ map ($ f)
@@ -68,7 +69,6 @@ generateRules a f = msum $ map ($ f)
     generateFixed a
   , generateCoffeeJS
   , generateLib
-  , generateGZip
   , generateStatic
   ]
 
@@ -89,12 +89,9 @@ generateWebFile a f = withExceptT (label $ show (webFileRel f)) $ do
 
 generateAll :: WebGeneratorM ()
 generateAll = do
-  svg <- liftIO $ findWebFiles ".svg"
-  mapM_ (generateWebFile True) <=< mapM (liftIO . makeWebFilePath) $ mconcat
-    [ (map fst staticGenerators)
-    , ["constants.json.gz", "all.min.js.gz", "all.min.css.gz"]
-    , map ((RF.<.> ".gz") . webFileRel) svg
-    ]
+  mapM_ (generateWebFile True)
+    <=< mapM (liftIO . makeWebFilePath)
+      $ ["constants.json", "constants.js", "routes.js"]
 
 generateWebFiles :: IO WebFileMap
 generateWebFiles = do
