@@ -139,29 +139,37 @@ volumeJSONField vol "links" _ =
   Just . JSON.toEncoding <$> lookupVolumeLinks vol
 volumeJSONField vol "funding" _ =
   Just . JSON.mapObjects fundingJSON <$> lookupVolumeFunding vol
-volumeJSONField vol "containers" o = do
-  cl <- if records
-    then lookupVolumeContainersRecordIds vol
-    else nope <$> lookupVolumeContainers vol
-  cl' <- if assets
-    then leftJoin (\(c, _) (_, SlotId a _) -> containerId (containerRow c) == a) cl <$> lookupVolumeAssetSlotIds vol
-    else return $ nope cl
-  rm <- if records then snd <$> cacheVolumeRecords vol else return HM.empty
-  let br = blankRecord undefined vol
-      rjs c (s, r)          = JSON.recordObject $ recordSlotJSON $ RecordSlot (HML.lookupDefault br{ recordRow = (recordRow br){ recordId = r } } r rm) (Slot c s)
-      ajs c (a, SlotId _ s) = JSON.recordObject $ assetSlotJSON  $ AssetSlot a (Just (Slot c s))
-  return $ Just $ JSON.mapRecords (\((c, rl), al) ->
-      containerJSON c
-      JSON..<> (if records then JSON.nestObject "records" (\u -> map (u . rjs c) rl) else mempty)
-            <> (if assets  then JSON.nestObject "assets"  (\u -> map (u . ajs c) al) else mempty))
-    cl'
+volumeJSONField vol "containers" o =
+  if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
+  then
+    return Nothing
+  else do
+    cl <- if records
+      then lookupVolumeContainersRecordIds vol
+      else nope <$> lookupVolumeContainers vol
+    cl' <- if assets
+      then leftJoin (\(c, _) (_, SlotId a _) -> containerId (containerRow c) == a) cl <$> lookupVolumeAssetSlotIds vol
+      else return $ nope cl
+    rm <- if records then snd <$> cacheVolumeRecords vol else return HM.empty
+    let br = blankRecord undefined vol
+        rjs c (s, r)          = JSON.recordObject $ recordSlotJSON $ RecordSlot (HML.lookupDefault br{ recordRow = (recordRow br){ recordId = r } } r rm) (Slot c s)
+        ajs c (a, SlotId _ s) = JSON.recordObject $ assetSlotJSON  $ AssetSlot a (Just (Slot c s))
+    return $ Just $ JSON.mapRecords (\((c, rl), al) ->
+        containerJSON c
+        JSON..<> (if records then JSON.nestObject "records" (\u -> map (u . rjs c) rl) else mempty)
+              <> (if assets  then JSON.nestObject "assets"  (\u -> map (u . ajs c) al) else mempty))
+      cl'
   where
   full = o == Just "all"
   assets = full || o == Just "assets"
   records = full || o == Just "records"
   nope = map (, [])
 volumeJSONField vol "top" _ =
-  Just . JSON.recordEncoding . containerJSON <$> cacheVolumeTopContainer vol
+  if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
+  then
+    return Nothing
+  else
+    Just . JSON.recordEncoding . containerJSON <$> cacheVolumeTopContainer vol
 volumeJSONField vol "records" _ =
   if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
   then
@@ -169,24 +177,43 @@ volumeJSONField vol "records" _ =
   else do
     (l, _) <- cacheVolumeRecords vol
     return $ Just $ JSON.mapRecords recordJSON l
-
-volumeJSONField vol "metrics" _ = do
-  Just . JSON.toEncoding <$> lookupVolumeMetrics vol
-volumeJSONField o "excerpts" _ =
-  Just . JSON.mapObjects (\e -> excerptJSON e
-    <> "asset" JSON..=: (assetSlotJSON (view e)
-      JSON..<> "container" JSON..= (view e :: Id Container)))
-    <$> lookupVolumeExcerpts o
-volumeJSONField o "tags" n = do
-  t <- cacheVolumeTopContainer o
-  tc <- lookupSlotTagCoverage (containerSlot t) (maybe 64 fst $ BSC.readInt =<< n)
-  return $ Just $ JSON.mapRecords tagCoverageJSON tc
-volumeJSONField o "comments" n = do
-  t <- cacheVolumeTopContainer o
-  tc <- lookupSlotComments (containerSlot t) (maybe 64 fst $ BSC.readInt =<< n)
-  return $ Just $ JSON.mapRecords commentJSON tc
-volumeJSONField o "state" _ =
-  Just . JSON.toEncoding . JSON.object . map (volumeStateKey &&& volumeStateValue) <$> lookupVolumeState o
+volumeJSONField vol "metrics" _ =
+  if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
+  then
+    return Nothing
+  else do
+    Just . JSON.toEncoding <$> lookupVolumeMetrics vol
+volumeJSONField vol "excerpts" _ =
+  if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
+  then
+    return Nothing
+  else do
+    Just . JSON.mapObjects (\e -> excerptJSON e
+      <> "asset" JSON..=: (assetSlotJSON (view e)
+        JSON..<> "container" JSON..= (view e :: Id Container)))
+      <$> lookupVolumeExcerpts vol
+volumeJSONField vol "tags" n =
+  if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
+  then
+    return Nothing
+  else do
+    t <- cacheVolumeTopContainer vol
+    tc <- lookupSlotTagCoverage (containerSlot t) (maybe 64 fst $ BSC.readInt =<< n)
+    return $ Just $ JSON.mapRecords tagCoverageJSON tc
+volumeJSONField vol "comments" n =
+  if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
+  then
+    return Nothing
+  else do
+    t <- cacheVolumeTopContainer vol
+    tc <- lookupSlotComments (containerSlot t) (maybe 64 fst $ BSC.readInt =<< n)
+    return $ Just $ JSON.mapRecords commentJSON tc
+volumeJSONField vol "state" _ =
+  if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
+  then
+    return Nothing
+  else do
+    Just . JSON.toEncoding . JSON.object . map (volumeStateKey &&& volumeStateValue) <$> lookupVolumeState vol
 volumeJSONField o "filename" _ =
   return $ Just $ JSON.toEncoding $ makeFilename $ volumeDownloadName o
 volumeJSONField _ _ _ = return Nothing
