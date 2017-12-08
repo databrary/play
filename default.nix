@@ -11,7 +11,7 @@ let
       sha256 = "0qnmxbpxzkiqp477d2msy93gv4cm4npcxs2cyvbpkj4x1b5j08m2";
   }) {};
   # Definition of nixpkgs, version controlled by Reflex-FRP
-	nixpkgs = reflex-platform.nixpkgs;
+  nixpkgs = reflex-platform.nixpkgs;
   inherit (nixpkgs) fetchFromGitHub writeScriptBin;
   # nixpkgs functions used to regulate Haskell overrides
   inherit (nixpkgs.haskell.lib) dontCheck overrideCabal doJailbreak;
@@ -62,15 +62,15 @@ let
       gargoyle = self.callPackage "${gargoyleSrc}/gargoyle" {};
       gargoyle-postgresql= self.callPackage "${gargoyleSrc}/gargoyle-postgresql" {};
       # Define hjsonschema  package with explicit version number
-			hjsonschema = dontCheck (doJailbreak (self.callHackage "hjsonschema" "0.9.0.0" {}));
+      hjsonschema = dontCheck (doJailbreak (self.callHackage "hjsonschema" "0.9.0.0" {}));
       # Define hjsonpointer  package with explicit version number
-			hjsonpointer = dontCheck (doJailbreak (self.callHackage "hjsonpointer" "0.3.0.2" {}));
+      hjsonpointer = dontCheck (doJailbreak (self.callHackage "hjsonpointer" "0.3.0.2" {}));
       # Define invertible as invertible from reflex-platform 
-		 	invertible = dontCheck super.invertible;
+      invertible = dontCheck super.invertible;
       # postgresql-typed 0.4.5 requires a version <= 0.10
       postgresql-binary = dontCheck (self.callHackage  "postgresql-binary" "0.10" {});
       # Define postgresql-typed package with explicit version number
       postgresql-typed = dontCheck (self.callHackage  "postgresql-typed" "0.4.5" {});
     };
   };
-in { inherit nixpkgs pkgs nodePackages postgresql; }
+in { inherit pkgs; }
