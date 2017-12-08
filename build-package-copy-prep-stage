@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -euo pipefail 
+
+rcvr=databrary2.home.nyu.edu
+echo "building Databrary binaries..."
+# if /tmp is too small for major nix builds, create appropriate dir, then use TMPDIR=... build-package-copy-prep ...
+RESULT="$(nix-build --attr databrary --show-trace)"
+nix-copy-closure --to "$rcvr" "$RESULT"
+echo "copy closure of Databrary binaries completed..."
+
+# TODO: uninstall previous version; run nix-collect-garbage after install
+# NOTE: this is overly complex, simplify using multiple lines later
+ssh -t "$rcvr" " \
+           nix-env --install $RESULT \
+        && sudo -u demo bash -c \"cd /home/demo && rm -f databraryExeLink && ln -s $RESULT/bin/databrary databraryExeLink \"  \
+"
