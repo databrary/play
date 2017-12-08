@@ -73,4 +73,4 @@ let
       postgresql-typed = dontCheck (self.callHackage  "postgresql-typed" "0.4.5" {});
     };
   };
-in { inherit pkgs; }
+in { databrary = pkgs.databrary; databrary-dev = pkgs.databrary-dev; }

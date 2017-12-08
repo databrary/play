@@ -5,7 +5,7 @@ set -euo pipefail
 rcvr=$1
 echo "building Databrary binaries..."
 # if /tmp is too small for major nix builds, create appropriate dir, then use TMPDIR=... build-package-copy-prep ...
-RESULT="$(nix-build --attr pkgs.databrary --show-trace)"
+RESULT="$(nix-build --attr databrary --show-trace)"
 nix-copy-closure --to "$rcvr" "$RESULT"
 echo "copy closure of Databrary binaries completed..."
 
