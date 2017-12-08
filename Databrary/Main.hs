@@ -52,35 +52,39 @@ main = do
   conf <- mconcat <$> mapM Conf.load (case configs of
     [] -> ["databrary.conf"]
     l -> l)
-  case (flags', args', err) of
+  startServer <- case (flags', args', err) of
     ([FlagWeb], [], []) -> do
       putStrLn "generating files..." 
       void generateWebFiles
       putStrLn "finished generating web files..."
-      exitSuccess
+      return False
     ([FlagAPI], [], []) -> do
       putStrLn "put web builder..."
       hPutBuilder stdout $ J.fromEncoding $ J.value swagger
       putStrLn "finished web builder..."
-      exitSuccess
+      return False
     ([FlagEZID], [], []) -> do
       putStrLn "update EZID..."
       r <- withService False conf $ runContextM $ withBackgroundContextM updateEZID
       putStrLn "update EZID finished..."
-      if r == Just True then exitSuccess else exitFailure
+      if r == Just True then return False else exitFailure
     ([], [], []) -> do 
       putStrLn "No flags or args...."
-      return ()
+      return True
     _ -> do
       mapM_ putStrLn err
       putStrLn $ Opt.usageInfo ("Usage: " ++ prog ++ " [OPTION...]") opts
       exitFailure
 
-  putStrLn "evaluating routemap..."
-  routes <- evaluate routeMap
-  putStrLn "evaluating routemap...withService..."
-  withService True conf $ \rc -> do
-    -- used to run migrations on startup when not in devel mode
-    -- should check migrations2 table for last migration against last entry in schema2 dir
-    putStrLn "running warp"
-    runWarp conf rc (runActionRoute routes rc)
+  if startServer
+  then do
+    putStrLn "evaluating routemap..."
+    routes <- evaluate routeMap
+    putStrLn "evaluating routemap...withService..."
+    withService True conf $ \rc -> do
+      -- used to run migrations on startup when not in devel mode
+      -- should check migrations2 table for last migration against last entry in schema2 dir
+      putStrLn "running warp"
+      runWarp conf rc (runActionRoute routes rc)
+  else
+    return ()
