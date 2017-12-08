@@ -97,8 +97,6 @@ Executable databrary
     range-set-list >= 0.1.2.0,
     invertible >= 0.1.1,
     web-inv-route >= 0.1,
-    gargoyle >= 0.1,
-    gargoyle-postgresql >= 0.1,
     smtp-mail >= 0.1.4.6
 
   default-language: Haskell2010
