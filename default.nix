@@ -17,7 +17,12 @@ let
   inherit (nixpkgs.haskell.lib) dontCheck overrideCabal doJailbreak;
   ghciDatabrary = writeScriptBin "ghci-databrary" ''
     if [ ! -d "solr-6.6.0" ]; then
-      wget -qO- http://archive.apache.org/dist/lucene/solr/6.6.0/solr-6.6.0.tgz | tar -zxv
+      if [ ! -d "/tmp/solr-6.6.0" ]; then
+        pushd /tmp > /dev/null
+        wget -qO- http://archive.apache.org/dist/lucene/solr/6.6.0/solr-6.6.0.tgz | tar -zxv
+	popd > /dev/null
+      fi
+      cp -R /tmp/solr-6.6.0 .
     fi
     if [ ! -d "node_modules" ]; then
       echo linking node_modules
