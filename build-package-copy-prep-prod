@@ -3,7 +3,7 @@
 set -euo pipefail 
 
 usr=$1
-rcvr="$usr@databrary2.home.nyu.edu"
+rcvr="$usr@databrary.home.nyu.edu"
 echo "building Databrary binaries..."
 # if /tmp is too small for major nix builds, create appropriate dir, then use TMPDIR=... build-package-copy-prep ...
 RESULT="$(nix-build --attr databrary --show-trace)"
