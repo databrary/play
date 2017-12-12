@@ -1,9 +1,10 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies #-}
+{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies, RecordWildCards #-}
 module Databrary.Model.Volume.Types
   ( VolumeRow(..)
   , Volume(..)
   , VolumeOwner
   , blankVolume
+  , volumePublicShareFull
   ) where
 
 import qualified Data.ByteString as BS
@@ -45,6 +46,10 @@ instance Kinded Volume where
 makeHasRec ''VolumeRow ['volumeId]
 makeHasRec ''Volume ['volumeRow, 'volumePermission]
 deriveLiftMany [''VolumeRow, ''Volume]
+
+volumePublicShareFull :: Volume -> Maybe Bool
+volumePublicShareFull Volume{..} =
+  Just False
 
 blankVolume :: Volume
 blankVolume = Volume
