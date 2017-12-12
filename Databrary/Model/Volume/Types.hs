@@ -5,6 +5,7 @@ module Databrary.Model.Volume.Types
   , VolumeOwner
   , blankVolume
   , volumePublicShareFull
+  , volumeHiddenFields
   ) where
 
 import qualified Data.ByteString as BS
@@ -52,6 +53,14 @@ volumePublicShareFull Volume{..} =
   case volumePermission of
     PermissionPUBLIC -> Just False
     _ -> Nothing
+
+volumeHiddenFields :: Volume -> Maybe [String]
+volumeHiddenFields Volume{..} =
+  case volumePermission of
+    PermissionPUBLIC ->
+      Just ["containers", "top", "records", "metrics", "excerpts", "tags", "comments", "state"]
+    _ ->
+      Nothing
 
 blankVolume :: Volume
 blankVolume = Volume
