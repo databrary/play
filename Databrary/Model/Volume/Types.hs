@@ -49,7 +49,9 @@ deriveLiftMany [''VolumeRow, ''Volume]
 
 volumePublicShareFull :: Volume -> Maybe Bool
 volumePublicShareFull Volume{..} =
-  Just False
+  case volumePermission of
+    PermissionPUBLIC -> Just False
+    _ -> Nothing
 
 blankVolume :: Volume
 blankVolume = Volume
