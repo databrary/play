@@ -178,13 +178,9 @@ volumeJSONField vol "records" _ = do
     return $ Just $ JSON.mapRecords recordJSONRestricted l
   else do
     return $ Just $ JSON.mapRecords recordJSON l
-volumeJSONField vol "metrics" _ = do
-  metrics <- lookupVolumeMetrics vol
-  if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
-  then
-    (return . Just . JSON.toEncoding) metrics -- how pass in converter
-  else do
-    (return . Just . JSON.toEncoding) metrics
+volumeJSONField vol "metrics" _ =
+  let metricsCaching = lookupVolumeMetrics vol
+  in (Just . JSON.toEncoding) <$> metricsCaching
 volumeJSONField vol "excerpts" _ = do
   Just . JSON.mapObjects (\e -> excerptJSON e
     <> "asset" JSON..=: (assetSlotJSON (view e)
