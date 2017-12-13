@@ -195,28 +195,16 @@ volumeJSONField vol "excerpts" _ =
       <> "asset" JSON..=: (assetSlotJSON (view e)
         JSON..<> "container" JSON..= (view e :: Id Container)))
       <$> lookupVolumeExcerpts vol
-volumeJSONField vol "tags" n =
-  if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
-  then
-    return (Just (JSON.toEncoding ([] :: [()]))) -- using () to mean list content type doesn't matter
-  else do
-    t <- cacheVolumeTopContainer vol
-    tc <- lookupSlotTagCoverage (containerSlot t) (maybe 64 fst $ BSC.readInt =<< n)
-    return $ Just $ JSON.mapRecords tagCoverageJSON tc
-volumeJSONField vol "comments" n =
-  if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
-  then
-    return (Just (JSON.toEncoding ([] :: [()]))) -- using () to mean list content type doesn't matter
-  else do
-    t <- cacheVolumeTopContainer vol
-    tc <- lookupSlotComments (containerSlot t) (maybe 64 fst $ BSC.readInt =<< n)
-    return $ Just $ JSON.mapRecords commentJSON tc
+volumeJSONField vol "tags" n = do
+  t <- cacheVolumeTopContainer vol
+  tc <- lookupSlotTagCoverage (containerSlot t) (maybe 64 fst $ BSC.readInt =<< n)
+  return $ Just $ JSON.mapRecords tagCoverageJSON tc
+volumeJSONField vol "comments" n = do
+  t <- cacheVolumeTopContainer vol
+  tc <- lookupSlotComments (containerSlot t) (maybe 64 fst $ BSC.readInt =<< n)
+  return $ Just $ JSON.mapRecords commentJSON tc
 volumeJSONField vol "state" _ =
-  if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
-  then
-    return (Just (JSON.toEncoding emptyObject))
-  else do
-    Just . JSON.toEncoding . JSON.object . map (volumeStateKey &&& volumeStateValue) <$> lookupVolumeState vol
+  Just . JSON.toEncoding . JSON.object . map (volumeStateKey &&& volumeStateValue) <$> lookupVolumeState vol
 volumeJSONField o "filename" _ =
   return $ Just $ JSON.toEncoding $ makeFilename $ volumeDownloadName o
 volumeJSONField _ _ _ = return Nothing
