@@ -50,7 +50,10 @@ deriveLiftMany [''VolumeRow, ''Volume]
 volumePublicShareFull :: Volume -> Maybe Bool
 volumePublicShareFull Volume{..} =
   case volumePermission of
-    PermissionPUBLIC -> Just False
+    PermissionPUBLIC ->
+      if volumeId volumeRow == Id 365 || volumeName volumeRow == "hardcode"
+      then Just False
+      else Just True
     _ -> Nothing
 
 blankVolume :: Volume

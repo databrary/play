@@ -186,15 +186,11 @@ volumeJSONField vol "metrics" _ =
     return (Just (JSON.toEncoding ([] :: [()]))) -- using () to mean list content type doesn't matter
   else do
     Just . JSON.toEncoding <$> lookupVolumeMetrics vol
-volumeJSONField vol "excerpts" _ =
-  if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
-  then
-    return (Just (JSON.toEncoding ([] :: [()]))) -- using () to mean list content type doesn't matter
-  else do
-    Just . JSON.mapObjects (\e -> excerptJSON e
-      <> "asset" JSON..=: (assetSlotJSON (view e)
-        JSON..<> "container" JSON..= (view e :: Id Container)))
-      <$> lookupVolumeExcerpts vol
+volumeJSONField vol "excerpts" _ = do
+  Just . JSON.mapObjects (\e -> excerptJSON e
+    <> "asset" JSON..=: (assetSlotJSON (view e)
+      JSON..<> "container" JSON..= (view e :: Id Container)))
+    <$> lookupVolumeExcerpts vol
 volumeJSONField vol "tags" n = do
   t <- cacheVolumeTopContainer vol
   tc <- lookupSlotTagCoverage (containerSlot t) (maybe 64 fst $ BSC.readInt =<< n)
