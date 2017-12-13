@@ -40,6 +40,7 @@ data Measure = Measure
   , measureDatum :: !MeasureDatum
   }
 
+
 instance Kinded Measure where
   kindOf _ = "measure"
 

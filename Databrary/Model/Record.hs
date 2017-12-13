@@ -9,6 +9,7 @@ module Databrary.Model.Record
   , changeRecord
   , removeRecord
   , recordJSON
+  , recordJSONRestricted
   ) where
 
 import Control.Monad (guard)
@@ -73,3 +74,9 @@ recordJSON r@Record{ recordRow = RecordRow{..}, ..} = JSON.Record recordId $
   -- "volume" JSON..= volumeId recordVolume
      "category" JSON..= categoryId recordCategory
   <> "measures" JSON..=. measuresJSON (getRecordMeasures r)
+
+recordJSONRestricted :: JSON.ToNestedObject o u => Record -> JSON.Record (Id Record) o
+recordJSONRestricted r@Record{ recordRow = RecordRow{..}, ..} = JSON.Record recordId $
+  -- "volume" JSON..= volumeId recordVolume
+     "category" JSON..= categoryId recordCategory
+  <> "measures" JSON..=. measuresJSONRestricted (getRecordMeasures r)

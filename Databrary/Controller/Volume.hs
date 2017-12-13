@@ -129,9 +129,6 @@ leftJoin _ [] [] = []
 leftJoin _ [] _ = error "leftJoin: leftovers"
 leftJoin p (a:al) b = uncurry (:) $ (,) a *** leftJoin p al $ span (p a) b
 
-emptyObject :: JSON.Value
-emptyObject = JSON.object []
-
 volumeJSONField :: Volume -> BS.ByteString -> Maybe BS.ByteString -> StateT VolumeCache ActionM (Maybe JSON.Encoding)
 volumeJSONField vol "access" ma = do
   Just . JSON.mapObjects volumeAccessPartyJSON
@@ -167,25 +164,27 @@ volumeJSONField vol "containers" o =
   assets = full || o == Just "assets"
   records = full || o == Just "records"
   nope = map (, [])
-volumeJSONField vol "top" _ =
+volumeJSONField vol "top" _ = do
+  topCntr <- cacheVolumeTopContainer vol
   if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
   then
-    return (Just (JSON.toEncoding emptyObject))
+    (return . Just . JSON.recordEncoding . containerJSONRestricted) topCntr
   else
-    Just . JSON.recordEncoding . containerJSON <$> cacheVolumeTopContainer vol
-volumeJSONField vol "records" _ =
+    (return . Just . JSON.recordEncoding . containerJSON) topCntr
+volumeJSONField vol "records" _ = do
+  (l, _) <- cacheVolumeRecords vol
   if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
   then
-    return (Just (JSON.toEncoding ([] :: [()]))) -- using () to mean list content type doesn't matter
+    return $ Just $ JSON.mapRecords recordJSONRestricted l
   else do
-    (l, _) <- cacheVolumeRecords vol
     return $ Just $ JSON.mapRecords recordJSON l
-volumeJSONField vol "metrics" _ =
+volumeJSONField vol "metrics" _ = do
+  metrics <- lookupVolumeMetrics vol
   if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
   then
-    return (Just (JSON.toEncoding ([] :: [()]))) -- using () to mean list content type doesn't matter
+    (return . Just . JSON.toEncoding) metrics -- how pass in converter
   else do
-    Just . JSON.toEncoding <$> lookupVolumeMetrics vol
+    (return . Just . JSON.toEncoding) metrics
 volumeJSONField vol "excerpts" _ = do
   Just . JSON.mapObjects (\e -> excerptJSON e
     <> "asset" JSON..=: (assetSlotJSON (view e)

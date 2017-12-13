@@ -6,6 +6,7 @@ module Databrary.Model.Measure
   , removeRecordMeasure
   , decodeMeasure
   , measuresJSON
+  , measuresJSONRestricted
   ) where
 
 import Control.Monad (guard)
@@ -82,5 +83,11 @@ decodeMeasure t Measure{ measureMetric = Metric{ metricType = m }, measureDatum 
 measureJSONPair :: JSON.KeyValue kv => Measure -> kv
 measureJSONPair m = T.pack (show (metricId (measureMetric m))) JSON..= measureDatum m
 
+measureJSONPairRestricted :: JSON.KeyValue kv => Measure -> kv
+measureJSONPairRestricted m = T.pack (show (metricId (measureMetric m))) JSON..= ("" :: MeasureDatum)
+
 measuresJSON :: JSON.ToObject o => Measures -> o
 measuresJSON = foldMap measureJSONPair
+
+measuresJSONRestricted :: JSON.ToObject o => Measures -> o
+measuresJSONRestricted = foldMap measureJSONPairRestricted

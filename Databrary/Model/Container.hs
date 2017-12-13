@@ -14,6 +14,7 @@ module Databrary.Model.Container
   , formatContainerDate
   , containerRowJSON
   , containerJSON
+  , containerJSONRestricted
   ) where
 
 import Control.Monad (guard)
@@ -105,3 +106,7 @@ containerJSON c@Container{..} = containerRowJSON containerRow JSON..<>
      "date" JSON..=? formatContainerDate c
   <> "release" JSON..=? containerRelease
 
+containerJSONRestricted :: JSON.ToObject o => Container -> JSON.Record (Id Container) o
+containerJSONRestricted c@Container{..} = containerRowJSON containerRow JSON..<>
+     "date" JSON..=? formatContainerDate c
+  <> "release" JSON..=? containerRelease
