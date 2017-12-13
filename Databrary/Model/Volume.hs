@@ -77,7 +77,6 @@ volumeJSON v@Volume{..} = volumeRowJSON volumeRow JSON..<>
   <> "owners" JSON..= map (\(i, n) -> JSON.Object $ "id" JSON..= i <> "name" JSON..= n) volumeOwners
   <> "permission" JSON..= volumePermission
   <> "publicsharefull" JSON..= volumePublicShareFull v
-  <> "hiddenfields" JSON..= volumeHiddenFields v
 
 data VolumeFilter = VolumeFilter
   { volumeFilterQuery :: Maybe String
