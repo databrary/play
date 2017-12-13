@@ -51,7 +51,7 @@ volumePublicShareFull :: Volume -> Maybe Bool
 volumePublicShareFull Volume{..} =
   case volumePermission of
     PermissionPUBLIC ->
-      if volumeId volumeRow == Id 365 || volumeName volumeRow == "hardcode"
+      if True -- volumeId volumeRow == Id 365 || volumeName volumeRow == "hardcode"
       then Just False
       else Just True
     _ -> Nothing
