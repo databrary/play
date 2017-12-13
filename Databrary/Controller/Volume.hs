@@ -129,6 +129,9 @@ leftJoin _ [] [] = []
 leftJoin _ [] _ = error "leftJoin: leftovers"
 leftJoin p (a:al) b = uncurry (:) $ (,) a *** leftJoin p al $ span (p a) b
 
+emptyObject :: JSON.Value
+emptyObject = JSON.object []
+
 volumeJSONField :: Volume -> BS.ByteString -> Maybe BS.ByteString -> StateT VolumeCache ActionM (Maybe JSON.Encoding)
 volumeJSONField vol "access" ma = do
   Just . JSON.mapObjects volumeAccessPartyJSON
@@ -167,7 +170,7 @@ volumeJSONField vol "containers" o =
 volumeJSONField vol "top" _ =
   if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
   then
-    return (Just (JSON.toEncoding (Nothing :: Maybe ())))  -- empty object or null?
+    return (Just (JSON.toEncoding emptyObject))
   else
     Just . JSON.recordEncoding . containerJSON <$> cacheVolumeTopContainer vol
 volumeJSONField vol "records" _ =
@@ -211,7 +214,7 @@ volumeJSONField vol "comments" n =
 volumeJSONField vol "state" _ =
   if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
   then
-    return (Just (JSON.toEncoding (Nothing :: Maybe ()))) -- empty object or null?
+    return (Just (JSON.toEncoding emptyObject))
   else do
     Just . JSON.toEncoding . JSON.object . map (volumeStateKey &&& volumeStateValue) <$> lookupVolumeState vol
 volumeJSONField o "filename" _ =
