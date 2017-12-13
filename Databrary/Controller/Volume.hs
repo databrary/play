@@ -142,8 +142,6 @@ volumeJSONField vol "links" _ =
 volumeJSONField vol "funding" _ =
   Just . JSON.mapObjects fundingJSON <$> lookupVolumeFunding vol
 volumeJSONField vol "containers" mContainersVal = do
-  -- if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
-  -- then
   (cl :: [((Container, [(Segment, Id Record)]))]) <- if records
     then lookupVolumeContainersRecordIds vol
     else nope <$> lookupVolumeContainers vol
@@ -151,14 +149,25 @@ volumeJSONField vol "containers" mContainersVal = do
     then leftJoin (\(c, _) (_, SlotId a _) -> containerId (containerRow c) == a) cl <$> lookupVolumeAssetSlotIds vol
     else return $ nope cl
   rm <- if records then snd <$> cacheVolumeRecords vol else return HM.empty
-  let br = blankRecord undefined vol
-      rjs c (s, r)          = JSON.recordObject $ recordSlotJSONRestricted $ RecordSlot (HML.lookupDefault br{ recordRow = (recordRow br){ recordId = r } } r rm) (Slot c s)
-      ajs c (a, SlotId _ s) = JSON.recordObject $ assetSlotJSONRestricted $ AssetSlot a (Just (Slot c s))
-  return $ Just $ JSON.mapRecords (\((c, rl), al) ->
-      containerJSONRestricted c
-      JSON..<> (if records then JSON.nestObject "records" (\u -> map (u . rjs c) rl) else mempty)
-            <> (if assets  then JSON.nestObject "assets"  (\u -> map (u . ajs c) al) else mempty))
-    cl'
+  if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
+  then do
+    let br = blankRecord undefined vol
+        rjs c (s, r)          = JSON.recordObject $ recordSlotJSONRestricted $ RecordSlot (HML.lookupDefault br{ recordRow = (recordRow br){ recordId = r } } r rm) (Slot c s)
+        ajs c (a, SlotId _ s) = JSON.recordObject $ assetSlotJSONRestricted $ AssetSlot a (Just (Slot c s))
+    return $ Just $ JSON.mapRecords (\((c, rl), al) ->
+        containerJSONRestricted c
+        JSON..<> (if records then JSON.nestObject "records" (\u -> map (u . rjs c) rl) else mempty)
+              <> (if assets  then JSON.nestObject "assets"  (\u -> map (u . ajs c) al) else mempty))
+      cl'
+  else do
+    let br = blankRecord undefined vol
+        rjs c (s, r)          = JSON.recordObject $ recordSlotJSON $ RecordSlot (HML.lookupDefault br{ recordRow = (recordRow br){ recordId = r } } r rm) (Slot c s)
+        ajs c (a, SlotId _ s) = JSON.recordObject $ assetSlotJSON $ AssetSlot a (Just (Slot c s))
+    return $ Just $ JSON.mapRecords (\((c, rl), al) ->
+        containerJSON c
+        JSON..<> (if records then JSON.nestObject "records" (\u -> map (u . rjs c) rl) else mempty)
+              <> (if assets  then JSON.nestObject "assets"  (\u -> map (u . ajs c) al) else mempty))
+      cl'
   where
   full = mContainersVal == Just "all"
   assets = full || mContainersVal == Just "assets"
