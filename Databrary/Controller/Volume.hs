@@ -142,7 +142,7 @@ volumeJSONField vol "funding" _ =
 volumeJSONField vol "containers" o =
   if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
   then
-    return (Just (JSON.toEncoding (Nothing :: Maybe ())))
+    return (Just (JSON.toEncoding ([] :: [()]))) -- using () to mean contents of list don't matter 
   else do
     cl <- if records
       then lookupVolumeContainersRecordIds vol
@@ -167,26 +167,26 @@ volumeJSONField vol "containers" o =
 volumeJSONField vol "top" _ =
   if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
   then
-    return (Just (JSON.toEncoding (Nothing :: Maybe ())))
+    return (Just (JSON.toEncoding (Nothing :: Maybe ())))  -- empty object or null?
   else
     Just . JSON.recordEncoding . containerJSON <$> cacheVolumeTopContainer vol
 volumeJSONField vol "records" _ =
   if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
   then
-    return (Just (JSON.toEncoding (Nothing :: Maybe ())))
+    return (Just (JSON.toEncoding ([] :: [()]))) -- using () to mean list content type doesn't matter
   else do
     (l, _) <- cacheVolumeRecords vol
     return $ Just $ JSON.mapRecords recordJSON l
 volumeJSONField vol "metrics" _ =
   if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
   then
-    return (Just (JSON.toEncoding (Nothing :: Maybe ())))
+    return (Just (JSON.toEncoding ([] :: [()]))) -- using () to mean list content type doesn't matter
   else do
     Just . JSON.toEncoding <$> lookupVolumeMetrics vol
 volumeJSONField vol "excerpts" _ =
   if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
   then
-    return (Just (JSON.toEncoding (Nothing :: Maybe ())))
+    return (Just (JSON.toEncoding ([] :: [()]))) -- using () to mean list content type doesn't matter
   else do
     Just . JSON.mapObjects (\e -> excerptJSON e
       <> "asset" JSON..=: (assetSlotJSON (view e)
@@ -195,7 +195,7 @@ volumeJSONField vol "excerpts" _ =
 volumeJSONField vol "tags" n =
   if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
   then
-    return (Just (JSON.toEncoding (Nothing :: Maybe ())))
+    return (Just (JSON.toEncoding ([] :: [()]))) -- using () to mean list content type doesn't matter
   else do
     t <- cacheVolumeTopContainer vol
     tc <- lookupSlotTagCoverage (containerSlot t) (maybe 64 fst $ BSC.readInt =<< n)
@@ -203,7 +203,7 @@ volumeJSONField vol "tags" n =
 volumeJSONField vol "comments" n =
   if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
   then
-    return (Just (JSON.toEncoding (Nothing :: Maybe ())))
+    return (Just (JSON.toEncoding ([] :: [()]))) -- using () to mean list content type doesn't matter
   else do
     t <- cacheVolumeTopContainer vol
     tc <- lookupSlotComments (containerSlot t) (maybe 64 fst $ BSC.readInt =<< n)
@@ -211,7 +211,7 @@ volumeJSONField vol "comments" n =
 volumeJSONField vol "state" _ =
   if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
   then
-    return (Just (JSON.toEncoding (Nothing :: Maybe ())))
+    return (Just (JSON.toEncoding (Nothing :: Maybe ()))) -- empty object or null?
   else do
     Just . JSON.toEncoding . JSON.object . map (volumeStateKey &&& volumeStateValue) <$> lookupVolumeState vol
 volumeJSONField o "filename" _ =
