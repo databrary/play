@@ -11,6 +11,7 @@ module Databrary.Model.Asset
   , assetCreation
   , assetRowJSON
   , assetJSON
+  , assetJSONRestricted
   ) where
 
 import Control.Arrow (first)
@@ -94,3 +95,6 @@ assetRowJSON AssetRow{..} = JSON.Record assetId $
 
 assetJSON :: JSON.ToObject o => Asset -> JSON.Record (Id Asset) o
 assetJSON Asset{..} = assetRowJSON assetRow
+
+assetJSONRestricted :: JSON.ToObject o => Asset -> JSON.Record (Id Asset) o
+assetJSONRestricted Asset{..} = assetRowJSON assetRow

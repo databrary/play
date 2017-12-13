@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TupleSections #-}
+{-# LANGUAGE OverloadedStrings, TupleSections, ScopedTypeVariables #-}
 module Databrary.Controller.Volume
   ( getVolume
   , viewVolume
@@ -35,6 +35,7 @@ import qualified Network.Wai as Wai
 import Databrary.Ops
 import Databrary.Has
 import qualified Databrary.JSON as JSON
+import Databrary.Model.Asset (Asset)
 import Databrary.Model.Enum
 import Databrary.Model.Id
 import Databrary.Model.Permission
@@ -49,6 +50,7 @@ import Databrary.Model.Container
 import Databrary.Model.Record
 import Databrary.Model.VolumeMetric
 import Databrary.Model.RecordSlot
+import Databrary.Model.Segment (Segment)
 import Databrary.Model.Slot
 import Databrary.Model.AssetSlot
 import Databrary.Model.Excerpt
@@ -139,30 +141,28 @@ volumeJSONField vol "links" _ =
   Just . JSON.toEncoding <$> lookupVolumeLinks vol
 volumeJSONField vol "funding" _ =
   Just . JSON.mapObjects fundingJSON <$> lookupVolumeFunding vol
-volumeJSONField vol "containers" o =
-  if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
-  then
-    return (Just (JSON.toEncoding ([] :: [()]))) -- using () to mean contents of list don't matter 
-  else do
-    cl <- if records
-      then lookupVolumeContainersRecordIds vol
-      else nope <$> lookupVolumeContainers vol
-    cl' <- if assets
-      then leftJoin (\(c, _) (_, SlotId a _) -> containerId (containerRow c) == a) cl <$> lookupVolumeAssetSlotIds vol
-      else return $ nope cl
-    rm <- if records then snd <$> cacheVolumeRecords vol else return HM.empty
-    let br = blankRecord undefined vol
-        rjs c (s, r)          = JSON.recordObject $ recordSlotJSON $ RecordSlot (HML.lookupDefault br{ recordRow = (recordRow br){ recordId = r } } r rm) (Slot c s)
-        ajs c (a, SlotId _ s) = JSON.recordObject $ assetSlotJSON  $ AssetSlot a (Just (Slot c s))
-    return $ Just $ JSON.mapRecords (\((c, rl), al) ->
-        containerJSON c
-        JSON..<> (if records then JSON.nestObject "records" (\u -> map (u . rjs c) rl) else mempty)
-              <> (if assets  then JSON.nestObject "assets"  (\u -> map (u . ajs c) al) else mempty))
-      cl'
+volumeJSONField vol "containers" mContainersVal = do
+  -- if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
+  -- then
+  (cl :: [((Container, [(Segment, Id Record)]))]) <- if records
+    then lookupVolumeContainersRecordIds vol
+    else nope <$> lookupVolumeContainers vol
+  (cl' :: [((Container, [(Segment, Id Record)]), [(Asset, SlotId)])]) <- if assets
+    then leftJoin (\(c, _) (_, SlotId a _) -> containerId (containerRow c) == a) cl <$> lookupVolumeAssetSlotIds vol
+    else return $ nope cl
+  rm <- if records then snd <$> cacheVolumeRecords vol else return HM.empty
+  let br = blankRecord undefined vol
+      rjs c (s, r)          = JSON.recordObject $ recordSlotJSONRestricted $ RecordSlot (HML.lookupDefault br{ recordRow = (recordRow br){ recordId = r } } r rm) (Slot c s)
+      ajs c (a, SlotId _ s) = JSON.recordObject $ assetSlotJSONRestricted $ AssetSlot a (Just (Slot c s))
+  return $ Just $ JSON.mapRecords (\((c, rl), al) ->
+      containerJSONRestricted c
+      JSON..<> (if records then JSON.nestObject "records" (\u -> map (u . rjs c) rl) else mempty)
+            <> (if assets  then JSON.nestObject "assets"  (\u -> map (u . ajs c) al) else mempty))
+    cl'
   where
-  full = o == Just "all"
-  assets = full || o == Just "assets"
-  records = full || o == Just "records"
+  full = mContainersVal == Just "all"
+  assets = full || mContainersVal == Just "assets"
+  records = full || mContainersVal == Just "records"
   nope = map (, [])
 volumeJSONField vol "top" _ = do
   topCntr <- cacheVolumeTopContainer vol

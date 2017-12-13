@@ -20,6 +20,7 @@ module Databrary.Model.Container
 import Control.Monad (guard)
 import Data.Either (isRight)
 import Data.Monoid ((<>))
+import qualified Data.Text as T
 import Data.Time.Format (formatTime, defaultTimeLocale)
 import Database.PostgreSQL.Typed.Query (pgSQL)
 
@@ -99,7 +100,12 @@ formatContainerDate c = formatTime defaultTimeLocale "%Y-%m-%d" <$> getContainer
 containerRowJSON :: JSON.ToObject o => ContainerRow -> JSON.Record (Id Container) o
 containerRowJSON ContainerRow{..} = JSON.Record containerId $
      "top" JSON..=? (True <? containerTop)
-  <> "name" JSON..=? containerName
+  <> "name" JSON..=? containerName -- should this be blanked for restricted view?
+
+containerRowJSONRestricted :: JSON.ToObject o => ContainerRow -> JSON.Record (Id Container) o
+containerRowJSONRestricted ContainerRow{..} = JSON.Record containerId $
+     "top" JSON..=? (True <? containerTop)
+  <> "name" JSON..=? (fmap (const ("" :: T.Text)) containerName) -- should this be blanked for restricted view?
 
 containerJSON :: JSON.ToObject o => Container -> JSON.Record (Id Container) o
 containerJSON c@Container{..} = containerRowJSON containerRow JSON..<>
@@ -107,6 +113,6 @@ containerJSON c@Container{..} = containerRowJSON containerRow JSON..<>
   <> "release" JSON..=? containerRelease
 
 containerJSONRestricted :: JSON.ToObject o => Container -> JSON.Record (Id Container) o
-containerJSONRestricted c@Container{..} = containerRowJSON containerRow JSON..<>
+containerJSONRestricted c@Container{..} = containerRowJSONRestricted containerRow JSON..<>
      "date" JSON..=? formatContainerDate c
   <> "release" JSON..=? containerRelease

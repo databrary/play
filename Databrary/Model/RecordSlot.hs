@@ -12,6 +12,7 @@ module Databrary.Model.RecordSlot
   , removeRecordAllSlot
   , recordSlotAge
   , recordSlotJSON
+  , recordSlotJSONRestricted
   ) where
 
 import Control.Arrow (second)
@@ -100,3 +101,8 @@ recordSlotJSON :: JSON.ToObject o => RecordSlot -> JSON.Record (Id Record) o
 recordSlotJSON rs@RecordSlot{..} = JSON.Record (recordId $ recordRow slotRecord) $
      segmentJSON (slotSegment recordSlot)
   <> "age" JSON..=? recordSlotAge rs
+
+recordSlotJSONRestricted :: JSON.ToObject o => RecordSlot -> JSON.Record (Id Record) o
+recordSlotJSONRestricted rs@RecordSlot{..} = JSON.Record (recordId $ recordRow slotRecord) $
+     segmentJSON (slotSegment recordSlot)
+  <> "age" JSON..=? fmap (\_ -> Age { ageDays = -1 }) (recordSlotAge rs)  -- use age limit instead? 

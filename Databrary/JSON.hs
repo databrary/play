@@ -106,7 +106,7 @@ recordEncoding :: ToJSON k => Record k Series -> Encoding
 recordEncoding = objectEncoding . recordObject
 
 mapRecords :: (Functor t, Foldable t, ToJSON k) => (a -> Record k Series) -> t a -> Encoding
-mapRecords = mapObjects . (recordObject .)
+mapRecords toRecord objs = mapObjects (\obj -> (recordObject . toRecord) obj) objs
 
 infixr 8 .=:
 (.=:) :: (ToJSON k, ToNestedObject o u) => T.Text -> Record k o -> o

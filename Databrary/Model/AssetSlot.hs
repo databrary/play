@@ -19,6 +19,7 @@ module Databrary.Model.AssetSlot
   , findAssetContainerEnd
   , assetSlotName
   , assetSlotJSON
+  , assetSlotJSONRestricted
   ) where
 
 import Control.Monad (when, guard)
@@ -150,6 +151,17 @@ assetSlotJSON as@AssetSlot{..} = assetJSON slotAsset JSON..<>
   foldMap (segmentJSON . slotSegment) assetSlot
   --  "release" JSON..=? (view as :: Maybe Release)
   <> "name" JSON..=? assetSlotName as
+  <> "permission" JSON..= p
+  <> "size" JSON..=? (z <? p > PermissionNONE && any (0 <=) z)
+  where
+  p = dataPermission as
+  z = assetSize $ assetRow slotAsset
+
+assetSlotJSONRestricted :: JSON.ToObject o => AssetSlot -> JSON.Record (Id Asset) o
+assetSlotJSONRestricted as@AssetSlot{..} = assetJSONRestricted slotAsset JSON..<>
+  foldMap (segmentJSON . slotSegment) assetSlot
+  --  "release" JSON..=? (view as :: Maybe Release)
+  <> "name" JSON..=? (fmap (const ("" :: T.Text)) (assetSlotName as))
   <> "permission" JSON..= p
   <> "size" JSON..=? (z <? p > PermissionNONE && any (0 <=) z)
   where
