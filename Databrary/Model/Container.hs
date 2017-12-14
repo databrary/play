@@ -38,6 +38,7 @@ import Databrary.Model.Audit
 import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
 import Databrary.Model.Container.SQL
+import Databrary.Model.PermissionUtil (maskRestrictedString)
 
 blankContainer :: Volume -> Container
 blankContainer vol = Container
@@ -100,12 +101,12 @@ formatContainerDate c = formatTime defaultTimeLocale "%Y-%m-%d" <$> getContainer
 containerRowJSON :: JSON.ToObject o => ContainerRow -> JSON.Record (Id Container) o
 containerRowJSON ContainerRow{..} = JSON.Record containerId $
      "top" JSON..=? (True <? containerTop)
-  <> "name" JSON..=? containerName -- should this be blanked for restricted view?
+  <> "name" JSON..=? containerName
 
 containerRowJSONRestricted :: JSON.ToObject o => ContainerRow -> JSON.Record (Id Container) o
 containerRowJSONRestricted ContainerRow{..} = JSON.Record containerId $
      "top" JSON..=? (True <? containerTop)
-  <> "name" JSON..=? (fmap (const ("" :: T.Text)) containerName) -- should this be blanked for restricted view?
+  <> "name" JSON..=? (fmap maskRestrictedString containerName)
 
 containerJSON :: JSON.ToObject o => Container -> JSON.Record (Id Container) o
 containerJSON c@Container{..} = containerRowJSON containerRow JSON..<>

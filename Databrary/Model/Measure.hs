@@ -27,6 +27,7 @@ import Databrary.Model.Audit
 import Databrary.Model.Metric
 import Databrary.Model.Record.Types
 import Databrary.Model.Measure.SQL
+import Databrary.Model.PermissionUtil (maskRestrictedString)
 
 measureOrder :: Measure -> Measure -> Ordering
 measureOrder = comparing $ metricId . measureMetric
@@ -84,7 +85,8 @@ measureJSONPair :: JSON.KeyValue kv => Measure -> kv
 measureJSONPair m = T.pack (show (metricId (measureMetric m))) JSON..= measureDatum m
 
 measureJSONPairRestricted :: JSON.KeyValue kv => Measure -> kv
-measureJSONPairRestricted m = T.pack (show (metricId (measureMetric m))) JSON..= ("" :: MeasureDatum)
+measureJSONPairRestricted m =
+  T.pack (show (metricId (measureMetric m))) JSON..= maskRestrictedString (measureDatum m)
 
 measuresJSON :: JSON.ToObject o => Measures -> o
 measuresJSON = foldMap measureJSONPair

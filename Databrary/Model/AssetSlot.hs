@@ -48,6 +48,7 @@ import Databrary.Model.SQL
 import Databrary.Model.AssetSlot.Types
 import Databrary.Model.AssetSlot.SQL
 import Databrary.Model.Format.Types
+import Databrary.Model.PermissionUtil (maskRestrictedString)
 
 lookupAssetSlot :: (MonadHasIdentity c m, MonadDB c m) => Id Asset -> m (Maybe AssetSlot)
 lookupAssetSlot ai = do
@@ -161,7 +162,7 @@ assetSlotJSONRestricted :: JSON.ToObject o => AssetSlot -> JSON.Record (Id Asset
 assetSlotJSONRestricted as@AssetSlot{..} = assetJSONRestricted slotAsset JSON..<>
   foldMap (segmentJSON . slotSegment) assetSlot
   --  "release" JSON..=? (view as :: Maybe Release)
-  <> "name" JSON..=? (fmap (const ("" :: T.Text)) (assetSlotName as))
+  <> "name" JSON..=? (fmap maskRestrictedString (assetSlotName as))
   <> "permission" JSON..= p
   <> "size" JSON..=? (z <? p > PermissionNONE && any (0 <=) z)
   where
