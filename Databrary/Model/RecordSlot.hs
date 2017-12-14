@@ -105,4 +105,4 @@ recordSlotJSON rs@RecordSlot{..} = JSON.Record (recordId $ recordRow slotRecord)
 recordSlotJSONRestricted :: JSON.ToObject o => RecordSlot -> JSON.Record (Id Record) o
 recordSlotJSONRestricted rs@RecordSlot{..} = JSON.Record (recordId $ recordRow slotRecord) $
      segmentJSON (slotSegment recordSlot)
-  <> "age" JSON..=? fmap (\_ -> Age { ageDays = -1 }) (recordSlotAge rs)  -- use age limit instead? 
+  <> "age" JSON..=? recordSlotAge rs -- allow age to pass through so that summary can be computed
