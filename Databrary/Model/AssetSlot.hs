@@ -9,7 +9,7 @@ module Databrary.Model.AssetSlot
   , lookupContainerAssets
   , lookupOrigContainerAssets
   , lookupVolumeAssetSlots
-  , lookupOrigVolumeAssetSlots
+  -- , lookupOrigVolumeAssetSlots
   , lookupOrigVolumeAssetSlots'
   , lookupVolumeAssetSlotIds
   -- , lookupOrigVolumeAssetSlotIds
@@ -96,10 +96,10 @@ lookupVolumeAssetSlots :: (MonadDB c m) => Volume -> Bool -> m [AssetSlot]
 lookupVolumeAssetSlots v top =
   dbQuery $ ($ v) <$> $(selectQuery selectVolumeSlotAsset "$WHERE asset.volume = ${volumeId $ volumeRow v} AND (container.top OR ${not top}) ORDER BY container.id")
 
-lookupOrigVolumeAssetSlots :: (MonadDB c m, MonadHasIdentity c m) => Volume -> Bool -> m [AssetSlot]
+{- lookupOrigVolumeAssetSlots :: (MonadDB c m, MonadHasIdentity c m) => Volume -> Bool -> m [AssetSlot]
 lookupOrigVolumeAssetSlots v top = do
   fromVol <- lookupVolumeAssetSlots v top
-  lookupOrigVolumeAssetSlots' fromVol
+  lookupOrigVolumeAssetSlots' fromVol -}
 
 lookupOrigVolumeAssetSlots' :: (MonadDB c m, MonadHasIdentity c m) => [AssetSlot] -> m [AssetSlot]
 lookupOrigVolumeAssetSlots' slotList = do
