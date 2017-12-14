@@ -12,7 +12,7 @@ module Databrary.Model.AssetSlot
   , lookupOrigVolumeAssetSlots
   , lookupOrigVolumeAssetSlots'
   , lookupVolumeAssetSlotIds
-  , lookupOrigVolumeAssetSlotIds
+  -- , lookupOrigVolumeAssetSlotIds
   , changeAssetSlot
   , changeAssetSlotDuration
   , fixAssetSlotDuration
@@ -115,9 +115,9 @@ lookupVolumeAssetSlotIds :: (MonadDB c m) => Volume -> m [(Asset, SlotId)]
 lookupVolumeAssetSlotIds v =
   dbQuery $ ($ v) <$> $(selectQuery selectVolumeSlotIdAsset "$WHERE asset.volume = ${volumeId $ volumeRow v} ORDER BY container")
 
-lookupOrigVolumeAssetSlotIds :: (MonadDB c m) => Volume -> m [(Asset, SlotId)]
+{- lookupOrigVolumeAssetSlotIds :: (MonadDB c m) => Volume -> m [(Asset, SlotId)]
 lookupOrigVolumeAssetSlotIds v =
-  dbQuery $ ($ v) <$> $(selectQuery selectVolumeSlotIdAsset "$left join asset_revision ar on ar.orig = asset.id WHERE asset.volume = ${volumeId $ volumeRow v} ORDER BY container")
+  dbQuery $ ($ v) <$> $(selectQuery selectVolumeSlotIdAsset "$left join asset_revision ar on ar.orig = asset.id WHERE asset.volume = ${volumeId $ volumeRow v} ORDER BY container") -}
 
 changeAssetSlot :: (MonadAudit c m) => AssetSlot -> m Bool
 changeAssetSlot as = do
