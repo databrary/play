@@ -578,6 +578,10 @@ app.factory('modelService', [
       return router.volumeZip([this.id], params);
     };
 
+    Volume.prototype.zipOrigRoute = function (params) {
+      return router.volumeZipOrig([this.id], params);
+    };
+
     Volume.prototype.csvRoute = function () {
       return router.volumeCSV([this.id]);
     };
