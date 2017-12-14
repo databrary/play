@@ -510,6 +510,7 @@ app.provider('routerService', [
     routes.rawAssetDownload = makeRoute(controllers.downloadAsset, ['id', 'inline']);
     routes.rawAssetThumb = makeRoute(controllers.thumbAsset, ['id', 'size']);
     routes.volumeZip = makeRoute(controllers.zipVolume, ['id']);
+    routes.volumeZipOrig = makeRoute(controllers.zipOrigVolume, ['id']);
 
     $routeProvider.otherwise('/');
 

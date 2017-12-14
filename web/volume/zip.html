@@ -40,7 +40,7 @@
   <a ng-if="::assetDownload" ng-href="{{::slot ? slot.zipRoute() : volume.zipRoute(page.$location.search())}}" class="button green" target="_self">
     <span class="download icon"></span><span>Download</span>
   </a>
-  <a ng-if="::assetDownload && slot" ng-href="{{slot.zipOrigRoute()}}" class="button green" target="_self">
+  <a ng-if="::assetDownload" ng-href="{{::slot ? slot.zipOrigRoute() : volume.zipOrigRoute(page.$location.search())}}" class="button green" target="_self">
     <span class="download icon"></span><span>Download Original</span>
   </a>
 
@@ -70,7 +70,7 @@
     <a ng-href="{{::slot ? slot.zipRoute() : volume.zipRoute(page.$location.search())}}" class="button green" target="_self">
       <span class="download icon"></span><span>Download</span>
     </a>
-    <a ng-if="::slot" ng-href="{{slot.zipOrigRoute()}}" class="button green" target="_self">
+    <a ng-href="{{::slot ? slot.zipOrigRoute() : volume.zipOrigRoute(page.$location.search())}}" class="button green" target="_self">
       <span class="download icon"></span><span>Download Original</span>
     </a>
   </div>
