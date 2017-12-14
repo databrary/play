@@ -433,6 +433,7 @@ app.factory('modelService', [
       funding: false,
       tags: false,
       state: false,
+      publicsharefull: false,
       // consumers: false,
       // producers: false,
     };
@@ -466,6 +467,8 @@ app.factory('modelService', [
         this.comments = commentMakeArray(this, init.comments);
       if ('metrics' in init)
         this.metrics = _.groupBy(init.metrics, function (m) { return constants.metric[m].category; });
+      if ('publicsharefull' in init)
+        this.publicsharefull = init.publicsharefull
     };
 
     function volumeMake(init) {

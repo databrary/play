@@ -5,5 +5,6 @@ app.controller('volume/view', [
   function ($scope, volume, display) {
     $scope.volume = volume;
     display.title = volume.name;
+    $scope.checkpublicsharefull = volume.publicsharefull || volume.publicsharefull === null;
   }
 ]);
