@@ -168,7 +168,7 @@ routeMap = routes
   , route postIngest
   , route viewPeriodic
   , route postPeriodic
-  , route viewSwagger
+
 
   , route webFile
   ] where
