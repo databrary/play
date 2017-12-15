@@ -96,5 +96,6 @@ mkDerivation rec {
     cp -r solr/solr.xml solr/log4j.properties solr/conf $data_outputdir/solr
 
     # should copy schema dir
+    # start this now...
   '';
 }
