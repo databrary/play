@@ -63,7 +63,7 @@ addComment c@Comment{..} = do
 
 commentJSON :: JSON.ToNestedObject o u => Comment -> JSON.Record (Id Comment) o
 commentJSON Comment{ commentSlot = Slot{..}, ..} = JSON.Record commentId $
-     "container" JSON..=: containerJSON slotContainer
+     "container" JSON..=: containerJSON False slotContainer -- should compute based on volume
   <> segmentJSON slotSegment
   <> "who" JSON..=: partyJSON (accountParty commentWho)
   <> "time" JSON..= commentTime

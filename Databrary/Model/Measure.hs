@@ -6,7 +6,6 @@ module Databrary.Model.Measure
   , removeRecordMeasure
   , decodeMeasure
   , measuresJSON
-  , measuresJSONRestricted
   ) where
 
 import Control.Monad (guard)
@@ -81,15 +80,15 @@ decodeMeasure :: PGColumn t d => PGTypeName t -> Measure -> Maybe d
 decodeMeasure t Measure{ measureMetric = Metric{ metricType = m }, measureDatum = d } =
   pgTypeName t == show m ?> pgDecode t d
 
-measureJSONPair :: JSON.KeyValue kv => Measure -> kv
-measureJSONPair m = T.pack (show (metricId (measureMetric m))) JSON..= measureDatum m
+measureJSONPair :: JSON.KeyValue kv => Bool -> Measure -> kv
+measureJSONPair publicRestricted m =
+  T.pack (show (metricId (measureMetric m)))
+    JSON..= (if publicRestricted then maskRestrictedString . measureDatum else measureDatum) m
 
-measureJSONPairRestricted :: JSON.KeyValue kv => Measure -> kv
-measureJSONPairRestricted m =
-  T.pack (show (metricId (measureMetric m))) JSON..= maskRestrictedString (measureDatum m)
+measuresJSON :: JSON.ToObject o => Bool -> Measures -> o
+measuresJSON publicRestricted = foldMap (measureJSONPair publicRestricted)
 
-measuresJSON :: JSON.ToObject o => Measures -> o
-measuresJSON = foldMap measureJSONPair
-
+{-
 measuresJSONRestricted :: JSON.ToObject o => Measures -> o
 measuresJSONRestricted = foldMap measureJSONPairRestricted
+-}

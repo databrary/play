@@ -12,7 +12,6 @@ module Databrary.Model.RecordSlot
   , removeRecordAllSlot
   , recordSlotAge
   , recordSlotJSON
-  , recordSlotJSONRestricted
   ) where
 
 import Control.Arrow (second)
@@ -97,12 +96,14 @@ recordSlotAge rs@RecordSlot{..} =
     | dataPermission rs == PermissionNONE = a `min` ageLimit
     | otherwise = a
 
-recordSlotJSON :: JSON.ToObject o => RecordSlot -> JSON.Record (Id Record) o
-recordSlotJSON rs@RecordSlot{..} = JSON.Record (recordId $ recordRow slotRecord) $
+recordSlotJSON :: JSON.ToObject o => Bool -> RecordSlot -> JSON.Record (Id Record) o
+recordSlotJSON publicRestricted rs@RecordSlot{..} = JSON.Record (recordId $ recordRow slotRecord) $
      segmentJSON (slotSegment recordSlot)
   <> "age" JSON..=? recordSlotAge rs
 
+{-
 recordSlotJSONRestricted :: JSON.ToObject o => RecordSlot -> JSON.Record (Id Record) o
 recordSlotJSONRestricted rs@RecordSlot{..} = JSON.Record (recordId $ recordRow slotRecord) $
      segmentJSON (slotSegment recordSlot)
   <> "age" JSON..=? recordSlotAge rs -- allow age to pass through so that summary can be computed
+-}

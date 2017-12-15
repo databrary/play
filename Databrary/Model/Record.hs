@@ -9,7 +9,7 @@ module Databrary.Model.Record
   , changeRecord
   , removeRecord
   , recordJSON
-  , recordJSONRestricted
+--  , recordJSONRestricted
   ) where
 
 import Control.Monad (guard)
@@ -69,14 +69,9 @@ removeRecord r = do
   ident <- getAuditIdentity
   isRight <$> dbTryJust (guard . isForeignKeyViolation) (dbExecute1 $(deleteRecord 'ident 'r))
 
-recordJSON :: JSON.ToNestedObject o u => Record -> JSON.Record (Id Record) o
-recordJSON r@Record{ recordRow = RecordRow{..}, ..} = JSON.Record recordId $
+recordJSON :: JSON.ToNestedObject o u => Bool -> Record -> JSON.Record (Id Record) o
+recordJSON publicRestricted r@Record{ recordRow = RecordRow{..}, ..} = JSON.Record recordId $
   -- "volume" JSON..= volumeId recordVolume
      "category" JSON..= categoryId recordCategory
-  <> "measures" JSON..=. measuresJSON (getRecordMeasures r)
+  <> "measures" JSON..=. measuresJSON publicRestricted (getRecordMeasures r)
 
-recordJSONRestricted :: JSON.ToNestedObject o u => Record -> JSON.Record (Id Record) o
-recordJSONRestricted r@Record{ recordRow = RecordRow{..}, ..} = JSON.Record recordId $
-  -- "volume" JSON..= volumeId recordVolume
-     "category" JSON..= categoryId recordCategory
-  <> "measures" JSON..=. measuresJSONRestricted (getRecordMeasures r)

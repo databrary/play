@@ -65,8 +65,9 @@ getAssetSegment getOrig p mv s a =
          checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupSlotAssetSegment s a
 
 assetSegmentJSONField :: AssetSegment -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
-assetSegmentJSONField a "asset" _ = return $ Just $ JSON.recordEncoding $ assetSlotJSON (segmentAsset a)
+assetSegmentJSONField a "asset" _ = return $ Just $ JSON.recordEncoding $ assetSlotJSON False (segmentAsset a) 
 assetSegmentJSONField a v o = assetJSONField (segmentAsset a) v o
+-- publicRestricted should consult volume
 
 assetSegmentJSONQuery :: AssetSegment -> JSON.Query -> ActionM JSON.Series
 assetSegmentJSONQuery o q = (assetSegmentJSON o <>) <$> JSON.jsonQuery (assetSegmentJSONField o) q

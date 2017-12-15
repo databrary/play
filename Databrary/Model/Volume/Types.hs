@@ -4,7 +4,8 @@ module Databrary.Model.Volume.Types
   , Volume(..)
   , VolumeOwner
   , blankVolume
-  , volumePublicShareFull
+  , volumePermissionPolicy
+  , VolumeAccessPolicy(..)
   ) where
 
 import qualified Data.ByteString as BS
@@ -47,6 +48,20 @@ makeHasRec ''VolumeRow ['volumeId]
 makeHasRec ''Volume ['volumeRow, 'volumePermission]
 deriveLiftMany [''VolumeRow, ''Volume]
 
+data VolumeAccessPolicy = PublicRestricted | PermLevelDefault
+  deriving (Show, Eq)
+
+volumePermissionPolicy :: Volume -> (Permission, VolumeAccessPolicy)
+volumePermissionPolicy Volume{..} =
+  ( volumePermission
+  , case volumePermission of
+      PermissionPUBLIC ->
+        if volumeId volumeRow == Id 365 || volumeName volumeRow == "hardcode"
+        then PublicRestricted
+        else PermLevelDefault
+      _ -> PermLevelDefault )
+
+{-
 volumePublicShareFull :: Volume -> Maybe Bool
 volumePublicShareFull Volume{..} =
   case volumePermission of
@@ -55,6 +70,7 @@ volumePublicShareFull Volume{..} =
       then Just False
       else Just True
     _ -> Nothing
+-}
 
 blankVolume :: Volume
 blankVolume = Volume

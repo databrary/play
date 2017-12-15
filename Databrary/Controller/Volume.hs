@@ -131,6 +131,12 @@ leftJoin _ [] [] = []
 leftJoin _ [] _ = error "leftJoin: leftovers"
 leftJoin p (a:al) b = uncurry (:) $ (,) a *** leftJoin p al $ span (p a) b
 
+volumeIsPublicRestricted :: Volume -> Bool
+volumeIsPublicRestricted v =
+  case volumePermissionPolicy v of
+    (PermissionPUBLIC, PublicRestricted) -> True
+    _ -> False
+
 volumeJSONField :: Volume -> BS.ByteString -> Maybe BS.ByteString -> StateT VolumeCache ActionM (Maybe JSON.Encoding)
 volumeJSONField vol "access" ma = do
   Just . JSON.mapObjects volumeAccessPartyJSON
@@ -149,25 +155,15 @@ volumeJSONField vol "containers" mContainersVal = do
     then leftJoin (\(c, _) (_, SlotId a _) -> containerId (containerRow c) == a) cl <$> lookupVolumeAssetSlotIds vol
     else return $ nope cl
   rm <- if records then snd <$> cacheVolumeRecords vol else return HM.empty
-  if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
-  then do
-    let br = blankRecord undefined vol
-        rjs c (s, r)          = JSON.recordObject $ recordSlotJSONRestricted $ RecordSlot (HML.lookupDefault br{ recordRow = (recordRow br){ recordId = r } } r rm) (Slot c s)
-        ajs c (a, SlotId _ s) = JSON.recordObject $ assetSlotJSONRestricted $ AssetSlot a (Just (Slot c s))
-    return $ Just $ JSON.mapRecords (\((c, rl), al) ->
-        containerJSONRestricted c
-        JSON..<> (if records then JSON.nestObject "records" (\u -> map (u . rjs c) rl) else mempty)
-              <> (if assets  then JSON.nestObject "assets"  (\u -> map (u . ajs c) al) else mempty))
-      cl'
-  else do
-    let br = blankRecord undefined vol
-        rjs c (s, r)          = JSON.recordObject $ recordSlotJSON $ RecordSlot (HML.lookupDefault br{ recordRow = (recordRow br){ recordId = r } } r rm) (Slot c s)
-        ajs c (a, SlotId _ s) = JSON.recordObject $ assetSlotJSON $ AssetSlot a (Just (Slot c s))
-    return $ Just $ JSON.mapRecords (\((c, rl), al) ->
-        containerJSON c
-        JSON..<> (if records then JSON.nestObject "records" (\u -> map (u . rjs c) rl) else mempty)
-              <> (if assets  then JSON.nestObject "assets"  (\u -> map (u . ajs c) al) else mempty))
-      cl'
+  let publicRestricted = volumeIsPublicRestricted vol
+      br = blankRecord undefined vol
+      rjs c (s, r)          = JSON.recordObject $ (recordSlotJSON publicRestricted) $ RecordSlot (HML.lookupDefault br{ recordRow = (recordRow br){ recordId = r } } r rm) (Slot c s)
+      ajs c (a, SlotId _ s) = JSON.recordObject $ (assetSlotJSON publicRestricted) $ AssetSlot a (Just (Slot c s))
+  return $ Just $ JSON.mapRecords (\((c, rl), al) ->
+      containerJSON publicRestricted c
+      JSON..<> (if records then JSON.nestObject "records" (\u -> map (u . rjs c) rl) else mempty)
+            <> (if assets  then JSON.nestObject "assets"  (\u -> map (u . ajs c) al) else mempty))
+    cl'
   where
   full = mContainersVal == Just "all"
   assets = full || mContainersVal == Just "assets"
@@ -175,24 +171,18 @@ volumeJSONField vol "containers" mContainersVal = do
   nope = map (, [])
 volumeJSONField vol "top" _ = do
   topCntr <- cacheVolumeTopContainer vol
-  if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
-  then
-    (return . Just . JSON.recordEncoding . containerJSONRestricted) topCntr
-  else
-    (return . Just . JSON.recordEncoding . containerJSON) topCntr
+  let publicRestricted = volumeIsPublicRestricted vol
+  (return . Just . JSON.recordEncoding . containerJSON publicRestricted) topCntr
 volumeJSONField vol "records" _ = do
   (l, _) <- cacheVolumeRecords vol
-  if volumePermission vol == PermissionPUBLIC && (not (maybe False id (volumePublicShareFull vol)))
-  then
-    return $ Just $ JSON.mapRecords recordJSONRestricted l
-  else do
-    return $ Just $ JSON.mapRecords recordJSON l
+  let publicRestricted = volumeIsPublicRestricted vol
+  return $ Just $ JSON.mapRecords (recordJSON publicRestricted) l
 volumeJSONField vol "metrics" _ =
   let metricsCaching = lookupVolumeMetrics vol
   in (Just . JSON.toEncoding) <$> metricsCaching
 volumeJSONField vol "excerpts" _ = do
   Just . JSON.mapObjects (\e -> excerptJSON e
-    <> "asset" JSON..=: (assetSlotJSON (view e)
+    <> "asset" JSON..=: (assetSlotJSON False (view e) -- should publicRestricted be set based on volume?
       JSON..<> "container" JSON..= (view e :: Id Container)))
     <$> lookupVolumeExcerpts vol
 volumeJSONField vol "tags" n = do

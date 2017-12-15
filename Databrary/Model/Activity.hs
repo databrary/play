@@ -195,7 +195,7 @@ activityTargetJSON (ActivityAccess a) =
     volumeAccessJSON a)
 activityTargetJSON (ActivityContainer c) =
   ("container", mempty, JSON.recordObject $
-    containerRowJSON c JSON..<>
+    containerRowJSON False c JSON..<> -- False assumes edit level on volume for activity route
       "date" JSON..=? containerDate c)
 activityTargetJSON ActivityRelease{..} =
   ("release", segmentJSON $ slotSegmentId activitySlotId,
@@ -213,7 +213,7 @@ activityTargetJSON ActivityExcerpt{..} =
     "excerpt" JSON..=? activityExcerptRelease)
 
 activityAssetJSON :: Asset -> JSON.Object
-activityAssetJSON a = JSON.recordObject $ assetJSON a JSON..<> "name" JSON..=? assetName (assetRow a)
+activityAssetJSON a = JSON.recordObject $ assetJSON False a JSON..<> "name" JSON..=? assetName (assetRow a) -- False assumes edit
 
 activityJSON :: Activity -> Maybe JSON.Object
 activityJSON Activity{ activityAudit = Audit{..}, ..} = auditAction == AuditActionChange && HM.null new && HM.null old ?!>

@@ -14,7 +14,6 @@ module Databrary.Model.Container
   , formatContainerDate
   , containerRowJSON
   , containerJSON
-  , containerJSONRestricted
   ) where
 
 import Control.Monad (guard)
@@ -98,22 +97,12 @@ getContainerDate c = maskDateIf (dataPermission c == PermissionNONE) <$> contain
 formatContainerDate :: Container -> Maybe String
 formatContainerDate c = formatTime defaultTimeLocale "%Y-%m-%d" <$> getContainerDate c
 
-containerRowJSON :: JSON.ToObject o => ContainerRow -> JSON.Record (Id Container) o
-containerRowJSON ContainerRow{..} = JSON.Record containerId $
+containerRowJSON :: JSON.ToObject o => Bool -> ContainerRow -> JSON.Record (Id Container) o
+containerRowJSON publicRestricted ContainerRow{..} = JSON.Record containerId $
      "top" JSON..=? (True <? containerTop)
-  <> "name" JSON..=? containerName
+  <> "name" JSON..=? if publicRestricted then (fmap maskRestrictedString containerName) else containerName
 
-containerRowJSONRestricted :: JSON.ToObject o => ContainerRow -> JSON.Record (Id Container) o
-containerRowJSONRestricted ContainerRow{..} = JSON.Record containerId $
-     "top" JSON..=? (True <? containerTop)
-  <> "name" JSON..=? (fmap maskRestrictedString containerName)
-
-containerJSON :: JSON.ToObject o => Container -> JSON.Record (Id Container) o
-containerJSON c@Container{..} = containerRowJSON containerRow JSON..<>
-     "date" JSON..=? formatContainerDate c
-  <> "release" JSON..=? containerRelease
-
-containerJSONRestricted :: JSON.ToObject o => Container -> JSON.Record (Id Container) o
-containerJSONRestricted c@Container{..} = containerRowJSONRestricted containerRow JSON..<>
+containerJSON :: JSON.ToObject o => Bool -> Container -> JSON.Record (Id Container) o
+containerJSON publicRestricted c@Container{..} = containerRowJSON publicRestricted containerRow JSON..<>
      "date" JSON..=? formatContainerDate c
   <> "release" JSON..=? containerRelease
