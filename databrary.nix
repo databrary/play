@@ -97,5 +97,6 @@ mkDerivation rec {
 
     # should copy schema dir
     # start this now...
+    cp -r schema $data_outputdir
   '';
 }
