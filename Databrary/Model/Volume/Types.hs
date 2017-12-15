@@ -1,9 +1,11 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies #-}
+{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies, RecordWildCards #-}
 module Databrary.Model.Volume.Types
   ( VolumeRow(..)
   , Volume(..)
   , VolumeOwner
   , blankVolume
+  , volumePermissionPolicy
+  , VolumeAccessPolicy(..)
   ) where
 
 import qualified Data.ByteString as BS
@@ -45,6 +47,30 @@ instance Kinded Volume where
 makeHasRec ''VolumeRow ['volumeId]
 makeHasRec ''Volume ['volumeRow, 'volumePermission]
 deriveLiftMany [''VolumeRow, ''Volume]
+
+data VolumeAccessPolicy = PublicRestricted | PermLevelDefault
+  deriving (Show, Eq)
+
+volumePermissionPolicy :: Volume -> (Permission, VolumeAccessPolicy)
+volumePermissionPolicy Volume{..} =
+  ( volumePermission
+  , case volumePermission of
+      PermissionPUBLIC ->
+        if volumeId volumeRow == Id 365 || volumeName volumeRow == "hardcode"
+        then PublicRestricted
+        else PermLevelDefault
+      _ -> PermLevelDefault )
+
+{-
+volumePublicShareFull :: Volume -> Maybe Bool
+volumePublicShareFull Volume{..} =
+  case volumePermission of
+    PermissionPUBLIC ->
+      if volumeId volumeRow == Id 365 || volumeName volumeRow == "hardcode"
+      then Just False
+      else Just True
+    _ -> Nothing
+-}
 
 blankVolume :: Volume
 blankVolume = Volume

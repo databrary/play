@@ -19,6 +19,7 @@ module Databrary.Model.Container
 import Control.Monad (guard)
 import Data.Either (isRight)
 import Data.Monoid ((<>))
+import qualified Data.Text as T
 import Data.Time.Format (formatTime, defaultTimeLocale)
 import Database.PostgreSQL.Typed.Query (pgSQL)
 
@@ -36,6 +37,7 @@ import Databrary.Model.Audit
 import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
 import Databrary.Model.Container.SQL
+import Databrary.Model.PermissionUtil (maskRestrictedString)
 
 blankContainer :: Volume -> Container
 blankContainer vol = Container
@@ -95,13 +97,12 @@ getContainerDate c = maskDateIf (dataPermission c == PermissionNONE) <$> contain
 formatContainerDate :: Container -> Maybe String
 formatContainerDate c = formatTime defaultTimeLocale "%Y-%m-%d" <$> getContainerDate c
 
-containerRowJSON :: JSON.ToObject o => ContainerRow -> JSON.Record (Id Container) o
-containerRowJSON ContainerRow{..} = JSON.Record containerId $
+containerRowJSON :: JSON.ToObject o => Bool -> ContainerRow -> JSON.Record (Id Container) o
+containerRowJSON publicRestricted ContainerRow{..} = JSON.Record containerId $
      "top" JSON..=? (True <? containerTop)
-  <> "name" JSON..=? containerName
+  <> "name" JSON..=? if publicRestricted then (fmap maskRestrictedString containerName) else containerName
 
-containerJSON :: JSON.ToObject o => Container -> JSON.Record (Id Container) o
-containerJSON c@Container{..} = containerRowJSON containerRow JSON..<>
+containerJSON :: JSON.ToObject o => Bool -> Container -> JSON.Record (Id Container) o
+containerJSON publicRestricted c@Container{..} = containerRowJSON publicRestricted containerRow JSON..<>
      "date" JSON..=? formatContainerDate c
   <> "release" JSON..=? containerRelease
-

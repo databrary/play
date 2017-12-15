@@ -85,7 +85,7 @@ getOrigAsset p i =
 
 assetJSONField :: AssetSlot -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
 assetJSONField a "container" _ =
-  return $ JSON.recordEncoding . containerJSON . slotContainer <$> assetSlot a
+  return $ JSON.recordEncoding . containerJSON False . slotContainer <$> assetSlot a -- containerJSON should consult volume
 assetJSONField a "creation" _ | view a >= PermissionEDIT = do
   (t, n) <- assetCreation $ slotAsset a
   return $ Just $ JSON.objectEncoding $
@@ -96,7 +96,8 @@ assetJSONField a "excerpts" _ =
 assetJSONField _ _ _ = return Nothing
 
 assetJSONQuery :: AssetSlot -> JSON.Query -> ActionM (JSON.Record (Id Asset) JSON.Series)
-assetJSONQuery o q = (assetSlotJSON o JSON..<>) <$> JSON.jsonQuery (assetJSONField o) q
+assetJSONQuery o q = (assetSlotJSON False o JSON..<>) <$> JSON.jsonQuery (assetJSONField o) q 
+-- public restricted should consult volume
 
 assetDownloadName :: Bool -> AssetRow -> [T.Text]
 assetDownloadName addPrefix a =
@@ -244,7 +245,7 @@ processAsset api target = do
   case api of
     JSON -> do
       liftIO $ putStrLn "JSON ok response..." --DEBUG
-      return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON as''
+      return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON False as'' -- publicrestrict false because EDIT
     HTML -> do 
       liftIO $ putStrLn "returning HTML other route reponse..." --DEBUG
       peeks $ otherRouteResponse [] viewAsset (api, assetId $ assetRow $ slotAsset as'')
@@ -291,7 +292,7 @@ deleteAsset = action DELETE (pathAPI </> pathId) $ \(api, ai) -> withAuth $ do
   let asset' = asset{ assetSlot = Nothing }
   _ <- changeAssetSlot asset'
   case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON asset'
+    JSON -> return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON False asset' -- publicRestricted false because EDIT
     HTML -> peeks $ otherRouteResponse [] viewAsset (api, assetId $ assetRow $ slotAsset asset')
 
 downloadAsset :: ActionRoute (Id Asset, Segment)

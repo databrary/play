@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TupleSections #-}
+{-# LANGUAGE OverloadedStrings, TupleSections, ScopedTypeVariables #-}
 module Databrary.Controller.Volume
   ( getVolume
   , viewVolume
@@ -35,6 +35,7 @@ import qualified Network.Wai as Wai
 import Databrary.Ops
 import Databrary.Has
 import qualified Databrary.JSON as JSON
+import Databrary.Model.Asset (Asset)
 import Databrary.Model.Enum
 import Databrary.Model.Id
 import Databrary.Model.Permission
@@ -49,6 +50,7 @@ import Databrary.Model.Container
 import Databrary.Model.Record
 import Databrary.Model.VolumeMetric
 import Databrary.Model.RecordSlot
+import Databrary.Model.Segment (Segment)
 import Databrary.Model.Slot
 import Databrary.Model.AssetSlot
 import Databrary.Model.Excerpt
@@ -85,16 +87,16 @@ data VolumeCache = VolumeCache
   , volumeCacheRecords :: Maybe (HML.HashMap (Id Record) Record)
   }
 
-type VolumeCacheActionM a = StateT VolumeCache ActionM a
+-- type VolumeCacheActionM a = StateT VolumeCache ActionM a
 
 instance Monoid VolumeCache where
   mempty = VolumeCache Nothing Nothing Nothing
   mappend (VolumeCache a1 t1 r1) (VolumeCache a2 t2 r2) = VolumeCache (a1 <|> a2) (t1 <|> t2) (r1 <> r2)
 
-runVolumeCache :: VolumeCacheActionM a -> ActionM a
+runVolumeCache :: StateT VolumeCache ActionM a -> ActionM a
 runVolumeCache f = evalStateT f mempty
 
-cacheVolumeAccess :: Volume -> Permission -> VolumeCacheActionM [VolumeAccess]
+cacheVolumeAccess :: Volume -> Permission -> StateT VolumeCache ActionM [VolumeAccess]
 cacheVolumeAccess vol perm = do
   vc <- get
   takeWhile ((perm <=) . volumeAccessIndividual) <$>
@@ -104,7 +106,7 @@ cacheVolumeAccess vol perm = do
       return a)
       (volumeCacheAccess vc)
 
-cacheVolumeRecords :: Volume -> VolumeCacheActionM ([Record], HML.HashMap (Id Record) Record)
+cacheVolumeRecords :: Volume -> StateT VolumeCache ActionM ([Record], HML.HashMap (Id Record) Record)
 cacheVolumeRecords vol = do
   vc <- get
   maybe (do
@@ -115,7 +117,7 @@ cacheVolumeRecords vol = do
     (return . (HML.elems &&& id))
     (volumeCacheRecords vc)
 
-cacheVolumeTopContainer :: Volume -> VolumeCacheActionM Container
+cacheVolumeTopContainer :: Volume -> StateT VolumeCache ActionM Container
 cacheVolumeTopContainer vol = do
   vc <- get
   fromMaybeM (do
@@ -129,7 +131,13 @@ leftJoin _ [] [] = []
 leftJoin _ [] _ = error "leftJoin: leftovers"
 leftJoin p (a:al) b = uncurry (:) $ (,) a *** leftJoin p al $ span (p a) b
 
-volumeJSONField :: Volume -> BS.ByteString -> Maybe BS.ByteString -> VolumeCacheActionM (Maybe JSON.Encoding)
+volumeIsPublicRestricted :: Volume -> Bool
+volumeIsPublicRestricted v =
+  case volumePermissionPolicy v of
+    (PermissionPUBLIC, PublicRestricted) -> True
+    _ -> False
+
+volumeJSONField :: Volume -> BS.ByteString -> Maybe BS.ByteString -> StateT VolumeCache ActionM (Maybe JSON.Encoding)
 volumeJSONField vol "access" ma = do
   Just . JSON.mapObjects volumeAccessPartyJSON
     <$> cacheVolumeAccess vol (fromMaybe PermissionNONE $ readDBEnum . BSC.unpack =<< ma)
@@ -139,55 +147,66 @@ volumeJSONField vol "links" _ =
   Just . JSON.toEncoding <$> lookupVolumeLinks vol
 volumeJSONField vol "funding" _ =
   Just . JSON.mapObjects fundingJSON <$> lookupVolumeFunding vol
-volumeJSONField vol "containers" o = do
-  cl <- if records
+volumeJSONField vol "containers" mContainersVal = do
+  (cl :: [((Container, [(Segment, Id Record)]))]) <- if records
     then lookupVolumeContainersRecordIds vol
     else nope <$> lookupVolumeContainers vol
-  cl' <- if assets
+  (cl' :: [((Container, [(Segment, Id Record)]), [(Asset, SlotId)])]) <- if assets
     then leftJoin (\(c, _) (_, SlotId a _) -> containerId (containerRow c) == a) cl <$> lookupVolumeAssetSlotIds vol
     else return $ nope cl
   rm <- if records then snd <$> cacheVolumeRecords vol else return HM.empty
-  let br = blankRecord undefined vol
-      rjs c (s, r)          = JSON.recordObject $ recordSlotJSON $ RecordSlot (HML.lookupDefault br{ recordRow = (recordRow br){ recordId = r } } r rm) (Slot c s)
-      ajs c (a, SlotId _ s) = JSON.recordObject $ assetSlotJSON  $ AssetSlot a (Just (Slot c s))
+  let publicRestricted = volumeIsPublicRestricted vol
+      br = blankRecord undefined vol
+      rjs c (s, r)          = JSON.recordObject $ (recordSlotJSON publicRestricted) $ RecordSlot (HML.lookupDefault br{ recordRow = (recordRow br){ recordId = r } } r rm) (Slot c s)
+      ajs c (a, SlotId _ s) = JSON.recordObject $ (assetSlotJSON publicRestricted) $ AssetSlot a (Just (Slot c s))
   return $ Just $ JSON.mapRecords (\((c, rl), al) ->
-      containerJSON c
+      containerJSON publicRestricted c
       JSON..<> (if records then JSON.nestObject "records" (\u -> map (u . rjs c) rl) else mempty)
             <> (if assets  then JSON.nestObject "assets"  (\u -> map (u . ajs c) al) else mempty))
     cl'
   where
-  full = o == Just "all"
-  assets = full || o == Just "assets"
-  records = full || o == Just "records"
+  full = mContainersVal == Just "all"
+  assets = full || mContainersVal == Just "assets"
+  records = full || mContainersVal == Just "records"
   nope = map (, [])
-volumeJSONField vol "top" _ =
-  Just . JSON.recordEncoding . containerJSON <$> cacheVolumeTopContainer vol
+volumeJSONField vol "top" _ = do
+  topCntr <- cacheVolumeTopContainer vol
+  let publicRestricted = volumeIsPublicRestricted vol
+  (return . Just . JSON.recordEncoding . containerJSON publicRestricted) topCntr
 volumeJSONField vol "records" _ = do
   (l, _) <- cacheVolumeRecords vol
-  return $ Just $ JSON.mapRecords recordJSON l
-volumeJSONField vol "metrics" _ = do
-  Just . JSON.toEncoding <$> lookupVolumeMetrics vol
-volumeJSONField o "excerpts" _ =
+  let publicRestricted = volumeIsPublicRestricted vol
+  return $ Just $ JSON.mapRecords (recordJSON publicRestricted) l
+volumeJSONField vol "metrics" _ =
+  let metricsCaching = lookupVolumeMetrics vol
+  in (Just . JSON.toEncoding) <$> metricsCaching
+volumeJSONField vol "excerpts" _ = do
   Just . JSON.mapObjects (\e -> excerptJSON e
-    <> "asset" JSON..=: (assetSlotJSON (view e)
+    <> "asset" JSON..=: (assetSlotJSON False (view e) -- should publicRestricted be set based on volume?
       JSON..<> "container" JSON..= (view e :: Id Container)))
-    <$> lookupVolumeExcerpts o
-volumeJSONField o "tags" n = do
-  t <- cacheVolumeTopContainer o
+    <$> lookupVolumeExcerpts vol
+volumeJSONField vol "tags" n = do
+  t <- cacheVolumeTopContainer vol
   tc <- lookupSlotTagCoverage (containerSlot t) (maybe 64 fst $ BSC.readInt =<< n)
   return $ Just $ JSON.mapRecords tagCoverageJSON tc
-volumeJSONField o "comments" n = do
-  t <- cacheVolumeTopContainer o
+volumeJSONField vol "comments" n = do
+  t <- cacheVolumeTopContainer vol
   tc <- lookupSlotComments (containerSlot t) (maybe 64 fst $ BSC.readInt =<< n)
   return $ Just $ JSON.mapRecords commentJSON tc
-volumeJSONField o "state" _ =
-  Just . JSON.toEncoding . JSON.object . map (volumeStateKey &&& volumeStateValue) <$> lookupVolumeState o
+volumeJSONField vol "state" _ =
+  Just . JSON.toEncoding . JSON.object . map (volumeStateKey &&& volumeStateValue) <$> lookupVolumeState vol
 volumeJSONField o "filename" _ =
   return $ Just $ JSON.toEncoding $ makeFilename $ volumeDownloadName o
 volumeJSONField _ _ _ = return Nothing
 
 volumeJSONQuery :: Volume -> JSON.Query -> ActionM (JSON.Record (Id Volume) JSON.Series)
-volumeJSONQuery vol q = runVolumeCache $ (volumeJSON vol JSON..<>) <$> JSON.jsonQuery (volumeJSONField vol) q
+volumeJSONQuery vol q =
+  let seriesCaching :: StateT VolumeCache ActionM JSON.Series
+      seriesCaching = JSON.jsonQuery (volumeJSONField vol) q
+      expandedVolJSONcaching :: StateT VolumeCache ActionM (JSON.Record (Id Volume) JSON.Series)
+      expandedVolJSONcaching = (\series -> volumeJSON vol JSON..<> series) <$> seriesCaching
+  in
+    runVolumeCache $ expandedVolJSONcaching
 
 volumeDownloadName :: Volume -> [T.Text]
 volumeDownloadName v =
@@ -200,7 +219,10 @@ viewVolume = action GET (pathAPI </> pathId) $ \(api, vi) -> withAuth $ do
   when (api == HTML) angular
   v <- getVolume PermissionPUBLIC vi
   case api of
-    JSON -> okResponse [] . JSON.recordEncoding <$> (volumeJSONQuery v =<< peeks Wai.queryString)
+    JSON ->
+      let idSeriesRecAct :: ActionM (JSON.Record (Id Volume) JSON.Series)
+          idSeriesRecAct = volumeJSONQuery v =<< peeks Wai.queryString
+      in okResponse [] . JSON.recordEncoding <$> idSeriesRecAct
     HTML -> do
       top <- lookupVolumeTopContainer v
       t <- lookupSlotKeywords $ containerSlot top

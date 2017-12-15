@@ -70,12 +70,21 @@ volumeRowJSON VolumeRow{..} = JSON.Record volumeId $
   <> "body" JSON..= volumeBody
 
 volumeJSON :: JSON.ToObject o => Volume -> JSON.Record (Id Volume) o
-volumeJSON v@Volume{..} = volumeRowJSON volumeRow JSON..<>
-     "doi" JSON..=? volumeDOI volumeRow
-  <> "alias" JSON..=? getVolumeAlias v
-  <> "creation" JSON..= volumeCreation
-  <> "owners" JSON..= map (\(i, n) -> JSON.Object $ "id" JSON..= i <> "name" JSON..= n) volumeOwners
-  <> "permission" JSON..= volumePermission
+volumeJSON v@Volume{..} =
+    volumeRowJSON volumeRow JSON..<>
+       "doi" JSON..=? volumeDOI volumeRow
+    <> "alias" JSON..=? getVolumeAlias v
+    <> "creation" JSON..= volumeCreation
+    <> "owners" JSON..= map (\(i, n) -> JSON.Object $ "id" JSON..= i <> "name" JSON..= n) volumeOwners
+    <> "permission" JSON..= volumePermission
+    <> "publicsharefull" JSON..= volumeAccessPolicyJSON v
+
+volumeAccessPolicyJSON :: Volume -> Maybe Bool
+volumeAccessPolicyJSON v =
+  case volumePermissionPolicy v of
+    (PermissionPUBLIC, PublicRestricted) -> Just False
+    (PermissionPUBLIC, PermLevelDefault) -> Just True
+    _ -> Nothing
 
 data VolumeFilter = VolumeFilter
   { volumeFilterQuery :: Maybe String

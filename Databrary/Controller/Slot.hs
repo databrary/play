@@ -47,10 +47,10 @@ getSlot p mv i =
 slotJSONField :: Bool -> Slot -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
 slotJSONField getOrig o "assets" _ =
   case getOrig of 
-       True -> Just . JSON.mapRecords assetSlotJSON <$> lookupOrigSlotAssets o
-       False -> Just . JSON.mapRecords assetSlotJSON <$> lookupSlotAssets o
-slotJSONField _ o "records" _ =
-  Just . JSON.mapRecords (\r -> recordSlotJSON r JSON..<> "record" JSON..=: recordJSON (slotRecord r)) <$> lookupSlotRecords o
+       True -> Just . JSON.mapRecords (assetSlotJSON False) <$> lookupOrigSlotAssets o -- public restricted consult volume soon
+       False -> Just . JSON.mapRecords (assetSlotJSON False) <$> lookupSlotAssets o
+slotJSONField _ o "records" _ =  -- recordJSON should decide public restricted based on volume 
+  Just . JSON.mapRecords (\r -> recordSlotJSON False r JSON..<> "record" JSON..=: recordJSON False (slotRecord r)) <$> lookupSlotRecords o
 slotJSONField _ o "tags" n = do
   tc <- lookupSlotTagCoverage o (maybe 64 fst $ BSC.readInt =<< n)
   return $ Just $ JSON.objectEncoding $ JSON.recordMap $ map tagCoverageJSON tc

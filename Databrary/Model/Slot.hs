@@ -30,5 +30,5 @@ auditSlotDownload success Slot{ slotContainer = c, slotSegment = seg } = do
     (${if success then AuditActionOpen else AuditActionAttempt}, ${auditWho ai}, ${auditIp ai}, ${containerId $ containerRow c}, ${seg})|]
 
 slotJSON :: JSON.ToObject o => Slot -> JSON.Record (Id Container) o
-slotJSON Slot{..} = containerJSON slotContainer
+slotJSON Slot{..} = containerJSON False slotContainer -- probably add bool to slotJSON
   JSON..<> segmentJSON slotSegment

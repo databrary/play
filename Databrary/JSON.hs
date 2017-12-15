@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, FunctionalDependencies #-}
+{-# LANGUAGE OverloadedStrings, FunctionalDependencies, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Databrary.JSON
   ( module Data.Aeson
@@ -94,9 +94,10 @@ data Record k o = Record
   , _recordObject :: o
   }
 
+-- fold object into key + object
 infixl 5 .<>
 (.<>) :: Monoid o => Record k o -> o -> Record k o
-Record k o .<> a = Record k $ o <> a
+Record key obj .<> obj2 = Record key $ obj <> obj2
 
 recordObject :: (ToJSON k, ToObject o) => Record k o -> o
 recordObject (Record k o) = "id" .= k <> o
@@ -105,7 +106,7 @@ recordEncoding :: ToJSON k => Record k Series -> Encoding
 recordEncoding = objectEncoding . recordObject
 
 mapRecords :: (Functor t, Foldable t, ToJSON k) => (a -> Record k Series) -> t a -> Encoding
-mapRecords = mapObjects . (recordObject .)
+mapRecords toRecord objs = mapObjects (\obj -> (recordObject . toRecord) obj) objs
 
 infixr 8 .=:
 (.=:) :: (ToJSON k, ToNestedObject o u) => T.Text -> Record k o -> o
@@ -143,10 +144,19 @@ instance ToJSON Html.Html where
   toEncoding = toEncoding . Html.renderHtml
 
 jsonQuery :: Monad m => (BS.ByteString -> Maybe BS.ByteString -> m (Maybe Encoding)) -> Query -> m Series
-jsonQuery _ [] = return mempty
-jsonQuery f ((k,v):q) = do
-  o <- f k v
-  maybe id ((<>) . (TE.decodeLatin1 k .=) . UnsafeEncoding) o <$> jsonQuery f q
+jsonQuery _ [] =
+  return mempty
+jsonQuery f ((k,mVal):qryPairs) = do
+  mEncoded :: Maybe Encoding <- f k mVal
+  let jsonQueryRestAct = jsonQuery f qryPairs
+  (maybe
+     (id :: Series -> Series)
+     (\encodedObj seriesRest -> (objToPair k encodedObj) <> seriesRest)
+     mEncoded)
+    <$> jsonQueryRestAct
+  where
+    objToPair :: (KeyValue kv) => BS.ByteString -> Encoding -> kv
+    objToPair key encObj = (((TE.decodeLatin1 key) .=) . UnsafeEncoding) encObj
 
 wordEscaped :: Char -> BP.BoundedPrim Word8
 wordEscaped q =

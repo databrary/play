@@ -26,6 +26,7 @@ import Databrary.Model.Audit
 import Databrary.Model.Metric
 import Databrary.Model.Record.Types
 import Databrary.Model.Measure.SQL
+import Databrary.Model.PermissionUtil (maskRestrictedString)
 
 measureOrder :: Measure -> Measure -> Ordering
 measureOrder = comparing $ metricId . measureMetric
@@ -79,8 +80,15 @@ decodeMeasure :: PGColumn t d => PGTypeName t -> Measure -> Maybe d
 decodeMeasure t Measure{ measureMetric = Metric{ metricType = m }, measureDatum = d } =
   pgTypeName t == show m ?> pgDecode t d
 
-measureJSONPair :: JSON.KeyValue kv => Measure -> kv
-measureJSONPair m = T.pack (show (metricId (measureMetric m))) JSON..= measureDatum m
+measureJSONPair :: JSON.KeyValue kv => Bool -> Measure -> kv
+measureJSONPair publicRestricted m =
+  T.pack (show (metricId (measureMetric m)))
+    JSON..= (if publicRestricted then maskRestrictedString . measureDatum else measureDatum) m
 
-measuresJSON :: JSON.ToObject o => Measures -> o
-measuresJSON = foldMap measureJSONPair
+measuresJSON :: JSON.ToObject o => Bool -> Measures -> o
+measuresJSON publicRestricted = foldMap (measureJSONPair publicRestricted)
+
+{-
+measuresJSONRestricted :: JSON.ToObject o => Measures -> o
+measuresJSONRestricted = foldMap measureJSONPairRestricted
+-}

@@ -11,6 +11,7 @@ module Databrary.Model.Asset
   , assetCreation
   , assetRowJSON
   , assetJSON
+  -- , assetJSONRestricted
   ) where
 
 import Control.Arrow (first)
@@ -92,5 +93,8 @@ assetRowJSON AssetRow{..} = JSON.Record assetId $
   <> "duration" JSON..=? assetDuration
   <> "pending" JSON..=? (isNothing assetSize <? isNothing assetSHA1)
 
-assetJSON :: JSON.ToObject o => Asset -> JSON.Record (Id Asset) o
-assetJSON Asset{..} = assetRowJSON assetRow
+assetJSON :: JSON.ToObject o => Bool -> Asset -> JSON.Record (Id Asset) o
+assetJSON _ Asset{..} = assetRowJSON assetRow -- first parameter is publicRestricted
+
+-- assetJSONRestricted :: JSON.ToObject o => Asset -> JSON.Record (Id Asset) o
+-- assetJSONRestricted Asset{..} = assetRowJSON assetRow

@@ -90,7 +90,7 @@ createContainer = action POST (pathAPI </> pathId </< "slot") $ \(api, vi) -> wi
   c <- addContainer bc
   -- TODO: NoticeReleaseSlot?
   case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ containerJSON c
+    JSON -> return $ okResponse [] $ JSON.recordEncoding $ containerJSON False c -- False because level EDIT
     HTML -> peeks $ otherRouteResponse [] viewContainer (api, (Just vi, containerId $ containerRow c))
 
 postContainer :: ActionRoute (API, Id Slot)
@@ -108,7 +108,7 @@ postContainer = action POST (pathAPI </> pathSlotId) $ \(api, ci) -> withAuth $ 
         , notificationRelease = containerRelease c'
         }
   case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ containerJSON c'
+    JSON -> return $ okResponse [] $ JSON.recordEncoding $ containerJSON False c' -- False because level EDIT
     HTML -> peeks $ otherRouteResponse [] (viewSlot False) (api, (Just (view c'), ci))
 
 deleteContainer :: ActionRoute (API, Id Slot)
@@ -117,7 +117,7 @@ deleteContainer = action DELETE (pathAPI </> pathSlotId) $ \(api, ci) -> withAut
   c <- getContainer PermissionEDIT Nothing ci False
   r <- removeContainer c
   unless r $ result $ case api of
-    JSON -> response conflict409 [] $ JSON.recordEncoding $ containerJSON c
+    JSON -> response conflict409 [] $ JSON.recordEncoding $ containerJSON False c -- False because level EDIT
     HTML -> response conflict409 [] ("This container is not empty." :: T.Text)
   case api of
     JSON -> return $ emptyResponse noContent204 []
