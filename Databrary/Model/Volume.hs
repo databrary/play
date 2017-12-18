@@ -53,7 +53,7 @@ changeVolume v = do
 addVolume :: MonadAudit c m => Volume -> m Volume
 addVolume bv = do
   ident <- getAuditIdentity
-  dbQuery1' $ fmap (\v -> v [] PermissionADMIN) $(insertVolume 'ident 'bv)
+  dbQuery1' $ fmap (\v -> v [] PermissionADMIN PermLevelDefault) $(insertVolume 'ident 'bv)
 
 getVolumeAlias :: Volume -> Maybe T.Text
 getVolumeAlias v = guard (volumePermission v >= PermissionREAD) >> volumeAlias (volumeRow v)
