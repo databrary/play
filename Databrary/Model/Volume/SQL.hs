@@ -22,18 +22,31 @@ parseOwner :: T.Text -> VolumeOwner
 parseOwner t = (Id $ read $ T.unpack i, T.tail n) where
   (i, n) = T.breakOn ":" t
 
-setCreation :: VolumeRow -> Maybe Timestamp -> [VolumeOwner] -> Permission -> Volume
-setCreation r = Volume r . fromMaybe (volumeCreation blankVolume)
+setCreation :: VolumeRow -> Maybe Timestamp -> [VolumeOwner] -> Permission -> VolumeAccessPolicy -> Volume
+setCreation r mCreate owners perm policy =
+  Volume r (fromMaybe (volumeCreation blankVolume) mCreate) owners perm policy
 
-makePermInfo :: Maybe Permission -> Maybe Bool -> Maybe Permission
-makePermInfo perm1 perm2 =
-  perm1
+makePermInfo :: Maybe Permission -> Maybe Bool -> Maybe (Permission, VolumeAccessPolicy)
+makePermInfo perm1 mShareFull =
+  case perm1 of
+    Just PermissionPUBLIC ->
+      -- default full to True; convert to policy val
+      -- (Permission, AccessPolicy)
+      Just (PermissionPUBLIC, PermLevelDefault)
+    _ ->
+      -- Permission, PermLevelDefault
+      fmap (\p -> (p, PermLevelDefault)) perm1
 
-makeVolume :: ([VolumeOwner] -> Permission -> a) -> Maybe [Maybe T.Text] -> Maybe Permission -> a
-makeVolume vol own perm =
+makeVolume
+  :: ([VolumeOwner] -> Permission -> VolumeAccessPolicy -> a)
+  -> Maybe [Maybe T.Text]
+  -> Maybe (Permission, VolumeAccessPolicy)
+  -> a
+makeVolume vol own mPermPolicy =
   vol
     (maybe [] (map (parseOwner . fromMaybe (error "NULL volume.owner"))) own)
-    (fromMaybe PermissionNONE perm)
+    (maybe PermissionNONE fst mPermPolicy)
+    PermLevelDefault
 
 selectVolumeRow :: Selector -- ^ @'VolumeRow'@
 selectVolumeRow = selectColumns 'VolumeRow "volume" ["id", "name", "body", "alias", "doi"]

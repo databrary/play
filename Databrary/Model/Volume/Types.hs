@@ -33,11 +33,15 @@ data VolumeRow = VolumeRow
 
 type VolumeOwner = (Id Party, T.Text)
 
+data VolumeAccessPolicy = PublicRestricted | PermLevelDefault
+  deriving (Show, Eq)
+
 data Volume = Volume
   { volumeRow :: !VolumeRow
   , volumeCreation :: Timestamp
   , volumeOwners :: [VolumeOwner]
   , volumePermission :: Permission
+  , volumeAccessPolicy :: VolumeAccessPolicy
   }
   deriving (Show)
 
@@ -46,10 +50,7 @@ instance Kinded Volume where
 
 makeHasRec ''VolumeRow ['volumeId]
 makeHasRec ''Volume ['volumeRow, 'volumePermission]
-deriveLiftMany [''VolumeRow, ''Volume]
-
-data VolumeAccessPolicy = PublicRestricted | PermLevelDefault
-  deriving (Show, Eq)
+deriveLiftMany [''VolumeRow, ''Volume, ''VolumeAccessPolicy]
 
 volumePermissionPolicy :: Volume -> (Permission, VolumeAccessPolicy)
 volumePermissionPolicy Volume{..} =
@@ -84,4 +85,5 @@ blankVolume = Volume
   , volumeCreation = posixSecondsToUTCTime 1357900000
   , volumeOwners = []
   , volumePermission = PermissionNONE
+  , volumeAccessPolicy = PermLevelDefault
   }
