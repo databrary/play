@@ -5,4 +5,5 @@ dbPath=$dbName
 echo $dbPath
 chmod 700 $dbPath/work
 # load the schema into the db
-cat ./schema/* | gargoyle-psql "$dbPath"
+# subtly relies on cat listing in deterministic, ascending order
+cat ./schema/*.sql | gargoyle-psql "$dbPath"
