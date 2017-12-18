@@ -25,14 +25,21 @@ parseOwner t = (Id $ read $ T.unpack i, T.tail n) where
 setCreation :: VolumeRow -> Maybe Timestamp -> [VolumeOwner] -> Permission -> Volume
 setCreation r = Volume r . fromMaybe (volumeCreation blankVolume)
 
+makePermInfo :: Maybe Permission -> Maybe Bool -> Maybe Permission
+makePermInfo perm1 perm2 =
+  perm1
+
 makeVolume :: ([VolumeOwner] -> Permission -> a) -> Maybe [Maybe T.Text] -> Maybe Permission -> a
-makeVolume vol own perm = vol (maybe [] (map (parseOwner . fromMaybe (error "NULL volume.owner"))) own) (fromMaybe PermissionNONE perm)
+makeVolume vol own perm =
+  vol
+    (maybe [] (map (parseOwner . fromMaybe (error "NULL volume.owner"))) own)
+    (fromMaybe PermissionNONE perm)
 
 selectVolumeRow :: Selector -- ^ @'VolumeRow'@
 selectVolumeRow = selectColumns 'VolumeRow "volume" ["id", "name", "body", "alias", "doi"]
 
 selectPermissionVolume :: Selector -- ^ @'Permission' -> 'Volume'@
-selectPermissionVolume = addSelects 'setCreation
+selectPermissionVolume = addSelects 'setCreation -- setCreation will be waiting on [VolumeOwner] and Permission
   selectVolumeRow
   [SelectExpr "volume_creation(volume.id)"] -- XXX explicit table references (throughout)
 
@@ -40,11 +47,32 @@ selectVolume :: TH.Name -- ^ @'Identity'@
   -> Selector -- ^ @'Volume'@
 selectVolume i = selectJoin 'makeVolume
   [ selectPermissionVolume
-  , maybeJoinOn "volume.id = volume_owners.volume"
+  , maybeJoinOn "volume.id = volume_owners.volume" -- join in Maybe [Maybe Text] of owners
     $ selectColumn "volume_owners" "owners"
-  , joinOn "volume_permission.permission >= 'PUBLIC'::permission"
-    $ selector ("LATERAL (VALUES (CASE WHEN ${identitySuperuser " ++ is ++ "} THEN enum_last(NULL::permission) ELSE volume_access_check(volume.id, ${view " ++ is ++ " :: Id Party}) END)) AS volume_permission (permission)")
-    $ SelectColumn "volume_permission" "permission"
+  , joinOn "volume_permission.permission >= 'PUBLIC'::permission" -- join in Maybe Permission
+  {-
+      (selector
+        ("LATERAL (VALUES (CASE WHEN ${identitySuperuser " ++ is ++ "} THEN enum_last(NULL::permission) ELSE volume_access_check(volume.id, ${view " ++ is ++ " :: Id Party}) END)) AS volume_permission (permission)")
+        (SelectColumn "volume_permission" "permission"))
+  -}
+      (selector
+        ("LATERAL \
+         \  (VALUES \
+         \     ( CASE WHEN ${identitySuperuser " ++ is ++ "} \
+         \             THEN enum_last(NULL::permission) \
+         \             ELSE volume_access_check(volume.id, ${view " ++ is ++ " :: Id Party}) END \
+         \     , CASE WHEN ${identitySuperuser " ++ is ++ "} \
+         \             THEN null \
+         \             ELSE (select share_full \
+         \                   from volume_access \
+         \                   where volume = volume.id and party = ${view " ++ is ++ " :: Id Party} \
+         \                   limit 1) END ) \
+         \  ) AS volume_permission (permission, share_full)")
+        (OutputJoin
+           False
+           'makePermInfo
+           [ (SelectColumn "volume_permission" "permission")
+           , (SelectColumn "volume_permission" "share_full")]))
   ]
   where is = nameRef i
 
