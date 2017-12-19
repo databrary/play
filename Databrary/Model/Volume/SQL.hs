@@ -26,27 +26,25 @@ setCreation :: VolumeRow -> Maybe Timestamp -> [VolumeOwner] -> Permission -> Vo
 setCreation r mCreate owners perm policy =
   Volume r (fromMaybe (volumeCreation blankVolume) mCreate) owners perm policy
 
-makePermInfo :: Maybe Permission -> Maybe Bool -> Maybe (Permission, VolumeAccessPolicy)
+makePermInfo :: Maybe Permission -> Maybe Bool -> (Permission, VolumeAccessPolicy)
 makePermInfo perm1 mShareFull =
   case perm1 of
     Just PermissionPUBLIC ->
-      -- default full to True; convert to policy val
-      -- (Permission, AccessPolicy)
-      Just (PermissionPUBLIC, PermLevelDefault)
+      let shareFull = fromMaybe True mShareFull -- assume true because historically volumes were public full
+      in (PermissionPUBLIC, if shareFull then PermLevelDefault else PublicRestricted)
     _ ->
-      -- Permission, PermLevelDefault
-      fmap (\p -> (p, PermLevelDefault)) perm1
+      (fromMaybe PermissionNONE perm1, PermLevelDefault)
 
 makeVolume
   :: ([VolumeOwner] -> Permission -> VolumeAccessPolicy -> a)
   -> Maybe [Maybe T.Text]
-  -> Maybe (Permission, VolumeAccessPolicy)
+  -> (Permission, VolumeAccessPolicy)
   -> a
-makeVolume vol own mPermPolicy =
+makeVolume vol own (perm, policy) =
   vol
     (maybe [] (map (parseOwner . fromMaybe (error "NULL volume.owner"))) own)
-    (maybe PermissionNONE fst mPermPolicy)
-    PermLevelDefault
+    perm
+    policy
 
 selectVolumeRow :: Selector -- ^ @'VolumeRow'@
 selectVolumeRow = selectColumns 'VolumeRow "volume" ["id", "name", "body", "alias", "doi"]
@@ -81,6 +79,8 @@ selectVolume i = selectJoin 'makeVolume
          \                   where volume = volume.id and party = ${view " ++ is ++ " :: Id Party} \
          \                   limit 1) END ) \
          \  ) AS volume_permission (permission, share_full)")
+        -- above has to use volume_access_view to successfully cascade from everybody down
+        -- get rid of "volume_access_check", use query directly
         (OutputJoin
            False
            'makePermInfo
