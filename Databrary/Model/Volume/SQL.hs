@@ -75,11 +75,10 @@ selectVolume i = selectJoin 'makeVolume
          \     , CASE WHEN ${identitySuperuser " ++ is ++ "} \
          \             THEN null \
          \             ELSE (select share_full \
-         \                   from volume_access \
+         \                   from volume_access_view \
          \                   where volume = volume.id and party = ${view " ++ is ++ " :: Id Party} \
          \                   limit 1) END ) \
          \  ) AS volume_permission (permission, share_full)")
-        -- above has to use volume_access_view to successfully cascade from everybody down
         -- get rid of "volume_access_check", use query directly
         (OutputJoin
            False
