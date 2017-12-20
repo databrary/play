@@ -112,6 +112,7 @@ volumeCSV vol crsl = do
 csvVolume :: ActionRoute (Id Volume)
 csvVolume = action GET (pathId </< "csv") $ \vi -> withAuth $ do
   vol <- getVolume PermissionPUBLIC vi
+  _ <- maybeAction (if volumeIsPublicRestricted vol then Nothing else Just ()) -- block if restricted
   _:r <- lookupVolumeContainersRecords vol
   csv <- volumeCSV vol r
   return $ csvResponse csv (makeFilename (volumeDownloadName vol))

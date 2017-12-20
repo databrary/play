@@ -13,6 +13,7 @@ module Databrary.Controller.Volume
   , thumbVolume
   , volumeDownloadName
   , volumeJSONQuery
+  , volumeIsPublicRestricted
   ) where
 
 import Control.Applicative ((<|>), optional)
