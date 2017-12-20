@@ -37,6 +37,7 @@ import Databrary.Controller.Paths
 import Databrary.Controller.Permission
 import Databrary.Controller.Angular
 import Databrary.Controller.Container
+import Databrary.Controller.Volume (volumeIsPublicRestricted)
 import Databrary.Controller.Web
 import {-# SOURCE #-} Databrary.Controller.AssetSegment
 
@@ -73,6 +74,8 @@ viewSlot :: Bool -> ActionRoute (API, (Maybe (Id Volume), Id Slot))
 viewSlot viewOrig = action GET (pathAPI </> pathMaybe pathId </> pathSlotId) $ \(api, (vi, i)) -> withAuth $ do
   when (api == HTML && isJust vi) angular
   c <- getSlot PermissionPUBLIC vi i
+  let v = (containerVolume . slotContainer) c
+  _ <- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted
   case api of
     JSON -> okResponse [] <$> (slotJSONQuery viewOrig c =<< peeks Wai.queryString)
     HTML
@@ -82,6 +85,8 @@ viewSlot viewOrig = action GET (pathAPI </> pathMaybe pathId </> pathSlotId) $ \
 thumbSlot :: ActionRoute (Maybe (Id Volume), Id Slot)
 thumbSlot = action GET (pathMaybe pathId </> pathSlotId </< "thumb") $ \(vi, i) -> withAuth $ do
   s <- getSlot PermissionPUBLIC vi i
+  let v = (containerVolume . slotContainer) s
+  _ <- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted, duplicated from above
   e <- lookupSlotSegmentThumb s
   maybe
     (peeks $ otherRouteResponse [] webFile (Just $ staticPath ["images", "draft.png"]))
