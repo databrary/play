@@ -78,8 +78,8 @@ lookupOrigSlotAssets slot@(Slot c _) = do
   xs <-  dbQuery [pgSQL|
     SELECT asset.id,asset.release,asset.duration,asset.name,asset.sha1,asset.size 
     FROM slot_asset 
-    INNER JOIN asset_revision ON slot_asset.asset = asset_revision.asset
-    INNER JOIN asset ON asset_revision.orig = asset.id
+    INNER JOIN transcode ON slot_asset.asset = transcode.asset
+    INNER JOIN asset ON transcode.orig = asset.id
     WHERE slot_asset.container = ${containerId $ containerRow c}
     |]
   return $ flip fmap xs $ \(assetId,release,duration,name,sha1,size) -> 
