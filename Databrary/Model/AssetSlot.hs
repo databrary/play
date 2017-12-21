@@ -82,7 +82,10 @@ lookupOrigSlotAssets slot@(Slot c _) = do
     INNER JOIN asset ON transcode.orig = asset.id
     WHERE slot_asset.container = ${containerId $ containerRow c}
     |]
-  return $ flip fmap xs $ \(assetId,release,duration,name,sha1,size) -> 
+  return $ flip fmap xs $ \(assetId,release,duration,name,sha1,size) ->
+    -- this format value is only used to differentiate between audio/video or not
+    -- so it is okay that it is hardcoded to mp4, under the assumption that everything with an original
+    -- was an audio/video file that went through transcoding
     let format = Format (Id (-800)) "video/mp4" [] "" {-fromJust . getFormatByExtension $ encodeUtf8 $ fromJust name-} 
         assetRow = AssetRow (Id assetId) format release duration name sha1 size
     in AssetSlot (Asset assetRow (containerVolume c)) (Just slot)
