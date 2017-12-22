@@ -99,11 +99,19 @@ assetJSONQuery :: AssetSlot -> JSON.Query -> ActionM (JSON.Record (Id Asset) JSO
 assetJSONQuery o q = (assetSlotJSON False o JSON..<>) <$> JSON.jsonQuery (assetJSONField o) q 
 -- public restricted should consult volume
 
-assetDownloadName :: Bool -> AssetRow -> [T.Text]
-assetDownloadName addPrefix a =
-  if addPrefix
-    then T.pack (show $ assetId a) : maybeToList (assetName a)
-    else maybeToList (assetName a)
+assetDownloadName :: Bool -> Bool -> AssetRow -> [T.Text]
+assetDownloadName addPrefix trimFormat a =
+  let
+    assetName' =
+        if trimFormat
+        -- original uploaded files have the extension embedded in the name
+        then fmap (TE.decodeUtf8 . dropFormatExtension (assetFormat a) . TE.encodeUtf8) (assetName a)
+        else assetName a
+  in
+    if addPrefix
+    then T.pack (show $ assetId a) : maybeToList assetName'
+    else maybeToList assetName'
+
 
 viewAsset :: ActionRoute (API, Id Asset)
 viewAsset = action GET (pathAPI </> pathId) $ \(api, i) -> withAuth $ do

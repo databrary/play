@@ -12,6 +12,7 @@ import qualified Data.ByteString.Lazy as BSL
 import Data.Function (on)
 import Data.List (groupBy, partition)
 import Data.Maybe (fromJust, maybeToList)
+import Control.Monad.IO.Class (liftIO)
 import Data.Monoid ((<>))
 import qualified Data.RangeSet.List as RS
 import qualified Data.Text.Encoding as TE
@@ -61,10 +62,12 @@ assetZipEntry isOrig AssetSlot{ slotAsset = a@Asset{ assetRow = ar@AssetRow{ ass
   req <- peek
   -- (t, _) <- assetCreation a
   -- Just (t, s) <- fileInfo f
+  -- liftIO (print ("downloadname", assetDownloadName False True ar))
+  -- liftIO (print ("format", assetFormat ar))
   return blankZipEntry
     { zipEntryName = case isOrig of
-       False -> makeFilename (assetDownloadName True ar) `addFormatExtension` assetFormat ar
-       True -> makeFilename (assetDownloadName False ar) `addFormatExtension` assetFormat ar
+       False -> makeFilename (assetDownloadName True False ar) `addFormatExtension` assetFormat ar
+       True -> makeFilename (assetDownloadName False True ar) `addFormatExtension` assetFormat ar
     , zipEntryTime = Nothing
     , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewAsset (HTML, assetId ar) []
     , zipEntryContent = ZipEntryFile (fromIntegral $ fromJust $ assetSize ar) f
