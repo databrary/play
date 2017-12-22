@@ -77,10 +77,11 @@ lookupSlotAssets (Slot c s) =
 lookupOrigSlotAssets :: (MonadDB c m) => Slot -> m [AssetSlot]
 lookupOrigSlotAssets slot@(Slot c _) = do
   xs <-  dbQuery [pgSQL|
-    SELECT asset.id,asset.format,asset.release,asset.duration,asset.name,asset.sha1,asset.size 
+    SELECT asset.id,asset.format,output_asset.release,asset.duration,asset.name,asset.sha1,asset.size 
     FROM slot_asset 
     INNER JOIN transcode ON slot_asset.asset = transcode.asset
     INNER JOIN asset ON transcode.orig = asset.id
+    INNER JOIN asset output_asset ON transcode.asset = output_asset.id
     WHERE slot_asset.container = ${containerId $ containerRow c}
     |]
   return $ flip fmap xs $ \(assetId,formatId,release,duration,name,sha1,size) ->
