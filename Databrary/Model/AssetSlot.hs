@@ -47,6 +47,7 @@ import Databrary.Model.SQL
 import Databrary.Model.AssetSlot.Types
 import Databrary.Model.AssetSlot.SQL
 import Databrary.Model.Format.Types
+import Databrary.Model.Format (getFormat')
 import Databrary.Model.PermissionUtil (maskRestrictedString)
 
 lookupAssetSlot :: (MonadHasIdentity c m, MonadDB c m) => Id Asset -> m (Maybe AssetSlot)
@@ -76,17 +77,18 @@ lookupSlotAssets (Slot c s) =
 lookupOrigSlotAssets :: (MonadDB c m) => Slot -> m [AssetSlot]
 lookupOrigSlotAssets slot@(Slot c _) = do
   xs <-  dbQuery [pgSQL|
-    SELECT asset.id,asset.release,asset.duration,asset.name,asset.sha1,asset.size 
+    SELECT asset.id,asset.format,asset.release,asset.duration,asset.name,asset.sha1,asset.size 
     FROM slot_asset 
     INNER JOIN transcode ON slot_asset.asset = transcode.asset
     INNER JOIN asset ON transcode.orig = asset.id
     WHERE slot_asset.container = ${containerId $ containerRow c}
     |]
-  return $ flip fmap xs $ \(assetId,release,duration,name,sha1,size) ->
+  return $ flip fmap xs $ \(assetId,formatId,release,duration,name,sha1,size) ->
     -- this format value is only used to differentiate between audio/video or not
     -- so it is okay that it is hardcoded to mp4, under the assumption that everything with an original
     -- was an audio/video file that went through transcoding
-    let format = Format (Id (-800)) "video/mp4" [] "" {-fromJust . getFormatByExtension $ encodeUtf8 $ fromJust name-} 
+    let format = getFormat' formatId
+          -- Format (Id (-800)) "video/mp4" [] "" {-fromJust . getFormatByExtension $ encodeUtf8 $ fromJust name-}
         assetRow = AssetRow (Id assetId) format release duration name sha1 size
     in AssetSlot (Asset assetRow (containerVolume c)) (Just slot)
 
