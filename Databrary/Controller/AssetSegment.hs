@@ -74,7 +74,9 @@ assetSegmentJSONQuery o q = (assetSegmentJSON o <>) <$> JSON.jsonQuery (assetSeg
 
 assetSegmentDownloadName :: AssetSegment -> [T.Text]
 assetSegmentDownloadName a =
-  volumeDownloadName (view a) ++ foldMap slotDownloadName (assetSlot $ segmentAsset a) ++ assetDownloadName True (assetRow $ view a)
+     volumeDownloadName (view a) 
+  ++ foldMap slotDownloadName (assetSlot $ segmentAsset a)
+  ++ assetDownloadName True False (assetRow $ view a)
 
 viewAssetSegment :: Bool -> ActionRoute (API, Maybe (Id Volume), Id Slot, Id Asset)
 viewAssetSegment getOrig = action GET (pathAPI </>>> pathMaybe pathId </>> pathSlotId </> pathId) $ \(api, vi, si, ai) -> withAuth $ do
