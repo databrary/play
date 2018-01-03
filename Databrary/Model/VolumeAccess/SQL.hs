@@ -67,6 +67,7 @@ volumeAccessSets a =
   [ ("individual", "${volumeAccessIndividual " ++ a ++ "}")
   , ("children", "${volumeAccessChildren " ++ a ++ "}")
   , ("sort", "${volumeAccessSort " ++ a ++ "}")
+  , ("share_full", "${volumeAccessShareFull " ++ a ++ "}")
   ]
 
 updateVolumeAccess :: TH.Name -- ^ @'AuditIdentity'@
