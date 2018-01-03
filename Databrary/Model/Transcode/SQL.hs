@@ -46,8 +46,8 @@ selectOrigTranscode = selectJoin 'makeOrigTranscode
     selectAssetRow
   ]
 
-makeTranscode :: (Asset -> Transcode) -> AssetRow -> (Permission -> Volume) -> Transcode
-makeTranscode t o vp = t $ Asset o $ vp PermissionADMIN
+makeTranscode :: (Asset -> Transcode) -> AssetRow -> (Permission -> VolumeAccessPolicy -> Volume) -> Transcode
+makeTranscode t o vp = t $ Asset o $ vp PermissionADMIN PermLevelDefault
 
 selectTranscode :: Selector -- ^ @'Transcode'@
 selectTranscode = selectJoin 'makeTranscode
