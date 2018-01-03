@@ -22,12 +22,16 @@ data VolumeAccess = VolumeAccess
 
 volumeAccessShareFull :: VolumeAccess -> Maybe Bool
 volumeAccessShareFull VolumeAccess{..} =
-  let
-    nobodyId = (partyId . partyRow . accountParty . siteAccount) nobodySiteAuth
-  in
-    if ((partyId . partyRow) volumeAccessParty, volumeAccessIndividual) == (nobodyId, PermissionPUBLIC)
-    then Just True
-    else Nothing
+    if (getPartyId volumeAccessParty, volumeAccessIndividual) == (nobodyId, PermissionPUBLIC)
+    then nobodyPublicDefault
+    else generalDefault
+  where
+    getPartyId :: Party -> Id Party
+    getPartyId = partyId . partyRow
+    nobodyId :: Id Party
+    nobodyId = (getPartyId . accountParty . siteAccount) nobodySiteAuth
+    nobodyPublicDefault = Just True
+    generalDefault = Nothing
 
 makeHasFor ''VolumeAccess
   [ ('volumeAccessVolume, TH.ConT ''Volume, [TH.ConT ''Id `TH.AppT` TH.ConT ''Volume])
