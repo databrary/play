@@ -7,8 +7,8 @@ let
     ((import <nixpkgs> {}).fetchFromGitHub {
       owner= "reflex-frp";
       repo = "reflex-platform";
-      rev = "2884a9abb9eec7fdbc7373cafcb2d42bfdf1f67a";
-      sha256 = "0qnmxbpxzkiqp477d2msy93gv4cm4npcxs2cyvbpkj4x1b5j08m2";
+      rev = "bdc94c605bf72f1a65cbd12075fbb661e28b24ea";
+      sha256 = "1i4zk7xc2x8yj9ms4gsg70immm29dp8vzqq7gdzxig5i3kva0a61";
   }) {};
   # Definition of nixpkgs, version controlled by Reflex-FRP
   nixpkgs = reflex-platform.nixpkgs;
