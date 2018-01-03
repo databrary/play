@@ -75,13 +75,16 @@ volumeAccessSets a =
 
 type SQLFilterClause = String
 
+noReturning :: Maybe SelectOutput
+noReturning = Nothing
+
 updateVolumeAccess :: TH.Name -- ^ @'AuditIdentity'@
   -> TH.Name -- ^ @'VolumeAccess'@
   -> TH.ExpQ
 updateVolumeAccess ident a = auditUpdate ident "volume_access"
   (volumeAccessSets as)
   (whereEq $ volumeAccessKeys as :: SQLFilterClause)
-  (Nothing :: Maybe SelectOutput)
+  noReturning
   where as = nameRef a
 
 insertVolumeAccess :: TH.Name -- ^ @'AuditIdentity'@
@@ -89,7 +92,7 @@ insertVolumeAccess :: TH.Name -- ^ @'AuditIdentity'@
   -> TH.ExpQ
 insertVolumeAccess ident a = auditInsert ident "volume_access"
   (volumeAccessKeys as ++ volumeAccessSets as)
-  (Nothing :: Maybe SelectOutput)
+  noReturning
   where as = nameRef a
 
 deleteVolumeAccess :: TH.Name -- ^ @'AuditIdentity'@
