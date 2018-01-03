@@ -1,8 +1,8 @@
 { mkDerivation, aeson, aeson-better-errors, array, attoparsec, base
-, bcrypt, blaze-builder, blaze-html, blaze-markup, bytestring
+, bcrypt, blaze-html, blaze-markup, bytestring
 , case-insensitive, containers, cookie, cracklib, cryptonite
 , data-default-class, digest, directory, fast-logger, ffmpeg
-, file-embed, filepath, hashable, haskell-src-meta, hjsonschema
+, filepath, hashable, hjsonschema
 , http-client, http-client-tls, http-types, invertible
 , lifted-base, memory, mime-mail, mime-types, postgresql
 , monad-control, mtl, network, network-uri, parsec, posix-paths
@@ -12,7 +12,7 @@
 , th-lift-instances, time, transformers, transformers-base, unix
 , unordered-containers, utf8-string, vector, wai, wai-extra, warp
 , warp-tls, web-inv-route, xml, zlib, gargoyle, gargoyle-postgresql
-, postgresql-simple, postgresql-simple-url
+, postgresql-simple
 , nodePackages, nodejs, openssl, dbName ? "databrary-nix-db", jdk
 }:
 mkDerivation rec {
@@ -26,9 +26,9 @@ mkDerivation rec {
   isExecutable = true;
   executableHaskellDepends = [
     aeson aeson-better-errors array attoparsec base bcrypt
-    blaze-builder blaze-html blaze-markup bytestring case-insensitive
+    blaze-html blaze-markup bytestring case-insensitive
     containers cookie cryptonite data-default-class digest directory
-    fast-logger file-embed filepath hashable haskell-src-meta
+    fast-logger filepath hashable
     hjsonschema http-client http-client-tls http-types invertible
     lifted-base memory mime-mail mime-types monad-control mtl network
     network-uri parsec posix-paths postgresql-typed process range-set-list
@@ -37,7 +37,7 @@ mkDerivation rec {
     time transformers transformers-base unix unordered-containers
     utf8-string vector wai wai-extra warp warp-tls web-inv-route xml
     zlib gargoyle gargoyle-postgresql
-    postgresql-simple postgresql-simple-url
+    postgresql-simple
   ];
   executableSystemDepends = [ cracklib openssl openssl.dev ];
   executablePkgconfigDepends = [
