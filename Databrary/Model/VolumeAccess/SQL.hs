@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, ScopedTypeVariables #-}
 module Databrary.Model.VolumeAccess.SQL
   ( selectVolumeAccess
   , selectVolumeAccessParty
@@ -54,28 +54,37 @@ selectPartyVolumeAccess p ident = selectJoin '($)
     $ selectVolume ident
   ]
 
+type ColumnName = String
+type ColumnValueExp = String
+
 volumeAccessKeys :: String -- ^ @'VolumeAccess'@
-  -> [(String, String)]
+  -> [(ColumnName, ColumnValueExp)]
 volumeAccessKeys a =
   [ ("volume", "${volumeId $ volumeRow $ volumeAccessVolume " ++ a ++ "}")
   , ("party", "${partyId $ partyRow $ volumeAccessParty " ++ a ++ "}")
   ]
 
 volumeAccessSets :: String -- ^ @'VolumeAccess'@
-  -> [(String, String)]
+  -> [(ColumnName, ColumnValueExp)]
 volumeAccessSets a =
   [ ("individual", "${volumeAccessIndividual " ++ a ++ "}")
   , ("children", "${volumeAccessChildren " ++ a ++ "}")
   , ("sort", "${volumeAccessSort " ++ a ++ "}")
+  , ("share_full", "${volumeAccessShareFull " ++ a ++ "}")
   ]
+
+type SQLFilterClause = String
+
+noReturning :: Maybe SelectOutput
+noReturning = Nothing
 
 updateVolumeAccess :: TH.Name -- ^ @'AuditIdentity'@
   -> TH.Name -- ^ @'VolumeAccess'@
   -> TH.ExpQ
 updateVolumeAccess ident a = auditUpdate ident "volume_access"
   (volumeAccessSets as)
-  (whereEq $ volumeAccessKeys as)
-  Nothing
+  (whereEq $ volumeAccessKeys as :: SQLFilterClause)
+  noReturning
   where as = nameRef a
 
 insertVolumeAccess :: TH.Name -- ^ @'AuditIdentity'@
@@ -83,7 +92,7 @@ insertVolumeAccess :: TH.Name -- ^ @'AuditIdentity'@
   -> TH.ExpQ
 insertVolumeAccess ident a = auditInsert ident "volume_access"
   (volumeAccessKeys as ++ volumeAccessSets as)
-  Nothing
+  noReturning
   where as = nameRef a
 
 deleteVolumeAccess :: TH.Name -- ^ @'AuditIdentity'@

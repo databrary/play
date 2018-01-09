@@ -1,6 +1,7 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, RecordWildCards #-}
 module Databrary.Model.VolumeAccess.Types
   ( VolumeAccess(..)
+  , volumeAccessShareFull
   ) where
 
 import Data.Int (Int16)
@@ -18,6 +19,19 @@ data VolumeAccess = VolumeAccess
   , volumeAccessParty :: Party
   , volumeAccessVolume :: Volume
   }
+
+volumeAccessShareFull :: VolumeAccess -> Maybe Bool
+volumeAccessShareFull VolumeAccess{..} =
+    if (getPartyId volumeAccessParty, volumeAccessIndividual) == (nobodyId, PermissionPUBLIC)
+    then nobodyPublicDefault
+    else generalDefault
+  where
+    getPartyId :: Party -> Id Party
+    getPartyId = partyId . partyRow
+    nobodyId :: Id Party
+    nobodyId = (getPartyId . accountParty . siteAccount) nobodySiteAuth
+    nobodyPublicDefault = Just True
+    generalDefault = Nothing
 
 makeHasFor ''VolumeAccess
   [ ('volumeAccessVolume, TH.ConT ''Volume, [TH.ConT ''Id `TH.AppT` TH.ConT ''Volume])
