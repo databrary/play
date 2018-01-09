@@ -52,10 +52,15 @@ postVolumeAccess = action POST (pathAPI </> pathId </> pathVolumeAccessTarget) $
       >>= deformCheck "Inherited access must not exceed individual." (individual >=)
       >>= deformCheck "You are not authorized to share data." ((||) (ru || accessSite u >= PermissionEDIT) . (PermissionNONE ==)))
     sort <- "sort" .:> deformNonEmpty deform
+    mShareFull <-
+      if ap == Id (-1) && individual == PermissionPUBLIC -- TODO: use nobodyParty variable instead of -1
+      then "share_full" .:> deformOptional deform  -- CHANGE THIS TO REQUIRED
+      else pure Nothing 
     return a
       { volumeAccessIndividual = individual
       , volumeAccessChildren = children
       , volumeAccessSort = sort
+      , volumeAccessShareFull = mShareFull
       }
   r <- changeVolumeAccess a'
   if ap == partyId (partyRow rootParty) && on (/=) volumeAccessChildren a' a
