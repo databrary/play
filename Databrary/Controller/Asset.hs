@@ -76,11 +76,16 @@ import Databrary.View.Asset
 import Control.Monad.IO.Class
 
 getAsset :: Permission -> Id Asset -> ActionM AssetSlot
-getAsset p i =
-  checkPermission p =<< maybeAction =<< lookupAssetSlot i
+getAsset p i = do
+  mAssetSlot <- lookupAssetSlot i
+  assetSlot <- maybeAction mAssetSlot
+  _ <- when (p == PermissionPUBLIC)
+         (maybeAction (if volumeIsPublicRestricted ((assetVolume . slotAsset) assetSlot) then Nothing else Just ()))
+  checkPermission p assetSlot
 
 getOrigAsset :: Permission -> Id Asset -> ActionM AssetSlot
 getOrigAsset p i =
+  -- TODO: same as getAsset check
   checkPermission p =<< maybeAction =<< lookupOrigAssetSlot i
 
 assetJSONField :: AssetSlot -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
