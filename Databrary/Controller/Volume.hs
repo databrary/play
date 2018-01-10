@@ -142,6 +142,9 @@ volumeJSONField :: Volume -> BS.ByteString -> Maybe BS.ByteString -> StateT Volu
 volumeJSONField vol "access" ma = do
   Just . JSON.mapObjects volumeAccessPartyJSON
     <$> cacheVolumeAccess vol (fromMaybe PermissionNONE $ readDBEnum . BSC.unpack =<< ma)
+volumeJSONField vol "publicaccess" ma = do
+  Just . JSON.toEncoding . show . volumePublicAccessSummary
+    <$> cacheVolumeAccess vol (fromMaybe PermissionNONE $ readDBEnum . BSC.unpack =<< ma)
 volumeJSONField vol "citation" _ =
   Just . JSON.toEncoding <$> lookupVolumeCitation vol
 volumeJSONField vol "links" _ =
@@ -304,7 +307,8 @@ createVolume = action POST (pathAPI </< "volume") $ \api -> withAuth $ do
     return (bv, cite, own)
   v <- addVolume bv
   _ <- changeVolumeCitation v cite
-  _ <- changeVolumeAccess $ VolumeAccess PermissionADMIN PermissionADMIN Nothing owner v
+  _ <-
+    changeVolumeAccess $ VolumeAccess PermissionADMIN PermissionADMIN Nothing (getShareFullDefault owner PermissionADMIN) owner v
   when (on (/=) (partyId . partyRow) owner u) $ forM_ (partyAccount owner) $ \t ->
     createNotification (blankNotification t NoticeVolumeCreated)
       { notificationVolume = Just $ volumeRow v
