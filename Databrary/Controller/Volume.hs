@@ -142,6 +142,9 @@ volumeJSONField :: Volume -> BS.ByteString -> Maybe BS.ByteString -> StateT Volu
 volumeJSONField vol "access" ma = do
   Just . JSON.mapObjects volumeAccessPartyJSON
     <$> cacheVolumeAccess vol (fromMaybe PermissionNONE $ readDBEnum . BSC.unpack =<< ma)
+volumeJSONField vol "publicaccess" ma = do
+  Just . JSON.toEncoding . show . volumePublicAccessSummary
+    <$> cacheVolumeAccess vol (fromMaybe PermissionNONE $ readDBEnum . BSC.unpack =<< ma)
 volumeJSONField vol "citation" _ =
   Just . JSON.toEncoding <$> lookupVolumeCitation vol
 volumeJSONField vol "links" _ =
