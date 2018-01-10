@@ -11,9 +11,11 @@ module Databrary.Model.VolumeAccess
   , volumeAccessPartyJSON
   , volumeAccessVolumeJSON
   , lookupVolumeShareActivity
+  , volumePublicAccessSummary
   ) where
 
 import Data.Int (Int64)
+import Data.List (find)
 import Data.Monoid ((<>))
 
 import Databrary.Ops
@@ -66,6 +68,30 @@ volumeAccessProvidesADMIN :: VolumeAccess -> Bool
 volumeAccessProvidesADMIN VolumeAccess{ volumeAccessChildren   = PermissionADMIN, volumeAccessParty = p } = accessMember     p == PermissionADMIN
 volumeAccessProvidesADMIN VolumeAccess{ volumeAccessIndividual = PermissionADMIN, volumeAccessParty = p } = accessPermission p == PermissionADMIN
 volumeAccessProvidesADMIN _ = False
+
+data VolumePublicAccessLevel = PublicAccessFull | PublicAccessRestricted | PublicAccessNone deriving (Eq)
+
+instance Show VolumePublicAccessLevel where
+  show PublicAccessFull = "full"
+  show PublicAccessRestricted = "restricted"
+  show PublicAccessNone = "none"
+
+volumePublicAccessSummary :: [VolumeAccess] -> VolumePublicAccessLevel
+volumePublicAccessSummary vas =
+  maybe
+    PublicAccessNone
+    (\va ->
+       case volumeAccessChildren va of
+         PermissionNONE -> PublicAccessNone
+         PermissionPUBLIC -> -- repeated from SQL.makePermInfo
+           maybe
+             PublicAccessFull 
+             (\shareFull -> if shareFull then PublicAccessFull else PublicAccessRestricted)
+             (volumeAccessShareFull va)
+         _ -> PublicAccessFull)
+    mPublicAccess
+  where
+    mPublicAccess = find (\va -> (partyId . partyRow . volumeAccessParty) va == (partyId . partyRow) nobodyParty) vas
 
 volumeAccessJSON :: JSON.ToObject o => VolumeAccess -> o
 volumeAccessJSON VolumeAccess{..} =
