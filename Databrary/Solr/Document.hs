@@ -32,7 +32,7 @@ import Databrary.Model.Category.Types
 import Databrary.Model.Metric
 import Databrary.Model.Tag.Types
 import Databrary.Model.Comment.Types
-import Databrary.String
+import Databrary.Solr.StringUtil
 
 safeField :: T.Text -> T.Text
 safeField = T.map safeChar where

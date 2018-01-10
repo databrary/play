@@ -1,19 +1,8 @@
 module Databrary.String
-  ( fromCamel
-  , toCamel
+  ( toCamel
   ) where
 
 import Data.Char (isUpper, toLower, toUpper)
-
-fromCamel :: String -> String
-fromCamel "" = ""
-fromCamel (c:s) = toLower c:fromCamel' s
-
-fromCamel' :: String -> String
-fromCamel' "" = ""
-fromCamel' cs@(c:s)
-  | isUpper c = '_':fromCamel cs
-  | otherwise = c:fromCamel' s
 
 toCamel :: String -> String
 toCamel "" = ""
