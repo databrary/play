@@ -304,7 +304,8 @@ createVolume = action POST (pathAPI </< "volume") $ \api -> withAuth $ do
     return (bv, cite, own)
   v <- addVolume bv
   _ <- changeVolumeCitation v cite
-  _ <- changeVolumeAccess $ VolumeAccess PermissionADMIN PermissionADMIN Nothing owner v
+  _ <-
+    changeVolumeAccess $ VolumeAccess PermissionADMIN PermissionADMIN Nothing (getShareFullDefault owner PermissionADMIN) owner v
   when (on (/=) (partyId . partyRow) owner u) $ forM_ (partyAccount owner) $ \t ->
     createNotification (blankNotification t NoticeVolumeCreated)
       { notificationVolume = Just $ volumeRow v

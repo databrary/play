@@ -72,6 +72,7 @@ volumeAccessJSON VolumeAccess{..} =
      "individual" JSON..=? (volumeAccessIndividual <? volumeAccessIndividual >= PermissionNONE)
   <> "children"   JSON..=? (volumeAccessChildren   <? volumeAccessChildren   >= PermissionNONE)
   <> "sort" JSON..=? volumeAccessSort
+  <> "share_full" JSON..=? volumeAccessShareFull
 
 volumeAccessPartyJSON :: JSON.ToNestedObject o u => VolumeAccess -> o
 volumeAccessPartyJSON va@VolumeAccess{..} = volumeAccessJSON va

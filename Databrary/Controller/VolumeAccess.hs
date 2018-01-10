@@ -4,6 +4,7 @@ module Databrary.Controller.VolumeAccess
   , postVolumeAccess
   ) where
 
+-- import Control.Monad.IO.Class (liftIO)
 import Control.Monad (when, forM_)
 import Data.Function (on)
 
@@ -17,6 +18,7 @@ import Databrary.Model.Volume
 import Databrary.Model.VolumeAccess
 import Databrary.Model.Party
 import Databrary.Model.Notification.Types
+import Databrary.HTTP.Form (FormDatum(..))
 import Databrary.HTTP.Form.Deform
 import Databrary.HTTP.Path.Parser
 import Databrary.Action
@@ -52,11 +54,19 @@ postVolumeAccess = action POST (pathAPI </> pathId </> pathVolumeAccessTarget) $
       >>= deformCheck "Inherited access must not exceed individual." (individual >=)
       >>= deformCheck "You are not authorized to share data." ((||) (ru || accessSite u >= PermissionEDIT) . (PermissionNONE ==)))
     sort <- "sort" .:> deformNonEmpty deform
+    mShareFull <-
+      if ap == ((partyId . partyRow) nobodyParty) && individual == PermissionPUBLIC
+      then do
+        _ <- "share_full" .:> (deformCheck "Required" (not . (== FormDatumNone)) =<< deform) -- convulated way of requiring
+        Just <$> ("share_full" .:> deform)
+      else pure Nothing 
     return a
       { volumeAccessIndividual = individual
       , volumeAccessChildren = children
       , volumeAccessSort = sort
+      , volumeAccessShareFull = mShareFull
       }
+  -- liftIO $ print ("vol access full", volumeAccessShareFull a')
   r <- changeVolumeAccess a'
   if ap == partyId (partyRow rootParty) && on (/=) volumeAccessChildren a' a
     then do
