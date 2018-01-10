@@ -14,6 +14,7 @@ module Databrary.Model.VolumeAccess
   ) where
 
 import Data.Int (Int64)
+import Data.List (find)
 import Data.Monoid ((<>))
 
 import Databrary.Ops
@@ -72,6 +73,7 @@ volumeAccessJSON VolumeAccess{..} =
      "individual" JSON..=? (volumeAccessIndividual <? volumeAccessIndividual >= PermissionNONE)
   <> "children"   JSON..=? (volumeAccessChildren   <? volumeAccessChildren   >= PermissionNONE)
   <> "sort" JSON..=? volumeAccessSort
+  <> "share_full" JSON..=? volumeAccessShareFull
 
 volumeAccessPartyJSON :: JSON.ToNestedObject o u => VolumeAccess -> o
 volumeAccessPartyJSON va@VolumeAccess{..} = volumeAccessJSON va
@@ -79,7 +81,7 @@ volumeAccessPartyJSON va@VolumeAccess{..} = volumeAccessJSON va
 
 volumeAccessVolumeJSON :: JSON.ToNestedObject o u => VolumeAccess -> o
 volumeAccessVolumeJSON va@VolumeAccess{..} = volumeAccessJSON va
-  <> "volume" JSON..=: volumeJSON volumeAccessVolume
+  <> "volume" JSON..=: volumeJSON volumeAccessVolume Nothing
 
 lookupVolumeShareActivity :: (MonadDB c m, MonadHasIdentity c m) => Int -> m [(Timestamp, Volume)]
 lookupVolumeShareActivity limit = do

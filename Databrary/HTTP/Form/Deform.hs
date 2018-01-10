@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TypeFamilies #-}
+{-# LANGUAGE OverloadedStrings, TypeFamilies, ScopedTypeVariables #-}
 module Databrary.HTTP.Form.Deform
   ( DeformT
   , runDeform
@@ -130,7 +130,7 @@ withSubDeform k (DeformT a) = DeformT $ fmap (first (unsubFormErrors k)) . a . s
 
 infixr 2 .:>
 (.:>) :: (Functor m, Monad m) => T.Text -> DeformT f m a -> DeformT f m a
-(.:>) = withSubDeform . FormField
+(.:>) keyName subDeform = withSubDeform (FormField keyName) subDeform
 
 withSubDeforms :: (Functor m, Monad m) => (FormKey -> DeformT f m a) -> DeformT f m [a]
 withSubDeforms s = DeformT $

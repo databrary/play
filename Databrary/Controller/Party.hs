@@ -94,8 +94,8 @@ partyJSONField p "volumes" o = (?$>) (view p >= PermissionADMIN) $
   vf v
     | o == Just "access" = do
       a <- lookupVolumeAccess v (succ PermissionNONE)
-      return $ volumeJSON v JSON..<> JSON.nestObject "access" (\u -> map (u . volumeAccessPartyJSON) a)
-    | otherwise = return $ volumeJSON v
+      return $ volumeJSON v Nothing JSON..<> JSON.nestObject "access" (\u -> map (u . volumeAccessPartyJSON) a)
+    | otherwise = return $ volumeJSON v Nothing
 partyJSONField p "access" ma = do
   Just . JSON.mapObjects volumeAccessVolumeJSON
     <$> lookupPartyVolumeAccess p (fromMaybe PermissionEDIT $ readDBEnum . BSC.unpack =<< ma)

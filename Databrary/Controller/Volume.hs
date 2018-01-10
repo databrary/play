@@ -142,6 +142,11 @@ volumeJSONField :: Volume -> BS.ByteString -> Maybe BS.ByteString -> StateT Volu
 volumeJSONField vol "access" ma = do
   Just . JSON.mapObjects volumeAccessPartyJSON
     <$> cacheVolumeAccess vol (fromMaybe PermissionNONE $ readDBEnum . BSC.unpack =<< ma)
+{-
+volumeJSONField vol "publicaccess" ma = do
+  Just . JSON.toEncoding . show . volumePublicAccessSummary
+    <$> cacheVolumeAccess vol (fromMaybe PermissionNONE $ readDBEnum . BSC.unpack =<< ma)
+-}
 volumeJSONField vol "citation" _ =
   Just . JSON.toEncoding <$> lookupVolumeCitation vol
 volumeJSONField vol "links" _ =
@@ -200,12 +205,12 @@ volumeJSONField o "filename" _ =
   return $ Just $ JSON.toEncoding $ makeFilename $ volumeDownloadName o
 volumeJSONField _ _ _ = return Nothing
 
-volumeJSONQuery :: Volume -> JSON.Query -> ActionM (JSON.Record (Id Volume) JSON.Series)
-volumeJSONQuery vol q =
+volumeJSONQuery :: Volume -> Maybe [VolumeAccess] -> JSON.Query -> ActionM (JSON.Record (Id Volume) JSON.Series)
+volumeJSONQuery vol mAccesses q =
   let seriesCaching :: StateT VolumeCache ActionM JSON.Series
       seriesCaching = JSON.jsonQuery (volumeJSONField vol) q
       expandedVolJSONcaching :: StateT VolumeCache ActionM (JSON.Record (Id Volume) JSON.Series)
-      expandedVolJSONcaching = (\series -> volumeJSON vol JSON..<> series) <$> seriesCaching
+      expandedVolJSONcaching = (\series -> volumeJSON vol mAccesses JSON..<> series) <$> seriesCaching
   in
     runVolumeCache $ expandedVolJSONcaching
 
@@ -219,10 +224,11 @@ viewVolume :: ActionRoute (API, Id Volume)
 viewVolume = action GET (pathAPI </> pathId) $ \(api, vi) -> withAuth $ do
   when (api == HTML) angular
   v <- getVolume PermissionPUBLIC vi
+  accesses <- lookupVolumeAccess v PermissionNONE
   case api of
     JSON ->
       let idSeriesRecAct :: ActionM (JSON.Record (Id Volume) JSON.Series)
-          idSeriesRecAct = volumeJSONQuery v =<< peeks Wai.queryString
+          idSeriesRecAct = volumeJSONQuery v (Just accesses) =<< peeks Wai.queryString
       in okResponse [] . JSON.recordEncoding <$> idSeriesRecAct
     HTML -> do
       top <- lookupVolumeTopContainer v
@@ -283,8 +289,9 @@ postVolume = action POST (pathAPI </> pathId) $ \arg@(api, vi) -> withAuth $ do
   (v', cite') <- runForm (api == HTML ?> htmlVolumeEdit (Just (v, cite))) $ volumeCitationForm v
   changeVolume v'
   r <- changeVolumeCitation v' cite'
+  accesses <- lookupVolumeAccess v PermissionNONE
   case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSON v' JSON..<> "citation" JSON..= if r then cite' else cite
+    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSON v' (Just accesses) JSON..<> "citation" JSON..= if r then cite' else cite
     HTML -> peeks $ otherRouteResponse [] viewVolume arg
 
 createVolume :: ActionRoute API
@@ -304,14 +311,16 @@ createVolume = action POST (pathAPI </< "volume") $ \api -> withAuth $ do
     return (bv, cite, own)
   v <- addVolume bv
   _ <- changeVolumeCitation v cite
-  _ <- changeVolumeAccess $ VolumeAccess PermissionADMIN PermissionADMIN Nothing owner v
+  _ <-
+    changeVolumeAccess $ VolumeAccess PermissionADMIN PermissionADMIN Nothing (getShareFullDefault owner PermissionADMIN) owner v
+  accesses <- lookupVolumeAccess v PermissionNONE
   when (on (/=) (partyId . partyRow) owner u) $ forM_ (partyAccount owner) $ \t ->
     createNotification (blankNotification t NoticeVolumeCreated)
       { notificationVolume = Just $ volumeRow v
       , notificationParty = Just $ partyRow owner
       }
   case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSON v
+    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSON v (Just accesses)
     HTML -> peeks $ otherRouteResponse [] viewVolume (api, volumeId $ volumeRow v)
 
 viewVolumeLinks :: ActionRoute (Id Volume)
@@ -333,7 +342,7 @@ postVolumeLinks = action POST (pathAPI </> pathId </< "link") $ \arg@(api, vi) -
       <*> pure Nothing
   changeVolumeLinks v links'
   case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSON v JSON..<> "links" JSON..= links'
+    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSON v Nothing JSON..<> "links" JSON..= links'
     HTML -> peeks $ otherRouteResponse [] viewVolume arg
 
 postVolumeAssist :: ActionRoute (Id Volume)
@@ -362,7 +371,7 @@ queryVolumes = action GET (pathAPI </< "volume") $ \api -> withAuth $ do
   vf <- runForm (api == HTML ?> htmlVolumeSearch mempty []) volumeSearchForm
   p <- findVolumes vf
   case api of
-    JSON -> return $ okResponse [] $ JSON.mapRecords volumeJSON p
+    JSON -> return $ okResponse [] $ JSON.mapRecords (\v -> volumeJSON v Nothing) p 
     HTML -> peeks $ blankForm . htmlVolumeSearch vf p
 
 thumbVolume :: ActionRoute (Id Volume)
