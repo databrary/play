@@ -9,6 +9,7 @@ module Databrary.Model.Metric
   , metricJSON
   ) where
 
+import Control.Applicative (empty, pure)
 import qualified Data.IntMap.Strict as IntMap
 import Data.List (find)
 import Data.Maybe (fromJust)
@@ -46,7 +47,7 @@ metricJSON m@Metric{..} = JSON.Record metricId $
   <> "name" JSON..= metricName
   <> "release" JSON..=? metricRelease
   <> "type" JSON..= show metricType
-  <> "options" JSON..=? (metricOptions <!? null metricOptions)
+  <> "options" JSON..=? (if null metricOptions then empty else pure metricOptions)
   <> "assumed" JSON..=? metricAssumed
   <> "long" JSON..=? (True <? metricLong m)
   <> "description" JSON..=? metricDescription

@@ -250,7 +250,7 @@ volumeCitationForm v = do
     <$> ("head" .:> deform)
     <*> ("url" .:> deformNonEmpty deform)
     <*> ("year" .:> deformNonEmpty deform)
-    <*- Nothing
+    <*> pure Nothing
   look <- flatMapM (lift . focusIO . lookupCitation) $
     guard (T.null (volumeName $ volumeRow vol) || T.null (citationHead cite) || isNothing (citationYear cite)) >> citationURL cite
   let fill = maybe cite (cite <>) look
@@ -329,8 +329,8 @@ postVolumeLinks = action POST (pathAPI </> pathId </< "link") $ \arg@(api, vi) -
     withSubDeforms $ \_ -> Citation
       <$> ("head" .:> deform)
       <*> ("url" .:> (Just <$> deform))
-      <*- Nothing
-      <*- Nothing
+      <*> pure Nothing
+      <*> pure Nothing
   changeVolumeLinks v links'
   case api of
     JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSON v JSON..<> "links" JSON..= links'

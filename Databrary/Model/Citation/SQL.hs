@@ -10,6 +10,7 @@ module Databrary.Model.Citation.SQL
   , deleteVolumeLink
   ) where
 
+import Control.Applicative ((<$>))
 import qualified Data.Text as T
 import qualified Language.Haskell.TH as TH
 
@@ -27,7 +28,7 @@ selectVolumeCitation :: Selector -- ^ @Maybe 'T.Text' -> 'Citation'@
 selectVolumeCitation = citationRow
 
 makeVolumeCitation :: Volume -> Maybe (Maybe T.Text -> Citation) -> (Volume, Maybe Citation)
-makeVolumeCitation v cf = (v, cf <*- Just (volumeName $ volumeRow v))
+makeVolumeCitation v cf = (v, cf <*> Just (Just (volumeName $ volumeRow v)))
 
 selectCitation :: TH.Name -- ^ @'Identity'@
   -> Selector -- ^ @('Volume', Maybe 'Citation')@

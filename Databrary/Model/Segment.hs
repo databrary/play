@@ -17,7 +17,7 @@ module Databrary.Model.Segment
   , segmentSetDuration
   ) where
 
-import Control.Applicative ((<|>), optional)
+import Control.Applicative ((<|>), optional, Alternative, empty)
 import Control.Monad (guard, liftM2)
 import Data.Maybe (fromMaybe, isNothing)
 import qualified Data.Text as T
@@ -90,6 +90,10 @@ instance Read Segment where
     mb :: Bool -> Maybe Bool -> Maybe Offset -> Range.Bound Offset
     mb d = maybe Range.Unbounded . Range.Bounded . fromMaybe d
 
+maybeA :: Alternative m => Maybe a -> m a
+maybeA (Just x) = pure x
+maybeA Nothing = empty
+
 instance JSON.ToJSON Segment where
   toJSON (Segment r)
     | Range.isEmpty r = JSON.Null
@@ -137,7 +141,7 @@ segmentInterp f (Segment r)
   where l = fromMaybe 0 $ lowerBound r
 
 segmentJSON :: JSON.ToObject o => Segment -> o
-segmentJSON s = "segment" JSON..=? (s <!? segmentFull s)
+segmentJSON s = "segment" JSON..=? (if segmentFull s then empty else pure s)
 
 segmentSetDuration :: Offset -> Segment -> Segment
 segmentSetDuration o (Segment (Range.Range lb@(Range.Lower (Range.Bounded _ l)) (Range.Upper ub))) =

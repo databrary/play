@@ -4,8 +4,8 @@ module Databrary.Model.Audit
   , MonadAudit
   , getRemoteIp
   , getAuditIdentity
-  , Analytic(..)
-  , auditAnalytic
+  -- , Analytic(..)
+  -- , auditAnalytic
   ) where
 
 import Data.Maybe (fromMaybe)
@@ -22,7 +22,7 @@ import Databrary.Model.Id.Types
 import Databrary.Model.Party.Types
 import Databrary.Model.Audit.Types
 
-useTDB
+-- useTDB
 
 type MonadAudit c m = (MonadHasRequest c m, MonadHas (Id Party) c m, MonadDB c m)
 
@@ -32,6 +32,7 @@ getRemoteIp = peeks (fromMaybe (PGInet 0 32) . sockAddrPGInet . remoteHost)
 getAuditIdentity :: (MonadHasRequest c m, MonadHas (Id Party) c m) => m AuditIdentity
 getAuditIdentity = AuditIdentity <$> peek <*> getRemoteIp
 
+{-
 data Analytic = Analytic
   { analyticAction :: AuditAction
   , analyticRoute :: T.Text
@@ -43,3 +44,4 @@ auditAnalytic Analytic{..} = do
   ai <- getAuditIdentity
   dbExecute1' [pgSQL|INSERT INTO audit.analytic (audit_action, audit_user, audit_ip, route, data) VALUES
     (${analyticAction}, ${auditWho ai}, ${auditIp ai}, ${analyticRoute}, ${analyticData})|]
+-}

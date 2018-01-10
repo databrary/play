@@ -7,6 +7,7 @@ module Databrary.Controller.Register
   , resendInvestigator
   ) where
 
+import Control.Applicative ((<$>))
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import Data.Monoid ((<>))
@@ -71,7 +72,7 @@ postRegister = action POST (pathAPI </< "user" </< "register") $ \api -> without
           , accountEmail = email
           }
     return a
-  auth <- maybe (SiteAuth <$> addAccount reg <*- Nothing <*- mempty) return =<< lookupSiteAuthByEmail False (accountEmail reg)
+  auth <- maybe (SiteAuth <$> addAccount reg <*> pure Nothing <*> pure mempty) return =<< lookupSiteAuthByEmail False (accountEmail reg)
   resetPasswordMail (Right auth)
     "Databrary account created"
     $ \(Just url) ->

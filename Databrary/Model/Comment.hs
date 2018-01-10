@@ -9,6 +9,7 @@ module Databrary.Model.Comment
   , commentJSON
   ) where
 
+import Control.Applicative (empty, pure)
 import Data.Int (Int64)
 import Data.Maybe (listToMaybe)
 import Data.Monoid ((<>))
@@ -68,5 +69,5 @@ commentJSON Comment{ commentSlot = Slot{..}, ..} = JSON.Record commentId $
   <> "who" JSON..=: partyJSON (accountParty commentWho)
   <> "time" JSON..= commentTime
   <> "text" JSON..= commentText
-  <> "parents" JSON..=? (commentParents <!? null commentParents)
+  <> "parents" JSON..=? (if null commentParents then empty else pure commentParents)
    

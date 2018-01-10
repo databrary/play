@@ -27,7 +27,7 @@ import Databrary.Context
 import Databrary.Action.Types
 import Databrary.Action.Request
 import Databrary.Action.Response
-import Databrary.Controller.Analytics
+-- import Databrary.Controller.Analytics
 
 withActionM :: Request -> Identity -> ActionM a -> ContextM a
 withActionM r i = withReaderT (\c -> RequestContext c r i) . unActionM
@@ -42,7 +42,7 @@ runAction rc (Action auth act) req send = do
   ts <- getCurrentTime
   (i, r) <- runContextM (do
     i <- if auth then withActionM req PreIdentified determineIdentity else return PreIdentified
-    r <- ReaderT $ \ctx -> runResult $ runActionM (angularAnalytics >> act) (RequestContext ctx req i)
+    r <- ReaderT $ \ctx -> runResult $ runActionM (act) (RequestContext ctx req i)
     return (i, r))
     rc
   logAccess ts req (foldIdentity Nothing (Just . (show :: Id Party -> String) . view) i) r (serviceLogs rc)

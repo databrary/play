@@ -11,6 +11,7 @@ module Databrary.Model.AssetSegment
   , assetSegmentInterp
   ) where
 
+import Control.Applicative (pure, empty)
 import Data.Monoid ((<>))
 import Database.PostgreSQL.Typed (pgSQL)
 
@@ -84,7 +85,7 @@ auditAssetSegmentDownload success AssetSegment{ segmentAsset = AssetSlot{ slotAs
 assetSegmentJSON :: JSON.ToObject o => AssetSegment -> o
 assetSegmentJSON as@AssetSegment{..} =
      "segment" JSON..= assetSegment
-  <> "format" JSON..=? (formatId fmt <!? view segmentAsset == fmt)
+  <> "format" JSON..=? (if view segmentAsset == fmt then empty else pure (formatId fmt))
   -- "release" JSON..=? (view as :: Maybe Release)
   <> "permission" JSON..= dataPermission as
   <> "excerpt" JSON..=? (excerptRelease <$> assetExcerpt)

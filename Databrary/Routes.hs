@@ -37,7 +37,6 @@ import Databrary.Controller.Web
 import Databrary.Controller.Search
 import Databrary.Controller.Periodic
 import Databrary.Controller.Notification
-import Databrary.Controller.API
 
 routeMap :: RouteMap Action
 routeMap = routes
@@ -168,7 +167,6 @@ routeMap = routes
   , route postIngest
   , route viewPeriodic
   , route postPeriodic
-  , route viewSwagger
 
   , route webFile
   ] where

@@ -3,13 +3,13 @@ module Main (main) where
 
 import Control.Exception (evaluate)
 import Control.Monad (void)
-import qualified Data.Aeson.Encoding as J
-import Data.ByteString.Builder (hPutBuilder)
+-- import qualified Data.Aeson.Encoding as J
+-- import Data.ByteString.Builder (hPutBuilder)
 import Data.Either (partitionEithers)
 import qualified System.Console.GetOpt as Opt
 import System.Environment (getProgName, getArgs)
-import System.Exit (exitSuccess, exitFailure)
-import System.IO (stdout)
+import System.Exit (exitFailure)
+-- import System.IO (stdout)
 
 import qualified Databrary.Store.Config as Conf
 import Databrary.Service.Init (withService)
@@ -17,7 +17,6 @@ import Databrary.Context
 import Databrary.Web.Rules (generateWebFiles)
 import Databrary.Action (runActionRoute)
 import Databrary.Routes (routeMap)
-import Databrary.Routes.API (swagger)
 import Databrary.Warp (runWarp)
 import Databrary.EZID.Volume (updateEZID)
 
@@ -25,7 +24,6 @@ import Databrary.EZID.Volume (updateEZID)
 data Flag
   = FlagConfig FilePath
   | FlagWeb
-  | FlagAPI
   | FlagEZID
   deriving (Eq)
 
@@ -33,7 +31,6 @@ opts :: [Opt.OptDescr Flag]
 opts =
   [ Opt.Option "c" ["config"] (Opt.ReqArg FlagConfig "FILE") "Path to configuration file [./databrary.conf]"
   , Opt.Option "w" ["webgen"] (Opt.NoArg FlagWeb) "Generate web assets only"
-  , Opt.Option "a" ["api"] (Opt.NoArg FlagAPI) "Output Swagger API documention"
   , Opt.Option "e" ["ezid"] (Opt.NoArg FlagEZID) "Update EZID DOIs"
   ]
 
@@ -57,11 +54,6 @@ main = do
       putStrLn "generating files..." 
       void generateWebFiles
       putStrLn "finished generating web files..."
-      return False
-    ([FlagAPI], [], []) -> do
-      putStrLn "put web builder..."
-      hPutBuilder stdout $ J.fromEncoding $ J.value swagger
-      putStrLn "finished web builder..."
       return False
     ([FlagEZID], [], []) -> do
       putStrLn "update EZID..."

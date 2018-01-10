@@ -20,10 +20,10 @@ import Text.Read (readMaybe)
 import qualified Language.Haskell.TH as TH
 
 import Databrary.Service.DB (useTDB)
+import Databrary.Model.EnumStringUtil
 import Databrary.Model.Kind
 import Databrary.HTTP.Form (FormDatum(..))
 import Databrary.HTTP.Form.Deform
-import Databrary.String
 
 class (PGEnum a, Kinded a) => DBEnum a
 
