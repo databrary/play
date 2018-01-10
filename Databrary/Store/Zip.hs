@@ -22,7 +22,7 @@ import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy as BSL
 import Data.Digest.CRC32 (crc32, crc32Update)
 import Data.List (foldl')
-import Data.Maybe (isJust, fromMaybe)
+import Data.Maybe (isJust, fromMaybe, catMaybes)
 import Data.Monoid ((<>))
 import Data.Time.Calendar (toGregorian)
 import Data.Time.Clock (UTCTime(..), getCurrentTime)
@@ -300,3 +300,6 @@ fileZipEntry src = do
     , zipEntryComment = BS.empty
     , zipEntryContent = ZipEntryFile (fromIntegral s) f
     }
+
+mapMaybeM :: (Functor m, Monad m) => (a -> m (Maybe b)) -> [a] -> m [b]
+mapMaybeM f l = catMaybes <$> mapM f l

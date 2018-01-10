@@ -31,6 +31,7 @@ import qualified Data.Aeson as JSON
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.UTF8 as BSU
+import Data.Functor (($>))
 import qualified Data.HashMap.Strict as HM
 import Data.Int (Int64, Int32, Int16)
 import Data.Monoid ((<>))
@@ -155,7 +156,7 @@ deformGuard _ True = return ()
 deformGuard e False = deformError e
 
 deformCheck :: (Functor m, Monad m) => FormErrorMessage -> (a -> Bool) -> a -> DeformT f m a
-deformCheck e f = (>$) (deformGuard e . f)
+deformCheck e f v = (deformGuard e . f) v $> v
 
 deformOptional :: (Functor m, Monad m) => DeformT f m a -> DeformT f m (Maybe a)
 deformOptional f = opt =<< asks formDatum where

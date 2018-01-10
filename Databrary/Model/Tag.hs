@@ -16,6 +16,7 @@ module Databrary.Model.Tag
   , tagCoverageJSON
   ) where
 
+import Control.Applicative (empty, pure)
 import Control.Monad (guard)
 import qualified Data.ByteString.Char8 as BSC
 import Data.Int (Int64)
@@ -97,5 +98,5 @@ tagWeightJSON TagWeight{..} = JSON.Record (tagName tagWeightTag) $
 tagCoverageJSON :: JSON.ToObject o => TagCoverage -> JSON.Record TagName o
 tagCoverageJSON TagCoverage{..} = tagWeightJSON tagCoverageWeight JSON..<>
      "coverage" JSON..= tagCoverageSegments
-  <> "keyword" JSON..=? (tagCoverageKeywords <!? null tagCoverageKeywords)
-  <> "vote"    JSON..=? (tagCoverageVotes    <!? null tagCoverageVotes)
+  <> "keyword" JSON..=? (if null tagCoverageKeywords then empty else pure tagCoverageKeywords)
+  <> "vote"    JSON..=? (if null tagCoverageVotes then empty else pure tagCoverageVotes)

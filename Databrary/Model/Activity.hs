@@ -4,9 +4,10 @@ module Databrary.Model.Activity
   , lookupVolumeActivity
   , lookupContainerActivity
   , activityJSON
+  , mergeBy
   ) where
 
-import Control.Applicative ((<|>))
+import Control.Applicative ((<|>), empty, pure)
 import Control.Arrow ((&&&))
 import Control.Monad (forM)
 import qualified Data.ByteString.Char8 as BSC
@@ -47,6 +48,15 @@ orderActivity = onActivityTime compare
 
 mergeActivity :: [Activity] -> [Activity] -> [Activity]
 mergeActivity = mergeBy $ \x y -> orderActivity x y <> LT
+
+-- |Merge two ordered lists using the given predicate, removing EQ "duplicates" (left-biased)
+mergeBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
+mergeBy _ [] l = l
+mergeBy _ l [] = l
+mergeBy p al@(a:ar) bl@(b:br) = case p a b of
+  LT -> a : mergeBy p ar bl
+  EQ -> mergeBy p al br
+  GT -> b : mergeBy p al br
 
 mergeActivities :: [[Activity]] -> [Activity]
 mergeActivities = foldr1 mergeActivity
@@ -223,7 +233,7 @@ activityJSON Activity{ activityAudit = Audit{..}, ..} = auditAction == AuditActi
     <> "ip" JSON..= show (auditIp auditIdentity)
     <> "user" JSON..= auditWho auditIdentity
     <> "type" JSON..= typ
-    <> "old" JSON..=? (old <!? HM.null old)
+    <> "old" JSON..=? (if HM.null old then empty else pure old)
     <> "replace" JSON..=? (activityAssetJSON <$> activityReplace)
     <> "transcode" JSON..=? (activityAssetJSON <$> activityTranscode)
   where
