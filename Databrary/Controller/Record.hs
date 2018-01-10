@@ -48,6 +48,8 @@ getRecord p i =
 viewRecord :: ActionRoute (API, Id Record)
 viewRecord = action GET (pathAPI </> pathId) $ \(api, i) -> withAuth $ do
   rec <- getRecord PermissionPUBLIC i
+  let v = recordVolume rec
+  _ <- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted
   return $ case api of
     JSON -> okResponse [] $ JSON.recordEncoding $ recordJSON False rec -- json should consult volume
     HTML -> okResponse [] $ T.pack $ show $ recordId $ recordRow rec -- TODO

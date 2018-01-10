@@ -162,6 +162,8 @@ zipContainer isOrig =
                      False -> pathMaybe pathId </> pathSlotId </< "zip" </< "false"
   in action GET zipPath $ \(vi, ci) -> withAuth $ do
     c <- getContainer PermissionPUBLIC vi ci True
+    let v = containerVolume c
+    _ <- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted
     z <- containerZipEntryCorrectAssetSlots isOrig c
     auditSlotDownload (not $ zipEmpty z) (containerSlot c)
     zipResponse ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) [z]
@@ -169,6 +171,7 @@ zipContainer isOrig =
 getVolumeInfo :: Id Volume -> ActionM (Volume, IdSet Container, [AssetSlot])
 getVolumeInfo vi = do
   v <- getVolume PermissionPUBLIC vi
+  _ <- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted
   s <- peeks requestIdSet
   -- let isMember = maybe (const False) (\c -> RS.member (containerId $ containerRow $ slotContainer $ c))
   -- non-exhaustive pattern found here ...v , implment in case of Nothing (Keep in mind originalAssets will not have containers, or Volumes)

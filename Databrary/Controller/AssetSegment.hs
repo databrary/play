@@ -51,18 +51,15 @@ import Databrary.Controller.Format
 
 -- Boolean flag to toggle the choice of downloading the original asset file. 
 getAssetSegment :: Bool -> Permission -> Maybe (Id Volume) -> Id Slot -> Id Asset -> ActionM AssetSegment
-getAssetSegment getOrig p mv s a =
-  case getOrig of 
-       True -> do 
-         liftIO $ putStrLn "getAssetSegment True" --DEBUG
-         tester <- lookupOrigSlotAssetSegment s a
-         liftIO $ print tester --DEBUG
-         checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupOrigSlotAssetSegment s a
-       False -> do 
-         liftIO $ putStrLn "getAssetSegment False" --DEBUG
-         tester <- lookupSlotAssetSegment s a
-         liftIO $ print tester --DEBUG
-         checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupSlotAssetSegment s a
+getAssetSegment getOrig p mv s a = do
+  let lookupSeg = if getOrig then lookupOrigSlotAssetSegment else lookupSlotAssetSegment
+  mAssetSeg <- lookupSeg s a
+  assetSeg <- maybeAction ((maybe id (\v -> mfilter $ (v ==) . view) mv) mAssetSeg)
+  _ <- when (p == PermissionPUBLIC)
+         (maybeAction
+            (if volumeIsPublicRestricted ((assetVolume . slotAsset . segmentAsset) assetSeg) then Nothing else Just ()))
+  checkPermission p assetSeg
+  -- checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupOrigSlotAssetSegment s a
 
 assetSegmentJSONField :: AssetSegment -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
 assetSegmentJSONField a "asset" _ = return $ Just $ JSON.recordEncoding $ assetSlotJSON False (segmentAsset a) 
