@@ -1,8 +1,8 @@
-module Databrary.String
+module Databrary.Model.EnumStringUtil
   ( toCamel
   ) where
 
-import Data.Char (isUpper, toLower, toUpper)
+import Data.Char (toUpper)
 
 toCamel :: String -> String
 toCamel "" = ""
