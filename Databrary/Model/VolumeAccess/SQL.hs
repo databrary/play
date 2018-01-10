@@ -33,7 +33,8 @@ selectVolumeAccess vol ident = selectMap (`TH.AppE` TH.VarE vol) $ selectJoin '(
   ]
 
 makeVolumeAccessParty :: Party -> Maybe (Party -> Volume -> VolumeAccess) -> Volume -> VolumeAccess
-makeVolumeAccessParty p Nothing v = VolumeAccess PermissionNONE PermissionNONE Nothing Nothing  p v -- TODO: default based on party
+makeVolumeAccessParty p Nothing v = VolumeAccess PermissionNONE PermissionNONE Nothing Nothing  p v
+-- Nothing is a valid default for share_full, even when party is -1/everybody, since the access level is NONE
 makeVolumeAccessParty p (Just af) v = af p v
 
 selectVolumeAccessParty :: TH.Name -- ^ 'Volume'
