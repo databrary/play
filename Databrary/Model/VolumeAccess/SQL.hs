@@ -33,7 +33,7 @@ selectVolumeAccess vol ident = selectMap (`TH.AppE` TH.VarE vol) $ selectJoin '(
   ]
 
 makeVolumeAccessParty :: Party -> Maybe (Party -> Volume -> VolumeAccess) -> Volume -> VolumeAccess
-makeVolumeAccessParty p Nothing v = VolumeAccess PermissionNONE PermissionNONE Nothing Nothing  p v -- TODO: default based on party
+makeVolumeAccessParty p Nothing v = VolumeAccess PermissionNONE PermissionNONE Nothing (getShareFullDefault p PermissionNONE) p v
 makeVolumeAccessParty p (Just af) v = af p v
 
 selectVolumeAccessParty :: TH.Name -- ^ 'Volume'
