@@ -12,7 +12,7 @@ module Databrary.Controller.Volume
   , queryVolumes
   , thumbVolume
   , volumeDownloadName
-  , volumeJSONQuery
+  -- , volumeJSONQuery
   , volumeIsPublicRestricted
   ) where
 
@@ -290,7 +290,7 @@ postVolume = action POST (pathAPI </> pathId) $ \arg@(api, vi) -> withAuth $ do
   changeVolume v'
   r <- changeVolumeCitation v' cite'
   case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSON v' Nothing JSON..<> "citation" JSON..= if r then cite' else cite
+    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v' JSON..<> "citation" JSON..= if r then cite' else cite
     HTML -> peeks $ otherRouteResponse [] viewVolume arg
 
 createVolume :: ActionRoute API
@@ -324,7 +324,7 @@ createVolume = action POST (pathAPI </< "volume") $ \api -> withAuth $ do
       , notificationParty = Just $ partyRow owner
       }
   case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSON v Nothing
+    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v
     HTML -> peeks $ otherRouteResponse [] viewVolume (api, volumeId $ volumeRow v)
 
 viewVolumeLinks :: ActionRoute (Id Volume)
@@ -346,7 +346,7 @@ postVolumeLinks = action POST (pathAPI </> pathId </< "link") $ \arg@(api, vi) -
       <*> pure Nothing
   changeVolumeLinks v links'
   case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSON v Nothing JSON..<> "links" JSON..= links'
+    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v JSON..<> "links" JSON..= links'
     HTML -> peeks $ otherRouteResponse [] viewVolume arg
 
 postVolumeAssist :: ActionRoute (Id Volume)
@@ -375,7 +375,7 @@ queryVolumes = action GET (pathAPI </< "volume") $ \api -> withAuth $ do
   vf <- runForm (api == HTML ?> htmlVolumeSearch mempty []) volumeSearchForm
   p <- findVolumes vf
   case api of
-    JSON -> return $ okResponse [] $ JSON.mapRecords (\v -> volumeJSON v Nothing) p 
+    JSON -> return $ okResponse [] $ JSON.mapRecords (\v -> volumeJSONSimple v) p 
     HTML -> peeks $ blankForm . htmlVolumeSearch vf p
 
 thumbVolume :: ActionRoute (Id Volume)
