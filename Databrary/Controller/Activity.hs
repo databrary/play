@@ -39,7 +39,7 @@ import Databrary.View.Activity
 viewSiteActivity :: ActionRoute API
 viewSiteActivity = action GET (pathAPI </< "activity") $ \api -> withAuth $ do
   ss <- focusIO $ readIORef . serviceStats
-  vl <- map (second $ ("volume" JSON..=:) . volumeJSON) . nubBy ((==) `on` volumeId . volumeRow . snd) <$> lookupVolumeShareActivity 8
+  vl <- map (second $ ("volume" JSON..=:) . (\v -> volumeJSON v Nothing)) . nubBy ((==) `on` volumeId . volumeRow . snd) <$> lookupVolumeShareActivity 8
   al <- map (second $ ("party"  JSON..=:) . partyJSON)  . nubBy ((==) `on` partyId  . partyRow  . snd) <$> lookupAuthorizeActivity 8
   case api of
     JSON -> return $ okResponse [] $ JSON.objectEncoding $

@@ -11,12 +11,14 @@ module Databrary.Model.Volume
   , getVolumeAlias
   , volumeRowJSON
   , volumeJSON
+  , volumeJSONSimple
   , updateVolumeIndex
   ) where
 
 import Control.Applicative ((<|>))
 import Control.Monad (guard)
 import qualified Data.ByteString as BS
+import Data.List (find)
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Database.PostgreSQL.Typed.Query (pgSQL, unsafeModifyQuery)
@@ -36,6 +38,7 @@ import Databrary.Model.Identity.Types
 import Databrary.Model.Volume.Types
 import Databrary.Model.Volume.SQL
 import Databrary.Model.Volume.Boot
+import Databrary.Model.VolumeAccess.Types (VolumeAccess(..))
 
 coreVolume :: Volume
 coreVolume = $(loadVolume (Id 0))
@@ -69,8 +72,8 @@ volumeRowJSON VolumeRow{..} = JSON.Record volumeId $
      "name" JSON..= volumeName
   <> "body" JSON..= volumeBody
 
-volumeJSON :: JSON.ToObject o => Volume -> JSON.Record (Id Volume) o
-volumeJSON v@Volume{..} =
+volumeJSON :: JSON.ToObject o => Volume -> Maybe [VolumeAccess] -> JSON.Record (Id Volume) o
+volumeJSON v@Volume{..} mAccesses =
     volumeRowJSON volumeRow JSON..<>
        "doi" JSON..=? volumeDOI volumeRow
     <> "alias" JSON..=? getVolumeAlias v
@@ -78,6 +81,10 @@ volumeJSON v@Volume{..} =
     <> "owners" JSON..= map (\(i, n) -> JSON.Object $ "id" JSON..= i <> "name" JSON..= n) volumeOwners
     <> "permission" JSON..= volumePermission
     <> "publicsharefull" JSON..= volumeAccessPolicyJSON v
+    <> "publicaccess" JSON..=? fmap (show . volumePublicAccessSummary) mAccesses
+
+volumeJSONSimple :: JSON.ToObject o => Volume -> JSON.Record (Id Volume) o
+volumeJSONSimple v = volumeJSON v Nothing
 
 volumeAccessPolicyJSON :: Volume -> Maybe Bool
 volumeAccessPolicyJSON v =
@@ -122,3 +129,29 @@ findVolumes pf = do
 updateVolumeIndex :: MonadDB c m => m ()
 updateVolumeIndex =
   dbExecute_ "SELECT volume_text_refresh()"
+
+data VolumePublicAccessLevel = PublicAccessFull | PublicAccessRestricted | PublicAccessNone deriving (Eq)
+
+instance Show VolumePublicAccessLevel where
+  show PublicAccessFull = "full"
+  show PublicAccessRestricted = "restricted"
+  show PublicAccessNone = "none"
+
+volumePublicAccessSummary :: [VolumeAccess] -> VolumePublicAccessLevel
+volumePublicAccessSummary vas =
+  maybe
+    PublicAccessNone
+    (\va ->
+       case volumeAccessChildren va of
+         PermissionNONE -> PublicAccessNone
+         PermissionPUBLIC -> -- repeated from SQL.makePermInfo
+           maybe
+             PublicAccessFull 
+             (\shareFull -> if shareFull then PublicAccessFull else PublicAccessRestricted)
+             (volumeAccessShareFull va)
+         _ -> PublicAccessFull)
+    mPublicAccess
+  where
+    mPublicAccess = find (\va -> (partyId . partyRow . volumeAccessParty) va == nobodyId) vas -- nobodyParty forms a cycle
+    nobodyId = Id (-1)
+

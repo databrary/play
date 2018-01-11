@@ -50,4 +50,4 @@ deleteVolumeFunder = action DELETE (pathJSON >/> pathId </> pathId) $ \(vi, fi) 
   guardVerfHeader
   v <- getVolume PermissionEDIT vi
   _ <- removeVolumeFunder v fi
-  return $ okResponse [] $ JSON.recordEncoding $ volumeJSON v
+  return $ okResponse [] $ JSON.recordEncoding $ volumeJSON v Nothing

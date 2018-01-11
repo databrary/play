@@ -80,7 +80,10 @@ getAsset p i = do
   mAssetSlot <- lookupAssetSlot i
   assetSlot <- maybeAction mAssetSlot
   _ <- when (p == PermissionPUBLIC)
-         (maybeAction (if volumeIsPublicRestricted ((assetVolume . slotAsset) assetSlot) then Nothing else Just ()))
+         (maybeAction
+            (if volumeIsPublicRestricted ((assetVolume . slotAsset) assetSlot)
+             then Nothing
+             else Just ()))
   checkPermission p assetSlot
 
 getOrigAsset :: Permission -> Id Asset -> ActionM AssetSlot
