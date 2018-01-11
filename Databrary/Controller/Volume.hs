@@ -313,6 +313,12 @@ createVolume = action POST (pathAPI </< "volume") $ \api -> withAuth $ do
   _ <- changeVolumeCitation v cite
   _ <-
     changeVolumeAccess $ VolumeAccess PermissionADMIN PermissionADMIN Nothing (getShareFullDefault owner PermissionADMIN) owner v
+  -- TODO: do this as one action insde of volume access module
+  let volumeCreatePublicShareFullDefault = Just False
+  _ <-
+    changeVolumeAccess $ VolumeAccess PermissionPUBLIC PermissionPUBLIC Nothing volumeCreatePublicShareFullDefault nobodyParty v
+  _ <-
+    changeVolumeAccess $ VolumeAccess PermissionSHARED PermissionSHARED Nothing (getShareFullDefault rootParty PermissionSHARED) rootParty v
   accesses <- lookupVolumeAccess v PermissionNONE
   when (on (/=) (partyId . partyRow) owner u) $ forM_ (partyAccount owner) $ \t ->
     createNotification (blankNotification t NoticeVolumeCreated)
