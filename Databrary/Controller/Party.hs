@@ -88,13 +88,15 @@ partyJSONField p "children" _ =
     (if admin then authorizeJSON a else mempty) <> "party" JSON..=: partyJSON ap)
     <$> lookupAuthorizedChildren p (admin ?!> PermissionNONE)
   where admin = view p >= PermissionADMIN
-partyJSONField p "volumes" o = (?$>) (view p >= PermissionADMIN) $
-  fmap (JSON.mapRecords id) . mapM vf =<< lookupPartyVolumes p PermissionREAD
+partyJSONField p "volumes" o = (?$>) (view p >= PermissionADMIN) $ do
+    vols <- lookupPartyVolumes p PermissionREAD
+    (fmap (JSON.mapRecords id) . mapM vf) vols
   where
   vf v
     | o == Just "access" = do
       a <- lookupVolumeAccess v (succ PermissionNONE)
-      return $ volumeJSONSimple v JSON..<> JSON.nestObject "access" (\u -> map (u . volumeAccessPartyJSON) a)
+      accesses <- lookupVolumeAccess v PermissionNONE  -- TODO: why different perm level
+      return $ volumeJSON v (Just accesses) JSON..<> JSON.nestObject "access" (\u -> map (u . volumeAccessPartyJSON) a)
     | otherwise = return $ volumeJSONSimple v
 partyJSONField p "access" ma = do
   Just . JSON.mapObjects volumeAccessVolumeJSON
