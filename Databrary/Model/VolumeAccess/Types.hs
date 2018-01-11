@@ -1,7 +1,6 @@
 {-# LANGUAGE TemplateHaskell, RecordWildCards #-}
 module Databrary.Model.VolumeAccess.Types
   ( VolumeAccess(..)
-  -- , volumeAccessShareFull'
   , getShareFullDefault
   ) where
 
@@ -21,21 +20,6 @@ data VolumeAccess = VolumeAccess
   , volumeAccessParty :: Party
   , volumeAccessVolume :: Volume
   }
-
-{-
-volumeAccessShareFull' :: VolumeAccess -> Maybe Bool
-volumeAccessShareFull' VolumeAccess{..} =
-    if (getPartyId volumeAccessParty, volumeAccessIndividual) == (nobodyId, PermissionPUBLIC)
-    then nobodyPublicDefault
-    else generalDefault
-  where
-    getPartyId :: Party -> Id Party
-    getPartyId = partyId . partyRow
-    nobodyId :: Id Party
-    nobodyId = (getPartyId . accountParty . siteAccount) nobodySiteAuth
-    nobodyPublicDefault = Just True
-    generalDefault = Nothing
--}
 
 getShareFullDefault :: Party -> Permission -> Maybe Bool
 getShareFullDefault targetParty individualAccessLevel =

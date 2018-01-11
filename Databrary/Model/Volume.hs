@@ -144,11 +144,13 @@ volumePublicAccessSummary vas =
     (\va ->
        case volumeAccessChildren va of
          PermissionNONE -> PublicAccessNone
-         PermissionPUBLIC -> -- repeated from SQL.makePermInfo
-           maybe
-             PublicAccessFull 
-             (\shareFull -> if shareFull then PublicAccessFull else PublicAccessRestricted)
-             (volumeAccessShareFull va)
+         PermissionPUBLIC ->
+           let
+             accessPolicy = volumeAccessPolicyWithDefault (volumeAccessChildren va) (volumeAccessShareFull va)
+           in
+             case accessPolicy of
+               PublicRestricted -> PublicAccessRestricted
+               PermLevelDefault -> PublicAccessFull
          _ -> PublicAccessFull)
     mPublicAccess
   where
