@@ -81,7 +81,7 @@ volumeAccessPartyJSON va@VolumeAccess{..} = volumeAccessJSON va
 
 volumeAccessVolumeJSON :: JSON.ToNestedObject o u => VolumeAccess -> o
 volumeAccessVolumeJSON va@VolumeAccess{..} = volumeAccessJSON va
-  <> "volume" JSON..=: volumeJSON volumeAccessVolume Nothing
+  <> "volume" JSON..=: volumeJSONSimple volumeAccessVolume
 
 lookupVolumeShareActivity :: (MonadDB c m, MonadHasIdentity c m) => Int -> m [(Timestamp, Volume)]
 lookupVolumeShareActivity limit = do
