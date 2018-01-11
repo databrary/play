@@ -34,6 +34,7 @@ import Databrary.Model.Format
 import Databrary.Model.Asset
 import Databrary.Model.AssetSlot
 import Databrary.Model.AssetSegment
+import Databrary.Model.Excerpt
 import Databrary.Store.Asset
 import Databrary.Store.AssetSegment
 import Databrary.Store.Filename
@@ -55,11 +56,18 @@ getAssetSegment getOrig p mv s a = do
   let lookupSeg = if getOrig then lookupOrigSlotAssetSegment else lookupSlotAssetSegment
   mAssetSeg <- lookupSeg s a
   assetSeg <- maybeAction ((maybe id (\v -> mfilter $ (v ==) . view) mv) mAssetSeg)
+  assetExcerpts <- lookupAssetExcerpts (segmentAsset assetSeg)
   _ <- when (p == PermissionPUBLIC)
          (maybeAction
-            (if volumeIsPublicRestricted ((assetVolume . slotAsset . segmentAsset) assetSeg) then Nothing else Just ()))
+            (if volumeIsPublicRestricted ((assetVolume . slotAsset . segmentAsset) assetSeg)
+             then Nothing
+             else Just ()))
   checkPermission p assetSeg
   -- checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupOrigSlotAssetSegment s a
+  where
+    -- TODO: fix, repeated from ASSET
+    excerptAccessible :: [Excerpt] -> Bool
+    excerptAccessible exs = (not . null) exs -- is this good enough? how prevent access to unshared part of excerpt
 
 assetSegmentJSONField :: AssetSegment -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
 assetSegmentJSONField a "asset" _ = return $ Just $ JSON.recordEncoding $ assetSlotJSON False (segmentAsset a) 
