@@ -59,7 +59,7 @@ getAssetSegment getOrig p mv s a = do
   assetExcerpts <- lookupAssetExcerpts (segmentAsset assetSeg)
   _ <- when (p == PermissionPUBLIC)
          (maybeAction
-            (if volumeIsPublicRestricted ((assetVolume . slotAsset . segmentAsset) assetSeg)
+            (if volumeIsPublicRestricted ((assetVolume . slotAsset . segmentAsset) assetSeg) && not (excerptAccessible assetExcerpts)
              then Nothing
              else Just ()))
   checkPermission p assetSeg
