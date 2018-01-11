@@ -8,7 +8,7 @@
   <panel id="panel-data" panel-title="data.title" ng-if="checkpublicsharefull" edit-link="{{::volume.checkPermission(page.permission.EDIT) ? volume.editRoute('data') : ''}}" fold>
     <spreadsheet limit="32"></spreadsheet>
   </panel>
-  <panel id="panel-tags" panel-title="tags.title" fold ng-if="::(page.models.Login.isAuthorized() || volume.tags.length) && checkpublicsharefull" edit-link="{{::volume.checkPermission(page.permission.EDIT) ? volume.editRoute('overview')+'#overview-keywords' : ''}}">
+  <panel id="panel-tags" panel-title="tags.title" fold ng-if="::page.models.Login.isAuthorized() || volume.tags.length" edit-link="{{::volume.checkPermission(page.permission.EDIT) ? volume.editRoute('overview')+'#overview-keywords' : ''}}">
     <div class="panel-tags-legend" tooltip="'keywords.display.description' | message">
       <span class="panel-tags-item tags-item legend keyword"></span>
       <span message="keywords.title"></span>
