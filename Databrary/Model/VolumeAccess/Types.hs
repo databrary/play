@@ -40,14 +40,14 @@ volumeAccessShareFull' VolumeAccess{..} =
 getShareFullDefault :: Party -> Permission -> Maybe Bool
 getShareFullDefault targetParty individualAccessLevel =
     if (getPartyId targetParty, individualAccessLevel) == (nobodyId, PermissionPUBLIC)
-    then nobodyPublicDefault
+    then nobodyPublicLegacyDefault
     else generalDefault
   where
     getPartyId :: Party -> Id Party
     getPartyId = partyId . partyRow
     nobodyId :: Id Party
     nobodyId = (getPartyId . accountParty . siteAccount) nobodySiteAuth
-    nobodyPublicDefault = Just True
+    nobodyPublicLegacyDefault = Just True
     generalDefault = Nothing
 
 makeHasFor ''VolumeAccess

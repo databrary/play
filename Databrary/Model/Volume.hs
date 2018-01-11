@@ -11,6 +11,7 @@ module Databrary.Model.Volume
   , getVolumeAlias
   , volumeRowJSON
   , volumeJSON
+  , volumeJSONSimple
   , updateVolumeIndex
   ) where
 
@@ -81,6 +82,9 @@ volumeJSON v@Volume{..} mAccesses =
     <> "permission" JSON..= volumePermission
     <> "publicsharefull" JSON..= volumeAccessPolicyJSON v
     <> "publicaccess" JSON..=? fmap (show . volumePublicAccessSummary) mAccesses
+
+volumeJSONSimple :: JSON.ToObject o => Volume -> JSON.Record (Id Volume) o
+volumeJSONSimple v = volumeJSON v Nothing
 
 volumeAccessPolicyJSON :: Volume -> Maybe Bool
 volumeAccessPolicyJSON v =

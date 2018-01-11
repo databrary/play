@@ -289,9 +289,8 @@ postVolume = action POST (pathAPI </> pathId) $ \arg@(api, vi) -> withAuth $ do
   (v', cite') <- runForm (api == HTML ?> htmlVolumeEdit (Just (v, cite))) $ volumeCitationForm v
   changeVolume v'
   r <- changeVolumeCitation v' cite'
-  accesses <- lookupVolumeAccess v PermissionNONE
   case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSON v' (Just accesses) JSON..<> "citation" JSON..= if r then cite' else cite
+    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSON v' Nothing JSON..<> "citation" JSON..= if r then cite' else cite
     HTML -> peeks $ otherRouteResponse [] viewVolume arg
 
 createVolume :: ActionRoute API
@@ -319,14 +318,13 @@ createVolume = action POST (pathAPI </< "volume") $ \api -> withAuth $ do
     changeVolumeAccess $ VolumeAccess PermissionPUBLIC PermissionPUBLIC Nothing volumeCreatePublicShareFullDefault nobodyParty v
   _ <-
     changeVolumeAccess $ VolumeAccess PermissionSHARED PermissionSHARED Nothing (getShareFullDefault rootParty PermissionSHARED) rootParty v
-  accesses <- lookupVolumeAccess v PermissionNONE
   when (on (/=) (partyId . partyRow) owner u) $ forM_ (partyAccount owner) $ \t ->
     createNotification (blankNotification t NoticeVolumeCreated)
       { notificationVolume = Just $ volumeRow v
       , notificationParty = Just $ partyRow owner
       }
   case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSON v (Just accesses)
+    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSON v Nothing
     HTML -> peeks $ otherRouteResponse [] viewVolume (api, volumeId $ volumeRow v)
 
 viewVolumeLinks :: ActionRoute (Id Volume)
