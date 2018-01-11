@@ -6,9 +6,11 @@ module Databrary.Model.Volume.Types
   , blankVolume
   , volumePermissionPolicy
   , VolumeAccessPolicy(..)
+  , volumeAccessPolicyWithDefault
   ) where
 
 import qualified Data.ByteString as BS
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import Language.Haskell.TH.Lift (deriveLiftMany)
@@ -56,14 +58,16 @@ volumePermissionPolicy :: Volume -> (Permission, VolumeAccessPolicy)
 volumePermissionPolicy Volume{..} =
   ( volumePermission
   , volumeAccessPolicy )
-  {-
-  , case volumePermission of
-      PermissionPUBLIC ->
-        if volumeId volumeRow == Id 365 || volumeName volumeRow == "hardcode"
-        then PublicRestricted
-        else PermLevelDefault
-      _ -> PermLevelDefault )
-  -}
+
+volumeAccessPolicyWithDefault :: Permission -> Maybe Bool -> VolumeAccessPolicy
+volumeAccessPolicyWithDefault perm1 mShareFull =
+  case perm1 of
+    PermissionPUBLIC ->
+      let shareFull = fromMaybe True mShareFull -- assume true because historically volumes were public full
+      in if shareFull then PermLevelDefault else PublicRestricted
+    _ ->
+      PermLevelDefault
+
 
 blankVolume :: Volume
 blankVolume = Volume

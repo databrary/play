@@ -27,13 +27,9 @@ setCreation r mCreate owners perm policy =
   Volume r (fromMaybe (volumeCreation blankVolume) mCreate) owners perm policy
 
 makePermInfo :: Maybe Permission -> Maybe Bool -> (Permission, VolumeAccessPolicy)
-makePermInfo perm1 mShareFull =
-  case perm1 of
-    Just PermissionPUBLIC ->
-      let shareFull = fromMaybe True mShareFull -- assume true because historically volumes were public full
-      in (PermissionPUBLIC, if shareFull then PermLevelDefault else PublicRestricted)
-    _ ->
-      (fromMaybe PermissionNONE perm1, PermLevelDefault)
+makePermInfo mPerm mShareFull =
+  let perm = fromMaybe PermissionNONE mPerm
+  in (perm, volumeAccessPolicyWithDefault perm mShareFull)
 
 makeVolume
   :: ([VolumeOwner] -> Permission -> VolumeAccessPolicy -> a)
