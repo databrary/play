@@ -8,7 +8,7 @@
   <panel id="panel-data" panel-title="data.title" ng-if="checkpublicsharefull" edit-link="{{::volume.checkPermission(page.permission.EDIT) ? volume.editRoute('data') : ''}}" fold>
     <spreadsheet limit="32"></spreadsheet>
   </panel>
-  <panel id="panel-tags" panel-title="tags.title" fold ng-if="::(page.models.Login.isAuthorized() || volume.tags) && checkpublicsharefull" edit-link="{{::volume.checkPermission(page.permission.EDIT) ? volume.editRoute('overview')+'#overview-keywords' : ''}}">
+  <panel id="panel-tags" panel-title="tags.title" fold ng-if="::(page.models.Login.isAuthorized() || volume.tags.length) && checkpublicsharefull" edit-link="{{::volume.checkPermission(page.permission.EDIT) ? volume.editRoute('overview')+'#overview-keywords' : ''}}">
     <div class="panel-tags-legend" tooltip="'keywords.display.description' | message">
       <span class="panel-tags-item tags-item legend keyword"></span>
       <span message="keywords.title"></span>
@@ -20,7 +20,7 @@
     <hr>
     <tags target="volume" edit="page.models.Login.isAuthorized()"></tags>
   </panel>
-  <panel id="panel-comments" panel-title="comments.title" fold ng-if="::(page.models.Login.isAuthorized() || volume.comments.keys.length) && checkpublicsharefull">
+  <panel id="panel-comments" panel-title="comments.title" fold ng-if="::page.models.Login.isAuthorized() || volume.comments.length">
     <volume-comments></volume-comments>
   </panel>
 </article>
