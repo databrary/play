@@ -79,16 +79,12 @@ getAsset :: Permission -> Id Asset -> ActionM AssetSlot
 getAsset p i = do
   mAssetSlot <- lookupAssetSlot i
   assetSlot <- maybeAction mAssetSlot
-  assetExcerpts <- lookupAssetExcerpts assetSlot
   _ <- when (p == PermissionPUBLIC)
          (maybeAction
-            (if volumeIsPublicRestricted ((assetVolume . slotAsset) assetSlot) && not (excerptAccessible assetExcerpts)
+            (if volumeIsPublicRestricted ((assetVolume . slotAsset) assetSlot)
              then Nothing
              else Just ()))
   checkPermission p assetSlot
-  where
-    excerptAccessible :: [Excerpt] -> Bool
-    excerptAccessible exs = (not . null) exs -- is this good enough? how prevent access to unshared part of excerpt
 
 getOrigAsset :: Permission -> Id Asset -> ActionM AssetSlot
 getOrigAsset p i =
