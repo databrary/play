@@ -24,6 +24,15 @@ let
       fi
       cp -R /tmp/solr-6.6.0 .
     fi
+    if [ ! -d "cracklib" ]; then
+      echo download and create cracklib dict
+      cd /tmp
+      wget http://mirror.centos.org/centos/7/os/x86_64/Packages/cracklib-dicts-2.9.0-11.el7.x86_64.rpm
+      rpm2cpio cracklib-dicts-2.9.0-11.el7.x86_64.rpm | cpio -idmv
+      cd -
+      mkdir -p cracklib
+      cp -r /tmp/usr/share/cracklib/pw* cracklib
+    fi
     if [ ! -d "node_modules" ]; then
       echo linking node_modules
       ln -s ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
@@ -62,7 +71,7 @@ let
       };
       # cabal override to enable ghcid (GHCi daemon) development tool
       databrary-dev = overrideCabal databrary (drv: {
-        libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ (with self; [ghcid cabal-install ghciDatabrary nixpkgs.wget]);
+        libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ (with self; [ghcid cabal-install ghciDatabrary nixpkgs.wget nixpkgs.rpm]);
       });
       gargoyle = self.callPackage "${gargoyleSrc}/gargoyle" {};
       gargoyle-postgresql= self.callPackage "${gargoyleSrc}/gargoyle-postgresql" {};
