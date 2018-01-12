@@ -26,9 +26,12 @@ let
     fi
     if [ ! -d "cracklib" ]; then
       echo download and create cracklib dict
+
+      # wget http://mirror.centos.org/centos/7/os/x86_64/Packages/cracklib-dicts-2.9.0-11.el7.x86_64.rpm
+      # rpm2cpio cracklib-dicts-2.9.0-11.el7.x86_64.rpm |
+      cp f.cpio /tmp
       cd /tmp
-      wget http://mirror.centos.org/centos/7/os/x86_64/Packages/cracklib-dicts-2.9.0-11.el7.x86_64.rpm
-      rpm2cpio cracklib-dicts-2.9.0-11.el7.x86_64.rpm | cpio -idmv
+      cpio -idmv f.cpio
       cd -
       mkdir -p cracklib
       cp -r /tmp/usr/share/cracklib/pw* cracklib
@@ -71,7 +74,7 @@ let
       };
       # cabal override to enable ghcid (GHCi daemon) development tool
       databrary-dev = overrideCabal databrary (drv: {
-        libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ (with self; [ghcid cabal-install ghciDatabrary nixpkgs.wget nixpkgs.rpm]);
+        libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ (with self; [ghcid cabal-install ghciDatabrary nixpkgs.wget]);
       });
       gargoyle = self.callPackage "${gargoyleSrc}/gargoyle" {};
       gargoyle-postgresql= self.callPackage "${gargoyleSrc}/gargoyle-postgresql" {};
