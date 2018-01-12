@@ -12,7 +12,7 @@ let
   }) {};
   # Definition of nixpkgs, version controlled by Reflex-FRP
   nixpkgs = reflex-platform.nixpkgs;
-  inherit (nixpkgs) fetchFromGitHub writeScriptBin;
+  inherit (nixpkgs) fetchFromGitHub writeScriptBin cpio;
   # nixpkgs functions used to regulate Haskell overrides
   inherit (nixpkgs.haskell.lib) dontCheck overrideCabal doJailbreak;
   ghciDatabrary = writeScriptBin "ghci-databrary" ''
@@ -23,6 +23,17 @@ let
 	popd > /dev/null
       fi
       cp -R /tmp/solr-6.6.0 .
+    fi
+    if [ ! -d "cracklib" ]; then
+      echo download and create cracklib dict
+      # wget http://mirror.centos.org/centos/7/os/x86_64/Packages/cracklib-dicts-2.9.0-11.el7.x86_64.rpm
+      # rpm2cpio cracklib-dicts-2.9.0-11.el7.x86_64.rpm > tmp/cracklib-dicts-2.9.0-11.el7.x86_64.cpio
+      cp install/cracklib-dicts-2.9.0-11.el7.x86_64.cpio /tmp
+      cd /tmp
+      ${cpio}/bin/cpio -idmv < cracklib-dicts-2.9.0-11.el7.x86_64.cpio
+      cd -
+      mkdir cracklib
+      cp -r /tmp/usr/share/cracklib/pw_dict* cracklib
     fi
     if [ ! -d "node_modules" ]; then
       echo linking node_modules

@@ -14,6 +14,7 @@
 , warp-tls, web-inv-route, xml, zlib, gargoyle, gargoyle-postgresql
 , postgresql-simple
 , nodePackages, nodejs, openssl, dbName ? "databrary-nix-db", jdk
+, cpio
 }:
 mkDerivation rec {
   pname = "databrary";
@@ -91,12 +92,17 @@ mkDerivation rec {
 
     cp transcode transctl.sh $data_outputdir
 
-    cp -r cracklib $data_outputdir
+    # repeated in ghci databrary
+    cp install/cracklib-dicts-2.9.0-11.el7.x86_64.cpio /tmp
+    cd /tmp
+    ${cpio}/bin/cpio -idmv < cracklib-dicts-2.9.0-11.el7.x86_64.cpio
+    cd -
+    mkdir $data_outputdir/cracklib
+    cp -r /tmp/usr/share/cracklib/pw_dict* $data_outputdir/cracklib
+
     mkdir $data_outputdir/solr
     cp -r solr/solr.xml solr/log4j.properties solr/conf $data_outputdir/solr
 
-    # should copy schema dir
-    # start this now...
     cp -r schema $data_outputdir
   '';
 }
