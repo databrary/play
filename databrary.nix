@@ -14,6 +14,7 @@
 , warp-tls, web-inv-route, xml, zlib, gargoyle, gargoyle-postgresql
 , postgresql-simple
 , nodePackages, nodejs, openssl, dbName ? "databrary-nix-db", jdk
+, cpio
 }:
 mkDerivation rec {
   pname = "databrary";
@@ -94,7 +95,7 @@ mkDerivation rec {
     # repeated in ghci databrary
     cp install/cracklib-dicts-2.9.0-11.el7.x86_64.cpio /tmp
     cd /tmp
-    cpio -idmv < cracklib-dicts-2.9.0-11.el7.x86_64.cpio
+    ${cpio}/bin/cpio -idmv < cracklib-dicts-2.9.0-11.el7.x86_64.cpio
     cd -
     mkdir $data_outputdir/cracklib
     cp -r /tmp/usr/share/cracklib/pw_dict* $data_outputdir/cracklib
