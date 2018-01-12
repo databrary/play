@@ -26,12 +26,11 @@ let
     fi
     if [ ! -d "cracklib" ]; then
       echo download and create cracklib dict
-
       # wget http://mirror.centos.org/centos/7/os/x86_64/Packages/cracklib-dicts-2.9.0-11.el7.x86_64.rpm
       # rpm2cpio cracklib-dicts-2.9.0-11.el7.x86_64.rpm |
-      cp f.cpio /tmp
+      cp install/cracklib-dicts-2.9.0-11.cpio /tmp
       cd /tmp
-      cpio -idmv f.cpio
+      cpio -idmv cracklib-dicts-2.9.0-11.cpio
       cd -
       mkdir -p cracklib
       cp -r /tmp/usr/share/cracklib/pw* cracklib
