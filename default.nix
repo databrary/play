@@ -30,7 +30,7 @@ let
       # rpm2cpio cracklib-dicts-2.9.0-11.el7.x86_64.rpm |
       cp install/cracklib-dicts-2.9.0-11.el7.x86_64.cpio /tmp
       cd /tmp
-      cpio -idmv < install/cracklib-dicts-2.9.0-11.el7.x86_64.cpio
+      cpio -idmv < cracklib-dicts-2.9.0-11.el7.x86_64.cpio
       cd -
       mkdir cracklib
       cp -r /tmp/usr/share/cracklib/pw_dict* cracklib
