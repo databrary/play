@@ -91,7 +91,12 @@ mkDerivation rec {
 
     cp transcode transctl.sh $data_outputdir
 
-    cp -r cracklib $data_outputdir
+    # repeated in ghci databrary
+    cp install/f.cpio /tmp
+    cd /tmp
+    cpio f.cpio
+    # mkdir cracklib
+    cp -r usr/.../cracklib/pw* $data_outputdir/cracklib
     mkdir $data_outputdir/solr
     cp -r solr/solr.xml solr/log4j.properties solr/conf $data_outputdir/solr
 
