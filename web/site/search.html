@@ -97,8 +97,8 @@
 
             <div ng-click="expandVolume(volume)" class="volume-list-body" ng-bind="::volume.body | truncate:200"></div>
             <div class="search-volume-containers" ng-if="expanded.volume === volume && !!volume.excerpts">
-              <mark ng-if="volume.excerpts.length < 1">No highlights in this volume.</mark>
-              <volume-excerpts></volume-excerpts>
+              <mark ng-if="volume.excerpts.length < 1 || volume.publicsharefull === false">No highlights in this volume.</mark>
+              <volume-excerpts ng-if="volume.publicsharefull !== false"></volume-excerpts>
             </div>
           </li>
         </ul>
