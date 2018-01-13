@@ -32,7 +32,7 @@ let
       cd /tmp
       ${cpio}/bin/cpio -idmv < cracklib-dicts-2.9.0-11.el7.x86_64.cpio
       cd -
-      mkdir cracklib
+      mkdir -p cracklib
       cp -r /tmp/usr/share/cracklib/pw_dict* cracklib
     fi
     if [ ! -d "node_modules" ]; then
