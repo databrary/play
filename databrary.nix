@@ -97,7 +97,7 @@ mkDerivation rec {
     cd /tmp
     ${cpio}/bin/cpio -idmv < cracklib-dicts-2.9.0-11.el7.x86_64.cpio
     cd -
-    mkdir $data_outputdir/cracklib
+    mkdir -p $data_outputdir/cracklib
     cp -r /tmp/usr/share/cracklib/pw_dict* $data_outputdir/cracklib
 
     mkdir $data_outputdir/solr
