@@ -1,3 +1,5 @@
+html 
+  overflow-x: hidden;
 .logo-white
   width 392px
   height 80px
@@ -138,9 +140,97 @@
     -webkit-transform rotate(135deg)
     transform rotate(135deg)
 
+.stream
+  li:before
+    background-color transparent
+  .block
+    border 1px solid #999
+    &.photo
+      background-color #b2ddd4
+    &.promo
+      &.light
+        background-color #fadecc
+        &:hover
+          background-color rgba(247, 171, 122, 1)
 
+.stream .block, .stream .block.social.light
+  background-color #000
 
+.home-tags
+  margin-top 100px
 
+.stream .block.features::before, .stream .block.news::before
+  background-color rgba(255, 255, 255, 0)
+
+.stream-viewport:not(.mobile) .stream .block.features:hover::before, .stream-viewport:not(.mobile) .stream .block.news:hover::before
+  background-color rgba(255, 255, 255, 0)
+
+.stream .block.promo.dark:hover, .stream .block.social.dark:hover
+  background-color rgba(247, 171, 122, 1)
+
+.stream .block span, .stream .block span a
+  color #333
+
+.stream-nav
+  &.left
+    &::before
+      font-size 50px
+      font-weight bold
+      position relative
+      top 70px
+      left 6.3rem
+      content '\3C'
+      color #57068c
+  &.right
+    &::before
+      font-size 50px
+      font-weight bold
+      position relative
+      top 70px
+      right -1.9rem
+      content '\3E'
+      color #57068c
+.stream .asset-display
+  padding 10px
+.stream .asset-display img, .stream .asset-display video
+  max-height 417px
+
+.video-container
+  padding 10px
+
+.asset-display
+  &:hover
+    cursor pointer
+
+.white-tile
+  background-color #fff !important
+  .video-container
+    padding 20px 0
+  .asset-display
+    background-color #fff
+.stream .ord-1
+  width 639px
+  height 442px
+.stream .ord-2
+  width 231px 
+  height 442px
+h2
+  &.header
+    text-align center
+    margin-bottom 40px
+    font-weight bold
+    font-family "Lucida Sans Unicode","Lucida Grande",sans-serif
+    font-size 2.7em
+
+div
+  &.p-container
+    padding 160px 0
+    background-color #e5e5e5
+
+.p-container
+  .header
+    margin-bottom 40px
+    
 
 
 
