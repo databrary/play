@@ -1,11 +1,59 @@
 <article class="view home-view">
-  <div class="wrap">
-    <div class="row">
-      <div class="home-logo">
-        <a ng-href="{{::page.router.index()}}" title="Databrary: An Open Data Library"><img ng-if="::!page.constants.sandbox" src="/web/images/logo/databrary-nav.svg"><img ng-if="::page.constants.sandbox" src="/web/images/logo/databrary-demo.svg"></a>
+  <div class="home-bigbuttons section">
+    <div class="heading">
+      <a ng-href="{{::page.router.index()}}" title="Databrary: An Open Data Library">
+        <div class="logo-white"></div>
+      </a>
+      Video data library for behavioral scientists
+    </div>
+    <div class="login-register">
+      <a ng-href="{{::page.router.login()}}">
+        <button class="login-button">Login</button>
+      </a>
+      <a ng-href="{{::page.router.register()}}">
+        <button class="register-button">Register</button>
+      </a>
+    </div>
+    <div class="home-max-width">
+      <div class="green-top">
+        <p><strong>Find Clips</strong>
+          <br />
+          Search for video and audio exemplars for teaching and presentations and to learn about procedures
+        </p>
+      </div>
+      <div class="green-top">
+        <p><strong>Archive Data</strong>
+          <br />
+          Permanently store all your project information
+        </p>
+      </div>
+      <div class="green-top">
+        <p><strong>Share Data</strong>
+          <br />
+          Improve transparency and reproducibility in the behavioral sciences by sharing your videos, data, and documenting your procedures
+        </p>
+      </div>
+      <div class="green-top">
+        <p><strong>Reuse Data</strong>
+          <br />
+          Use other researchers' data to answer new questions or increase sample size
+        </p>
       </div>
     </div>
+    <div class="arrow-container"><a class="arrow-a"><span class="arrow-down"></span></a></div>
   </div>
+
+
+
+
+
+
+
+
+
+
+
+ <!---->
   <div class="home-bigbuttons">
     <div class="bigbuttons-text">
       <p>Databrary is a video data library for developmental science.
