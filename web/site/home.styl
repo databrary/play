@@ -204,6 +204,10 @@ html
 .stream .asset-display img, .stream .asset-display video
   max-height 417px
 
+.stream .asset-display video
+  @media screen and (max-width:grid-mobile-width)
+    max-width 90%
+
 .video-container
   padding 10px
 
@@ -220,22 +224,36 @@ html
 .stream .ord-1
   width 639px
   height 442px
+  @media screen and (max-width:grid-mobile-width)
+    width 447.3px
+    height 309.4px
 .stream .ord-2
   width 231px 
   height 442px
+  @media screen and (max-width:grid-mobile-width)
+    width 161.7px
+    height 309.4px
 .stream .ord-3
   width 462px
   height 442px
+  @media screen and (max-width:grid-mobile-width)
+    width 323.4px
+    height 309.4px
 .stream .ord-4
   height 217px
   background-color #fff !important
+  @media screen and (max-width:grid-mobile-width)
+    height 151.9px
 h2
   &.header
+    padding 0px 15px
     text-align center
     margin-bottom 40px
     font-weight bold
     font-family "Lucida Sans Unicode","Lucida Grande",sans-serif
     font-size 2.7em
+    @media screen and (max-width:grid-mobile-width)
+      font-size 2em
 
 div
   &.p-container
@@ -245,4 +263,289 @@ div
 .p-container
   .header
     margin-bottom 40px
+
+.stream-viewport
+  position relative
+  overflow hidden
+  width 100%
+  &.mobile
+    overflow scroll
+    -webkit-overflow-scrolling touch
+  *
+    font-family "Lucida Sans Unicode", "Lucida Grande", sans-serif
+    box-sizing border-box
+    text-rendering optimizeLegibility
+    -webkit-font-smoothing antialiased
+    font-smoothing antialiased
+  &:not(.mobile)
+    .stream-viewport
+      &:not(.mobile)
+        .stream
+          .block
+            &.photo
+              a
+                display block
+                width 100%
+                height 100%
+                cursor pointer
+    .stream
+      .block
+        &.promo
+          &:hover
+            &::before
+              background-image url('https://www.nyu.edu/etc/designs/nyuseventy/clientlib/assets/img/promo_corner_white.svg')
+        &.news
+          &:hover
+            &::before
+              background-color rgba(0, 0, 0, .55)
+              background-image url('https://www.nyu.edu/etc/designs/nyuseventy/clientlib/assets/img/promo_corner_white.svg')
+
+.stream
+  font-family arial
+  box-sizing border-box
+  width 332.8rem
+  height 31.33333333333333rem
+  margin 0
+  padding 0
+  list-style none
+  background-color #e5e5e5
+  text-rendering optimizeLegibility
+  -webkit-font-smoothing antialiased
+  font-smoothing antialiased
+  .photo
+    span
+      display none !important
+  .block
+    font-size 1.33333333333333rem
+    line-height 1.33333333333333rem
+    position relative
+    display inline-block
+    float left
+    margin-right .4rem
+    color #fff
+    background-color #000
+    overflow hidden
+    background-repeat no-repeat
+    background-position 50%
+    background-size cover
+    &.features
+      width calc(100% - .4rem)
+      height 100%
+      span
+        font-size 2.666666666666667rem
+        font-weight 600
+        line-height 3.33333333333333rem
+        position absolute
+        top 42.5%
+        left 1.666666666666667rem
+        display block
+        width auto
+        height auto
+        &::before
+          position absolute
+          top -1.33333333333333rem
+          left .0666666666666667rem
+          display block
+          width 5.0666666666666667rem
+          height .4rem
+          content ''
+          background-color #fff
+        a
+          line-height 3.33333333333333rem
+    &.double-h
+      width calc(100% - .4rem)
+      height calc(50% - .2rem)
+    &.double-v
+      width calc(100% - .4rem)
+      height 100%
+    &.single
+      height calc(50% - .2rem)
+    &.promo
+      &.dark
+        background-color #f7c9ab
+      &.light
+        background-color #f7c9ab
+    &.social
+      text-indent 0
+      background-image none
+      &.dark
+        background-color #f7c9ab
+      &.light
+        background-color #25aae1
+    span
+      font-weight 600
+      position absolute
+      z-index 1
+      top 0
+      left 0
+      display table
+      width 100%
+      height 100%
+      a
+        display table-cell
+        overflow hidden
+        max-height 100%
+        padding 0
+        vertical-align middle
+        text-decoration none
+  .col-1
+    .block
+      margin-bottom .4rem
+      &.single
+        width calc(100% - .4rem)
+      &:last-child
+        margin-bottom 0
+  .col-2
+    .block
+      margin-bottom .4rem
+      &.single
+        width calc(50% - .4rem)
+    & > *
+      margin-bottom 0
+  li
+    display inline-block
+    float left
+    height 31.33333333333333rem
+    margin-top 0
+    background-color #e5e5e5
+
+.stream .block.news::before,
+.stream .block.promo::before
+  position absolute
+  top 0
+  left 0
+  display block
+  width 100%
+  height 100%
+  content ''
+  cursor pointer
+  background url('https://www.nyu.edu/etc/designs/nyuseventy/clientlib/assets/img/promo_corner_transparent_white.svg') no-repeat bottom right
+  background-size 2.666666666666667rem
+
+.stream .block span,
+.stream .block span a
+  color #333
+
+.stream .block.promo span,
+.stream .block.news span,
+.stream .block.social span
+  width 100%
+  padding .666666666666667rem 5%
+  text-align center
+  vertical-align middle
+
+.stream .block.promo span,
+.stream .block.promo span a
+  font-size 1.2rem
+  font-weight 600
+  line-height 200%
+  @media screen and (max-width:grid-mobile-width)
+    font-size: 0.9rem;
+    line-height: 130%;
+
+.stream .block.news span,
+.stream .block.news span a,
+.stream .block.social span,
+.stream .block.social span a
+  font-size 1rem
+  font-weight 400
+  line-height 200%
+
+.stream .block.news span,
+.stream .block.news span a
+  font-family 'Mercury SSm A', 'Mercury SSm B', 'MercuryTextG2', serif
+
+.stream-container
+  position relative
+  .stream-nav
+    position absolute
+    z-index 2
+    top calc(50% - 5.2rem)
+    @media screen and (max-width:grid-mobile-width)
+      top 70px
+    right -10.666666666666667rem
+    left -10.666666666666667rem
+    display block
+    width 10.666666666666667rem
+    height 10.666666666666667rem
+    transition all 100ms ease-in-out
+    opacity 0
+    border-radius 50%
+    background-color #fff
+  &:hover
+    .stream-nav
+      opacity .6
+      &:hover
+        cursor pointer
+        opacity .7
+      &.left
+        right auto
+        left -5.33333333333333rem
+      &.right
+        right -5.33333333333333rem
+        left auto
+
+.stream,
+.stream li,
+.stream .block
+  max-height 31.33333333333333rem
+
+
+
+.testimonial-container
+  padding 100px 0 180px 0
+  background-color #fadbc7
+  p
+    color #666
+    text-align left
+    strong
+      font-family "Lucida Sans Unicode","Lucida Grande",sans-serif !important
+      color #2c3e51
+
+.testimonial
+  padding 0px 20px
+  max-width 80%
+  margin 0 auto
+  padding 40px 0
+  clear both
+  display none
+  height 300px
+  @media screen and (max-width:grid-tablet-width)
+    height auto
+  cursor pointer
+  strong
+    font-size 26px
+    font-weight normal
+  .text
+    margin-top 30px
+    vertical-align top
+    font-size 1.1em
+
+.alignleft, .alignright
+  width 200px
+  height 200px
+  border-radius 50%
+  margin-bottom 30px
+
+.alignleft
+  float left
+  margin-right 50px
+  @media screen and (max-width:grid-mobile-width)
+    float none
+    margin 0 auto
+
+.alignright
+  float right
+  margin-left 50px
+  @media screen and (max-width:grid-mobile-width)
+    float none
+    margin 0 auto
+
+.center-container 
+  @media screen and (max-width:grid-mobile-width)
+    width 100%
+    text-align center
+    height 220px
+
+
 
