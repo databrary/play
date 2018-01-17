@@ -230,7 +230,11 @@
     <h2 class="header">Teachers and researchers rely on Databrary</h2>
     <div class="testimonials stream-container">
       <div class="testimonial">
-        <div class="center-container"><img src="http://kathyhirshpasek.com/wp-content/themes/genesis-sample/images/kathy-hirsh-pasek-headshot.jpg" class="alignleft"></div>
+        <div class="center-container">
+          <a href="/party/546">
+            <img src="http://kathyhirshpasek.com/wp-content/themes/genesis-sample/images/kathy-hirsh-pasek-headshot.jpg" class="alignleft">
+          </a>
+        </div>
         <div class="text">
           <p><strong>Accessible and sharable data for secondary analysis</strong></p>
           <p>
@@ -240,17 +244,25 @@
         </div>
       </div>
       <div class="testimonial">
-        <div class="center-container"><img src="https://mlsvc01-prod.s3.amazonaws.com/f5f1847d001/3068d0e6-1705-4d84-bb25-a629a6c5dddf.jpg?ver=1458588683000" class="alignright"></div>
+        <div class="center-container">
+          <a href="/party/11">
+            <img src="https://mlsvc01-prod.s3.amazonaws.com/f5f1847d001/3068d0e6-1705-4d84-bb25-a629a6c5dddf.jpg?ver=1458588683000" class="alignright">
+          </a>
+        </div>
         <div class="text">
           <p><strong>Faster collaboration</strong></p>
           <p>
           We use Databrary to make coding across labs - and across countries - easier and faster. For example, our collaborator in Korea posts videos he collected that students here then download and code. We don't have to worry about waiting for secure access to those files, and he gets the coding files faster, too.
           </p>
-          <p>&nbsp; &nbsp; <em>&mdash; Cathie Tamis-LeMonda, Professor of Applied Psychology, NYU</em></p>
+          <p>&nbsp; &nbsp; <em>&mdash; Catherine Tamis-LeMonda, Professor of Applied Psychology, NYU</em></p>
         </div>
       </div>
       <div class="testimonial">
-        <div class="center-container"><img src="http://psych.nyu.edu/gureckis/gureckis.jpg" class="alignleft"></div>
+        <div class="center-container">
+          <a href="/party/546">
+            <img src="http://psych.nyu.edu/gureckis/gureckis.jpg" class="alignleft">
+          </a>
+        </div>
         <div class="text">
           <p><strong>A secure and confidential framework to meet IRB concerns</strong></p>
           <p>
@@ -268,14 +280,14 @@
   </div>
   <!--testimonials ends-->
   <!--stat begins-->
-  <div class="home-bigbuttons section" style="padding: 20px 20px 50px 20px !important;">
+  <div class="home-bigbuttons section">
     <div class="bigbuttons-text">
       <div class="view-center-block">
         <ul class="flat hide-mobile inline-block">
-          <li><h2 class="count home-stats-num">{{::stats.authorized[page.permission.EDIT] | number:0}}</h2> <small class="inline-block">investigators</small></li>
-          <li><h2 class="count home-stats-num">{{::stats.authorized[page.permission.READ] | number:0}}</h2> <small class="inline-block">affiliates</small></li>
-          <li><h2 class="count home-stats-num">{{::stats.authorized[page.permission.ADMIN] | number:0}}</h2> <small class="inline-block">institutions</small></li>
-          <li><h2 class="count home-stats-num">{{::stats.duration/(1000*60*60) | number:0}}</h2> <small class="inline-block">hours of recordings</small></li>
+          <li><h2 class="count home-stats-num">{{::stats.authorized[page.permission.EDIT] | number:0}}</h2>&nbsp; <bluetext class="inline-block">investigators</bluetext></li>
+          <li><h2 class="count home-stats-num">{{::stats.authorized[page.permission.READ] | number:0}}</h2>&nbsp; <bluetext class="inline-block">affiliates</bluetext></li>
+          <li><h2 class="count home-stats-num">{{::stats.authorized[page.permission.ADMIN] | number:0}}</h2>&nbsp; <bluetext class="inline-block">institutions</bluetext></li>
+          <li><h2 class="count home-stats-num">{{::stats.duration/(1000*60*60) | number:0}}</h2>&nbsp; <bluetext class="inline-block">hours of recordings</bluetext></li>
         </ul>
       </div>
       </div>
