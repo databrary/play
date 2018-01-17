@@ -173,24 +173,31 @@ html
 .stream .block span, .stream .block span a
   color #333
 
+@font-face
+  font-family 'icomoon'
+  font-weight normal
+  font-style normal
+  src url('/web/icons/fonts/icomoon.eot')
+  src url('/web/icons/fonts/icomoon.eot') format('embedded-opentype'), url('/web/icons/fonts/icomoon.woff') format('woff'), url('/web/icons/fonts/icomoon.ttf') format('truetype')
+
 .stream-nav
   &.left
     &::before
-      font-size 50px
-      font-weight bold
+      font-family icomoon
+      font-size 2.666666666666667rem
       position relative
-      top 70px
-      left 6.3rem
-      content '\3C'
+      top calc(50% - 1rem)
+      left 5.666666666666667rem
+      content '\e81c'
       color #57068c
   &.right
     &::before
-      font-size 50px
-      font-weight bold
+      font-family icomoon
+      font-size 2.666666666666667rem
       position relative
-      top 70px
-      right -1.9rem
-      content '\3E'
+      top calc(50% - 1rem)
+      right -1.666666666666667rem
+      content '\e811'
       color #57068c
 .stream .asset-display
   padding 10px
@@ -238,138 +245,4 @@ div
 .p-container
   .header
     margin-bottom 40px
-    
 
-
-
-.home-logo
-  margin 0
-  margin-top 1
-  @media screen and (min-width:grid-mobile-width+1)
-    float left
-  @media screen and (max-width:grid-mobile-width)
-    text-align center
-  a
-    color black
-    img
-      width 260px
-      height 51px
-  div
-    font-size 1.2em
-    line-height 100%
-    display block
-    vertical-align middle
-    margin-left 2
-    margin-right 2
-.home-panel
-  margin-bottom 1
-  box-shadow box-shadow-def
-  border-top solid b3 green52
-
-.home-feature-inner
-  position relative
-  background-color black
-
-.home-feature-thumb
-  width 100%
-  max-width 720px
-  display block
-  margin-right auto
-  margin-left auto
-  margin-bottom 0
-
-.home-section-text
-  position relative
-  background white
-  padding f6 f3
-  width 100%
-
-.home-sections-title
-  font-weight bold
-  text-transform uppercase
-  font-size b23
-  line-height b23*1.2
-  display inline-block
-  padding-bottom b3
-  .icon
-    background-size b23 b23
-    size b23
-    margin-right b4
-
-.home-feature-investigators
-  font-size f90
-
-  ul
-    margin-top 0
-    display inline-block
-
-    li
-      display inline-block
-
-.home-supportad
-  margin-left b1*2
-  margin-right b1*2
-  padding b23
-  border-color orange52
-  @media screen and (max-width: grid-tablet-width)
-    font-size 0.8em
-    line-height 1.2em
-    margin-right 0
-    margin-left 0
-
-.home-tags
-  overflow hidden
-  ol
-    padding 0
-  @media screen and (min-width: grid-tablet-width+1)
-    padding-left b1*2
-
-.home-tags-item
-  display block
-  margin-bottom f2
-  max-width 250px
-  overflow hidden
-  text-overflow ellipsis
-  white-space nowrap
-  color black
-  &:hover
-    background-color neutral51
-
-  &.keyword
-    border 1px solid orange52
-
-
-
-.home-stats-num
-  margin-left b8
-  color orange53
-  text-align right
-  @media screen and (max-width: grid-tablet-width+1)
-    font-size 0.8em
-
-.home-activity
-  dl.home-section-text
-    width 100%
-    dt
-      float right
-      margin-top b3
-      font-weight normal
-    dd
-      margin-left 0
-      margin-top b3
-      border-bottom 1px pale solid
-      p
-        margin-bottom 0
-        color grey
-    dd.home-activity-volume
-      padding-bottom b2
-      .volume-name
-        font-weight bold
-      .volume-thumb
-        margin-right b4
-        margin-bottom b3
-        width 2.3
-        float left
-      .volume-list-investigators
-        ul
-          padding-left 0
