@@ -1,4 +1,4 @@
-<article class="view home-view">
+<article class="view home-view" home-container>
   <div class="home-bigbuttons section">
     <div class="heading">
       <a ng-href="{{::page.router.index()}}" title="Databrary: An Open Data Library">
@@ -271,9 +271,9 @@
           <p>&nbsp; &nbsp; <em>&mdash; Todd Gureckis, Associate Professor of Psychology, NYU</em></p>
         </div>
       </div>
-      <div class="stream-nav left" onclick="plusDivs(-1)">
+      <div class="stream-nav left" ng-click="plusDivs(-1)">
       </div>
-      <div class="stream-nav right" onclick="plusDivs(+1)">
+      <div class="stream-nav right" ng-click="plusDivs(+1)">
       </div>
     </div>
     <div class="arrow-container"><a class="arrow-a"><span class="arrow-down"></span></a></div>
@@ -298,5 +298,5 @@
       <div id="map_canvas" class="mapping"></div>
   </div>
   <!--map ends-->
-  <script type="text/javascript" src="/web/lib/home-slider.js"></script>
+  <script src="/web/asset/initmap.js"></script>
 </article>
