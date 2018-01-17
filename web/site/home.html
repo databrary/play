@@ -1,139 +1,302 @@
 <article class="view home-view">
-  <div class="wrap">
-    <div class="row">
-      <div class="home-logo">
-        <a ng-href="{{::page.router.index()}}" title="Databrary: An Open Data Library"><img ng-if="::!page.constants.sandbox" src="/web/images/logo/databrary-nav.svg"><img ng-if="::page.constants.sandbox" src="/web/images/logo/databrary-demo.svg"></a>
-      </div>
+  <div class="home-bigbuttons section">
+    <div class="heading">
+      <a ng-href="{{::page.router.index()}}" title="Databrary: An Open Data Library">
+        <div class="logo-white"></div>
+      </a>
+      Video data library for behavioral scientists
     </div>
-  </div>
-  <div class="home-bigbuttons">
-    <div class="bigbuttons-text">
-      <p>Databrary is a video data library for developmental science.
-        <br>Share videos, audio files, and related metadata. Discover more, faster.
-      </p>
-      <div class="view-center-block">
-        <ul class="flat hide-mobile inline-block">
-          <li>
-            <span class="home-stats-num">{{::stats.authorized[page.permission.EDIT] | number:0}} </span>
-            <small class="inline-block">investigators</small>
-          </li>
-          <li>
-            <span class="home-stats-num">{{::stats.authorized[page.permission.READ] | number:0}} </span>
-            <small class="inline-block">affiliates</small>
-          </li>
-          <li>
-            <span class="home-stats-num">{{::stats.authorized[page.permission.ADMIN] | number:0}} </span>
-            <small class="inline-block">institutions</small>
-          </li>
-          <hr class="home-stats-split">
-          <li>
-            <span class="home-stats-num">{{::stats.volumes | number:0}} </span>
-            <small class="inline-block">total<br>volumes </small>
-          </li>
-          <li>
-            <span class="home-stats-num">{{::stats.shared | number:0}} </span>
-            <small class="inline-block">shared<br>volumes</small>
-          </li>
-          <li>
-            <span class="home-stats-num">{{::stats.assets | number:0}} </span>
-            <small class="inline-block">files </small>
-          </li>
-          <li>
-            <span class="home-stats-num">{{::stats.duration/(1000*60*60) | number:0}} </span>
-            <small class="inline-block">hours of <br>recordings </small>
-          </li>
-          <li>
-            <span class="home-stats-num">{{::stats.records[page.constants.categoryName.participant.id] | number:0}} </span>
-            <small class="inline-block">participants</small>
-          </li>
-          <hr>
-        </ul>
-      </div>
+    <div class="login-register">
+      <a ng-href="{{::page.router.login()}}">
+        <button class="login-button">Login</button>
+      </a>
+      <a ng-href="{{::page.router.register()}}">
+        <button class="register-button">Register</button>
+      </a>
     </div>
-    <div class="bigbuttons-container">
-      <div class="bigbutton" ng-if="::!page.models.Login.isLoggedIn()">
-        <img src="/web/icons/login.svg"/>
-        <span class="button-title">
-          <a ng-href="{{::page.router.login()}}">Login</a> or 
-          <a ng-href="{{::page.router.register()}}">Register</a></span>
-      </div>
-      <a ng-href="{{::page.router.profile()}}" ng-if="::page.models.Login.isLoggedIn()">
-        <div class="bigbutton">
-          <img src="/web/icons/home-profile.svg"/>
-          <span class="button-title">Your Profile</span>
-          <p class="hide-mobile">Manage your data and authorizations.</p>
+    <div class="home-max-width">
+      <a ng-href="{{::page.router.search()}}?volume">
+        <div class="green-top">
+          <p><strong>Find Clips</strong>
+            <br />
+            Search for video and audio exemplars for teaching and presentations and to learn about procedures
+          </p>
+        </div>
+      </a>
+      <a ng-href="{{::page.router.profile()}}">
+        <div class="green-top">
+          <p><strong>Archive Data</strong>
+            <br />
+            Permanently store all your project information
+          </p>
+        </div>
+      </a>
+      <a ng-href="{{::page.router.profile()}}">
+        <div class="green-top">
+          <p><strong>Share Data</strong>
+            <br />
+            Improve transparency and reproducibility in the behavioral sciences by sharing your videos, data, and documenting your procedures
+          </p>
         </div>
       </a>
       <a ng-href="{{::page.router.search()}}?volume">
-        <div class="bigbutton">
-          <img src="/web/icons/home-searchstudy.svg"/>
-          <span class="button-title">Browse Data</span>
-        </div>
-      </a>
-      <a ng-href="{{::page.router.search()}}?volume=false&f.party_authorization={{::page.constants.permission.EDIT}}&f.party_is_institution=false">
-        <div class="bigbutton">
-          <img src="/web/icons/home-userstudy.svg"/>
-          <span class="button-title">Browse People</span>
+        <div class="green-top">
+          <p><strong>Reuse Data</strong>
+            <br />
+            Use other researchers' data to answer new questions or increase sample size
+          </p>
         </div>
       </a>
     </div>
+    <div class="arrow-container"><a class="arrow-a"><span class="arrow-down"></span></a></div>
   </div>
-  <div class="wrap">
-    <div class="row">
-      <div class="col-desktop-10 col-tablet-6 col-mobile-6">
-        <article class="home-panel home-feature row hide-mobile" ng-if="::volume">
-          <div class="home-feature-inner">
-            <img ng-src="{{::volume.thumbRoute()}}" class="home-feature-thumb clickable" ng-click="page.$location.url(volume.route())">
-
-            <div class="home-section-text">
-              <div class="home-sections-title"><span class="icon volume"></span><span message="welcome.featured"></span></div><br>
-              <a class="small" ng-href="{{::volume.route()}}" ng-bind="::volume.name"></a>
-
-              <div class="home-feature-investigators">
-                <volume-owners></volume-owners>
+  <div class="p-container section">
+  <h2 class="header">Databrary Video Clips</h2>
+    <!-- NYU Slider -->
+    <div class="streamall">
+      <!--  stream  -->
+      <div class="stream-container">
+        <div class="stream-nav left">
+        </div>
+        <div class="stream-nav right">
+        </div>
+        <div class="stream-viewport" id="stream-viewport">
+          <ul class="stream">
+            <!-- one -->
+            <li class="col-f slug1 ord-1">
+            <div id="first-tile" class="block features">
+              
+              <div class="asset-display" onclick="window.location='https://nyu.databrary.org/volume/112';">
+                <video controls="" seek="clip"><source ng-src="https://nyu.databrary.org/slot/9860/-/asset/16631/download?inline=true" type="video/mp4" src="https://nyu.databrary.org/slot/9860/-/asset/16631/download?inline=true"></video>
               </div>
             </div>
-          </div>
-        </article>
-        <article class="home-panel home-activity row">
-          <span class="home-section-text home-sections-title"><span class="icon activity"></span>Recent Activity</span>
-          <dl class="home-section-text">
-            <dt class="small" ng-repeat-start="act in ::activity">
-              <time datetime="{{::act.time | date:'yyyy-MM-dd HH:mm:ss Z'}}" pubdate>
-                {{::act.time | date}}
-              </time>
-            </dt>
-            <dd class="home-activity-volume" ng-if="::act.volume" ng-init="volume=act.volume">
-              <p class="small">New shared data</p>
-              <img class="volume-thumb" ng-src="{{::volume.thumbRoute(72)}}">
-              <div>
-                <a class="volume-name" ng-href="{{::volume.route()}}" ng-bind="::volume.name"></a>
-                <div class="volume-list-investigators">
-                  <volume-owners></volume-owners>
-                </div>
+            </li>
+            <li class="col-1 slug1 ord-2">
+            <div class="block single promo dark " style="">
+              <span>
+              <a href="/content/nyu/en/admissions/undergraduate-admissions.html" data-title="Join our pre-conference lunch at CDS in Portland on 10/12" class="ui-link">Join our pre-conference lunch at CDS in Portland on 10/12</a>
+              </span>
+            </div>
+            
+            <div class="block single white-tile">
+              <div class="asset-display" onclick="window.location='https://nyu.databrary.org/volume/81';">
+                <video controls="" seek="clip"><source ng-src="https://nyu.databrary.org/slot/11680/0,24500/asset/41871/download?inline=true" type="video/mp4" src="https://nyu.databrary.org/slot/11680/0,24500/asset/41871/download?inline=true"></video>
               </div>
-            </dd>
-            <dd ng-repeat-end ng-if="::act.party" ng-init="party=act.party">
-              <p class="small">New authorized <span ng-if="::party.institution">institution</span><span ng-if="::!party.institution">investigator</span></p>
-              <portrait></portrait>
-            </dd>
-          </dl>
-        </article>
+            </div>
+            </li>
+            <li class="col-2 slug1 ord-3">
+            
+            <div class="block double-h white-tile" style="">
+              <div class="asset-display" onclick="window.location='https://nyu.databrary.org/volume/38';">
+                <video controls="" seek="clip" style="max-width: 82%;"><source ng-src="https://nyu.databrary.org/slot/9817/-/asset/11240/download?inline=true" type="video/mp4" src="https://nyu.databrary.org/slot/9817/-/asset/11240/download?inline=true"></video>
+              </div>
+              
+            </div>
+            
+            <div class="block single photo">
+              <a href="/content/nyu/en/about.html" class="ui-link">
+              <span>something</span>
+              </a>
+            </div>
+            <div class="block single promo light">
+              <span><a href="https://www.facebook.com/NYU" data-title="Remember to cite Databrary &amp; the volume DOI in your publications &amp; presentations." class="ui-link">Remember to cite Databrary &amp; the volume DOI in your publications &amp; presentations.</a></span>
+            </div>
+            </li>
+            <li class="col-1 slug1 ord-2">
+            <div class="block single promo light">
+              <span>
+              <a href="/content/nyu/en/academics/academic-programs.html" data-title="Failure to reproduce = Opportunity to learn about contextual variation" class="ui-link">Failure to reproduce = Opportunity to learn about contextual variation</a>
+              </span>
+            </div>
+            
+            <div class="block single white-tile">
+              <div class="asset-display" onclick="window.location='https://nyu.databrary.org/volume/27';">
+                <video controls="" seek="clip"><source ng-src="https://nyu.databrary.org/slot/11141/0,5000/asset/37968/download?inline=true" type="video/mp4" src="https://nyu.databrary.org/slot/11141/0,5000/asset/37968/download?inline=true"></video>
+              </div>
+            </div>
+            </li>
+            <!-- two -->
+            <li class="col-f slug2 ord-1">
+            
+            <div id="first-tile" class="block features">
+              <div class="asset-display" onclick="window.location='https://nyu.databrary.org/volume/34';">
+                <video controls="" seek="clip"><source ng-src="https://nyu.databrary.org/slot/9826/-/asset/11254/download?inline=true" type="video/mp4" src="https://nyu.databrary.org/slot/9826/-/asset/11254/download?inline=true"></video>
+              </div>
+              
+            </div>
+            </li>
+            <li class="col-1 slug2 ord-2">
+            <div class="block single promo dark ">
+              <span>
+              <a href="https://nyu.databrary.org" data-title="See our new publications" class="ui-link">See our new publications</a>
+              </span>
+            </div>
+            <div class="socialstream block dark single social instagram" >
+              <a href="https://nyu.databrary.org/volume/209">
+                <img src="https://nyu.databrary.org/slot/10661/-/asset/32204/download?inline=true"/>
+              </a>
+            </div>
+            </li>
+            <li class="col-2 slug2 ord-3">
+            
+            <div class="block single news" style="">
+              <div class="asset-display" onclick="window.location='https://nyu.databrary.org/volume/27';">
+                <video controls="" seek="clip"><source ng-src="https://nyu.databrary.org/slot/9825/-/asset/11637/download?inline=true" type="video/mp4" src="https://nyu.databrary.org/slot/9825/-/asset/11637/download?inline=true"></video>
+              </div>
+            </div>
+            <div class="block single promo light">
+              <span>
+              <a href="/content/nyu/en/admissions/financial-aid-and-scholarships.html" data-title="1 video = 10,000 words. Post procedural videos to make your methods transparent. " class="ui-link">1 video = 10,000 words. Post procedural videos to make your methods transparent. </a>
+              </span>
+            </div>
+            
+            <div class="block double-h photo">
+              <a href="/content/nyu/en/academics/academic-programs.html" class="ui-link">
+              <span>something</span>
+              </a>
+            </div>
+            </li>
+            <li class="col-1 slug2 ord-2">
+            
+            <div class="block single white-tile">
+              <div class="asset-display" onclick="window.location='https://nyu.databrary.org/volume/46';">
+                <video controls="" seek="clip"><source ng-src="https://nyu.databrary.org/slot/9861/-/asset/11368/download?inline=true" type="video/mp4" src="https://nyu.databrary.org/slot/9861/-/asset/11368/download?inline=true"></video>
+              </div>
+            </div>
+            <div class="block single promo dark " style="">
+              <span>
+              <a href="/content/nyu/en/students/student-information-and-resources/career-development-and-jobs.html" data-title="Keep your project organized - store materials and demographics with your video data." class="ui-link">Keep your project organized - store materials and demographics with your video data.</a>
+              </span>
+            </div>
+            </li>
+            <!-- three -->
+            <li class="col-f slug3 ord-1">
+            
+            <div id="first-tile" class="block features" style="">
+              <a href="https://nyu.databrary.org/volume/70">
+                <img src="https://nyu.databrary.org/slot/11883/-/asset/45810/download?inline=true"/>
+              </a>
+            </div>
+            </li>
+            <li class="col-2 slug3 ord-3">
+            <div class="block single promo light" style="">
+              <span>
+              <a href="/content/nyu/en/students/student-information-and-resources/bills-payments-and-refunds/tuition-and-fee-rates.html" data-title="Databrary News" class="ui-link">Databrary News</a>
+              </span>
+            </div>
+            
+            <div class="block single white-tile">
+              <div class="asset-display" onclick="window.location='https://nyu.databrary.org/volume/236';">
+                <video controls="" seek="clip" ><source ng-src="https://nyu.databrary.org/slot/9/1013875,1191103/asset/13/download?inline=true" type="video/mp4" src="https://nyu.databrary.org/slot/9/1013875,1191103/asset/13/download?inline=true"></video>
+              </div>
+            </div>
+            <div class="block light ord-4">
+              <a href="https://nyu.databrary.org/volume/272">
+                <img src="https://nyu.databrary.org/slot/14554/-/asset/61306/download?inline=true" />
+              </a>
+            </div>
+            </li>
+            <li class="col-1 v slug3 ord-2">
+            
+            <div class="block double-v photo">
+              <a href="/content/nyu/en/life.html" class="ui-link">
+              <span>something</span>
+              </a>
+            </div>
+            </li>
+            <li class="col-1 slug3 ord-2">
+            <div class="block single promo dark">
+              <span>
+              <a href="/content/nyu/en/students/student-information-and-resources/housing-and-dining/on-campus-living.html" data-title="Databrary News" class="ui-link">Databrary News</a>
+              </span>
+            </div>
+            
+            <div class="block single white-tile" style="padding: 45px 0;">
+              <a href="https://nyu.databrary.org/volume/336">
+                 <img ng-src="https://nyu.databrary.org/slot/16670/-/asset/73158/download?inline=true" src="https://nyu.databrary.org/slot/16670/-/asset/73158/download?inline=true">
+              </a>
+            </div>
+            </li>
+          </ul>
+        </div>
       </div>
-      <div class="col-desktop-5 col-tablet-3 col-mobile-6">
-        <div class="home-panel home-supportad">
-          Get started with our <a href="//databrary.org/access/guide.html">User Guide</a>, and get the <a href="//databrary.org/news.html">latest news</a>.<br/>
-          <a href="//databrary.org/about/support.html">Online support sessions</a> also available at your convenience, Monday to Friday from 9am&ndash;5pm Eastern time.
+      <!--  /stream  -->
+    </div>
+    <!-- NYU Slider -->
+    <div class="arrow-container"><a class="arrow-a"><span class="arrow-down"></span></a></div>
+  </div>
+  <!--testimonials begins-->
+  <div class="testimonial-container section">
+    <h2 class="header">Teachers and researchers rely on Databrary</h2>
+    <div class="testimonials stream-container">
+      <div class="testimonial">
+        <div class="center-container">
+          <a href="/party/546">
+            <img src="http://kathyhirshpasek.com/wp-content/themes/genesis-sample/images/kathy-hirsh-pasek-headshot.jpg" class="alignleft">
+          </a>
         </div>
-        <div class="home-tags">
-          <span class="home-sections-title"><span class="icon tag"></span>Top Tags</span>
-          <ol>
-            <a ng-repeat="tag in ::tags" ng-href="{{::page.router.search()}}?volume&f.tag_name=&quot;{{::tag}}&quot;">
-              <li class="home-tags-item tags-item" ng-bind="::tag"></li>
-            </a>
-          </ol>
+        <div class="text">
+          <p><strong>Accessible and sharable data for secondary analysis</strong></p>
+          <p>
+          When I teach students how important data sharing is, I use Databrary as an example of how to actually make videos accessible and sharable. Secondary data analysis is the way of the future.
+          </p>
+          <p>&nbsp; &nbsp; <em>&mdash; Kathy Hirsh-Pasek, Professor in Psychology, Temple University</em></p>
         </div>
+      </div>
+      <div class="testimonial">
+        <div class="center-container">
+          <a href="/party/11">
+            <img src="https://mlsvc01-prod.s3.amazonaws.com/f5f1847d001/3068d0e6-1705-4d84-bb25-a629a6c5dddf.jpg?ver=1458588683000" class="alignright">
+          </a>
+        </div>
+        <div class="text">
+          <p><strong>Faster collaboration</strong></p>
+          <p>
+          We use Databrary to make coding across labs - and across countries - easier and faster. For example, our collaborator in Korea posts videos he collected that students here then download and code. We don't have to worry about waiting for secure access to those files, and he gets the coding files faster, too.
+          </p>
+          <p>&nbsp; &nbsp; <em>&mdash; Catherine Tamis-LeMonda, Professor of Applied Psychology, NYU</em></p>
+        </div>
+      </div>
+      <div class="testimonial">
+        <div class="center-container">
+          <a href="/party/546">
+            <img src="http://psych.nyu.edu/gureckis/gureckis.jpg" class="alignleft">
+          </a>
+        </div>
+        <div class="text">
+          <p><strong>A secure and confidential framework to meet IRB concerns</strong></p>
+          <p>
+          The work that Databrary has done on working though these IRB issues is really impressive. It's a really important contribution to the field to tackle the difficulties around sharing video data in a secure and confidential way.
+          </p>
+          <p>&nbsp; &nbsp; <em>&mdash; Todd Gureckis, Associate Professor of Psychology, NYU</em></p>
+        </div>
+      </div>
+      <div class="stream-nav left" onclick="plusDivs(-1)">
+      </div>
+      <div class="stream-nav right" onclick="plusDivs(+1)">
       </div>
     </div>
+    <div class="arrow-container"><a class="arrow-a"><span class="arrow-down"></span></a></div>
   </div>
+  <!--testimonials ends-->
+  <!--stat begins-->
+  <div class="home-bigbuttons section">
+    <div class="bigbuttons-text">
+      <div class="view-center-block">
+        <ul class="flat hide-mobile inline-block">
+          <li><h2 class="count home-stats-num">{{::stats.authorized[page.permission.EDIT] | number:0}}</h2>&nbsp; <bluetext class="inline-block">investigators</bluetext></li>
+          <li><h2 class="count home-stats-num">{{::stats.authorized[page.permission.READ] | number:0}}</h2>&nbsp; <bluetext class="inline-block">affiliates</bluetext></li>
+          <li><h2 class="count home-stats-num">{{::stats.authorized[page.permission.ADMIN] | number:0}}</h2>&nbsp; <bluetext class="inline-block">institutions</bluetext></li>
+          <li><h2 class="count home-stats-num">{{::stats.duration/(1000*60*60) | number:0}}</h2>&nbsp; <bluetext class="inline-block">hours of recordings</bluetext></li>
+        </ul>
+      </div>
+      </div>
+  </div>
+  <!--stat ends-->
+  <!--map begins-->
+  <div id="map_wrapper">
+      <div id="map_canvas" class="mapping"></div>
+  </div>
+  <!--map ends-->
+  <script type="text/javascript" src="/web/lib/home-slider.js"></script>
 </article>
