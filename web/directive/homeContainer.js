@@ -75,7 +75,7 @@ app.directive('homeContainer', [
         jQuery(function($) {
             // Asynchronously Load the map API 
             var script = document.createElement('script');
-            script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyAiA262a7AlaZ9_JKNI93hgT1b17l_x1L0&callback=initMap";
+            script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyBZRvCMW10DAK5WKF9QCgtNWdmhkwpGinc&callback=initMap";
             document.body.appendChild(script);
         });
       }
