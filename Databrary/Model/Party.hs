@@ -87,6 +87,10 @@ partyRowJSON PartyRow{..} = JSON.Record partyId $
   <> "affiliation" JSON..=? partyAffiliation
   <> "url" JSON..=? partyURL
 
+institutionRowJSON :: JSON.ToObject o => PartyRow -> JSON.Record (Id Party) o
+institutionRowJSON pr@PartyRow{..} = JSON.Record partyId $
+     "name" JSON..= partyRowInstitutionName pr
+
 partyJSON :: JSON.ToObject o => Party -> JSON.Record (Id Party) o
 partyJSON p@Party{..} = partyRowJSON partyRow JSON..<>
      "institution" JSON..=? (True <? isNothing partyAccount)
@@ -95,8 +99,9 @@ partyJSON p@Party{..} = partyRowJSON partyRow JSON..<>
 
 -- TODO: parameterize partyJSON
 partyJSON2 :: JSON.ToObject o => (Party, Location) -> JSON.Record (Id Party) o
-partyJSON2 (p@Party{..}, loc) = partyRowJSON partyRow JSON..<>
-  (locationJSON loc)
+partyJSON2 (p@Party{..}, loc) =
+  institutionRowJSON partyRow
+  JSON..<> locationJSON loc
 
 locationJSON :: JSON.ToObject o => Location -> o
 locationJSON Location{..} =

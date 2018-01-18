@@ -104,6 +104,7 @@ jsRoutes =
   , jsRoute "getProfile" viewParty (JSON, TargetProfile)
   , jsRoute "postParty" postParty (JSON, TargetParty party)
   , jsRoute "getParties" queryParties (JSON)
+  , jsRoute "getInstutionsLocation" institutionsLocation ()
   , jsRoute "getPartyActivity" viewPartyActivity (JSON, TargetParty party)
 
   , jsRoute "postAuthorizeApply" postAuthorize (JSON, TargetParty party, AuthorizeTarget True party)

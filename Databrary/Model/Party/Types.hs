@@ -9,6 +9,7 @@ module Databrary.Model.Party.Types
   , blankAccount
   , partyLocation
   , Location(..)
+  , partyRowInstitutionName
   ) where
 
 import qualified Data.ByteString as BS
@@ -43,6 +44,11 @@ data Party = Party
   }
 
 -- TODO: partyIsInstitution :: Party -> Bool
+
+partyRowInstitutionName :: PartyRow -> T.Text -- TODO: is this already implemented in Haskell elsewhere?
+partyRowInstitutionName p =
+  (maybe "" (\pre -> pre `T.append` " ") (partyPreName p))
+    `T.append` (partySortName p)
 
 data Location = Location -- TODO: is location already modeled somewhere?
   { locationLongitude :: Double
