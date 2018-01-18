@@ -232,7 +232,7 @@ institutionsLocation = action GET (pathJSON </< "institution_location") $ \() ->
   -- TODO: expose paginate?
   -- TODO: generate filter inside Party Model
   ps <- findParties (PartyFilter Nothing Nothing (Just True) (Paginate 0 200))
-  let partyLocs =
+  let partyLocs = -- TODO: change to list comprehension
         (  fmap (\(p, Just l) -> (p, l))
          . filter (\(_, mLoc) -> isJust mLoc)
          . fmap (\p -> (p, partyLocation p)))
