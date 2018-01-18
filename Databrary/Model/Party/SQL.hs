@@ -35,17 +35,19 @@ selectPartyRow = selectColumns 'PartyRow "party" ["id", "name", "prename", "orci
 accountRow :: Selector -- ^ @'Party' -> 'Account'@
 accountRow = selectColumns 'Account "account" ["email"]
 
-makeParty :: PartyRow -> Maybe (Party -> Account) -> Permission -> Maybe Access -> Party
-makeParty pr ac perm a = p where
-  p = Party pr (fmap ($ p) ac) perm a Nothing -- TODO: real location value
+makeParty :: PartyRow -> Maybe (Party -> Account) -> Maybe Location -> Permission -> Maybe Access -> Party
+makeParty pr ac mLoc perm a = p where
+  p = Party pr (fmap ($ p) ac) perm a mLoc
 
 selectPermissionParty :: Selector -- ^ @'Permission' -> Maybe 'Access' -> 'Party'@
-selectPermissionParty = selectJoin 'makeParty
-  [ selectPartyRow -- returns PartyRow
-  , maybeJoinUsing ["id"] accountRow  -- returns AccountRow
-  -- , maybeJoinOn "party.id = institution.party_id"  -- returns Location
-  --     (selectColumns 'makeLocation "institution" ["longitude", "latitude"])
-  ]
+selectPermissionParty =  -- returns (makeParty pr mMkAcct) :: Permission -> Maybe Access -> Party
+  selectJoin
+    'makeParty
+    [ selectPartyRow -- returns PartyRow
+    , maybeJoinUsing ["id"] accountRow  -- returns Maybe (Party -> Account)
+    , maybeJoinOn "party.id = institution.party_id"  -- returns Location
+        (selectColumns 'makeLocation "institution" ["longitude", "latitude"])
+    ]
 
 makeLocation :: Double -> Double -> Location
 makeLocation long lat = Location long lat
@@ -66,7 +68,7 @@ selectParty ident =
     (  (`TH.AppE` TH.VarE ident)
      . (`TH.AppE` (TH.ConE 'Nothing))
      . (TH.VarE 'permissionParty `TH.AppE`)) $
-      selectPermissionParty
+      selectPermissionParty -- (makeParty pr 
 
 makePartyAuthorization :: Party -> Maybe Access -> (Party, Maybe Permission)
 makePartyAuthorization p a = (p, accessSite <$> a)
