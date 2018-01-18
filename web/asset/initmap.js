@@ -7,7 +7,7 @@ function initMap() {
                   
   map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
 
-  var geocoder = new google.maps.Geocoder();
+  //var geocoder = new google.maps.Geocoder();
 
   // var universities = [
   //   ["Aalto University"],
