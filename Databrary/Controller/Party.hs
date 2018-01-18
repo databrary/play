@@ -10,7 +10,7 @@ module Databrary.Controller.Party
   , deleteParty
   , viewAvatar
   , queryParties
-  , queryParties2
+  , institutionsLocation
   , adminParties
   , csvParties
   , csvDuplicateParties
@@ -44,6 +44,7 @@ import Databrary.Model.AssetSlot
 import Databrary.Model.AssetSegment
 import Databrary.Model.Format
 import Databrary.Model.Notification (Notice(NoticeNewsletter), lookupNoticePartyAuthorization)
+import Databrary.Model.Paginate
 import Databrary.Store.Temp
 import Databrary.HTTP.Path.Parser
 import Databrary.HTTP.Form.Deform
@@ -226,15 +227,12 @@ queryParties = action GET (pathAPI </< "party") $ \api -> withAuth $ do
     JSON -> return $ okResponse [] $ JSON.mapRecords partyJSON p
     HTML -> peeks $ blankForm . htmlPartySearch pf p
 
-queryParties2 :: ActionRoute API
-queryParties2 = action GET (pathAPI </< "party2") $ \api -> withAuth $ do
-  -- TODO: only support json
-  when (api == HTML) angular
-  pf <- runForm (api == HTML ?> htmlPartySearch mempty []) partySearchForm
-  p <- findParties pf
-  case api of
-    JSON -> return $ okResponse [] $ JSON.mapRecords partyJSON2 p
-    HTML -> peeks $ blankForm . htmlPartySearch pf p
+institutionsLocation :: ActionRoute ()
+institutionsLocation = action GET (pathJSON </< "institution_location") $ \() -> withAuth $ do
+  -- TODO: expose paginate?
+  -- TODO: generate filter inside Party Model
+  p <- findParties (PartyFilter Nothing Nothing (Just True) (Paginate 0 200))
+  return $ okResponse [] $ JSON.mapRecords partyJSON2 p
 
 adminParties :: ActionRoute ()
 adminParties = action GET ("party" </< "admin") $ \() -> withAuth $ do

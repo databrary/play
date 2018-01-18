@@ -70,7 +70,7 @@ routeMap = routes
   , route createParty
   , route deleteParty
   , route queryParties
-  , route queryParties2
+  , route institutionsLocation
   , route adminParties
   , route csvParties
   , route csvDuplicateParties
