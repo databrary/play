@@ -7,6 +7,8 @@ module Databrary.Model.Party.Types
   , nobodySiteAuth
   , blankParty
   , blankAccount
+  , partyLocation
+  , Location(..)
   ) where
 
 import qualified Data.ByteString as BS
@@ -39,6 +41,18 @@ data Party = Party
   , partyPermission :: Permission -- permission current user has over this party
   , partyAccess :: Maybe Access -- direct authorization this party has granted to current user
   }
+
+-- TODO: partyIsInstitution :: Party -> Bool
+
+data Location = Location -- TODO: is location already modeled somewhere?
+  { locationLongitude :: Double
+  , locationLatitude :: Double
+  } deriving (Show, Eq)
+
+-- TODO: remove hardcoding
+partyLocation :: Party -> Maybe Location
+partyLocation p =
+  Just (Location 30.0 60.0)
 
 data Account = Account
   { accountEmail :: BS.ByteString

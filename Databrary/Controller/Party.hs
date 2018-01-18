@@ -10,6 +10,7 @@ module Databrary.Controller.Party
   , deleteParty
   , viewAvatar
   , queryParties
+  , queryParties2
   , adminParties
   , csvParties
   , csvDuplicateParties
@@ -223,6 +224,16 @@ queryParties = action GET (pathAPI </< "party") $ \api -> withAuth $ do
   p <- findParties pf
   case api of
     JSON -> return $ okResponse [] $ JSON.mapRecords partyJSON p
+    HTML -> peeks $ blankForm . htmlPartySearch pf p
+
+queryParties2 :: ActionRoute API
+queryParties2 = action GET (pathAPI </< "party2") $ \api -> withAuth $ do
+  -- TODO: only support json
+  when (api == HTML) angular
+  pf <- runForm (api == HTML ?> htmlPartySearch mempty []) partySearchForm
+  p <- findParties pf
+  case api of
+    JSON -> return $ okResponse [] $ JSON.mapRecords partyJSON2 p
     HTML -> peeks $ blankForm . htmlPartySearch pf p
 
 adminParties :: ActionRoute ()

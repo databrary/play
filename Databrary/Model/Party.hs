@@ -19,6 +19,7 @@ module Databrary.Model.Party
   , recentAccountLogins
   , partyRowJSON
   , partyJSON
+  , partyJSON2
   , PartyFilter(..)
   , findParties
   , lookupAvatar
@@ -91,6 +92,14 @@ partyJSON p@Party{..} = partyRowJSON partyRow JSON..<>
      "institution" JSON..=? (True <? isNothing partyAccount)
   <> "email" JSON..=? partyEmail p
   <> "permission" JSON..=? (partyPermission <? partyPermission > PermissionREAD)
+
+-- TODO: parameterize partyJSON
+partyJSON2 :: JSON.ToObject o => Party -> JSON.Record (Id Party) o
+partyJSON2 p@Party{..} = partyRowJSON partyRow JSON..<>
+     "institution" JSON..=? (True <? isNothing partyAccount)
+  <> "email" JSON..=? partyEmail p
+  <> "permission" JSON..=? (partyPermission <? partyPermission > PermissionREAD)
+  <> "location" JSON..=? ((fmap locationLongitude) . partyLocation) p
 
 changeParty :: MonadAudit c m => Party -> m ()
 changeParty p = do
