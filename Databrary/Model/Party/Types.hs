@@ -111,6 +111,7 @@ nobodySiteAuth = SiteAuth
       , partyAccount = Nothing
       , partyPermission = PermissionREAD
       , partyAccess = Just minBound
+      -- TODO: add party location
       }
     }
   , accountPasswd = Nothing
@@ -130,6 +131,7 @@ blankParty = Party
   , partyAccount = Nothing
   , partyPermission = PermissionNONE
   , partyAccess = Nothing
+  -- TODO: add party location
   }
 
 blankAccount :: Account

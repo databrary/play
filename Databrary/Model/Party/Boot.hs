@@ -16,4 +16,4 @@ import Databrary.Model.Party.SQL
 loadParty :: Id Party -> Permission -> TH.ExpQ -- ^ @'Party'@
 loadParty i perm = do
   p <- runTDB $ dbQuery1' $(selectQuery selectPartyRow "WHERE party.id = ${i}")
-  TH.lift $ Party p Nothing perm Nothing Nothing
+  TH.lift $ Party p Nothing perm Nothing defaultPartyLocation
