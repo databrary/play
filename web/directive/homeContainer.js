@@ -32,6 +32,16 @@ app.directive('homeContainer', [
             $(this).css('margin-right', Math.min((parseInt($(this).css('margin-right'), 10) + windowWidth), maxWidth) + 'px');
           });
         });
+
+        //stop video if the user plays another video
+        $('video').each(function(){
+          $(this).on('play', function(){
+            $('video').not($(this)).each(function(){
+              $(this).get(0).pause();
+            });
+          });
+        });
+
         //testimonial carousel
         var myIndex = 0;
         var stopCarousel = false;
