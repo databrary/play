@@ -99,7 +99,11 @@ partyJSON2 p@Party{..} = partyRowJSON partyRow JSON..<>
      "institution" JSON..=? (True <? isNothing partyAccount)
   <> "email" JSON..=? partyEmail p
   <> "permission" JSON..=? (partyPermission <? partyPermission > PermissionREAD)
-  <> "location" JSON..=? ((fmap locationLongitude) . partyLocation) p
+  <> "location" JSON..=? ((fmap locationJSON) . partyLocation) p
+
+locationJSON :: Location -> JSON.Value
+locationJSON Location{..} =
+  JSON.Object ("longitude" JSON..= locationLongitude <> "latitude" JSON..= locationLatitude)
 
 changeParty :: MonadAudit c m => Party -> m ()
 changeParty p = do
