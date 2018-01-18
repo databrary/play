@@ -37,7 +37,7 @@ accountRow = selectColumns 'Account "account" ["email"]
 
 makeParty :: PartyRow -> Maybe (Party -> Account) -> Permission -> Maybe Access -> Party
 makeParty pr ac perm a = p where
-  p = Party pr (fmap ($ p) ac) perm a
+  p = Party pr (fmap ($ p) ac) perm a defaultPartyLocation -- TODO: real location value
 
 selectPermissionParty :: Selector -- ^ @'Permission' -> Maybe 'Access' -> 'Party'@
 selectPermissionParty = selectJoin 'makeParty
@@ -80,7 +80,7 @@ selectAuthParty ident = selectMap (`TH.AppE` TH.VarE ident) $ selectJoin 'permis
 
 makeAccount :: PartyRow -> (Party -> Account) -> Permission -> Maybe Access -> Account
 makeAccount pr ac perm ma = a where
-  a = ac $ Party pr (Just a) perm ma
+  a = ac $ Party pr (Just a) perm ma defaultPartyLocation
 
 selectPermissionAccount :: Selector -- ^ @'Permission' -> Maybe 'Access' -> 'Account'@
 selectPermissionAccount = selectJoin 'makeAccount

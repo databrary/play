@@ -10,6 +10,7 @@ module Databrary.Model.Party.Types
   , partyLocation
   , Location(..)
   , partyRowInstitutionName
+  , defaultPartyLocation
   ) where
 
 import qualified Data.ByteString as BS
@@ -41,6 +42,7 @@ data Party = Party
   -- , partySiteAccess :: Access -- site-level access this party is granted under root (currently SiteAuth only)
   , partyPermission :: Permission -- permission current user has over this party
   , partyAccess :: Maybe Access -- direct authorization this party has granted to current user
+  , partyLocation :: Maybe Location
   }
 
 -- TODO: partyIsInstitution :: Party -> Bool
@@ -50,15 +52,18 @@ partyRowInstitutionName p =
   (maybe "" (\pre -> pre `T.append` " ") (partyPreName p))
     `T.append` (partySortName p)
 
+defaultPartyLocation :: Maybe Location
+defaultPartyLocation = Nothing
+
 data Location = Location -- TODO: is location already modeled somewhere?
   { locationLongitude :: Double
   , locationLatitude :: Double
   } deriving (Show, Eq)
 
 -- TODO: remove hardcoding
-partyLocation :: Party -> Maybe Location
-partyLocation p =
-  Just (Location 30.0 60.0)
+-- partyLocation :: Party -> Maybe Location
+-- partyLocation p =
+--   Just (Location 30.0 60.0)
 
 data Account = Account
   { accountEmail :: BS.ByteString
@@ -87,7 +92,7 @@ data SiteAuth = SiteAuth
 
 makeHasRec ''SiteAuth ['siteAccount, 'siteAccess]
 
-deriveLiftMany [''PartyRow, ''Party, ''Account]
+deriveLiftMany [''PartyRow, ''Party, ''Account, ''Location]
 
 -- this is unfortunate, mainly to avoid untangling Party.SQL
 nobodySiteAuth :: SiteAuth

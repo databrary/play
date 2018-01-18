@@ -119,13 +119,13 @@ changeAccount a = do
 
 addParty :: MonadAudit c m => Party -> m Party
 addParty bp = do
-  ident <- getAuditIdentity
-  dbQuery1' $ fmap (\p -> Party p Nothing PermissionREAD Nothing) $(insertParty 'ident 'bp)
+  ident <- getAuditIdentity  -- TODO: receive location?
+  dbQuery1' $ fmap (\p -> Party p Nothing PermissionREAD Nothing defaultPartyLocation) $(insertParty 'ident 'bp)
 
 addAccount :: MonadAudit c m => Account -> m Account
 addAccount ba@Account{ accountParty = bp } = do
   ident <- getAuditIdentity
-  p <- dbQuery1' $ fmap (\p -> Party p Nothing PermissionREAD Nothing) $(insertParty 'ident 'bp)
+  p <- dbQuery1' $ fmap (\p -> Party p Nothing PermissionREAD Nothing defaultPartyLocation) $(insertParty 'ident 'bp)
   let pa = p{ partyAccount = Just a }
       a = ba{ accountParty = pa }
   dbExecute1' $(insertAccount 'ident 'a)
