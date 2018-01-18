@@ -20,7 +20,7 @@ import Control.Applicative (optional)
 import Control.Monad (unless, when, forM)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isJust)
 import Data.Monoid ((<>))
 import qualified Data.Text.Encoding as TE
 import Network.HTTP.Types (badRequest400)
@@ -231,9 +231,13 @@ institutionsLocation :: ActionRoute ()
 institutionsLocation = action GET (pathJSON </< "institution_location") $ \() -> withAuth $ do
   -- TODO: expose paginate?
   -- TODO: generate filter inside Party Model
-  p <- findParties (PartyFilter Nothing Nothing (Just True) (Paginate 0 200))
-  -- let partyLocs = fmap (\l -> 
-  return $ okResponse [] $ JSON.mapRecords partyJSON2 (zip p (repeat (Location 30.5 45.9)))
+  ps <- findParties (PartyFilter Nothing Nothing (Just True) (Paginate 0 200))
+  let partyLocs =
+        (  fmap (\(p, Just l) -> (p, l))
+         . filter (\(_, mLoc) -> isJust mLoc)
+         . fmap (\p -> (p, partyLocation p)))
+        ps
+  return $ okResponse [] $ JSON.mapRecords partyJSON2 partyLocs
 
 adminParties :: ActionRoute ()
 adminParties = action GET ("party" </< "admin") $ \() -> withAuth $ do
