@@ -232,7 +232,7 @@ institutionsLocation = action GET (pathJSON </< "institution_location") $ \() ->
   -- TODO: expose paginate?
   -- TODO: generate filter inside Party Model
   p <- findParties (PartyFilter Nothing Nothing (Just True) (Paginate 0 200))
-  return $ okResponse [] $ JSON.mapRecords partyJSON2 p
+  return $ okResponse [] $ JSON.mapRecords partyJSON2 (zip p (repeat (Location 30.5 45.9)))
 
 adminParties :: ActionRoute ()
 adminParties = action GET ("party" </< "admin") $ \() -> withAuth $ do

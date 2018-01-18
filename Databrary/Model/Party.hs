@@ -94,16 +94,13 @@ partyJSON p@Party{..} = partyRowJSON partyRow JSON..<>
   <> "permission" JSON..=? (partyPermission <? partyPermission > PermissionREAD)
 
 -- TODO: parameterize partyJSON
-partyJSON2 :: JSON.ToObject o => Party -> JSON.Record (Id Party) o
-partyJSON2 p@Party{..} = partyRowJSON partyRow JSON..<>
-     "institution" JSON..=? (True <? isNothing partyAccount)
-  <> "email" JSON..=? partyEmail p
-  <> "permission" JSON..=? (partyPermission <? partyPermission > PermissionREAD)
-  <> "location" JSON..=? ((fmap locationJSON) . partyLocation) p
+partyJSON2 :: JSON.ToObject o => (Party, Location) -> JSON.Record (Id Party) o
+partyJSON2 (p@Party{..}, loc) = partyRowJSON partyRow JSON..<>
+  (locationJSON loc)
 
-locationJSON :: Location -> JSON.Value
+locationJSON :: JSON.ToObject o => Location -> o
 locationJSON Location{..} =
-  JSON.Object ("longitude" JSON..= locationLongitude <> "latitude" JSON..= locationLatitude)
+  ("longitude" JSON..= locationLongitude <> "latitude" JSON..= locationLatitude)
 
 changeParty :: MonadAudit c m => Party -> m ()
 changeParty p = do
