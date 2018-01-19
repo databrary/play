@@ -20,6 +20,9 @@ import Databrary.Routes (routeMap)
 import Databrary.Warp (runWarp)
 import Databrary.EZID.Volume (updateEZID)
 
+--- TEMPORARY
+import System.Exit (exitSuccess)
+import Control.Monad (when)
 
 data Flag
   = FlagConfig FilePath
@@ -49,6 +52,15 @@ main = do
   conf <- mconcat <$> mapM Conf.load (case configs of
     [] -> ["databrary.conf"]
     l -> l)
+
+  when True
+    (do
+       print "use conduit"
+       -- sink type used in zip: Sink ByteString (ResourceT IO) a
+       -- stream a string to a sink:
+       
+       exitSuccess)
+    
   startServer <- case (flags', args', err) of
     ([FlagWeb], [], []) -> do
       putStrLn "generating files..." 
@@ -80,3 +92,4 @@ main = do
       runWarp conf rc (runActionRoute routes rc)
   else
     return ()
+
