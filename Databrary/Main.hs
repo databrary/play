@@ -23,6 +23,7 @@ import Databrary.EZID.Volume (updateEZID)
 --- TEMPORARY
 import System.Exit (exitSuccess)
 import Control.Monad (when)
+import Conduit
 
 data Flag
   = FlagConfig FilePath
@@ -58,7 +59,7 @@ main = do
        print "use conduit"
        -- sink type used in zip: Sink ByteString (ResourceT IO) a
        -- stream a string to a sink:
-       
+       print (runConduitPure (yieldMany [1..10] .| sumC))
        exitSuccess)
     
   startServer <- case (flags', args', err) of
