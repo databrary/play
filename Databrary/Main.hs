@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, OverloadedStrings #-}
+{-# LANGUAGE CPP, OverloadedStrings, ScopedTypeVariables #-}
 module Main (main) where
 
 import Control.Exception (evaluate)
@@ -64,9 +64,9 @@ main = do
        readFile "/tmp/output.txt" >>= putStrLn
 
        runConduit
-         (  yieldMany [1..]
+         (  (yieldMany [1..] :: ConduitM () Int IO ())
          .| takeC 10
-         .| mapC (* 2)
+         .| (mapC (* 2) :: ConduitM Int Int IO ())
          .| takeWhileC (< 18)
          .| mapM_C print
          )
