@@ -136,7 +136,10 @@ zipResponse n z = do
     , ("content-disposition", "attachment; filename=" <> quoteHTTP (n <.> "zip"))
     , (hCacheControl, "max-age=31556926, private")
     , (hContentLength, BSC.pack $ show $ sizeZip z + fromIntegral (BS.length comment))
-    ] (streamZip z comment)
+    ]
+    (streamZip z comment)  -- uses ByteString.Builder.Builder -> IO ()
+    
+    
 
 zipExample :: ActionRoute ()
 zipExample = action GET "example" $ \() -> withAuth $ do
