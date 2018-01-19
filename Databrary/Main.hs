@@ -54,15 +54,17 @@ main = do
     [] -> ["databrary.conf"]
     l -> l)
 
-  when True
+  when False
     (do
        print "use conduit"
-       -- sink type used in zip: Sink ByteString (ResourceT IO) a
-       -- stream a string to a sink:
+       -- sink type used in zip: Sink ByteString (ResourceT IO) a == ConduitM ByteString Void (ResourceT IO) a
+
+       -- examples 1
        writeFile "/tmp/input.txt" "First input here."
        runConduitRes (sourceFileBS "/tmp/input.txt" .| sinkFile "/tmp/output.txt")
        readFile "/tmp/output.txt" >>= putStrLn
 
+       -- examples 2
        runConduit
          (  (yieldMany [1..] :: ConduitM () Int IO ())
          .| takeC 10
@@ -70,7 +72,13 @@ main = do
          .| takeWhileC (< 18)
          .| mapM_C print
          )
-    
+
+       -- stream a string to a sink:
+       -- Action.Response has function response which uses responseStream from WAI
+       --   reponse :: Status -> ResponseHeaders -> WAI.StreamingBody -> Response
+       -- 
+       
+
        exitSuccess)
     
   startServer <- case (flags', args', err) of

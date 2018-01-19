@@ -3,6 +3,7 @@ module Databrary.Controller.Zip
   ( zipContainer
   , zipVolume
   , viewVolumeDescription
+  , zipExample
   ) where
 
 import qualified Data.ByteString as BS
@@ -136,6 +137,15 @@ zipResponse n z = do
     , (hCacheControl, "max-age=31556926, private")
     , (hContentLength, BSC.pack $ show $ sizeZip z + fromIntegral (BS.length comment))
     ] (streamZip z comment)
+
+zipExample :: ActionRoute ()
+zipExample = action GET "example" $ \() -> withAuth $ do
+    -- c <- getContainer PermissionPUBLIC vi ci True
+    -- let v = containerVolume c
+    -- z <- containerZipEntryCorrectAssetSlots isOrig c
+    zipResponse
+      ("databrary-example")
+      []
 
 zipEmpty :: ZipEntry -> Bool
 zipEmpty ZipEntry{ zipEntryContent = ZipDirectory l } = all zipEmpty l
