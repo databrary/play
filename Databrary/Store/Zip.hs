@@ -143,8 +143,11 @@ sizeZip entries = len + (z64 ?= 76) + 22 where
 streamZip :: [ZipEntry] -> BS.ByteString -> (B.Builder -> IO ()) -> IO ()
 streamZip entries comment write = do
   t <- getCurrentTime
+  print "streamZip: before zip entries"
   (off, centries) <- execRWST (streamZipEntries entries) (BS.empty, t) 0
+  print "streamZip: before zipcentry"
   csize <- execStateT (mapM_ streamZipCEntry centries) 0
+  print "streamZip: before write1"
   let len = off + csize
       count = length centries
   when (len >= zip64Size || count >= 0xffff) $ write
@@ -161,6 +164,7 @@ streamZip entries comment write = do
     <> B.word32LE 0 -- central disk
     <> B.word64LE len
     <> B.word32LE 1 -- total disks
+  print "streamZip: before write2"
   write $ B.word32LE 0x06054b50
     <> B.word16LE 0 -- disk
     <> B.word16LE 0 -- central disk
