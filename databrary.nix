@@ -12,7 +12,7 @@
 , th-lift-instances, time, transformers, transformers-base, unix
 , unordered-containers, utf8-string, vector, wai, wai-extra, warp
 , warp-tls, web-inv-route, xml, zlib, gargoyle, gargoyle-postgresql
-, postgresql-simple
+, postgresql-simple, zip
 , nodePackages, nodejs, openssl, dbName ? "databrary-nix-db", jdk
 , cpio
 }:
@@ -38,7 +38,7 @@ mkDerivation rec {
     time transformers transformers-base unix unordered-containers
     utf8-string vector wai wai-extra warp warp-tls web-inv-route xml
     zlib gargoyle gargoyle-postgresql
-    postgresql-simple
+    postgresql-simple zip
   ];
   executableSystemDepends = [ cracklib openssl openssl.dev ];
   executablePkgconfigDepends = [

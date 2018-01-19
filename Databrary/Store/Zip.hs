@@ -183,6 +183,7 @@ streamZip entries comment write = do
   streamZipEntries = mapM_ streamZipEntry
   streamZipEntry :: ZipEntry -> RWST (BS.ByteString, UTCTime) [ZipCEntry] Word64 IO ()
   streamZipEntry z@ZipEntry{..} = do
+    -- LOG start
     (path', time') <- ask
     off <- get
     let path = slash zipEntryContent $ path' <> zipEntryName
@@ -217,12 +218,15 @@ streamZip entries comment write = do
           el = z64 ?= 20
     case zipEntryContent of
       ZipDirectory l -> do
+        -- log start of directory
         header $ Just (0, 0)
         local (\_ -> (path, time)) $ streamZipEntries l
       ZipEntryPure b -> do
+        -- log start of pure?
         header $ Just (crc32 b, fromIntegral $ BSL.length b)
         liftIO $ write $ B.lazyByteString b
       ZipEntryFile size f -> do
+        -- log start of file
         header Nothing
         fp <- liftIO $ unRawFilePath f
         let run c 0 _ = return c
