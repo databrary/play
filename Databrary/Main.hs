@@ -60,6 +60,12 @@ main = do
        -- sink type used in zip: Sink ByteString (ResourceT IO) a
        -- stream a string to a sink:
        print (runConduitPure (yieldMany [1..10] .| sumC))
+       writeFile "/tmp/input.txt" "First input here."
+       runConduitRes (sourceFileBS "/tmp/input.txt" .| sinkFile "/tmp/output.txt")
+       readFile "/tmp/output.txt" >>= putStrLn
+
+       print (runConduitPure (yieldMany [1..10] .| mapC (+ 1) .| sinkList))
+                     
        exitSuccess)
     
   startServer <- case (flags', args', err) of
