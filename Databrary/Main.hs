@@ -129,8 +129,9 @@ main = do
              .| (fmap (const ()) (CZ.zipStream zipOpt))
              ) :: ConduitM () BS.ByteString (ResourceT IO) ()
 
-       -- TODO: write stream to file
        runConduitRes (strm .| sinkFile "/tmp/z1.zip")
+
+       
        
        exitSuccess)
     
