@@ -6,6 +6,11 @@ module Databrary.Controller.Zip
   , zipExample
   ) where
 
+import qualified Blaze.ByteString.Builder as BZB
+import Data.Monoid ((<>))
+import Conduit
+------- temporary
+
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Char8 as BSC
@@ -139,7 +144,7 @@ zipResponse n z = do
     ]
     (streamZip z comment)  -- uses ByteString.Builder.Builder -> IO ()
     
-    
+bldr = BZB.fromByteString ("abcefg" :: BS.ByteString)    
 
 zipExample :: ActionRoute ()
 zipExample = action GET "example" $ \() -> withAuth $ do
@@ -149,7 +154,7 @@ zipExample = action GET "example" $ \() -> withAuth $ do
     -- zipResponse ("databrary-example") []
     return $ okResponse
       [(hContentType, "text/plain")]
-      ("abc" :: String)
+      (yieldMany [Chunk bldr, Flush, Chunk bldr] :: ConduitM () (Flush BZB.Builder) IO ())
 
 zipEmpty :: ZipEntry -> Bool
 zipEmpty ZipEntry{ zipEntryContent = ZipDirectory l } = all zipEmpty l
