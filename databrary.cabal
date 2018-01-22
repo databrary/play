@@ -100,7 +100,8 @@ Executable databrary
     conduit >= 1.2.12,
     conduit-combinators >= 0,
     wai-conduit >= 0,
-    blaze-builder >= 0
+    blaze-builder >= 0,
+    conduit-extra >= 0
     
   default-language: Haskell2010
   default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards

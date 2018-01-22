@@ -27,6 +27,7 @@ import Conduit
 import qualified Blaze.ByteString.Builder as BZB
 import qualified Data.ByteString as BS
 import Data.Monoid ((<>))
+import qualified Data.Conduit.ByteString.Builder as CBB
 
 data Flag
   = FlagConfig FilePath
@@ -90,16 +91,15 @@ main = do
        print (BZB.toByteString bldr)
 
        -- Use Conduit.Blaze which provides Conduit Builder m ByteString == ConduitM Builder ByteString m ()
-       -- builderToByteString 
-     
-       -- Use Flush generally: ConduitM () (Flush ?) IO ()
-
        runConduit
-         (  (yieldMany [1..] :: ConduitM () Int IO ())
-         .| takeC 10
-         .| (mapC (* 2) :: ConduitM Int Int IO ())
+         (  (yieldMany [bldr, bldr] :: ConduitM () BZB.Builder IO ())
+         .| takeC 1
+         -- .| mapC (\b -> BZB.toByteString b)
+         .| CBB.builderToByteString
          .| mapM_C print
          )
+
+       
 
        exitSuccess)
     
