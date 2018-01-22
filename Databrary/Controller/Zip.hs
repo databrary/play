@@ -154,7 +154,11 @@ zipExample = action GET "example" $ \() -> withAuth $ do
     -- zipResponse ("databrary-example") []
     return $ okResponse
       [(hContentType, "text/plain")]
-      (yieldMany [Chunk bldr, Flush, Chunk bldr] :: ConduitM () (Flush BZB.Builder) IO ())
+      -- (yieldMany [Chunk bldr, Flush, Chunk bldr] :: ConduitM () (Flush BZB.Builder) IO ())
+               (  (fmap (const ()) (yieldMany ["abc", "efg"] :: ConduitM () BS.ByteString IO ()))
+               .| (mapC (Chunk . BZB.fromByteString) :: ConduitM BS.ByteString (Flush BZB.Builder) IO ())
+               )
+
 
 zipEmpty :: ZipEntry -> Bool
 zipEmpty ZipEntry{ zipEntryContent = ZipDirectory l } = all zipEmpty l

@@ -28,6 +28,7 @@ import qualified Blaze.ByteString.Builder as BZB
 import qualified Data.ByteString as BS
 import Data.Monoid ((<>))
 import qualified Data.Conduit.ByteString.Builder as CBB
+import Data.Void
 
 data Flag
   = FlagConfig FilePath
@@ -98,6 +99,23 @@ main = do
          .| CBB.builderToByteString
          .| mapM_C print
          )
+
+       -- build a sink
+       let snk = (mapM_C print :: ConduitM BS.ByteString Void IO ())
+
+       -- ABANDON Sink / zip library. zip requires writing files to disk.
+             
+       -- Attempt zip-stream instead
+       --   Produces a ConduitM ZipEntry ByteString m Word64
+       --     combined with source of entries becomes:  ConduitM () ByteString m Word64
+       --     use operation to ignore result
+       --     create builder with flush out of bs with fromByteString
+       --   WAI expects ConduitM () (Flush BZB.Builder) IO ()
+
+       let builderCnd =
+               (  (fmap (const ()) (yieldMany ["abc", "efg"] :: ConduitM () BS.ByteString IO ()))
+               .| (mapC (Chunk . BZB.fromByteString) :: ConduitM BS.ByteString (Flush BZB.Builder) IO ())
+               )
 
        exitSuccess)
     
