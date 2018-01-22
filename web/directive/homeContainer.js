@@ -42,6 +42,11 @@ app.directive('homeContainer', [
           });
         });
 
+        $('.opener').click(function(e){
+          e.preventDefault();
+          $(this).closest('div').next('.open-panel').slideToggle();
+        });
+
         //testimonial carousel
         var myIndex = 0;
         var stopCarousel = false;
