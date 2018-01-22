@@ -146,9 +146,10 @@ zipExample = action GET "example" $ \() -> withAuth $ do
     -- c <- getContainer PermissionPUBLIC vi ci True
     -- let v = containerVolume c
     -- z <- containerZipEntryCorrectAssetSlots isOrig c
-    zipResponse
-      ("databrary-example")
-      []
+    -- zipResponse ("databrary-example") []
+    return $ okResponse
+      [(hContentType, "text/plain")]
+      ("abc" :: String)
 
 zipEmpty :: ZipEntry -> Bool
 zipEmpty ZipEntry{ zipEntryContent = ZipDirectory l } = all zipEmpty l

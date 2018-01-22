@@ -24,6 +24,9 @@ import Databrary.EZID.Volume (updateEZID)
 import System.Exit (exitSuccess)
 import Control.Monad (when)
 import Conduit
+import qualified Blaze.ByteString.Builder as BZB
+import qualified Data.ByteString as BS
+import Data.Monoid ((<>))
 
 data Flag
   = FlagConfig FilePath
@@ -54,7 +57,7 @@ main = do
     [] -> ["databrary.conf"]
     l -> l)
 
-  when False
+  when True
     (do
        print "use conduit"
        -- sink type used in zip: Sink ByteString (ResourceT IO) a == ConduitM ByteString Void (ResourceT IO) a
@@ -73,11 +76,30 @@ main = do
          .| mapM_C print
          )
 
-       -- stream a string to a sink:
-       -- Action.Response has function response which uses responseStream from WAI
-       --   reponse :: Status -> ResponseHeaders -> WAI.StreamingBody -> Response
-       -- 
-       
+       -- stream from a source...
+       -- instance ResponseData (Source IO (Flush BZB.Builder)) where
+       --   response s h src = WAC.responseSource s h src
+       -- Need to produce type: ConduitM () (Flush BZB.Builder) IO ()
+
+       -- Use Blaze builder generally
+       let bldr =
+                (BZB.fromByteString ("abcefg" :: BS.ByteString))
+             <> (BZB.fromByteString (" morehere." :: BS.ByteString))
+             <> BZB.flush
+             <> (BZB.fromByteString ("After flush." :: BS.ByteString))
+       print (BZB.toByteString bldr)
+
+       -- Use Conduit.Blaze which provides Conduit Builder m ByteString == ConduitM Builder ByteString m ()
+       -- builderToByteString 
+     
+       -- Use Flush generally: ConduitM () (Flush ?) IO ()
+
+       runConduit
+         (  (yieldMany [1..] :: ConduitM () Int IO ())
+         .| takeC 10
+         .| (mapC (* 2) :: ConduitM Int Int IO ())
+         .| mapM_C print
+         )
 
        exitSuccess)
     
