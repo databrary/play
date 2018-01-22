@@ -29,6 +29,9 @@ import qualified Data.ByteString as BS
 import Data.Monoid ((<>))
 import qualified Data.Conduit.ByteString.Builder as CBB
 import Data.Void
+import qualified Codec.Archive.Zip.Conduit.Zip as CZ
+import Data.Time.Calendar
+import Data.Time.LocalTime
 
 data Flag
   = FlagConfig FilePath
@@ -59,7 +62,7 @@ main = do
     [] -> ["databrary.conf"]
     l -> l)
 
-  when False
+  when True
     (do
        print "use conduit"
        -- sink type used in zip: Sink ByteString (ResourceT IO) a == ConduitM ByteString Void (ResourceT IO) a
@@ -117,6 +120,18 @@ main = do
                .| (mapC (Chunk . BZB.fromByteString) :: ConduitM BS.ByteString (Flush BZB.Builder) IO ())
                )
 
+       let zipOpt = CZ.defaultZipOptions { CZ.zipOpt64 = True, CZ.zipOptCompressLevel = 0 }
+       let ze = CZ.ZipEntry { CZ.zipEntryName = "ent1"
+                            , CZ.zipEntryTime = LocalTime (fromGregorian 2017 1 2) midnight , CZ.zipEntrySize = Nothing }
+       let zd = CZ.ZipDataByteString "abc"
+       let strm =
+             (  yieldMany [(ze, zd)]
+             .| (fmap (const ()) (CZ.zipStream zipOpt))
+             ) :: ConduitM () BS.ByteString (ResourceT IO) ()
+
+       -- TODO: write stream to file
+       runConduitRes (strm .| sinkFile "/tmp/z1.zip")
+       
        exitSuccess)
     
   startServer <- case (flags', args', err) of
