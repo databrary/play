@@ -3,6 +3,7 @@ module Databrary.Controller.Angular
   ( JSOpt(..)
   , jsURL
   , angular
+  , angularHomePage
   ) where
 
 import Control.Arrow (second)
@@ -68,8 +69,9 @@ angularRequest :: Wai.Request -> Maybe BSB.Builder
 angularRequest req = angularEnable js req ?> nojs
   where (js, nojs) = jsURL JSDisabled req
 
-angularResult :: BSB.Builder -> RequestContext -> IO ()
-angularResult nojs auth = do
+angularResult :: Bool -> BSB.Builder -> RequestContext -> IO ()
+angularResult isHomePage nojs auth = do
+  -- let isHomePage = True
   debug <-
 #ifdef DEVEL
     boolQueryParameter "debug" (view auth) ?$> liftIO appWebJS
@@ -85,7 +87,10 @@ angularResult nojs auth = do
       d <- makeWebFilePath "debug.js"
       return $ w ++ (d : debug')
     Nothing -> (:[]) <$> makeWebFilePath "all.min.js"
-  result $ okResponse [] (htmlAngular cssDeps jsDeps nojs auth)
+  result $ okResponse [] (htmlAngular isHomePage cssDeps jsDeps nojs auth)
 
 angular :: ActionM ()
-angular = mapM_ (focusIO . angularResult) =<< peeks angularRequest
+angular = mapM_ (focusIO . (angularResult False)) =<< peeks angularRequest
+
+angularHomePage :: ActionM ()
+angularHomePage = mapM_ (focusIO . (angularResult True)) =<< peeks angularRequest

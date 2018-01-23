@@ -22,7 +22,7 @@ import Databrary.Web.Constants
 viewRoot :: ActionRoute API
 viewRoot = action GET pathAPI $ \api -> withAuth $ do
   down <- peeks serviceDown
-  when (api == HTML && isNothing down) angular
+  when (api == HTML && isNothing down) angularHomePage
   case api of
     JSON -> return $ okResponse [] JSON.emptyObject
     HTML -> peeks $ okResponse [] . maybe htmlRoot htmlDown down
