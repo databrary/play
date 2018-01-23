@@ -127,8 +127,20 @@ main = do
        let ze2 = CZ.ZipEntry { CZ.zipEntryName = "ent2"
                             , CZ.zipEntryTime = LocalTime (fromGregorian 2017 1 2) midnight , CZ.zipEntrySize = Nothing }
        let zd2 = CZ.ZipDataSource (sourceFileBS "/tmp/download.mp4") ---- MODIFY THIS
+       let ze3 = CZ.ZipEntry { CZ.zipEntryName = "ent3"
+                            , CZ.zipEntryTime = LocalTime (fromGregorian 2017 1 2) midnight , CZ.zipEntrySize = Nothing }
+       let zd3 = CZ.ZipDataSource (sourceFileBS "/tmp/download.mp4") ---- MODIFY THIS
+       let ze4 = CZ.ZipEntry { CZ.zipEntryName = "ent4"
+                            , CZ.zipEntryTime = LocalTime (fromGregorian 2017 1 2) midnight , CZ.zipEntrySize = Nothing }
+       let zd4 = CZ.ZipDataSource (sourceFileBS "/tmp/download.mp4") ---- MODIFY THIS
+       let ze5 = CZ.ZipEntry { CZ.zipEntryName = "ent5"
+                            , CZ.zipEntryTime = LocalTime (fromGregorian 2017 1 2) midnight , CZ.zipEntrySize = Nothing }
+       let zd5 = CZ.ZipDataSource (sourceFileBS "/tmp/download.mp4") ---- MODIFY THIS
+       let ze6 = CZ.ZipEntry { CZ.zipEntryName = "ent6"
+                            , CZ.zipEntryTime = LocalTime (fromGregorian 2017 1 2) midnight , CZ.zipEntrySize = Nothing }
+       let zd6 = CZ.ZipDataSource (sourceFileBS "/tmp/download.mp4") ---- MODIFY THIS
        let strm =
-             (  yieldMany [(ze, zd), (ze2, zd2)]
+             (  yieldMany [(ze, zd), (ze2, zd2), (ze3, zd3), (ze4, zd4), (ze5, zd5), (ze6, zd6)]
              .| (fmap (const ()) (CZ.zipStream zipOpt))
              ) :: ConduitM () BS.ByteString (ResourceT IO) ()
 
