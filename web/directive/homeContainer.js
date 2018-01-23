@@ -93,12 +93,6 @@ app.directive('homeContainer', [
             document.body.appendChild(script);
         });
 
-        jQuery(function($) {
-            // Asynchronously Load the map API 
-            var script = document.createElement('script');
-            script.src = "/web/asset/initmap.js";
-            document.body.appendChild(script);
-        });
       }
     };
   }
