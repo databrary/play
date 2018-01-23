@@ -49,6 +49,7 @@ app.directive('homeContainer', [
 
         //testimonial carousel
         var myIndex = 0;
+        var slideIndex = 1;
         var stopCarousel = false;
 
         function carousel() {
@@ -60,14 +61,13 @@ app.directive('homeContainer', [
             myIndex++;
             if (myIndex > x.length) {myIndex = 1}    
             x[myIndex-1].style.opacity = "1"; 
+            slideIndex = myIndex;
             if (stopCarousel === false) {
               setTimeout(carousel, 8000);
             }
         }
 
         carousel();
-
-        var slideIndex = 1;
 
         function showDivs(n) {
           var i;
@@ -80,11 +80,9 @@ app.directive('homeContainer', [
           x[slideIndex-1].style.opacity = "1"; 
         }
 
-        showDivs(slideIndex);
-
         $scope.plusDivs = function(n) {
-            showDivs(slideIndex += n);
-            stopCarousel = true;
+          stopCarousel = true;
+          showDivs(slideIndex += n);
         }
 
         jQuery(function($) {
