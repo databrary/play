@@ -9,6 +9,8 @@ module Databrary.Controller.Zip
 import qualified Blaze.ByteString.Builder as BZB
 import Data.Monoid ((<>))
 import Conduit
+import qualified Codec.Archive.Zip.Conduit.Zip as CZ
+import Data.Time
 ------- temporary
 
 import qualified Data.ByteString as BS
@@ -152,13 +154,21 @@ zipExample = action GET "example" $ \() -> withAuth $ do
     -- let v = containerVolume c
     -- z <- containerZipEntryCorrectAssetSlots isOrig c
     -- zipResponse ("databrary-example") []
+    let zipOpt = CZ.defaultZipOptions { CZ.zipOpt64 = True, CZ.zipOptCompressLevel = 0 }
+    let ze = CZ.ZipEntry { CZ.zipEntryName = "ent1"
+                         , CZ.zipEntryTime = LocalTime (fromGregorian 2017 1 2) midnight , CZ.zipEntrySize = Nothing }
+    let zd = CZ.ZipDataByteString "abc"
     return $ okResponse
       [(hContentType, "text/plain")]
+      (
+         (  yieldMany [(ze, zd)]
+         .| (fmap (const ()) (CZ.zipStream zipOpt))) :: ConduitM () BS.ByteString (ResourceT IO) ())
+      
       -- (yieldMany [Chunk bldr, Flush, Chunk bldr] :: ConduitM () (Flush BZB.Builder) IO ())
-               (  (fmap (const ()) (yieldMany ["abc", "efg"] :: ConduitM () BS.ByteString IO ()))
-               .| (mapC (Chunk . BZB.fromByteString) :: ConduitM BS.ByteString (Flush BZB.Builder) IO ())
-               )
 
+      -- (  (fmap (const ()) (yieldMany ["abc", "efg"] :: ConduitM () BS.ByteString IO ()))
+      --     .| (mapC (Chunk . BZB.fromByteString) :: ConduitM BS.ByteString (Flush BZB.Builder) IO ())
+      -- )
 
 zipEmpty :: ZipEntry -> Bool
 zipEmpty ZipEntry{ zipEntryContent = ZipDirectory l } = all zipEmpty l

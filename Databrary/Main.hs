@@ -62,7 +62,7 @@ main = do
     [] -> ["databrary.conf"]
     l -> l)
 
-  when True
+  when False
     (do
        print "use conduit"
        -- sink type used in zip: Sink ByteString (ResourceT IO) a == ConduitM ByteString Void (ResourceT IO) a
@@ -130,8 +130,6 @@ main = do
              ) :: ConduitM () BS.ByteString (ResourceT IO) ()
 
        runConduitRes (strm .| sinkFile "/tmp/z1.zip")
-
-       
        
        exitSuccess)
     
