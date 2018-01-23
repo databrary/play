@@ -53,6 +53,7 @@ app.directive('homeContainer', [
         var stopCarousel = false;
 
         function carousel() {
+          if (stopCarousel === false) {
             var i;
             var x = document.getElementsByClassName("testimonial");
             for (i = 0; i < x.length; i++) {
@@ -62,9 +63,9 @@ app.directive('homeContainer', [
             if (myIndex > x.length) {myIndex = 1}    
             x[myIndex-1].style.opacity = "1"; 
             slideIndex = myIndex;
-            if (stopCarousel === false) {
-              setTimeout(carousel, 8000);
-            }
+          
+            setTimeout(carousel, 8000);
+          }
         }
 
         carousel();
