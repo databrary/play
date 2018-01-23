@@ -158,10 +158,12 @@ zipExample = action GET "example" $ \() -> withAuth $ do
     let ze = CZ.ZipEntry { CZ.zipEntryName = "ent1"
                          , CZ.zipEntryTime = LocalTime (fromGregorian 2017 1 2) midnight , CZ.zipEntrySize = Nothing }
     let zd = CZ.ZipDataByteString "abc"
+    let zd2 = CZ.ZipDataSource (sourceFileBS "/tmp/download.mp4") ---- MODIFY THIS
+    let mkEnt i = ze { CZ.zipEntryName = "ent" `BS.append` (BSC.pack . show) i }
     return $ okResponse
       [(hContentType, "text/plain")]
       (
-         (  yieldMany [(ze, zd)]
+         (  yieldMany (map (\i -> (mkEnt i, zd2)) [1..40])
          .| (fmap (const ()) (CZ.zipStream zipOpt))) :: ConduitM () BS.ByteString (ResourceT IO) ())
       
       -- (yieldMany [Chunk bldr, Flush, Chunk bldr] :: ConduitM () (Flush BZB.Builder) IO ())
