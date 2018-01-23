@@ -62,7 +62,7 @@ main = do
     [] -> ["databrary.conf"]
     l -> l)
 
-  when False
+  when True
     (do
        print "use conduit"
        -- sink type used in zip: Sink ByteString (ResourceT IO) a == ConduitM ByteString Void (ResourceT IO) a
@@ -124,8 +124,11 @@ main = do
        let ze = CZ.ZipEntry { CZ.zipEntryName = "ent1"
                             , CZ.zipEntryTime = LocalTime (fromGregorian 2017 1 2) midnight , CZ.zipEntrySize = Nothing }
        let zd = CZ.ZipDataByteString "abc"
+       let ze2 = CZ.ZipEntry { CZ.zipEntryName = "ent2"
+                            , CZ.zipEntryTime = LocalTime (fromGregorian 2017 1 2) midnight , CZ.zipEntrySize = Nothing }
+       let zd2 = CZ.ZipDataSource (sourceFileBS "/tmp/download.mp4") ---- MODIFY THIS
        let strm =
-             (  yieldMany [(ze, zd)]
+             (  yieldMany [(ze, zd), (ze2, zd2)]
              .| (fmap (const ()) (CZ.zipStream zipOpt))
              ) :: ConduitM () BS.ByteString (ResourceT IO) ()
 
