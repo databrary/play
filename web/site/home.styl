@@ -305,6 +305,8 @@ div
   box-sizing border-box
   width 332.8rem
   height 31.33333333333333rem
+  @media screen and (max-width:grid-mobile-width)
+    height auto
   margin 0
   padding 0
   list-style none
@@ -493,7 +495,7 @@ div
 
 
 .testimonial-container
-  padding 100px 0 180px 0
+  padding 160px 0
   background-color #fadbc7
   p
     color #666
@@ -501,18 +503,33 @@ div
     strong
       font-family "Lucida Sans Unicode","Lucida Grande",sans-serif !important
       color #2c3e51
+  .arrow-container
+    margin-top 410px
+    @media screen and (max-width:grid-tablet-width)
+      margin-top 600px
+    @media screen and (max-width:grid-mobile-width)
+      margin-top 800px
+  .header
+    margin-bottom 200px
+
+.testimonials
+  position relative
 
 .testimonial
-  padding 0px 20px
-  max-width 80%
-  margin 0 auto
-  padding 40px 0
+  padding 40px
+  max-width 90%
+  margin auto
+  position absolute
+  left 0
+  top 0
+  bottom 0
+  right 0
   clear both
-  display none
+  opacity 0
+  display block
   height 300px
-  @media screen and (max-width:grid-tablet-width)
-    height auto
   cursor pointer
+  transition: all 1s ease-in-out;
   strong
     font-size 26px
     font-weight normal
