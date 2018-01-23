@@ -143,8 +143,11 @@ sizeZip entries = len + (z64 ?= 76) + 22 where
 streamZip :: [ZipEntry] -> BS.ByteString -> (B.Builder -> IO ()) -> IO ()
 streamZip entries comment write = do
   t <- getCurrentTime
+  print "streamZip: before zip entries"
   (off, centries) <- execRWST (streamZipEntries entries) (BS.empty, t) 0
+  print "streamZip: before zipcentry"
   csize <- execStateT (mapM_ streamZipCEntry centries) 0
+  print "streamZip: before write1"
   let len = off + csize
       count = length centries
   when (len >= zip64Size || count >= 0xffff) $ write
@@ -161,6 +164,7 @@ streamZip entries comment write = do
     <> B.word32LE 0 -- central disk
     <> B.word64LE len
     <> B.word32LE 1 -- total disks
+  print "streamZip: before write2"
   write $ B.word32LE 0x06054b50
     <> B.word16LE 0 -- disk
     <> B.word16LE 0 -- central disk
@@ -179,6 +183,7 @@ streamZip entries comment write = do
   streamZipEntries = mapM_ streamZipEntry
   streamZipEntry :: ZipEntry -> RWST (BS.ByteString, UTCTime) [ZipCEntry] Word64 IO ()
   streamZipEntry z@ZipEntry{..} = do
+    -- LOG start
     (path', time') <- ask
     off <- get
     let path = slash zipEntryContent $ path' <> zipEntryName
@@ -213,12 +218,15 @@ streamZip entries comment write = do
           el = z64 ?= 20
     case zipEntryContent of
       ZipDirectory l -> do
+        -- log start of directory
         header $ Just (0, 0)
         local (\_ -> (path, time)) $ streamZipEntries l
       ZipEntryPure b -> do
+        -- log start of pure?
         header $ Just (crc32 b, fromIntegral $ BSL.length b)
         liftIO $ write $ B.lazyByteString b
       ZipEntryFile size f -> do
+        -- log start of file
         header Nothing
         fp <- liftIO $ unRawFilePath f
         let run c 0 _ = return c

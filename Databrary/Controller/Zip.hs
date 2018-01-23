@@ -3,7 +3,15 @@ module Databrary.Controller.Zip
   ( zipContainer
   , zipVolume
   , viewVolumeDescription
+  , zipExample
   ) where
+
+import qualified Blaze.ByteString.Builder as BZB
+import Data.Monoid ((<>))
+import Conduit
+import qualified Codec.Archive.Zip.Conduit.Zip as CZ
+import Data.Time
+------- temporary
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
@@ -135,7 +143,34 @@ zipResponse n z = do
     , ("content-disposition", "attachment; filename=" <> quoteHTTP (n <.> "zip"))
     , (hCacheControl, "max-age=31556926, private")
     , (hContentLength, BSC.pack $ show $ sizeZip z + fromIntegral (BS.length comment))
-    ] (streamZip z comment)
+    ]
+    (streamZip z comment)  -- uses ByteString.Builder.Builder -> IO ()
+    
+bldr = BZB.fromByteString ("abcefg" :: BS.ByteString)    
+
+zipExample :: ActionRoute ()
+zipExample = action GET "example" $ \() -> withAuth $ do
+    -- c <- getContainer PermissionPUBLIC vi ci True
+    -- let v = containerVolume c
+    -- z <- containerZipEntryCorrectAssetSlots isOrig c
+    -- zipResponse ("databrary-example") []
+    let zipOpt = CZ.defaultZipOptions { CZ.zipOpt64 = True, CZ.zipOptCompressLevel = 0 }
+    let ze = CZ.ZipEntry { CZ.zipEntryName = "ent1"
+                         , CZ.zipEntryTime = LocalTime (fromGregorian 2017 1 2) midnight , CZ.zipEntrySize = Nothing }
+    let zd = CZ.ZipDataByteString "abc"
+    let zd2 = CZ.ZipDataSource (sourceFileBS "/tmp/download.mp4") ---- MODIFY THIS
+    let mkEnt i = ze { CZ.zipEntryName = "ent" `BS.append` (BSC.pack . show) i }
+    return $ okResponse
+      [(hContentType, "text/plain")]
+      (
+         (  yieldMany (map (\i -> (mkEnt i, zd2)) [1..40])
+         .| (fmap (const ()) (CZ.zipStream zipOpt))) :: ConduitM () BS.ByteString (ResourceT IO) ())
+      
+      -- (yieldMany [Chunk bldr, Flush, Chunk bldr] :: ConduitM () (Flush BZB.Builder) IO ())
+
+      -- (  (fmap (const ()) (yieldMany ["abc", "efg"] :: ConduitM () BS.ByteString IO ()))
+      --     .| (mapC (Chunk . BZB.fromByteString) :: ConduitM BS.ByteString (Flush BZB.Builder) IO ())
+      -- )
 
 zipEmpty :: ZipEntry -> Bool
 zipEmpty ZipEntry{ zipEntryContent = ZipDirectory l } = all zipEmpty l

@@ -102,6 +102,7 @@ routeMap = routes
   , route viewContainerActivity
   , route $ zipContainer False 
   , route $ zipContainer True 
+  , route $ zipExample
   , route thumbSlot
 
   , route viewFormats

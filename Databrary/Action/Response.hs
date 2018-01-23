@@ -29,6 +29,10 @@ import qualified Text.Blaze.Html as Html
 import qualified Text.Blaze.Html.Renderer.Utf8 as Html
 
 import qualified Databrary.JSON as JSON
+import qualified Network.Wai.Conduit as WAC
+import qualified Data.Conduit as CND
+import qualified Blaze.ByteString.Builder as BZB
+import Conduit
 
 class ResponseData r where
   response :: Status -> ResponseHeaders -> r -> Response
@@ -47,6 +51,12 @@ instance ResponseData BS.ByteString where
 
 instance ResponseData StreamingBody where
   response = responseStream
+
+instance ResponseData (CND.Source (ResourceT IO) BS.ByteString) where
+  response s h src = -- WAC.responseSource s h src
+    responseStream s h
+      (\send flush ->
+         runConduitRes (src .| mapM_C (\bs -> lift (send (BZB.fromByteString bs)))))
 
 instance ResponseData ((BSB.Builder -> IO ()) -> IO ()) where
   response s h f = responseStream s h (\w _ -> f w)
