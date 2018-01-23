@@ -92,6 +92,13 @@ app.directive('homeContainer', [
             script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyBZRvCMW10DAK5WKF9QCgtNWdmhkwpGinc&callback=initMap";
             document.body.appendChild(script);
         });
+
+        jQuery(function($) {
+            // Asynchronously Load the map API 
+            var script = document.createElement('script');
+            script.src = "/web/asset/initmap.js";
+            document.body.appendChild(script);
+        });
       }
     };
   }
