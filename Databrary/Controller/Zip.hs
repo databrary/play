@@ -90,6 +90,30 @@ containerZipEntry isOrig c l = do
     , zipEntryContent = ZipDirectory a
     }
 
+containerZipEntry2 :: Bool -> Container -> [AssetSlot] -> ActionM [(CZP.ZipEntry, CZP.ZipData (ResourceT IO))]
+containerZipEntry2 isOrig c l = do
+  -- req <- peek
+  a <- mapM (assetZipEntry isOrig) l
+  return [
+    ( blankZipEntry2
+      { CZP.zipEntryName = makeFilename (containerDownloadName c) -- TODO: should end in slash
+      -- , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewContainer (HTML, (Nothing, containerId $ containerRow c)) [] -- TODO: add back?
+       -- , zipEntryContent = ZipDirectory a
+      }
+    , noZipData )
+    ]
+
+-- TODO: move to store.zip
+blankZipEntry2 :: CZP.ZipEntry
+blankZipEntry2 = CZP.ZipEntry
+  { CZP.zipEntryName = ""
+  , CZP.zipEntryTime = LocalTime (fromGregorian 2017 1 2) midnight -- TODO: unix time 0
+  , CZP.zipEntrySize = Nothing
+  }
+
+noZipData :: CZP.ZipData a
+noZipData = CZP.ZipDataByteString ""
+
 volumeDescription :: Bool -> Volume -> (Container, [RecordSlot]) -> IdSet Container -> [AssetSlot] -> ActionM (Html.Html, [[AssetSlot]], [[AssetSlot]])
 volumeDescription inzip v (_, glob) cs al = do
   cite <- lookupVolumeCitation v
@@ -158,7 +182,7 @@ zipResponse2 n z = do
     , ("content-disposition", "attachment; filename=" <> quoteHTTP (n <.> "zip"))
     , (hCacheControl, "max-age=31556926, private")
     , (hContentLength, BSC.pack $ show $ (0 :: Word64) {- sizeZip z -} + fromIntegral (BS.length comment))
-    ] (   yieldMany z -- TODO: 
+    ] (   yieldMany z
        .| (fmap (const ()) (CZP.zipStream zipOpt))
       :: ConduitM () BS.ByteString (ResourceT IO) ())
 
