@@ -193,6 +193,17 @@ zipEmpty _ = False
 checkAsset :: AssetSlot -> Bool
 checkAsset a = dataPermission a > PermissionNONE && assetBacked (view a)
 
+containerZipEntryCorrectAssetSlots2 :: Bool -> Container -> ActionM [(CZP.ZipEntry, CZP.ZipData (ResourceT IO))]
+containerZipEntryCorrectAssetSlots2 isOrig c = do
+  c'<- lookupContainerAssets c
+  assetSlots <- case isOrig of 
+                     True -> do 
+                      origs <- lookupOrigContainerAssets c
+                      let pdfs = filterFormat c' formatNotAV
+                      return $ pdfs ++ origs
+                     False -> return c'
+  containerZipEntry2 isOrig c $ filter checkAsset assetSlots
+
 containerZipEntryCorrectAssetSlots :: Bool -> Container -> ActionM ZipEntry
 containerZipEntryCorrectAssetSlots isOrig c = do
   c'<- lookupContainerAssets c
@@ -213,9 +224,9 @@ zipContainer isOrig =
     c <- getContainer PermissionPUBLIC vi ci True
     let v = containerVolume c
     _ <- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted
-    z <- containerZipEntryCorrectAssetSlots isOrig c
-    auditSlotDownload (not $ zipEmpty z) (containerSlot c)
-    zipResponse ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) [z]
+    z <- containerZipEntryCorrectAssetSlots2 isOrig c
+    -- auditSlotDownload (not $ zipEmpty z) (containerSlot c) TODO: enable this again
+    zipResponse2 ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) z
 
 getVolumeInfo :: Id Volume -> ActionM (Volume, IdSet Container, [AssetSlot])
 getVolumeInfo vi = do
