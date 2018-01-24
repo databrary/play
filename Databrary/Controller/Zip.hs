@@ -80,8 +80,8 @@ assetZipEntry isOrig AssetSlot{ slotAsset = a@Asset{ assetRow = ar@AssetRow{ ass
     , zipEntryContent = ZipEntryFile (fromIntegral $ fromJust $ assetSize ar) f
     }
 
-assetZipEntry2 :: Bool -> AssetSlot -> ActionM (CZP.ZipEntry, CZP.ZipData (ResourceT IO))
-assetZipEntry2 isOrig AssetSlot{ slotAsset = a@Asset{ assetRow = ar@AssetRow{ assetId = aid}}} = do
+assetZipEntry2 :: Bool -> BS.ByteString -> AssetSlot -> ActionM (CZP.ZipEntry, CZP.ZipData (ResourceT IO))
+assetZipEntry2 isOrig containerDir AssetSlot{ slotAsset = a@Asset{ assetRow = ar@AssetRow{ assetId = aid}}} = do
   origAsset <- lookupOrigAsset aid   
   Just f <- case isOrig of 
                  True -> getAssetFile $ fromJust origAsset
@@ -92,9 +92,9 @@ assetZipEntry2 isOrig AssetSlot{ slotAsset = a@Asset{ assetRow = ar@AssetRow{ as
   -- liftIO (print ("downloadname", assetDownloadName False True ar))
   -- liftIO (print ("format", assetFormat ar))
   return (blankZipEntry2
-    { CZP.zipEntryName = case isOrig of
+    { CZP.zipEntryName = containerDir <> (case isOrig of
        False -> makeFilename (assetDownloadName True False ar) `addFormatExtension` assetFormat ar
-       True -> makeFilename (assetDownloadName False True ar) `addFormatExtension` assetFormat ar
+       True -> makeFilename (assetDownloadName False True ar) `addFormatExtension` assetFormat ar)
     -- , CZP.zipEntryTime = Nothing
     -- , CZP.zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewAsset (HTML, assetId ar) []  -- TODO: restore this?
     , CZP.zipEntrySize = Just (fromIntegral $ fromJust $ assetSize ar)
@@ -115,11 +115,12 @@ containerZipEntry isOrig c l = do
 containerZipEntry2 :: Bool -> Container -> [AssetSlot] -> ActionM [(CZP.ZipEntry, CZP.ZipData (ResourceT IO))]
 containerZipEntry2 isOrig c l = do
   -- req <- peek
-  a <- mapM (assetZipEntry2 isOrig) l
+  let containerDir = makeFilename (containerDownloadName c) <> "/"
+  a <- mapM (assetZipEntry2 isOrig containerDir) l
   -- TODO: throw exception if called with no entries
   return (
     ( blankZipEntry2
-      { CZP.zipEntryName = makeFilename (containerDownloadName c) -- TODO: should end in slash
+      { CZP.zipEntryName = containerDir
       -- , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewContainer (HTML, (Nothing, containerId $ containerRow c)) [] -- TODO: add back?
        -- , zipEntryContent = ZipDirectory a
       }
