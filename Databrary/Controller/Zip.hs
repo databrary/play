@@ -144,7 +144,7 @@ zipResponse n z = do
     , (hContentLength, BSC.pack $ show $ sizeZip z + fromIntegral (BS.length comment))
     ] (streamZip z comment)
 
-zipResponse2 :: BS.ByteString -> [CZP.ZipEntry] -> ActionM Response
+zipResponse2 :: BS.ByteString -> [(CZP.ZipEntry, CZP.ZipData (ResourceT IO))] -> ActionM Response
 zipResponse2 n z = do
   req <- peek
   u <- peek
@@ -152,12 +152,15 @@ zipResponse2 n z = do
         $ BSB.string8 "Downloaded by " <> TE.encodeUtf8Builder (partyName $ partyRow u) <> BSB.string8 " <"
             <> actionURL (Just req) viewParty (HTML, TargetParty $ partyId $ partyRow u) []
             <> BSB.char8 '>'
+      zipOpt = CZP.defaultZipOptions { CZP.zipOpt64 = True, CZP.zipOptCompressLevel = 0 }
   return $ okResponse
     [ (hContentType, "application/zip")
     , ("content-disposition", "attachment; filename=" <> quoteHTTP (n <.> "zip"))
     , (hCacheControl, "max-age=31556926, private")
     , (hContentLength, BSC.pack $ show $ (0 :: Word64) {- sizeZip z -} + fromIntegral (BS.length comment))
-    ] (undefined :: String) -- (streamZip z comment)
+    ] (   yieldMany z -- TODO: 
+       .| (fmap (const ()) (CZP.zipStream zipOpt))
+      :: ConduitM () BS.ByteString (ResourceT IO) ())
 
 zipEmpty :: ZipEntry -> Bool
 zipEmpty ZipEntry{ zipEntryContent = ZipDirectory l } = all zipEmpty l
