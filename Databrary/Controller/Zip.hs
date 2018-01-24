@@ -117,14 +117,14 @@ containerZipEntry2 isOrig c l = do
   -- req <- peek
   a <- mapM (assetZipEntry2 isOrig) l
   -- TODO: throw exception if called with no entries
-  return (
+  return a {- (
     ( blankZipEntry2
       { CZP.zipEntryName = makeFilename (containerDownloadName c) -- TODO: should end in slash
       -- , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewContainer (HTML, (Nothing, containerId $ containerRow c)) [] -- TODO: add back?
        -- , zipEntryContent = ZipDirectory a
       }
     , noZipData )
-    : a)
+    : a) -}
 
 -- TODO: move to store.zip
 blankZipEntry2 :: CZP.ZipEntry
