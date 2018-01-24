@@ -206,7 +206,7 @@ zipResponse2 n z = do
     [ (hContentType, "application/zip")
     , ("content-disposition", "attachment; filename=" <> quoteHTTP (n <.> "zip"))
     , (hCacheControl, "max-age=31556926, private")
-    -- , (hContentLength, BSC.pack $ show $ (0 :: Word64) {- sizeZip z -} + fromIntegral (BS.length comment))  -- TODO: restore content length
+    -- , (hContentLength, BSC.pack $ show $ (0 :: Word64) {- sizeZip z -} + fromIntegral (BS.length comment))  -- TODO: does content length have to be exact? skip for now
     ] (   yieldMany z
        .| (fmap (const ()) (CZP.zipStream zipOpt))
       :: ConduitM () BS.ByteString (ResourceT IO) ())
