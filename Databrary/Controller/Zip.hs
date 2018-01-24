@@ -80,8 +80,8 @@ assetZipEntry isOrig AssetSlot{ slotAsset = a@Asset{ assetRow = ar@AssetRow{ ass
     , zipEntryContent = ZipEntryFile (fromIntegral $ fromJust $ assetSize ar) f
     }
 
-assetZipEntry2 :: Bool -> BS.ByteString -> AssetSlot -> ActionM (CZP.ZipEntry, CZP.ZipData (ResourceT IO))
-assetZipEntry2 isOrig containerDir AssetSlot{ slotAsset = a@Asset{ assetRow = ar@AssetRow{ assetId = aid}}} = do
+assetZipEntry2 :: Bool -> LocalTime -> BS.ByteString -> AssetSlot -> ActionM (CZP.ZipEntry, CZP.ZipData (ResourceT IO))
+assetZipEntry2 isOrig nowUtc containerDir AssetSlot{ slotAsset = a@Asset{ assetRow = ar@AssetRow{ assetId = aid}}} = do
   origAsset <- lookupOrigAsset aid   
   Just f <- case isOrig of 
                  True -> getAssetFile $ fromJust origAsset
@@ -95,7 +95,7 @@ assetZipEntry2 isOrig containerDir AssetSlot{ slotAsset = a@Asset{ assetRow = ar
     { CZP.zipEntryName = containerDir <> (case isOrig of
        False -> makeFilename (assetDownloadName True False ar) `addFormatExtension` assetFormat ar
        True -> makeFilename (assetDownloadName False True ar) `addFormatExtension` assetFormat ar)
-    -- , CZP.zipEntryTime = Nothing
+    , CZP.zipEntryTime = nowUtc
     -- , CZP.zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewAsset (HTML, assetId ar) []  -- TODO: restore this?
     , CZP.zipEntrySize = Just (fromIntegral $ fromJust $ assetSize ar)
     }
@@ -112,17 +112,18 @@ containerZipEntry isOrig c l = do
     , zipEntryContent = ZipDirectory a
     }
 
-containerZipEntry2 :: Bool -> Container -> [AssetSlot] -> ActionM [(CZP.ZipEntry, CZP.ZipData (ResourceT IO))]
-containerZipEntry2 isOrig c l = do
+containerZipEntry2 :: Bool -> LocalTime -> Container -> [AssetSlot] -> ActionM [(CZP.ZipEntry, CZP.ZipData (ResourceT IO))]
+containerZipEntry2 isOrig nowUtc c l = do
   -- req <- peek
   let containerDir = makeFilename (containerDownloadName c) <> "/"
-  a <- mapM (assetZipEntry2 isOrig containerDir) l
+  a <- mapM (assetZipEntry2 isOrig nowUtc containerDir) l
   -- TODO: throw exception if called with no entries
   return (
     ( blankZipEntry2
       { CZP.zipEntryName = containerDir
       -- , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewContainer (HTML, (Nothing, containerId $ containerRow c)) [] -- TODO: add back?
        -- , zipEntryContent = ZipDirectory a
+      , CZP.zipEntryTime = nowUtc
       }
     , noZipData )
     : a)
@@ -217,8 +218,8 @@ zipEmpty _ = False
 checkAsset :: AssetSlot -> Bool
 checkAsset a = dataPermission a > PermissionNONE && assetBacked (view a)
 
-containerZipEntryCorrectAssetSlots2 :: Bool -> Container -> ActionM [(CZP.ZipEntry, CZP.ZipData (ResourceT IO))]
-containerZipEntryCorrectAssetSlots2 isOrig c = do
+containerZipEntryCorrectAssetSlots2 :: Bool -> LocalTime -> Container -> ActionM [(CZP.ZipEntry, CZP.ZipData (ResourceT IO))]
+containerZipEntryCorrectAssetSlots2 isOrig nowUtc c = do
   c'<- lookupContainerAssets c
   assetSlots <- case isOrig of 
                      True -> do 
@@ -226,7 +227,7 @@ containerZipEntryCorrectAssetSlots2 isOrig c = do
                       let pdfs = filterFormat c' formatNotAV
                       return $ pdfs ++ origs
                      False -> return c'
-  containerZipEntry2 isOrig c $ filter checkAsset assetSlots
+  containerZipEntry2 isOrig nowUtc c $ filter checkAsset assetSlots
 
 containerZipEntryCorrectAssetSlots :: Bool -> Container -> ActionM ZipEntry
 containerZipEntryCorrectAssetSlots isOrig c = do
@@ -248,7 +249,8 @@ zipContainer isOrig =
     c <- getContainer PermissionPUBLIC vi ci True
     let v = containerVolume c
     _ <- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted
-    z <- containerZipEntryCorrectAssetSlots2 isOrig c
+    nowUtc <- liftIO (utcToLocalTime utc <$> getCurrentTime)
+    z <- containerZipEntryCorrectAssetSlots2 isOrig nowUtc c
     -- auditSlotDownload (not $ zipEmpty z) (containerSlot c) TODO: enable this again
     zipResponse2 ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) z
 
