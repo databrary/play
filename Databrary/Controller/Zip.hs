@@ -3,6 +3,7 @@ module Databrary.Controller.Zip
   ( zipContainer
   , zipVolume
   , viewVolumeDescription
+  , zipContainerOld
   ) where
 
 import qualified Data.ByteString as BS
@@ -262,6 +263,20 @@ zipContainer isOrig =
     z <- containerZipEntryCorrectAssetSlots2 isOrig nowUtc c
     auditSlotDownload (not $ zipEmpty2 (fmap snd z)) (containerSlot c)
     zipResponse2 ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) z
+
+zipContainerOld :: Bool -> ActionRoute (Maybe (Id Volume), Id Slot)
+zipContainerOld isOrig = 
+  let zipPath = case isOrig of 
+                     True -> pathMaybe pathId </> pathSlotId </< "zipold" </< "true"
+                     False -> pathMaybe pathId </> pathSlotId </< "zipold" </< "false"
+  in action GET zipPath $ \(vi, ci) -> withAuth $ do
+    c <- getContainer PermissionPUBLIC vi ci True
+    let v = containerVolume c
+    _ <- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted
+    -- nowUtc <- liftIO (utcToLocalTime utc <$> getCurrentTime)
+    z <- containerZipEntryCorrectAssetSlots isOrig c
+    auditSlotDownload (not $ zipEmpty z) (containerSlot c)
+    zipResponse ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) [z]
 
 getVolumeInfo :: Id Volume -> ActionM (Volume, IdSet Container, [AssetSlot])
 getVolumeInfo vi = do
