@@ -47,8 +47,11 @@ instance ResponseData BSL.ByteString where
 instance ResponseData BS.ByteString where
   response s h = responseBuilder s h . BSB.byteString
 
--- instance ResponseData ((BSB.Builder -> IO ()) -> IO ()) where
---   response s h f = responseStream s h (\w _ -> f w)
+instance ResponseData (Source (ResourceT IO) BS.ByteString) where
+  response s h src =
+    responseStream s h
+      (\send flush ->
+         runConduitRes (src .| mapM_C (\bs -> (lift . send . BZB.fromByteString) bs)))
 
 instance ResponseData StreamingBody where
   response = responseStream
