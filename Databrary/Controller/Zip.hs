@@ -122,7 +122,6 @@ containerZipEntry2 isOrig nowUtc c l = do
     ( blankZipEntry2
       { CZP.zipEntryName = containerDir
       -- , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewContainer (HTML, (Nothing, containerId $ containerRow c)) [] -- TODO: add back?
-       -- , zipEntryContent = ZipDirectory a
       , CZP.zipEntryTime = nowUtc
       }
     , noZipData )
@@ -132,12 +131,13 @@ containerZipEntry2 isOrig nowUtc c l = do
 blankZipEntry2 :: CZP.ZipEntry
 blankZipEntry2 = CZP.ZipEntry
   { CZP.zipEntryName = ""
-  , CZP.zipEntryTime = LocalTime (fromGregorian 2017 1 2) midnight -- TODO: unix time 0
+  , CZP.zipEntryTime = LocalTime (ModifiedJulianDay 0) midnight -- 0 is 1858 from modified julian days
   , CZP.zipEntrySize = Nothing
   }
 
 noZipData :: CZP.ZipData a
 noZipData = CZP.ZipDataByteString ""
+-----------
 
 volumeDescription :: Bool -> Volume -> (Container, [RecordSlot]) -> IdSet Container -> [AssetSlot] -> ActionM (Html.Html, [[AssetSlot]], [[AssetSlot]])
 volumeDescription inzip v (_, glob) cs al = do
@@ -201,7 +201,8 @@ zipResponse2 n z = do
         $ BSB.string8 "Downloaded by " <> TE.encodeUtf8Builder (partyName $ partyRow u) <> BSB.string8 " <"
             <> actionURL (Just req) viewParty (HTML, TargetParty $ partyId $ partyRow u) []
             <> BSB.char8 '>'
-      zipOpt = CZP.defaultZipOptions { CZP.zipOpt64 = True, CZP.zipOptCompressLevel = 0 }
+      baseZipOpt = CZP.defaultZipOptions { CZP.zipOpt64 = True, CZP.zipOptCompressLevel = 0 }
+      zipOpt = baseZipOpt { CZP.zipOptInfo = CZP.ZipInfo comment }
   return $ okResponse
     [ (hContentType, "application/zip")
     , ("content-disposition", "attachment; filename=" <> quoteHTTP (n <.> "zip"))
