@@ -117,14 +117,14 @@ containerZipEntry2 isOrig c l = do
   -- req <- peek
   a <- mapM (assetZipEntry2 isOrig) l
   -- TODO: throw exception if called with no entries
-  return a {- (
+  return (
     ( blankZipEntry2
       { CZP.zipEntryName = makeFilename (containerDownloadName c) -- TODO: should end in slash
       -- , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewContainer (HTML, (Nothing, containerId $ containerRow c)) [] -- TODO: add back?
        -- , zipEntryContent = ZipDirectory a
       }
     , noZipData )
-    : a) -}
+    : a)
 
 -- TODO: move to store.zip
 blankZipEntry2 :: CZP.ZipEntry
@@ -204,7 +204,7 @@ zipResponse2 n z = do
     [ (hContentType, "application/zip")
     , ("content-disposition", "attachment; filename=" <> quoteHTTP (n <.> "zip"))
     , (hCacheControl, "max-age=31556926, private")
-    , (hContentLength, BSC.pack $ show $ (0 :: Word64) {- sizeZip z -} + fromIntegral (BS.length comment))
+    -- , (hContentLength, BSC.pack $ show $ (0 :: Word64) {- sizeZip z -} + fromIntegral (BS.length comment))  -- TODO: restore content length
     ] (   yieldMany z
        .| (fmap (const ()) (CZP.zipStream zipOpt))
       :: ConduitM () BS.ByteString (ResourceT IO) ())
