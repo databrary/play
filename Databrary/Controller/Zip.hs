@@ -86,7 +86,7 @@ assetZipEntry2 isOrig nowUtc containerDir AssetSlot{ slotAsset = a@Asset{ assetR
   Just f <- case isOrig of 
                  True -> getAssetFile $ fromJust origAsset
                  False -> getAssetFile a
-  -- NOT NEEDED UNTIL COMMENT IS RESTORED req <- peek
+  -- req <- peek
   -- (t, _) <- assetCreation a
   -- Just (t, s) <- fileInfo f
   -- liftIO (print ("downloadname", assetDownloadName False True ar))
@@ -96,6 +96,7 @@ assetZipEntry2 isOrig nowUtc containerDir AssetSlot{ slotAsset = a@Asset{ assetR
        False -> makeFilename (assetDownloadName True False ar) `addFormatExtension` assetFormat ar
        True -> makeFilename (assetDownloadName False True ar) `addFormatExtension` assetFormat ar)
     , CZP.zipEntryTime = nowUtc
+    -- entry comments don't appear supported by zip-stream
     -- , CZP.zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewAsset (HTML, assetId ar) []  -- TODO: restore this?
     , CZP.zipEntrySize = Just (fromIntegral $ fromJust $ assetSize ar)
     }
@@ -121,10 +122,11 @@ containerZipEntry2 isOrig nowUtc c l = do
   return (
     ( blankZipEntry2
       { CZP.zipEntryName = containerDir
-      -- , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewContainer (HTML, (Nothing, containerId $ containerRow c)) [] -- TODO: add back?
+      -- entry comments don't appear supported by zip-stream
+      -- , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewContainer (HTML, (Nothing, containerId $ containerRow c)) [] 
       , CZP.zipEntryTime = nowUtc
       }
-    , noZipData )
+    , mempty )
     : a)
 
 -- TODO: move to store.zip
@@ -134,9 +136,6 @@ blankZipEntry2 = CZP.ZipEntry
   , CZP.zipEntryTime = LocalTime (ModifiedJulianDay 0) midnight -- 0 is 1858 from modified julian days
   , CZP.zipEntrySize = Nothing
   }
-
-noZipData :: CZP.ZipData a
-noZipData = CZP.ZipDataByteString ""
 -----------
 
 volumeDescription :: Bool -> Volume -> (Container, [RecordSlot]) -> IdSet Container -> [AssetSlot] -> ActionM (Html.Html, [[AssetSlot]], [[AssetSlot]])
@@ -216,6 +215,15 @@ zipEmpty :: ZipEntry -> Bool
 zipEmpty ZipEntry{ zipEntryContent = ZipDirectory l } = all zipEmpty l
 zipEmpty _ = False
 
+zipEmpty2 :: [CZP.ZipData a] -> Bool
+zipEmpty2 zds =
+  all
+  (\zd ->
+     case zd of
+       CZP.ZipDataByteString "" -> True
+       _ -> False)
+  zds
+
 checkAsset :: AssetSlot -> Bool
 checkAsset a = dataPermission a > PermissionNONE && assetBacked (view a)
 
@@ -252,7 +260,7 @@ zipContainer isOrig =
     _ <- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted
     nowUtc <- liftIO (utcToLocalTime utc <$> getCurrentTime)
     z <- containerZipEntryCorrectAssetSlots2 isOrig nowUtc c
-    -- auditSlotDownload (not $ zipEmpty z) (containerSlot c) TODO: enable this again
+    auditSlotDownload (not $ zipEmpty2 (fmap snd z)) (containerSlot c)
     zipResponse2 ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) z
 
 getVolumeInfo :: Id Volume -> ActionM (Volume, IdSet Container, [AssetSlot])
