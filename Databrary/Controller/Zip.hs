@@ -20,6 +20,13 @@ import Network.HTTP.Types (hContentType, hCacheControl, hContentLength)
 import System.Posix.FilePath ((<.>))
 import qualified Text.Blaze.Html5 as Html
 import qualified Text.Blaze.Html.Renderer.Utf8 as Html
+import qualified Codec.Archive.Zip.Conduit.Zip as CZP
+-- TEMPORARY BELOW
+import Conduit
+import qualified Blaze.ByteString.Builder as BZB
+import Data.Monoid ((<>))
+import Data.Time
+import Data.Word
 
 import Databrary.Ops
 import Databrary.Has (view, peek, peeks)
@@ -136,6 +143,21 @@ zipResponse n z = do
     , (hCacheControl, "max-age=31556926, private")
     , (hContentLength, BSC.pack $ show $ sizeZip z + fromIntegral (BS.length comment))
     ] (streamZip z comment)
+
+zipResponse2 :: BS.ByteString -> [CZP.ZipEntry] -> ActionM Response
+zipResponse2 n z = do
+  req <- peek
+  u <- peek
+  let comment = BSL.toStrict $ BSB.toLazyByteString
+        $ BSB.string8 "Downloaded by " <> TE.encodeUtf8Builder (partyName $ partyRow u) <> BSB.string8 " <"
+            <> actionURL (Just req) viewParty (HTML, TargetParty $ partyId $ partyRow u) []
+            <> BSB.char8 '>'
+  return $ okResponse
+    [ (hContentType, "application/zip")
+    , ("content-disposition", "attachment; filename=" <> quoteHTTP (n <.> "zip"))
+    , (hCacheControl, "max-age=31556926, private")
+    , (hContentLength, BSC.pack $ show $ (0 :: Word64) {- sizeZip z -} + fromIntegral (BS.length comment))
+    ] (undefined :: String) -- (streamZip z comment)
 
 zipEmpty :: ZipEntry -> Bool
 zipEmpty ZipEntry{ zipEntryContent = ZipDirectory l } = all zipEmpty l
