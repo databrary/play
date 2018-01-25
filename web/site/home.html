@@ -51,13 +51,13 @@
       </div>
     </div>
     <div class="bigbuttons-container">
-      <div class="bigbutton" ng-if="::!page.models.Login.isLoggedIn()">
+      <div class="bigbutton" ng-show="::!page.models.Login.isLoggedIn()">
         <img src="/web/icons/login.svg"/>
         <span class="button-title">
-          <a ng-href="{{::page.router.login()}}">Login</a> or 
+          <a ng-href="{{::page.router.login()}}" class="modal-button">Login</a> or 
           <a ng-href="{{::page.router.register()}}">Register</a></span>
       </div>
-      <a ng-href="{{::page.router.profile()}}" ng-if="::page.models.Login.isLoggedIn()">
+      <a ng-href="{{::page.router.profile()}}" ng-show="::page.models.Login.isLoggedIn()">
         <div class="bigbutton">
           <img src="/web/icons/home-profile.svg"/>
           <span class="button-title">Your Profile</span>
