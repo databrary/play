@@ -16,9 +16,9 @@ app.controller('site/home', [
         modal.style.display = "block";
     });
 
-    span.onclick = function() {
+    $('.modal .close, .modal a[href="/user/password"], .modal a[href="/user/register"]').click(function() {
         modal.style.display = "none";
-    }
+    });
 
     // When the user clicks anywhere outside of the modal, close it
     window.onclick = function(event) {
