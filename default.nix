@@ -87,6 +87,8 @@ let
       postgresql-binary = dontCheck (self.callHackage  "postgresql-binary" "0.10" {});
       # Define postgresql-typed package with explicit version number
       postgresql-typed = dontCheck (self.callHackage  "postgresql-typed" "0.4.5" {});
+      # Define zip with special fork including streaming support; dontCheck to save time
+      zip = dontCheck (self.callPackage ./zip-blind.nix {});
     };
   };
 in { databrary = pkgs.databrary; databrary-dev = pkgs.databrary-dev; }
