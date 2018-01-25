@@ -35,6 +35,7 @@ import Databrary.Store.Asset
 import Databrary.Store.Filename
 import Databrary.Store.CSV (buildCSV)
 import Databrary.Store.Zip
+import qualified Databrary.Store.ZipUtil as ZU
 import Databrary.Model.Id
 import Databrary.Model.Permission
 import Databrary.Model.Volume
@@ -207,7 +208,7 @@ zipResponse2 n z = do
     [ (hContentType, "application/zip")
     , ("content-disposition", "attachment; filename=" <> quoteHTTP (n <.> "zip"))
     , (hCacheControl, "max-age=31556926, private")
-    -- , (hContentLength, BSC.pack $ show $ (0 :: Word64) {- sizeZip z -} + fromIntegral (BS.length comment))  -- TODO: does content length have to be exact? skip for now
+    -- , (hContentLength, BSC.pack $ show $ sizeZip z + fromIntegral (BS.length comment))
     ] (   yieldMany z
        .| (fmap (const ()) (CZP.zipStream zipOpt))
       :: ConduitM () BS.ByteString (ResourceT IO) ())
@@ -261,6 +262,7 @@ zipContainer isOrig =
     _ <- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted
     nowUtc <- liftIO (utcToLocalTime utc <$> getCurrentTime)
     z <- containerZipEntryCorrectAssetSlots2 isOrig nowUtc c
+    -- z2 <- containerZipEntryCorrectAssetSlots isOrig c
     auditSlotDownload (not $ zipEmpty2 (fmap snd z)) (containerSlot c)
     zipResponse2 ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) z
 
