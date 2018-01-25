@@ -27,6 +27,8 @@ import Network.Wai (Response, responseBuilder, responseLBS, StreamingBody, respo
 import System.Posix.Types (FileOffset)
 import qualified Text.Blaze.Html as Html
 import qualified Text.Blaze.Html.Renderer.Utf8 as Html
+import Conduit -- TODO: qualify this
+import qualified Blaze.ByteString.Builder as BZB
 
 import qualified Databrary.JSON as JSON
 
@@ -44,6 +46,12 @@ instance ResponseData BSL.ByteString where
 
 instance ResponseData BS.ByteString where
   response s h = responseBuilder s h . BSB.byteString
+
+instance ResponseData (Source (ResourceT IO) BS.ByteString) where
+  response s h src =
+    responseStream s h
+      (\send flush ->
+         runConduitRes (src .| mapM_C (\bs -> (lift . send . BZB.fromByteString) bs)))
 
 instance ResponseData StreamingBody where
   response = responseStream

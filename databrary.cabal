@@ -95,8 +95,11 @@ Executable databrary
     range-set-list >= 0.1.2.0,
     invertible >= 0.1.1,
     web-inv-route >= 0.1,
-    smtp-mail >= 0.1.4.6
-
+    smtp-mail >= 0.1.4.6,
+    conduit-combinators >= 1.1.1,
+    zip-stream >= 0.1.0.1,
+    blaze-builder >= 0.4.0.2
+            
   default-language: Haskell2010
   default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
 
