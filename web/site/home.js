@@ -13,6 +13,7 @@ app.controller('site/home', [
     $('.modal-button').click(function(e) {
         e.preventDefault();
         modal.style.display = "block";
+        $('input#loginEmail').focus();
     });
 
     $('.modal .close, .modal a[href="/user/password"], .modal a[href="/user/register"]').click(function() {
