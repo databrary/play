@@ -161,7 +161,10 @@ zipExample = action GET "example" $ \() -> withAuth $ do
     , (hCacheControl, "max-age=31556926, private")
     , (hContentLength, BSC.pack $ show $ sz)
     ]
-    (CND.sourceHandle h :: CND.Source IO BS.ByteString)
+    (CND.bracketP
+       (return h)
+       IO.hClose
+       CND.sourceHandle :: CND.Source (CND.ResourceT IO) BS.ByteString)
 
 zipEmpty :: ZipEntry -> Bool
 zipEmpty ZipEntry{ zipEntryContent = ZipDirectory l } = all zipEmpty l
