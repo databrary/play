@@ -3,7 +3,7 @@ module Databrary.Controller.Zip
   ( zipContainer
   , zipVolume
   , viewVolumeDescription
-  -- , zipExample
+  , zipContainerOld -- DELETE ME
   ) where
 
 import qualified Data.ByteString as BS
@@ -146,16 +146,24 @@ zipResponse n z = do
 
 zipResponse2 :: BS.ByteString -> ZIP.ZipArchive () -> ActionM Response
 zipResponse2 n zipAddActions = do
-  h <- undefined
   req <- peek
   u <- peek
   let comment = BSL.toStrict $ BSB.toLazyByteString
         $ BSB.string8 "Downloaded by " <> TE.encodeUtf8Builder (partyName $ partyRow u) <> BSB.string8 " <" <> actionURL (Just req) viewParty (HTML, TargetParty $ partyId $ partyRow u) [] <> BSB.char8 '>'
+  let temporaryZipName = "/tmp/placeholder.zip" -- TODO: generate temporary name for extra caution?
+  h <- liftIO $ IO.openFile temporaryZipName IO.ReadWriteMode
+  liftIO $ DIR.removeFile temporaryZipName
+  liftIO $ IO.hSetBinaryMode h True
+  liftIO $ ZIP.createBlindArchive h $ do
+    ZIP.setArchiveComment (TE.decodeUtf8 comment)
+    zipAddActions
+  sz <- liftIO $ (IO.hSeek h IO.SeekFromEnd 0 >> IO.hTell h)
+  liftIO $ IO.hSeek h IO.AbsoluteSeek 0
   return $ okResponse
     [ (hContentType, "application/zip")
     , ("content-disposition", "attachment; filename=" <> quoteHTTP (n <.> "zip"))
     , (hCacheControl, "max-age=31556926, private")
-    -- , (hContentLength, BSC.pack $ show $ sizeZip z + fromIntegral (BS.length comment))
+    , (hContentLength, BSC.pack $ show $ sz)
     ] (CND.bracketP (return h) IO.hClose CND.sourceHandle :: CND.Source (CND.ResourceT IO) BS.ByteString) -- (streamZip z comment)
 
 {-
@@ -213,8 +221,8 @@ containerZipEntryCorrectAssetSlots isOrig c = do
                      False -> return c'
   containerZipEntry isOrig c $ filter checkAsset assetSlots
 
-zipContainer :: Bool -> ActionRoute (Maybe (Id Volume), Id Slot)
-zipContainer isOrig = 
+zipContainerOld :: Bool -> ActionRoute (Maybe (Id Volume), Id Slot)
+zipContainerOld isOrig = 
   let zipPath = case isOrig of 
                      True -> pathMaybe pathId </> pathSlotId </< "zipold" </< "true"
                      False -> pathMaybe pathId </> pathSlotId </< "zipold" </< "false"
@@ -226,8 +234,8 @@ zipContainer isOrig =
     auditSlotDownload (not $ zipEmpty z) (containerSlot c)
     zipResponse ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) [z]
 
-zipContainer2 :: Bool -> ActionRoute (Maybe (Id Volume), Id Slot)
-zipContainer2 isOrig = 
+zipContainer :: Bool -> ActionRoute (Maybe (Id Volume), Id Slot)
+zipContainer isOrig = 
   let zipPath = case isOrig of 
                      True -> pathMaybe pathId </> pathSlotId </< "zip" </< "true"
                      False -> pathMaybe pathId </> pathSlotId </< "zip" </< "false"

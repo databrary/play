@@ -100,6 +100,8 @@ routeMap = routes
   , route postContainer
   , route deleteContainer
   , route viewContainerActivity
+  , route $ zipContainerOld False 
+  , route $ zipContainerOld True 
   , route $ zipContainer False 
   , route $ zipContainer True 
   , route thumbSlot
