@@ -25,6 +25,8 @@ import qualified Codec.Archive.Zip as ZIP
 import qualified System.IO as IO
 import qualified System.Directory as DIR
 import qualified Conduit as CND
+import Path (parseRelFile)
+import Path.IO (resolveFile')
 
 import Databrary.Ops
 import Databrary.Has (view, peek, peeks)
@@ -149,9 +151,10 @@ zipExample = action GET "example" $ \() -> withAuth $ do
   h <- liftIO $ IO.openFile "/tmp/placeholder.zip" IO.ReadWriteMode
   liftIO $ DIR.removeFile "/tmp/placeholder.zip"
   liftIO $ IO.hSetBinaryMode h True
-
+  s <- liftIO $ (parseRelFile "ent1" >>= ZIP.mkEntrySelector)
   liftIO $ ZIP.createBlindArchive h $ do
     ZIP.setArchiveComment "a comment"
+    ZIP.addEntry ZIP.Store "hello" s
   sz <- liftIO $ (IO.hSeek h IO.SeekFromEnd 0 >> IO.hTell h)
   liftIO $ IO.hSeek h IO.AbsoluteSeek 0
   
