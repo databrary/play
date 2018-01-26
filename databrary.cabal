@@ -97,8 +97,9 @@ Executable databrary
     web-inv-route >= 0.1,
     smtp-mail >= 0.1.4.6,
     zip >= 0.1.3,
-    conduit-combinators >= 1.1.1
-        
+    conduit-combinators >= 1.1.1,
+    binary >= 0.8.3.0
+            
   default-language: Haskell2010
   default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
 
