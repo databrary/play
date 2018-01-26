@@ -80,6 +80,38 @@ assetZipEntry isOrig AssetSlot{ slotAsset = a@Asset{ assetRow = ar@AssetRow{ ass
     , zipEntryContent = ZipEntryFile (fromIntegral $ fromJust $ assetSize ar) f
     }
 
+-- isOrig flags have been added to toggle the ability to access the pre-transcoded asset
+assetZipEntry2 :: Bool -> BS.ByteString -> AssetSlot -> ActionM (ZIP.ZipArchive ())
+assetZipEntry2 isOrig containerDir AssetSlot{ slotAsset = a@Asset{ assetRow = ar@AssetRow{ assetId = aid}}} = do
+  origAsset <- lookupOrigAsset aid   
+  Just f <- case isOrig of 
+                 True -> getAssetFile $ fromJust origAsset
+                 False -> getAssetFile a
+  -- req <- peek
+  -- (t, _) <- assetCreation a
+  -- Just (t, s) <- fileInfo f
+  -- liftIO (print ("downloadname", assetDownloadName False True ar))
+  -- liftIO (print ("format", assetFormat ar))
+  let entryName =
+        containerDir `BS.append` (case isOrig of
+          False -> makeFilename (assetDownloadName True False ar) `addFormatExtension` assetFormat ar
+          True -> makeFilename (assetDownloadName False True ar) `addFormatExtension` assetFormat ar)
+  entrySelector <- liftIO $ (parseRelFile (BSC.unpack entryName) >>= ZIP.mkEntrySelector)
+  return
+    (do
+       -- TODO: comment
+       -- TODO: size?
+       ZIP.sinkEntry ZIP.Store (CND.sourceFileBS (BSC.unpack f)) entrySelector)
+  {- blankZipEntry
+    { zipEntryName = case isOrig of
+       False -> makeFilename (assetDownloadName True False ar) `addFormatExtension` assetFormat ar
+       True -> makeFilename (assetDownloadName False True ar) `addFormatExtension` assetFormat ar
+    , zipEntryTime = Nothing
+    , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewAsset (HTML, assetId ar) []
+    , zipEntryContent = ZipEntryFile (fromIntegral $ fromJust $ assetSize ar) f
+    }
+  -}
+  
 containerZipEntry :: Bool -> Container -> [AssetSlot] -> ActionM ZipEntry
 containerZipEntry isOrig c l = do
   req <- peek
@@ -89,6 +121,17 @@ containerZipEntry isOrig c l = do
     , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewContainer (HTML, (Nothing, containerId $ containerRow c)) []
     , zipEntryContent = ZipDirectory a
     }
+
+containerZipEntry2 :: Bool -> Container -> [AssetSlot] -> ActionM (ZIP.ZipArchive ())
+containerZipEntry2 isOrig c l = do
+  -- req <- peek
+  let containerDir = makeFilename (containerDownloadName c) <> "/"
+  -- zipActs <- mapM (assetZipEntry2 isOrig containerDir) l
+  return (pure ()) -- blankZipEntry -- No way to add directory entry to zip with "zip" library
+    -- { zipEntryName = makeFilename (containerDownloadName c)
+    -- , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewContainer (HTML, (Nothing, containerId $ containerRow c)) []
+    -- , zipEntryContent = ZipDirectory a
+    -- }
 
 volumeDescription :: Bool -> Volume -> (Container, [RecordSlot]) -> IdSet Container -> [AssetSlot] -> ActionM (Html.Html, [[AssetSlot]], [[AssetSlot]])
 volumeDescription inzip v (_, glob) cs al = do
@@ -156,6 +199,7 @@ zipResponse2 n zipAddActions = do
   liftIO $ IO.hSetBinaryMode h True
   liftIO $ ZIP.createBlindArchive h $ do
     ZIP.setArchiveComment (TE.decodeUtf8 comment)
+    -- TODO: set compression level/alg?
     zipAddActions
   sz <- liftIO $ (IO.hSeek h IO.SeekFromEnd 0 >> IO.hTell h)
   liftIO $ IO.hSeek h IO.AbsoluteSeek 0
