@@ -103,7 +103,6 @@ routeMap = routes
   , route $ zipContainer False 
   , route $ zipContainer True 
   , route thumbSlot
-  , route zipExample --- DELETE ME PLEASE
 
   , route viewFormats
 

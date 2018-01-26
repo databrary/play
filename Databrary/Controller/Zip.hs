@@ -3,7 +3,7 @@ module Databrary.Controller.Zip
   ( zipContainer
   , zipVolume
   , viewVolumeDescription
-  , zipExample
+  -- , zipExample
   ) where
 
 import qualified Data.ByteString as BS
@@ -144,6 +144,20 @@ zipResponse n z = do
     , (hContentLength, BSC.pack $ show $ sizeZip z + fromIntegral (BS.length comment))
     ] (streamZip z comment)
 
+zipResponse2 :: BS.ByteString -> ZIP.ZipArchive () -> ActionM Response
+zipResponse2 n zipAddActions = do
+  h <- undefined
+  req <- peek
+  u <- peek
+  let comment = BSL.toStrict $ BSB.toLazyByteString
+        $ BSB.string8 "Downloaded by " <> TE.encodeUtf8Builder (partyName $ partyRow u) <> BSB.string8 " <" <> actionURL (Just req) viewParty (HTML, TargetParty $ partyId $ partyRow u) [] <> BSB.char8 '>'
+  return $ okResponse
+    [ (hContentType, "application/zip")
+    , ("content-disposition", "attachment; filename=" <> quoteHTTP (n <.> "zip"))
+    , (hCacheControl, "max-age=31556926, private")
+    -- , (hContentLength, BSC.pack $ show $ sizeZip z + fromIntegral (BS.length comment))
+    ] (CND.bracketP (return h) IO.hClose CND.sourceHandle :: CND.Source (CND.ResourceT IO) BS.ByteString) -- (streamZip z comment)
+
 {-
 zipExample :: ActionRoute ()
 zipExample = action GET "example" $ \() -> withAuth $ do
@@ -202,8 +216,8 @@ containerZipEntryCorrectAssetSlots isOrig c = do
 zipContainer :: Bool -> ActionRoute (Maybe (Id Volume), Id Slot)
 zipContainer isOrig = 
   let zipPath = case isOrig of 
-                     True -> pathMaybe pathId </> pathSlotId </< "zip" </< "true"
-                     False -> pathMaybe pathId </> pathSlotId </< "zip" </< "false"
+                     True -> pathMaybe pathId </> pathSlotId </< "zipold" </< "true"
+                     False -> pathMaybe pathId </> pathSlotId </< "zipold" </< "false"
   in action GET zipPath $ \(vi, ci) -> withAuth $ do
     c <- getContainer PermissionPUBLIC vi ci True
     let v = containerVolume c
@@ -211,6 +225,19 @@ zipContainer isOrig =
     z <- containerZipEntryCorrectAssetSlots isOrig c
     auditSlotDownload (not $ zipEmpty z) (containerSlot c)
     zipResponse ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) [z]
+
+zipContainer2 :: Bool -> ActionRoute (Maybe (Id Volume), Id Slot)
+zipContainer2 isOrig = 
+  let zipPath = case isOrig of 
+                     True -> pathMaybe pathId </> pathSlotId </< "zip" </< "true"
+                     False -> pathMaybe pathId </> pathSlotId </< "zip" </< "false"
+  in action GET zipPath $ \(vi, ci) -> withAuth $ do
+    c <- getContainer PermissionPUBLIC vi ci True
+    let v = containerVolume c
+    _ <- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted
+    let zs = pure () -- containerZipEntryCorrectAssetSlots2 isOrig c
+    -- auditSlotDownload (not $ zipEmpty z) (containerSlot c)
+    zipResponse2 ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) zs
 
 getVolumeInfo :: Id Volume -> ActionM (Volume, IdSet Container, [AssetSlot])
 getVolumeInfo vi = do
