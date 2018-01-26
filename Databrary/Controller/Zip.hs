@@ -3,6 +3,7 @@ module Databrary.Controller.Zip
   ( zipContainer
   , zipVolume
   , viewVolumeDescription
+  , zipExample
   ) where
 
 import qualified Data.ByteString as BS
@@ -20,6 +21,7 @@ import Network.HTTP.Types (hContentType, hCacheControl, hContentLength)
 import System.Posix.FilePath ((<.>))
 import qualified Text.Blaze.Html5 as Html
 import qualified Text.Blaze.Html.Renderer.Utf8 as Html
+import qualified Codec.Archive.Zip as ZIP
 
 import Databrary.Ops
 import Databrary.Has (view, peek, peeks)
@@ -136,6 +138,12 @@ zipResponse n z = do
     , (hCacheControl, "max-age=31556926, private")
     , (hContentLength, BSC.pack $ show $ sizeZip z + fromIntegral (BS.length comment))
     ] (streamZip z comment)
+
+zipExample :: ActionRoute ()
+zipExample = action GET "example" $ \() -> withAuth $ do
+  return $ okResponse
+    [ ]
+    ("abc" :: String)
 
 zipEmpty :: ZipEntry -> Bool
 zipEmpty ZipEntry{ zipEntryContent = ZipDirectory l } = all zipEmpty l
