@@ -22,6 +22,9 @@ import System.Posix.FilePath ((<.>))
 import qualified Text.Blaze.Html5 as Html
 import qualified Text.Blaze.Html.Renderer.Utf8 as Html
 import qualified Codec.Archive.Zip as ZIP
+import qualified System.IO as IO
+import qualified System.Directory as DIR
+import qualified Conduit as CND
 
 import Databrary.Ops
 import Databrary.Has (view, peek, peeks)
@@ -141,9 +144,24 @@ zipResponse n z = do
 
 zipExample :: ActionRoute ()
 zipExample = action GET "example" $ \() -> withAuth $ do
+  let n = "abc"
+  -- build zip stream into handle
+  h <- liftIO $ IO.openFile "/tmp/placeholder.zip" IO.ReadWriteMode
+  liftIO $ DIR.removeFile "/tmp/placeholder.zip"
+  liftIO $ IO.hSetBinaryMode h True
+
+  liftIO $ ZIP.createBlindArchive h $ do
+    ZIP.setArchiveComment "a comment"
+  sz <- liftIO $ (IO.hSeek h IO.SeekFromEnd 0 >> IO.hTell h)
+  liftIO $ IO.hSeek h IO.AbsoluteSeek 0
+  
   return $ okResponse
-    [ ]
-    ("abc" :: String)
+    [ (hContentType, "application/zip")
+    , ("content-disposition", "attachment; filename=" <> quoteHTTP (n <.> "zip"))
+    , (hCacheControl, "max-age=31556926, private")
+    , (hContentLength, BSC.pack $ show $ sz)
+    ]
+    (CND.sourceHandle h :: CND.Source IO BS.ByteString)
 
 zipEmpty :: ZipEntry -> Bool
 zipEmpty ZipEntry{ zipEntryContent = ZipDirectory l } = all zipEmpty l
