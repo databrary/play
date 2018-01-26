@@ -9,7 +9,6 @@ app.controller('site/home', [
     $scope.activity = activity.activity;
     $scope.stats = activity.stats;
     var modal = document.getElementById('loginModal');
-    var span = document.getElementsByClassName("close")[0];
 
     $('.modal-button').click(function(e) {
         e.preventDefault();
@@ -27,7 +26,6 @@ app.controller('site/home', [
         }
     }
 
-    if (page.models.Login.isLoggedIn())
-    	modal.style.display = "none";
+
   }
 ]);

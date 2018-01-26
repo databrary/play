@@ -9,6 +9,15 @@ app.directive('toolbar', [
       scope: {},
       link: function ($scope) {
         $scope.page = page;
+        
+        var modal = document.getElementById('loginModal');
+
+        $scope.$watch(function(){return page.models.Login.isLoggedIn()}, function(newVal, oldVal){
+          if(newVal === true){
+            modal.style.display = "none";
+          }
+        }, true)
+
         $scope.hover = undefined;
         $scope.hoverToggle = function (hover, $event) {
           $scope.hover = (($scope.hover === hover) ? undefined : hover);
