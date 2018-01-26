@@ -1,8 +1,8 @@
 'use strict';
 
 app.controller('site/home', [
-  '$scope', 'constantService', 'displayService', 'volume', 'tags', 'activity', 'pageService',
-  function ($scope, constants, display, volume, tags, activity, page) {
+  '$scope', 'constantService', 'displayService', 'volume', 'tags', 'activity', 
+  function ($scope, constants, display, volume, tags, activity) {
     display.title = constants.message('welcome.title');
     $scope.volume = volume;
     $scope.tags = tags;
