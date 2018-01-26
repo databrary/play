@@ -144,6 +144,7 @@ zipResponse n z = do
     , (hContentLength, BSC.pack $ show $ sizeZip z + fromIntegral (BS.length comment))
     ] (streamZip z comment)
 
+{-
 zipExample :: ActionRoute ()
 zipExample = action GET "example" $ \() -> withAuth $ do
   let n = "abc"
@@ -152,9 +153,19 @@ zipExample = action GET "example" $ \() -> withAuth $ do
   liftIO $ DIR.removeFile "/tmp/placeholder.zip"
   liftIO $ IO.hSetBinaryMode h True
   s <- liftIO $ (parseRelFile "ent1" >>= ZIP.mkEntrySelector)
+  s2 <- liftIO $ (parseRelFile "ent2" >>= ZIP.mkEntrySelector)
+  s3 <- liftIO $ (parseRelFile "ent3" >>= ZIP.mkEntrySelector)
+  s4 <- liftIO $ (parseRelFile "ent4" >>= ZIP.mkEntrySelector)
+  s5 <- liftIO $ (parseRelFile "ent4" >>= ZIP.mkEntrySelector)
+  s6 <- liftIO $ (parseRelFile "ent4" >>= ZIP.mkEntrySelector)
   liftIO $ ZIP.createBlindArchive h $ do
     ZIP.setArchiveComment "a comment"
     ZIP.addEntry ZIP.Store "hello" s
+    ZIP.sinkEntry ZIP.Deflate (CND.sourceFileBS "/tmp/download.mp4") s2 -- no deflate?
+    ZIP.sinkEntry ZIP.Deflate (CND.sourceFileBS "/tmp/download.mp4") s3 -- no deflate?
+    ZIP.sinkEntry ZIP.Deflate (CND.sourceFileBS "/tmp/download.mp4") s4 -- no deflate?
+    ZIP.sinkEntry ZIP.Deflate (CND.sourceFileBS "/tmp/download.mp4") s5 -- no deflate?
+    ZIP.sinkEntry ZIP.Deflate (CND.sourceFileBS "/tmp/download.mp4") s6 -- no deflate?
   sz <- liftIO $ (IO.hSeek h IO.SeekFromEnd 0 >> IO.hTell h)
   liftIO $ IO.hSeek h IO.AbsoluteSeek 0
   
@@ -168,6 +179,7 @@ zipExample = action GET "example" $ \() -> withAuth $ do
        (return h)
        IO.hClose
        CND.sourceHandle :: CND.Source (CND.ResourceT IO) BS.ByteString)
+-}
 
 zipEmpty :: ZipEntry -> Bool
 zipEmpty ZipEntry{ zipEntryContent = ZipDirectory l } = all zipEmpty l
