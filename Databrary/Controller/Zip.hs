@@ -265,6 +265,17 @@ containerZipEntryCorrectAssetSlots isOrig c = do
                      False -> return c'
   containerZipEntry isOrig c $ filter checkAsset assetSlots
 
+containerZipEntryCorrectAssetSlots2 :: Bool -> Container -> ActionM (ZIP.ZipArchive ())
+containerZipEntryCorrectAssetSlots2 isOrig c = do
+  c'<- lookupContainerAssets c
+  assetSlots <- case isOrig of 
+                     True -> do 
+                      origs <- lookupOrigContainerAssets c
+                      let pdfs = filterFormat c' formatNotAV
+                      return $ pdfs ++ origs
+                     False -> return c'
+  containerZipEntry2 isOrig c $ filter checkAsset assetSlots
+
 zipContainerOld :: Bool -> ActionRoute (Maybe (Id Volume), Id Slot)
 zipContainerOld isOrig = 
   let zipPath = case isOrig of 
@@ -287,7 +298,7 @@ zipContainer isOrig =
     c <- getContainer PermissionPUBLIC vi ci True
     let v = containerVolume c
     _ <- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted
-    let zs = pure () -- containerZipEntryCorrectAssetSlots2 isOrig c
+    zs <- containerZipEntryCorrectAssetSlots2 isOrig c
     -- auditSlotDownload (not $ zipEmpty z) (containerSlot c)
     zipResponse2 ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) zs
 
