@@ -174,25 +174,6 @@ volumeZipEntry2 isOrig v top cs csv al = do
        sequence_ zb
        ZIP.addEntry ZIP.Store (BSL.toStrict (Html.renderHtml desc)) descEntrySelector
        maybe (pure ()) (\c -> ZIP.addEntry ZIP.Store (BSL.toStrict (BSB.toLazyByteString c)) spreadEntrySelector) csv)
-    {-
-    blankZipEntry
-    { zipEntryName = makeFilename $ volumeDownloadName v ++ if idSetIsFull cs then [] else ["PARTIAL"]
-    , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewVolume (HTML, volumeId $ volumeRow v) []
-    , zipEntryContent = ZipDirectory
-      $ blankZipEntry
-        { zipEntryName = "description.html"
-        , zipEntryContent = ZipEntryPure $ Html.renderHtml $ desc
-        }
-      : maybe id (\c -> (blankZipEntry
-        { zipEntryName = "spreadsheet.csv"
-        , zipEntryContent = ZipEntryPure $ BSB.toLazyByteString c
-        } :)) csv
-      (if null zb then zt else (zt ++ [blankZipEntry
-        { zipEntryName = "sessions"
-        , zipEntryContent = ZipDirectory zb
-        }]))
-    }
-    -}
   where
   ent prefix [a@AssetSlot{ assetSlot = Nothing }] = assetZipEntry2 isOrig prefix a -- orig asset doesn't matter here as top level assets aren't transcoded, I believe
   ent prefix (AssetSlot{ assetSlot = Just s } : _) = do
