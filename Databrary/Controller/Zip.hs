@@ -87,7 +87,7 @@ assetZipEntry2 isOrig containerDir AssetSlot{ slotAsset = a@Asset{ assetRow = ar
   Just f <- case isOrig of 
                  True -> getAssetFile $ fromJust origAsset
                  False -> getAssetFile a
-  -- req <- peek
+  req <- peek
   -- (t, _) <- assetCreation a
   -- Just (t, s) <- fileInfo f
   -- liftIO (print ("downloadname", assetDownloadName False True ar))
@@ -99,18 +99,8 @@ assetZipEntry2 isOrig containerDir AssetSlot{ slotAsset = a@Asset{ assetRow = ar
   entrySelector <- liftIO $ (parseRelFile (BSC.unpack entryName) >>= ZIP.mkEntrySelector)
   return
     (do
-       -- TODO: comment
-       -- TODO: size?
-       ZIP.sinkEntry ZIP.Store (CND.sourceFileBS (BSC.unpack f)) entrySelector)
-  {- blankZipEntry
-    { zipEntryName = case isOrig of
-       False -> makeFilename (assetDownloadName True False ar) `addFormatExtension` assetFormat ar
-       True -> makeFilename (assetDownloadName False True ar) `addFormatExtension` assetFormat ar
-    , zipEntryTime = Nothing
-    , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewAsset (HTML, assetId ar) []
-    , zipEntryContent = ZipEntryFile (fromIntegral $ fromJust $ assetSize ar) f
-    }
-  -}
+       ZIP.sinkEntry ZIP.Store (CND.sourceFileBS (BSC.unpack f)) entrySelector
+       ZIP.setEntryComment (TE.decodeUtf8 $ BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewAsset (HTML, assetId ar) []) entrySelector)
   
 containerZipEntry :: Bool -> Container -> [AssetSlot] -> ActionM ZipEntry
 containerZipEntry isOrig c l = do
