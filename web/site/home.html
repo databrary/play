@@ -5,8 +5,11 @@
       Video data library for behavioral scientists
     </div>
     <div class="login-register">
-      <a ng-href="{{::page.router.login()}}" class="modal-button">
+      <a ng-href="{{::page.router.login()}}" class="modal-button" ng-hide="::page.models.Login.isLoggedIn()">
         <button class="login-button">Login</button>
+      </a>
+      <a ng-href="{{::page.router.profile()}}" ng-show="::page.models.Login.isLoggedIn()">
+        <button class="login-button">Your Profile</button>
       </a>
       <a ng-href="{{::page.router.register()}}">
         <button class="register-button">Register</button>
@@ -123,7 +126,7 @@
             </div>
             </li>
             <li class="col-f slug1 ord-1">
-            <div id="first-tile" class="block features">
+            <div id="first-tile" class="block features full-height">
               <a target="_blank" href="/volume/34">
                 <div class="asset-display"><video controls="" seek="clip"><source type="video/mp4" src="https://nyu.databrary.org/slot/9826/-/asset/11254/download?inline=true"></video></div>
               </a>
@@ -143,7 +146,7 @@
             </div>
             </li>
             <li class="col-f slug1 ord-1">
-            <div id="first-tile" class="block features">
+            <div id="first-tile" class="block features full-height">
               <div class="asset-display">
                 <a target="_blank" href="/volume/70"><img src="https://nyu.databrary.org/slot/11883/-/asset/45810/download?inline=true"></a>
               </div>
