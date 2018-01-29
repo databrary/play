@@ -34,6 +34,7 @@ import Databrary.Has (view, peek, peeks)
 import Databrary.Store.Asset
 import Databrary.Store.Filename
 import Databrary.Store.CSV (buildCSV)
+import Databrary.Store.Types
 import Databrary.Store.Zip
 import Databrary.Model.Id
 import Databrary.Model.Permission
@@ -198,9 +199,10 @@ zipResponse2 :: BS.ByteString -> ZIP.ZipArchive () -> ActionM Response
 zipResponse2 n zipAddActions = do
   req <- peek
   u <- peek
+  store <- peek
   let comment = BSL.toStrict $ BSB.toLazyByteString
         $ BSB.string8 "Downloaded by " <> TE.encodeUtf8Builder (partyName $ partyRow u) <> BSB.string8 " <" <> actionURL (Just req) viewParty (HTML, TargetParty $ partyId $ partyRow u) [] <> BSB.char8 '>'
-  let temporaryZipName = "/tmp/placeholder.zip" -- TODO: generate temporary name for extra caution?
+  let temporaryZipName = (BSC.unpack . storageTemp) store <> "placeholder.zip" -- TODO: generate temporary name for extra caution?
   h <- liftIO $ IO.openFile temporaryZipName IO.ReadWriteMode
   liftIO $ DIR.removeFile temporaryZipName
   liftIO $ IO.hSetBinaryMode h True
