@@ -113,9 +113,9 @@ containerZipEntry isOrig c l = do
     , zipEntryContent = ZipDirectory a
     }
 
-containerZipEntry2 :: Bool -> Container -> [AssetSlot] -> ActionM (ZIP.ZipArchive ())
-containerZipEntry2 isOrig c l = do
-  let containerDir = makeFilename (containerDownloadName c) <> "/"
+containerZipEntry2 :: Bool -> BS.ByteString -> Container -> [AssetSlot] -> ActionM (ZIP.ZipArchive ())
+containerZipEntry2 isOrig prefix c l = do
+  let containerDir = prefix <> makeFilename (containerDownloadName c) <> "/"
   zipActs <- mapM (assetZipEntry2 isOrig containerDir) l
   return (sequence_ zipActs)
 
@@ -163,10 +163,11 @@ volumeZipEntry isOrig v top cs csv al = do
 volumeZipEntry2 :: Bool -> Volume -> (Container, [RecordSlot]) -> IdSet Container -> Maybe BSB.Builder -> [AssetSlot] -> ActionM (ZIP.ZipArchive ())
 volumeZipEntry2 isOrig v top cs csv al = do
   (desc, at, ab) <- volumeDescription True v top cs al -- the actual asset slot's assets arent' used any more for containers, now container zip entry does that
-  zt <- mapM ent at 
-  zb <- mapM ent ab
-  descEntrySelector <- liftIO $ (parseRelFile "description.html" >>= ZIP.mkEntrySelector)
-  spreadEntrySelector <- liftIO $ (parseRelFile "spreadsheet.csv" >>= ZIP.mkEntrySelector)
+  let zipDir = (makeFilename $ volumeDownloadName v ++ if idSetIsFull cs then [] else ["PARTIAL"]) <> "/"
+  zt <- mapM (ent zipDir) at 
+  zb <- mapM (ent (zipDir <> "sessions/")) ab
+  descEntrySelector <- liftIO $ (parseRelFile (BSC.unpack zipDir <> "description.html") >>= ZIP.mkEntrySelector)
+  spreadEntrySelector <- liftIO $ (parseRelFile (BSC.unpack zipDir <> "spreadsheet.csv") >>= ZIP.mkEntrySelector)
   return
     (do
        sequence_ zt
@@ -193,11 +194,11 @@ volumeZipEntry2 isOrig v top cs csv al = do
     }
     -}
   where
-  ent [a@AssetSlot{ assetSlot = Nothing }] = assetZipEntry2 isOrig "" a -- orig asset doesn't matter here as top level assets aren't transcoded, I believe
-  ent (AssetSlot{ assetSlot = Just s } : _) = do
-    (acts, _) <- containerZipEntryCorrectAssetSlots2 isOrig (slotContainer s)
+  ent prefix [a@AssetSlot{ assetSlot = Nothing }] = assetZipEntry2 isOrig prefix a -- orig asset doesn't matter here as top level assets aren't transcoded, I believe
+  ent prefix (AssetSlot{ assetSlot = Just s } : _) = do
+    (acts, _) <- containerZipEntryCorrectAssetSlots2 isOrig prefix (slotContainer s)
     pure acts
-  ent _ = fail "volumeZipEntry"
+  ent _ _ = fail "volumeZipEntry"
 
 zipResponse :: BS.ByteString -> [ZipEntry] -> ActionM Response
 zipResponse n z = do
@@ -252,8 +253,8 @@ containerZipEntryCorrectAssetSlots isOrig c = do
                      False -> return c'
   containerZipEntry isOrig c $ filter checkAsset assetSlots
 
-containerZipEntryCorrectAssetSlots2 :: Bool -> Container -> ActionM (ZIP.ZipArchive (), Bool)
-containerZipEntryCorrectAssetSlots2 isOrig c = do
+containerZipEntryCorrectAssetSlots2 :: Bool -> BS.ByteString -> Container -> ActionM (ZIP.ZipArchive (), Bool)
+containerZipEntryCorrectAssetSlots2 isOrig prefix c = do
   c'<- lookupContainerAssets c
   assetSlots <- case isOrig of 
                      True -> do 
@@ -262,7 +263,7 @@ containerZipEntryCorrectAssetSlots2 isOrig c = do
                       return $ pdfs ++ origs
                      False -> return c'
   let checkedAssetSlots = filter checkAsset assetSlots
-  zipActs <- containerZipEntry2 isOrig c $ checkedAssetSlots
+  zipActs <- containerZipEntry2 isOrig prefix c $ checkedAssetSlots
   pure (zipActs, null checkedAssetSlots)
 
 zipContainerOld :: Bool -> ActionRoute (Maybe (Id Volume), Id Slot)
@@ -287,7 +288,7 @@ zipContainer isOrig =
     c <- getContainer PermissionPUBLIC vi ci True
     let v = containerVolume c
     _ <- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted
-    (zipActs, isEmpty) <- containerZipEntryCorrectAssetSlots2 isOrig c
+    (zipActs, isEmpty) <- containerZipEntryCorrectAssetSlots2 isOrig "" c
     auditSlotDownload (not $ isEmpty) (containerSlot c)
     zipResponse2 ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) zipActs
 
