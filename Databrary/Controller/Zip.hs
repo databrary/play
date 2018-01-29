@@ -114,15 +114,9 @@ containerZipEntry isOrig c l = do
 
 containerZipEntry2 :: Bool -> Container -> [AssetSlot] -> ActionM (ZIP.ZipArchive ())
 containerZipEntry2 isOrig c l = do
-  -- req <- peek
   let containerDir = makeFilename (containerDownloadName c) <> "/"
   zipActs <- mapM (assetZipEntry2 isOrig containerDir) l
   return (sequence_ zipActs)
-    -- blankZipEntry -- No way to add directory entry to zip with "zip" library
-    -- { zipEntryName = makeFilename (containerDownloadName c)
-    -- , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewContainer (HTML, (Nothing, containerId $ containerRow c)) []
-    -- , zipEntryContent = ZipDirectory a
-    -- }
 
 volumeDescription :: Bool -> Volume -> (Container, [RecordSlot]) -> IdSet Container -> [AssetSlot] -> ActionM (Html.Html, [[AssetSlot]], [[AssetSlot]])
 volumeDescription inzip v (_, glob) cs al = do
@@ -190,7 +184,6 @@ zipResponse2 n zipAddActions = do
   liftIO $ IO.hSetBinaryMode h True
   liftIO $ ZIP.createBlindArchive h $ do
     ZIP.setArchiveComment (TE.decodeUtf8 comment)
-    -- TODO: set compression level/alg?
     zipAddActions
   sz <- liftIO $ (IO.hSeek h IO.SeekFromEnd 0 >> IO.hTell h)
   liftIO $ IO.hSeek h IO.AbsoluteSeek 0
@@ -199,44 +192,7 @@ zipResponse2 n zipAddActions = do
     , ("content-disposition", "attachment; filename=" <> quoteHTTP (n <.> "zip"))
     , (hCacheControl, "max-age=31556926, private")
     , (hContentLength, BSC.pack $ show $ sz)
-    ] (CND.bracketP (return h) IO.hClose CND.sourceHandle :: CND.Source (CND.ResourceT IO) BS.ByteString) -- (streamZip z comment)
-
-{-
-zipExample :: ActionRoute ()
-zipExample = action GET "example" $ \() -> withAuth $ do
-  let n = "abc"
-  -- build zip stream into handle
-  h <- liftIO $ IO.openFile "/tmp/placeholder.zip" IO.ReadWriteMode
-  liftIO $ DIR.removeFile "/tmp/placeholder.zip"
-  liftIO $ IO.hSetBinaryMode h True
-  s <- liftIO $ (parseRelFile "ent1" >>= ZIP.mkEntrySelector)
-  s2 <- liftIO $ (parseRelFile "ent2" >>= ZIP.mkEntrySelector)
-  s3 <- liftIO $ (parseRelFile "ent3" >>= ZIP.mkEntrySelector)
-  s4 <- liftIO $ (parseRelFile "ent4" >>= ZIP.mkEntrySelector)
-  s5 <- liftIO $ (parseRelFile "ent4" >>= ZIP.mkEntrySelector)
-  s6 <- liftIO $ (parseRelFile "ent4" >>= ZIP.mkEntrySelector)
-  liftIO $ ZIP.createBlindArchive h $ do
-    ZIP.setArchiveComment "a comment"
-    ZIP.addEntry ZIP.Store "hello" s
-    ZIP.sinkEntry ZIP.Deflate (CND.sourceFileBS "/tmp/download.mp4") s2 -- no deflate?
-    ZIP.sinkEntry ZIP.Deflate (CND.sourceFileBS "/tmp/download.mp4") s3 -- no deflate?
-    ZIP.sinkEntry ZIP.Deflate (CND.sourceFileBS "/tmp/download.mp4") s4 -- no deflate?
-    ZIP.sinkEntry ZIP.Deflate (CND.sourceFileBS "/tmp/download.mp4") s5 -- no deflate?
-    ZIP.sinkEntry ZIP.Deflate (CND.sourceFileBS "/tmp/download.mp4") s6 -- no deflate?
-  sz <- liftIO $ (IO.hSeek h IO.SeekFromEnd 0 >> IO.hTell h)
-  liftIO $ IO.hSeek h IO.AbsoluteSeek 0
-  
-  return $ okResponse
-    [ (hContentType, "application/zip")
-    , ("content-disposition", "attachment; filename=" <> quoteHTTP (n <.> "zip"))
-    , (hCacheControl, "max-age=31556926, private")
-    , (hContentLength, BSC.pack $ show $ sz)
-    ]
-    (CND.bracketP
-       (return h)
-       IO.hClose
-       CND.sourceHandle :: CND.Source (CND.ResourceT IO) BS.ByteString)
--}
+    ] (CND.bracketP (return h) IO.hClose CND.sourceHandle :: CND.Source (CND.ResourceT IO) BS.ByteString)
 
 zipEmpty :: ZipEntry -> Bool
 zipEmpty ZipEntry{ zipEntryContent = ZipDirectory l } = all zipEmpty l
