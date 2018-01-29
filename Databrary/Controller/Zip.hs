@@ -127,7 +127,8 @@ containerZipEntry2 isOrig c l = do
   -- req <- peek
   let containerDir = makeFilename (containerDownloadName c) <> "/"
   zipActs <- mapM (assetZipEntry2 isOrig containerDir) l
-  return (sequence_ zipActs) -- blankZipEntry -- No way to add directory entry to zip with "zip" library
+  return (sequence_ zipActs)
+    -- blankZipEntry -- No way to add directory entry to zip with "zip" library
     -- { zipEntryName = makeFilename (containerDownloadName c)
     -- , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewContainer (HTML, (Nothing, containerId $ containerRow c)) []
     -- , zipEntryContent = ZipDirectory a
@@ -265,7 +266,7 @@ containerZipEntryCorrectAssetSlots isOrig c = do
                      False -> return c'
   containerZipEntry isOrig c $ filter checkAsset assetSlots
 
-containerZipEntryCorrectAssetSlots2 :: Bool -> Container -> ActionM (ZIP.ZipArchive ())
+containerZipEntryCorrectAssetSlots2 :: Bool -> Container -> ActionM (ZIP.ZipArchive (), Bool)
 containerZipEntryCorrectAssetSlots2 isOrig c = do
   c'<- lookupContainerAssets c
   assetSlots <- case isOrig of 
@@ -274,7 +275,9 @@ containerZipEntryCorrectAssetSlots2 isOrig c = do
                       let pdfs = filterFormat c' formatNotAV
                       return $ pdfs ++ origs
                      False -> return c'
-  containerZipEntry2 isOrig c $ filter checkAsset assetSlots
+  let checkedAssetSlots = filter checkAsset assetSlots
+  zipActs <- containerZipEntry2 isOrig c $ checkedAssetSlots
+  pure (zipActs, null checkedAssetSlots)
 
 zipContainerOld :: Bool -> ActionRoute (Maybe (Id Volume), Id Slot)
 zipContainerOld isOrig = 
@@ -298,9 +301,9 @@ zipContainer isOrig =
     c <- getContainer PermissionPUBLIC vi ci True
     let v = containerVolume c
     _ <- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted
-    zs <- containerZipEntryCorrectAssetSlots2 isOrig c
-    -- auditSlotDownload (not $ zipEmpty z) (containerSlot c)
-    zipResponse2 ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) zs
+    (zipActs, isEmpty) <- containerZipEntryCorrectAssetSlots2 isOrig c
+    auditSlotDownload (not $ isEmpty) (containerSlot c)
+    zipResponse2 ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) zipActs
 
 getVolumeInfo :: Id Volume -> ActionM (Volume, IdSet Container, [AssetSlot])
 getVolumeInfo vi = do
