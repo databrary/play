@@ -4,6 +4,7 @@ module Databrary.Controller.Zip
   , zipVolume
   , viewVolumeDescription
   , zipContainerOld -- DELETE ME
+  , zipVolumeOld -- DELETE ME
   ) where
 
 import qualified Data.ByteString as BS
@@ -159,6 +160,45 @@ volumeZipEntry isOrig v top cs csv al = do
     containerZipEntryCorrectAssetSlots isOrig (slotContainer s)
   ent _ = fail "volumeZipEntry"
 
+volumeZipEntry2 :: Bool -> Volume -> (Container, [RecordSlot]) -> IdSet Container -> Maybe BSB.Builder -> [AssetSlot] -> ActionM (ZIP.ZipArchive ())
+volumeZipEntry2 isOrig v top cs csv al = do
+  (desc, at, ab) <- volumeDescription True v top cs al -- the actual asset slot's assets arent' used any more for containers, now container zip entry does that
+  zt <- mapM ent at 
+  zb <- mapM ent ab
+  descEntrySelector <- liftIO $ (parseRelFile "description.html" >>= ZIP.mkEntrySelector)
+  spreadEntrySelector <- liftIO $ (parseRelFile "spreadsheet.csv" >>= ZIP.mkEntrySelector)
+  return
+    (do
+       sequence_ zt
+       sequence_ zb
+       ZIP.addEntry ZIP.Store (BSL.toStrict (Html.renderHtml desc)) descEntrySelector
+       maybe (pure ()) (\c -> ZIP.addEntry ZIP.Store (BSL.toStrict (BSB.toLazyByteString c)) spreadEntrySelector) csv)
+    {-
+    blankZipEntry
+    { zipEntryName = makeFilename $ volumeDownloadName v ++ if idSetIsFull cs then [] else ["PARTIAL"]
+    , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewVolume (HTML, volumeId $ volumeRow v) []
+    , zipEntryContent = ZipDirectory
+      $ blankZipEntry
+        { zipEntryName = "description.html"
+        , zipEntryContent = ZipEntryPure $ Html.renderHtml $ desc
+        }
+      : maybe id (\c -> (blankZipEntry
+        { zipEntryName = "spreadsheet.csv"
+        , zipEntryContent = ZipEntryPure $ BSB.toLazyByteString c
+        } :)) csv
+      (if null zb then zt else (zt ++ [blankZipEntry
+        { zipEntryName = "sessions"
+        , zipEntryContent = ZipDirectory zb
+        }]))
+    }
+    -}
+  where
+  ent [a@AssetSlot{ assetSlot = Nothing }] = assetZipEntry2 isOrig "" a -- orig asset doesn't matter here as top level assets aren't transcoded, I believe
+  ent (AssetSlot{ assetSlot = Just s } : _) = do
+    (acts, _) <- containerZipEntryCorrectAssetSlots2 isOrig (slotContainer s)
+    pure acts
+  ent _ = fail "volumeZipEntry"
+
 zipResponse :: BS.ByteString -> [ZipEntry] -> ActionM Response
 zipResponse n z = do
   req <- peek
@@ -264,6 +304,20 @@ getVolumeInfo vi = do
 filterFormat :: [AssetSlot] -> (Format -> Bool)-> [AssetSlot]
 filterFormat as f = filter (f . assetFormat . assetRow . slotAsset ) as
 
+zipVolumeOld :: Bool -> ActionRoute (Id Volume)
+zipVolumeOld isOrig = 
+  let zipPath = case isOrig of 
+                     True -> pathId </< "zipold" </< "true"
+                     False -> pathId </< "zipold" </< "false"
+  in action GET zipPath $ \vi -> withAuth $ do
+  (v, s, a) <- getVolumeInfo vi
+  top:cr <- lookupVolumeContainersRecords v
+  let cr' = filter ((`RS.member` s) . containerId . containerRow . fst) cr
+  csv <- null cr' ?!$> volumeCSV v cr'
+  z <- volumeZipEntry isOrig v top s (buildCSV <$> csv) a
+  auditVolumeDownload (not $ null a) v
+  zipResponse (BSC.pack $ "databrary-" ++ show (volumeId $ volumeRow v) ++ if idSetIsFull s then "" else "-partial") [z]
+
 zipVolume :: Bool -> ActionRoute (Id Volume)
 zipVolume isOrig = 
   let zipPath = case isOrig of 
@@ -274,9 +328,9 @@ zipVolume isOrig =
   top:cr <- lookupVolumeContainersRecords v
   let cr' = filter ((`RS.member` s) . containerId . containerRow . fst) cr
   csv <- null cr' ?!$> volumeCSV v cr'
-  z <- volumeZipEntry isOrig v top s (buildCSV <$> csv) a
+  zipActs <- volumeZipEntry2 isOrig v top s (buildCSV <$> csv) a
   auditVolumeDownload (not $ null a) v
-  zipResponse (BSC.pack $ "databrary-" ++ show (volumeId $ volumeRow v) ++ if idSetIsFull s then "" else "-partial") [z]
+  zipResponse2 (BSC.pack $ "databrary-" ++ show (volumeId $ volumeRow v) ++ if idSetIsFull s then "" else "-partial") zipActs
 
 viewVolumeDescription :: ActionRoute (Id Volume)
 viewVolumeDescription = action GET (pathId </< "description") $ \vi -> withAuth $ do
