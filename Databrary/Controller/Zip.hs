@@ -126,8 +126,8 @@ containerZipEntry2 :: Bool -> Container -> [AssetSlot] -> ActionM (ZIP.ZipArchiv
 containerZipEntry2 isOrig c l = do
   -- req <- peek
   let containerDir = makeFilename (containerDownloadName c) <> "/"
-  -- zipActs <- mapM (assetZipEntry2 isOrig containerDir) l
-  return (pure ()) -- blankZipEntry -- No way to add directory entry to zip with "zip" library
+  zipActs <- mapM (assetZipEntry2 isOrig containerDir) l
+  return (sequence_ zipActs) -- blankZipEntry -- No way to add directory entry to zip with "zip" library
     -- { zipEntryName = makeFilename (containerDownloadName c)
     -- , zipEntryComment = BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewContainer (HTML, (Nothing, containerId $ containerRow c)) []
     -- , zipEntryContent = ZipDirectory a
