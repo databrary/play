@@ -87,6 +87,8 @@ routeMap = routes
   , route viewVolumeCreate
   , route createVolume
   , route queryVolumes
+  , route $ zipVolumeOld False 
+  , route $ zipVolumeOld True
   , route $ zipVolume False 
   , route $ zipVolume True 
   , route viewVolumeDescription
