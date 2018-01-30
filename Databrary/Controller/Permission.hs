@@ -19,9 +19,9 @@ import Databrary.HTTP.Request
 import Databrary.Action
 
 checkPermission :: Has Permission a => Permission -> a -> ActionM a
-checkPermission p o = do
-  unless (view o >= p) $ result =<< peeks forbiddenResponse
-  return o
+checkPermission requiredPermissionLevel objectWithMinimumAllowedPermission = do
+  unless (view objectWithMinimumAllowedPermission >= requiredPermissionLevel) $ result =<< peeks forbiddenResponse
+  return objectWithMinimumAllowedPermission
 
 checkDataPermission :: (Has Release a, Has Permission a) => a -> ActionM a
 checkDataPermission o = do
