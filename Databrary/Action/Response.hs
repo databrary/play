@@ -27,6 +27,9 @@ import Network.Wai (Response, responseBuilder, responseLBS, StreamingBody, respo
 import System.Posix.Types (FileOffset)
 import qualified Text.Blaze.Html as Html
 import qualified Text.Blaze.Html.Renderer.Utf8 as Html
+import qualified Conduit as CND
+import Conduit (Source, Flush, (.|), MonadResource)
+import qualified Data.Binary.Builder as DBB
 
 import qualified Databrary.JSON as JSON
 
@@ -44,6 +47,12 @@ instance ResponseData BSL.ByteString where
 
 instance ResponseData BS.ByteString where
   response s h = responseBuilder s h . BSB.byteString
+
+instance ResponseData (Source (CND.ResourceT IO) BS.ByteString) where
+  response s h src =
+    responseStream s h
+      (\send flush -> do
+         CND.runConduitRes (src .| (CND.mapM_C (\bs -> CND.lift (send (DBB.fromByteString bs))))))
 
 instance ResponseData StreamingBody where
   response = responseStream

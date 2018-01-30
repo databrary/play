@@ -9,6 +9,8 @@ module Databrary.Store.Zip
   , fileZipEntry
   ) where
 
+-- TOOD: delete entire module
+
 import Control.Monad (when)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.RWS.Strict (RWST, execRWST, ask, local, tell)
