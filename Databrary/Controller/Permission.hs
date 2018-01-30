@@ -18,9 +18,12 @@ import Databrary.Model.Identity
 import Databrary.HTTP.Request
 import Databrary.Action
 
+-- logic inside of checkPermission and checkDataPermission should be inside of model layer
 checkPermission :: Has Permission a => Permission -> a -> ActionM a
 checkPermission requiredPermissionLevel objectWithMinimumAllowedPermission = do
-  unless (view objectWithMinimumAllowedPermission >= requiredPermissionLevel) $ result =<< peeks forbiddenResponse
+  unless (view objectWithMinimumAllowedPermission >= requiredPermissionLevel) $ do
+    resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)
+    result resp
   return objectWithMinimumAllowedPermission
 
 checkDataPermission :: (Has Release a, Has Permission a) => a -> ActionM a
