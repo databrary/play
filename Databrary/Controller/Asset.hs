@@ -85,7 +85,7 @@ getAsset p i = do
             (if volumeIsPublicRestricted ((assetVolume . slotAsset) assetSlot) && not (excerptAccessible assetExcerpts)
              then Nothing
              else Just ()))
-  checkPermission p assetSlot
+  checkPermission2 (volumePermission . assetVolume . slotAsset) p assetSlot -- TODO: move getter to model
   where
     excerptAccessible :: [Excerpt] -> Bool
     excerptAccessible exs = (not . null) exs -- is this good enough? how prevent access to unshared part of excerpt

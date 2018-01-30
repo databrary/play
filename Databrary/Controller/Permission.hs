@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Controller.Permission
   ( checkPermission
+  , checkPermission2
   , checkDataPermission
   , authAccount
   , checkMemberADMIN
@@ -20,11 +21,18 @@ import Databrary.Action
 
 -- logic inside of checkPermission and checkDataPermission should be inside of model layer
 checkPermission :: Has Permission a => Permission -> a -> ActionM a
-checkPermission requiredPermissionLevel objectWithMinimumAllowedPermission = do
-  unless (view objectWithMinimumAllowedPermission >= requiredPermissionLevel) $ do
+checkPermission requiredPermissionLevel objectWithCurrentUserPermLevel = do
+  unless (view objectWithCurrentUserPermLevel >= requiredPermissionLevel) $ do
     resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)
     result resp
-  return objectWithMinimumAllowedPermission
+  return objectWithCurrentUserPermLevel
+
+checkPermission2 :: (a -> Permission) -> Permission -> a -> ActionM a
+checkPermission2 getCurrentUserPermLevel requestingAccessAtPermLevel obj = do
+  unless (getCurrentUserPermLevel obj >= requestingAccessAtPermLevel) $ do
+    resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)
+    result resp
+  return obj
 
 checkDataPermission :: (Has Release a, Has Permission a) => a -> ActionM a
 checkDataPermission o = do

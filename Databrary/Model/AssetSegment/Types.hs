@@ -95,7 +95,7 @@ instance Has (Maybe Release) AssetSegment where
   view AssetSegment{ segmentAsset = a, assetExcerpt = Just e } = excerptRelease e <> view a
   view AssetSegment{ segmentAsset = a } = view a
 instance Has Release AssetSegment where
-  view = view . (view :: AssetSegment -> Maybe Release)
+  view = (view :: Maybe Release -> Release) . (view :: AssetSegment -> Maybe Release)
 
 
 data Excerpt = Excerpt
