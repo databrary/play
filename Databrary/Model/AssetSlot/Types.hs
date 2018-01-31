@@ -6,6 +6,7 @@ module Databrary.Model.AssetSlot.Types
   , assetNoSlot
   , getAssetSlotVolume
   , getAssetSlotVolumePermission
+  , getAssetSlotVolumePermission2
   , getAssetSlotRelease
   , getAssetSlotReleaseMaybe
   ) where
@@ -58,8 +59,10 @@ getAssetSlotVolume :: AssetSlot -> Volume
 getAssetSlotVolume = assetVolume . slotAsset
 instance Has (Id Volume) AssetSlot where
   view = view . slotAsset
-getAssetSlotVolumePermission :: AssetSlot -> Permission
+getAssetSlotVolumePermission :: AssetSlot -> Permission -- TODO: DELETE THIS
 getAssetSlotVolumePermission = volumePermission . getAssetSlotVolume
+getAssetSlotVolumePermission2 :: AssetSlot -> (Permission, VolumeAccessPolicy)
+getAssetSlotVolumePermission2 = volumePermissionPolicy . getAssetSlotVolume
 instance Has Permission AssetSlot where
   view = view . slotAsset
 

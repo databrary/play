@@ -5,7 +5,7 @@ module Databrary.Model.Volume.Types
   , VolumeOwner
   , blankVolume
   , volumePermissionPolicy
-  , VolumeAccessPolicy(..)
+  -- , VolumeAccessPolicy(..)
   , volumeAccessPolicyWithDefault
   ) where
 
@@ -35,8 +35,8 @@ data VolumeRow = VolumeRow
 
 type VolumeOwner = (Id Party, T.Text)
 
-data VolumeAccessPolicy = PublicRestricted | PermLevelDefault
-  deriving (Show, Eq)
+-- data VolumeAccessPolicy = PublicRestricted | PermLevelDefault
+--   deriving (Show, Eq)
 
 data Volume = Volume
   { volumeRow :: !VolumeRow

@@ -2,6 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Databrary.Model.Release.Types
   ( Release(..)
+  , EffectiveRelease(..)
   ) where
 
 import Data.Foldable (fold)
@@ -20,3 +21,9 @@ instance Has Release (Maybe Release) where
   view = fold
 
 deriveLift ''Release
+
+data EffectiveRelease =
+       EffectiveRelease {
+           effRelPublic :: !Release
+         , effRelPrivate :: !Release
+         } deriving (Eq, Show)

@@ -8,6 +8,7 @@ module Databrary.Model.Permission
   , readRelease
   -- , dataPermission
   , dataPermission2
+  , dataPermission3
   , accessJSON
   ) where
 
@@ -56,6 +57,16 @@ dataPermission a = releasePermission (view a) (view a)
 dataPermission2 :: (a -> Release) -> (a -> Permission) -> a -> Permission
 dataPermission2 getObjRelease getCurrentUserPermLevel obj =
   releasePermission (getObjRelease obj) (getCurrentUserPermLevel obj)
+
+dataPermission3 :: (a -> EffectiveRelease) -> (a -> (Permission, VolumeAccessPolicy)) -> a -> Permission
+dataPermission3 getObjEffectiveRelease getCurrentUserPermLevel obj =
+  let
+    effRelease = getObjEffectiveRelease obj
+  in 
+    case getCurrentUserPermLevel obj of
+      (p@PermissionPUBLIC, PublicRestricted) -> releasePermission (effRelPrivate effRelease) p
+      -- other levels that behave more like private (options: none, shared, read, edit, admin) ? 
+      (p, _) -> releasePermission (effRelPublic effRelease) p
 
 accessJSON :: JSON.ToObject o => Access -> o
 accessJSON Access{..} =

@@ -3,6 +3,7 @@ module Databrary.Model.AssetSegment.Types
   , getAssetSegmentRelease
   , getAssetSegmentRelease2
   , getAssetSegmentVolumePermission
+  , getAssetSegmentVolumePermission2
   , getAssetSegmentVolume
   , newAssetSegment
   , assetFullSegment
@@ -75,8 +76,10 @@ instance Has Volume AssetSegment where
   view = view . segmentAsset
 instance Has (Id Volume) AssetSegment where
   view = view . segmentAsset
-getAssetSegmentVolumePermission :: AssetSegment -> Permission
+getAssetSegmentVolumePermission :: AssetSegment -> Permission  -- TODO: DELETE THIS
 getAssetSegmentVolumePermission = getAssetSlotVolumePermission . segmentAsset
+getAssetSegmentVolumePermission2 :: AssetSegment -> (Permission, VolumeAccessPolicy)
+getAssetSegmentVolumePermission2 = getAssetSlotVolumePermission2 . segmentAsset
 instance Has Permission AssetSegment where
   view = view . segmentAsset
 
@@ -100,12 +103,33 @@ instance Has Format AssetSegment where
 instance Has (Id Format) AssetSegment where
   view = formatId . view
 
-getAssetSegmentRelease2 :: AssetSegment -> Release
-getAssetSegmentRelease2 as = undefined
 
+ 
+  -- when the assetslot has lower permissions than the excerpt, then use the excerpt's permissions
+  -- when no excerpt is present, then assume no access
+getAssetSegmentRelease2 :: AssetSegment -> EffectiveRelease
+getAssetSegmentRelease2 as =
+  case as of
+    AssetSegment{ segmentAsset = a, assetExcerpt = Just e } ->
+      let
+        rel = 
+           fold (
+                excerptRelease e  -- Maybe Release monoid takes the first just, if both just, then max of values
+             <> getAssetSlotReleaseMaybe a)
+      in 
+        EffectiveRelease {
+          effRelPublic = rel
+        , effRelPrivate = rel
+        }
+    AssetSegment{ segmentAsset = a } ->
+      EffectiveRelease {
+        effRelPublic = fold (getAssetSlotReleaseMaybe a)
+      , effRelPrivate = ReleasePRIVATE -- (getAssetSlotReleaseMaybe a)
+      }
+  
 getAssetSegmentRelease :: AssetSegment -> Release
 getAssetSegmentRelease as =
-  fold -- use monoid with foldMap
+  fold -- use monoid with foldMap, mempty = Private
     (case as of
        AssetSegment{ segmentAsset = a, assetExcerpt = Just e } ->
             excerptRelease e  -- Maybe Release monoid takes the first just, if both just, then max of values
