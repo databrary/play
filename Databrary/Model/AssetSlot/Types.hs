@@ -4,6 +4,8 @@ module Databrary.Model.AssetSlot.Types
   , AssetSlot(..)
   , assetSlotId
   , assetNoSlot
+  , getAssetSlotVolume
+  , getAssetSlotVolumePermission
   ) where
 
 import Control.Applicative ((<|>))
@@ -49,8 +51,12 @@ instance Has (Id Format) AssetSlot where
   view = view . slotAsset
 instance Has Volume AssetSlot where
   view = view . slotAsset
+getAssetSlotVolume :: AssetSlot -> Volume
+getAssetSlotVolume = assetVolume . slotAsset
 instance Has (Id Volume) AssetSlot where
   view = view . slotAsset
+getAssetSlotVolumePermission :: AssetSlot -> Permission
+getAssetSlotVolumePermission = volumePermission . getAssetSlotVolume
 instance Has Permission AssetSlot where
   view = view . slotAsset
 

@@ -1,5 +1,7 @@
 module Databrary.Model.AssetSegment.Types
   ( AssetSegment(..)
+  , getAssetSegmentVolumePermission
+  , getAssetSegmentVolume
   , newAssetSegment
   , assetFullSegment
   , assetSlotSegment
@@ -64,10 +66,14 @@ instance Has Asset AssetSegment where
   view = view . segmentAsset
 instance Has (Id Asset) AssetSegment where
   view = view . segmentAsset
+getAssetSegmentVolume :: AssetSegment -> Volume
+getAssetSegmentVolume = getAssetSlotVolume . segmentAsset
 instance Has Volume AssetSegment where
   view = view . segmentAsset
 instance Has (Id Volume) AssetSegment where
   view = view . segmentAsset
+getAssetSegmentVolumePermission :: AssetSegment -> Permission
+getAssetSegmentVolumePermission = getAssetSlotVolumePermission . segmentAsset
 instance Has Permission AssetSegment where
   view = view . segmentAsset
 

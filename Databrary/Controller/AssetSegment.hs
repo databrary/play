@@ -59,10 +59,10 @@ getAssetSegment getOrig p mv s a = do
   assetExcerpts <- lookupAssetExcerpts (segmentAsset assetSeg)
   _ <- when (p == PermissionPUBLIC)
          (maybeAction
-            (if volumeIsPublicRestricted ((assetVolume . slotAsset . segmentAsset) assetSeg) && not (excerptAccessible assetExcerpts)
+            (if volumeIsPublicRestricted (getAssetSegmentVolume assetSeg) && not (excerptAccessible assetExcerpts)
              then Nothing
              else Just ()))
-  checkPermission2 (volumePermission . assetVolume . slotAsset . segmentAsset) p assetSeg
+  checkPermission2 getAssetSegmentVolumePermission p assetSeg
   where
     -- TODO: fix, repeated from ASSET
     excerptAccessible :: [Excerpt] -> Bool
