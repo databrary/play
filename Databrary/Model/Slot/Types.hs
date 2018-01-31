@@ -5,6 +5,7 @@ module Databrary.Model.Slot.Types
   , slotId
   , containerSlotId
   , containerSlot
+  , getSlotReleaseMaybe
   ) where
 
 import Databrary.Has (makeHasRec)
@@ -12,6 +13,7 @@ import Databrary.Model.Id
 import Databrary.Model.Kind
 import Databrary.Model.Segment
 import Databrary.Model.Container.Types
+import Databrary.Model.Release.Types
 
 data SlotId = SlotId
   { slotContainerId :: !(Id Container)
@@ -41,3 +43,5 @@ instance Kinded Slot where
 
 makeHasRec ''SlotId ['slotContainerId, 'slotSegmentId]
 makeHasRec ''Slot ['slotContainer, 'slotSegment]
+getSlotReleaseMaybe :: Slot -> Maybe Release
+getSlotReleaseMaybe = containerRelease . slotContainer

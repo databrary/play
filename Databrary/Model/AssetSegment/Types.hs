@@ -103,8 +103,10 @@ getAssetSegmentRelease :: AssetSegment -> Release
 getAssetSegmentRelease as =
   fold -- use monoid with foldMap
     (case as of
-       AssetSegment{ segmentAsset = a, assetExcerpt = Just e } -> excerptRelease e <> view a
-       AssetSegment{ segmentAsset = a } -> view a)
+       AssetSegment{ segmentAsset = a, assetExcerpt = Just e } ->
+            excerptRelease e
+         <> getAssetSlotReleaseMaybe a
+       AssetSegment{ segmentAsset = a } -> getAssetSlotReleaseMaybe a)
 instance Has (Maybe Release) AssetSegment where
   view AssetSegment{ segmentAsset = a, assetExcerpt = Just e } = excerptRelease e <> view a
   view AssetSegment{ segmentAsset = a } = view a
