@@ -94,7 +94,12 @@ viewAssetSegment getOrig = action GET (pathAPI </>>> pathMaybe pathId </>> pathS
 
 serveAssetSegment :: Bool -> AssetSegment -> ActionM Response
 serveAssetSegment dl as = do
-  _ <- checkDataPermission2 getAssetSegmentRelease getAssetSegmentVolumePermission as
+  liftIO $ -- TODO: delete
+    print ("checking data perm", "seg rls", getAssetSegmentRelease as, "vol prm", getAssetSegmentVolumePermission as) 
+  liftIO $ -- TODO: delete
+    print ("result perm", dataPermission2 getAssetSegmentRelease getAssetSegmentVolumePermission as)
+  -- _ <- checkDataPermission2 getAssetSegmentRelease getAssetSegmentVolumePermission as
+  _ <- checkDataPermission3 getAssetSegmentRelease2 (const (PermissionPUBLIC, PublicRestricted)) as
   sz <- peeks $ readMaybe . BSC.unpack <=< join . listToMaybe . lookupQueryParameters "size"
   when dl $ auditAssetSegmentDownload True as
   store <- maybeAction =<< getAssetFile a

@@ -4,6 +4,7 @@ module Databrary.Controller.Permission
   , checkPermission2
   -- , checkDataPermission
   , checkDataPermission2
+  , checkDataPermission3
   , authAccount
   , checkMemberADMIN
   , checkVerfHeader
@@ -17,6 +18,7 @@ import Databrary.Model.Permission
 import Databrary.Model.Release
 import Databrary.Model.Party
 import Databrary.Model.Identity
+import Databrary.Model.Volume (VolumeAccessPolicy)
 import Databrary.HTTP.Request
 import Databrary.Action
 
@@ -47,6 +49,15 @@ checkDataPermission2 getObjRelease getCurrentUserPermLevel obj = do
   unless (dataPermission2 getObjRelease getCurrentUserPermLevel obj > PermissionNONE) $ do
     resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)
     result resp
+  return obj
+
+checkDataPermission3 :: (a -> Release) -> (a -> (Permission, VolumeAccessPolicy)) -> a -> ActionM a
+checkDataPermission3 getObjRelease getCurrentUserPermLevel obj = do
+  {-
+  unless (dataPermission3 getObjRelease getCurrentUserPermLevel obj > PermissionNONE) $ do
+    resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)
+    result resp
+  -}
   return obj
 
 authAccount :: ActionM Account

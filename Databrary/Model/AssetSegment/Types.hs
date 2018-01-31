@@ -1,6 +1,7 @@
 module Databrary.Model.AssetSegment.Types
   ( AssetSegment(..)
   , getAssetSegmentRelease
+  , getAssetSegmentRelease2
   , getAssetSegmentVolumePermission
   , getAssetSegmentVolume
   , newAssetSegment
@@ -98,6 +99,9 @@ instance Has Format AssetSegment where
     where fmt = view a
 instance Has (Id Format) AssetSegment where
   view = formatId . view
+
+getAssetSegmentRelease2 :: AssetSegment -> Release
+getAssetSegmentRelease2 as = undefined
 
 getAssetSegmentRelease :: AssetSegment -> Release
 getAssetSegmentRelease as =
