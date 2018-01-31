@@ -32,7 +32,7 @@ pathExcerpt = pathJSON >/> pathSlotId </> pathId </< "excerpt"
 
 postExcerpt :: ActionRoute (Id Slot, Id Asset)
 postExcerpt = action POST pathExcerpt $ \(si, ai) -> withAuth $ do
-  as <- getAssetSegment False PermissionEDIT Nothing si ai
+  as <- getAssetSegment False PermissionEDIT False Nothing si ai
   e <- runForm Nothing $ do
     csrfForm
     Excerpt as <$> ("release" .:> deformNonEmpty deform)
@@ -54,6 +54,6 @@ postExcerpt = action POST pathExcerpt $ \(si, ai) -> withAuth $ do
 deleteExcerpt :: ActionRoute (Id Slot, Id Asset)
 deleteExcerpt = action DELETE pathExcerpt $ \(si, ai) -> withAuth $ do
   guardVerfHeader
-  as <- getAssetSegment False PermissionEDIT Nothing si ai
+  as <- getAssetSegment False PermissionEDIT False Nothing si ai
   r <- removeExcerpt as
   return $ okResponse [] $ JSON.objectEncoding $ assetSegmentJSON (if r then as{ assetExcerpt = Nothing } else as)
