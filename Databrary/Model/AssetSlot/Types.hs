@@ -6,9 +6,11 @@ module Databrary.Model.AssetSlot.Types
   , assetNoSlot
   , getAssetSlotVolume
   , getAssetSlotVolumePermission
+  , getAssetSlotRelease
   ) where
 
 import Control.Applicative ((<|>))
+import Data.Foldable (fold)
 
 import Databrary.Has (Has(..))
 import Databrary.Model.Id.Types
@@ -71,6 +73,16 @@ instance Has (Maybe Segment) AssetSlot where
 instance Has Segment AssetSlot where
   view = maybe fullSegment slotSegment . assetSlot
 
+getAssetSlotRelease :: AssetSlot -> Release
+getAssetSlotRelease as =
+  fold
+    (case as of
+       AssetSlot a (Just s) ->
+         view a <|> view s
+       AssetSlot a Nothing ->
+         if volumeId (volumeRow $ assetVolume a) == Id 0
+         then view a
+         else Nothing) -- "deleted" assets are always unreleased (private?), not view a
 instance Has (Maybe Release) AssetSlot where
   view (AssetSlot a (Just s)) = view a <|> view s
   view (AssetSlot a Nothing)

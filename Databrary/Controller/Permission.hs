@@ -2,7 +2,8 @@
 module Databrary.Controller.Permission
   ( checkPermission
   , checkPermission2
-  , checkDataPermission
+  -- , checkDataPermission
+  , checkDataPermission2
   , authAccount
   , checkMemberADMIN
   , checkVerfHeader
@@ -34,10 +35,12 @@ checkPermission2 getCurrentUserPermLevel requestingAccessAtPermLevel obj = do
     result resp
   return obj
 
+{-
 checkDataPermission :: (Has Release a, Has Permission a) => a -> ActionM a
 checkDataPermission o = do
   unless (dataPermission o > PermissionNONE) $ result =<< peeks forbiddenResponse
   return o
+-}
 
 checkDataPermission2 :: (a -> Release) -> (a -> Permission) -> a -> ActionM a
 checkDataPermission2 getObjRelease getCurrentUserPermLevel obj = do

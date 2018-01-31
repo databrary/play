@@ -1,5 +1,6 @@
 module Databrary.Model.AssetSegment.Types
   ( AssetSegment(..)
+  , getAssetSegmentRelease
   , getAssetSegmentVolumePermission
   , getAssetSegmentVolume
   , newAssetSegment
@@ -12,6 +13,7 @@ module Databrary.Model.AssetSegment.Types
   , excerptInSegment
   ) where
 
+import Data.Foldable (fold)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import qualified Database.PostgreSQL.Typed.Range as Range
@@ -97,6 +99,12 @@ instance Has Format AssetSegment where
 instance Has (Id Format) AssetSegment where
   view = formatId . view
 
+getAssetSegmentRelease :: AssetSegment -> Release
+getAssetSegmentRelease as =
+  fold -- use monoid with foldMap
+    (case as of
+       AssetSegment{ segmentAsset = a, assetExcerpt = Just e } -> excerptRelease e <> view a
+       AssetSegment{ segmentAsset = a } -> view a)
 instance Has (Maybe Release) AssetSegment where
   view AssetSegment{ segmentAsset = a, assetExcerpt = Just e } = excerptRelease e <> view a
   view AssetSegment{ segmentAsset = a } = view a

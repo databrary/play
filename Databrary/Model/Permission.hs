@@ -6,7 +6,7 @@ module Databrary.Model.Permission
   , permissionPRIVATE
   , readPermission
   , readRelease
-  , dataPermission
+  -- , dataPermission
   , dataPermission2
   , accessJSON
   ) where
@@ -48,8 +48,10 @@ releasePermission r p
   | p >= readPermission r = p
   | otherwise = PermissionNONE
 
+{-
 dataPermission :: (Has Release a, Has Permission a) => a -> Permission
 dataPermission a = releasePermission (view a) (view a)
+-}
 
 dataPermission2 :: (a -> Release) -> (a -> Permission) -> a -> Permission
 dataPermission2 getObjRelease getCurrentUserPermLevel obj =

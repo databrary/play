@@ -94,7 +94,7 @@ viewAssetSegment getOrig = action GET (pathAPI </>>> pathMaybe pathId </>> pathS
 
 serveAssetSegment :: Bool -> AssetSegment -> ActionM Response
 serveAssetSegment dl as = do
-  _ <- checkDataPermission as
+  _ <- checkDataPermission2 getAssetSegmentRelease getAssetSegmentVolumePermission as
   sz <- peeks $ readMaybe . BSC.unpack <=< join . listToMaybe . lookupQueryParameters "size"
   when dl $ auditAssetSegmentDownload True as
   store <- maybeAction =<< getAssetFile a
@@ -127,6 +127,8 @@ thumbAssetSegment :: Bool -> ActionRoute (Id Slot, Id Asset)
 thumbAssetSegment getOrig = action GET (pathSlotId </> pathId </< "thumb") $ \(si, ai) -> withAuth $ do
   as <- getAssetSegment getOrig PermissionPUBLIC Nothing si ai
   let as' = assetSegmentInterp 0.25 as
-  if formatIsImage (view as') && assetBacked (view as) && dataPermission as' > PermissionNONE
+  if formatIsImage (view as')
+    && assetBacked (view as)
+    && dataPermission2 getAssetSegmentRelease getAssetSegmentVolumePermission as' > PermissionNONE
     then peeks $ otherRouteResponse [] downloadAssetSegment (slotId $ view as', assetId $ assetRow $ view as')
     else peeks $ otherRouteResponse [] formatIcon (view as)
