@@ -104,7 +104,7 @@ getAssetSegmentRelease as =
   fold -- use monoid with foldMap
     (case as of
        AssetSegment{ segmentAsset = a, assetExcerpt = Just e } ->
-            excerptRelease e
+            excerptRelease e  -- Maybe Release monoid takes the first just, if both just, then max of values
          <> getAssetSlotReleaseMaybe a
        AssetSegment{ segmentAsset = a } -> getAssetSlotReleaseMaybe a)
 instance Has (Maybe Release) AssetSegment where
