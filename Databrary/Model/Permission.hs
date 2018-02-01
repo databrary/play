@@ -8,6 +8,8 @@ module Databrary.Model.Permission
   , readRelease
   , dataPermission3
   , accessJSON
+  -- testing only
+  , testdataPermission3
   ) where
 
 import Data.Monoid ((<>))
@@ -47,10 +49,41 @@ releasePermission r p
   | p >= readPermission r = p
   | otherwise = PermissionNONE
 
+-- START future testing code
+runDataPermission3 :: (Release, Release) -> (Permission, VolumeAccessPolicy) -> Permission
+runDataPermission3 (relPub, relPriv) (perm, policy) =
+  dataPermission3 (const (EffectiveRelease {effRelPublic = relPub, effRelPrivate = relPriv})) (const (perm, policy)) ()
+
+partiallySharedAsPublic, fullySharedAsPublic, databrarySharedAsDatabraryMember :: (Permission, VolumeAccessPolicy)
+partiallySharedAsPublic = (PermissionPUBLIC, PublicRestricted)
+fullySharedAsPublic = (PermissionPUBLIC, PermLevelDefault)
+databrarySharedAsDatabraryMember = (PermissionSHARED, PermLevelDefault)
+
+publiclyReleasedExcerpt, databrarySharedExcerpt :: (Release, Release)
+publiclyReleasedExcerpt = (ReleasePUBLIC, ReleasePUBLIC)
+databrarySharedExcerpt = (ReleaseSHARED, ReleasePRIVATE)
+publiclyReleasedAsset = (ReleasePUBLIC, ReleasePRIVATE)
+privatelyReleasedAsset = (ReleasePRIVATE, ReleasePRIVATE)
+
+testdataPermission3 =
+  [ (runDataPermission3 publiclyReleasedExcerpt partiallySharedAsPublic, PermissionPUBLIC)
+  , (runDataPermission3 publiclyReleasedExcerpt fullySharedAsPublic, PermissionPUBLIC)
+  , (runDataPermission3 publiclyReleasedAsset partiallySharedAsPublic, PermissionNONE)
+  , (runDataPermission3 publiclyReleasedAsset fullySharedAsPublic, PermissionPUBLIC)
+  , (runDataPermission3 publiclyReleasedExcerpt databrarySharedAsDatabraryMember, PermissionSHARED)
+  , (runDataPermission3 databrarySharedExcerpt databrarySharedAsDatabraryMember, PermissionSHARED)
+  , (runDataPermission3 databrarySharedExcerpt databrarySharedAsDatabraryMember, PermissionSHARED)
+  , (runDataPermission3 privatelyReleasedAsset databrarySharedAsDatabraryMember, PermissionNONE)
+  , (runDataPermission3 privatelyReleasedAsset partiallySharedAsPublic, PermissionNONE)
+  , (runDataPermission3 privatelyReleasedAsset fullySharedAsPublic, PermissionNONE)
+  ]
+-- END future testing code
+
+
 dataPermission3 :: (a -> EffectiveRelease) -> (a -> (Permission, VolumeAccessPolicy)) -> a -> Permission
 dataPermission3 getObjEffectiveRelease getCurrentUserPermLevel obj =
   let
-    effRelease = getObjEffectiveRelease obj
+   effRelease = getObjEffectiveRelease obj
   in 
     case getCurrentUserPermLevel obj of
       (p@PermissionPUBLIC, PublicRestricted) -> releasePermission (effRelPrivate effRelease) p
