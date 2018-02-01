@@ -9,6 +9,7 @@ module Databrary.Model.AssetSlot.Types
   , getAssetSlotVolumePermission2
   , getAssetSlotRelease
   , getAssetSlotReleaseMaybe
+  , getAssetSlotRelease2
   ) where
 
 import Control.Applicative ((<|>))
@@ -91,6 +92,23 @@ getAssetSlotReleaseMaybe as =
          if volumeId (volumeRow $ assetVolume a) == Id 0
          then getAssetReleaseMaybe a
          else Nothing) -- "deleted" assets are always unreleased (private?), not view a
+
+getAssetSlotRelease2 :: AssetSlot -> EffectiveRelease  -- TODO: use this throughout?
+getAssetSlotRelease2 as =
+  let
+    pubRel = 
+      fold 
+        (case as of
+           AssetSlot a (Just s) ->
+             getAssetReleaseMaybe a <|> getSlotReleaseMaybe s
+           AssetSlot a Nothing ->
+             if volumeId (volumeRow $ assetVolume a) == Id 0
+             then getAssetReleaseMaybe a
+             else Nothing) -- "deleted" assets are always unreleased (private?), not view a
+  in
+    EffectiveRelease { effRelPublic = pubRel, effRelPrivate = ReleasePRIVATE }
+    
+      
 {-
 instance Has (Maybe Release) AssetSlot where
   view (AssetSlot a (Just s)) = view a <|> view s

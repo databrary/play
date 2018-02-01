@@ -90,13 +90,12 @@ getAsset getOrig p checkDataPerm i = do
   when checkDataPerm $ do
     liftIO $ -- TODO: delete
       print ("checking data perm", "assetSlot", assetSlot)
-    -- liftIO $ -- TODO: delete
-    --   print ("checking data perm", "seg rlses", getAssetSlotRelease2 assetSlot)
-           -- "vol prm", getAssetSegmentVolumePermission2 assetSlot) 
-    -- liftIO $ -- TODO: delete
-    --  print ("result perm", dataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
-    -- void (checkDataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
-    pure ()
+    liftIO $ -- TODO: delete
+      print ("checking data perm", "seg rlses", getAssetSlotRelease2 assetSlot,
+             "vol prm", getAssetSlotVolumePermission2 assetSlot) 
+    liftIO $ -- TODO: delete
+      print ("result perm", dataPermission3 getAssetSlotRelease2 getAssetSlotVolumePermission2 assetSlot)
+    void (checkDataPermission3 getAssetSlotRelease2 getAssetSlotVolumePermission2 assetSlot)
   pure assetSlot
   -- where
     -- excerptAccessible :: [Excerpt] -> Bool
