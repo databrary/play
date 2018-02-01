@@ -92,6 +92,10 @@ app.directive('homeContainer', [
           showDivs(slideIndex += n);
         }
 
+        $('.testimonials').mouseenter(function(){
+          stopCarousel = true;
+        })
+
         $scope.$on('$destroy', function(){
           if(google !== null && typeof google === 'object' && typeof google.maps === 'object'){
             google.maps = null;

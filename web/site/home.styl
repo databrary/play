@@ -6,6 +6,7 @@ html
   @media screen and (max-width:grid-mobile-width)
     width 200px
     height 41px
+    background-size 200px 41px
   background-size 392px 80px
   margin 0 auto 10px auto
   background-image url(/web/images/logo/databrary-nav.svg)
@@ -92,7 +93,7 @@ html
   position relative
   &:hover
     cursor pointer
-    background #e5e5e5
+    background #f2f2f2
   &:nth-child(even):after, &:nth-child(odd):before
     content ""
     width 14px
@@ -266,6 +267,10 @@ div
 .p-container
   .header
     margin-bottom 40px
+  .stream-nav
+    top 150px !important
+    @media screen and (max-width:grid-mobile-width)
+      top 70px !important
 
 .stream-viewport
   position relative
@@ -283,15 +288,13 @@ div
   .citation
     font-size 1rem
     text-align left
-    margin 0 30px
+    margin 0 -1px 0 -1px
     color #333
     display none
-    bottom 60px
     padding 10px
     background-color #fff
-    position absolute
-    border-radius 5px
-    border 4px solid #97d1c5
+    position relative
+    border 1px solid #999
   .full-height:hover .citation 
     display block
   &:not(.mobile)
@@ -322,6 +325,7 @@ div
   box-sizing border-box
   width 332.8rem
   height 31.33333333333333rem
+  transition all 300ms ease-in-out
   @media screen and (max-width:grid-mobile-width)
     height auto
   margin 0
@@ -349,7 +353,6 @@ div
     margin-right .4rem
     color #fff
     background-color #fff
-    overflow hidden
     background-repeat no-repeat
     background-position 50%
     background-size cover
@@ -508,11 +511,15 @@ div
       &.right
         right -5.33333333333333rem
         left auto
+    .stream
+      height 36rem
+      @media screen and (max-width:grid-mobile-width)
+        height 28rem
 
 .stream,
 .stream li,
 .stream .block
-  max-height 31.33333333333333rem
+  max-height 36rem
 
 
 
@@ -553,7 +560,7 @@ div
   display block
   height 300px
   cursor pointer
-  transition: all 1s ease-in-out;
+  transition: all 200ms ease-in-out;
   strong
     font-size 26px
     font-weight normal
@@ -602,6 +609,8 @@ div
             color #e5e5e5
           &:nth-of-type(4)
             width 400px
+            @media screen and (max-width:grid-mobile-width)
+              width 270px            
         .count
           font-size 2.3em
         bluetext
@@ -621,10 +630,11 @@ div
   height 100%
 .open-panel
   display none
-  margin 0 50px 50px 50px
-  border 8px solid #97d1c5
+  @media screen and (max-width:grid-mobile-width)
+    margin 0 0 50px 0
+  margin 0 50px 50px 30px
+  border 1px solid #e5e5e5
   background-color #fff
-  border-radius 5px
   color #333
   p
     font-family "Lucida Sans Unicode","Lucida Grande",sans-serif
