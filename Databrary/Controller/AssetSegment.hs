@@ -63,7 +63,7 @@ getAssetSegment getOrig p checkDataPerm mv s a = do
             (if volumeIsPublicRestricted (getAssetSegmentVolume assetSeg) && not (excerptAccessible assetExcerpts)
              then Nothing
              else Just ())) -}
-  _ <- checkPermission2 getAssetSegmentVolumePermission p assetSeg
+  void (checkPermission2 (fst . getAssetSegmentVolumePermission2) p assetSeg)
   when checkDataPerm $ do
     liftIO $ -- TODO: delete
       print ("checking data perm", "as", assetSeg)
@@ -74,8 +74,7 @@ getAssetSegment getOrig p checkDataPerm mv s a = do
       print ("result perm", dataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
     void (checkDataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
   pure assetSeg
-  where
-    -- TODO: fix, repeated from ASSET
+  -- where
     -- excerptAccessible :: [Excerpt] -> Bool
     -- excerptAccessible exs = (not . null) exs -- is this good enough? how prevent access to unshared part of excerpt
 
@@ -140,6 +139,6 @@ thumbAssetSegment getOrig = action GET (pathSlotId </> pathId </< "thumb") $ \(s
   let as' = assetSegmentInterp 0.25 as
   if formatIsImage (view as')
     && assetBacked (view as)
-    && dataPermission2 getAssetSegmentRelease getAssetSegmentVolumePermission as' > PermissionNONE
+    && dataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as' > PermissionNONE
     then peeks $ otherRouteResponse [] downloadAssetSegment (slotId $ view as', assetId $ assetRow $ view as')
     else peeks $ otherRouteResponse [] formatIcon (view as)

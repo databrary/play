@@ -75,20 +75,32 @@ import Databrary.View.Asset
 
 import Control.Monad.IO.Class
 
-getAsset :: Permission -> Id Asset -> ActionM AssetSlot
-getAsset p i = do
+getAsset :: Permission -> Bool -> Id Asset -> ActionM AssetSlot
+getAsset p checkDataPerm i = do
   mAssetSlot <- lookupAssetSlot i
   assetSlot <- maybeAction mAssetSlot
+  {-
   assetExcerpts <- lookupAssetExcerpts assetSlot
   _ <- when (p == PermissionPUBLIC)
          (maybeAction
             (if volumeIsPublicRestricted (getAssetSlotVolume assetSlot) && not (excerptAccessible assetExcerpts)
              then Nothing
-             else Just ()))
-  checkPermission2 getAssetSlotVolumePermission p assetSlot -- TODO: move getter to model
-  where
-    excerptAccessible :: [Excerpt] -> Bool
-    excerptAccessible exs = (not . null) exs -- is this good enough? how prevent access to unshared part of excerpt
+             else Just ())) -}
+  void (checkPermission2 getAssetSlotVolumePermission p assetSlot)
+  when checkDataPerm $ do
+    liftIO $ -- TODO: delete
+      print ("checking data perm", "assetSlot", assetSlot)
+--    liftIO $ -- TODO: delete
+--      print ("checking data perm", "seg rlses", getAssetSlotRelease2 assetSlot)
+             -- "vol prm", getAssetSegmentVolumePermission2 assetSlot) 
+    -- liftIO $ -- TODO: delete
+    --   print ("result perm", dataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
+    -- void (checkDataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
+    pure ()
+  pure assetSlot
+  -- where
+    -- excerptAccessible :: [Excerpt] -> Bool
+    -- excerptAccessible exs = (not . null) exs -- is this good enough? how prevent access to unshared part of excerpt
 
 getOrigAsset :: Permission -> Id Asset -> ActionM AssetSlot
 getOrigAsset p i =
@@ -127,7 +139,7 @@ assetDownloadName addPrefix trimFormat a =
 
 viewAsset :: ActionRoute (API, Id Asset)
 viewAsset = action GET (pathAPI </> pathId) $ \(api, i) -> withAuth $ do
-  asset <- getAsset PermissionPUBLIC i
+  asset <- getAsset PermissionPUBLIC True i
   case api of
     JSON -> okResponse [] <$> (assetJSONQuery asset =<< peeks Wai.queryString)
     HTML
@@ -272,7 +284,7 @@ processAsset api target = do
 
 postAsset :: ActionRoute (API, Id Asset)
 postAsset = multipartAction $ action POST (pathAPI </> pathId) $ \(api, ai) -> withAuth $ do
-  asset <- getAsset PermissionEDIT ai
+  asset <- getAsset PermissionEDIT False ai
   r <- assetIsReplaced (slotAsset asset)
   when r $ result $
     response conflict409 [] ("This file has already been replaced." :: T.Text)
@@ -280,7 +292,7 @@ postAsset = multipartAction $ action POST (pathAPI </> pathId) $ \(api, ai) -> w
 
 viewAssetEdit :: ActionRoute (Id Asset)
 viewAssetEdit = action GET (pathHTML >/> pathId </< "edit") $ \ai -> withAuth $ do
-  asset <- getAsset PermissionEDIT ai
+  asset <- getAsset PermissionEDIT False ai
   peeks $ blankForm . htmlAssetEdit (AssetTargetAsset asset)
 
 createAsset :: ActionRoute (API, Id Volume)
@@ -308,7 +320,7 @@ viewSlotAssetCreate = action GET (pathHTML >/> pathSlotId </< "asset") $ \si -> 
 deleteAsset :: ActionRoute (API, Id Asset)
 deleteAsset = action DELETE (pathAPI </> pathId) $ \(api, ai) -> withAuth $ do
   guardVerfHeader
-  asset <- getAsset PermissionEDIT ai
+  asset <- getAsset PermissionEDIT False ai
   let asset' = asset{ assetSlot = Nothing }
   _ <- changeAssetSlot asset'
   case api of
@@ -317,7 +329,7 @@ deleteAsset = action DELETE (pathAPI </> pathId) $ \(api, ai) -> withAuth $ do
 
 downloadAsset :: ActionRoute (Id Asset, Segment)
 downloadAsset = action GET (pathId </> pathSegment </< "download") $ \(ai, seg) -> withAuth $ do
-  a <- getAsset PermissionPUBLIC ai
+  a <- getAsset PermissionPUBLIC True ai
   inline <- peeks $ lookupQueryParameters "inline"
   serveAssetSegment (null inline) $ newAssetSegment a seg Nothing
 
@@ -329,10 +341,10 @@ downloadOrigAsset = action GET (pathId </> pathSegment </< "downloadOrig") $ \(a
 
 thumbAsset :: ActionRoute (Id Asset, Segment)
 thumbAsset = action GET (pathId </> pathSegment </< "thumb") $ \(ai, seg) -> withAuth $ do
-  a <- getAsset PermissionPUBLIC ai
+  a <- getAsset PermissionPUBLIC True ai
   let as = assetSegmentInterp 0.25 $ newAssetSegment a seg Nothing
   if formatIsImage (view as)
     && assetBacked (view as)
-    && dataPermission2 getAssetSegmentRelease getAssetSegmentVolumePermission as > PermissionNONE
+    && dataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as > PermissionNONE
     then peeks $ otherRouteResponse [] downloadAsset (view as, assetSegment as)
     else peeks $ otherRouteResponse [] formatIcon (view as)

@@ -47,7 +47,7 @@ postExcerpt = action POST pathExcerpt $ \(si, ai) -> withAuth $ do
         }
   when (isNothing $ assetExcerpt as) $
     notice NoticeExcerptVolume
-  when (any (view as <) $ excerptRelease e) $
+  when (any (getAssetSegmentRelease as <) $ excerptRelease e) $
     notice NoticeReleaseExcerpt
   return $ okResponse [] $ JSON.objectEncoding $ assetSegmentJSON (if r then as{ assetExcerpt = Just e } else as)
 
