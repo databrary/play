@@ -5,7 +5,6 @@ module Databrary.Model.AssetSlot.Types
   , assetSlotId
   , assetNoSlot
   , getAssetSlotVolume
-  -- , getAssetSlotVolumePermission
   , getAssetSlotVolumePermission2
   , getAssetSlotRelease
   , getAssetSlotReleaseMaybe
@@ -93,14 +92,4 @@ getAssetSlotRelease2 as =
     pubRel = fold (getAssetSlotReleaseMaybe as)
   in
     EffectiveRelease { effRelPublic = pubRel, effRelPrivate = ReleasePRIVATE }
-    
       
-{-
-instance Has (Maybe Release) AssetSlot where
-  view (AssetSlot a (Just s)) = view a <|> view s
-  view (AssetSlot a Nothing)
-    | volumeId (volumeRow $ assetVolume a) == Id 0 = view a
-    | otherwise = Nothing -- "deleted" assets are always unreleased (private?), not view a
-instance Has Release AssetSlot where
-  view = view . (view :: AssetSlot -> Maybe Release)
--}
