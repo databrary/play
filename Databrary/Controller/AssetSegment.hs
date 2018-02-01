@@ -55,27 +55,15 @@ getAssetSegment :: Bool -> Permission -> Bool -> Maybe (Id Volume) -> Id Slot ->
 getAssetSegment getOrig p checkDataPerm mv s a = do
   mAssetSeg <- (if getOrig then lookupOrigSlotAssetSegment else lookupSlotAssetSegment) s a
   assetSeg <- maybeAction ((maybe id (\v -> mfilter $ (v ==) . view) mv) mAssetSeg)
-  {-
-  assetExcerpts <- lookupAssetExcerpts (segmentAsset assetSeg)
-  _ <- when (p == PermissionPUBLIC)
-         (maybeAction
-            (if volumeIsPublicRestricted (getAssetSegmentVolume assetSeg) && not (excerptAccessible assetExcerpts)
-             then Nothing
-             else Just ())) -}
   void (checkPermission2 (fst . getAssetSegmentVolumePermission2) p assetSeg)
   when checkDataPerm $ do
-    liftIO $ -- TODO: delete
-      print ("checking data perm", "as", assetSeg)
-    liftIO $ -- TODO: delete
-      print ("checking data perm", "seg rlses", getAssetSegmentRelease2 assetSeg,
-             "vol prm", getAssetSegmentVolumePermission2 assetSeg) 
-    liftIO $ -- TODO: delete
-      print ("result perm", dataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
+    -- TODO: delete
+    liftIO $ print ("checking data perm", "as", assetSeg)
+    liftIO $ print ("checking data perm", "seg rlses", getAssetSegmentRelease2 assetSeg,
+                    "vol prm", getAssetSegmentVolumePermission2 assetSeg) 
+    liftIO $ print ("result perm", dataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
     void (checkDataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
   pure assetSeg
-  -- where
-    -- excerptAccessible :: [Excerpt] -> Bool
-    -- excerptAccessible exs = (not . null) exs -- is this good enough? how prevent access to unshared part of excerpt
 
 assetSegmentJSONField :: AssetSegment -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
 assetSegmentJSONField a "asset" _ = return $ Just $ JSON.recordEncoding $ assetSlotJSON False (segmentAsset a) 
@@ -103,7 +91,6 @@ viewAssetSegment getOrig = action GET (pathAPI </>>> pathMaybe pathId </>> pathS
 
 serveAssetSegment :: Bool -> AssetSegment -> ActionM Response
 serveAssetSegment dl as = do
-  -- _ <- checkDataPermission2 getAssetSegmentRelease getAssetSegmentVolumePermission as
   sz <- peeks $ readMaybe . BSC.unpack <=< join . listToMaybe . lookupQueryParameters "size"
   when dl $ auditAssetSegmentDownload True as
   store <- maybeAction =<< getAssetFile a

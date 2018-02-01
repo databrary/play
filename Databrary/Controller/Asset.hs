@@ -79,27 +79,15 @@ getAsset :: Bool -> Permission -> Bool -> Id Asset -> ActionM AssetSlot
 getAsset getOrig p checkDataPerm i = do
   mAssetSlot <- (if getOrig then lookupOrigAssetSlot else lookupAssetSlot) i
   assetSlot <- maybeAction mAssetSlot
-  {-
-  assetExcerpts <- lookupAssetExcerpts assetSlot
-  _ <- when (p == PermissionPUBLIC)
-         (maybeAction
-            (if volumeIsPublicRestricted (getAssetSlotVolume assetSlot) && not (excerptAccessible assetExcerpts)
-             then Nothing
-             else Just ())) -}
   void (checkPermission2 (fst . getAssetSlotVolumePermission2) p assetSlot)
   when checkDataPerm $ do
-    liftIO $ -- TODO: delete
-      print ("checking data perm", "assetSlot", assetSlot)
-    liftIO $ -- TODO: delete
-      print ("checking data perm", "seg rlses", getAssetSlotRelease2 assetSlot,
-             "vol prm", getAssetSlotVolumePermission2 assetSlot) 
-    liftIO $ -- TODO: delete
-      print ("result perm", dataPermission3 getAssetSlotRelease2 getAssetSlotVolumePermission2 assetSlot)
+    -- TODO: delete
+    liftIO $ print ("checking data perm", "assetSlot", assetSlot)
+    liftIO $ print ("checking data perm", "seg rlses", getAssetSlotRelease2 assetSlot,
+                    "vol prm", getAssetSlotVolumePermission2 assetSlot) 
+    liftIO $ print ("result perm", dataPermission3 getAssetSlotRelease2 getAssetSlotVolumePermission2 assetSlot)
     void (checkDataPermission3 getAssetSlotRelease2 getAssetSlotVolumePermission2 assetSlot)
   pure assetSlot
-  -- where
-    -- excerptAccessible :: [Excerpt] -> Bool
-    -- excerptAccessible exs = (not . null) exs -- is this good enough? how prevent access to unshared part of excerpt
 
 assetJSONField :: AssetSlot -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
 assetJSONField a "container" _ =
