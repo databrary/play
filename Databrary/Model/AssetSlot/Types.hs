@@ -63,8 +63,10 @@ getAssetSlotVolumePermission :: AssetSlot -> Permission -- TODO: DELETE THIS
 getAssetSlotVolumePermission = volumePermission . getAssetSlotVolume
 getAssetSlotVolumePermission2 :: AssetSlot -> (Permission, VolumeAccessPolicy)
 getAssetSlotVolumePermission2 = volumePermissionPolicy . getAssetSlotVolume
+{-
 instance Has Permission AssetSlot where
   view = view . slotAsset
+-}
 
 instance Has (Maybe Slot) AssetSlot where
   view = assetSlot

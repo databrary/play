@@ -53,8 +53,7 @@ import Databrary.Controller.Format
 -- Boolean flag to toggle the choice of downloading the original asset file. 
 getAssetSegment :: Bool -> Permission -> Bool -> Maybe (Id Volume) -> Id Slot -> Id Asset -> ActionM AssetSegment
 getAssetSegment getOrig p checkDataPerm mv s a = do
-  let lookupSeg = if getOrig then lookupOrigSlotAssetSegment else lookupSlotAssetSegment
-  mAssetSeg <- lookupSeg s a
+  mAssetSeg <- (if getOrig then lookupOrigSlotAssetSegment else lookupSlotAssetSegment) s a
   assetSeg <- maybeAction ((maybe id (\v -> mfilter $ (v ==) . view) mv) mAssetSeg)
   {-
   assetExcerpts <- lookupAssetExcerpts (segmentAsset assetSeg)
