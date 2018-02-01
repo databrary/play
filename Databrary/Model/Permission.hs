@@ -45,8 +45,8 @@ readRelease _                = Just ReleasePRIVATE
 
 -- |The effective permission for data objects with the given attributes, effectively collapsing ineffective permissions NONE.
 releasePermission :: Release -> Permission -> Permission
-releasePermission r p
-  | p >= readPermission r = p
+releasePermission effectiveReleaseOnData currentUserAllowedPermissionOnVolume
+  | currentUserAllowedPermissionOnVolume >= readPermission effectiveReleaseOnData = currentUserAllowedPermissionOnVolume
   | otherwise = PermissionNONE
 
 -- START future testing code
