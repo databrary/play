@@ -171,7 +171,7 @@ htmlVolumeDescription inzip Volume{ volumeRow = VolumeRow{..}, ..} cite fund glo
       byteStringHtml fn
     H.td $ H.a H.! HA.href (link viewAsset (HTML, assetId a)) $
       H.text $ fromMaybe (formatName $ assetFormat a) $ assetName a
-    H.td $ H.string $ show (view as :: Release)
+    H.td $ H.string $ show (getAssetSlotRelease as :: Release)
     H.td $ maybe mempty H.toMarkup $ assetSize a
     H.td $ maybe mempty (H.string . show) $ assetDuration a
     H.td $ maybe mempty (lazyByteStringHtml . BSB.toLazyByteString . BSB.byteStringHex) $ assetSHA1 a

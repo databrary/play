@@ -102,12 +102,6 @@ getAsset getOrig p checkDataPerm i = do
     -- excerptAccessible :: [Excerpt] -> Bool
     -- excerptAccessible exs = (not . null) exs -- is this good enough? how prevent access to unshared part of excerpt
 
-{-
-getOrigAsset :: Permission -> Id Asset -> ActionM AssetSlot
-getOrigAsset p i =
-  checkPermission p =<< maybeAction =<< lookupOrigAssetSlot i
--}
-
 assetJSONField :: AssetSlot -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
 assetJSONField a "container" _ =
   return $ JSON.recordEncoding . containerJSON False . slotContainer <$> assetSlot a -- containerJSON should consult volume

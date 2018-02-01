@@ -91,6 +91,7 @@ getAssetSlotReleaseMaybe as =
          if volumeId (volumeRow $ assetVolume a) == Id 0
          then getAssetReleaseMaybe a
          else Nothing) -- "deleted" assets are always unreleased (private?), not view a
+{-
 instance Has (Maybe Release) AssetSlot where
   view (AssetSlot a (Just s)) = view a <|> view s
   view (AssetSlot a Nothing)
@@ -98,3 +99,4 @@ instance Has (Maybe Release) AssetSlot where
     | otherwise = Nothing -- "deleted" assets are always unreleased (private?), not view a
 instance Has Release AssetSlot where
   view = view . (view :: AssetSlot -> Maybe Release)
+-}
