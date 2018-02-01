@@ -1,8 +1,6 @@
 module Databrary.Model.AssetSegment.Types
   ( AssetSegment(..)
---  , getAssetSegmentRelease
   , getAssetSegmentRelease2
---  , getAssetSegmentVolumePermission
   , getAssetSegmentVolumePermission2
   , getAssetSegmentVolume
   , newAssetSegment
@@ -76,12 +74,8 @@ instance Has Volume AssetSegment where
   view = view . segmentAsset
 instance Has (Id Volume) AssetSegment where
   view = view . segmentAsset
--- getAssetSegmentVolumePermission :: AssetSegment -> Permission  -- TODO: DELETE THIS
--- getAssetSegmentVolumePermission = getAssetSlotVolumePermission . segmentAsset
 getAssetSegmentVolumePermission2 :: AssetSegment -> (Permission, VolumeAccessPolicy)
 getAssetSegmentVolumePermission2 = getAssetSlotVolumePermission2 . segmentAsset
--- instance Has Permission AssetSegment where
---  view = view . segmentAsset
 
 instance Has Slot AssetSegment where
   view AssetSegment{ segmentAsset = AssetSlot{ assetSlot = Just s }, assetSegment = seg } = s{ slotSegment = seg }
@@ -123,23 +117,6 @@ getAssetSegmentRelease2 as =
         }
     AssetSegment{ segmentAsset = a } ->
       getAssetSlotRelease2 a
-{-  
-getAssetSegmentRelease :: AssetSegment -> Release
-getAssetSegmentRelease as =
-  fold -- use monoid with foldMap, mempty = Private
-    (case as of
-       AssetSegment{ segmentAsset = a, assetExcerpt = Just e } ->
-            excerptRelease e  -- Maybe Release monoid takes the first just, if both just, then max of values
-         <> getAssetSlotReleaseMaybe a
-       AssetSegment{ segmentAsset = a } -> getAssetSlotReleaseMaybe a)
--}
-{-
-instance Has (Maybe Release) AssetSegment where
-  view AssetSegment{ segmentAsset = a, assetExcerpt = Just e } = excerptRelease e <> view a
-  view AssetSegment{ segmentAsset = a } = view a
-instance Has Release AssetSegment where
-  view = (view :: Maybe Release -> Release) . (view :: AssetSegment -> Maybe Release)
--}
 
 data Excerpt = Excerpt
   { excerptAsset :: !AssetSegment
