@@ -4,9 +4,16 @@ module Databrary.Model.AssetSlot.Types
   , AssetSlot(..)
   , assetSlotId
   , assetNoSlot
+  , getAssetSlotVolume
+  , getAssetSlotVolumePermission
+  , getAssetSlotVolumePermission2
+  , getAssetSlotRelease
+  , getAssetSlotReleaseMaybe
+  , getAssetSlotRelease2
   ) where
 
 import Control.Applicative ((<|>))
+import Data.Foldable (fold)
 
 import Databrary.Has (Has(..))
 import Databrary.Model.Id.Types
@@ -49,10 +56,18 @@ instance Has (Id Format) AssetSlot where
   view = view . slotAsset
 instance Has Volume AssetSlot where
   view = view . slotAsset
+getAssetSlotVolume :: AssetSlot -> Volume
+getAssetSlotVolume = assetVolume . slotAsset
 instance Has (Id Volume) AssetSlot where
   view = view . slotAsset
+getAssetSlotVolumePermission :: AssetSlot -> Permission -- TODO: DELETE THIS
+getAssetSlotVolumePermission = volumePermission . getAssetSlotVolume
+getAssetSlotVolumePermission2 :: AssetSlot -> (Permission, VolumeAccessPolicy)
+getAssetSlotVolumePermission2 = volumePermissionPolicy . getAssetSlotVolume
+{-
 instance Has Permission AssetSlot where
   view = view . slotAsset
+-}
 
 instance Has (Maybe Slot) AssetSlot where
   view = assetSlot
@@ -65,6 +80,28 @@ instance Has (Maybe Segment) AssetSlot where
 instance Has Segment AssetSlot where
   view = maybe fullSegment slotSegment . assetSlot
 
+getAssetSlotRelease :: AssetSlot -> Release  -- TODO: Delete this and fix usages
+getAssetSlotRelease as =
+  fold (getAssetSlotReleaseMaybe as)
+getAssetSlotReleaseMaybe :: AssetSlot -> Maybe Release
+getAssetSlotReleaseMaybe as =
+    (case as of
+       AssetSlot a (Just s) ->
+         getAssetReleaseMaybe a <|> getSlotReleaseMaybe s
+       AssetSlot a Nothing ->
+         if volumeId (volumeRow $ assetVolume a) == Id 0
+         then getAssetReleaseMaybe a
+         else Nothing) -- "deleted" assets are always unreleased (private?), not view a
+
+getAssetSlotRelease2 :: AssetSlot -> EffectiveRelease  -- TODO: use this throughout?
+getAssetSlotRelease2 as =
+  let
+    pubRel = fold (getAssetSlotReleaseMaybe as)
+  in
+    EffectiveRelease { effRelPublic = pubRel, effRelPrivate = ReleasePRIVATE }
+    
+      
+{-
 instance Has (Maybe Release) AssetSlot where
   view (AssetSlot a (Just s)) = view a <|> view s
   view (AssetSlot a Nothing)
@@ -72,3 +109,4 @@ instance Has (Maybe Release) AssetSlot where
     | otherwise = Nothing -- "deleted" assets are always unreleased (private?), not view a
 instance Has Release AssetSlot where
   view = view . (view :: AssetSlot -> Maybe Release)
+-}

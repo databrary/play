@@ -8,7 +8,7 @@ module Databrary.Controller.AssetSegment
   , thumbAssetSegment
   ) where
 
-import Control.Monad ((<=<), join, when, mfilter)
+import Control.Monad ((<=<), join, when, mfilter, void)
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
@@ -34,6 +34,7 @@ import Databrary.Model.Format
 import Databrary.Model.Asset
 import Databrary.Model.AssetSlot
 import Databrary.Model.AssetSegment
+import Databrary.Model.Excerpt
 import Databrary.Store.Asset
 import Databrary.Store.AssetSegment
 import Databrary.Store.Filename
@@ -50,16 +51,31 @@ import Databrary.Controller.Asset
 import Databrary.Controller.Format
 
 -- Boolean flag to toggle the choice of downloading the original asset file. 
-getAssetSegment :: Bool -> Permission -> Maybe (Id Volume) -> Id Slot -> Id Asset -> ActionM AssetSegment
-getAssetSegment getOrig p mv s a = do
-  let lookupSeg = if getOrig then lookupOrigSlotAssetSegment else lookupSlotAssetSegment
-  mAssetSeg <- lookupSeg s a
+getAssetSegment :: Bool -> Permission -> Bool -> Maybe (Id Volume) -> Id Slot -> Id Asset -> ActionM AssetSegment
+getAssetSegment getOrig p checkDataPerm mv s a = do
+  mAssetSeg <- (if getOrig then lookupOrigSlotAssetSegment else lookupSlotAssetSegment) s a
   assetSeg <- maybeAction ((maybe id (\v -> mfilter $ (v ==) . view) mv) mAssetSeg)
+  {-
+  assetExcerpts <- lookupAssetExcerpts (segmentAsset assetSeg)
   _ <- when (p == PermissionPUBLIC)
          (maybeAction
-            (if volumeIsPublicRestricted ((assetVolume . slotAsset . segmentAsset) assetSeg) then Nothing else Just ()))
-  checkPermission p assetSeg
-  -- checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupOrigSlotAssetSegment s a
+            (if volumeIsPublicRestricted (getAssetSegmentVolume assetSeg) && not (excerptAccessible assetExcerpts)
+             then Nothing
+             else Just ())) -}
+  void (checkPermission2 (fst . getAssetSegmentVolumePermission2) p assetSeg)
+  when checkDataPerm $ do
+    liftIO $ -- TODO: delete
+      print ("checking data perm", "as", assetSeg)
+    liftIO $ -- TODO: delete
+      print ("checking data perm", "seg rlses", getAssetSegmentRelease2 assetSeg,
+             "vol prm", getAssetSegmentVolumePermission2 assetSeg) 
+    liftIO $ -- TODO: delete
+      print ("result perm", dataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
+    void (checkDataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
+  pure assetSeg
+  -- where
+    -- excerptAccessible :: [Excerpt] -> Bool
+    -- excerptAccessible exs = (not . null) exs -- is this good enough? how prevent access to unshared part of excerpt
 
 assetSegmentJSONField :: AssetSegment -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
 assetSegmentJSONField a "asset" _ = return $ Just $ JSON.recordEncoding $ assetSlotJSON False (segmentAsset a) 
@@ -78,7 +94,7 @@ assetSegmentDownloadName a =
 viewAssetSegment :: Bool -> ActionRoute (API, Maybe (Id Volume), Id Slot, Id Asset)
 viewAssetSegment getOrig = action GET (pathAPI </>>> pathMaybe pathId </>> pathSlotId </> pathId) $ \(api, vi, si, ai) -> withAuth $ do
   when (api == HTML && isJust vi) angular
-  as <- getAssetSegment getOrig PermissionPUBLIC vi si ai
+  as <- getAssetSegment getOrig PermissionPUBLIC True vi si ai
   case api of
     JSON -> okResponse [] <$> (assetSegmentJSONQuery as =<< peeks Wai.queryString)
     HTML
@@ -87,7 +103,7 @@ viewAssetSegment getOrig = action GET (pathAPI </>>> pathMaybe pathId </>> pathS
 
 serveAssetSegment :: Bool -> AssetSegment -> ActionM Response
 serveAssetSegment dl as = do
-  _ <- checkDataPermission as
+  -- _ <- checkDataPermission2 getAssetSegmentRelease getAssetSegmentVolumePermission as
   sz <- peeks $ readMaybe . BSC.unpack <=< join . listToMaybe . lookupQueryParameters "size"
   when dl $ auditAssetSegmentDownload True as
   store <- maybeAction =<< getAssetFile a
@@ -105,21 +121,23 @@ serveAssetSegment dl as = do
 
 downloadAssetSegment :: ActionRoute (Id Slot, Id Asset)
 downloadAssetSegment = action GET (pathSlotId </> pathId </< "download") $ \(si, ai) -> withAuth $ do
-  as <- getAssetSegment False PermissionPUBLIC Nothing si ai
+  as <- getAssetSegment False PermissionPUBLIC True Nothing si ai
   inline <- peeks $ boolQueryParameter "inline"
   serveAssetSegment (not inline) as
 
 downloadOrigAssetSegment :: ActionRoute (Id Slot, Id Asset)
 downloadOrigAssetSegment = action GET (pathSlotId </> pathId </< "downloadOrig") $ \(si, ai) -> withAuth $ do
-  as <- getAssetSegment True PermissionPUBLIC Nothing si ai
+  as <- getAssetSegment True PermissionPUBLIC True Nothing si ai
   inline <- peeks $ boolQueryParameter "inline"
   serveAssetSegment (not inline) as
 
 
 thumbAssetSegment :: Bool -> ActionRoute (Id Slot, Id Asset)
 thumbAssetSegment getOrig = action GET (pathSlotId </> pathId </< "thumb") $ \(si, ai) -> withAuth $ do
-  as <- getAssetSegment getOrig PermissionPUBLIC Nothing si ai
+  as <- getAssetSegment getOrig PermissionPUBLIC False Nothing si ai  -- why checkDataPerm == False?
   let as' = assetSegmentInterp 0.25 as
-  if formatIsImage (view as') && assetBacked (view as) && dataPermission as' > PermissionNONE
+  if formatIsImage (view as')
+    && assetBacked (view as)
+    && dataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as' > PermissionNONE
     then peeks $ otherRouteResponse [] downloadAssetSegment (slotId $ view as', assetId $ assetRow $ view as')
     else peeks $ otherRouteResponse [] formatIcon (view as)

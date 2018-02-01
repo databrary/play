@@ -150,7 +150,11 @@ findAssetContainerEnd c = fromMaybe 0 <$>
   dbQuery1' [pgSQL|SELECT max(upper(segment))+'1s' FROM slot_asset WHERE container = ${containerId $ containerRow c}|]
 
 assetSlotName :: AssetSlot -> Maybe T.Text
-assetSlotName a = guard (any (containerTop . containerRow . slotContainer) (assetSlot a) || dataPermission a > PermissionNONE) >> assetName (assetRow $ slotAsset a)
+assetSlotName a =
+  guard
+    (any (containerTop . containerRow . slotContainer) (assetSlot a)
+     || dataPermission2 getAssetSlotRelease getAssetSlotVolumePermission a > PermissionNONE)
+  >> assetName (assetRow $ slotAsset a)
 
 assetSlotJSON :: JSON.ToObject o => Bool -> AssetSlot -> JSON.Record (Id Asset) o
 assetSlotJSON publicRestricted as@AssetSlot{..} = assetJSON publicRestricted slotAsset JSON..<>
@@ -160,7 +164,7 @@ assetSlotJSON publicRestricted as@AssetSlot{..} = assetJSON publicRestricted slo
   <> "permission" JSON..= p
   <> "size" JSON..=? (z <? p > PermissionNONE && any (0 <=) z)
   where
-  p = dataPermission as
+  p = dataPermission2 getAssetSlotRelease getAssetSlotVolumePermission as
   z = assetSize $ assetRow slotAsset
 
 {-

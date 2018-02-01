@@ -2,6 +2,7 @@
 module Databrary.Model.Asset.Types
   ( AssetRow(..)
   , Asset(..)
+  , getAssetReleaseMaybe
   ) where
 
 import qualified Data.ByteString as BS
@@ -39,3 +40,5 @@ instance Kinded Asset where
 
 makeHasRec ''AssetRow ['assetId, 'assetFormat, 'assetRelease]
 makeHasRec ''Asset ['assetRow, 'assetVolume]
+getAssetReleaseMaybe :: Asset -> Maybe Release
+getAssetReleaseMaybe = assetRelease . assetRow

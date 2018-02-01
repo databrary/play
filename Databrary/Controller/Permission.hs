@@ -1,7 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Controller.Permission
   ( checkPermission
-  , checkDataPermission
+  , checkPermission2
+  -- , checkDataPermission
+  -- , checkDataPermission2
+  , checkDataPermission3
   , authAccount
   , checkMemberADMIN
   , checkVerfHeader
@@ -18,15 +21,38 @@ import Databrary.Model.Identity
 import Databrary.HTTP.Request
 import Databrary.Action
 
+-- logic inside of checkPermission and checkDataPermission should be inside of model layer
 checkPermission :: Has Permission a => Permission -> a -> ActionM a
-checkPermission p o = do
-  unless (view o >= p) $ result =<< peeks forbiddenResponse
-  return o
+checkPermission requiredPermissionLevel objectWithCurrentUserPermLevel =
+  checkPermission2 view requiredPermissionLevel objectWithCurrentUserPermLevel
 
+checkPermission2 :: (a -> Permission) -> Permission -> a -> ActionM a
+checkPermission2 getCurrentUserPermLevel requestingAccessAtPermLevel obj = do
+  unless (getCurrentUserPermLevel obj >= requestingAccessAtPermLevel) $ do
+    resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)
+    result resp
+  return obj
+
+{-
 checkDataPermission :: (Has Release a, Has Permission a) => a -> ActionM a
 checkDataPermission o = do
   unless (dataPermission o > PermissionNONE) $ result =<< peeks forbiddenResponse
   return o
+
+checkDataPermission2 :: (a -> Release) -> (a -> Permission) -> a -> ActionM a
+checkDataPermission2 getObjRelease getCurrentUserPermLevel obj = do
+  unless (dataPermission2 getObjRelease getCurrentUserPermLevel obj > PermissionNONE) $ do
+    resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)
+    result resp
+  return obj
+-}
+
+checkDataPermission3 :: (a -> EffectiveRelease) -> (a -> (Permission, VolumeAccessPolicy)) -> a -> ActionM a
+checkDataPermission3 getObjEffectiveRelease getCurrentUserPermLevel obj = do
+  unless (dataPermission3 getObjEffectiveRelease getCurrentUserPermLevel obj > PermissionNONE) $ do
+    resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)
+    result resp
+  return obj
 
 authAccount :: ActionM Account
 authAccount = do

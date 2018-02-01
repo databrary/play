@@ -87,7 +87,7 @@ assetSegmentJSON as@AssetSegment{..} =
      "segment" JSON..= assetSegment
   <> "format" JSON..=? (if view segmentAsset == fmt then empty else pure (formatId fmt))
   -- "release" JSON..=? (view as :: Maybe Release)
-  <> "permission" JSON..= dataPermission as
+  <> "permission" JSON..= dataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as
   <> "excerpt" JSON..=? (excerptRelease <$> assetExcerpt)
   where fmt = view as
 

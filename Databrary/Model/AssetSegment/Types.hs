@@ -1,5 +1,10 @@
 module Databrary.Model.AssetSegment.Types
   ( AssetSegment(..)
+--  , getAssetSegmentRelease
+  , getAssetSegmentRelease2
+--  , getAssetSegmentVolumePermission
+  , getAssetSegmentVolumePermission2
+  , getAssetSegmentVolume
   , newAssetSegment
   , assetFullSegment
   , assetSlotSegment
@@ -10,6 +15,7 @@ module Databrary.Model.AssetSegment.Types
   , excerptInSegment
   ) where
 
+import Data.Foldable (fold)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import qualified Database.PostgreSQL.Typed.Range as Range
@@ -64,12 +70,18 @@ instance Has Asset AssetSegment where
   view = view . segmentAsset
 instance Has (Id Asset) AssetSegment where
   view = view . segmentAsset
+getAssetSegmentVolume :: AssetSegment -> Volume
+getAssetSegmentVolume = getAssetSlotVolume . segmentAsset
 instance Has Volume AssetSegment where
   view = view . segmentAsset
 instance Has (Id Volume) AssetSegment where
   view = view . segmentAsset
-instance Has Permission AssetSegment where
-  view = view . segmentAsset
+-- getAssetSegmentVolumePermission :: AssetSegment -> Permission  -- TODO: DELETE THIS
+-- getAssetSegmentVolumePermission = getAssetSlotVolumePermission . segmentAsset
+getAssetSegmentVolumePermission2 :: AssetSegment -> (Permission, VolumeAccessPolicy)
+getAssetSegmentVolumePermission2 = getAssetSlotVolumePermission2 . segmentAsset
+-- instance Has Permission AssetSegment where
+--  view = view . segmentAsset
 
 instance Has Slot AssetSegment where
   view AssetSegment{ segmentAsset = AssetSlot{ assetSlot = Just s }, assetSegment = seg } = s{ slotSegment = seg }
@@ -91,12 +103,43 @@ instance Has Format AssetSegment where
 instance Has (Id Format) AssetSegment where
   view = formatId . view
 
+
+ 
+  -- when the assetslot has lower permissions than the excerpt, then use the excerpt's permissions
+  -- when no excerpt is present, then assume no access
+getAssetSegmentRelease2 :: AssetSegment -> EffectiveRelease
+getAssetSegmentRelease2 as =
+  case as of
+    AssetSegment{ segmentAsset = a, assetExcerpt = Just e } ->
+      let
+        rel = 
+           fold (
+                excerptRelease e  -- Maybe Release monoid takes the first just, if both just, then max of values
+             <> getAssetSlotReleaseMaybe a) -- TODO: should I expose the guts of getAssetSlotRelease2?
+      in 
+        EffectiveRelease {
+          effRelPublic = rel
+        , effRelPrivate = rel
+        }
+    AssetSegment{ segmentAsset = a } ->
+      getAssetSlotRelease2 a
+{-  
+getAssetSegmentRelease :: AssetSegment -> Release
+getAssetSegmentRelease as =
+  fold -- use monoid with foldMap, mempty = Private
+    (case as of
+       AssetSegment{ segmentAsset = a, assetExcerpt = Just e } ->
+            excerptRelease e  -- Maybe Release monoid takes the first just, if both just, then max of values
+         <> getAssetSlotReleaseMaybe a
+       AssetSegment{ segmentAsset = a } -> getAssetSlotReleaseMaybe a)
+-}
+{-
 instance Has (Maybe Release) AssetSegment where
   view AssetSegment{ segmentAsset = a, assetExcerpt = Just e } = excerptRelease e <> view a
   view AssetSegment{ segmentAsset = a } = view a
 instance Has Release AssetSegment where
-  view = view . (view :: AssetSegment -> Maybe Release)
-
+  view = (view :: Maybe Release -> Release) . (view :: AssetSegment -> Maybe Release)
+-}
 
 data Excerpt = Excerpt
   { excerptAsset :: !AssetSegment

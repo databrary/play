@@ -2,9 +2,12 @@
 module Databrary.Model.RecordSlot.Types
   ( RecordSlot(..)
   , recordSlotId
+  , getRecordSlotVolumePermission
+  , getRecordSlotRelease
   ) where
 
 import Control.Applicative ((<|>))
+import Data.Foldable (fold)
 
 import Databrary.Has (Has(..))
 import Databrary.Model.Id.Types
@@ -44,6 +47,8 @@ instance Has Volume RecordSlot where
   view = view . slotRecord
 instance Has (Id Volume) RecordSlot where
   view = view . slotRecord
+getRecordSlotVolumePermission :: RecordSlot -> Permission
+getRecordSlotVolumePermission = getRecordVolumePermission . slotRecord
 instance Has Permission RecordSlot where
   view = view . slotRecord
 
@@ -56,6 +61,9 @@ instance Has (Id Container) RecordSlot where
 instance Has Segment RecordSlot where
   view = view . recordSlot
 
+getRecordSlotRelease :: RecordSlot -> Release
+getRecordSlotRelease rs =
+  fold (view (recordSlot rs) <|> view (slotRecord rs) :: Maybe Release)
 instance Has (Maybe Release) RecordSlot where
   view rs = view (recordSlot rs) <|> view (slotRecord rs)
 instance Has Release RecordSlot where

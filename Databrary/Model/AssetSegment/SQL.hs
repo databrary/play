@@ -44,6 +44,7 @@ selectAssetContainerAssetSegment seg = selectJoin 'makeAssetSegment
   , crossJoin
     $ selector ("LATERAL (VALUES (slot_asset.segment * ${" ++ nameRef seg ++ "})) AS asset_segment (segment)")
       $ SelectColumn "asset_segment" "segment"
+  -- asset_segment.segment <@ excerpt.segment == the range of the segment is contained in the range of the excerpt
   , maybeJoinOn "slot_asset.asset = excerpt.asset AND asset_segment.segment <@ excerpt.segment"
     excerptRow
   ]

@@ -2,6 +2,7 @@
 module Databrary.Model.Record.Types
   ( RecordRow(..)
   , Record(..)
+  , getRecordVolumePermission
   , Measure(..)
   , Measures
   ) where
@@ -48,6 +49,8 @@ type Measures = [Measure]
 
 makeHasRec ''RecordRow ['recordId, 'recordCategory]
 makeHasRec ''Record ['recordRow, 'recordVolume, 'recordRelease]
+getRecordVolumePermission :: Record -> Permission
+getRecordVolumePermission = volumePermission . recordVolume
 
 instance Has Record Measure where
   view = measureRecord
