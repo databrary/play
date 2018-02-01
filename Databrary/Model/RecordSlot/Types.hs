@@ -49,8 +49,6 @@ instance Has (Id Volume) RecordSlot where
   view = view . slotRecord
 getRecordSlotVolumePermission :: RecordSlot -> (Permission, VolumeAccessPolicy)
 getRecordSlotVolumePermission = getRecordVolumePermission . slotRecord
--- instance Has Permission RecordSlot where
---   view = view . slotRecord
 
 instance Has Slot RecordSlot where
   view = recordSlot
