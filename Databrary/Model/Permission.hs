@@ -54,28 +54,50 @@ runDataPermission3 :: (Release, Release) -> (Permission, VolumeAccessPolicy) -> 
 runDataPermission3 (relPub, relPriv) (perm, policy) =
   dataPermission3 (const (EffectiveRelease {effRelPublic = relPub, effRelPrivate = relPriv})) (const (perm, policy)) ()
 
-partiallySharedAsPublic, fullySharedAsPublic, databrarySharedAsDatabraryMember :: (Permission, VolumeAccessPolicy)
-partiallySharedAsPublic = (PermissionPUBLIC, PublicRestricted)
+-- <volume shared level>AS<current user's access to that volume>
+fullySharedAsPublic, partiallySharedAsPublic, fullyOrPartiallyOrDatabrarySharedAsDatabraryMember :: (Permission, VolumeAccessPolicy)
+privateOrDatabrarySharedAsPublic, privateAsDatabraryMember :: (Permission, VolumeAccessPolicy)
+privateAsVolumeAffiliate, privateAsOwner :: (Permission, VolumeAccessPolicy)
 fullySharedAsPublic = (PermissionPUBLIC, PermLevelDefault)
-databrarySharedAsDatabraryMember = (PermissionSHARED, PermLevelDefault)
+partiallySharedAsPublic = (PermissionPUBLIC, PublicRestricted)
+fullyOrPartiallyOrDatabrarySharedAsDatabraryMember = (PermissionSHARED, PermLevelDefault)
+privateOrDatabrarySharedAsPublic = (PermissionNONE, PermLevelDefault)
+privateAsDatabraryMember = (PermissionNONE, PermLevelDefault)
+privateAsVolumeAffiliate = (PermissionEDIT, PermLevelDefault)
+privateAsOwner = (PermissionADMIN, PermLevelDefault)
 
-publiclyReleasedExcerpt, databrarySharedExcerpt :: (Release, Release)
+publiclyReleasedExcerpt :: (Release, Release)
 publiclyReleasedExcerpt = (ReleasePUBLIC, ReleasePUBLIC)
-databrarySharedExcerpt = (ReleaseSHARED, ReleasePRIVATE)
+
+publiclyReleasedAsset, databraryReleasedAssetOrExcerpt, excerptsReleasedAssetOrExcerpt, privatelyReleasedAssetOrExcerpt :: (Release, Release)
 publiclyReleasedAsset = (ReleasePUBLIC, ReleasePRIVATE)
-privatelyReleasedAsset = (ReleasePRIVATE, ReleasePRIVATE)
+excerptsReleasedAssetOrExcerpt = (ReleaseEXCERPTS, ReleasePRIVATE)  -- is it possible to set an excerpt to "excerpts' release level?
+databraryReleasedAssetOrExcerpt = (ReleaseSHARED, ReleasePRIVATE)  -- is this shared or private?
+privatelyReleasedAssetOrExcerpt = (ReleasePRIVATE, ReleasePRIVATE)
 
 testdataPermission3 =
-  [ (runDataPermission3 publiclyReleasedExcerpt partiallySharedAsPublic, PermissionPUBLIC)
-  , (runDataPermission3 publiclyReleasedExcerpt fullySharedAsPublic, PermissionPUBLIC)
-  , (runDataPermission3 publiclyReleasedAsset partiallySharedAsPublic, PermissionNONE)
+  [ (runDataPermission3 publiclyReleasedExcerpt fullySharedAsPublic, PermissionPUBLIC)
+  , (runDataPermission3 publiclyReleasedExcerpt partiallySharedAsPublic, PermissionPUBLIC)
+  , (runDataPermission3 publiclyReleasedExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)
+
   , (runDataPermission3 publiclyReleasedAsset fullySharedAsPublic, PermissionPUBLIC)
-  , (runDataPermission3 publiclyReleasedExcerpt databrarySharedAsDatabraryMember, PermissionSHARED)
-  , (runDataPermission3 databrarySharedExcerpt databrarySharedAsDatabraryMember, PermissionSHARED)
-  , (runDataPermission3 databrarySharedExcerpt databrarySharedAsDatabraryMember, PermissionSHARED)
-  , (runDataPermission3 privatelyReleasedAsset databrarySharedAsDatabraryMember, PermissionNONE)
-  , (runDataPermission3 privatelyReleasedAsset partiallySharedAsPublic, PermissionNONE)
-  , (runDataPermission3 privatelyReleasedAsset fullySharedAsPublic, PermissionNONE)
+  , (runDataPermission3 publiclyReleasedAsset partiallySharedAsPublic, PermissionNONE)
+  , (runDataPermission3 publiclyReleasedAsset fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)
+
+  , (runDataPermission3 databraryReleasedAssetOrExcerpt fullySharedAsPublic, PermissionNONE)
+  , (runDataPermission3 databraryReleasedAssetOrExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)
+
+  , (runDataPermission3 excerptsReleasedAssetOrExcerpt fullySharedAsPublic, PermissionNONE) -- because perm public < perm shared
+  , (runDataPermission3 excerptsReleasedAssetOrExcerpt partiallySharedAsPublic, PermissionNONE)
+  , (runDataPermission3 excerptsReleasedAssetOrExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)
+
+  , (runDataPermission3 privatelyReleasedAssetOrExcerpt fullySharedAsPublic, PermissionNONE)
+  , (runDataPermission3 privatelyReleasedAssetOrExcerpt partiallySharedAsPublic, PermissionNONE)
+  , (runDataPermission3 privatelyReleasedAssetOrExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionNONE)
+  , (runDataPermission3 privatelyReleasedAssetOrExcerpt privateOrDatabrarySharedAsPublic, PermissionNONE)
+  , (runDataPermission3 privatelyReleasedAssetOrExcerpt privateAsDatabraryMember, PermissionNONE)
+  , (runDataPermission3 privatelyReleasedAssetOrExcerpt privateAsVolumeAffiliate, PermissionEDIT)
+  , (runDataPermission3 privatelyReleasedAssetOrExcerpt privateAsOwner, PermissionADMIN)
   ]
 -- END future testing code
 
