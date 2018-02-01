@@ -97,7 +97,7 @@ recordSlotAge rs@RecordSlot{..} =
   clip <$> liftM2 age (decodeMeasure (PGTypeProxy :: PGTypeName "date") =<< getMeasure birthdateMetric (recordMeasures slotRecord)) (containerDate $ containerRow $ slotContainer recordSlot)
   where
   clip a
-    | dataPermission2 getRecordSlotRelease getRecordSlotVolumePermission rs == PermissionNONE = a `min` ageLimit
+    | dataPermission3 getRecordSlotRelease getRecordSlotVolumePermission rs == PermissionNONE = a `min` ageLimit
     | otherwise = a
 
 recordSlotJSON :: JSON.ToObject o => Bool -> RecordSlot -> JSON.Record (Id Record) o

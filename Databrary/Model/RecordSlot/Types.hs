@@ -47,10 +47,10 @@ instance Has Volume RecordSlot where
   view = view . slotRecord
 instance Has (Id Volume) RecordSlot where
   view = view . slotRecord
-getRecordSlotVolumePermission :: RecordSlot -> Permission
+getRecordSlotVolumePermission :: RecordSlot -> (Permission, VolumeAccessPolicy)
 getRecordSlotVolumePermission = getRecordVolumePermission . slotRecord
-instance Has Permission RecordSlot where
-  view = view . slotRecord
+-- instance Has Permission RecordSlot where
+--   view = view . slotRecord
 
 instance Has Slot RecordSlot where
   view = recordSlot
@@ -61,11 +61,9 @@ instance Has (Id Container) RecordSlot where
 instance Has Segment RecordSlot where
   view = view . recordSlot
 
-getRecordSlotRelease :: RecordSlot -> Release
+getRecordSlotRelease :: RecordSlot -> EffectiveRelease
 getRecordSlotRelease rs =
-  fold (view (recordSlot rs) <|> view (slotRecord rs) :: Maybe Release)
-instance Has (Maybe Release) RecordSlot where
-  view rs = view (recordSlot rs) <|> view (slotRecord rs)
-instance Has Release RecordSlot where
-  view = view . (view :: RecordSlot -> Maybe Release)
-
+  EffectiveRelease {
+      effRelPublic = fold (view (recordSlot rs) <|> view (slotRecord rs) :: Maybe Release)
+    , effRelPrivate = ReleasePRIVATE
+  }

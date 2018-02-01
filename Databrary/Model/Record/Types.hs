@@ -49,8 +49,8 @@ type Measures = [Measure]
 
 makeHasRec ''RecordRow ['recordId, 'recordCategory]
 makeHasRec ''Record ['recordRow, 'recordVolume, 'recordRelease]
-getRecordVolumePermission :: Record -> Permission
-getRecordVolumePermission = volumePermission . recordVolume
+getRecordVolumePermission :: Record -> (Permission, VolumeAccessPolicy)
+getRecordVolumePermission = volumePermissionPolicy . recordVolume
 
 instance Has Record Measure where
   view = measureRecord

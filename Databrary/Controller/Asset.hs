@@ -86,7 +86,7 @@ getAsset getOrig p checkDataPerm i = do
             (if volumeIsPublicRestricted (getAssetSlotVolume assetSlot) && not (excerptAccessible assetExcerpts)
              then Nothing
              else Just ())) -}
-  void (checkPermission2 getAssetSlotVolumePermission p assetSlot)
+  void (checkPermission2 (fst . getAssetSlotVolumePermission2) p assetSlot)
   when checkDataPerm $ do
     liftIO $ -- TODO: delete
       print ("checking data perm", "assetSlot", assetSlot)
@@ -335,7 +335,7 @@ downloadOrigAsset = action GET (pathId </> pathSegment </< "downloadOrig") $ \(a
 
 thumbAsset :: ActionRoute (Id Asset, Segment)
 thumbAsset = action GET (pathId </> pathSegment </< "thumb") $ \(ai, seg) -> withAuth $ do
-  a <- getAsset False PermissionPUBLIC True ai
+  a <- getAsset False PermissionPUBLIC False ai
   let as = assetSegmentInterp 0.25 $ newAssetSegment a seg Nothing
   if formatIsImage (view as)
     && assetBacked (view as)

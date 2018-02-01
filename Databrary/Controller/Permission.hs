@@ -22,7 +22,7 @@ import Databrary.HTTP.Request
 import Databrary.Action
 
 -- logic inside of checkPermission and checkDataPermission should be inside of model layer
-checkPermission :: Has Permission a => Permission -> a -> ActionM a
+checkPermission :: Has Permission a => Permission -> a -> ActionM a  -- TODO: delete this
 checkPermission requiredPermissionLevel objectWithCurrentUserPermLevel =
   checkPermission2 view requiredPermissionLevel objectWithCurrentUserPermLevel
 

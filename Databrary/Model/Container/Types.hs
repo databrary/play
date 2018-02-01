@@ -32,11 +32,15 @@ data Container = Container
   , containerVolume :: Volume
   }
 
-getContainerVolumePermission :: Container -> Permission
-getContainerVolumePermission = volumePermission . containerVolume
+getContainerVolumePermission :: Container -> (Permission, VolumeAccessPolicy)
+getContainerVolumePermission = volumePermissionPolicy . containerVolume
 
-getContainerRelease :: Container -> Release
-getContainerRelease = fold . containerRelease
+getContainerRelease :: Container -> EffectiveRelease
+getContainerRelease c =  
+  EffectiveRelease {
+      effRelPublic = (fold . containerRelease) c
+    , effRelPrivate = ReleasePRIVATE -- TODO: name hardcoded default level for Private release centrally
+    }
 
 instance Kinded Container where
   kindOf _ = "container"

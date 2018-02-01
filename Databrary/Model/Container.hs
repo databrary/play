@@ -93,7 +93,7 @@ removeContainer c = do
 
 getContainerDate :: Container -> Maybe MaskedDate
 getContainerDate c =
-  maskDateIf (dataPermission2 getContainerRelease getContainerVolumePermission c == PermissionNONE)
+  maskDateIf (dataPermission3 getContainerRelease getContainerVolumePermission c == PermissionNONE)
     <$> containerDate (containerRow c)
 
 formatContainerDate :: Container -> Maybe String

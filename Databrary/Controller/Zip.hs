@@ -224,7 +224,7 @@ zipEmpty _ = False
 
 checkAsset :: AssetSlot -> Bool
 checkAsset a = 
-  dataPermission2 getAssetSlotRelease getAssetSlotVolumePermission a > PermissionNONE && assetBacked (view a)
+  dataPermission3 getAssetSlotRelease2 getAssetSlotVolumePermission2 a > PermissionNONE && assetBacked (view a)
 
 containerZipEntryCorrectAssetSlots :: Bool -> Container -> ActionM ZipEntry
 containerZipEntryCorrectAssetSlots isOrig c = do
