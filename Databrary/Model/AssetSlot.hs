@@ -153,7 +153,7 @@ assetSlotName :: AssetSlot -> Maybe T.Text
 assetSlotName a =
   guard
     (any (containerTop . containerRow . slotContainer) (assetSlot a)
-     || dataPermission3 getAssetSlotRelease2 getAssetSlotVolumePermission2 a > PermissionNONE)
+     || canReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 a)
   >> assetName (assetRow $ slotAsset a)
 
 assetSlotJSON :: JSON.ToObject o => Bool -> AssetSlot -> JSON.Record (Id Asset) o

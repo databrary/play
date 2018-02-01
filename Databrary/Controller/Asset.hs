@@ -327,6 +327,6 @@ thumbAsset = action GET (pathId </> pathSegment </< "thumb") $ \(ai, seg) -> wit
   let as = assetSegmentInterp 0.25 $ newAssetSegment a seg Nothing
   if formatIsImage (view as)
     && assetBacked (view as)
-    && dataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as > PermissionNONE
+    && canReadData getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as
     then peeks $ otherRouteResponse [] downloadAsset (view as, assetSegment as)
     else peeks $ otherRouteResponse [] formatIcon (view as)

@@ -125,6 +125,6 @@ thumbAssetSegment getOrig = action GET (pathSlotId </> pathId </< "thumb") $ \(s
   let as' = assetSegmentInterp 0.25 as
   if formatIsImage (view as')
     && assetBacked (view as)
-    && dataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as' > PermissionNONE
+    && canReadData getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as'
     then peeks $ otherRouteResponse [] downloadAssetSegment (slotId $ view as', assetId $ assetRow $ view as')
     else peeks $ otherRouteResponse [] formatIcon (view as)
