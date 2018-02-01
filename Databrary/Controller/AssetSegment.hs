@@ -62,7 +62,7 @@ getAssetSegment getOrig p checkDataPerm mv s a = do
     liftIO $ print ("checking data perm", "seg rlses", getAssetSegmentRelease2 assetSeg,
                     "vol prm", getAssetSegmentVolumePermission2 assetSeg) 
     liftIO $ print ("result perm", dataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
-    void (checkDataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
+    void (userCanReadData getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
   pure assetSeg
 
 assetSegmentJSONField :: AssetSegment -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)

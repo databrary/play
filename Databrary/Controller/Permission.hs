@@ -2,7 +2,7 @@
 module Databrary.Controller.Permission
   ( checkPermission
   , checkPermission2
-  , checkDataPermission3
+  , userCanReadData
   , authAccount
   , checkMemberADMIN
   , checkVerfHeader
@@ -31,9 +31,9 @@ checkPermission2 getCurrentUserPermLevel requestingAccessAtPermLevel obj = do
     result resp
   return obj
 
-checkDataPermission3 :: (a -> EffectiveRelease) -> (a -> (Permission, VolumeAccessPolicy)) -> a -> ActionM a
-checkDataPermission3 getObjEffectiveRelease getCurrentUserPermLevel obj = do
-  unless (dataPermission3 getObjEffectiveRelease getCurrentUserPermLevel obj > PermissionNONE) $ do
+userCanReadData :: (a -> EffectiveRelease) -> (a -> (Permission, VolumeAccessPolicy)) -> a -> ActionM a
+userCanReadData getObjEffectiveRelease getCurrentUserPermLevel obj = do
+  unless (canReadData getObjEffectiveRelease getCurrentUserPermLevel obj) $ do
     resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)
     result resp
   return obj

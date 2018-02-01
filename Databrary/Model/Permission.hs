@@ -7,6 +7,7 @@ module Databrary.Model.Permission
   , readPermission
   , readRelease
   , dataPermission3
+  , canReadData
   , accessJSON
   -- testing only
   , testdataPermission3
@@ -111,6 +112,11 @@ dataPermission3 getObjEffectiveRelease getCurrentUserPermLevel obj =
       (p@PermissionPUBLIC, PublicRestricted) -> releasePermission (effRelPrivate effRelease) p
       -- other levels that behave more like private (options: none, shared, read, edit, admin) ? 
       (p, _) -> releasePermission (effRelPublic effRelease) p
+
+canReadData :: (a -> EffectiveRelease) -> (a -> (Permission, VolumeAccessPolicy)) -> a -> Bool
+canReadData getObjEffectiveRelease getCurrentUserPermLevel obj =
+  dataPermission3 getObjEffectiveRelease getCurrentUserPermLevel obj > PermissionNONE
+
 
 accessJSON :: JSON.ToObject o => Access -> o
 accessJSON Access{..} =

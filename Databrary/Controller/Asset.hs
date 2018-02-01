@@ -86,7 +86,7 @@ getAsset getOrig p checkDataPerm i = do
     liftIO $ print ("checking data perm", "seg rlses", getAssetSlotRelease2 assetSlot,
                     "vol prm", getAssetSlotVolumePermission2 assetSlot) 
     liftIO $ print ("result perm", dataPermission3 getAssetSlotRelease2 getAssetSlotVolumePermission2 assetSlot)
-    void (checkDataPermission3 getAssetSlotRelease2 getAssetSlotVolumePermission2 assetSlot)
+    void (userCanReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 assetSlot)
   pure assetSlot
 
 assetJSONField :: AssetSlot -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
