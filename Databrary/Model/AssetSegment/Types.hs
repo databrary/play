@@ -1,6 +1,6 @@
 module Databrary.Model.AssetSegment.Types
   ( AssetSegment(..)
-  , getAssetSegmentRelease
+--  , getAssetSegmentRelease
   , getAssetSegmentRelease2
 --  , getAssetSegmentVolumePermission
   , getAssetSegmentVolumePermission2
@@ -115,18 +115,15 @@ getAssetSegmentRelease2 as =
         rel = 
            fold (
                 excerptRelease e  -- Maybe Release monoid takes the first just, if both just, then max of values
-             <> getAssetSlotReleaseMaybe a)
+             <> getAssetSlotReleaseMaybe a) -- TODO: should I expose the guts of getAssetSlotRelease2?
       in 
         EffectiveRelease {
           effRelPublic = rel
         , effRelPrivate = rel
         }
     AssetSegment{ segmentAsset = a } ->
-      EffectiveRelease {
-        effRelPublic = fold (getAssetSlotReleaseMaybe a)
-      , effRelPrivate = ReleasePRIVATE -- (getAssetSlotReleaseMaybe a)
-      }
-  
+      getAssetSlotRelease2 a
+{-  
 getAssetSegmentRelease :: AssetSegment -> Release
 getAssetSegmentRelease as =
   fold -- use monoid with foldMap, mempty = Private
@@ -135,6 +132,7 @@ getAssetSegmentRelease as =
             excerptRelease e  -- Maybe Release monoid takes the first just, if both just, then max of values
          <> getAssetSlotReleaseMaybe a
        AssetSegment{ segmentAsset = a } -> getAssetSlotReleaseMaybe a)
+-}
 {-
 instance Has (Maybe Release) AssetSegment where
   view AssetSegment{ segmentAsset = a, assetExcerpt = Just e } = excerptRelease e <> view a

@@ -80,7 +80,7 @@ instance Has (Maybe Segment) AssetSlot where
 instance Has Segment AssetSlot where
   view = maybe fullSegment slotSegment . assetSlot
 
-getAssetSlotRelease :: AssetSlot -> Release
+getAssetSlotRelease :: AssetSlot -> Release  -- TODO: Delete this and fix usages
 getAssetSlotRelease as =
   fold (getAssetSlotReleaseMaybe as)
 getAssetSlotReleaseMaybe :: AssetSlot -> Maybe Release
@@ -96,15 +96,7 @@ getAssetSlotReleaseMaybe as =
 getAssetSlotRelease2 :: AssetSlot -> EffectiveRelease  -- TODO: use this throughout?
 getAssetSlotRelease2 as =
   let
-    pubRel = 
-      fold 
-        (case as of
-           AssetSlot a (Just s) ->
-             getAssetReleaseMaybe a <|> getSlotReleaseMaybe s
-           AssetSlot a Nothing ->
-             if volumeId (volumeRow $ assetVolume a) == Id 0
-             then getAssetReleaseMaybe a
-             else Nothing) -- "deleted" assets are always unreleased (private?), not view a
+    pubRel = fold (getAssetSlotReleaseMaybe as)
   in
     EffectiveRelease { effRelPublic = pubRel, effRelPrivate = ReleasePRIVATE }
     

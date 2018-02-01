@@ -13,6 +13,7 @@ import Databrary.Has
 import qualified Databrary.JSON as JSON
 import Databrary.Model.Id
 import Databrary.Model.Permission
+import Databrary.Model.Release (EffectiveRelease(..))
 import Databrary.Model.Slot
 import Databrary.Model.Asset
 import Databrary.Model.AssetSegment
@@ -47,7 +48,7 @@ postExcerpt = action POST pathExcerpt $ \(si, ai) -> withAuth $ do
         }
   when (isNothing $ assetExcerpt as) $
     notice NoticeExcerptVolume
-  when (any (getAssetSegmentRelease as <) $ excerptRelease e) $
+  when (any ((effRelPublic . getAssetSegmentRelease2) as <) $ excerptRelease e) $
     notice NoticeReleaseExcerpt
   return $ okResponse [] $ JSON.objectEncoding $ assetSegmentJSON (if r then as{ assetExcerpt = Just e } else as)
 
