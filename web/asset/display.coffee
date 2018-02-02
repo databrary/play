@@ -11,9 +11,6 @@ app.directive 'assetDisplay', [
       asset = $scope.assetFn()
       $scope.asset = if 'exact' of $attrs then asset else asset.inContext()
       $scope.readable = $scope.asset.checkPermission(constants.permission.VIEW)
-      if $scope.$parent.publicView == true
-        $scope.asset = $scope.asset.excerpts[0]
-        return
       if $scope.asset != asset
         $scope.clip = asset.segment.relativeTo($scope.asset.segment)
       return
