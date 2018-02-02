@@ -9,6 +9,8 @@ module Databrary.Model.AssetSlot.Types
   , getAssetSlotRelease
   , getAssetSlotReleaseMaybe
   , getAssetSlotRelease2
+  -- for testing only
+  , testgetAssetSlotRelease2
   ) where
 
 import Control.Applicative ((<|>))
@@ -24,6 +26,7 @@ import Databrary.Model.Container.Types
 import Databrary.Model.Format.Types
 import Databrary.Model.Asset.Types
 import Databrary.Model.Slot.Types
+import Databrary.Model.Asset (blankAsset)
 
 data AssetSlotId = AssetSlotId
   { slotAssetId :: !(Id Asset)
@@ -72,6 +75,46 @@ instance Has (Maybe Segment) AssetSlot where
   view = fmap view . assetSlot
 instance Has Segment AssetSlot where
   view = maybe fullSegment slotSegment . assetSlot
+
+-- TODO: move to unit test suite
+testmakeAssetSlot :: AssetSlot
+testmakeAssetSlot =
+  AssetSlot {
+      slotAsset = testmakeAsset
+    , assetSlot = Nothing -- Just testMakeSlot
+  }
+
+testmakeAsset :: Asset
+testmakeAsset =
+  blankAsset (testmakeVolume)
+
+testmakeVolume :: Volume
+testmakeVolume =
+  blankVolume {
+    volumeRow =
+      (volumeRow blankVolume) {
+          volumeId = Id 0
+        }
+    }
+
+-- test cases:
+-- no slot
+--    volume id > 0  (why ignore release when the asset is part of a volume?)
+--    volume id == 0 ? (mean general asset, not attached to a volume such as an avatar??)
+--       asset has no release
+--       asset has release with value ....
+-- has slot
+--    asset has no release
+--      slot's container has release
+--      slot's container has no release
+--    asset has release with value ...
+
+testgetAssetSlotRelease2 :: [(EffectiveRelease, EffectiveRelease)]
+testgetAssetSlotRelease2 =
+  [ (getAssetSlotRelease2 (testmakeAssetSlot), EffectiveRelease ReleasePRIVATE ReleasePRIVATE)
+  ]
+
+-- END TODO
 
 getAssetSlotRelease :: AssetSlot -> Release  -- TODO: Delete this and fix usages
 getAssetSlotRelease as =

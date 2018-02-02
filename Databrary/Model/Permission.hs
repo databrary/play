@@ -76,6 +76,7 @@ excerptsReleasedAssetOrExcerpt = (ReleaseEXCERPTS, ReleasePRIVATE)  -- is it pos
 databraryReleasedAssetOrExcerpt = (ReleaseSHARED, ReleasePRIVATE)  -- is this shared or private?
 privatelyReleasedAssetOrExcerpt = (ReleasePRIVATE, ReleasePRIVATE)
 
+testdataPermission3 :: [(Permission, Permission)]
 testdataPermission3 =
   [ (runDataPermission3 publiclyReleasedExcerpt fullySharedAsPublic, PermissionPUBLIC)
   , (runDataPermission3 publiclyReleasedExcerpt partiallySharedAsPublic, PermissionPUBLIC)
