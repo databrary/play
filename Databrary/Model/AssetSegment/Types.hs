@@ -128,7 +128,16 @@ testmakeVolume =
     }
 
 {- test cases: (focus on excerpt present or not test to begin with
-
+-- has excerpt
+--    excerpt rel, assetslot rel , pub vol res , priv vol res
+--       x              x            priv          priv
+--     pub              x            pub           pub
+--     share            x            share         priv
+--     priv             x            ....
+--       x            has val        ------ see asset slot tests ---
+--     pub            pub            pub           pub
+-- no excerpt
+--     see asset slot tests
 -}
 testgetAssetSegmentRelease2 :: [(EffectiveRelease, EffectiveRelease)]
 testgetAssetSegmentRelease2 =
