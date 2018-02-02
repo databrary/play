@@ -30,6 +30,7 @@ import Databrary.Model.Container.Types
 import Databrary.Model.Slot.Types
 import Databrary.Model.Format
 import Databrary.Model.Asset.Types
+import Databrary.Model.Asset (blankAsset)
 import Databrary.Model.AssetSlot.Types
 
 data AssetSegment = AssetSegment
@@ -97,6 +98,43 @@ instance Has Format AssetSegment where
 instance Has (Id Format) AssetSegment where
   view = formatId . view
 
+-- TODO: move to unit test suite
+testmakeAssetSegment :: AssetSegment
+testmakeAssetSegment =
+  AssetSegment {
+      segmentAsset = testmakeAssetSlot
+    , assetSegment = Segment (Range.Empty)
+    , assetExcerpt = Nothing
+  }
+  
+testmakeAssetSlot :: AssetSlot
+testmakeAssetSlot =
+  AssetSlot {
+      slotAsset = testmakeAsset
+    , assetSlot = Nothing -- Just testMakeSlot
+  }
+
+testmakeAsset :: Asset
+testmakeAsset =
+  blankAsset (testmakeVolume)
+
+testmakeVolume :: Volume
+testmakeVolume =
+  blankVolume {
+    volumeRow =
+      (volumeRow blankVolume) {
+          volumeId = Id 0
+        }
+    }
+
+{- test cases: (focus on excerpt present or not test to begin with
+
+-}
+testgetAssetSegmentRelease2 :: [(EffectiveRelease, EffectiveRelease)]
+testgetAssetSegmentRelease2 =
+  [ (getAssetSegmentRelease2 (testmakeAssetSegment), EffectiveRelease ReleasePRIVATE ReleasePRIVATE)
+  ]
+-- END TODO
 
  
   -- when the assetslot has lower permissions than the excerpt, then use the excerpt's permissions
