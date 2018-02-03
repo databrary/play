@@ -30,7 +30,6 @@ import Databrary.Model.Container.Types
 import Databrary.Model.Slot.Types
 import Databrary.Model.Format
 import Databrary.Model.Asset.Types
-import Databrary.Model.Asset (blankAsset)
 import Databrary.Model.AssetSlot.Types
 
 data AssetSegment = AssetSegment
@@ -115,8 +114,18 @@ testmakeAssetSlot =
   }
 
 testmakeAsset :: Asset
-testmakeAsset =
-  blankAsset (testmakeVolume)
+testmakeAsset = Asset
+  { assetRow = AssetRow
+    { assetId = error "blankAsset"
+    , assetFormat = unknownFormat
+    , assetRelease = Nothing
+    , assetName = Nothing
+    , assetDuration = Nothing
+    , assetSHA1 = Nothing
+    , assetSize = Nothing
+    }
+  , assetVolume = testmakeVolume
+  }
 
 testmakeVolume :: Volume
 testmakeVolume =
