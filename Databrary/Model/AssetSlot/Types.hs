@@ -77,29 +77,32 @@ instance Has Segment AssetSlot where
   view = maybe fullSegment slotSegment . assetSlot
 
 -- TODO: move to unit test suite
-testmakeAssetSlot :: AssetSlot
-testmakeAssetSlot =
-  AssetSlot {
-      slotAsset = testmakeAsset
-    , assetSlot = Nothing -- Just testMakeSlot
-  }
+testmakeAssetSlot :: Asset -> Maybe Slot -> AssetSlot
+testmakeAssetSlot a ms = AssetSlot { slotAsset = a , assetSlot = ms }
 
-testmakeAsset :: Asset
-testmakeAsset = Asset
-  blankAsset (testmakeVolume)
+testmakeAsset :: Volume -> Asset
+testmakeAsset vol =
+  blankAsset vol
 
-testmakeVolume :: Volume
-testmakeVolume =
+testmakeVolume :: Id Volume -> Volume
+testmakeVolume vid =
   blankVolume {
     volumeRow =
       (volumeRow blankVolume) {
-          volumeId = coreVolumeId
+          volumeId = vid
         }
     }
+
+realVolume, databrarySystem :: Volume
+realVolume = testmakeVolume (Id 100)
+databrarySystem = testmakeVolume coreVolumeId
 
 -- test cases:
 -- no slot  -- not part of a session (any longer)
 --    volume id > 0  (if asset is tied to a volume, then it was deleted, so its release is always private)
+containerDeletedPointerToFormerVolume :: AssetSlot
+containerDeletedPointerToFormerVolume =
+  testmakeAssetSlot (testmakeAsset realVolume) Nothing
 --    volume id == 0 ? (mean general asset, not attached to a real volume such as an avatar??)
 --       asset has no release
 --       asset has release with value ....
@@ -111,7 +114,7 @@ testmakeVolume =
 
 testgetAssetSlotRelease2 :: [(EffectiveRelease, EffectiveRelease)]
 testgetAssetSlotRelease2 =
-  [ (getAssetSlotRelease2 (testmakeAssetSlot), EffectiveRelease ReleasePRIVATE ReleasePRIVATE)
+  [ (getAssetSlotRelease2 containerDeletedPointerToFormerVolume, EffectiveRelease ReleasePRIVATE ReleasePRIVATE)
   ]
 
 -- END TODO
