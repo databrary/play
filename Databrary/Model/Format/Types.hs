@@ -1,6 +1,7 @@
 {-# LANGUAGE TemplateHaskell, OverloadedStrings, TypeFamilies #-}
 module Databrary.Model.Format.Types
   ( Format(..)
+  , unknownFormat
   ) where
 
 import qualified Data.ByteString as BS
@@ -37,3 +38,12 @@ instance Ord Format where
 
 makeHasRec ''Format ['formatId]
 deriveLift ''Format
+
+unknownFormat :: Format
+unknownFormat = Format
+  { formatId = error "unknownFormat"
+  , formatMimeType = "application/octet-stream"
+  , formatExtension = []
+  , formatName = "Unknown"
+  }
+
