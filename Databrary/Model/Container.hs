@@ -92,7 +92,9 @@ removeContainer c = do
     else isRight <$> dbTryJust (guard . isForeignKeyViolation) (dbExecute1 $(deleteContainer 'ident 'c))
 
 getContainerDate :: Container -> Maybe MaskedDate
-getContainerDate c = maskDateIf (dataPermission c == PermissionNONE) <$> containerDate (containerRow c)
+getContainerDate c =
+  maskDateIf (not (canReadData getContainerRelease getContainerVolumePermission c))
+    <$> containerDate (containerRow c)
 
 formatContainerDate :: Container -> Maybe String
 formatContainerDate c = formatTime defaultTimeLocale "%Y-%m-%d" <$> getContainerDate c

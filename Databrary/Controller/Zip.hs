@@ -223,7 +223,8 @@ zipEmpty ZipEntry{ zipEntryContent = ZipDirectory l } = all zipEmpty l
 zipEmpty _ = False
 
 checkAsset :: AssetSlot -> Bool
-checkAsset a = dataPermission a > PermissionNONE && assetBacked (view a)
+checkAsset a = 
+  canReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 a && assetBacked (view a)
 
 containerZipEntryCorrectAssetSlots :: Bool -> Container -> ActionM ZipEntry
 containerZipEntryCorrectAssetSlots isOrig c = do

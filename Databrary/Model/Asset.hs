@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings, RecordWildCards, TemplateHaskell, QuasiQuotes, DataKinds #-}
 module Databrary.Model.Asset
   ( module Databrary.Model.Asset.Types
-  , blankAsset
+  -- , blankAsset
   , assetBacked
   , lookupAsset
   , lookupOrigAsset
@@ -37,20 +37,6 @@ import Databrary.Model.Volume
 import Databrary.Model.Format
 import Databrary.Model.Asset.Types
 import Databrary.Model.Asset.SQL
-
-blankAsset :: Volume -> Asset
-blankAsset vol = Asset
-  { assetRow = AssetRow
-    { assetId = error "blankAsset"
-    , assetFormat = unknownFormat
-    , assetRelease = Nothing
-    , assetName = Nothing
-    , assetDuration = Nothing
-    , assetSHA1 = Nothing
-    , assetSize = Nothing
-    }
-  , assetVolume = vol
-  }
 
 assetBacked :: Asset -> Bool
 assetBacked = isJust . assetSHA1 . assetRow

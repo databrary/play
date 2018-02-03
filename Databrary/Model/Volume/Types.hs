@@ -5,8 +5,8 @@ module Databrary.Model.Volume.Types
   , VolumeOwner
   , blankVolume
   , volumePermissionPolicy
-  , VolumeAccessPolicy(..)
   , volumeAccessPolicyWithDefault
+  , coreVolumeId
   ) where
 
 import qualified Data.ByteString as BS
@@ -34,9 +34,6 @@ data VolumeRow = VolumeRow
   deriving (Show)
 
 type VolumeOwner = (Id Party, T.Text)
-
-data VolumeAccessPolicy = PublicRestricted | PermLevelDefault
-  deriving (Show, Eq)
 
 data Volume = Volume
   { volumeRow :: !VolumeRow
@@ -83,3 +80,6 @@ blankVolume = Volume
   , volumePermission = PermissionNONE
   , volumeAccessPolicy = PermLevelDefault
   }
+
+coreVolumeId :: Id Volume
+coreVolumeId = Id 0

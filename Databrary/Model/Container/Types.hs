@@ -2,16 +2,20 @@
 module Databrary.Model.Container.Types
   ( ContainerRow(..)
   , Container(..)
+  , getContainerVolumePermission
+  , getContainerRelease
   ) where
 
+import Data.Foldable (fold)
 import qualified Data.Text as T
 
-import Databrary.Has (makeHasRec)
+import Databrary.Has (makeHasRec, view)
 import Databrary.Model.Time
 import Databrary.Model.Kind
 import Databrary.Model.Release.Types
 import Databrary.Model.Id.Types
 import Databrary.Model.Volume.Types
+import Databrary.Model.Permission.Types
 
 type instance IdType Container = Int32
 
@@ -27,6 +31,16 @@ data Container = Container
   , containerRelease :: Maybe Release
   , containerVolume :: Volume
   }
+
+getContainerVolumePermission :: Container -> (Permission, VolumeAccessPolicy)
+getContainerVolumePermission = volumePermissionPolicy . containerVolume
+
+getContainerRelease :: Container -> EffectiveRelease
+getContainerRelease c =  
+  EffectiveRelease {
+      effRelPublic = (fold . containerRelease) c
+    , effRelPrivate = ReleasePRIVATE -- TODO: name hardcoded default level for Private release centrally
+    }
 
 instance Kinded Container where
   kindOf _ = "container"

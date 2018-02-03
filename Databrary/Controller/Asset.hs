@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Controller.Asset
   ( getAsset
-  , getOrigAsset
+  -- , getOrigAsset
   , assetJSONField
   , viewAsset
   , AssetTarget(..)
@@ -75,26 +75,24 @@ import Databrary.View.Asset
 
 import Control.Monad.IO.Class
 
-getAsset :: Permission -> Id Asset -> ActionM AssetSlot
-getAsset p i = do
-  mAssetSlot <- lookupAssetSlot i
+getAsset :: Bool -> Permission -> Bool -> Id Asset -> ActionM AssetSlot
+getAsset getOrig p checkDataPerm i = do
+  mAssetSlot <- (if getOrig then lookupOrigAssetSlot else lookupAssetSlot) i
   assetSlot <- maybeAction mAssetSlot
-  _ <- when (p == PermissionPUBLIC)
-         (maybeAction
-            (if volumeIsPublicRestricted ((assetVolume . slotAsset) assetSlot)
-             then Nothing
-             else Just ()))
-  checkPermission p assetSlot
-
-getOrigAsset :: Permission -> Id Asset -> ActionM AssetSlot
-getOrigAsset p i =
-  -- TODO: same as getAsset check
-  checkPermission p =<< maybeAction =<< lookupOrigAssetSlot i
+  void (checkPermission2 (fst . getAssetSlotVolumePermission2) p assetSlot)
+  when checkDataPerm $ do
+    -- TODO: delete
+    liftIO $ print ("checking data perm", "assetSlot", assetSlot)
+    liftIO $ print ("checking data perm", "seg rlses", getAssetSlotRelease2 assetSlot,
+                    "vol prm", getAssetSlotVolumePermission2 assetSlot) 
+    liftIO $ print ("result perm", dataPermission3 getAssetSlotRelease2 getAssetSlotVolumePermission2 assetSlot)
+    void (userCanReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 assetSlot)
+  pure assetSlot
 
 assetJSONField :: AssetSlot -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
 assetJSONField a "container" _ =
   return $ JSON.recordEncoding . containerJSON False . slotContainer <$> assetSlot a -- containerJSON should consult volume
-assetJSONField a "creation" _ | view a >= PermissionEDIT = do
+assetJSONField a "creation" _ | ((fst . getAssetSlotVolumePermission2) a) >= PermissionEDIT = do
   (t, n) <- assetCreation $ slotAsset a
   return $ Just $ JSON.objectEncoding $
        "date" JSON..=? t
@@ -123,7 +121,7 @@ assetDownloadName addPrefix trimFormat a =
 
 viewAsset :: ActionRoute (API, Id Asset)
 viewAsset = action GET (pathAPI </> pathId) $ \(api, i) -> withAuth $ do
-  asset <- getAsset PermissionPUBLIC i
+  asset <- getAsset False PermissionPUBLIC True i
   case api of
     JSON -> okResponse [] <$> (assetJSONQuery asset =<< peeks Wai.queryString)
     HTML
@@ -268,7 +266,7 @@ processAsset api target = do
 
 postAsset :: ActionRoute (API, Id Asset)
 postAsset = multipartAction $ action POST (pathAPI </> pathId) $ \(api, ai) -> withAuth $ do
-  asset <- getAsset PermissionEDIT ai
+  asset <- getAsset False PermissionEDIT False ai
   r <- assetIsReplaced (slotAsset asset)
   when r $ result $
     response conflict409 [] ("This file has already been replaced." :: T.Text)
@@ -276,7 +274,7 @@ postAsset = multipartAction $ action POST (pathAPI </> pathId) $ \(api, ai) -> w
 
 viewAssetEdit :: ActionRoute (Id Asset)
 viewAssetEdit = action GET (pathHTML >/> pathId </< "edit") $ \ai -> withAuth $ do
-  asset <- getAsset PermissionEDIT ai
+  asset <- getAsset False PermissionEDIT False ai
   peeks $ blankForm . htmlAssetEdit (AssetTargetAsset asset)
 
 createAsset :: ActionRoute (API, Id Volume)
@@ -304,7 +302,7 @@ viewSlotAssetCreate = action GET (pathHTML >/> pathSlotId </< "asset") $ \si -> 
 deleteAsset :: ActionRoute (API, Id Asset)
 deleteAsset = action DELETE (pathAPI </> pathId) $ \(api, ai) -> withAuth $ do
   guardVerfHeader
-  asset <- getAsset PermissionEDIT ai
+  asset <- getAsset False PermissionEDIT False ai
   let asset' = asset{ assetSlot = Nothing }
   _ <- changeAssetSlot asset'
   case api of
@@ -313,20 +311,22 @@ deleteAsset = action DELETE (pathAPI </> pathId) $ \(api, ai) -> withAuth $ do
 
 downloadAsset :: ActionRoute (Id Asset, Segment)
 downloadAsset = action GET (pathId </> pathSegment </< "download") $ \(ai, seg) -> withAuth $ do
-  a <- getAsset PermissionPUBLIC ai
+  a <- getAsset False PermissionPUBLIC True ai
   inline <- peeks $ lookupQueryParameters "inline"
   serveAssetSegment (null inline) $ newAssetSegment a seg Nothing
 
 downloadOrigAsset :: ActionRoute (Id Asset, Segment)
 downloadOrigAsset = action GET (pathId </> pathSegment </< "downloadOrig") $ \(ai, seg) -> withAuth $ do
-  a <- getOrigAsset PermissionPUBLIC ai
+  a <- getAsset True PermissionPUBLIC True ai
   inline <- peeks $ lookupQueryParameters "inline"
   serveAssetSegment (null inline) $ newAssetSegment a seg Nothing
 
 thumbAsset :: ActionRoute (Id Asset, Segment)
 thumbAsset = action GET (pathId </> pathSegment </< "thumb") $ \(ai, seg) -> withAuth $ do
-  a <- getAsset PermissionPUBLIC ai
+  a <- getAsset False PermissionPUBLIC False ai
   let as = assetSegmentInterp 0.25 $ newAssetSegment a seg Nothing
-  if formatIsImage (view as) && assetBacked (view as) && dataPermission as > PermissionNONE
+  if formatIsImage (view as)
+    && assetBacked (view as)
+    && canReadData getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as
     then peeks $ otherRouteResponse [] downloadAsset (view as, assetSegment as)
     else peeks $ otherRouteResponse [] formatIcon (view as)

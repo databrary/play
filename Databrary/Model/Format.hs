@@ -4,7 +4,7 @@ module Databrary.Model.Format
   , mimeTypeTop
   , mimeTypeSub
   , mimeTypeTopCompare
-  , unknownFormat
+  -- , unknownFormat
   , allFormats
   , getFormat
   , getFormat'
@@ -55,14 +55,6 @@ mimeTypeTopCompare a b = mttc (BSC.unpack a) (BSC.unpack b) where
   mttc _       ('/':_) = GT
   mttc _       []      = GT
   mttc (ac:as) (bc:bs) = compare ac bc <> mttc as bs
-
-unknownFormat :: Format
-unknownFormat = Format
-  { formatId = error "unknownFormat"
-  , formatMimeType = "application/octet-stream"
-  , formatExtension = []
-  , formatName = "Unknown"
-  }
 
 allFormats :: [Format]
 allFormats = $(loadFormats)

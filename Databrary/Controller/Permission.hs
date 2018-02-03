@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Controller.Permission
   ( checkPermission
-  , checkDataPermission
+  , checkPermission2
+  , userCanReadData
   , authAccount
   , checkMemberADMIN
   , checkVerfHeader
@@ -18,15 +19,24 @@ import Databrary.Model.Identity
 import Databrary.HTTP.Request
 import Databrary.Action
 
-checkPermission :: Has Permission a => Permission -> a -> ActionM a
-checkPermission p o = do
-  unless (view o >= p) $ result =<< peeks forbiddenResponse
-  return o
+-- logic inside of checkPermission and checkDataPermission should be inside of model layer
+checkPermission :: Has Permission a => Permission -> a -> ActionM a  -- TODO: delete this
+checkPermission requiredPermissionLevel objectWithCurrentUserPermLevel =
+  checkPermission2 view requiredPermissionLevel objectWithCurrentUserPermLevel
 
-checkDataPermission :: (Has Release a, Has Permission a) => a -> ActionM a
-checkDataPermission o = do
-  unless (dataPermission o > PermissionNONE) $ result =<< peeks forbiddenResponse
-  return o
+checkPermission2 :: (a -> Permission) -> Permission -> a -> ActionM a
+checkPermission2 getCurrentUserPermLevel requestingAccessAtPermLevel obj = do
+  unless (getCurrentUserPermLevel obj >= requestingAccessAtPermLevel) $ do
+    resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)
+    result resp
+  return obj
+
+userCanReadData :: (a -> EffectiveRelease) -> (a -> (Permission, VolumeAccessPolicy)) -> a -> ActionM a
+userCanReadData getObjEffectiveRelease getCurrentUserPermLevel obj = do
+  unless (canReadData getObjEffectiveRelease getCurrentUserPermLevel obj) $ do
+    resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)
+    result resp
+  return obj
 
 authAccount :: ActionM Account
 authAccount = do

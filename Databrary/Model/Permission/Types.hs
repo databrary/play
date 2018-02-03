@@ -4,6 +4,7 @@ module Databrary.Model.Permission.Types
   ( Permission(..)
   , Access(..), accessPermission'
   , accessSite, accessMember, accessPermission
+  , VolumeAccessPolicy(..)
   ) where
 
 import Language.Haskell.TH.Lift (deriveLiftMany)
@@ -39,3 +40,6 @@ instance Monoid Access where
   mappend (Access s1 m1) (Access s2 m2) = Access (mappend s1 s2) (mappend m1 m2)
 
 deriveLiftMany [''Permission, ''Access]
+
+data VolumeAccessPolicy = PublicRestricted | PermLevelDefault
+  deriving (Show, Eq)

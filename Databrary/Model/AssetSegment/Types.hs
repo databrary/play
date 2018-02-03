@@ -1,5 +1,8 @@
 module Databrary.Model.AssetSegment.Types
   ( AssetSegment(..)
+  , getAssetSegmentRelease2
+  , getAssetSegmentVolumePermission2
+  , getAssetSegmentVolume
   , newAssetSegment
   , assetFullSegment
   , assetSlotSegment
@@ -8,8 +11,11 @@ module Databrary.Model.AssetSegment.Types
   , Excerpt(..)
   , newExcerpt
   , excerptInSegment
+  -- for testing only
+  , testgetAssetSegmentRelease2
   ) where
 
+import Data.Foldable (fold)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import qualified Database.PostgreSQL.Typed.Range as Range
@@ -64,12 +70,14 @@ instance Has Asset AssetSegment where
   view = view . segmentAsset
 instance Has (Id Asset) AssetSegment where
   view = view . segmentAsset
+getAssetSegmentVolume :: AssetSegment -> Volume
+getAssetSegmentVolume = getAssetSlotVolume . segmentAsset
 instance Has Volume AssetSegment where
   view = view . segmentAsset
 instance Has (Id Volume) AssetSegment where
   view = view . segmentAsset
-instance Has Permission AssetSegment where
-  view = view . segmentAsset
+getAssetSegmentVolumePermission2 :: AssetSegment -> (Permission, VolumeAccessPolicy)
+getAssetSegmentVolumePermission2 = getAssetSlotVolumePermission2 . segmentAsset
 
 instance Has Slot AssetSegment where
   view AssetSegment{ segmentAsset = AssetSlot{ assetSlot = Just s }, assetSegment = seg } = s{ slotSegment = seg }
@@ -91,12 +99,115 @@ instance Has Format AssetSegment where
 instance Has (Id Format) AssetSegment where
   view = formatId . view
 
-instance Has (Maybe Release) AssetSegment where
-  view AssetSegment{ segmentAsset = a, assetExcerpt = Just e } = excerptRelease e <> view a
-  view AssetSegment{ segmentAsset = a } = view a
-instance Has Release AssetSegment where
-  view = view . (view :: AssetSegment -> Maybe Release)
+-- TODO: move to unit test suite
+testmakeAssetSegment :: AssetSlot -> Bool -> Maybe Release -> AssetSegment
+testmakeAssetSegment as hasExcerpt mRel =
+  AssetSegment {
+      segmentAsset = as
+    , assetSegment = fullSegment
+    , assetExcerpt = if hasExcerpt then Just (newExcerpt as fullSegment mRel) else Nothing
+  }
+  
+testmakeAssetSlot :: Id Volume -> Maybe Release -> Maybe Slot -> AssetSlot
+testmakeAssetSlot vid mRel ms =
+  let
+    asset = blankAsset (testmakeVolume vid)
+    asset2 = asset { assetRow = (assetRow asset) { assetRelease = mRel } }
+  in
+    AssetSlot { slotAsset = asset2 , assetSlot = ms }
 
+testmakeSlot :: Slot
+testmakeSlot =
+  Slot {
+      slotContainer =
+        Container {
+            containerRow =
+              ContainerRow { containerId = Id 200, containerTop = False, containerName = Nothing, containerDate = Nothing }
+          , containerRelease = Nothing
+          , containerVolume = realVolume
+          }
+    , slotSegment = fullSegment
+    }
+
+testmakeVolume :: Id Volume -> Volume
+testmakeVolume vid =
+  blankVolume {
+    volumeRow =
+      (volumeRow blankVolume) { volumeId = vid }
+    }
+
+realVolume, databrarySystem :: Volume
+realVolume = testmakeVolume realVolumeId
+databrarySystem = testmakeVolume coreVolumeId
+realVolumeId :: Id Volume
+realVolumeId = Id 100
+
+containerAssetSlot :: Maybe Release -> AssetSlot
+containerAssetSlot mRel =
+  testmakeAssetSlot realVolumeId mRel (Just testmakeSlot)
+
+noExcerptContainerAssetNoRelease :: AssetSegment
+excerptNoReleaseContainerAssetNoRelease :: AssetSegment
+noExcerptContainerAssetNoRelease = testmakeAssetSegment (containerAssetSlot Nothing) False Nothing
+excerptNoReleaseContainerAssetNoRelease = testmakeAssetSegment (containerAssetSlot Nothing) True Nothing
+excerptNoReleaseContainerAssetHasRelease = testmakeAssetSegment (containerAssetSlot (Just ReleasePUBLIC)) True Nothing
+excerptPublicReleaseContainerAssetNoRelease = testmakeAssetSegment (containerAssetSlot Nothing) True (Just ReleasePUBLIC)
+excerptSharedReleaseContainerAssetNoRelease = testmakeAssetSegment (containerAssetSlot Nothing) True (Just ReleaseSHARED)
+excerptPrivateReleaseContainerAssetNoRelease = testmakeAssetSegment (containerAssetSlot Nothing) True (Just ReleasePRIVATE)
+
+assetReleaseForPartialAndFullShared, privateReleaseIgnoreSharing :: EffectiveRelease
+excerptReleaseForPartialAndFullShared :: EffectiveRelease
+excerptReleaseForFullySharedOnly :: EffectiveRelease
+assetReleaseForPartialAndFullShared = EffectiveRelease ReleasePUBLIC ReleasePUBLIC
+privateReleaseIgnoreSharing = EffectiveRelease ReleasePRIVATE ReleasePRIVATE
+excerptReleaseForPartialAndFullShared = EffectiveRelease ReleasePUBLIC ReleasePUBLIC
+excerptReleaseForPartialAndFullShared' = EffectiveRelease ReleaseSHARED ReleaseSHARED
+excerptReleaseForPartialAndFullShared'' = EffectiveRelease ReleasePRIVATE ReleasePRIVATE
+excerptReleaseForFullySharedOnly = EffectiveRelease ReleaseSHARED ReleasePRIVATE
+
+{- test cases: (focus on excerpt present or not test to begin with
+-- has excerpt
+--    excerpt rel, assetslot rel , pub vol res , priv vol res
+--       x              x            priv          priv         -- DONE
+--       x            has val (pub)  pub           pub     ------ see asset slot tests --- -- DONE
+--     pub              x            pub           pub  -- DONE
+--     share            x            share         priv??  -- DONE
+--     priv             x            priv          priv  -- DONE
+--     pub            pub            pub           pub 
+--     TODO: what other cases matter?
+-- no excerpt
+--     see asset slot tests -- DONE
+-}
+
+testgetAssetSegmentRelease2 :: [(EffectiveRelease, EffectiveRelease)]
+testgetAssetSegmentRelease2 =
+  [ (getAssetSegmentRelease2 noExcerptContainerAssetNoRelease, privateReleaseIgnoreSharing)
+  , (getAssetSegmentRelease2 excerptNoReleaseContainerAssetNoRelease, privateReleaseIgnoreSharing)
+  , (getAssetSegmentRelease2 excerptNoReleaseContainerAssetHasRelease, assetReleaseForPartialAndFullShared) -- wrong?
+  , (getAssetSegmentRelease2 excerptPublicReleaseContainerAssetNoRelease, excerptReleaseForPartialAndFullShared)
+  , (getAssetSegmentRelease2 excerptSharedReleaseContainerAssetNoRelease, excerptReleaseForPartialAndFullShared') -- wrong?
+  , (getAssetSegmentRelease2 excerptPrivateReleaseContainerAssetNoRelease, excerptReleaseForPartialAndFullShared'')
+  ]
+-- END TODO
+ 
+  -- when the assetslot has lower permissions than the excerpt, then use the excerpt's permissions
+  -- when no excerpt is present, then assume no access
+getAssetSegmentRelease2 :: AssetSegment -> EffectiveRelease
+getAssetSegmentRelease2 as =
+  case as of
+    AssetSegment{ segmentAsset = a, assetExcerpt = Just e } ->
+      let
+        rel = 
+           fold (
+                excerptRelease e  -- Maybe Release monoid takes the first just, if both just, then max of values
+             <> getAssetSlotReleaseMaybe a) -- TODO: should I expose the guts of getAssetSlotRelease2?
+      in 
+        EffectiveRelease {
+          effRelPublic = rel
+        , effRelPrivate = rel
+        }
+    AssetSegment{ segmentAsset = a } ->
+      getAssetSlotRelease2 a
 
 data Excerpt = Excerpt
   { excerptAsset :: !AssetSegment
