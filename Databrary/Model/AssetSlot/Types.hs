@@ -86,34 +86,24 @@ testmakeAssetSlot =
 
 testmakeAsset :: Asset
 testmakeAsset = Asset
-  { assetRow = AssetRow
-    { assetId = error "blankAsset"
-    , assetFormat = unknownFormat
-    , assetRelease = Nothing
-    , assetName = Nothing
-    , assetDuration = Nothing
-    , assetSHA1 = Nothing
-    , assetSize = Nothing
-    }
-  , assetVolume = testmakeVolume
-  }
+  blankAsset (testmakeVolume)
 
 testmakeVolume :: Volume
 testmakeVolume =
   blankVolume {
     volumeRow =
       (volumeRow blankVolume) {
-          volumeId = Id 0
+          volumeId = coreVolumeId
         }
     }
 
 -- test cases:
--- no slot
---    volume id > 0  (why ignore release when the asset is part of a volume?)
---    volume id == 0 ? (mean general asset, not attached to a volume such as an avatar??)
+-- no slot  -- not part of a session (any longer)
+--    volume id > 0  (if asset is tied to a volume, then it was deleted, so its release is always private)
+--    volume id == 0 ? (mean general asset, not attached to a real volume such as an avatar??)
 --       asset has no release
 --       asset has release with value ....
--- has slot
+-- has slot  -- is part of a session
 --    asset has no release
 --      slot's container has release
 --      slot's container has no release
@@ -131,13 +121,17 @@ getAssetSlotRelease as =
   fold (getAssetSlotReleaseMaybe as)
 getAssetSlotReleaseMaybe :: AssetSlot -> Maybe Release
 getAssetSlotReleaseMaybe as =
-    (case as of
-       AssetSlot a (Just s) ->
-         getAssetReleaseMaybe a <|> getSlotReleaseMaybe s
-       AssetSlot a Nothing ->
-         if volumeId (volumeRow $ assetVolume a) == Id 0
-         then getAssetReleaseMaybe a
-         else Nothing) -- "deleted" assets are always unreleased (private?), not view a
+  (case as of
+     AssetSlot a (Just s) ->
+       getAssetReleaseMaybe a <|> getSlotReleaseMaybe s
+     AssetSlot a Nothing ->
+       if not (assetSlotIsDeletedFromItsContainer as)
+       then getAssetReleaseMaybe a
+       else Nothing) -- "deleted" assets are always unreleased (private?), not view a
+
+assetSlotIsDeletedFromItsContainer :: AssetSlot -> Bool
+assetSlotIsDeletedFromItsContainer (AssetSlot a Nothing) = volumeId (volumeRow $ assetVolume a) /= coreVolumeId
+assetSlotIsDeletedFromItsContainer (AssetSlot a (Just slot)) = False
 
 getAssetSlotRelease2 :: AssetSlot -> EffectiveRelease  -- TODO: use this throughout?
 getAssetSlotRelease2 as =

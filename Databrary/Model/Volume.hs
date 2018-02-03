@@ -41,7 +41,7 @@ import Databrary.Model.Volume.Boot
 import Databrary.Model.VolumeAccess.Types (VolumeAccess(..))
 
 coreVolume :: Volume
-coreVolume = $(loadVolume (Id 0))
+coreVolume = $(loadVolume coreVolumeId)
 
 lookupVolume :: (MonadDB c m, MonadHasIdentity c m) => Id Volume -> m (Maybe Volume)
 lookupVolume vi = do

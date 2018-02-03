@@ -3,6 +3,7 @@ module Databrary.Model.Asset.Types
   ( AssetRow(..)
   , Asset(..)
   , getAssetReleaseMaybe
+  , blankAsset
   ) where
 
 import qualified Data.ByteString as BS
@@ -42,3 +43,17 @@ makeHasRec ''AssetRow ['assetId, 'assetFormat, 'assetRelease]
 makeHasRec ''Asset ['assetRow, 'assetVolume]
 getAssetReleaseMaybe :: Asset -> Maybe Release
 getAssetReleaseMaybe = assetRelease . assetRow
+
+blankAsset :: Volume -> Asset
+blankAsset vol = Asset
+  { assetRow = AssetRow
+    { assetId = error "blankAsset"
+    , assetFormat = unknownFormat
+    , assetRelease = Nothing
+    , assetName = Nothing
+    , assetDuration = Nothing
+    , assetSHA1 = Nothing
+    , assetSize = Nothing
+    }
+  , assetVolume = vol
+  }

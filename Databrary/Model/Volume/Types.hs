@@ -6,6 +6,7 @@ module Databrary.Model.Volume.Types
   , blankVolume
   , volumePermissionPolicy
   , volumeAccessPolicyWithDefault
+  , coreVolumeId
   ) where
 
 import qualified Data.ByteString as BS
@@ -79,3 +80,6 @@ blankVolume = Volume
   , volumePermission = PermissionNONE
   , volumeAccessPolicy = PermLevelDefault
   }
+
+coreVolumeId :: Id Volume
+coreVolumeId = Id 0
