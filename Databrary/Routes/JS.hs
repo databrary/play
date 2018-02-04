@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Routes.JS
   ( jsRoutes
   ) where
@@ -40,7 +40,7 @@ import Databrary.Controller.VolumeState
 import Databrary.Controller.Search
 import Databrary.Controller.Activity
 import Databrary.Controller.Notification
-import Databrary.Web.Routes
+-- import Databrary.Web.Routes
 
 rt :: BS.ByteString -> B.Builder
 rt routeKeyVal = B.byteString ("\n" <> routeKeyVal)
@@ -287,7 +287,8 @@ jsRoutes =
   -- , jsRoute "getNotify" viewNotify ()
   , rt "\"postNotify\":{method:\"POST\",route:function(){return \"/api/notify\";}},"
   -- , jsRoute "postNotify" postNotify ()
-  ] -- where
+  ] where
+  -- token :: Id Token
   -- token = Id ""
   -- party = Id 0
   -- volume = Id 0
