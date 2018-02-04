@@ -83,7 +83,7 @@ jsRoutes =
   -- , jsRoute "viewVolumeSearch" queryVolumes (HTML)
   , rt "\"thumbVolume\":{method:\"GET\",route:function(int320){return \"/volume/\"+int320+\"/thumb\";}},"
   -- , jsRoute "thumbVolume" thumbVolume (volume)
-  , rt "\"viewVolumeActivity\":{method:\"GET\",route:function(int320){return \"/volume/\"+int320+\"/activity\";}},"
+  , rt "\"csvVolume\":{method:\"GET\",route:function(int320){return \"/volume/\"+int320+\"/csv\";}},"
   -- , jsRoute "csvVolume" csvVolume (volume)
   , rt "\"viewVolumeActivity\":{method:\"GET\",route:function(int320){return \"/volume/\"+int320+\"/activity\";}},"
   -- , jsRoute "viewVolumeActivity" viewVolumeActivity (HTML, volume)
@@ -238,7 +238,7 @@ jsRoutes =
   -- , jsRoute "deleteVolumeCategory" deleteVolumeMetric (volume, Left category)
   , rt "\"postVolumeState\":{method:\"PUT\",route:function(int320,text1){return \"/api/volume/\"+int320+\"/state/\"+text1+\"\";}},"
   -- , jsRoute "postVolumeState" postVolumeState (volume, "")
-  , rt "\"getAsset\":{method:\"GET\",route:function(int320){return \"/api/asset/\"+int320+\"\";}},"
+  , rt "\"deleteVolumeState\":{method:\"DELETE\",route:function(int320,text1){return \"/api/volume/\"+int320+\"/state/\"+text1+\"\";}},"
   -- , jsRoute "deleteVolumeState" deleteVolumeState (volume, "")
 
   , rt "\"getAsset\":{method:\"GET\",route:function(int320){return \"/api/asset/\"+int320+\"\";}},"
