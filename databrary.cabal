@@ -86,7 +86,6 @@ Executable databrary
     mime-mail >= 0.4.11,
     mime-types >= 0.1.0.6,
     fast-logger >= 2.4.6,
-    digest >= 0.0.1.2,
     hjsonschema == 0.9.0.0,
     -- file-embed >= 0.0.9.1,
     aeson-better-errors > 0.9.0,

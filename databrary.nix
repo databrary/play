@@ -1,7 +1,7 @@
 { mkDerivation, aeson, aeson-better-errors, array, attoparsec, base
 , bcrypt, blaze-html, blaze-markup, bytestring
 , case-insensitive, containers, cookie, cracklib, cryptonite
-, data-default-class, digest, directory, fast-logger, ffmpeg
+, data-default-class, directory, fast-logger, ffmpeg
 , filepath, hashable, hjsonschema
 , http-client, http-client-tls, http-types, invertible
 , lifted-base, memory, mime-mail, mime-types, postgresql
@@ -28,7 +28,7 @@ mkDerivation rec {
   executableHaskellDepends = [
     aeson aeson-better-errors array attoparsec base bcrypt
     blaze-html blaze-markup bytestring case-insensitive
-    containers cookie cryptonite data-default-class digest directory
+    containers cookie cryptonite data-default-class directory
     fast-logger filepath hashable
     hjsonschema http-client http-client-tls http-types invertible
     lifted-base memory mime-mail mime-types monad-control mtl network
