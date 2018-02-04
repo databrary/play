@@ -1,13 +1,22 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Routes.JS
   ( jsRoutes
+  , fakeUsage
   ) where
 
 import qualified Data.ByteString.Builder as B
 import qualified Data.ByteString as BS
 import Data.Monoid ((<>))
 
+import Databrary.Model.Funding (Funder)
+import Databrary.Model.Metric (Metric)
+import Databrary.Model.Category (Category)
+import Databrary.Model.Record (Record)
+import Databrary.Model.Asset (Asset)
+import Databrary.Model.Volume (Volume)
+import Databrary.Model.Party (Party)
 import Databrary.Model.Id.Types
+import Databrary.Model.Token (Token)
 import Databrary.Model.Segment
 import Databrary.Model.Slot.Types
 import Databrary.Model.Tag.Types
@@ -287,16 +296,20 @@ jsRoutes =
   -- , jsRoute "getNotify" viewNotify ()
   , rt "\"postNotify\":{method:\"POST\",route:function(){return \"/api/notify\";}},"
   -- , jsRoute "postNotify" postNotify ()
-  ] where
-  -- token :: Id Token
-  -- token = Id ""
-  -- party = Id 0
-  -- volume = Id 0
-  -- slot = Id (SlotId (Id 0) emptySegment)
-  -- container = containerSlotId (Id 0)
-  -- asset = Id 0
-  -- record = Id 0
-  -- category = Id 0
-  -- metric = Id 0
-  -- funder = Id 0
-  -- tag = TagName ""
+  ]
+
+fakeUsage :: IO ()
+fakeUsage =
+  print
+    ( (Id "" :: Id Token)
+    , (Id 0 :: Id Party)
+    , (Id 0 :: Id Volume)
+    , (Id (SlotId (Id 0) emptySegment) :: Id Slot)
+    , (containerSlotId (Id 0) :: Id Slot)
+    , (Id 0 :: Id Asset)
+    , (Id 0 :: Id Record)
+    , (Id 0 :: Id Category)
+    , (Id 0 :: Id Metric)
+    , (Id 0 :: Id Funder)
+    , (TagName "" :: TagName)
+    )
