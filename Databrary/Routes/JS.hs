@@ -1,13 +1,17 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Routes.JS
   ( jsRoutes
-  , fakeUsage
+  , fakeBackendDepend1
+  , fakeBackendDepend2
+  , fakeBackendDepend3
+  , fakeBackendDepend4
   ) where
 
 import qualified Data.ByteString.Builder as B
 import qualified Data.ByteString as BS
 import Data.Monoid ((<>))
 
+import Databrary.Model.Container (Container)
 import Databrary.Model.Funding (Funder)
 import Databrary.Model.Metric (Metric)
 import Databrary.Model.Category (Category)
@@ -16,7 +20,7 @@ import Databrary.Model.Asset (Asset)
 import Databrary.Model.Volume (Volume)
 import Databrary.Model.Party (Party)
 import Databrary.Model.Id.Types
-import Databrary.Model.Token (Token)
+import Databrary.Model.Token (Token, LoginToken)
 import Databrary.Model.Segment
 import Databrary.Model.Slot.Types
 import Databrary.Model.Tag.Types
@@ -298,6 +302,7 @@ jsRoutes =
   -- , jsRoute "postNotify" postNotify ()
   ]
 
+{- COVERED BY BELOW, delete this soon
 fakeUsage :: IO ()
 fakeUsage =
   print
@@ -313,3 +318,77 @@ fakeUsage =
     , (Id 0 :: Id Funder)
     , (TagName "" :: TagName)
     )
+-}
+
+{-
+fakeBackendDepend1 ::
+  ( ActionRoute API
+  , ActionRoute ()
+  , ActionRoute ()
+  , ActionRoute ()
+  , ActionRoute (API, Id LoginToken)
+  , ActionRoute (API, TargetProfile)
+  , ActionRoute (..)
+  , ActionRoute (API, Party)
+  , ActionRoute (API)
+  , ActionRoute (Id Party)
+  , ActionRoute (API, ...)
+  )
+-}
+fakeBackendDepend1 = -- TODO: how to silence warning on this name only?
+  ( viewRoot :: ActionRoute API
+  , viewLogin :: ActionRoute ()
+  , viewRegister :: ActionRoute ()
+  , viewPasswordReset :: ActionRoute ()
+  , viewLoginToken :: ActionRoute (API, Id LoginToken)
+  , viewParty :: ActionRoute (API, PartyTarget)
+  , viewPartyEdit :: ActionRoute PartyTarget
+  , queryParties :: ActionRoute API
+  , viewAvatar :: ActionRoute (Id Party)
+  , viewPartyActivity :: ActionRoute (API, PartyTarget)
+  , viewVolume :: ActionRoute (API, Id Volume)
+  , viewVolumeCreate :: ActionRoute ()
+  , viewVolumeEdit :: ActionRoute (Id Volume)
+  , queryVolumes :: ActionRoute (API)
+  , thumbVolume :: ActionRoute (Id Volume)
+  , csvVolume :: ActionRoute (Id Volume)
+  , viewVolumeActivity :: ActionRoute (API, Id Volume)
+  , viewSlot :: Bool -> ActionRoute (API, (Maybe (Id Volume), Id Slot))
+  , viewContainerEdit :: ActionRoute (Maybe (Id Volume), Id Slot)
+  , viewContainerActivity :: ActionRoute (API, (Maybe (Id Volume), Id Slot))
+  , thumbSlot :: ActionRoute (Maybe (Id Volume), Id Slot)
+  , viewRecord :: ActionRoute (API, Id Record)
+  )
+
+fakeBackendDepend2 =
+  ( viewFormats :: ActionRoute ()
+  , viewAssetSegment :: Bool -> ActionRoute (API, Maybe (Id Volume), Id Slot, Id Asset)
+  , downloadAssetSegment :: ActionRoute (Id Slot, Id Asset)
+  , downloadOrigAssetSegment :: ActionRoute (Id Slot, Id Asset)
+  , thumbAssetSegment :: Bool -> ActionRoute (Id Slot, Id Asset)
+  , downloadAsset :: ActionRoute (Id Asset, Segment)
+  , downloadOrigAsset :: ActionRoute (Id Asset, Segment)
+  , thumbAsset :: ActionRoute (Id Asset, Segment)
+  , postSearch :: ActionRoute (API)
+  , zipContainer :: Bool -> ActionRoute (Maybe (Id Volume), Id Slot)
+  , zipVolume :: Bool -> ActionRoute (Id Volume)
+  , viewVolumeDescription :: ActionRoute (Id Volume)
+  , viewRoot :: ActionRoute API
+  , viewUser :: ActionRoute ()
+  , postUser :: ActionRoute API
+  , postLogin :: ActionRoute API
+  , postLogout :: ActionRoute API
+  , postRegister :: ActionRoute API
+  , postPasswordReset :: ActionRoute API
+  , viewLoginToken :: ActionRoute (API, Id LoginToken)
+  , postPasswordToken :: ActionRoute (API, Id LoginToken)
+  -- TODO: finish enumerating
+  )
+
+fakeBackendDepend3 =
+  (
+  )
+
+fakeBackendDepend4 =
+  (
+  )
