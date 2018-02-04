@@ -16,6 +16,7 @@ module Databrary.Controller.Paths
 import qualified Data.Invertible as I
 import Data.String (fromString)
 import qualified Web.Route.Invertible as R
+import Web.Route.Invertible (Parameter, PathString)
 
 import Databrary.Model.Kind
 import Databrary.Model.Id.Types
@@ -24,8 +25,10 @@ import Databrary.Model.Container.Types
 import Databrary.Model.Segment
 import Databrary.Model.Slot.Types
 import Databrary.Model.Tag.Types
-import Databrary.HTTP.Path
+-- import Databrary.HTTP.Path
 import Databrary.HTTP.Path.Parser
+
+type PathParameter = Parameter PathString
 
 idIso :: IdType a I.<-> Id a
 idIso = [I.biCase|a <-> Id a|]
@@ -40,7 +43,7 @@ data PartyTarget
   = TargetProfile
   | TargetParty (Id Party)
 
-pathPartyTarget :: PathParser PartyTarget
+
 pathPartyTarget = [I.biCase|
     Left () <-> TargetProfile
     Right i <-> TargetParty i

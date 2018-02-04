@@ -1,11 +1,26 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Routes.JS
   ( jsRoutes
+  , fakeBackendDepend1
+  , fakeBackendDepend2
+  , fakeBackendDepend3
+  , fakeBackendDepend4
   ) where
 
 import qualified Data.ByteString.Builder as B
+import qualified Data.ByteString as BS
+import Data.Monoid ((<>))
 
+import Databrary.Model.Container (Container)
+import Databrary.Model.Funding (Funder)
+import Databrary.Model.Metric (Metric)
+import Databrary.Model.Category (Category)
+import Databrary.Model.Record (Record)
+import Databrary.Model.Asset (Asset)
+import Databrary.Model.Volume (Volume)
+import Databrary.Model.Party (Party)
 import Databrary.Model.Id.Types
+import Databrary.Model.Token (Token, LoginToken)
 import Databrary.Model.Segment
 import Databrary.Model.Slot.Types
 import Databrary.Model.Tag.Types
@@ -38,148 +53,342 @@ import Databrary.Controller.VolumeState
 import Databrary.Controller.Search
 import Databrary.Controller.Activity
 import Databrary.Controller.Notification
-import Databrary.Web.Routes
+-- import Databrary.Web.Routes
+
+rt :: BS.ByteString -> B.Builder
+rt routeKeyVal = B.byteString ("\n" <> routeKeyVal)
 
 jsRoutes :: [B.Builder] -- should be mconcat, but BSB bug causes hangs
 jsRoutes =
-  [ jsRoute "viewRoot" viewRoot (HTML)
-  , jsRoute "viewLogin" viewLogin ()
-  , jsRoute "viewRegister" viewRegister ()
-  , jsRoute "viewPasswordReset" viewPasswordReset ()
-  , jsRoute "viewLoginToken" viewLoginToken (HTML, token)
+  [ rt "\"viewRoot\":{method:\"GET\",route:function(){return \"/\";}},"
+   -- jsRoute "viewRoot" viewRoot (HTML)
+  , rt "\"viewLogin\":{method:\"GET\",route:function(){return \"/user/login\";}},"
+   -- , jsRoute "viewLogin" viewLogin ()
+  , rt "\"viewRegister\":{method:\"GET\",route:function(){return \"/user/register\";}},"
+  -- , jsRoute "viewRegister" viewRegister ()
+  , rt "\"viewPasswordReset\":{method:\"GET\",route:function(){return \"/user/password\";}},"
+  -- , jsRoute "viewPasswordReset" viewPasswordReset ()
+  , rt "\"viewLoginToken\":{method:\"GET\",route:function(byteString0){return \"/token/\"+byteString0+\"\";}},"
+  -- , jsRoute "viewLoginToken" viewLoginToken (HTML, token)
 
-  , jsRoute "viewProfile" viewParty (HTML, TargetProfile)
-  , jsRoute "viewProfileEdit" viewPartyEdit (TargetProfile)
-  , jsRoute "viewParty" viewParty (HTML, TargetParty party)
-  , jsRoute "viewPartyEdit" viewPartyEdit (TargetParty party)
-  , jsRoute "viewPartySearch" queryParties (HTML)
-  , jsRoute "partyAvatar" viewAvatar (party)
-  , jsRoute "viewPartyActivity" viewPartyActivity (HTML, TargetParty party)
+  , rt "\"viewProfile\":{method:\"GET\",route:function(){return \"/profile\";}},"
+  -- , jsRoute "viewProfile" viewParty (HTML, TargetProfile)
+  , rt "\"viewProfileEdit\":{method:\"GET\",route:function(){return \"/profile/edit\";}},"
+  -- , jsRoute "viewProfileEdit" viewPartyEdit (TargetProfile)
+  , rt "\"viewParty\":{method:\"GET\",route:function(int320){return \"/party/\"+int320+\"\";}},"
+  -- , jsRoute "viewParty" viewParty (HTML, TargetParty party)
+  , rt "\"viewPartyEdit\":{method:\"GET\",route:function(int320){return \"/party/\"+int320+\"/edit\";}},"
+  -- , jsRoute "viewPartyEdit" viewPartyEdit (TargetParty party)
+  , rt "\"viewPartySearch\":{method:\"GET\",route:function(){return \"/party\";}},"
+  -- , jsRoute "viewPartySearch" queryParties (HTML)
+  , rt "\"partyAvatar\":{method:\"GET\",route:function(int320){return \"/party/\"+int320+\"/avatar\";}},"
+  -- , jsRoute "partyAvatar" viewAvatar (party)
+  , rt "\"viewPartyActivity\":{method:\"GET\",route:function(int320){return \"/party/\"+int320+\"/activity\";}},"
+  -- , jsRoute "viewPartyActivity" viewPartyActivity (HTML, TargetParty party)
 
-  , jsRoute "viewVolume" viewVolume (HTML, volume)
-  , jsRoute "viewVolumeCreate" viewVolumeCreate ()
-  , jsRoute "viewVolumeEdit" viewVolumeEdit (volume)
-  , jsRoute "viewVolumeSearch" queryVolumes (HTML)
-  , jsRoute "thumbVolume" thumbVolume (volume)
-  , jsRoute "csvVolume" csvVolume (volume)
-  , jsRoute "viewVolumeActivity" viewVolumeActivity (HTML, volume)
+  , rt "\"viewVolume\":{method:\"GET\",route:function(int320){return \"/volume/\"+int320+\"\";}},"
+  -- , jsRoute "viewVolume" viewVolume (HTML, volume)
+  , rt "\"viewVolumeCreate\":{method:\"GET\",route:function(){return \"/volume/create\";}},"
+  -- , jsRoute "viewVolumeCreate" viewVolumeCreate ()
+  , rt "\"viewVolumeEdit\":{method:\"GET\",route:function(int320){return \"/volume/\"+int320+\"/edit\";}},"
+  -- , jsRoute "viewVolumeEdit" viewVolumeEdit (volume)
+  , rt "\"viewVolumeSearch\":{method:\"GET\",route:function(){return \"/volume\";}},"
+  -- , jsRoute "viewVolumeSearch" queryVolumes (HTML)
+  , rt "\"thumbVolume\":{method:\"GET\",route:function(int320){return \"/volume/\"+int320+\"/thumb\";}},"
+  -- , jsRoute "thumbVolume" thumbVolume (volume)
+  , rt "\"csvVolume\":{method:\"GET\",route:function(int320){return \"/volume/\"+int320+\"/csv\";}},"
+  -- , jsRoute "csvVolume" csvVolume (volume)
+  , rt "\"viewVolumeActivity\":{method:\"GET\",route:function(int320){return \"/volume/\"+int320+\"/activity\";}},"
+  -- , jsRoute "viewVolumeActivity" viewVolumeActivity (HTML, volume)
 
-  , jsRoute "viewSlot" (viewSlot False) (HTML, (Just volume, slot)) 
-  , jsRoute "viewSlotEdit" viewContainerEdit (Just volume, container)
-  , jsRoute "viewSlotActivity" viewContainerActivity (HTML, (Just volume, container))
-  , jsRoute "thumbSlot" thumbSlot (Just volume, slot)
+  , rt "\"viewSlot\":{method:\"GET\",route:function(int320,int321,segment2){return \"/volume/\"+int320+\"/slot/\"+int321+\"/\"+segment2+\"\";}},"
+  -- , jsRoute "viewSlot" (viewSlot False) (HTML, (Just volume, slot))
+  , rt "\"viewSlotEdit\":{method:\"GET\",route:function(int320,int321){return \"/volume/\"+int320+\"/slot/\"+int321+\"/edit\";}},"
+  -- , jsRoute "viewSlotEdit" viewContainerEdit (Just volume, container)
+  , rt "\"viewSlotActivity\":{method:\"GET\",route:function(int320,int321){return \"/volume/\"+int320+\"/slot/\"+int321+\"/activity\";}},"
+  -- , jsRoute "viewSlotActivity" viewContainerActivity (HTML, (Just volume, container))
+  , rt "\"thumbSlot\":{method:\"GET\",route:function(int320,int321,segment2){return \"/volume/\"+int320+\"/slot/\"+int321+\"/\"+segment2+\"/thumb\";}},"
+  -- , jsRoute "thumbSlot" thumbSlot (Just volume, slot)
 
-  , jsRoute "viewRecord" viewRecord (HTML, record)
+  , rt "\"viewRecord\":{method:\"GET\",route:function(int320){return \"/record/\"+int320+\"\";}},"
+  -- , jsRoute "viewRecord" viewRecord (HTML, record)
 
-  , jsRoute "viewFormats" viewFormats ()
-  , jsRoute "viewAssetSegment" (viewAssetSegment False) (HTML, Just volume, slot, asset)
-  , jsRoute "viewOrigAssetSegment" (viewAssetSegment True) (HTML, Just volume, slot, asset)
-  , jsRoute "downloadAssetSegment" downloadAssetSegment (slot, asset) --download transcoded asset segment
-  , jsRoute "downloadOrigAssetSegment" downloadOrigAssetSegment (slot, asset) --download original asset segment 
-  , jsRoute "thumbAssetSegment" (thumbAssetSegment False) (slot, asset) 
-  , jsRoute "thumbOrigAssetSegment" (thumbAssetSegment True) (slot, asset)
-  , jsRoute "downloadAsset" downloadAsset (asset, fullSegment)
-  , jsRoute "downloadOrigAsset" downloadOrigAsset (asset, fullSegment) --download original asset
-  , jsRoute "thumbAsset" thumbAsset (asset, fullSegment)
+  , rt "\"viewFormats\":{method:\"GET\",route:function(){return \"/asset/formats\";}},"
+  -- , jsRoute "viewFormats" viewFormats ()
+  , rt "\"viewAssetSegment\":{method:\"GET\",route:function(int320,int321,segment2,int323){return \"/volume/\"+int320+\"/slot/\"+int321+\"/\"+segment2+\"/asset/\"+int323+\"\";}},"
+  -- , jsRoute "viewAssetSegment" (viewAssetSegment False) (HTML, Just volume, slot, asset)
+  , rt "\"viewOrigAssetSegment\":{method:\"GET\",route:function(int320,int321,segment2,int323){return \"/volume/\"+int320+\"/slot/\"+int321+\"/\"+segment2+\"/asset/\"+int323+\"\";}},"
+  -- , jsRoute "viewOrigAssetSegment" (viewAssetSegment True) (HTML, Just volume, slot, asset)
+  , rt "\"downloadAssetSegment\":{method:\"GET\",route:function(int320,segment1,int322){return \"/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/download\";}},"
+  -- , jsRoute "downloadAssetSegment" downloadAssetSegment (slot, asset) --download transcoded asset segment
+  , rt "\"downloadOrigAssetSegment\":{method:\"GET\",route:function(int320,segment1,int322){return \"/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/downloadOrig\";}},"
+  -- , jsRoute "downloadOrigAssetSegment" downloadOrigAssetSegment (slot, asset) --download original asset segment 
+  , rt "\"thumbAssetSegment\":{method:\"GET\",route:function(int320,segment1,int322){return \"/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/thumb\";}},"
+  -- , jsRoute "thumbAssetSegment" (thumbAssetSegment False) (slot, asset)
+  , rt "\"thumbOrigAssetSegment\":{method:\"GET\",route:function(int320,segment1,int322){return \"/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/thumb\";}},"
+  -- , jsRoute "thumbOrigAssetSegment" (thumbAssetSegment True) (slot, asset)
+  , rt "\"downloadAsset\":{method:\"GET\",route:function(int320){return \"/asset/\"+int320+\"/download\";}},"
+  -- , jsRoute "downloadAsset" downloadAsset (asset, fullSegment)
+  , rt "\"downloadOrigAsset\":{method:\"GET\",route:function(int320){return \"/asset/\"+int320+\"/downloadOrig\";}},"
+  -- , jsRoute "downloadOrigAsset" downloadOrigAsset (asset, fullSegment) --download original asset
+  , rt "\"thumbAsset\":{method:\"GET\",route:function(int320){return \"/asset/\"+int320+\"/thumb\";}},"
+  -- , jsRoute "thumbAsset" thumbAsset (asset, fullSegment)
 
-  , jsRoute "viewSearch" postSearch (HTML)
+  , rt "\"viewSearch\":{method:\"GET\",route:function(){return \"/search\";}},"
+  -- , jsRoute "viewSearch" postSearch (HTML)
 
-  , jsRoute "zipSlot" (zipContainer False) (Just volume, container) --zip transcoded slot
-  , jsRoute "zipOrigSlot" (zipContainer True) (Just volume, container) --zip orignal slot
-  , jsRoute "zipVolume" (zipVolume False) (volume) -- zip volume full of transcoded assets
-  , jsRoute "zipOrigVolume" (zipVolume True) (volume) -- zip volume full of original assets
-  , jsRoute "viewVolumeDescription" viewVolumeDescription (volume)
+  , rt "\"zipSlot\":{method:\"GET\",route:function(int320,int321){return \"/volume/\"+int320+\"/slot/\"+int321+\"/zip/false\";}},"
+  -- , jsRoute "zipSlot" (zipContainer False) (Just volume, container) --zip transcoded slot
+  , rt "\"zipOrigSlot\":{method:\"GET\",route:function(int320,int321){return \"/volume/\"+int320+\"/slot/\"+int321+\"/zip/true\";}},"
+  -- , jsRoute "zipOrigSlot" (zipContainer True) (Just volume, container) --zip orignal slot
+  , rt "\"zipVolume\":{method:\"GET\",route:function(int320){return \"/volume/\"+int320+\"/zip/false\";}},"
+  -- , jsRoute "zipVolume" (zipVolume False) (volume) -- zip volume full of transcoded assets
+  , rt "\"zipOrigVolume\":{method:\"GET\",route:function(int320){return \"/volume/\"+int320+\"/zip/true\";}},"
+  -- , jsRoute "zipOrigVolume" (zipVolume True) (volume) -- zip volume full of original assets
+  , rt "\"viewVolumeDescription\":{method:\"GET\",route:function(int320){return \"/volume/\"+int320+\"/description\";}},"
+  -- , jsRoute "viewVolumeDescription" viewVolumeDescription (volume)
 
-  , jsRoute "get" viewRoot (JSON)
-  , jsRoute "getUser" viewUser ()
-  , jsRoute "postUser" postUser (JSON)
-  , jsRoute "postLogin" postLogin (JSON)
-  , jsRoute "postLogout" postLogout (JSON)
-  , jsRoute "postRegister" postRegister (JSON)
-  , jsRoute "postPasswordReset" postPasswordReset (JSON)
-  , jsRoute "getLoginToken" viewLoginToken (JSON, token)
-  , jsRoute "postPasswordToken" postPasswordToken (JSON, token)
+  , rt "\"get\":{method:\"GET\",route:function(){return \"/api\";}},"
+  -- , jsRoute "get" viewRoot (JSON)
+  , rt "\"getUser\":{method:\"GET\",route:function(){return \"/api/user\";}},"
+  -- , jsRoute "getUser" viewUser ()
+  , rt "\"postUser\":{method:\"POST\",route:function(){return \"/api/user\";}},"
+  -- , jsRoute "postUser" postUser (JSON)
+  , rt "\"postLogin\":{method:\"POST\",route:function(){return \"/api/user/login\";}},"
+  -- , jsRoute "postLogin" postLogin (JSON)
+  , rt "\"postLogout\":{method:\"POST\",route:function(){return \"/api/user/logout\";}},"
+  -- , jsRoute "postLogout" postLogout (JSON)
+  , rt "\"postRegister\":{method:\"POST\",route:function(){return \"/api/user/register\";}},"
+  -- , jsRoute "postRegister" postRegister (JSON)
+  , rt "\"postPasswordReset\":{method:\"POST\",route:function(){return \"/api/user/password\";}},"
+  -- , jsRoute "postPasswordReset" postPasswordReset (JSON)
+  , rt "\"getLoginToken\":{method:\"GET\",route:function(byteString0){return \"/api/token/\"+byteString0+\"\";}},"
+  -- , jsRoute "getLoginToken" viewLoginToken (JSON, token)
+  , rt "\"postPasswordToken\":{method:\"POST\",route:function(byteString0){return \"/api/token/\"+byteString0+\"\";}},"
+  -- , jsRoute "postPasswordToken" postPasswordToken (JSON, token)
 
-  , jsRoute "getParty" viewParty (JSON, TargetParty party)
-  , jsRoute "getProfile" viewParty (JSON, TargetProfile)
-  , jsRoute "postParty" postParty (JSON, TargetParty party)
-  , jsRoute "getParties" queryParties (JSON)
-  , jsRoute "getPartyActivity" viewPartyActivity (JSON, TargetParty party)
+  , rt "\"getParty\":{method:\"GET\",route:function(int320){return \"/api/party/\"+int320+\"\";}},"
+  -- , jsRoute "getParty" viewParty (JSON, TargetParty party)
+  , rt "\"getProfile\":{method:\"GET\",route:function(){return \"/api/profile\";}},"
+  -- , jsRoute "getProfile" viewParty (JSON, TargetProfile)
+  , rt "\"postParty\":{method:\"POST\",route:function(int320){return \"/api/party/\"+int320+\"\";}},"
+  -- , jsRoute "postParty" postParty (JSON, TargetParty party)
+  , rt "\"getParties\":{method:\"GET\",route:function(){return \"/api/party\";}},"
+  -- , jsRoute "getParties" queryParties (JSON)
+  , rt "\"getPartyActivity\":{method:\"GET\",route:function(int320){return \"/api/party/\"+int320+\"/activity\";}},"
+  -- , jsRoute "getPartyActivity" viewPartyActivity (JSON, TargetParty party)
 
-  , jsRoute "postAuthorizeApply" postAuthorize (JSON, TargetParty party, AuthorizeTarget True party)
-  , jsRoute "postAuthorize" postAuthorize (JSON, TargetParty party, AuthorizeTarget False party)
-  , jsRoute "deleteAuthorize" deleteAuthorize (JSON, TargetParty party, AuthorizeTarget False party)
-  , jsRoute "deleteAuthorizeParent" deleteAuthorize (JSON, TargetParty party, AuthorizeTarget True party)
-  , jsRoute "postAuthorizeNotFound" postAuthorizeNotFound (TargetParty party)
+  , rt "\"postAuthorizeApply\":{method:\"POST\",route:function(int320,int321){return \"/api/party/\"+int320+\"/apply/\"+int321+\"\";}},"
+  -- , jsRoute "postAuthorizeApply" postAuthorize (JSON, TargetParty party, AuthorizeTarget True party)
+  , rt "\"postAuthorize\":{method:\"POST\",route:function(int320,int321){return \"/api/party/\"+int320+\"/authorize/\"+int321+\"\";}},"
+  -- , jsRoute "postAuthorize" postAuthorize (JSON, TargetParty party, AuthorizeTarget False party)
+  , rt "\"deleteAuthorize\":{method:\"DELETE\",route:function(int320,int321){return \"/api/party/\"+int320+\"/authorize/\"+int321+\"\";}},"
+  -- , jsRoute "deleteAuthorize" deleteAuthorize (JSON, TargetParty party, AuthorizeTarget False party)
+  , rt "\"deleteAuthorizeParent\":{method:\"DELETE\",route:function(int320,int321){return \"/api/party/\"+int320+\"/apply/\"+int321+\"\";}},"
+  -- , jsRoute "deleteAuthorizeParent" deleteAuthorize (JSON, TargetParty party, AuthorizeTarget True party)
+  , rt "\"postAuthorizeNotFound\":{method:\"POST\",route:function(int320){return \"/api/party/\"+int320+\"/notfound\";}},"
+  -- , jsRoute "postAuthorizeNotFound" postAuthorizeNotFound (TargetParty party)
 
-  , jsRoute "getVolume" viewVolume (JSON, volume)
-  , jsRoute "postVolume" postVolume (JSON, volume)
-  , jsRoute "createVolume" createVolume (JSON)
-  , jsRoute "getVolumes" queryVolumes (JSON)
-  , jsRoute "postVolumeAccess" postVolumeAccess (JSON, (volume, VolumeAccessTarget party))
-  , jsRoute "postVolumeFunding" postVolumeFunding (volume, funder)
-  , jsRoute "postVolumeLinks" postVolumeLinks (JSON, volume)
-  , jsRoute "deleteVolumeFunder" deleteVolumeFunder (volume, funder)
-  , jsRoute "postVolumeAssist" postVolumeAssist (volume)
-  , jsRoute "getVolumeActivity" viewVolumeActivity (JSON, volume)
+  , rt "\"getVolume\":{method:\"GET\",route:function(int320){return \"/api/volume/\"+int320+\"\";}},"
+  -- , jsRoute "getVolume" viewVolume (JSON, volume)
+  , rt "\"postVolume\":{method:\"POST\",route:function(int320){return \"/api/volume/\"+int320+\"\";}},"
+  -- , jsRoute "postVolume" postVolume (JSON, volume)
+  , rt "\"createVolume\":{method:\"POST\",route:function(){return \"/api/volume\";}},"
+  -- , jsRoute "createVolume" createVolume (JSON)
+  , rt "\"getVolumes\":{method:\"GET\",route:function(){return \"/api/volume\";}},"
+  -- , jsRoute "getVolumes" queryVolumes (JSON)
+  , rt "\"postVolumeAccess\":{method:\"POST\",route:function(int320,int321){return \"/api/volume/\"+int320+\"/access/\"+int321+\"\";}},"
+  -- , jsRoute "postVolumeAccess" postVolumeAccess (JSON, (volume, VolumeAccessTarget party))
+  , rt "\"postVolumeFunding\":{method:\"POST\",route:function(int320,int641){return \"/api/volume/\"+int320+\"/funder/\"+int641+\"\";}},"
+  -- , jsRoute "postVolumeFunding" postVolumeFunding (volume, funder)
+  , rt "\"postVolumeLinks\":{method:\"POST\",route:function(int320){return \"/api/volume/\"+int320+\"/link\";}},"
+  -- , jsRoute "postVolumeLinks" postVolumeLinks (JSON, volume)
+  , rt "\"deleteVolumeFunder\":{method:\"DELETE\",route:function(int320,int641){return \"/api/volume/\"+int320+\"/funder/\"+int641+\"\";}},"
+  -- , jsRoute "deleteVolumeFunder" deleteVolumeFunder (volume, funder)
+  , rt "\"postVolumeAssist\":{method:\"POST\",route:function(int320){return \"/api/volume/\"+int320+\"/assist\";}},"
+  -- , jsRoute "postVolumeAssist" postVolumeAssist (volume)
+  , rt "\"getVolumeActivity\":{method:\"GET\",route:function(int320){return \"/api/volume/\"+int320+\"/activity\";}},"
+  -- , jsRoute "getVolumeActivity" viewVolumeActivity (JSON, volume)
 
-  , jsRoute "postSearch" postSearch (JSON)
-  , jsRoute "getFunders" queryFunder ()
-  , jsRoute "getCitation" getCitation ()
+  , rt "\"postSearch\":{method:\"GET\",route:function(){return \"/api/search\";}},"
+  -- , jsRoute "postSearch" postSearch (JSON)
+  , rt "\"getFunders\":{method:\"GET\",route:function(){return \"/api/funder\";}},"  
+  -- , jsRoute "getFunders" queryFunder ()
+  , rt "\"getCitation\":{method:\"GET\",route:function(){return \"/api/cite\";}},"
+  -- , jsRoute "getCitation" getCitation ()
 
-  , jsRoute "getSlot" (viewSlot False) (JSON, (Nothing, slot))
-  , jsRoute "postContainer" postContainer (JSON, container)
-  , jsRoute "deleteContainer" deleteContainer (JSON, container)
-  , jsRoute "createContainer" createContainer (JSON, volume)
-  , jsRoute "getContainerActivity" viewContainerActivity (JSON, (Nothing, container))
+  , rt "\"getSlot\":{method:\"GET\",route:function(int320,segment1){return \"/api/slot/\"+int320+\"/\"+segment1+\"\";}},"
+  -- , jsRoute "getSlot" (viewSlot False) (JSON, (Nothing, slot))
+  , rt "\"postContainer\":{method:\"POST\",route:function(int320){return \"/api/slot/\"+int320+\"\";}},"
+  -- , jsRoute "postContainer" postContainer (JSON, container)
+  , rt "\"deleteContainer\":{method:\"DELETE\",route:function(int320){return \"/api/slot/\"+int320+\"\";}},"
+  -- , jsRoute "deleteContainer" deleteContainer (JSON, container)
+  , rt "\"createContainer\":{method:\"POST\",route:function(int320){return \"/api/volume/\"+int320+\"/slot\";}},"
+  -- , jsRoute "createContainer" createContainer (JSON, volume)
+  , rt "\"getContainerActivity\":{method:\"GET\",route:function(int320){return \"/api/slot/\"+int320+\"/activity\";}},"
+  -- , jsRoute "getContainerActivity" viewContainerActivity (JSON, (Nothing, container))
 
-  , jsRoute "getRecord" viewRecord (JSON, record)
-  , jsRoute "createRecord" createRecord (JSON, volume)
-  , jsRoute "deleteRecord" deleteRecord (JSON, record)
-  , jsRoute "postRecordMeasure" postRecordMeasure (JSON, record, metric)
-  , jsRoute "postRecordSlot" postRecordSlot (JSON, slot, record)
-  , jsRoute "deleteRecordAllSlot" deleteRecordAllSlot (JSON, record)
+  , rt "\"getRecord\":{method:\"GET\",route:function(int320){return \"/api/record/\"+int320+\"\";}},"
+  -- , jsRoute "getRecord" viewRecord (JSON, record)
+  , rt "\"createRecord\":{method:\"POST\",route:function(int320){return \"/api/volume/\"+int320+\"/record\";}},"
+  -- , jsRoute "createRecord" createRecord (JSON, volume)
+  , rt "\"deleteRecord\":{method:\"DELETE\",route:function(int320){return \"/api/record/\"+int320+\"\";}},"
+  -- , jsRoute "deleteRecord" deleteRecord (JSON, record)
+  , rt "\"postRecordMeasure\":{method:\"POST\",route:function(int320,int321){return \"/api/record/\"+int320+\"/metric/\"+int321+\"\";}},"
+  -- , jsRoute "postRecordMeasure" postRecordMeasure (JSON, record, metric)
+  , rt "\"postRecordSlot\":{method:\"POST\",route:function(int320,segment1,int322){return \"/api/slot/\"+int320+\"/\"+segment1+\"/record/\"+int322+\"\";}},"
+  -- , jsRoute "postRecordSlot" postRecordSlot (JSON, slot, record)
+  , rt "\"deleteRecordAllSlot\":{method:\"DELETE\",route:function(int320){return \"/api/slot/all/record/\"+int320+\"\";}},"
+  -- , jsRoute "deleteRecordAllSlot" deleteRecordAllSlot (JSON, record)
 
-  , jsRoute "addVolumeMetric" postVolumeMetric (volume, Right metric)
-  , jsRoute "addVolumeCategory" postVolumeMetric (volume, Left category)
-  , jsRoute "deleteVolumeMetric" deleteVolumeMetric (volume, Right metric)
-  , jsRoute "deleteVolumeCategory" deleteVolumeMetric (volume, Left category)
-  , jsRoute "postVolumeState" postVolumeState (volume, "")
-  , jsRoute "deleteVolumeState" deleteVolumeState (volume, "")
+  , rt "\"addVolumeMetric\":{method:\"PUT\",route:function(int320,int321){return \"/api/volume/\"+int320+\"/metric/\"+int321+\"\";}},"
+  -- , jsRoute "addVolumeMetric" postVolumeMetric (volume, Right metric)
+  , rt "\"addVolumeCategory\":{method:\"PUT\",route:function(int320,int161){return \"/api/volume/\"+int320+\"/category/\"+int161+\"\";}},"
+  -- , jsRoute "addVolumeCategory" postVolumeMetric (volume, Left category)
+  , rt "\"deleteVolumeMetric\":{method:\"DELETE\",route:function(int320,int321){return \"/api/volume/\"+int320+\"/metric/\"+int321+\"\";}},"
+  -- , jsRoute "deleteVolumeMetric" deleteVolumeMetric (volume, Right metric)
+  , rt "\"deleteVolumeCategory\":{method:\"DELETE\",route:function(int320,int161){return \"/api/volume/\"+int320+\"/category/\"+int161+\"\";}},"
+  -- , jsRoute "deleteVolumeCategory" deleteVolumeMetric (volume, Left category)
+  , rt "\"postVolumeState\":{method:\"PUT\",route:function(int320,text1){return \"/api/volume/\"+int320+\"/state/\"+text1+\"\";}},"
+  -- , jsRoute "postVolumeState" postVolumeState (volume, "")
+  , rt "\"deleteVolumeState\":{method:\"DELETE\",route:function(int320,text1){return \"/api/volume/\"+int320+\"/state/\"+text1+\"\";}},"
+  -- , jsRoute "deleteVolumeState" deleteVolumeState (volume, "")
 
-  , jsRoute "getAsset" viewAsset (JSON, asset)
-  , jsRoute "getAssetSegment" (viewAssetSegment False) (JSON, Just volume, slot, asset)
-  , jsRoute "postAsset" postAsset (JSON, asset)
-  , jsRoute "createAsset" createAsset (JSON, volume)
-  , jsRoute "deleteAsset" deleteAsset (JSON, asset)
-  , jsRoute "postExcerpt" postExcerpt (slot, asset)
-  , jsRoute "deleteExcerpt" deleteExcerpt (slot, asset)
-  , jsRoute "uploadStart" uploadStart (volume)
-  , jsRoute "uploadChunk" uploadChunk ()
+  , rt "\"getAsset\":{method:\"GET\",route:function(int320){return \"/api/asset/\"+int320+\"\";}},"
+  -- , jsRoute "getAsset" viewAsset (JSON, asset)
+  , rt "\"getAssetSegment\":{method:\"GET\",route:function(int320,int321,segment2,int323){return \"/api/volume/\"+int320+\"/slot/\"+int321+\"/\"+segment2+\"/asset/\"+int323+\"\";}},"
+  -- , jsRoute "getAssetSegment" (viewAssetSegment False) (JSON, Just volume, slot, asset)
+  , rt "\"postAsset\":{method:\"POST\",route:function(int320){return \"/api/asset/\"+int320+\"\";}},"
+  -- , jsRoute "postAsset" postAsset (JSON, asset)
+  , rt "\"createAsset\":{method:\"POST\",route:function(int320){return \"/api/volume/\"+int320+\"/asset\";}},"
+  -- , jsRoute "createAsset" createAsset (JSON, volume)
+  , rt "\"deleteAsset\":{method:\"DELETE\",route:function(int320){return \"/api/asset/\"+int320+\"\";}},"
+  -- , jsRoute "deleteAsset" deleteAsset (JSON, asset)
+  , rt "\"postExcerpt\":{method:\"POST\",route:function(int320,segment1,int322){return \"/api/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/excerpt\";}},"
+  -- , jsRoute "postExcerpt" postExcerpt (slot, asset)
+  , rt "\"deleteExcerpt\":{method:\"DELETE\",route:function(int320,segment1,int322){return \"/api/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/excerpt\";}},"
+  -- , jsRoute "deleteExcerpt" deleteExcerpt (slot, asset)
+  , rt "\"uploadStart\":{method:\"POST\",route:function(int320){return \"/api/volume/\"+int320+\"/upload\";}},"
+  -- , jsRoute "uploadStart" uploadStart (volume)
+  , rt "\"uploadChunk\":{method:\"POST\",route:function(){return \"/api/upload\";}},"
+  -- , jsRoute "uploadChunk" uploadChunk ()
 
-  , jsRoute "postComment" postComment (JSON, slot)
-  , jsRoute "getTags" queryTags (Just tag)
-  , jsRoute "postTag" postTag (JSON, slot, TagId False tag)
-  , jsRoute "postKeyword" postTag (JSON, slot, TagId True tag)
-  , jsRoute "deleteTag" deleteTag (JSON, slot, TagId False tag)
-  , jsRoute "deleteKeyword" deleteTag (JSON, slot, TagId True tag)
-  , jsRoute "getTopTags" queryTags Nothing
-  , jsRoute "getSiteActivity" viewSiteActivity (JSON)
+  , rt "\"postComment\":{method:\"POST\",route:function(int320,segment1){return \"/api/slot/\"+int320+\"/\"+segment1+\"/comment\";}},"
+  -- , jsRoute "postComment" postComment (JSON, slot)
+  , rt "\"getTags\":{method:\"GET\",route:function(tagName0){return \"/api/tags/\"+tagName0+\"\";}},"
+  -- , jsRoute "getTags" queryTags (Just tag)
+  , rt "\"postTag\":{method:\"POST\",route:function(int320,segment1,tagName2){return \"/api/slot/\"+int320+\"/\"+segment1+\"/tag/\"+tagName2+\"\";}},"
+  -- , jsRoute "postTag" postTag (JSON, slot, TagId False tag)
+  , rt "\"postKeyword\":{method:\"POST\",route:function(int320,segment1,tagName2){return \"/api/slot/\"+int320+\"/\"+segment1+\"/keyword/\"+tagName2+\"\";}},"
+  -- , jsRoute "postKeyword" postTag (JSON, slot, TagId True tag)
+  , rt "\"deleteTag\":{method:\"DELETE\",route:function(int320,segment1,tagName2){return \"/api/slot/\"+int320+\"/\"+segment1+\"/tag/\"+tagName2+\"\";}},"
+  -- , jsRoute "deleteTag" deleteTag (JSON, slot, TagId False tag)
+  , rt "\"deleteKeyword\":{method:\"DELETE\",route:function(int320,segment1,tagName2){return \"/api/slot/\"+int320+\"/\"+segment1+\"/keyword/\"+tagName2+\"\";}},"
+  -- , jsRoute "deleteKeyword" deleteTag (JSON, slot, TagId True tag)
+  , rt "\"getTopTags\":{method:\"GET\",route:function(){return \"/api/tags\";}},"
+  -- , jsRoute "getTopTags" queryTags Nothing
+  , rt "\"getSiteActivity\":{method:\"GET\",route:function(){return \"/api/activity\";}},"
+  -- , jsRoute "getSiteActivity" viewSiteActivity (JSON)
 
-  , jsRoute "getNotifications" viewNotifications ()
-  , jsRoute "deleteNotification" deleteNotification (Id 0)
-  , jsRoute "deleteNotifications" deleteNotifications ()
-  , jsRoute "getNotify" viewNotify ()
-  , jsRoute "postNotify" postNotify ()
-  ] where
-  token = Id ""
-  party = Id 0
-  volume = Id 0
-  slot = Id (SlotId (Id 0) emptySegment)
-  container = containerSlotId (Id 0)
-  asset = Id 0
-  record = Id 0
-  category = Id 0
-  metric = Id 0
-  funder = Id 0
-  tag = TagName ""
+  , rt "\"getNotifications\":{method:\"GET\",route:function(){return \"/api/notification\";}},"
+  -- , jsRoute "getNotifications" viewNotifications ()
+  , rt "\"deleteNotification\":{method:\"DELETE\",route:function(int320){return \"/api/notification/\"+int320+\"\";}},"
+  -- , jsRoute "deleteNotification" deleteNotification (Id 0)
+  , rt "\"deleteNotifications\":{method:\"DELETE\",route:function(){return \"/api/notification\";}},"
+  -- , jsRoute "deleteNotifications" deleteNotifications ()
+  , rt "\"getNotify\":{method:\"GET\",route:function(){return \"/api/notify\";}},"
+  -- , jsRoute "getNotify" viewNotify ()
+  , rt "\"postNotify\":{method:\"POST\",route:function(){return \"/api/notify\";}},"
+  -- , jsRoute "postNotify" postNotify ()
+  ]
+
+{- COVERED BY BELOW, delete this soon
+fakeUsage :: IO ()
+fakeUsage =
+  print
+    ( (Id "" :: Id Token)
+    , (Id 0 :: Id Party)
+    , (Id 0 :: Id Volume)
+    , (Id (SlotId (Id 0) emptySegment) :: Id Slot)
+    , (containerSlotId (Id 0) :: Id Slot)
+    , (Id 0 :: Id Asset)
+    , (Id 0 :: Id Record)
+    , (Id 0 :: Id Category)
+    , (Id 0 :: Id Metric)
+    , (Id 0 :: Id Funder)
+    , (TagName "" :: TagName)
+    )
+-}
+
+{-
+fakeBackendDepend1 ::
+  ( ActionRoute API
+  , ActionRoute ()
+  , ActionRoute ()
+  , ActionRoute ()
+  , ActionRoute (API, Id LoginToken)
+  , ActionRoute (API, TargetProfile)
+  , ActionRoute (..)
+  , ActionRoute (API, Party)
+  , ActionRoute (API)
+  , ActionRoute (Id Party)
+  , ActionRoute (API, ...)
+  )
+-}
+fakeBackendDepend1 = -- TODO: how to silence warning on this name only?
+  ( viewRoot :: ActionRoute API
+  , viewLogin :: ActionRoute ()
+  , viewRegister :: ActionRoute ()
+  , viewPasswordReset :: ActionRoute ()
+  , viewLoginToken :: ActionRoute (API, Id LoginToken)
+  , viewParty :: ActionRoute (API, PartyTarget)
+  , viewPartyEdit :: ActionRoute PartyTarget
+  , queryParties :: ActionRoute API
+  , viewAvatar :: ActionRoute (Id Party)
+  , viewPartyActivity :: ActionRoute (API, PartyTarget)
+  , viewVolume :: ActionRoute (API, Id Volume)
+  , viewVolumeCreate :: ActionRoute ()
+  , viewVolumeEdit :: ActionRoute (Id Volume)
+  , queryVolumes :: ActionRoute (API)
+  , thumbVolume :: ActionRoute (Id Volume)
+  , csvVolume :: ActionRoute (Id Volume)
+  , viewVolumeActivity :: ActionRoute (API, Id Volume)
+  , viewSlot :: Bool -> ActionRoute (API, (Maybe (Id Volume), Id Slot))
+  , viewContainerEdit :: ActionRoute (Maybe (Id Volume), Id Slot)
+  , viewContainerActivity :: ActionRoute (API, (Maybe (Id Volume), Id Slot))
+  , thumbSlot :: ActionRoute (Maybe (Id Volume), Id Slot)
+  , viewRecord :: ActionRoute (API, Id Record)
+  )
+
+fakeBackendDepend2 =
+  ( viewFormats :: ActionRoute ()
+  , viewAssetSegment :: Bool -> ActionRoute (API, Maybe (Id Volume), Id Slot, Id Asset)
+  , downloadAssetSegment :: ActionRoute (Id Slot, Id Asset)
+  , downloadOrigAssetSegment :: ActionRoute (Id Slot, Id Asset)
+  , thumbAssetSegment :: Bool -> ActionRoute (Id Slot, Id Asset)
+  , downloadAsset :: ActionRoute (Id Asset, Segment)
+  , downloadOrigAsset :: ActionRoute (Id Asset, Segment)
+  , thumbAsset :: ActionRoute (Id Asset, Segment)
+  , postSearch :: ActionRoute (API)
+  , zipContainer :: Bool -> ActionRoute (Maybe (Id Volume), Id Slot)
+  , zipVolume :: Bool -> ActionRoute (Id Volume)
+  , viewVolumeDescription :: ActionRoute (Id Volume)
+  , viewRoot :: ActionRoute API
+  , viewUser :: ActionRoute ()
+  , postUser :: ActionRoute API
+  , postLogin :: ActionRoute API
+  , postLogout :: ActionRoute API
+  , postRegister :: ActionRoute API
+  , postPasswordReset :: ActionRoute API
+  , viewLoginToken :: ActionRoute (API, Id LoginToken)
+  , postPasswordToken :: ActionRoute (API, Id LoginToken)
+  -- TODO: finish enumerating
+  )
+
+fakeBackendDepend3 =
+  (
+  )
+
+fakeBackendDepend4 =
+  (
+  )

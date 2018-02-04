@@ -21,8 +21,7 @@ module Databrary.JSON
   , eitherJSON
   , Query
   , jsonQuery
-  , escapeByteString
-  , quoteByteString
+  -- , escapeByteString
   ) where
 
 import Data.Aeson
@@ -158,6 +157,9 @@ jsonQuery f ((k,mVal):qryPairs) = do
     objToPair :: (KeyValue kv) => BS.ByteString -> Encoding -> kv
     objToPair key encObj = (((TE.decodeLatin1 key) .=) . UnsafeEncoding) encObj
 
+
+{-
+-- TODO: remove??
 wordEscaped :: Char -> BP.BoundedPrim Word8
 wordEscaped q =
   BP.condB (== c2w q) (backslash q) $
@@ -174,5 +176,4 @@ wordEscaped q =
 escapeByteString :: Char -> BS.ByteString -> B.Builder
 escapeByteString = BP.primMapByteStringBounded . wordEscaped
 
-quoteByteString :: Char -> BS.ByteString -> B.Builder
-quoteByteString q s = B.char8 q <> escapeByteString q s <> B.char8 q
+-}
