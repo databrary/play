@@ -1,8 +1,9 @@
 {-# LANGUAGE OverloadedStrings, GADTs #-}
 module Databrary.Web.Routes
-  ( RequestValues(..)
-  , routeActionValues
-  , generateRoutesJS
+  ( -- RequestValues(..)
+  -- , routeActionValues
+  -- ,
+    generateRoutesJS
   , jsRoute
   ) where
 

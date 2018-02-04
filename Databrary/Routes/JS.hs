@@ -4,6 +4,8 @@ module Databrary.Routes.JS
   ) where
 
 import qualified Data.ByteString.Builder as B
+import qualified Data.ByteString as BS
+import Data.Monoid ((<>))
 
 import Databrary.Model.Id.Types
 import Databrary.Model.Segment
@@ -40,21 +42,36 @@ import Databrary.Controller.Activity
 import Databrary.Controller.Notification
 import Databrary.Web.Routes
 
+rt :: BS.ByteString -> B.Builder
+rt routeKeyVal = B.byteString ("\n" <> routeKeyVal)
+
 jsRoutes :: [B.Builder] -- should be mconcat, but BSB bug causes hangs
 jsRoutes =
-  [ jsRoute "viewRoot" viewRoot (HTML)
-  , jsRoute "viewLogin" viewLogin ()
-  , jsRoute "viewRegister" viewRegister ()
-  , jsRoute "viewPasswordReset" viewPasswordReset ()
-  , jsRoute "viewLoginToken" viewLoginToken (HTML, token)
+  [ rt "\"viewRoot\":{method:\"GET\",route:function(){return \"/\";}},"
+   -- jsRoute "viewRoot" viewRoot (HTML)
+  , rt "\"viewLogin\":{method:\"GET\",route:function(){return \"/user/login\";}},"
+   -- , jsRoute "viewLogin" viewLogin ()
+  , rt "\"viewRegister\":{method:\"GET\",route:function(){return \"/user/register\";}},"
+  -- , jsRoute "viewRegister" viewRegister ()
+  , rt "\"viewPasswordReset\":{method:\"GET\",route:function(){return \"/user/password\";}},"
+  -- , jsRoute "viewPasswordReset" viewPasswordReset ()
+  , rt "\"viewLoginToken\":{method:\"GET\",route:function(byteString0){return \"/token/\"+byteString0+\"\";}},"
+  -- , jsRoute "viewLoginToken" viewLoginToken (HTML, token)
 
-  , jsRoute "viewProfile" viewParty (HTML, TargetProfile)
-  , jsRoute "viewProfileEdit" viewPartyEdit (TargetProfile)
-  , jsRoute "viewParty" viewParty (HTML, TargetParty party)
-  , jsRoute "viewPartyEdit" viewPartyEdit (TargetParty party)
-  , jsRoute "viewPartySearch" queryParties (HTML)
-  , jsRoute "partyAvatar" viewAvatar (party)
-  , jsRoute "viewPartyActivity" viewPartyActivity (HTML, TargetParty party)
+  , rt "\"viewProfile\":{method:\"GET\",route:function(){return \"/profile\";}},"
+  -- , jsRoute "viewProfile" viewParty (HTML, TargetProfile)
+  , rt "\"viewProfileEdit\":{method:\"GET\",route:function(){return \"/profile/edit\";}},"
+  -- , jsRoute "viewProfileEdit" viewPartyEdit (TargetProfile)
+  , rt "\"viewParty\":{method:\"GET\",route:function(int320){return \"/party/\"+int320+\"\";}},"
+  -- , jsRoute "viewParty" viewParty (HTML, TargetParty party)
+  , rt "\"viewPartyEdit\":{method:\"GET\",route:function(int320){return \"/party/\"+int320+\"/edit\";}},"
+  -- , jsRoute "viewPartyEdit" viewPartyEdit (TargetParty party)
+  , rt "\"viewPartySearch\":{method:\"GET\",route:function(){return \"/party\";}},"
+  -- , jsRoute "viewPartySearch" queryParties (HTML)
+  , rt "\"partyAvatar\":{method:\"GET\",route:function(int320){return \"/party/\"+int320+\"/avatar\";}},"
+  -- , jsRoute "partyAvatar" viewAvatar (party)
+  , rt "\"viewPartyActivity\":{method:\"GET\",route:function(int320){return \"/party/\"+int320+\"/activity\";}},"
+  -- , jsRoute "viewPartyActivity" viewPartyActivity (HTML, TargetParty party)
 
   , jsRoute "viewVolume" viewVolume (HTML, volume)
   , jsRoute "viewVolumeCreate" viewVolumeCreate ()
