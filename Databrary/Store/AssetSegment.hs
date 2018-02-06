@@ -58,6 +58,10 @@ genVideoClip _ src (Just clip) _ dst | Nothing <- Range.getPoint clip = do
   dstfp <- case dst of
     Left _ -> return "-"
     Right rp -> unRawFilePath rp
+  print ("about to slice video file")
+  let upperBoundArgs = maybe [] (\u -> ["-t", sb $ u - lb]) ub
+  print ("ffmpeg","-y", "-accurate_seek", "-ss", sb lb, "-i", srcfp, upperBoundArgs, "-codec copy"
+        , "-f mp4")
   P.withCheckedProcess (P.proc "ffmpeg" $
     [ "-y", "-accurate_seek"
     , "-loglevel", "error"
@@ -96,6 +100,7 @@ getAssetSegmentStore as sz
   liftIO $ maybe
     (return $ Left $ gen . Left) -- cache miss
     (\f -> do -- cache hit
+      print ("reading existing clipping from cache")
       fe <- fileExist f
       unless fe $ do
         tf <- makeTempFileAs (maybe (storageTemp store) (</> "tmp/") cache) (const $ return ()) rs
