@@ -17,9 +17,11 @@ import qualified Data.ByteString.Lazy as BSL
 import Data.Maybe (isJust, fromJust, listToMaybe)
 import Data.Monoid ((<>))
 import qualified Data.Text as T
+import Network.HTTP.Types (ResponseHeaders)
 import Network.HTTP.Types.Status (movedPermanently301)
 import qualified Network.Wai as Wai
 import Text.Read (readMaybe)
+import System.Posix.Types (FileOffset)
 
 import Databrary.Files (unRawFilePath, RawFilePath)
 import Databrary.Ops
@@ -97,20 +99,22 @@ serveAssetSegment dl as = do
   liftIO $ print ("determined size", sz)
   when dl $ auditAssetSegmentDownload True as
   store :: RawFilePath <- maybeAction =<< getAssetFile a
-  (hd, part) <-
+  (hd :: ResponseHeaders, part :: Maybe FileOffset) <-
     fileResponse
       store
-      (view as)
-      (dl ?> makeFilename (assetSegmentDownloadName as))
-      (BSL.toStrict $ BSB.toLazyByteString $
-        BSB.byteStringHex (fromJust $ assetSHA1 $ assetRow a) <> BSB.string8 (assetSegmentTag as sz))
+      (view as :: Format)
+      (dl ?> makeFilename (assetSegmentDownloadName as) :: Maybe BS.ByteString) -- download file name
+      (BSL.toStrict $ BSB.toLazyByteString $  -- etag for http serve
+        BSB.byteStringHex (fromJust $ assetSHA1 $ assetRow a) <> BSB.string8 (assetSegmentTag as sz)
+        :: BS.ByteString)
+  (eStreamRunnerOrFile :: Either ((BS.ByteString -> IO ()) -> IO ()) RawFilePath) <- getAssetSegmentStore as sz
   either
     (return . okResponse hd)
     (\f -> do
       Just (z, _) <- liftIO $ fileInfo f
       fp <- liftIO $ unRawFilePath f
       return $ okResponse hd (fp, z <$ part))
-    =<< getAssetSegmentStore as sz
+    eStreamRunnerOrFile
   where
   a = slotAsset $ segmentAsset as
 

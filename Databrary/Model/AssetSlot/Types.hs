@@ -9,6 +9,7 @@ module Databrary.Model.AssetSlot.Types
   , getAssetSlotRelease
   , getAssetSlotReleaseMaybe
   , getAssetSlotRelease2
+  , getAssetSlotFormat
   -- for testing only
   , testgetAssetSlotRelease2
   ) where
@@ -64,6 +65,8 @@ instance Has (Id Volume) AssetSlot where
   view = view . slotAsset
 getAssetSlotVolumePermission2 :: AssetSlot -> (Permission, VolumeAccessPolicy)
 getAssetSlotVolumePermission2 = volumePermissionPolicy . getAssetSlotVolume
+getAssetSlotFormat :: AssetSlot -> Format
+getAssetSlotFormat = getAssetFormat . slotAsset
 
 instance Has (Maybe Slot) AssetSlot where
   view = assetSlot
