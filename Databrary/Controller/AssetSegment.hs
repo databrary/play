@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TupleSections #-}
+{-# LANGUAGE OverloadedStrings, TupleSections, ScopedTypeVariables #-}
 module Databrary.Controller.AssetSegment
   ( getAssetSegment
   , viewAssetSegment
@@ -21,7 +21,7 @@ import Network.HTTP.Types.Status (movedPermanently301)
 import qualified Network.Wai as Wai
 import Text.Read (readMaybe)
 
-import Databrary.Files (unRawFilePath)
+import Databrary.Files (unRawFilePath, RawFilePath)
 import Databrary.Ops
 import Databrary.Has (view, peeks)
 import qualified Databrary.JSON as JSON
@@ -91,11 +91,19 @@ viewAssetSegment getOrig = action GET (pathAPI </>>> pathMaybe pathId </>> pathS
 
 serveAssetSegment :: Bool -> AssetSegment -> ActionM Response
 serveAssetSegment dl as = do
+  liftIO $ print ("download?", dl)
+  liftIO $ print ("asset seg?", as)
   sz <- peeks $ readMaybe . BSC.unpack <=< join . listToMaybe . lookupQueryParameters "size"
+  liftIO $ print ("determined size", sz)
   when dl $ auditAssetSegmentDownload True as
-  store <- maybeAction =<< getAssetFile a
-  (hd, part) <- fileResponse store (view as) (dl ?> makeFilename (assetSegmentDownloadName as)) (BSL.toStrict $ BSB.toLazyByteString $
-    BSB.byteStringHex (fromJust $ assetSHA1 $ assetRow a) <> BSB.string8 (assetSegmentTag as sz))
+  store :: RawFilePath <- maybeAction =<< getAssetFile a
+  (hd, part) <-
+    fileResponse
+      store
+      (view as)
+      (dl ?> makeFilename (assetSegmentDownloadName as))
+      (BSL.toStrict $ BSB.toLazyByteString $
+        BSB.byteStringHex (fromJust $ assetSHA1 $ assetRow a) <> BSB.string8 (assetSegmentTag as sz))
   either
     (return . okResponse hd)
     (\f -> do
