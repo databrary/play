@@ -22,7 +22,7 @@ import qualified Data.HashMap.Strict as HM
 #endif
 
 lookupWebFile :: RawFilePath -> Web -> IO (Either String (WebFilePath, WebFileInfo))
-lookupWebFile f (Web wc) = do
+lookupWebFile f (Web wc _) = do
   wf <- makeWebFilePath f
 #ifdef DEVEL
   modifyMVar wc $ \wm -> do

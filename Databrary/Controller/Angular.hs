@@ -23,6 +23,7 @@ import Databrary.HTTP (encodePath')
 import Databrary.HTTP.Request
 import Databrary.View.Angular
 import Databrary.Web
+import Databrary.Web.Service (Web, getWebVersion)
 import Databrary.Web.Libs
 
 data JSOpt
@@ -90,7 +91,8 @@ angularResult version nojs auth = do
 
 angular :: ActionM ()
 angular = do
-  version <- pure "1"
+  (servWeb :: Web) <- peek
+  let version = getWebVersion servWeb
   (b :: Maybe BSB.Builder) <- peeks angularRequest
   mapM_
     (\nojsBldr ->
