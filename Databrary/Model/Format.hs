@@ -106,22 +106,22 @@ allFormats
           "Microsoft PowerPoint (Office Open XML) presentation"
       , Format (Id 16) "application/vnd.datavyu" ["opf"]  "Datavyu"
       , Format (Id 18) "video/webm"              ["webm"] "WebM video"
-      , Format (Id 20) "video/quicktime"         ["mov"]  "QuickTime video"
-      , Format (Id 22) "video/avi" ["avi"] "Audio Video Interleave"
-      , Format (Id 23) "application/x-spss-sav"  ["sav"]  "SPSS System File"
-      , Format (Id 24) "audio/wav"               ["wav"]  "Waveform audio"
       , Format (Id 19)
                "video/mpeg"
                ["mpg", "mpeg"]
                "MPEG program stream (MPEG-1/MPEG-2 video)"
+      , Format (Id 20) "video/quicktime" ["mov"] "QuickTime video"
+      , Format (Id 21) "video/mp2t" ["mts", "m2ts"] "MPEG transport stream"
+      , Format (Id 22) "video/avi" ["avi"] "Audio Video Interleave"
+      , Format (Id 23) "application/x-spss-sav" ["sav"] "SPSS System File"
+      , Format (Id 24) "audio/wav" ["wav"] "Waveform audio"
+      , Format (Id 25) "video/x-ms-wmv" ["wmv"] "Windows Media video"
       , Format (Id 26)
                "text/x-chat"
                ["cha", "chat"]
                "Codes for the Human Analysis of Transcripts"
-      , Format (Id 21) "video/mp2t"     ["mts", "m2ts"] "MPEG transport stream"
-      , Format (Id 27) "audio/aac"      ["aac"]         "Advanced Audio Coding"
-      , Format (Id 28) "audio/x-ms-wma" ["wma"]         "Windows Media audio"
-      , Format (Id 25) "video/x-ms-wmv" ["wmv"]         "Windows Media video"
+      , Format (Id 27) "audio/aac"      ["aac"] "Advanced Audio Coding"
+      , Format (Id 28) "audio/x-ms-wma" ["wma"] "Windows Media audio"
       , Format (Id 29)
                "application/vnd.lena.interpreted-time-segments"
                ["its"]
@@ -137,7 +137,7 @@ allFormats
       ]
 
 formatsById :: IntMap.IntMap Format
-formatsById = IntMap.fromAscList $ map (\a -> (fromIntegral $ unId $ formatId a, a)) allFormats
+formatsById = IntMap.fromList $ map (\a -> (fromIntegral $ unId $ formatId a, a)) allFormats
 
 getFormat :: Id Format -> Maybe Format
 getFormat (Id i) = IntMap.lookup (fromIntegral i) formatsById
