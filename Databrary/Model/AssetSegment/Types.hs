@@ -95,7 +95,7 @@ instance Has Format AssetSegment where
     , Just _ <- assetDuration $ assetRow $ slotAsset a
     , Just _ <- Range.getPoint rng = s
     | otherwise = fmt
-    where fmt = view a
+    where fmt = getAssetSlotFormat a
 instance Has (Id Format) AssetSegment where
   view = formatId . view
 

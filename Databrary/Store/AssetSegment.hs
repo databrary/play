@@ -85,6 +85,7 @@ genVideoClip av src frame sz dst =
 getAssetSegmentStore :: AssetSegment -> Maybe Word16 -> ActionM (Either (Stream -> IO ()) RawFilePath)
 getAssetSegmentStore as sz
   | aimg && isJust sz || not (assetSegmentFull as) && isJust (assetDuration $ assetRow a) && isJust (formatSample afmt) = do
+  liftIO $ print "need to slice off a segment"
   Just af <- getAssetFile a
   av <- peek
   store <- peek
@@ -93,8 +94,8 @@ getAssetSegmentStore as sz
       cf = liftM2 (</>) cache $ assetSegmentFile as sz
       gen = genVideoClip av af (aimg ?!> clip) sz
   liftIO $ maybe
-    (return $ Left $ gen . Left)
-    (\f -> do
+    (return $ Left $ gen . Left) -- cache miss
+    (\f -> do -- cache hit
       fe <- fileExist f
       unless fe $ do
         tf <- makeTempFileAs (maybe (storageTemp store) (</> "tmp/") cache) (const $ return ()) rs
@@ -104,7 +105,9 @@ getAssetSegmentStore as sz
         renameTempFile tf f rs
       return $ Right f)
     cf
-  | otherwise = Right . fromJust <$> getAssetFile a
+  | otherwise = do
+  liftIO $ print "can serve full file, unsliced"
+  Right . fromJust <$> getAssetFile a
   where
   a = slotAsset $ segmentAsset as
   afmt = assetFormat $ assetRow a
