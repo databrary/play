@@ -14,7 +14,7 @@
 , warp-tls, web-inv-route, xml, zlib, gargoyle, gargoyle-postgresql
 , postgresql-simple, zip, conduit-combinators, binary, path, path-io
 , nodePackages, nodejs, openssl, dbName ? "databrary-nix-db", jdk
-, cpio
+, cpio, md5sum, cat, cut
 }:
 mkDerivation rec {
   pname = "databrary";
@@ -50,6 +50,7 @@ mkDerivation rec {
     nodePackages.shell.nodeDependencies
     nodejs
     jdk
+    # how add md5sum, cat, cut here?
   ];
   description = "Databrary";
   license = stdenv.lib.licenses.gpl3;
@@ -84,6 +85,7 @@ mkDerivation rec {
 
     cp messages.conf volume.json $data_outputdir
 
+    cp jsCssVersion.txt $data_outputdir
     mkdir $data_outputdir/web
     cd web
     cp all.min.css all.min.css.gz all.min.js all.min.js.gz constants.json constants.json.gz $data_outputdir/web

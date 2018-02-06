@@ -59,12 +59,14 @@ let
         rev = "87039dac83a8899a6c66fa681e6e77140b3ddacc";
         sha256 = "04xr8bl9mfcv0lmbb4y8ach7h44qbiyq925wjcl5x039bmz24f4k";
   };
+  inherit (nixpkgs) cat md5sum cut;
   # Define GHC compiler override
   pkgs = reflex-platform.ghc.override {
     overrides = self: super: rec {
       databrary = self.callPackage ./databrary.nix {
         # postgresql with ranges plugin
         inherit postgresql nodePackages;
+        inherit cat md5sum cut;
         # ffmpeg override with with --enable-libfdk-aac and --enable-nonfree flags set
         ffmpeg = nixpkgs.ffmpeg-full.override {
           nonfreeLicensing = true;
