@@ -98,4 +98,6 @@ generateAll = do
 
 generateWebFiles :: IO WebFileMap
 generateWebFiles = do
-  execStateT (either fail return =<< runExceptT generateAll) HM.empty
+  fm <- execStateT (either fail return =<< runExceptT generateAll) HM.empty
+  -- process call with two files, using getDataFileName 
+  pure fm

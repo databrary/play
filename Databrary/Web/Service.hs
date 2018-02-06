@@ -23,8 +23,8 @@ versionFile :: FilePath
 versionFile = "jsCssVersion.txt"
 
 initWeb :: IO Web
-initWeb = do -- TODO: update postFixup to generate this, based on gz files
-  -- TODO: should this IO happen earlier?
+initWeb = do
+  -- TODO: should this IO happen higher in call stack before initWeb?
   versionFilePath <- getDataFileName versionFile
   version <- (TE.encodeUtf8 . T.strip) <$> TIO.readFile versionFilePath -- strip - manually editing can introduce newline
   fmap (\mp -> Web mp version) $
