@@ -25,11 +25,14 @@ import Databrary.View.Template
 ngAttribute :: String -> H.AttributeValue -> H.Attribute
 ngAttribute = H.customAttribute . H.stringTag . ("ng-" <>)
 
-webURL :: BS.ByteString -> H.AttributeValue
+webURL :: BS.ByteString -> H.AttributeValue -- TODO: stop using this?
 webURL p = actionValue webFile (Just $ StaticPath p) ([] :: Query)
 
-htmlAngular :: [WebFilePath] -> [WebFilePath] -> BSB.Builder -> RequestContext -> H.Html
-htmlAngular cssDeps jsDeps nojs auth = H.docTypeHtml H.! ngAttribute "app" "databraryModule" $ do
+versionedWebURL :: BS.ByteString -> BS.ByteString -> H.AttributeValue
+versionedWebURL version p = actionValue webFile (Just $ StaticPath p) ([(version,Nothing)] :: Query)
+
+htmlAngular :: BS.ByteString -> [WebFilePath] -> [WebFilePath] -> BSB.Builder -> RequestContext -> H.Html
+htmlAngular assetsVersion cssDeps jsDeps nojs auth = H.docTypeHtml H.! ngAttribute "app" "databraryModule" $ do
   H.head $ do
     htmlHeader Nothing def
     H.noscript $
@@ -53,7 +56,7 @@ htmlAngular cssDeps jsDeps nojs auth = H.docTypeHtml H.! ngAttribute "app" "data
     forM_ cssDeps $ \css ->
       H.link
         H.! HA.rel "stylesheet"
-        H.! HA.href (webURL $ webFileRel css)
+        H.! HA.href (versionedWebURL assetsVersion $ webFileRel css)
     H.script $ do
       H.preEscapedString "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src= 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f); })(window,document,'script','dataLayer','GTM-NW6PSFL');"
     H.script $ do
@@ -67,7 +70,7 @@ htmlAngular cssDeps jsDeps nojs auth = H.docTypeHtml H.! ngAttribute "app" "data
       H.preEscapedString "};"
     forM_ jsDeps $ \js ->
       H.script
-        H.! HA.src (webURL $ webFileRel js)
+        H.! HA.src (versionedWebURL assetsVersion $ webFileRel js)
         $ return ()
   H.body
     H.! H.customAttribute "flow-prevent-drop" mempty
