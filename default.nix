@@ -72,7 +72,6 @@ let
           nonfreeLicensing = true;
           fdkaacExtlib = true;
         };
-	libavcodec = ffmpeg.libavcodec;
       };
       # cabal override to enable ghcid (GHCi daemon) development tool
       databrary-dev = overrideCabal databrary (drv: {
