@@ -4,7 +4,7 @@ module Databrary.Store.AssetSegment
   , getAssetSegmentStore
   ) where
 
-import Control.Monad (unless, liftM2)
+import Control.Monad (unless, liftM2, when)
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
@@ -58,6 +58,10 @@ genVideoClip _ src (Just clip) _ dst | Nothing <- Range.getPoint clip = do
   dstfp <- case dst of
     Left _ -> return "-"
     Right rp -> unRawFilePath rp
+  print ("about to slice video file")
+  let upperBoundArgs = maybe [] (\u -> ["-t", sb $ u - lb]) ub
+  print ("ffmpeg","-y", "-accurate_seek", "-ss", sb lb, "-i", srcfp, upperBoundArgs, "-codec copy"
+        , "-f mp4")
   P.withCheckedProcess (P.proc "ffmpeg" $
     [ "-y", "-accurate_seek"
     , "-loglevel", "error"
@@ -85,6 +89,7 @@ genVideoClip av src frame sz dst =
 getAssetSegmentStore :: AssetSegment -> Maybe Word16 -> ActionM (Either (Stream -> IO ()) RawFilePath)
 getAssetSegmentStore as sz
   | aimg && isJust sz || not (assetSegmentFull as) && isJust (assetDuration $ assetRow a) && isJust (formatSample afmt) = do
+  liftIO $ print "need to slice off a segment"
   Just af <- getAssetFile a
   av <- peek
   store <- peek
@@ -93,18 +98,23 @@ getAssetSegmentStore as sz
       cf = liftM2 (</>) cache $ assetSegmentFile as sz
       gen = genVideoClip av af (aimg ?!> clip) sz
   liftIO $ maybe
-    (return $ Left $ gen . Left)
-    (\f -> do
+    (return $ Left $ gen . Left) -- cache disabled or segment file missing(how could it be missing?)
+    (\f -> do -- cache enabled
+      print ("attempt to fetch prior cached slice or generate and cache slice")
       fe <- fileExist f
+      when fe (print "found a cached slice, reusing!")
       unless fe $ do
         tf <- makeTempFileAs (maybe (storageTemp store) (</> "tmp/") cache) (const $ return ()) rs
+        print ("generating cached slice at", tempFilePath tf)
         gen (Right (tempFilePath tf))
         _ <- createDir (takeDirectory f) 0o770
         setFileMode (tempFilePath tf) 0o640
         renameTempFile tf f rs
       return $ Right f)
     cf
-  | otherwise = Right . fromJust <$> getAssetFile a
+  | otherwise = do
+  liftIO $ print "can serve full file, unsliced"
+  Right . fromJust <$> getAssetFile a
   where
   a = slotAsset $ segmentAsset as
   afmt = assetFormat $ assetRow a
