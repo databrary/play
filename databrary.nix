@@ -39,7 +39,7 @@ mkDerivation rec {
     unordered-containers utf8-string vector wai wai-extra warp warp-tls
     web-inv-route xml zip zlib
   ];
-  librarySystemDepends = [ crack openssl openssl.dev ];
+  librarySystemDepends = [ cracklib openssl openssl.dev ];
   libraryPkgconfigDepends = [
     ffmpeg
   ];
@@ -57,7 +57,7 @@ mkDerivation rec {
     unordered-containers utf8-string vector wai wai-extra warp warp-tls
     web-inv-route xml zip zlib
   ];
-  executableSystemDepends = [ crack openssl openssl.dev ];
+  executableSystemDepends = [ cracklib openssl openssl.dev ];
   executablePkgconfigDepends = [
     ffmpeg
   ];
