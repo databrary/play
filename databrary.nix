@@ -41,7 +41,7 @@ mkDerivation rec {
   ];
   librarySystemDepends = [ crack openssl openssl.dev ];
   libraryPkgconfigDepends = [
-    ffmpeg ffmpeg.libavcodec ffmpeg.libavformat ffmpeg.libswscale
+    ffmpeg
   ];
   executableHaskellDepends = [
     aeson aeson-better-errors array attoparsec base bcrypt binary
@@ -59,7 +59,7 @@ mkDerivation rec {
   ];
   executableSystemDepends = [ crack openssl openssl.dev ];
   executablePkgconfigDepends = [
-    ffmpeg ffmpeg.libavcodec ffmpeg.libavformat ffmpeg.libswscale
+    ffmpeg
   ];
   executableToolDepends = [
     postgresql.postgres
