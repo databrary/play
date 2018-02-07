@@ -1,6 +1,6 @@
 { mkDerivation, aeson, aeson-better-errors, array, attoparsec, base
 , bcrypt, binary, blaze-html, blaze-markup, bytestring
-, case-insensitive, conduit-combinators, containers, cookie, crack
+, case-insensitive, conduit-combinators, containers, cookie, cracklib
 , cryptonite, data-default-class, directory, fast-logger, ffmpeg
 , filepath, hashable, hjsonschema, http-client, http-client-tls
 , http-types, invertible
