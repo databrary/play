@@ -3,6 +3,7 @@ module Databrary.Model.Asset.Types
   ( AssetRow(..)
   , Asset(..)
   , getAssetReleaseMaybe
+  , getAssetFormat
   , blankAsset
   ) where
 
@@ -43,6 +44,8 @@ makeHasRec ''AssetRow ['assetId, 'assetFormat, 'assetRelease]
 makeHasRec ''Asset ['assetRow, 'assetVolume]
 getAssetReleaseMaybe :: Asset -> Maybe Release
 getAssetReleaseMaybe = assetRelease . assetRow
+getAssetFormat :: Asset -> Format
+getAssetFormat = assetFormat . assetRow
 
 blankAsset :: Volume -> Asset
 blankAsset vol = Asset

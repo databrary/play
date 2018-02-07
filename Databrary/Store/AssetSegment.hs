@@ -58,6 +58,10 @@ genVideoClip _ src (Just clip) _ dst | Nothing <- Range.getPoint clip = do
   dstfp <- case dst of
     Left _ -> return "-"
     Right rp -> unRawFilePath rp
+  print ("about to slice video file")
+  let upperBoundArgs = maybe [] (\u -> ["-t", sb $ u - lb]) ub
+  print ("ffmpeg","-y", "-accurate_seek", "-ss", sb lb, "-i", srcfp, upperBoundArgs, "-codec copy"
+        , "-f mp4")
   P.withCheckedProcess (P.proc "ffmpeg" $
     [ "-y", "-accurate_seek"
     , "-loglevel", "error"
@@ -85,6 +89,7 @@ genVideoClip av src frame sz dst =
 getAssetSegmentStore :: AssetSegment -> Maybe Word16 -> ActionM (Either (Stream -> IO ()) RawFilePath)
 getAssetSegmentStore as sz
   | aimg && isJust sz || not (assetSegmentFull as) && isJust (assetDuration $ assetRow a) && isJust (formatSample afmt) = do
+  liftIO $ print "need to slice off a segment"
   Just af <- getAssetFile a
   av <- peek
   store <- peek
@@ -93,8 +98,9 @@ getAssetSegmentStore as sz
       cf = liftM2 (</>) cache $ assetSegmentFile as sz
       gen = genVideoClip av af (aimg ?!> clip) sz
   liftIO $ maybe
-    (return $ Left $ gen . Left)
-    (\f -> do
+    (return $ Left $ gen . Left) -- cache miss
+    (\f -> do -- cache hit
+      print ("reading existing clipping from cache")
       fe <- fileExist f
       unless fe $ do
         tf <- makeTempFileAs (maybe (storageTemp store) (</> "tmp/") cache) (const $ return ()) rs
@@ -104,7 +110,9 @@ getAssetSegmentStore as sz
         renameTempFile tf f rs
       return $ Right f)
     cf
-  | otherwise = Right . fromJust <$> getAssetFile a
+  | otherwise = do
+  liftIO $ print "can serve full file, unsliced"
+  Right . fromJust <$> getAssetFile a
   where
   a = slotAsset $ segmentAsset as
   afmt = assetFormat $ assetRow a
