@@ -1,44 +1,65 @@
 { mkDerivation, aeson, aeson-better-errors, array, attoparsec, base
-, bcrypt, blaze-html, blaze-markup, bytestring
-, case-insensitive, containers, cookie, cracklib, cryptonite
-, data-default-class, directory, fast-logger, ffmpeg
-, filepath, hashable, hjsonschema
-, http-client, http-client-tls, http-types, invertible
-, lifted-base, memory, mime-mail, mime-types, postgresql
-, monad-control, mtl, network, network-uri, parsec, posix-paths
-, postgresql-typed, process, range-set-list, regex-posix
-, resource-pool, resourcet, scientific, smtp-mail, stdenv
-, streaming-commons, template-haskell, text, th-lift
+, bcrypt, binary, blaze-html, blaze-markup, bytestring
+, case-insensitive, conduit-combinators, containers, cookie, cracklib
+, cryptonite, data-default-class, directory, fast-logger, ffmpeg
+, filepath, hashable, hjsonschema, http-client, http-client-tls
+, http-types, invertible
+, lifted-base, memory, mime-mail, mime-types, monad-control, mtl
+, network, network-uri, openssl, parsec, path, path-io, posix-paths
+, postgresql-simple, postgresql-typed, process, range-set-list
+, regex-posix, resource-pool, resourcet, scientific, smtp-mail
+, stdenv, streaming-commons, template-haskell, text, th-lift
 , th-lift-instances, time, transformers, transformers-base, unix
 , unordered-containers, utf8-string, vector, wai, wai-extra, warp
-, warp-tls, web-inv-route, xml, zlib, gargoyle, gargoyle-postgresql
-, postgresql-simple, zip, conduit-combinators, binary, path, path-io
-, nodePackages, nodejs, openssl, dbName ? "databrary-nix-db", jdk
+, warp-tls, web-inv-route, xml, zip, zlib
+, gargoyle, gargoyle-postgresql, postgresql
+, nodePackages, nodejs, dbName ? "databrary-nix-db", jdk
 , cpio, md5sum, cat, cut
 }:
 mkDerivation rec {
   pname = "databrary";
   doCheck = false;
+  doHaddock = false;
   version = "1";
-  src = builtins.filterSource 
-    (path: type: type == "directory" || baseNameOf path != ".git" || baseNameOf path == ".cabal" || path != dbName)
+  src =
+    # builtins.filterSource 
+    # (path: type: type == "directory" || baseNameOf path != ".git" || baseNameOf path == ".cabal" || path != dbName)
     ./.;
-  isLibrary = false;
+  isLibrary = true;
   isExecutable = true;
-  executableHaskellDepends = [
-    aeson aeson-better-errors array attoparsec base bcrypt
+  libraryHaskellDepends = [
+    aeson aeson-better-errors array attoparsec base bcrypt binary
     blaze-html blaze-markup bytestring case-insensitive
-    containers cookie cryptonite data-default-class directory
-    fast-logger filepath hashable
-    hjsonschema http-client http-client-tls http-types invertible
-    lifted-base memory mime-mail mime-types monad-control mtl network
-    network-uri parsec posix-paths postgresql-typed process range-set-list
-    regex-posix resource-pool resourcet scientific smtp-mail
-    streaming-commons template-haskell text th-lift th-lift-instances
-    time transformers transformers-base unix unordered-containers
-    utf8-string vector wai wai-extra warp warp-tls web-inv-route xml
-    zlib gargoyle gargoyle-postgresql zip conduit-combinators path path-io
-    postgresql-simple binary
+    conduit-combinators containers cookie cryptonite data-default-class
+    directory fast-logger filepath hashable hjsonschema http-client
+    http-client-tls http-types invertible lifted-base memory mime-mail
+    mime-types monad-control mtl network network-uri parsec path
+    path-io posix-paths postgresql-simple postgresql-typed process
+    range-set-list regex-posix resource-pool resourcet scientific
+    smtp-mail streaming-commons template-haskell text th-lift
+    th-lift-instances time transformers transformers-base unix
+    unordered-containers utf8-string vector wai wai-extra warp warp-tls
+    web-inv-route xml zip zlib
+    gargoyle gargoyle-postgresql
+  ];
+  librarySystemDepends = [ cracklib openssl openssl.dev ];
+  libraryPkgconfigDepends = [
+    ffmpeg
+  ];
+  executableHaskellDepends = [
+    aeson aeson-better-errors array attoparsec base bcrypt binary
+    blaze-html blaze-markup bytestring case-insensitive
+    conduit-combinators containers cookie cryptonite data-default-class
+    directory fast-logger filepath hashable hjsonschema http-client
+    http-client-tls http-types invertible lifted-base memory mime-mail
+    mime-types monad-control mtl network network-uri parsec path
+    path-io posix-paths postgresql-simple postgresql-typed process
+    range-set-list regex-posix resource-pool resourcet scientific
+    smtp-mail streaming-commons template-haskell text th-lift
+    th-lift-instances time transformers transformers-base unix
+    unordered-containers utf8-string vector wai wai-extra warp warp-tls
+    web-inv-route xml zip zlib
+    gargoyle gargoyle-postgresql
   ];
   executableSystemDepends = [ cracklib openssl openssl.dev ];
   executablePkgconfigDepends = [
@@ -77,6 +98,7 @@ mkDerivation rec {
     databrary_datadir=. dist/build/databrary/databrary -w
   '';
   postInstall = '' 
+    export dontPatchELF=1
   '';
   postFixup = ''
     data_basedir="$out/share/x86_64-linux-ghc-8.0.2"
