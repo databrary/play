@@ -12,7 +12,7 @@
 , th-lift-instances, time, transformers, transformers-base, unix
 , unordered-containers, utf8-string, vector, wai, wai-extra, warp
 , warp-tls, web-inv-route, xml, zip, zlib
-, nodePackages, nodejs, openssl, dbName ? "databrary-nix-db", jdk
+, nodePackages, nodejs, dbName ? "databrary-nix-db", jdk
 , cpio, md5sum, cat, cut
 }:
 mkDerivation rec {
