@@ -15,7 +15,7 @@
 , nodePackages, nodejs, openssl, dbName ? "databrary-nix-db", jdk
 , cpio, md5sum, cat, cut
 }:
-mkDerivation {
+mkDerivation rec {
   pname = "databrary";
   doCheck = false;
   version = "1";
