@@ -6,6 +6,7 @@ module Databrary.Controller.Angular
   ) where
 
 import Control.Arrow (second)
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import Data.Default.Class (Default(..))
 import Network.HTTP.Types (hUserAgent, QueryLike(..))
@@ -22,6 +23,7 @@ import Databrary.HTTP (encodePath')
 import Databrary.HTTP.Request
 import Databrary.View.Angular
 import Databrary.Web
+import Databrary.Web.Service (Web, getWebVersion)
 import Databrary.Web.Libs
 
 data JSOpt
@@ -68,8 +70,8 @@ angularRequest :: Wai.Request -> Maybe BSB.Builder
 angularRequest req = angularEnable js req ?> nojs
   where (js, nojs) = jsURL JSDisabled req
 
-angularResult :: BSB.Builder -> RequestContext -> IO ()
-angularResult nojs auth = do
+angularResult :: BS.ByteString -> BSB.Builder -> RequestContext -> IO ()
+angularResult version nojs auth = do
   debug <-
 #ifdef DEVEL
     boolQueryParameter "debug" (view auth) ?$> liftIO appWebJS
@@ -85,7 +87,18 @@ angularResult nojs auth = do
       d <- makeWebFilePath "debug.js"
       return $ w ++ (d : debug')
     Nothing -> (:[]) <$> makeWebFilePath "all.min.js"
-  result $ okResponse [] (htmlAngular cssDeps jsDeps nojs auth)
+  result $ okResponse [] (htmlAngular version cssDeps jsDeps nojs auth)
 
 angular :: ActionM ()
-angular = mapM_ (focusIO . angularResult) =<< peeks angularRequest
+angular = do
+  (servWeb :: Web) <- peek
+  let version = getWebVersion servWeb
+  (b :: Maybe BSB.Builder) <- peeks angularRequest
+  mapM_
+    (\nojsBldr ->
+       let
+         angularResultNoJs :: RequestContext -> IO ()
+         angularResultNoJs = angularResult version nojsBldr
+       in
+         focusIO angularResultNoJs)
+    b 

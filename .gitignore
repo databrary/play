@@ -63,3 +63,6 @@ databrary-nix-db/
 # cached downloaded dependency
 /solr-6.6.0/
 /cracklib/
+
+# computed version file
+/jsCssVersion.txt

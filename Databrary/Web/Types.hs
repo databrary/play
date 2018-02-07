@@ -33,6 +33,7 @@ data Web = Web
     MVar
 #endif
       WebFileMap
+  , webVersion :: BS.ByteString -- Compute hash or increment of all js and css files
   }
 
 type WebGeneratorM a = ExceptT String (StateT WebFileMap IO) a

@@ -10,6 +10,7 @@ import Control.Monad.State.Strict (execStateT, modify, gets)
 import Control.Monad.Trans.Except (runExceptT, withExceptT)
 import qualified Data.HashMap.Strict as HM
 import qualified System.Posix.FilePath as RF
+import System.Process (callCommand)
 
 import Databrary.Ops (fromMaybeM)
 import Databrary.Files (RawFilePath)
@@ -98,4 +99,7 @@ generateAll = do
 
 generateWebFiles :: IO WebFileMap
 generateWebFiles = do
-  execStateT (either fail return =<< runExceptT generateAll) HM.empty
+  fm <- execStateT (either fail return =<< runExceptT generateAll) HM.empty
+  -- TODO: variables for filenames
+  callCommand "cat web/all.min.js web/all.min.css | md5sum | cut -d ' ' -f 1 > jsCssVersion.txt"
+  pure fm
