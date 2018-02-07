@@ -6,7 +6,7 @@ usr=$1
 rcvr="$usr@databrary2.home.nyu.edu"
 echo "building Databrary binaries..."
 # if /tmp is too small for major nix builds, create appropriate dir, then use TMPDIR=... build-package-copy-prep ...
-RESULT="$(nix-build --attr databrary --show-trace --keep-failed)"
+RESULT="$(nix-build --attr databrary --show-trace --keep-failed --cores 4)"
 nix-copy-closure --to "$rcvr" "$RESULT"
 echo "copy closure of Databrary binaries completed..."
 
