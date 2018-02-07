@@ -21,8 +21,9 @@ mkDerivation rec {
   doCheck = false;
   doHaddock = false;
   version = "1";
-  src = builtins.filterSource 
-    (path: type: type == "directory" || baseNameOf path != ".git" || baseNameOf path == ".cabal" || path != dbName)
+  src =
+    # builtins.filterSource 
+    # (path: type: type == "directory" || baseNameOf path != ".git" || baseNameOf path == ".cabal" || path != dbName)
     ./.;
   isLibrary = true;
   isExecutable = true;
