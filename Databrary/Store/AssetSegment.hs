@@ -4,7 +4,7 @@ module Databrary.Store.AssetSegment
   , getAssetSegmentStore
   ) where
 
-import Control.Monad (unless, liftM2)
+import Control.Monad (unless, liftM2, when)
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
@@ -98,12 +98,14 @@ getAssetSegmentStore as sz
       cf = liftM2 (</>) cache $ assetSegmentFile as sz
       gen = genVideoClip av af (aimg ?!> clip) sz
   liftIO $ maybe
-    (return $ Left $ gen . Left) -- cache miss
-    (\f -> do -- cache hit
-      print ("reading existing clipping from cache")
+    (return $ Left $ gen . Left) -- cache disabled or segment file missing(how could it be missing?)
+    (\f -> do -- cache enabled
+      print ("attempt to fetch prior cached slice or generate and cache slice")
       fe <- fileExist f
+      when fe (print "found a cached slice, reusing!")
       unless fe $ do
         tf <- makeTempFileAs (maybe (storageTemp store) (</> "tmp/") cache) (const $ return ()) rs
+        print ("generating cached slice at", tempFilePath tf)
         gen (Right (tempFilePath tf))
         _ <- createDir (takeDirectory f) 0o770
         setFileMode (tempFilePath tf) 0o640
