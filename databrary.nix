@@ -38,6 +38,7 @@ mkDerivation rec {
     th-lift-instances time transformers transformers-base unix
     unordered-containers utf8-string vector wai wai-extra warp warp-tls
     web-inv-route xml zip zlib
+    gargoyle gargoyle-postgresql
   ];
   librarySystemDepends = [ cracklib openssl openssl.dev ];
   libraryPkgconfigDepends = [
@@ -56,6 +57,7 @@ mkDerivation rec {
     th-lift-instances time transformers transformers-base unix
     unordered-containers utf8-string vector wai wai-extra warp warp-tls
     web-inv-route xml zip zlib
+    gargoyle gargoyle-postgreql
   ];
   executableSystemDepends = [ cracklib openssl openssl.dev ];
   executablePkgconfigDepends = [
