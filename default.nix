@@ -50,7 +50,7 @@ let
     fi
     rm -rf dist
     cabal configure --datadir=. --datasubdir=.
-    cabal repl databrary
+    cabal repl exe:databrary
   '';
   postgresql = import ./db.nix { inherit nixpkgs; };
   gargoyleSrc = fetchFromGitHub {
