@@ -98,6 +98,7 @@ mkDerivation rec {
     databrary_datadir=. dist/build/databrary/databrary -w
   '';
   postInstall = '' 
+    export dontPatchELF=1
   '';
   postFixup = ''
     data_basedir="$out/share/x86_64-linux-ghc-8.0.2"
