@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Controller.Asset
   ( getAsset
   -- , getOrigAsset
@@ -178,7 +178,7 @@ processAsset api target = do
     liftIO $ putStrLn "deformed file..." --DEBUG
     upload <- "upload" .:> deformLookup "Uploaded file not found." lookupUpload
     liftIO $ putStrLn "upload file..." --DEBUG
-    upfile <- case (file, upload) of
+    (upfile :: Maybe FileUploadFile) <- case (file, upload) of
       (Just f, Nothing) -> return $ Just $ FileUploadForm f
       (Nothing, Just u) -> return $ Just $ FileUploadToken u
       (Nothing, Nothing)
