@@ -167,8 +167,8 @@ processAsset :: API -> AssetTarget -> ActionM Response
 processAsset api target = do
   let as@AssetSlot{ slotAsset = a, assetSlot = s } = case target of
         AssetTargetVolume t -> assetNoSlot $ blankAsset t
-        AssetTargetSlot t -> AssetSlot (blankAsset (view t)) (Just t)
-        AssetTargetAsset t -> t
+        AssetTargetSlot t -> AssetSlot (blankAsset (view t)) (Just t)  -- Adding asset to a slot
+        AssetTargetAsset t -> t  -- Creating the asset, disconnected??
   (as', up') <- runFormFiles [("file", maxAssetSize)] (api == HTML ?> htmlAssetEdit target) $ do
     liftIO $ putStrLn "runFormFiles..."--DEBUG
     csrfForm
