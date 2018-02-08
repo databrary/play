@@ -130,7 +130,7 @@ viewAsset = action GET (pathAPI </> pathId) $ \(api, i) -> withAuth $ do
 
 data AssetTarget
   = AssetTargetVolume Volume
-  | AssetTargetVolumeCopy Volume
+  | AssetTargetVolumeCopy Volume AssetSlot
   | AssetTargetSlot Slot
   | AssetTargetAsset AssetSlot
 
@@ -168,12 +168,13 @@ processAsset :: API -> AssetTarget -> ActionM Response
 processAsset api target = do
   let as@AssetSlot{ slotAsset = a, assetSlot = s } = case target of
         AssetTargetVolume t -> assetNoSlot $ blankAsset t -- Adding new asset to a container (always?)
-        AssetTargetVolumeCopy t -> assetNoSlot $ blankAsset t -- Copy new asset to a new container
+        AssetTargetVolumeCopy t sourceAsset -> assetNoSlot $ blankAsset t -- Copy new asset to a new container
         AssetTargetSlot t -> AssetSlot (blankAsset (view t)) (Just t)  -- ...
         AssetTargetAsset t -> t  -- Updating the asset
   (as', up') <- runFormFiles [("file", maxAssetSize)] (api == HTML ?> htmlAssetEdit target) $ do
     liftIO $ putStrLn "runFormFiles..."--DEBUG
     csrfForm
+    
     file <- "file" .:> deform
     liftIO $ putStrLn "deformed file..." --DEBUG
     upload <- "upload" .:> deformLookup "Uploaded file not found." lookupUpload
@@ -183,20 +184,26 @@ processAsset api target = do
       (Nothing, Just u) -> return $ Just $ FileUploadToken u
       (Nothing, Nothing)
         | AssetTargetAsset _ <- target -> return Nothing
-        | AssetTargetVolumeCopy _ <- target -> return Nothing -- TODO: return more information to distinguish?
+        | AssetTargetVolumeCopy _ _ <- target -> return Nothing -- TODO: return more information to distinguish?
         | otherwise -> Nothing <$ deformError "File or upload required."
       _ -> Nothing <$ deformError "Conflicting uploaded files found."
     (up :: Maybe FileUpload) <- (mapM detectUpload upfile :: DeformActionM TempFile (Maybe FileUpload))
     liftIO $ putStrLn "upfile cased..." --DEBUG
-    let fmt = maybe (assetFormat $ assetRow a) (probeFormat . fileUploadProbe) up
+    let sourceInfoAsset =
+          case target of
+            AssetTargetVolumeCopy _ sourceAsset -> slotAsset sourceAsset
+            _ -> a
+    let fmt = maybe (assetFormat $ assetRow sourceInfoAsset) (probeFormat . fileUploadProbe) up  -- TODO: should load source asset earlier, use it here
     liftIO $ putStrLn "format upload probe..." --DEBUG
-    name <- "name" .:> maybe (assetName $ assetRow a) (TE.decodeUtf8 . dropFormatExtension fmt <$>) <$> deformOptional (deformNonEmpty deform)
+    name <- "name" .:> maybe (assetName $ assetRow sourceInfoAsset) (TE.decodeUtf8 . dropFormatExtension fmt <$>) <$> deformOptional (deformNonEmpty deform)  -- TODO: use source asset here
     liftIO $ putStrLn "renamed asset..." --DEBUG
-    classification <- "classification" .:> fromMaybe (assetRelease $ assetRow a) <$> deformOptional (deformNonEmpty deform)
+
+    classification <- "classification" .:> fromMaybe (assetRelease $ assetRow sourceInfoAsset) <$> deformOptional (deformNonEmpty deform) -- TODO: use source asset here
     liftIO $ putStrLn "classification deformed..." --DEBUG
+
     slot <-
       "container" .:> (<|> slotContainer <$> s) <$> deformLookup "Container not found." (lookupVolumeContainer (assetVolume a))
-      >>= mapM (\c -> "position" .:> do
+      >>= mapM (\c -> "position" .:> do  -- TODO: adjust below to always use auto position
         let seg = slotSegment <$> s
             dur = maybe (assetDuration $ assetRow a) (probeLength . fileUploadProbe) up
         p <- fromMaybe (lowerBound . segmentRange =<< seg) <$> deformOptional (deformNonEmpty deform)
@@ -204,7 +211,8 @@ processAsset api target = do
           (\l -> Segment $ Range.bounded l (l + fromMaybe 0 ((segmentLength =<< seg) <|> dur)))
           <$> orElseM p (mapM (lift . probeAutoPosition c . Just . fileUploadProbe) (guard (isNothing s && isJust dur) >> up)))
     liftIO $ putStrLn "slot assigned..." --DEBUG
-    return
+
+    return --- At this point, we have extracted all request values from body, reconciled with existing upload/asset data
       ( as
         { slotAsset = a
           { assetRow = (assetRow a)
@@ -217,7 +225,11 @@ processAsset api target = do
         }
       , up
       )
-  as'' <- maybe (return as') (\up@FileUpload{ fileUploadFile = upfile } -> do
+  -- if we just connected an upload to an asset, then check whether a transcoding is needed and trigger/reuse transcoding if so
+  as'' <-
+    maybe
+      (return as')
+      (\up@FileUpload{ fileUploadFile = upfile } -> do
     a' <- addAsset (slotAsset as')
       { assetRow = (assetRow $ slotAsset as')
         { assetName = Just $ TE.decodeUtf8 $ fileUploadName upfile
@@ -248,8 +260,10 @@ processAsset api target = do
         }
       })
     up'
+  -- save the update or new asset
   a' <- changeAsset (slotAsset as'') Nothing
   liftIO $ putStrLn "changed asset..." --DEBUG
+  -- save the connect to the slot (new or updated). any assets not connected to a slot at this point?
   _ <- changeAssetSlot as''
   liftIO $ putStrLn "change asset slot..." --DEBUG
   when (assetRelease (assetRow a') == Just ReleasePUBLIC && assetRelease (assetRow a) /= Just ReleasePUBLIC) $
@@ -287,12 +301,13 @@ createAsset = multipartAction $ action POST (pathAPI </> pathId </< "asset") $ \
   liftIO $ print "processing asset..."
   processAsset api $ AssetTargetVolume v
 
-copyAssetBetweenContainers :: ActionRoute (API, Id Volume)
-copyAssetBetweenContainers = multipartAction $ action POST (pathAPI </> pathId </< "copyAsset") $ \(api, vi) -> withAuth $ do
+copyAssetBetweenContainers :: ActionRoute (API, (Id Volume, Id Asset))  -- Slot asset instead of asset?
+copyAssetBetweenContainers = multipartAction $ action POST (pathAPI </> (pathId </< "copyAsset") </> pathId) $ \(api, (vi, assetId)) -> withAuth $ do
   liftIO $ print "getting volume permission..."
   v <- getVolume PermissionEDIT vi
+  asset <- getAsset False PermissionEDIT False assetId
   liftIO $ print "processing asset..."
-  processAsset api $ AssetTargetVolume v
+  processAsset api $ AssetTargetVolumeCopy v asset
 
 viewAssetCreate :: ActionRoute (Id Volume)
 viewAssetCreate = action GET (pathHTML >/> pathId </< "asset") $ \vi -> withAuth $ do
