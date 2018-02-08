@@ -130,6 +130,7 @@ viewAsset = action GET (pathAPI </> pathId) $ \(api, i) -> withAuth $ do
 
 data AssetTarget
   = AssetTargetVolume Volume
+  | AssetTargetVolumeCopy Volume
   | AssetTargetSlot Slot
   | AssetTargetAsset AssetSlot
 
@@ -166,9 +167,10 @@ detectUpload u = do
 processAsset :: API -> AssetTarget -> ActionM Response
 processAsset api target = do
   let as@AssetSlot{ slotAsset = a, assetSlot = s } = case target of
-        AssetTargetVolume t -> assetNoSlot $ blankAsset t
-        AssetTargetSlot t -> AssetSlot (blankAsset (view t)) (Just t)  -- Adding asset to a slot
-        AssetTargetAsset t -> t  -- Creating the asset, disconnected??
+        AssetTargetVolume t -> assetNoSlot $ blankAsset t -- Adding new asset to a container (always?)
+        AssetTargetVolumeCopy t -> assetNoSlot $ blankAsset t -- Copy new asset to a new container
+        AssetTargetSlot t -> AssetSlot (blankAsset (view t)) (Just t)  -- ...
+        AssetTargetAsset t -> t  -- Updating the asset
   (as', up') <- runFormFiles [("file", maxAssetSize)] (api == HTML ?> htmlAssetEdit target) $ do
     liftIO $ putStrLn "runFormFiles..."--DEBUG
     csrfForm
@@ -181,6 +183,7 @@ processAsset api target = do
       (Nothing, Just u) -> return $ Just $ FileUploadToken u
       (Nothing, Nothing)
         | AssetTargetAsset _ <- target -> return Nothing
+        | AssetTargetVolumeCopy _ <- target -> return Nothing -- TODO: return more information to distinguish?
         | otherwise -> Nothing <$ deformError "File or upload required."
       _ -> Nothing <$ deformError "Conflicting uploaded files found."
     up <- mapM detectUpload upfile
@@ -279,6 +282,13 @@ viewAssetEdit = action GET (pathHTML >/> pathId </< "edit") $ \ai -> withAuth $ 
 
 createAsset :: ActionRoute (API, Id Volume)
 createAsset = multipartAction $ action POST (pathAPI </> pathId </< "asset") $ \(api, vi) -> withAuth $ do
+  liftIO $ print "getting volume permission..."
+  v <- getVolume PermissionEDIT vi
+  liftIO $ print "processing asset..."
+  processAsset api $ AssetTargetVolume v
+
+copyAssetBetweenContainers :: ActionRoute (API, Id Volume)
+copyAssetBetweenContainers = multipartAction $ action POST (pathAPI </> pathId </< "copyAsset") $ \(api, vi) -> withAuth $ do
   liftIO $ print "getting volume permission..."
   v <- getVolume PermissionEDIT vi
   liftIO $ print "processing asset..."
