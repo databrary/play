@@ -14,7 +14,7 @@
 , warp-tls, web-inv-route, xml, zip, zlib
 , gargoyle, gargoyle-postgresql, postgresql
 , nodePackages, nodejs, dbName ? "databrary-nix-db", jdk
-, cpio, md5sum, cat, cut
+, cpio, coreutils
 }:
 mkDerivation rec {
   pname = "databrary";
@@ -71,7 +71,7 @@ mkDerivation rec {
     nodePackages.shell.nodeDependencies
     nodejs
     jdk
-    # how add md5sum, cat, cut here?
+    coreutils # cat, cut, md5sum
   ];
   description = "Databrary";
   license = stdenv.lib.licenses.gpl3;
