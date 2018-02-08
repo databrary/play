@@ -186,7 +186,7 @@ processAsset api target = do
         | AssetTargetVolumeCopy _ <- target -> return Nothing -- TODO: return more information to distinguish?
         | otherwise -> Nothing <$ deformError "File or upload required."
       _ -> Nothing <$ deformError "Conflicting uploaded files found."
-    up <- mapM detectUpload upfile
+    (up :: Maybe FileUpload) <- (mapM detectUpload upfile :: DeformActionM TempFile (Maybe FileUpload))
     liftIO $ putStrLn "upfile cased..." --DEBUG
     let fmt = maybe (assetFormat $ assetRow a) (probeFormat . fileUploadProbe) up
     liftIO $ putStrLn "format upload probe..." --DEBUG
