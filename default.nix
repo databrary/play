@@ -12,22 +12,22 @@ let
   }) {};
   # Definition of nixpkgs, version controlled by Reflex-FRP
   nixpkgs = reflex-platform.nixpkgs;
-  inherit (nixpkgs) fetchFromGitHub writeScriptBin cpio;
+  inherit (nixpkgs) fetchFromGitHub writeScriptBin cpio wget;
   # nixpkgs functions used to regulate Haskell overrides
   inherit (nixpkgs.haskell.lib) dontCheck overrideCabal doJailbreak;
   ghciDatabrary = writeScriptBin "ghci-databrary" ''
     if [ ! -d "solr-6.6.0" ]; then
       if [ ! -d "/tmp/solr-6.6.0" ]; then
         pushd /tmp > /dev/null
-        wget -qO- http://archive.apache.org/dist/lucene/solr/6.6.0/solr-6.6.0.tgz | tar -zxv
+        ${wget}/bin/wget -qO- http://archive.apache.org/dist/lucene/solr/6.6.0/solr-6.6.0.tgz | tar -zxv
 	popd > /dev/null
       fi
       cp -R /tmp/solr-6.6.0 .
     fi
     if [ ! -d "cracklib" ]; then
       echo download and create cracklib dict
-      # wget http://mirror.centos.org/centos/7/os/x86_64/Packages/cracklib-dicts-2.9.0-11.el7.x86_64.rpm
-      # rpm2cpio cracklib-dicts-2.9.0-11.el7.x86_64.rpm > tmp/cracklib-dicts-2.9.0-11.el7.x86_64.cpio
+      # {wget}/bin/wget http://mirror.centos.org/centos/7/os/x86_64/Packages/cracklib-dicts-2.9.0-11.el7.x86_64.rpm
+      # {rpm}/bin/rpm2cpio cracklib-dicts-2.9.0-11.el7.x86_64.rpm > tmp/cracklib-dicts-2.9.0-11.el7.x86_64.cpio
       cp install/cracklib-dicts-2.9.0-11.el7.x86_64.cpio /tmp
       cd /tmp
       ${cpio}/bin/cpio -idmv < cracklib-dicts-2.9.0-11.el7.x86_64.cpio
@@ -48,6 +48,9 @@ let
       mkdir databrary_logs
       touch databrary_logs/solr_log
     fi
+    if [ ! -e "config/email" ]; then
+      cp install/config.email config/email
+    fi
     rm -rf dist
     cabal configure --datadir=. --datasubdir=.
     cabal repl exe:databrary
@@ -59,14 +62,13 @@ let
         rev = "87039dac83a8899a6c66fa681e6e77140b3ddacc";
         sha256 = "04xr8bl9mfcv0lmbb4y8ach7h44qbiyq925wjcl5x039bmz24f4k";
   };
-  inherit (nixpkgs) cat md5sum cut;
+  inherit (nixpkgs) coreutils;
   # Define GHC compiler override
   pkgs = reflex-platform.ghc.override {
     overrides = self: super: rec {
       databrary = self.callPackage ./databrary.nix {
         # postgresql with ranges plugin
-        inherit postgresql nodePackages;
-        inherit cat md5sum cut;
+        inherit postgresql nodePackages coreutils;
         # ffmpeg override with with --enable-libfdk-aac and --enable-nonfree flags set
         ffmpeg = nixpkgs.ffmpeg-full.override {
           nonfreeLicensing = true;
@@ -75,7 +77,7 @@ let
       };
       # cabal override to enable ghcid (GHCi daemon) development tool
       databrary-dev = overrideCabal databrary (drv: {
-        libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ (with self; [ghcid cabal-install ghciDatabrary nixpkgs.wget]);
+        libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ (with self; [ghcid cabal-install ghciDatabrary]);
       });
       gargoyle = self.callPackage "${gargoyleSrc}/gargoyle" {};
       gargoyle-postgresql= self.callPackage "${gargoyleSrc}/gargoyle-postgresql" {};
