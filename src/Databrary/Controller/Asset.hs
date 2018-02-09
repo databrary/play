@@ -190,10 +190,10 @@ processAsset api target = do
     (up :: Maybe FileUpload) <- (mapM detectUpload upfile :: DeformActionM TempFile (Maybe FileUpload))
     liftIO $ putStrLn "upfile cased..." --DEBUG
     let sourceInfoAsset =
-          case target of
+          case target of -- TODO: more elegant
             AssetTargetVolumeCopy _ sourceAsset -> slotAsset sourceAsset
             _ -> a
-    let fmt = maybe (assetFormat $ assetRow sourceInfoAsset) (probeFormat . fileUploadProbe) up  -- TODO: should load source asset earlier, use it here
+    let fmt = maybe (assetFormat $ assetRow sourceInfoAsset) (probeFormat . fileUploadProbe) up
     liftIO $ putStrLn "format upload probe..." --DEBUG
     name <- "name" .:> maybe (assetName $ assetRow sourceInfoAsset) (TE.decodeUtf8 . dropFormatExtension fmt <$>) <$> deformOptional (deformNonEmpty deform)  -- TODO: use source asset here
     liftIO $ putStrLn "renamed asset..." --DEBUG
@@ -202,10 +202,10 @@ processAsset api target = do
     liftIO $ putStrLn "classification deformed..." --DEBUG
 
     slot <-
-      "container" .:> (<|> slotContainer <$> s) <$> deformLookup "Container not found." (lookupVolumeContainer (assetVolume a))
+      "container" .:> (<|> slotContainer <$> s) <$> deformLookup "Container not found." (lookupVolumeContainer (assetVolume sourceInfoAsset))
       >>= mapM (\c -> "position" .:> do  -- TODO: adjust below to always use auto position
         let seg = slotSegment <$> s
-            dur = maybe (assetDuration $ assetRow a) (probeLength . fileUploadProbe) up
+            dur = maybe (assetDuration $ assetRow sourceInfoAsset) (probeLength . fileUploadProbe) up
         p <- fromMaybe (lowerBound . segmentRange =<< seg) <$> deformOptional (deformNonEmpty deform)
         Slot c . maybe fullSegment
           (\l -> Segment $ Range.bounded l (l + fromMaybe 0 ((segmentLength =<< seg) <|> dur)))
