@@ -8,6 +8,7 @@ module Databrary.Controller.Asset
   , postAsset
   , viewAssetEdit
   , createAsset
+  , copyAssetBetweenContainers
   , viewAssetCreate
   , createSlotAsset
   , viewSlotAssetCreate
@@ -225,12 +226,12 @@ processAsset api target = do
         }
       , up
       )
-  -- if we just connected an upload to an asset, then check whether a transcoding is needed and trigger/reuse transcoding if so
+  -- if we just connected an upload to an asset, then check whether a transcoding is needed and trigger/reuse transcoding if so.
   as'' <-
     maybe
       (return as')
       (\up@FileUpload{ fileUploadFile = upfile } -> do
-    a' <- addAsset (slotAsset as')
+    a' <- addAsset (slotAsset as')  -- create new asset
       { assetRow = (assetRow $ slotAsset as')
         { assetName = Just $ TE.decodeUtf8 $ fileUploadName upfile
         , assetDuration = Nothing
@@ -252,7 +253,7 @@ processAsset api target = do
     case target of
       AssetTargetAsset _ -> replaceAsset a t
       _ -> return ()
-    return $ fixAssetSlotDuration as'
+    return $ fixAssetSlotDuration as'  -- TODO: do this also during copy
       { slotAsset = t
         { assetRow = (assetRow t)
           { assetName = assetName $ assetRow $ slotAsset as'
@@ -260,12 +261,35 @@ processAsset api target = do
         }
       })
     up'
-  -- save the update or new asset
-  a' <- changeAsset (slotAsset as'') Nothing
-  liftIO $ putStrLn "changed asset..." --DEBUG
-  -- save the connect to the slot (new or updated). any assets not connected to a slot at this point?
-  _ <- changeAssetSlot as''
-  liftIO $ putStrLn "change asset slot..." --DEBUG
+  liftIO $ print ("finish creating uploaded asset, triggering transcode")
+  as''' <- 
+    case target of -- TODO: more elegant
+      AssetTargetVolumeCopy _ sourceAsset -> do
+        mFp <- getAssetFile (slotAsset sourceAsset) -- TODO: more robust
+        a' <- addAsset (slotAsset as') mFp
+        liftIO $ print ("finished created asset for copy")
+        a'' <- changeAsset (a') Nothing
+        liftIO $ putStrLn "changed asset..." --DEBUG
+        _ <- changeAssetSlot (as'' { slotAsset = a'' })
+        liftIO $ putStrLn "change asset slot..." --DEBUG
+          -- { assetRow = (assetRow $ slotAsset as')
+          --   { assetName = Just $ TE.decodeUtf8 $ fileUploadName upfile
+          --   , assetDuration = Nothing
+          --   , assetSize = Nothing
+          --   , assetSHA1 = Nothing
+          --   }
+          -- } . Just =<< peeks (fileUploadPath upfile)
+        return (as'' { slotAsset = a'' })
+      _ -> do
+        -- save the updated asset
+        a' <- changeAsset (slotAsset as'') Nothing
+        liftIO $ putStrLn "changed asset..." --DEBUG
+        -- save the connect to the slot (new or updated). any assets not connected to a slot at this point?
+        _ <- changeAssetSlot as''
+        liftIO $ putStrLn "change asset slot..." --DEBUG
+        return as''
+  -- TODO: add below back
+  {-
   when (assetRelease (assetRow a') == Just ReleasePUBLIC && assetRelease (assetRow a) /= Just ReleasePUBLIC) $
     createVolumeNotification (assetVolume a') $ \n -> (n NoticeReleaseAsset)
       { notificationContainerId = containerId . containerRow . slotContainer <$> assetSlot as''
@@ -273,13 +297,14 @@ processAsset api target = do
       , notificationAssetId = Just $ assetId $ assetRow a'
       , notificationRelease = assetRelease $ assetRow a'
       }
+  -}
   case api of
     JSON -> do
       liftIO $ putStrLn "JSON ok response..." --DEBUG
-      return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON False as'' -- publicrestrict false because EDIT
+      return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON False as''' -- publicrestrict false because EDIT
     HTML -> do 
       liftIO $ putStrLn "returning HTML other route reponse..." --DEBUG
-      peeks $ otherRouteResponse [] viewAsset (api, assetId $ assetRow $ slotAsset as'')
+      peeks $ otherRouteResponse [] viewAsset (api, assetId $ assetRow $ slotAsset as''')
 
 postAsset :: ActionRoute (API, Id Asset)
 postAsset = multipartAction $ action POST (pathAPI </> pathId) $ \(api, ai) -> withAuth $ do

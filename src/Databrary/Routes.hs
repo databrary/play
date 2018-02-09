@@ -115,6 +115,7 @@ routeMap = routes
   , route thumbAsset
   , route viewAssetCreate
   , route createAsset
+  , route copyAssetBetweenContainers
   , route createSlotAsset
   , route viewSlotAssetCreate
 
