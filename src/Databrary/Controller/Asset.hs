@@ -30,6 +30,8 @@ import qualified Database.PostgreSQL.Typed.Range as Range
 import Network.HTTP.Types (conflict409)
 import qualified Network.Wai as Wai
 import Network.Wai.Parse (FileInfo(..))
+import qualified System.FilePath.Posix as FPP (makeValid)
+import qualified System.FilePath.Windows as FPW (makeValid)
 
 import Databrary.Ops
 import Databrary.Has
@@ -113,11 +115,17 @@ assetDownloadName addPrefix trimFormat a =
         -- original uploaded files have the extension embedded in the name
         then fmap (TE.decodeUtf8 . dropFormatExtension (assetFormat a) . TE.encodeUtf8) (assetName a)
         else assetName a
+    scrubbedAssetName :: Maybe T.Text
+    scrubbedAssetName =
+        fmap scrubAssetName assetName'
   in
     if addPrefix
-    then T.pack (show $ assetId a) : maybeToList assetName'
-    else maybeToList assetName'
+    then T.pack (show $ assetId a) : maybeToList scrubbedAssetName
+    else maybeToList scrubbedAssetName
 
+scrubAssetName :: T.Text -> T.Text
+scrubAssetName assetName =
+  T.pack (FPW.makeValid (FPP.makeValid (T.unpack assetName))) -- needed for asset zip entry
 
 viewAsset :: ActionRoute (API, Id Asset)
 viewAsset = action GET (pathAPI </> pathId) $ \(api, i) -> withAuth $ do
