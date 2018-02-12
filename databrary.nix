@@ -8,10 +8,11 @@
 , network, network-uri, openssl, parsec, path, path-io, posix-paths
 , postgresql-simple, postgresql-typed, process, range-set-list
 , regex-posix, resource-pool, resourcet, scientific, smtp-mail
-, stdenv, streaming-commons, template-haskell, text, th-lift
-, th-lift-instances, time, transformers, transformers-base, unix
-, unordered-containers, utf8-string, vector, wai, wai-extra, warp
-, warp-tls, web-inv-route, xml, zip, zlib
+, stdenv, streaming-commons, tasty, tasty-expected-failure
+, tasty-hunit, template-haskell, text, th-lift, th-lift-instances
+, time, transformers, transformers-base, unix, unordered-containers
+, utf8-string, vector, wai, wai-extra, warp, warp-tls
+, web-inv-route, xml, zip, zlib
 , gargoyle, gargoyle-postgresql, postgresql
 , nodePackages, nodejs, dbName ? "databrary-nix-db", jdk
 , cpio, coreutils
@@ -64,6 +65,9 @@ mkDerivation rec {
   executableSystemDepends = [ cracklib openssl openssl.dev ];
   executablePkgconfigDepends = [
     ffmpeg
+  ];
+  testHaskellDepends = [
+    base tasty tasty-expected-failure tasty-hunit
   ];
   executableToolDepends = [
     postgresql.postgres

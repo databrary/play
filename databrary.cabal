@@ -29,6 +29,7 @@ Flag sandbox
 library
   hs-source-dirs: src
   c-sources: src/Databrary/Store/avFrame.c
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
   exposed-modules:
     Paths_databrary
     Blaze.ByteString.Builder.Html.Word
@@ -524,5 +525,18 @@ Executable generate
     ghc-options: -with-rtsopts -N
   if flag(sandbox)
     cpp-options: -DSANDBOX
+
+test-suite databrary-test
+  type: exitcode-stdio-1.0
+  main-is: Test.hs
+  hs-source-dirs: test
+  build-depends:
+    databrary
+    , base
+    , tasty
+    , tasty-expected-failure
+    , tasty-hunit
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
+  default-language: Haskell2010
 
 -- vim: shiftwidth=2
