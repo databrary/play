@@ -113,11 +113,17 @@ assetDownloadName addPrefix trimFormat a =
         -- original uploaded files have the extension embedded in the name
         then fmap (TE.decodeUtf8 . dropFormatExtension (assetFormat a) . TE.encodeUtf8) (assetName a)
         else assetName a
+    scrubbedAssetName :: Maybe T.Text
+    scrubbedAssetName =
+        fmap scrubAssetName assetName'
   in
     if addPrefix
-    then T.pack (show $ assetId a) : maybeToList assetName'
-    else maybeToList assetName'
+    then T.pack (show $ assetId a) : maybeToList scrubbedAssetName
+    else maybeToList scrubbedAssetName
 
+scrubAssetName :: T.Text -> T.Text
+scrubAssetName assetName =
+  T.filter (\c -> c /= ':') assetName
 
 viewAsset :: ActionRoute (API, Id Asset)
 viewAsset = action GET (pathAPI </> pathId) $ \(api, i) -> withAuth $ do

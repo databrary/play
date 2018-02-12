@@ -79,7 +79,7 @@ assetZipEntry2 isOrig containerDir AssetSlot{ slotAsset = a@Asset{ assetRow = ar
     (do
        ZIP.sinkEntry ZIP.Store (CND.sourceFileBS (BSC.unpack f)) entrySelector
        ZIP.setEntryComment (TE.decodeUtf8 $ BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewAsset (HTML, assetId ar) []) entrySelector)
-  
+
 containerZipEntry2 :: Bool -> BS.ByteString -> Container -> [AssetSlot] -> ActionM (ZIP.ZipArchive ())
 containerZipEntry2 isOrig prefix c l = do
   let containerDir = prefix <> makeFilename (containerDownloadName c) <> "/"
