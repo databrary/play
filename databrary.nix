@@ -19,7 +19,6 @@
 }:
 mkDerivation rec {
   pname = "databrary";
-  doCheck = false;
   doHaddock = false;
   version = "1";
   src =
@@ -98,7 +97,7 @@ mkDerivation rec {
   '';
   postBuild = ''
     kill -INT `head -1 $socket_path/postmaster.pid`
-    ln -s ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
+    ln -sf ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
     databrary_datadir=. dist/build/databrary/databrary -w
   '';
   postInstall = '' 
