@@ -17,16 +17,26 @@
 , nodePackages, nodejs, dbName ? "databrary-nix-db", jdk
 , cpio, coreutils
 }:
-mkDerivation rec {
+let
+  # Override the drv with these attrs. (Can't put them in mkDerivation directly
+  # because the Haskell-overridden function doesn't accept them.)
+  attrOverrides = {
+    # FIXME:kanishka what did this solve?
+    dontPatchELF = true;
+    # was only needed when trans scripts were being copied by data-files
+    dontPatchShebangs = true;
+  };
+in
+(mkDerivation rec {
   pname = "databrary";
-  doCheck = false;
   doHaddock = false;
   version = "1";
   src =
-    # builtins.filterSource 
-    # (path: type: type == "directory" || baseNameOf path != ".git" || baseNameOf path == ".cabal" || path != dbName)
-    ./.;
+    builtins.filterSource
+      (path: _type: ! builtins.elem (baseNameOf path) [dbName ".git" "result"])
+      ./.;
   isLibrary = true;
+  enableStaticLibraries = false;
   isExecutable = true;
   libraryHaskellDepends = [
     aeson aeson-better-errors array attoparsec base bcrypt binary
@@ -93,16 +103,13 @@ mkDerivation rec {
     cat databrary.conf
     ls -la $(dirname $socket_path)
     ls -la $socket_path
-    # was only needed when trans scripts were being copied by data-files
-    export dontPatchShebangs=1
   '';
   postBuild = ''
     kill -INT `head -1 $socket_path/postmaster.pid`
-    ln -s ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
-    databrary_datadir=. dist/build/databrary/databrary -w
+    ln -sf ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
   '';
-  postInstall = '' 
-    export dontPatchELF=1
+  postInstall = ''
+    databrary_datadir=. $out/bin/databrary -w
   '';
   postFixup = ''
     data_basedir="$out/share/x86_64-linux-ghc-8.0.2"
@@ -133,4 +140,4 @@ mkDerivation rec {
 
     cp -r schema $data_outputdir
   '';
-}
+}).overrideAttrs (_oldAttrs: attrOverrides)
