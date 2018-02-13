@@ -107,9 +107,9 @@ in
   postBuild = ''
     kill -INT `head -1 $socket_path/postmaster.pid`
     ln -sf ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
-    databrary_datadir=. dist/build/databrary/databrary -w
   '';
-  postInstall = '' 
+  postInstall = ''
+    databrary_datadir=. $out/bin/databrary -w
   '';
   postFixup = ''
     data_basedir="$out/share/x86_64-linux-ghc-8.0.2"
