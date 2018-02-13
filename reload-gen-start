@@ -1,5 +1,4 @@
-:module + Databrary.Main
-:main -w
+:module + Main
+:main
 :reload
-:main -w
-main
+:main
