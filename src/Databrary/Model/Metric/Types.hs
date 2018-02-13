@@ -56,18 +56,16 @@ deriveLiftMany [''MeasureType, ''Metric]
 testMeasureType1 :: MeasureType
 testMeasureType1 = MeasureTypeText
 
-{-
 testMetric1 :: Metric
 testMetric1 =
   Metric {
-      metricId = Id 30
-    , metricCategory = undefined
-    , metricName = "Metric1"
-    , metricRelease = Nothing
-    , metricType = undefined
+      metricId = Id (-900)
+    , metricCategory = testCategory1
+    , metricName = "ID"
+    , metricRelease = Just ReleaseEXCERPTS
+    , metricType = MeasureTypeText
     , metricOptions = []
     , metricAssumed = Nothing
-    , metricDescription = Nothing
-    , metricRequired = Nothing
+    , metricDescription = Nothing -- where does this come from?
+    , metricRequired = Nothing -- where does this come from?
   }
--}
