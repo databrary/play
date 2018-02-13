@@ -6,6 +6,7 @@ module Databrary.Model.Record.Types
   , Measure(..)
   , Measures
   -- for tests
+  , testRecordRow1
   ) where
 
 import Control.Applicative ((<|>))
@@ -26,6 +27,13 @@ data RecordRow = RecordRow
   , recordCategory :: Category
   }
 
+testRecordRow1 :: RecordRow
+testRecordRow1 =
+    RecordRow {
+        recordId = Id 100
+      , recordCategory = testCategory1
+    }
+
 data Record = Record
   { recordRow :: !RecordRow
   , recordMeasures :: Measures
@@ -44,6 +52,8 @@ data Measure = Measure
 
 instance Kinded Measure where
   kindOf _ = "measure"
+
+-- TODO: example building circular Record + Measure
 
 type Measures = [Measure]
 

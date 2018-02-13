@@ -5,7 +5,8 @@ module Databrary.Model.Metric.Types
   , MeasureType(..)
   , Metric(..)
   -- for tests
-  --, testMetric1
+  , testMetric1
+  , testMeasureType1
   ) where
 
 import qualified Data.ByteString as BS
