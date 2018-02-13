@@ -53,7 +53,7 @@ let
     fi
     rm -rf dist
     cabal configure --datadir=. --datasubdir=.
-    cabal repl exe:databrary
+    cabal repl lib:databrary
   '';
   postgresql = import ./db.nix { inherit nixpkgs; };
   gargoyleSrc = fetchFromGitHub {
@@ -85,7 +85,7 @@ let
       hjsonschema = dontCheck (doJailbreak (self.callHackage "hjsonschema" "0.9.0.0" {}));
       # Define hjsonpointer  package with explicit version number
       hjsonpointer = dontCheck (doJailbreak (self.callHackage "hjsonpointer" "0.3.0.2" {}));
-      # Define invertible as invertible from reflex-platform 
+      # Define invertible as invertible from reflex-platform
       invertible = dontCheck super.invertible;
       # postgresql-typed 0.4.5 requires a version <= 0.10
       postgresql-binary = dontCheck (self.callHackage  "postgresql-binary" "0.10" {});
