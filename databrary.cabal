@@ -539,6 +539,8 @@ test-suite databrary-test
     , tasty-hunit
   if flag(replTest)
     hs-source-dirs: src
+    pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
+    c-sources: src/Databrary/Store/avFrame.c
     other-modules:
       Paths_databrary
       Blaze.ByteString.Builder.Html.Word
