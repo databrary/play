@@ -5,6 +5,7 @@ module Databrary.Model.Record.Types
   , getRecordVolumePermission
   , Measure(..)
   , Measures
+  -- for tests
   ) where
 
 import Control.Applicative ((<|>))
@@ -40,7 +41,6 @@ data Measure = Measure
   , measureMetric :: Metric
   , measureDatum :: !MeasureDatum
   }
-
 
 instance Kinded Measure where
   kindOf _ = "measure"
