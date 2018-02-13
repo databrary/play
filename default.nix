@@ -52,8 +52,8 @@ let
       cp install/config.email config/email
     fi
     rm -rf dist
-    cabal configure --datadir=. --datasubdir=.
-    cabal repl lib:databrary
+    cabal configure -f replTest --enable-tests --datadir=. --datasubdir=.
+    cabal repl test:databrary-test
   '';
   postgresql = import ./db.nix { inherit nixpkgs; };
   gargoyleSrc = fetchFromGitHub {
