@@ -392,13 +392,11 @@ library
   extra-libraries: crack, crypto
 
 Executable databrary
-  hs-source-dirs: app-databrary, src
+  hs-source-dirs: app-databrary
   main-is: Main.hs
-  -- I guess cabal isn't smart enough on its own to build .hsc files?
-  other-modules: Databrary.Store.AV
-  c-sources: src/Databrary/Store/avFrame.c
 
   build-depends:
+    databrary,
     base >= 4.8.2.0,
     bytestring >= 0.10,
     containers >= 0.5.6.2,
