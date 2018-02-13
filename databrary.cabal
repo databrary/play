@@ -541,6 +541,7 @@ test-suite databrary-test
     hs-source-dirs: src
     pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
     c-sources: src/Databrary/Store/avFrame.c
+    default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
     other-modules:
       Paths_databrary
       Blaze.ByteString.Builder.Html.Word
