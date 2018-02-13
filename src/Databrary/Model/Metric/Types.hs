@@ -53,6 +53,9 @@ instance Ord Metric where
 makeHasRec ''Metric ['metricId, 'metricCategory, 'metricRelease, 'metricType]
 deriveLiftMany [''MeasureType, ''Metric]
 
+testMeasureType1 :: MeasureType
+testMeasureType1 = MeasureTypeText
+
 {-
 testMetric1 :: Metric
 testMetric1 =
