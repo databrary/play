@@ -32,10 +32,11 @@ in
   doHaddock = false;
   version = "1";
   src =
-    # builtins.filterSource 
-    # (path: type: type == "directory" || baseNameOf path != ".git" || baseNameOf path == ".cabal" || path != dbName)
-    ./.;
+    builtins.filterSource
+      (path: _type: ! builtins.elem (baseNameOf path) [dbName ".git" "result"])
+      ./.;
   isLibrary = true;
+  enableStaticLibraries = false;
   isExecutable = true;
   libraryHaskellDepends = [
     aeson aeson-better-errors array attoparsec base bcrypt binary
