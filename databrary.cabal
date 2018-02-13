@@ -8,7 +8,7 @@ Author:              Dylan Simon
 Maintainer:          dylan@dylex.net
 Stability:           Provisional
 Category:            Web
-Tested-with:         GHC == 7.10.3
+Tested-with:         GHC >= 7.10.3 && <= 8.0.2
 Build-type:          Simple
 Cabal-version:       >=1.22
 
@@ -43,6 +43,7 @@ library
     Databrary.Solr.Index
     Databrary.Solr.Document
     Databrary.JSON
+    Databrary.Main
     Databrary.Web
     Databrary.Routes.JS
     Databrary.Routes
@@ -470,7 +471,7 @@ Executable databrary
   default-language: Haskell2010
   default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
 
-  ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields
+  ghc-options: -threaded -Wall
 
   if flag(devel)
     cpp-options: -DDEVEL
@@ -516,7 +517,7 @@ Executable generate
   default-language: Haskell2010
   default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
 
-  ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields
+  ghc-options: -threaded -Wall
   cpp-options: -DNODB
 
   if flag(devel)

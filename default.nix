@@ -20,7 +20,7 @@ let
       if [ ! -d "/tmp/solr-6.6.0" ]; then
         pushd /tmp > /dev/null
         ${wget}/bin/wget -qO- http://archive.apache.org/dist/lucene/solr/6.6.0/solr-6.6.0.tgz | tar -zxv
-	popd > /dev/null
+        popd > /dev/null
       fi
       cp -R /tmp/solr-6.6.0 .
     fi
