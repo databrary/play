@@ -4,6 +4,8 @@ module Databrary.Model.Metric.Types
   ( MeasureDatum
   , MeasureType(..)
   , Metric(..)
+  -- for tests
+  --, testMetric1
   ) where
 
 import qualified Data.ByteString as BS
@@ -50,3 +52,19 @@ instance Ord Metric where
 
 makeHasRec ''Metric ['metricId, 'metricCategory, 'metricRelease, 'metricType]
 deriveLiftMany [''MeasureType, ''Metric]
+
+{-
+testMetric1 :: Metric
+testMetric1 =
+  Metric {
+      metricId = Id 30
+    , metricCategory = undefined
+    , metricName = "Metric1"
+    , metricRelease = Nothing
+    , metricType = undefined
+    , metricOptions = []
+    , metricAssumed = Nothing
+    , metricDescription = Nothing
+    , metricRequired = Nothing
+  }
+-}
