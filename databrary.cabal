@@ -539,6 +539,7 @@ test-suite databrary-test
     , tasty-hunit
   if flag(replTest)
     hs-source-dirs: src
+    extra-libraries: crack, crypto
     pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
     c-sources: src/Databrary/Store/avFrame.c
     default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
