@@ -17,7 +17,17 @@
 , nodePackages, nodejs, dbName ? "databrary-nix-db", jdk
 , cpio, coreutils
 }:
-mkDerivation rec {
+let
+  # Override the drv with these attrs. (Can't put them in mkDerivation directly
+  # because the Haskell-overridden function doesn't accept them.)
+  attrOverrides = {
+    # FIXME:kanishka what did this solve?
+    dontPatchELF = true;
+    # was only needed when trans scripts were being copied by data-files
+    dontPatchShebangs = true;
+  };
+in
+(mkDerivation rec {
   pname = "databrary";
   doHaddock = false;
   version = "1";
@@ -92,8 +102,6 @@ mkDerivation rec {
     cat databrary.conf
     ls -la $(dirname $socket_path)
     ls -la $socket_path
-    # was only needed when trans scripts were being copied by data-files
-    export dontPatchShebangs=1
   '';
   postBuild = ''
     kill -INT `head -1 $socket_path/postmaster.pid`
@@ -101,7 +109,6 @@ mkDerivation rec {
     databrary_datadir=. dist/build/databrary/databrary -w
   '';
   postInstall = '' 
-    export dontPatchELF=1
   '';
   postFixup = ''
     data_basedir="$out/share/x86_64-linux-ghc-8.0.2"
@@ -132,4 +139,4 @@ mkDerivation rec {
 
     cp -r schema $data_outputdir
   '';
-}
+}).overrideAttrs (_oldAttrs: attrOverrides)
