@@ -8,8 +8,11 @@ module Databrary.Model.Ingest
   , lookupIngestAsset
   , addIngestAsset
   , replaceSlotAsset
+  , detectBestHeaderMapping
   ) where
 
+import Data.Bimap (Bimap)
+import qualified Data.Bimap as BIM
 import qualified Data.Text as T
 import Database.PostgreSQL.Typed.Query (pgSQL)
 
@@ -52,3 +55,7 @@ addIngestAsset r k =
 replaceSlotAsset :: MonadDB c m => Asset -> Asset -> m Bool
 replaceSlotAsset o n =
   dbExecute1 [pgSQL|UPDATE slot_asset SET asset = ${assetId $ assetRow n} WHERE asset = ${assetId $ assetRow o}|]
+
+detectBestHeaderMapping :: [a] -> [b] -> Maybe (Bimap a b) -- nothing if not enough columns or other mismatch
+detectBestHeaderMapping csvHeaders participantFields =
+  Just (BIM.singleton (head csvHeaders) (head participantFields))

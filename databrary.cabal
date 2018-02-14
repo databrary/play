@@ -310,6 +310,8 @@ library
 
   build-depends:
     base >= 4.8.2.0,
+    -- TODO: is there a similar bimap in base or some other library we already use?
+    bimap >= 0.3.3,
     bytestring >= 0.10,
     containers >= 0.5.6.2,
     array >= 0.5.1.0,
@@ -398,6 +400,7 @@ Executable databrary
   build-depends:
     databrary,
     base >= 4.8.2.0,
+    bimap >= 0.3.3,
     bytestring >= 0.10,
     containers >= 0.5.6.2,
     array >= 0.5.1.0,
