@@ -68,18 +68,24 @@ createRecord = action POST (pathAPI </> pathId </< "record") $ \(api, vi) -> wit
 
 postRecordMeasure :: ActionRoute (API, Id Record, Id Metric)
 postRecordMeasure = action POST (pathAPI </>> pathId </> pathId) $ \(api, ri, mi) -> withAuth $ do
-  rec <- getRecord PermissionEDIT ri
+  record <- getRecord PermissionEDIT ri
   met <- maybeAction $ getMetric mi
-  let meas = Measure rec met
-  rec' <- runForm (api == HTML ?> htmlRecordMeasureForm rec met) $ do
+  let mkMeasure datum = Measure record met datum
+  rec' <- runForm (api == HTML ?> htmlRecordMeasureForm record met) $ do
     csrfForm
-    deformSync' ("datum" .:> deformNonEmpty deform)
-    >>= maybe
-      (lift $ removeRecordMeasure $ meas "")
-      (\d -> do
-        r <- lift $ changeRecordMeasure $ meas d
-        when (isNothing r) $ deformError $ T.pack $ "Invalid " ++ show (metricType met) ++ (if metricType met == MeasureTypeDate then " (please use YYYY-MM-DD)" else "")
-        return $ fromMaybe rec r)
+    mDatum <- deformSync' ("datum" .:> deformNonEmpty deform)
+    maybe
+      (lift $ removeRecordMeasure $ mkMeasure "") -- delete measure data
+      (\d -> do  -- add or update measure data
+        mRecord <- lift $ changeRecordMeasure $ mkMeasure d
+        when (isNothing mRecord) $
+            deformError $
+                T.pack $
+                       "Invalid "
+                    ++ show (metricType met)
+                    ++ (if metricType met == MeasureTypeDate then " (please use YYYY-MM-DD)" else "")
+        return $ fromMaybe record mRecord)
+      mDatum
   case api of
     JSON -> return $ okResponse [] $ JSON.recordEncoding $ recordJSON False rec' -- recordJSON not restricted because EDIT
     HTML -> peeks $ otherRouteResponse [] viewRecord (api, recordId $ recordRow rec')

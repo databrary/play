@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Ingest.JSON
   ( ingestJSON
   ) where
@@ -203,35 +203,48 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
   record = do
     rid <- JE.keyMay "id" $ Id <$> JE.asIntegral
     key <- JE.key "key" $ asKey
-    r <- maybe
+    mIngestRecord <- lift (lookupIngestRecord vol key)
+    (r :: Record) <- maybe
       (do
         r <- maybe
           (do
             category <- JE.key "category" asCategory
-            lift $ addRecord $ blankRecord category vol)
+            lift $ addRecord $ blankRecord category vol)  -- if no existing record, then add a new record
           (\i -> fromMaybeM (throwPE $ "record " <> T.pack (show i) <> "/" <> key <> " not found")
-            =<< lift (lookupVolumeRecord vol i))
+            =<< lift (lookupVolumeRecord vol i)) -- else find the existing record by vol + record id
           rid
-        inObj r $ lift $ addIngestRecord r key
+        inObj r $ lift $ addIngestRecord r key -- log that a record was ingested
         return r)
-      (\r -> inObj r $ do
-        unless (all (recordId (recordRow r) ==) rid) $ do
+      (\priorIngestRecord -> inObj priorIngestRecord $ do
+        unless (all (recordId (recordRow priorIngestRecord) ==) rid) $ do
           throwPE "id mismatch"
         _ <- JE.key "category" $ do
           category <- asCategory
-          category' <- (category <$) <$> on check categoryName (recordCategory $ recordRow r) category
-          forM_ category' $ \c -> lift $ changeRecord r
-            { recordRow = (recordRow r)
+          category' <-
+              (category <$)
+                  <$> on check categoryName (recordCategory $ recordRow priorIngestRecord) category
+          -- update record category for a prior ingest
+          forM_ category' $ \c -> lift $ changeRecord priorIngestRecord
+            { recordRow = (recordRow priorIngestRecord)
               { recordCategory = c
               }
             }
-        return r)
-      =<< lift (lookupIngestRecord vol key)
+        return priorIngestRecord)
+      mIngestRecord
     _ <- inObj r $ JE.forEachInObject $ \mn ->
-      unless (mn `elem` ["id", "key", "category", "positions"]) $ do
-        metric <- fromMaybeM (throwPE $ "metric " <> mn <> " not found") $ find (\m -> mn == metricName m && recordCategory (recordRow r) == metricCategory m) allMetrics
-        datum <- maybe (return . Just) (check . measureDatum) (getMeasure metric (recordMeasures r)) . TE.encodeUtf8 =<< JE.asText
-        forM_ datum $ lift . changeRecordMeasure . Measure r metric
+      unless (mn `elem` ["id", "key", "category", "positions"]) $ do -- for all non special keys, treat as data
+        metric <-
+            fromMaybeM (throwPE $ "metric " <> mn <> " not found")
+                $ find
+                      (\m -> mn == metricName m && recordCategory (recordRow r) == metricCategory m)
+                      allMetrics
+        datum <-
+            maybe
+              (return . Just)
+              (check . measureDatum)
+              (getMeasure metric (recordMeasures r))
+          . TE.encodeUtf8 =<< JE.asText
+        forM_ datum $ lift . changeRecordMeasure . Measure r metric -- save measure data
     return r
   asset dir = do
     sa <- fromMaybeM

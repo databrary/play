@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings, TemplateHaskell, RecordWildCards, DataKinds #-}
 module Databrary.Model.Record
   ( module Databrary.Model.Record.Types
-  , blankRecord
   , lookupRecord
   , lookupVolumeRecord
   , lookupVolumeRecords
@@ -29,17 +28,6 @@ import Databrary.Model.Category
 import Databrary.Model.Measure
 import Databrary.Model.Record.Types
 import Databrary.Model.Record.SQL
-
-blankRecord :: Category -> Volume -> Record
-blankRecord cat vol = Record
-  { recordRow = RecordRow
-    { recordId = error "blankRecord"
-    , recordCategory = cat
-    }
-  , recordVolume = vol
-  , recordRelease = Nothing
-  , recordMeasures = []
-  }
 
 lookupRecord :: (MonadHasIdentity c m, MonadDB c m) => Id Record -> m (Maybe Record)
 lookupRecord ri = do

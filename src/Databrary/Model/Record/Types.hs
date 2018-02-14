@@ -5,6 +5,7 @@ module Databrary.Model.Record.Types
   , getRecordVolumePermission
   , Measure(..)
   , Measures
+  , blankRecord
   -- for tests
   , testRecordRow1
   ) where
@@ -88,3 +89,15 @@ instance Has (Maybe Release) Measure where
   view m = metricRelease (measureMetric m) <|> recordRelease (measureRecord m)
 instance Has Release Measure where
   view = view . (view :: Measure -> Maybe Release)
+
+blankRecord :: Category -> Volume -> Record
+blankRecord cat vol = Record
+  { recordRow = RecordRow
+    { recordId = error "blankRecord"
+    , recordCategory = cat
+    }
+  , recordVolume = vol
+  , recordRelease = Nothing
+  , recordMeasures = []
+  }
+
