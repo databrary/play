@@ -1,3 +1,4 @@
+{-# ScopedTypeVariables #-}
 module Databrary.Controller.Metric
   ( postVolumeMetric
   , deleteVolumeMetric
@@ -21,10 +22,14 @@ import Databrary.Controller.Volume
 postVolumeMetric :: ActionRoute (Id Volume, Either (Id Category) (Id Metric))
 postVolumeMetric = action PUT (pathJSON >/> pathId </> (pathId >|< pathId)) $ \(vi, cm) -> withAuth $ do
   v <- getVolume PermissionEDIT vi
-  r <- either (addVolumeCategory v) (\m -> do
-    r <- addVolumeMetric v m
-    return $ if r then [m] else []) cm
-  return $ okResponse [] $ JSON.toEncoding r
+  (addedMetrics :: [Id Metric]) <-
+      either
+          (\categoryId -> addVolumeCategory v categoryId)
+          (\metricId -> do
+              metricAdded <- addVolumeMetric v metricId
+              return $ if metricAdded then [metricId] else [])
+          cm
+  return $ okResponse [] $ JSON.toEncoding addedMetrics
 
 deleteVolumeMetric :: ActionRoute (Id Volume, Either (Id Category) (Id Metric))
 deleteVolumeMetric = action DELETE (pathJSON >/> pathId </> (pathId >|< pathId)) $ \(vi, cm) -> withAuth $ do
