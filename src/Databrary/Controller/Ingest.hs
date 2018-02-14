@@ -2,14 +2,17 @@
 module Databrary.Controller.Ingest
   ( viewIngest
   , postIngest
+  , detectParticipantCSV
   ) where
 
 import Control.Arrow (right)
 import Control.Monad (unless)
+import Data.Text (Text)
 import Network.HTTP.Types (badRequest400)
 import Network.Wai.Parse (FileInfo(..))
 import System.Posix.FilePath (takeExtension)
 
+import qualified Databrary.JSON as JSON
 import Databrary.Ops
 import Databrary.Has
 import Databrary.Model.Id
@@ -56,3 +59,13 @@ postIngest = multipartAction $ action POST (pathId </< "ingest") $ \vi -> withAu
     a
   unless r $ result $ response badRequest400 [] ("failed" :: String)
   peeks $ otherRouteResponse [] viewIngest (volumeId $ volumeRow v)
+
+detectParticipantCSV :: ActionRoute (Id Volume)
+detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCSV") $ \vi -> withAuth $ do
+  -- checkMemberADMIN to start
+  v <- getVolume PermissionEDIT vi
+  return
+      $ okResponse []
+          $ JSON.recordEncoding
+              $ JSON.Record vi $ "key" JSON..= True
+  

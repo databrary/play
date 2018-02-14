@@ -165,6 +165,7 @@ routeMap = routes
   , route postTranscode
   , route viewIngest
   , route postIngest
+  , route detectParticipantCSV  -- TODO: better name?
   , route viewPeriodic
   , route postPeriodic
 
