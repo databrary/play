@@ -1,4 +1,4 @@
-{-# ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Databrary.Controller.Metric
   ( postVolumeMetric
   , deleteVolumeMetric
