@@ -1,6 +1,8 @@
 {-# LANGUAGE TemplateHaskell, TypeFamilies, OverloadedStrings #-}
 module Databrary.Model.Category.Types
   ( Category(..)
+  -- for tests
+  , testCategory1
   ) where
 
 import Data.Function (on)
@@ -34,3 +36,11 @@ instance Ord Category where
 
 makeHasRec ''Category ['categoryId]
 deriveLift ''Category
+
+testCategory1 :: Category
+testCategory1 =
+    Category {
+          categoryId = Id (-500)
+        , categoryName = "participant"
+        , categoryDescription = Nothing -- where is this loaded from??
+    }

@@ -5,6 +5,9 @@ module Databrary.Model.Record.Types
   , getRecordVolumePermission
   , Measure(..)
   , Measures
+  , blankRecord
+  -- for tests
+  , testRecordRow1
   ) where
 
 import Control.Applicative ((<|>))
@@ -25,6 +28,13 @@ data RecordRow = RecordRow
   , recordCategory :: Category
   }
 
+testRecordRow1 :: RecordRow
+testRecordRow1 =
+    RecordRow {
+        recordId = Id 100
+      , recordCategory = testCategory1
+    }
+
 data Record = Record
   { recordRow :: !RecordRow
   , recordMeasures :: Measures
@@ -41,9 +51,10 @@ data Measure = Measure
   , measureDatum :: !MeasureDatum
   }
 
-
 instance Kinded Measure where
   kindOf _ = "measure"
+
+-- TODO: example building circular Record + Measure
 
 type Measures = [Measure]
 
@@ -78,3 +89,15 @@ instance Has (Maybe Release) Measure where
   view m = metricRelease (measureMetric m) <|> recordRelease (measureRecord m)
 instance Has Release Measure where
   view = view . (view :: Measure -> Maybe Release)
+
+blankRecord :: Category -> Volume -> Record
+blankRecord cat vol = Record
+  { recordRow = RecordRow
+    { recordId = error "blankRecord"
+    , recordCategory = cat
+    }
+  , recordVolume = vol
+  , recordRelease = Nothing
+  , recordMeasures = []
+  }
+

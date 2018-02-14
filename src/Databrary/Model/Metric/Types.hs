@@ -4,6 +4,9 @@ module Databrary.Model.Metric.Types
   ( MeasureDatum
   , MeasureType(..)
   , Metric(..)
+  -- for tests
+  , testMetric1
+  , testMeasureType1
   ) where
 
 import qualified Data.ByteString as BS
@@ -50,3 +53,20 @@ instance Ord Metric where
 
 makeHasRec ''Metric ['metricId, 'metricCategory, 'metricRelease, 'metricType]
 deriveLiftMany [''MeasureType, ''Metric]
+
+testMeasureType1 :: MeasureType
+testMeasureType1 = MeasureTypeText
+
+testMetric1 :: Metric
+testMetric1 =
+  Metric {
+      metricId = Id (-900)
+    , metricCategory = testCategory1
+    , metricName = "ID"
+    , metricRelease = Just ReleaseEXCERPTS
+    , metricType = MeasureTypeText
+    , metricOptions = []
+    , metricAssumed = Nothing
+    , metricDescription = Nothing -- where does this come from?
+    , metricRequired = Nothing -- where does this come from?
+  }
