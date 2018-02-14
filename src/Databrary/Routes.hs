@@ -166,6 +166,7 @@ routeMap = routes
   , route viewIngest
   , route postIngest
   , route detectParticipantCSV  -- TODO: better name?
+  , route runParticipantUpload  -- TODO: better name?
   , route viewPeriodic
   , route postPeriodic
 

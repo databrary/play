@@ -3,6 +3,7 @@ module Databrary.Controller.Ingest
   ( viewIngest
   , postIngest
   , detectParticipantCSV
+  , runParticipantUpload
   ) where
 
 import Control.Arrow (right)
@@ -64,8 +65,16 @@ detectParticipantCSV :: ActionRoute (Id Volume)
 detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCSV") $ \vi -> withAuth $ do
   -- checkMemberADMIN to start
   v <- getVolume PermissionEDIT vi
-  return
+  pure
       $ okResponse []
           $ JSON.recordEncoding
-              $ JSON.Record vi $ "key" JSON..= True
+              $ JSON.Record vi $ "csv_upload_id" JSON..= ("abc1e92azS" :: String)
   
+runParticipantUpload :: ActionRoute (Id Volume)
+runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUpload") $ \vi -> withAuth $ do
+  -- checkMemberADMIN to start
+  v <- getVolume PermissionEDIT vi
+  pure
+      $ okResponse []
+          $ JSON.recordEncoding
+              $ JSON.Record vi $ "succeeded" JSON..= True
