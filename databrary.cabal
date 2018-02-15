@@ -79,7 +79,6 @@ library
     Databrary.Model.Slot
     Databrary.Model.Category.Types
     Databrary.Model.Category.SQL
-    Databrary.Model.Category.Boot
     Databrary.Model.Authorize
     Databrary.Model.RecordSlot.Types
     Databrary.Model.RecordSlot.SQL
