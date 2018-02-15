@@ -178,7 +178,6 @@ library
     Databrary.Model.Offset
     Databrary.Model.Volume.Types
     Databrary.Model.Volume.SQL
-    Databrary.Model.Volume.Boot
     Databrary.View.Format
     Databrary.View.Volume
     Databrary.View.Activity
