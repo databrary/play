@@ -22,7 +22,7 @@ import Databrary.Model.Id
 import Databrary.Model.Permission
 import Databrary.Model.Volume
 import Databrary.Model.Container
-import Databrary.Model.Ingest (detectBestHeaderMapping)
+import Databrary.Model.Ingest (detectBestHeaderMapping, headerMappingJSON)
 import Databrary.Ingest.Action
 import Databrary.Ingest.JSON
 import Databrary.HTTP.Path.Parser
@@ -64,27 +64,28 @@ postIngest = multipartAction $ action POST (pathId </< "ingest") $ \vi -> withAu
   unless r $ result $ response badRequest400 [] ("failed" :: String)
   peeks $ otherRouteResponse [] viewIngest (volumeId $ volumeRow v)
 
+
 -- TODO: maybe put csv file save/retrieve in Databrary.Store module
 detectParticipantCSV :: ActionRoute (Id Volume)
 detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCSV") $ \vi -> withAuth $ do
     -- checkMemberADMIN to start
     v <- getVolume PermissionEDIT vi
-    -- load participant category + metrics
-    let csvHeaders = [True]
-        participantFields = [False]
-        mMpng = detectBestHeaderMapping csvHeaders participantFields -- TODO: handle nothing
-    -- if detect headers failed, then don't save csv file and response is error
+    let uploadFileContents = "idcol\nA1\nA2\n"
+    
+    let csvHeaders = ["idcol"]
+        mMpng = detectBestHeaderMapping csvHeaders
     reqCtxt <- peek
     case mMpng of
         Just mpng ->
             pure
                 $ okResponse []
-                    $ JSON.recordEncoding
+                    $ JSON.recordEncoding -- TODO: not record encoding
                         $ JSON.Record vi
                             $      "csv_upload_id" JSON..= ("yo.csv" :: String)
-                                <> "suggested_mapping" JSON..= [True]
+                                <> "suggested_mapping" JSON..= headerMappingJSON mpng
         Nothing ->
-            pure (forbiddenResponse reqCtxt) -- place holder for error
+          -- if detect headers failed, then don't save csv file and response is error
+          pure (forbiddenResponse reqCtxt) -- place holder for error
 
 runParticipantUpload :: ActionRoute (Id Volume)
 runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUpload") $ \vi -> withAuth $ do
@@ -95,10 +96,12 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
     csvContents <- liftIO (readFile ("/home/kanishka/tmp/" ++ csvUploadId)) -- cassava
     pure
         $ okResponse []
-            $ JSON.recordEncoding
+            $ JSON.recordEncoding -- TODO: not record encoding
                 $ JSON.Record vi $ "succeeded" JSON..= True
 
--- parseMapping :: Value -> Parser [Mapping]
+-- parseMapping :: RecordDesc -> Value -> Parser [Mapping]
+--   build up list of Map of entries
+--   using record description + entries to build mapping record
 
 --    bldr = mkRecordBuilder mappings
 --    foreach row in csvRows

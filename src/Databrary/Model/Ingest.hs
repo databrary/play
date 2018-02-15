@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds, OverloadedStrings #-}
 module Databrary.Model.Ingest
   ( IngestKey
   , lookupIngestContainer
@@ -9,14 +9,17 @@ module Databrary.Model.Ingest
   , addIngestAsset
   , replaceSlotAsset
   , detectBestHeaderMapping
+  , headerMappingJSON
   ) where
 
-import Data.Bimap (Bimap)
-import qualified Data.Bimap as BIM
+-- TODO: delete bimap from databrary.nix
+import Data.Maybe (catMaybes)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Database.PostgreSQL.Typed.Query (pgSQL)
 
 import Databrary.Service.DB
+import qualified Databrary.JSON as JSON
 import Databrary.Model.SQL (selectQuery)
 import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
@@ -56,6 +59,22 @@ replaceSlotAsset :: MonadDB c m => Asset -> Asset -> m Bool
 replaceSlotAsset o n =
   dbExecute1 [pgSQL|UPDATE slot_asset SET asset = ${assetId $ assetRow n} WHERE asset = ${assetId $ assetRow o}|]
 
-detectBestHeaderMapping :: [a] -> [b] -> Maybe (Bimap a b) -- nothing if not enough columns or other mismatch
-detectBestHeaderMapping csvHeaders participantFields =
-  Just (BIM.singleton (head csvHeaders) (head participantFields))
+detectBestHeaderMapping :: [Text] -> Maybe ParticipantFieldMapping -- nothing if not enough columns or other mismatch
+detectBestHeaderMapping csvHeaders =
+  -- TODO read volume spreadsheet definition and use that to determine whether Just or Nothing for each field
+  case csvHeaders of
+      hdr1:_ ->
+          Just
+              (ParticipantFieldMapping
+                  { pfmId = Just hdr1
+                  })
+      [] ->
+          Nothing
+
+headerMappingJSON :: ParticipantFieldMapping -> [JSON.Value] -- TODO: Value or list of Value?
+headerMappingJSON headerMapping =
+    catMaybes
+        [ fmap
+            (\idCol -> JSON.object [ "csv_field" JSON..= idCol, "metric" JSON..= ("id" :: String) ])
+            (pfmId headerMapping)
+        ]
