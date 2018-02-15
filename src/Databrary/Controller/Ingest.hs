@@ -2,20 +2,27 @@
 module Databrary.Controller.Ingest
   ( viewIngest
   , postIngest
+  , detectParticipantCSV
+  , runParticipantUpload
   ) where
 
 import Control.Arrow (right)
 import Control.Monad (unless)
+import Control.Monad.IO.Class (liftIO)
+import Data.Monoid ((<>))
+import Data.Text (Text)
 import Network.HTTP.Types (badRequest400)
 import Network.Wai.Parse (FileInfo(..))
 import System.Posix.FilePath (takeExtension)
 
+import qualified Databrary.JSON as JSON
 import Databrary.Ops
 import Databrary.Has
 import Databrary.Model.Id
 import Databrary.Model.Permission
 import Databrary.Model.Volume
 import Databrary.Model.Container
+import Databrary.Model.Ingest (detectBestHeaderMapping)
 import Databrary.Ingest.Action
 import Databrary.Ingest.JSON
 import Databrary.HTTP.Path.Parser
@@ -56,3 +63,52 @@ postIngest = multipartAction $ action POST (pathId </< "ingest") $ \vi -> withAu
     a
   unless r $ result $ response badRequest400 [] ("failed" :: String)
   peeks $ otherRouteResponse [] viewIngest (volumeId $ volumeRow v)
+
+-- TODO: maybe put csv file save/retrieve in Databrary.Store module
+detectParticipantCSV :: ActionRoute (Id Volume)
+detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCSV") $ \vi -> withAuth $ do
+    -- checkMemberADMIN to start
+    v <- getVolume PermissionEDIT vi
+    -- load participant category + metrics
+    let csvHeaders = [True]
+        participantFields = [False]
+        mMpng = detectBestHeaderMapping csvHeaders participantFields -- TODO: handle nothing
+    -- if detect headers failed, then don't save csv file and response is error
+    reqCtxt <- peek
+    case mMpng of
+        Just mpng ->
+            pure
+                $ okResponse []
+                    $ JSON.recordEncoding
+                        $ JSON.Record vi
+                            $      "csv_upload_id" JSON..= ("yo.csv" :: String)
+                                <> "suggested_mapping" JSON..= [True]
+        Nothing ->
+            pure (forbiddenResponse reqCtxt) -- place holder for error
+
+runParticipantUpload :: ActionRoute (Id Volume)
+runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUpload") $ \vi -> withAuth $ do
+    -- checkMemberADMIN to start
+    v <- getVolume PermissionEDIT vi
+    let csvUploadId = "yo.csv"
+    -- parse mappings
+    csvContents <- liftIO (readFile ("/home/kanishka/tmp/" ++ csvUploadId)) -- cassava
+    pure
+        $ okResponse []
+            $ JSON.recordEncoding
+                $ JSON.Record vi $ "succeeded" JSON..= True
+
+-- parseMapping :: Value -> Parser [Mapping]
+
+--    bldr = mkRecordBuilder mappings
+--    foreach row in csvRows
+--       bldr row
+--    pure result
+
+-- mkRecordBuilder :: Map CSVField MetricName -> (CSVRow -> IO Record)
+--   record <- makeRecord
+--   for each (field, name)
+--     metricId = getId name
+--     csvVal = getCSVField row field
+--     saveMeasure record metricId csvVal
+--   pure record
