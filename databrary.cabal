@@ -101,7 +101,6 @@ library
     Databrary.Model.Kind
     Databrary.Model.Metric.Types
     Databrary.Model.Metric.SQL
-    Databrary.Model.Metric.Boot
     Databrary.Model.Permission.Types
     Databrary.Model.Permission.SQL
     Databrary.Model.Party
