@@ -57,12 +57,26 @@ import Databrary.Model.Asset.Types
 import Databrary.Model.Asset.SQL
 import Databrary.Model.Party.Types
 import Databrary.Model.Party.SQL
-import Databrary.Model.Party.Boot
 
-nobodyParty, rootParty, staffParty :: Party
-nobodyParty = $(loadParty (Id (-1)) PermissionREAD)
-rootParty = $(loadParty (Id 0) PermissionSHARED)
-staffParty = $(loadParty (Id 2) PermissionPUBLIC)
+nobodyParty, rootParty, staffParty :: Party -- TODO: load on startup from service module
+nobodyParty =
+   Party
+         (PartyRow (Id (-1)) (T.pack "Everybody") Nothing Nothing Nothing Nothing)
+         Nothing
+         PermissionREAD
+         Nothing
+rootParty =
+      Party
+         (PartyRow (Id 0) (T.pack "Databrary") Nothing Nothing Nothing Nothing)
+         Nothing
+         PermissionSHARED
+         Nothing
+staffParty =
+   Party
+         (PartyRow (Id 2) (T.pack "Staff") Nothing Nothing (Just (T.pack "Databrary")) Nothing)
+         Nothing
+         PermissionPUBLIC
+         Nothing
 
 partyName :: PartyRow -> T.Text
 partyName PartyRow{ partyPreName = Just p, partySortName = n } = p <> T.cons ' ' n
