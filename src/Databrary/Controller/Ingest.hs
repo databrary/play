@@ -9,8 +9,13 @@ module Databrary.Controller.Ingest
 import Control.Arrow (right)
 import Control.Monad (unless)
 import Control.Monad.IO.Class (liftIO)
+import qualified Data.Attoparsec.ByteString as ATTO
+import qualified Data.Csv as CSV
+import qualified Data.Csv.Parser as CSVP
 import Data.Monoid ((<>))
 import Data.Text (Text)
+import qualified Data.Text.Encoding as TE
+import qualified Data.Vector as V
 import Network.HTTP.Types (badRequest400)
 import Network.Wai.Parse (FileInfo(..))
 import System.Posix.FilePath (takeExtension)
@@ -70,22 +75,30 @@ detectParticipantCSV :: ActionRoute (Id Volume)
 detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCSV") $ \vi -> withAuth $ do
     -- checkMemberADMIN to start
     v <- getVolume PermissionEDIT vi
-    let uploadFileContents = "idcol\nA1\nA2\n"
-    
-    let csvHeaders = ["idcol"]
-        mMpng = detectBestHeaderMapping csvHeaders
     reqCtxt <- peek
-    case mMpng of
-        Just mpng ->
-            pure
-                $ okResponse []
-                    $ JSON.recordEncoding -- TODO: not record encoding
-                        $ JSON.Record vi
-                            $      "csv_upload_id" JSON..= ("yo.csv" :: String)
-                                <> "suggested_mapping" JSON..= headerMappingJSON mpng
-        Nothing ->
-          -- if detect headers failed, then don't save csv file and response is error
-          pure (forbiddenResponse reqCtxt) -- place holder for error
+    -- read file contents
+    let uploadFileContents = "idcol\nA1\nA2\n"
+    let eCsvHeaders = ATTO.parseOnly (CSVP.csvWithHeader CSVP.defaultDecodeOptions) uploadFileContents
+    case eCsvHeaders of
+        Left err ->
+            pure (forbiddenResponse reqCtxt)
+        Right (hdrs, _) -> do
+            let mMpng = detectBestHeaderMapping (getHeaders hdrs)
+            case mMpng of
+                Just mpng ->
+                    pure
+                        $ okResponse []
+                            $ JSON.recordEncoding -- TODO: not record encoding
+                                $ JSON.Record vi
+                                    $      "csv_upload_id" JSON..= ("yo.csv" :: String)
+                                        <> "suggested_mapping" JSON..= headerMappingJSON mpng
+                Nothing ->
+                  -- if detect headers failed, then don't save csv file and response is error
+                  pure (forbiddenResponse reqCtxt) -- place holder for error
+
+getHeaders :: CSV.Header -> [Text]
+getHeaders hdrs =
+  (V.toList . fmap TE.decodeUtf8) hdrs
 
 runParticipantUpload :: ActionRoute (Id Volume)
 runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUpload") $ \vi -> withAuth $ do
