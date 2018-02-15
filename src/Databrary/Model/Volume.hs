@@ -20,6 +20,7 @@ import Control.Monad (guard)
 import qualified Data.ByteString as BS
 import Data.List (find)
 import Data.Monoid ((<>))
+import qualified Data.Time as TM
 import qualified Data.Text as T
 import Database.PostgreSQL.Typed.Query (pgSQL, unsafeModifyQuery)
 import Database.PostgreSQL.Typed.Dynamic (pgLiteralRep)
@@ -37,11 +38,18 @@ import Databrary.Model.Party.Types
 import Databrary.Model.Identity.Types
 import Databrary.Model.Volume.Types
 import Databrary.Model.Volume.SQL
-import Databrary.Model.Volume.Boot
 import Databrary.Model.VolumeAccess.Types (VolumeAccess(..))
 
 coreVolume :: Volume
-coreVolume = $(loadVolume coreVolumeId)
+coreVolume = -- TODO: load on startup in lookups service module
+      Volume
+            (VolumeRow (Id 0) (T.pack "Core") Nothing Nothing Nothing)
+            (TM.UTCTime
+                (TM.ModifiedJulianDay 56303)
+                (TM.picosecondsToDiffTime 37600000000000000))
+            []
+            PermissionPUBLIC
+            PermLevelDefault
 
 lookupVolume :: (MonadDB c m, MonadHasIdentity c m) => Id Volume -> m (Maybe Volume)
 lookupVolume vi = do
