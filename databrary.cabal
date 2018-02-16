@@ -535,5 +535,7 @@ test-suite databrary-test
     , tasty-hunit
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
   default-language: Haskell2010
+  other-modules:
+      Databrary.HTTP.Form.DeformTest
 
 -- vim: shiftwidth=2
