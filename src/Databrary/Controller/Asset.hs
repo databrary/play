@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Controller.Asset
   ( getAsset
   -- , getOrigAsset
@@ -8,6 +8,7 @@ module Databrary.Controller.Asset
   , postAsset
   , viewAssetEdit
   , createAsset
+  , copyAssetBetweenContainers
   , viewAssetCreate
   , createSlotAsset
   , viewSlotAssetCreate
@@ -138,6 +139,7 @@ viewAsset = action GET (pathAPI </> pathId) $ \(api, i) -> withAuth $ do
 
 data AssetTarget
   = AssetTargetVolume Volume
+  | AssetTargetVolumeCopy Volume AssetSlot
   | AssetTargetSlot Slot
   | AssetTargetAsset AssetSlot
 
@@ -174,42 +176,52 @@ detectUpload u = do
 processAsset :: API -> AssetTarget -> ActionM Response
 processAsset api target = do
   let as@AssetSlot{ slotAsset = a, assetSlot = s } = case target of
-        AssetTargetVolume t -> assetNoSlot $ blankAsset t
-        AssetTargetSlot t -> AssetSlot (blankAsset (view t)) (Just t)
-        AssetTargetAsset t -> t
+        AssetTargetVolume t -> assetNoSlot $ blankAsset t -- Adding new asset to a container (always?)
+        AssetTargetVolumeCopy t sourceAsset -> assetNoSlot $ blankAsset t -- Copy new asset to a new container
+        AssetTargetSlot t -> AssetSlot (blankAsset (view t)) (Just t)  -- ...
+        AssetTargetAsset t -> t  -- Updating the asset
   (as', up') <- runFormFiles [("file", maxAssetSize)] (api == HTML ?> htmlAssetEdit target) $ do
     liftIO $ putStrLn "runFormFiles..."--DEBUG
     csrfForm
+    
     file <- "file" .:> deform
     liftIO $ putStrLn "deformed file..." --DEBUG
     upload <- "upload" .:> deformLookup "Uploaded file not found." lookupUpload
     liftIO $ putStrLn "upload file..." --DEBUG
-    upfile <- case (file, upload) of
+    (upfile :: Maybe FileUploadFile) <- case (file, upload) of
       (Just f, Nothing) -> return $ Just $ FileUploadForm f
       (Nothing, Just u) -> return $ Just $ FileUploadToken u
       (Nothing, Nothing)
         | AssetTargetAsset _ <- target -> return Nothing
+        | AssetTargetVolumeCopy _ _ <- target -> return Nothing -- TODO: return more information to distinguish?
         | otherwise -> Nothing <$ deformError "File or upload required."
       _ -> Nothing <$ deformError "Conflicting uploaded files found."
-    up <- mapM detectUpload upfile
+    (up :: Maybe FileUpload) <- (mapM detectUpload upfile :: DeformActionM TempFile (Maybe FileUpload))
     liftIO $ putStrLn "upfile cased..." --DEBUG
-    let fmt = maybe (assetFormat $ assetRow a) (probeFormat . fileUploadProbe) up
+    let sourceInfoAsset =
+          case target of -- TODO: more elegant
+            AssetTargetVolumeCopy _ sourceAsset -> slotAsset sourceAsset
+            _ -> a
+    let fmt = maybe (assetFormat $ assetRow sourceInfoAsset) (probeFormat . fileUploadProbe) up
     liftIO $ putStrLn "format upload probe..." --DEBUG
-    name <- "name" .:> maybe (assetName $ assetRow a) (TE.decodeUtf8 . dropFormatExtension fmt <$>) <$> deformOptional (deformNonEmpty deform)
+    name <- "name" .:> maybe (assetName $ assetRow sourceInfoAsset) (TE.decodeUtf8 . dropFormatExtension fmt <$>) <$> deformOptional (deformNonEmpty deform)  -- TODO: use source asset here
     liftIO $ putStrLn "renamed asset..." --DEBUG
-    classification <- "classification" .:> fromMaybe (assetRelease $ assetRow a) <$> deformOptional (deformNonEmpty deform)
+
+    classification <- "classification" .:> fromMaybe (assetRelease $ assetRow sourceInfoAsset) <$> deformOptional (deformNonEmpty deform) -- TODO: use source asset here
     liftIO $ putStrLn "classification deformed..." --DEBUG
+
     slot <-
-      "container" .:> (<|> slotContainer <$> s) <$> deformLookup "Container not found." (lookupVolumeContainer (assetVolume a))
-      >>= mapM (\c -> "position" .:> do
+      "container" .:> (<|> slotContainer <$> s) <$> deformLookup "Container not found." (lookupVolumeContainer (assetVolume sourceInfoAsset))
+      >>= mapM (\c -> "position" .:> do  -- TODO: adjust below to always use auto position
         let seg = slotSegment <$> s
-            dur = maybe (assetDuration $ assetRow a) (probeLength . fileUploadProbe) up
+            dur = maybe (assetDuration $ assetRow sourceInfoAsset) (probeLength . fileUploadProbe) up
         p <- fromMaybe (lowerBound . segmentRange =<< seg) <$> deformOptional (deformNonEmpty deform)
         Slot c . maybe fullSegment
           (\l -> Segment $ Range.bounded l (l + fromMaybe 0 ((segmentLength =<< seg) <|> dur)))
           <$> orElseM p (mapM (lift . probeAutoPosition c . Just . fileUploadProbe) (guard (isNothing s && isJust dur) >> up)))
     liftIO $ putStrLn "slot assigned..." --DEBUG
-    return
+
+    return --- At this point, we have extracted all request values from body, reconciled with existing upload/asset data
       ( as
         { slotAsset = a
           { assetRow = (assetRow a)
@@ -222,8 +234,12 @@ processAsset api target = do
         }
       , up
       )
-  as'' <- maybe (return as') (\up@FileUpload{ fileUploadFile = upfile } -> do
-    a' <- addAsset (slotAsset as')
+  -- if we just connected an upload to an asset, then check whether a transcoding is needed and trigger/reuse transcoding if so.
+  as'' <-
+    maybe
+      (return as')
+      (\up@FileUpload{ fileUploadFile = upfile } -> do
+    a' <- addAsset (slotAsset as')  -- create new asset
       { assetRow = (assetRow $ slotAsset as')
         { assetName = Just $ TE.decodeUtf8 $ fileUploadName upfile
         , assetDuration = Nothing
@@ -245,7 +261,7 @@ processAsset api target = do
     case target of
       AssetTargetAsset _ -> replaceAsset a t
       _ -> return ()
-    return $ fixAssetSlotDuration as'
+    return $ fixAssetSlotDuration as'  -- TODO: do this also during copy
       { slotAsset = t
         { assetRow = (assetRow t)
           { assetName = assetName $ assetRow $ slotAsset as'
@@ -253,10 +269,35 @@ processAsset api target = do
         }
       })
     up'
-  a' <- changeAsset (slotAsset as'') Nothing
-  liftIO $ putStrLn "changed asset..." --DEBUG
-  _ <- changeAssetSlot as''
-  liftIO $ putStrLn "change asset slot..." --DEBUG
+  liftIO $ print ("finish creating uploaded asset, triggering transcode")
+  as''' <- 
+    case target of -- TODO: more elegant
+      AssetTargetVolumeCopy _ sourceAsset -> do
+        mFp <- getAssetFile (slotAsset sourceAsset) -- TODO: more robust
+        a' <- addAsset (slotAsset as') mFp
+        liftIO $ print ("finished created asset for copy")
+        a'' <- changeAsset (a') Nothing
+        liftIO $ putStrLn "changed asset..." --DEBUG
+        _ <- changeAssetSlot (as'' { slotAsset = a'' })
+        liftIO $ putStrLn "change asset slot..." --DEBUG
+          -- { assetRow = (assetRow $ slotAsset as')
+          --   { assetName = Just $ TE.decodeUtf8 $ fileUploadName upfile
+          --   , assetDuration = Nothing
+          --   , assetSize = Nothing
+          --   , assetSHA1 = Nothing
+          --   }
+          -- } . Just =<< peeks (fileUploadPath upfile)
+        return (as'' { slotAsset = a'' })
+      _ -> do
+        -- save the updated asset
+        a' <- changeAsset (slotAsset as'') Nothing
+        liftIO $ putStrLn "changed asset..." --DEBUG
+        -- save the connect to the slot (new or updated). any assets not connected to a slot at this point?
+        _ <- changeAssetSlot as''
+        liftIO $ putStrLn "change asset slot..." --DEBUG
+        return as''
+  -- TODO: add below back
+  {-
   when (assetRelease (assetRow a') == Just ReleasePUBLIC && assetRelease (assetRow a) /= Just ReleasePUBLIC) $
     createVolumeNotification (assetVolume a') $ \n -> (n NoticeReleaseAsset)
       { notificationContainerId = containerId . containerRow . slotContainer <$> assetSlot as''
@@ -264,13 +305,14 @@ processAsset api target = do
       , notificationAssetId = Just $ assetId $ assetRow a'
       , notificationRelease = assetRelease $ assetRow a'
       }
+  -}
   case api of
     JSON -> do
       liftIO $ putStrLn "JSON ok response..." --DEBUG
-      return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON False as'' -- publicrestrict false because EDIT
+      return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON False as''' -- publicrestrict false because EDIT
     HTML -> do 
       liftIO $ putStrLn "returning HTML other route reponse..." --DEBUG
-      peeks $ otherRouteResponse [] viewAsset (api, assetId $ assetRow $ slotAsset as'')
+      peeks $ otherRouteResponse [] viewAsset (api, assetId $ assetRow $ slotAsset as''')
 
 postAsset :: ActionRoute (API, Id Asset)
 postAsset = multipartAction $ action POST (pathAPI </> pathId) $ \(api, ai) -> withAuth $ do
@@ -291,6 +333,14 @@ createAsset = multipartAction $ action POST (pathAPI </> pathId </< "asset") $ \
   v <- getVolume PermissionEDIT vi
   liftIO $ print "processing asset..."
   processAsset api $ AssetTargetVolume v
+
+copyAssetBetweenContainers :: ActionRoute (API, (Id Volume, Id Asset))  -- Slot asset instead of asset?
+copyAssetBetweenContainers = multipartAction $ action POST (pathAPI </> (pathId </< "copyAsset") </> pathId) $ \(api, (vi, assetId)) -> withAuth $ do
+  liftIO $ print "getting volume permission..."
+  v <- getVolume PermissionEDIT vi
+  asset <- getAsset False PermissionEDIT False assetId
+  liftIO $ print "processing asset..."
+  processAsset api $ AssetTargetVolumeCopy v asset
 
 viewAssetCreate :: ActionRoute (Id Volume)
 viewAssetCreate = action GET (pathHTML >/> pathId </< "asset") $ \vi -> withAuth $ do

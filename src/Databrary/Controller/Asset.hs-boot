@@ -9,6 +9,7 @@ import Databrary.Action
 
 data AssetTarget
   = AssetTargetVolume Volume
+  | AssetTargetVolumeCopy Volume AssetSlot
   | AssetTargetSlot Slot
   | AssetTargetAsset AssetSlot
 
