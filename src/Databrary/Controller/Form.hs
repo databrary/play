@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Controller.Form
   ( FormData
   , DeformActionM
@@ -68,7 +68,7 @@ runFormWith fd mf fa = do
 runFormFiles
   :: FileContent f => [(BS.ByteString, Word64)] -> Maybe (RequestContext -> FormHtml f) -> DeformActionM f a -> ActionM a
 runFormFiles fl mf fa = do
-  fd <- getFormData fl
+  (fd :: FormData a) <- getFormData fl
   runFormWith fd mf fa
 
 runForm :: Maybe (RequestContext -> FormHtml ()) -> DeformActionM () a -> ActionM a

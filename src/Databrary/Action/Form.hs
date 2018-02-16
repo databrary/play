@@ -15,10 +15,12 @@ import Databrary.Action.Types
 
 getFormData :: FileContent a => [(BS.ByteString, Word64)] -> ActionM (FormData a)
 getFormData fs = do
-  f <- peeks $ FormData . Map.fromList . Wai.queryString
-  c <- parseRequestContent (fromMaybe 0 . (`lookup` fs))
+  f <- peeks $ (\httpReq -> (FormData . Map.fromList . Wai.queryString) httpReq)
+  c <- parseRequestContent getFileMaxSizeByFieldName
   return $ case c of
     ContentForm p u -> f (Map.fromList p) Nothing (Map.fromList u)
     ContentJSON j -> f Map.empty (Just j) Map.empty
     _ -> f Map.empty Nothing Map.empty
-
+  where  
+    getFileMaxSizeByFieldName :: BS.ByteString -> Word64
+    getFileMaxSizeByFieldName fieldName = (fromMaybe 0 . (`lookup` fs)) fieldName
