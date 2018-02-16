@@ -65,7 +65,8 @@ runFormWith fd mf fa = do
   let fv hv = runFormView (hv req) fd
   handleFormErrors (fv <$> mf) =<< runDeform fa fd
 
-runFormFiles :: FileContent f => [(BS.ByteString, Word64)] -> Maybe (RequestContext -> FormHtml f) -> DeformActionM f a -> ActionM a
+runFormFiles
+  :: FileContent f => [(BS.ByteString, Word64)] -> Maybe (RequestContext -> FormHtml f) -> DeformActionM f a -> ActionM a
 runFormFiles fl mf fa = do
   fd <- getFormData fl
   runFormWith fd mf fa
