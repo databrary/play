@@ -11,6 +11,7 @@ import Control.Monad (unless)
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.Attoparsec.ByteString as ATTO
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Csv as CSV
 import qualified Data.Csv.Parser as CSVP
@@ -94,7 +95,7 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
           return fileInfo
     let -- uploadFileContents = "idcol\nA1\nA2\n" -- TODO: handle nothing
         uploadFileContents = (BSL.toStrict . TLE.encodeUtf8 . fileContent) csvFileInfo
-        uploadFileName = "yo.csv"
+        uploadFileName = (BSC.unpack . fileName) csvFileInfo  -- TODO: add prefix to filename
     let eCsvHeaders = ATTO.parseOnly (CSVP.csvWithHeader CSVP.defaultDecodeOptions) uploadFileContents
     case eCsvHeaders of
         Left err ->
@@ -103,7 +104,7 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
             let mMpng = detectBestHeaderMapping (getHeaders hdrs)
             case mMpng of
                 Just mpng -> do
-                    liftIO (BS.writeFile ("/home/kanishka/tmp/" ++ uploadFileName) uploadFileContents)
+                    liftIO (BS.writeFile ("/tmp/" ++ uploadFileName) uploadFileContents)
                     pure
                         $ okResponse []
                             $ JSON.recordEncoding -- TODO: not record encoding
@@ -122,9 +123,9 @@ runParticipantUpload :: ActionRoute (Id Volume)
 runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUpload") $ \vi -> withAuth $ do
     -- checkMemberADMIN to start
     v <- getVolume PermissionEDIT vi
-    let csvUploadId = "yo.csv"
+    let csvUploadId = "yo.csv" -- TODO: extract csv id, resolve to file name
     -- parse mappings
-    csvContents <- liftIO (readFile ("/home/kanishka/tmp/" ++ csvUploadId)) -- cassava
+    csvContents <- liftIO (readFile ("/tmp/" ++ csvUploadId)) -- cassava
     pure
         $ okResponse []
             $ JSON.recordEncoding -- TODO: not record encoding
