@@ -11,13 +11,16 @@ import Control.Monad (unless)
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.Attoparsec.ByteString as ATTO
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Csv as CSV
 import qualified Data.Csv.Parser as CSVP
 import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text.Encoding as TE
+import qualified Data.Text.Lazy.Encoding as TLE
 import qualified Data.Text.Lazy as TL
 import qualified Data.Vector as V
+import Data.Word (Word64)
 import Network.HTTP.Types (badRequest400)
 import Network.Wai.Parse (FileInfo(..))
 import System.Posix.FilePath (takeExtension)
@@ -41,6 +44,7 @@ import Databrary.Controller.Permission
 import Databrary.Controller.Form
 import Databrary.Controller.Volume
 import Databrary.View.Ingest
+import Databrary.View.Form (FormHtml)
 
 viewIngest :: ActionRoute (Id Volume)
 viewIngest = action GET (pathId </< "ingest") $ \vi -> withAuth $ do
@@ -73,8 +77,8 @@ postIngest = multipartAction $ action POST (pathId </< "ingest") $ \vi -> withAu
   unless r $ result $ response badRequest400 [] ("failed" :: String)
   peeks $ otherRouteResponse [] viewIngest (volumeId $ volumeRow v)
 
--- maxCsvSize :: ?
--- maxCsvSize = 3*1024*1024
+maxCsvSize :: Word64
+maxCsvSize = 16*1024*1024
 
 -- TODO: maybe put csv file save/retrieve in Databrary.Store module
 detectParticipantCSV :: ActionRoute (Id Volume)
@@ -82,15 +86,14 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
     -- checkMemberADMIN to start
     v <- getVolume PermissionEDIT vi
     reqCtxt <- peek
-    {-
-    csvFileInfo <- runFormFiles [("file", 10)] (Just $ htmlIngestForm v undefined) $ do -- TODO: don't use undefined
-      csrfForm
-      (fileInfo :: FileInfo TL.Text) <- "file" .:> deform
-      return fileInfo
-    -}
-    let uploadFileContents = "idcol\nA1\nA2\n" -- TODO: handle nothing
-        -- Just uploadFile = mCsvFile
-        -- uploadFileContents = fileContent uploadFile
+    csvFileInfo <-
+      -- TODO: is Nothing okay here?
+      runFormFiles [("file", maxCsvSize)] (Nothing :: Maybe (RequestContext -> FormHtml TL.Text)) $ do
+          csrfForm
+          fileInfo :: (FileInfo TL.Text) <- "file" .:> deform
+          return fileInfo
+    let -- uploadFileContents = "idcol\nA1\nA2\n" -- TODO: handle nothing
+        uploadFileContents = (BSL.toStrict . TLE.encodeUtf8 . fileContent) csvFileInfo
         uploadFileName = "yo.csv"
     let eCsvHeaders = ATTO.parseOnly (CSVP.csvWithHeader CSVP.defaultDecodeOptions) uploadFileContents
     case eCsvHeaders of
