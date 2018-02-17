@@ -17,13 +17,15 @@ import qualified Databrary.JSON as JSON
 
 getFormData :: FileContent a => [(BS.ByteString, Word64)] -> ActionM (FormData a)
 getFormData fileLimits = do
-  (mkFormData :: Map.Map BS.ByteString BS.ByteString -> Maybe JSON.Value -> Map.Map BS.ByteString (FileInfo a) -> FormData a)
+  (mkFormData
+   :: Map.Map BS.ByteString BS.ByteString -> Maybe JSON.Value -> Map.Map BS.ByteString (FileInfo a) -> FormData a)
     <- peeks $ (\httpReq -> (FormData . Map.fromList . Wai.queryString) httpReq)
-  c <- parseRequestContent getFileMaxSizeByFieldName
+  (c :: Content a) <- parseRequestContent getFileMaxSizeByFieldName
   return $ case c of
-    ContentForm p u -> mkFormData (Map.fromList p) Nothing (Map.fromList u)
-    ContentJSON j -> mkFormData Map.empty (Just j) Map.empty
-    _ -> mkFormData Map.empty Nothing Map.empty
+    ContentForm formParams formFiles -> mkFormData (Map.fromList formParams) Nothing    (Map.fromList formFiles)
+    ContentJSON val ->                  mkFormData Map.empty                 (Just val) Map.empty
+    -- text or unknown
+    _ ->                                mkFormData Map.empty                 Nothing    Map.empty
   where  
     getFileMaxSizeByFieldName :: BS.ByteString -> Word64
     getFileMaxSizeByFieldName fieldName = (fromMaybe 0 . (`lookup` fileLimits)) fieldName

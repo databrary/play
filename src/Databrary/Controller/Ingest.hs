@@ -16,6 +16,7 @@ import qualified Data.Csv.Parser as CSVP
 import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text.Encoding as TE
+import qualified Data.Text.Lazy as TL
 import qualified Data.Vector as V
 import Network.HTTP.Types (badRequest400)
 import Network.Wai.Parse (FileInfo(..))
@@ -83,8 +84,8 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
     reqCtxt <- peek
     {-
     csvFileInfo <- runFormFiles [("file", 10)] (Just $ htmlIngestForm v undefined) $ do -- TODO: don't use undefined
-      csrfForm -- ?
-      (fileInfo :: FileInfo BS.ByteString) <- "file" .:> deform  -- TODO: what is tempfile?
+      csrfForm
+      (fileInfo :: FileInfo TL.Text) <- "file" .:> deform
       return fileInfo
     -}
     let uploadFileContents = "idcol\nA1\nA2\n" -- TODO: handle nothing
