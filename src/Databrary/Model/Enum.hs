@@ -2,7 +2,7 @@
 module Databrary.Model.Enum
   ( DBEnum
   , readDBEnum
-  , makeDBEnum
+  -- , makeDBEnum
   , parseJSONEnum
   , enumForm
   , pgEnumValues
@@ -54,6 +54,7 @@ enumForm = deformParse minBound fv where
   fv _ = e
   e = Left $ "Invalid " `T.append` kindOf (undefined :: a)
 
+{-
 makeDBEnum :: String -> String -> TH.DecsQ
 makeDBEnum name typs = do
   [] <- useTDB
@@ -71,3 +72,4 @@ makeDBEnum name typs = do
     |]
   where
   typt = TH.ConT (TH.mkName typs)
+-}
