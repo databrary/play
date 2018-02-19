@@ -51,7 +51,31 @@ changeVolumeFunding :: MonadDB c m => Volume -> Funding -> m Bool
 changeVolumeFunding v Funding{..} =
   (0 <) . fst <$> updateOrInsert
     [pgSQL|UPDATE volume_funding SET awards = ${a} WHERE volume = ${volumeId $ volumeRow v} AND funder = ${funderId fundingFunder}|]
-    [pgSQL|INSERT INTO volume_funding (volume, funder, awards) VALUES (${volumeId $ volumeRow v}, ${funderId fundingFunder}, ${a})|]
+    -- [pgSQL|INSERT INTO volume_funding (volume, funder, awards) VALUES (${volumeId $ volumeRow v}, ${funderId fundingFunder}, ${a})|]
+    (mapQuery
+             (Data.ByteString.concat
+                [Data.String.fromString
+                   "INSERT INTO volume_funding (volume, funder, awards) VALUES (",
+                 Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                   unknownPGTypeEnv
+                   (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                      Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                   (volumeId $ volumeRow v),
+                 Data.String.fromString ", ",
+                 Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                   unknownPGTypeEnv
+                   (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                      Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
+                   (funderId fundingFunder),
+                 Data.String.fromString ", ",
+                 Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                   unknownPGTypeEnv
+                   (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                      Database.PostgreSQL.Typed.Types.PGTypeName "text[]")
+                   a,
+                 Data.String.fromString ")"])
+             (\[] -> ()))
+      -- (volumeId $ volumeRow v) (funderId fundingFunder) a
   where a = map Just fundingAwards
 
 mapQuery :: ByteString -> ([PGValue] -> a) -> PGSimpleQuery a
