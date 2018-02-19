@@ -14,6 +14,14 @@ module Databrary.Model.Funding
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Database.PostgreSQL.Typed (pgSQL)
+import Database.PostgreSQL.Typed
+import Database.PostgreSQL.Typed.Query
+import Database.PostgreSQL.Typed.Types
+import qualified Database.PostgreSQL.Typed.Query
+import qualified Database.PostgreSQL.Typed.Types
+import qualified Data.ByteString
+import Data.ByteString (ByteString)
+import qualified Data.String
 
 import qualified Databrary.JSON as JSON
 import Databrary.Service.DB
@@ -46,9 +54,30 @@ changeVolumeFunding v Funding{..} =
     [pgSQL|INSERT INTO volume_funding (volume, funder, awards) VALUES (${volumeId $ volumeRow v}, ${funderId fundingFunder}, ${a})|]
   where a = map Just fundingAwards
 
+mapQuery :: ByteString -> ([PGValue] -> a) -> PGSimpleQuery a
+mapQuery qry mkResult =
+  fmap mkResult (rawPGSimpleQuery qry)
+
 removeVolumeFunder :: MonadDB c m => Volume -> Id Funder -> m Bool
 removeVolumeFunder v f =
-  dbExecute1 [pgSQL|DELETE FROM volume_funding WHERE volume = ${volumeId $ volumeRow v} AND funder = ${f}|]
+  dbExecute1 -- [pgSQL|DELETE FROM volume_funding WHERE volume = ${volumeId $ volumeRow v} AND funder = ${f}|]
+    (mapQuery
+        (Data.ByteString.concat
+           [Data.String.fromString
+              "DELETE FROM volume_funding WHERE volume = ",
+            Database.PostgreSQL.Typed.Types.pgEscapeParameter
+              unknownPGTypeEnv
+              (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                 Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+              (volumeId $ volumeRow v),
+            Data.String.fromString " AND funder = ",
+            Database.PostgreSQL.Typed.Types.pgEscapeParameter
+              unknownPGTypeEnv
+              (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                 Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
+              f])
+        (\[] -> ()))
+      -- (volumeId $ volumeRow v) f
 
 funderJSON :: JSON.ToObject o => Funder -> o
 funderJSON Funder{..} =
