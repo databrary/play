@@ -50,7 +50,28 @@ lookupVolumeFunding vol =
 changeVolumeFunding :: MonadDB c m => Volume -> Funding -> m Bool
 changeVolumeFunding v Funding{..} =
   (0 <) . fst <$> updateOrInsert
-    [pgSQL|UPDATE volume_funding SET awards = ${a} WHERE volume = ${volumeId $ volumeRow v} AND funder = ${funderId fundingFunder}|]
+    -- [pgSQL|UPDATE volume_funding SET awards = ${a} WHERE volume = ${volumeId $ volumeRow v} AND funder = ${funderId fundingFunder}|]
+    (mapQuery
+      (Data.ByteString.concat
+        [Data.String.fromString "UPDATE volume_funding SET awards = ",
+         Database.PostgreSQL.Typed.Types.pgEscapeParameter
+           unknownPGTypeEnv
+           (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+              Database.PostgreSQL.Typed.Types.PGTypeName "text[]")
+           a,
+         Data.String.fromString " WHERE volume = ",
+         Database.PostgreSQL.Typed.Types.pgEscapeParameter
+           unknownPGTypeEnv
+           (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+              Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+           (volumeId $ volumeRow v),
+         Data.String.fromString " AND funder = ",
+         Database.PostgreSQL.Typed.Types.pgEscapeParameter
+           unknownPGTypeEnv
+           (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+              Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
+           (funderId fundingFunder)])
+      (\[] -> ()))
     -- [pgSQL|INSERT INTO volume_funding (volume, funder, awards) VALUES (${volumeId $ volumeRow v}, ${funderId fundingFunder}, ${a})|]
     (mapQuery
              (Data.ByteString.concat
