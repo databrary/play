@@ -22,7 +22,7 @@ import Databrary.Model.Container.Types
 import Databrary.Model.Release.Types
 import Databrary.Model.Release.SQL
 
-useTDB
+-- useTDB
 
 mapQuery :: ByteString -> ([PGValue] -> a) -> PGSimpleQuery a
 mapQuery qry mkResult =
