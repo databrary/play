@@ -41,7 +41,24 @@ findFunders q =
 
 addFunder :: MonadDB c m => Funder -> m ()
 addFunder f =
-  dbExecute1' [pgSQL|INSERT INTO funder (fundref_id, name) VALUES (${funderId f}, ${funderName f})|]
+  dbExecute1' --[pgSQL|INSERT INTO funder (fundref_id, name) VALUES (${funderId f}, ${funderName f})|]
+    (mapQuery
+           (Data.ByteString.concat
+              [Data.String.fromString
+                 "INSERT INTO funder (fundref_id, name) VALUES (",
+               Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                 unknownPGTypeEnv
+                 (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                    Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
+                 (funderId f),
+               Data.String.fromString ", ",
+               Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                 unknownPGTypeEnv
+                 (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                    Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                 (funderName f),
+               Data.String.fromString ")"])
+           (\[] -> ()))
 
 lookupVolumeFunding :: (MonadDB c m) => Volume -> m [Funding]
 lookupVolumeFunding vol =
