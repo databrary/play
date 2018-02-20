@@ -33,6 +33,7 @@ import Databrary.Model.Id
 import Databrary.Model.Permission
 import Databrary.Model.Volume
 import Databrary.Model.Container
+import Databrary.Model.Record
 import Databrary.Model.Ingest (detectBestHeaderMapping, headerMappingJSON)
 import Databrary.Ingest.Action
 import Databrary.Ingest.JSON
@@ -129,15 +130,18 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
         (uploadId :: String) <- "csv_upload_id" .:> deform
         mapping <- "selected_mapping" .:> deform
         pure (uploadId, mapping)
-    -- let csvUploadId = "yo.csv" -- TODO: extract csv id, resolve to file name
-    -- 
     -- parse mappings
     liftIO $ print ("upload id", csvUploadId, "mapping", selectedMapping)
-    csvContents <- liftIO (readFile ("/tmp/" ++ csvUploadId)) -- cassava
+    -- TODO: resolve csv id to absolute path
+    csvContents <- liftIO (readFile ("/tmp/" ++ csvUploadId)) -- TODO: cassava
     pure
         $ okResponse []
             $ JSON.recordEncoding -- TODO: not record encoding
                 $ JSON.Record vi $ "succeeded" JSON..= True
+
+parseMapping :: JSON.Value -> JSON.Parser ParticipantFieldMapping
+parseMapping val =
+  fail "to implement"
 
 -- parseMapping :: Value -> Parser [Mapping]
 --   build up list of Map of entries
