@@ -1,8 +1,14 @@
-{ nodePackages ? import ./node-default.nix {}
-, databraryRoot ? ./.
-}:
+{}:
 
 let
+  # FIXME: inherit nixpkgs (But only when our nixpkgs has binary substitutes for
+  # nodejs)
+  nodePackages = import ./node {};
+  dbName = "databrary-nix-db";
+  src =
+    builtins.filterSource
+      (path: _type: ! builtins.elem (baseNameOf path) [dbName ".git" "result"])
+      ./.;
   reflex-platform = import
     ((import <nixpkgs> {}).fetchFromGitHub {
       owner= "reflex-frp";
