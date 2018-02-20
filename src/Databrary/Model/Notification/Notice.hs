@@ -34,6 +34,7 @@ import Databrary.Model.Periodic
 import Databrary.Model.Notification.Boot
 
 -- makeDBEnum "notice_delivery" "Delivery"
+-- TODO: db coherence
 data Delivery
   = DeliveryNone |
     DeliverySite |

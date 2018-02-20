@@ -22,6 +22,7 @@ import qualified Databrary.Model.Kind
 import qualified Databrary.HTTP.Form.Deform
 
 -- makeDBEnum "release" "Release"
+-- TODO: db coherence
 data Release
     = ReleasePRIVATE | ReleaseSHARED | ReleaseEXCERPTS | ReleasePUBLIC
           deriving (Eq,

@@ -15,8 +15,9 @@ import qualified Databrary.JSON as JSON
 import Databrary.Model.Id
 import Databrary.Model.Category.Types
 
+-- TODO: db coherence
 allCategories :: [Category]
-allCategories =  -- TODO: get rid of Category table, only present here instead
+allCategories =
     [Category
        (Id 1)
        (Data.Text.pack "participant")

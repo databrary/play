@@ -23,6 +23,7 @@ import qualified Databrary.Model.Kind
 import qualified Databrary.HTTP.Form.Deform
 
 -- makeDBEnum "permission" "Permission"
+-- TODO: db coherence
 data Permission
   = PermissionNONE |
     PermissionPUBLIC |

@@ -24,6 +24,7 @@ import qualified Databrary.Model.Kind
 import qualified Databrary.HTTP.Form.Deform
 
 -- makeDBEnum "audit.action" "AuditAction"
+-- TODO: db coherence
 data AuditAction
   = AuditActionAttempt |
     AuditActionOpen |

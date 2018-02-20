@@ -34,6 +34,7 @@ import qualified Databrary.Model.Kind
 import qualified Databrary.HTTP.Form.Deform
 
 -- makeDBEnum "data_type" "MeasureType"
+-- TODO: db coherence
 data MeasureType
   = MeasureTypeText |
     MeasureTypeNumeric |
