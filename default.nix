@@ -37,7 +37,7 @@ let
     fi
     if [ ! -d "node_modules" ]; then
       echo linking node_modules
-      ln -s ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
+      ln -sf ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
     fi
     # make store related dirs
     mkdir -p cache/tmp stage tmp trans upload
