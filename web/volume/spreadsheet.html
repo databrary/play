@@ -3,10 +3,10 @@
 <ng-form name="form">
 <div class="spreadsheet-dynamic-info" ng-if="::editing">
   <a href="" ng-click="showConsents=false" ng-show="showConsents">
-    Hide Databrary release levels
+    Hide legend of session release levels
   </a>
   <a href="" ng-click="showConsents=true" ng-hide="showConsents">
-    Show Databrary release levels
+    Show legend of session release levels
   </a>
   <ul class="release-legend flat" ng-show="showConsents">
     <li ng-repeat="c in ::page.constants.releases">
@@ -47,7 +47,7 @@
     </ul>
   </div>
   <div class="small reminder top-2">
-    <span ng-if="!anyGlobal">Here you can manage the list of options in this category.</span>
+    <span ng-if="!anyGlobal">You can view your data aggregated by participant, task, context...whatever options you have selected in the Design Spreadsheet tab.</span>
     <span ng-if="anyGlobal">Some categories are {{showGlobal ? 'shown': 'hidden'}}. <button class="link" ng-click="showHideGlobal()">Click to {{showGlobal ? 'hide all' : 'show all'}}.</button> </span><br>
   </div>
 </div>
