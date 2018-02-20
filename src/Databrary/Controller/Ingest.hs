@@ -109,7 +109,7 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
                         $ okResponse []
                             $ JSON.recordEncoding -- TODO: not record encoding
                                 $ JSON.Record vi
-                                    $      "csv_upload_id" JSON..= ("yo.csv" :: String)
+                                    $      "csv_upload_id" JSON..= (uploadFileName)
                                         <> "suggested_mapping" JSON..= headerMappingJSON mpng
                 Nothing ->
                   -- if detect headers failed, then don't save csv file and response is error
@@ -123,15 +123,23 @@ runParticipantUpload :: ActionRoute (Id Volume)
 runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUpload") $ \vi -> withAuth $ do
     -- checkMemberADMIN to start
     v <- getVolume PermissionEDIT vi
-    let csvUploadId = "yo.csv" -- TODO: extract csv id, resolve to file name
+    -- get body json
+    (csvUploadId :: String, selectedMapping :: JSON.Value) <- runForm (Nothing) $ do
+        csrfForm
+        (uploadId :: String) <- "csv_upload_id" .:> deform
+        mapping <- "selected_mapping" .:> deform
+        pure (uploadId, mapping)
+    -- let csvUploadId = "yo.csv" -- TODO: extract csv id, resolve to file name
+    -- 
     -- parse mappings
+    liftIO $ print ("upload id", csvUploadId, "mapping", selectedMapping)
     csvContents <- liftIO (readFile ("/tmp/" ++ csvUploadId)) -- cassava
     pure
         $ okResponse []
             $ JSON.recordEncoding -- TODO: not record encoding
                 $ JSON.Record vi $ "succeeded" JSON..= True
 
--- parseMapping :: RecordDesc -> Value -> Parser [Mapping]
+-- parseMapping :: Value -> Parser [Mapping]
 --   build up list of Map of entries
 --   using record description + entries to build mapping record
 
