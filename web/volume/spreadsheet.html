@@ -46,8 +46,27 @@
       </li>
     </ul>
   </div>
-  <div>
-    <button class="spreadsheet-btn-metadata white" ng-if="filter.key === 1">Upload metadata</button>
+  <div class="spreadsheet-metadata" ng-if="filter.key === 1">
+      <div>
+        <button class="white uploadinstuction">
+          <span class="icon upload"></span> <span>participant metadata</span>
+        </button>
+        <input type="file" name="metadata" accept=".csv">
+        <button class="white uploadsubmit">
+          <span class="icon upload"></span> <span class="filename">participant metadata</span>
+        </button>
+      </div>
+    <ul>
+      <li>
+        Here you can upload participant metadata (i.e., demographics)
+      </li>
+      <li>
+        File must be in .csv format with headers in the first row.
+      </li>
+      <li>
+        You must have already used the Design Spreadsheet tab to select the variables that you want to upload.
+      </li>
+    </ul>
   </div>
   <div class="small reminder top-2" ng-class="'margin' + filter.key">
     <span ng-if="!anyGlobal">Here you can manage the list of options in this category.</span>
