@@ -15,6 +15,14 @@ import Data.Ord (comparing)
 import qualified Data.Text as T
 import Database.PostgreSQL.Typed.Protocol (PGError(..), pgErrorCode)
 import Database.PostgreSQL.Typed.Types (PGTypeName, pgTypeName, PGColumn(pgDecode))
+import Database.PostgreSQL.Typed
+import Database.PostgreSQL.Typed.Query
+import Database.PostgreSQL.Typed.Types
+import qualified Database.PostgreSQL.Typed.Query
+import qualified Database.PostgreSQL.Typed.Types
+import qualified Data.ByteString
+import Data.ByteString (ByteString)
+import qualified Data.String
 
 import Databrary.Ops
 import Databrary.Has (view)
@@ -53,6 +61,10 @@ upMeasure m@Measure{ measureRecord = rec } = rec{ recordMeasures = upd $ recordM
 isInvalidInputException :: PGError -> Bool
 isInvalidInputException e = pgErrorCode e `elem` ["22007", "22008", "22P02"]
 
+mapQuery :: ByteString -> ([PGValue] -> a) -> PGSimpleQuery a
+mapQuery qry mkResult =
+  fmap mkResult (rawPGSimpleQuery qry)
+
 changeRecordMeasure :: MonadAudit c m => Measure -> m (Maybe Record)
 changeRecordMeasure m = do
   ident <- getAuditIdentity
@@ -67,7 +79,43 @@ changeRecordMeasure m = do
 removeRecordMeasure :: MonadAudit c m => Measure -> m Record
 removeRecordMeasure m = do
   ident <- getAuditIdentity
-  r <- dbExecute1 $(deleteMeasure 'ident 'm)
+  let _tenv_a6Dqm = unknownPGTypeEnv
+  r <- dbExecute1 -- $(deleteMeasure 'ident 'm)
+      (mapQuery
+          ((\ _p_a6Dqn _p_a6Dqo _p_a6Dqp _p_a6Dqq ->
+                    (Data.ByteString.concat
+                       [Data.String.fromString
+                          "WITH audit_row AS (DELETE FROM measure WHERE record=",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6Dqm
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             PGTypeName "integer")
+                          _p_a6Dqn,
+                        Data.String.fromString " AND metric=",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6Dqm
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             PGTypeName "integer")
+                          _p_a6Dqo,
+                        Data.String.fromString
+                          " RETURNING *) INSERT INTO audit.measure SELECT CURRENT_TIMESTAMP, ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6Dqm
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             PGTypeName "integer")
+                          _p_a6Dqp,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6Dqm
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy :: PGTypeName "inet")
+                          _p_a6Dqq,
+                        Data.String.fromString
+                          ", 'remove'::audit.action, * FROM audit_row"]))
+           (recordId $ recordRow $ measureRecord m)
+           (metricId $ measureMetric m)
+           (auditWho ident)
+           (auditIp ident))
+          (\[] -> ()))
   return $ if r
     then rmMeasure m
     else measureRecord m
