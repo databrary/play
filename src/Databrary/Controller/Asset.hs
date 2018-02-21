@@ -180,7 +180,7 @@ processAsset api target = do
   (as', up') <- runFormFiles [("file", maxAssetSize)] (api == HTML ?> htmlAssetEdit target) $ do
     liftIO $ putStrLn "runFormFiles..."--DEBUG
     csrfForm
-    file <- "file" .:> deform
+    (file :: Maybe (FileInfo TempFile)) <- "file" .:> deform
     liftIO $ putStrLn "deformed file..." --DEBUG
     upload <- "upload" .:> deformLookup "Uploaded file not found." lookupUpload
     liftIO $ putStrLn "upload file..." --DEBUG
