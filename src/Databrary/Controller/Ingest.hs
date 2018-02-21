@@ -134,7 +134,8 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
     let eMpngs = JSON.parseEither parseMapping selectedMapping
     liftIO $ print ("upload id", csvUploadId, "mapping", eMpngs)
     -- TODO: resolve csv id to absolute path; http error if unknown
-    csvContents <- liftIO (readFile ("/tmp/" ++ csvUploadId)) -- TODO: cassava <<<
+    csvContents <- liftIO (readFile ("/tmp/" ++ csvUploadId))
+    -- invoke cassava here
     pure
         $ okResponse []
             $ JSON.recordEncoding -- TODO: not record encoding
