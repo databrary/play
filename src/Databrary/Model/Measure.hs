@@ -70,6 +70,7 @@ changeRecordMeasure :: MonadAudit c m => Measure -> m (Maybe Record)
 changeRecordMeasure m = do
   ident <- getAuditIdentity
   let _tenv_a6DoS = unknownPGTypeEnv
+      _tenv_a6DpB = unknownPGTypeEnv
   r <- tryUpdateOrInsert (guard . isInvalidInputException)
     -- $(updateMeasure 'ident 'm)
     (fmap
@@ -121,7 +122,56 @@ changeRecordMeasure m = do
                             _tenv_a6DoS
                             (Database.PostgreSQL.Typed.Types.PGTypeProxy :: PGTypeName "text")
                             _cdatum_a6DoY))))
-    $(insertMeasure 'ident 'm)
+    -- $(insertMeasure 'ident 'm)
+    (fmap
+      (\ (vdatum_a6Dpm)
+         -> Databrary.Model.Measure.SQL.setMeasureDatum
+              m vdatum_a6Dpm)
+      (mapQuery
+         ((\ _p_a6DpC _p_a6DpD _p_a6DpE _p_a6DpF _p_a6DpG ->
+                       (Data.ByteString.concat
+                          [Data.String.fromString
+                             "WITH audit_row AS (INSERT INTO measure (record,metric,datum) VALUES (",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a6DpB
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                PGTypeName "integer")
+                             _p_a6DpC,
+                           Data.String.fromString ",",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a6DpB
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                PGTypeName "integer")
+                             _p_a6DpD,
+                           Data.String.fromString ",",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a6DpB
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy :: PGTypeName "text")
+                             _p_a6DpE,
+                           Data.String.fromString
+                             ") RETURNING *) INSERT INTO audit.measure SELECT CURRENT_TIMESTAMP, ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a6DpB
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                PGTypeName "integer")
+                             _p_a6DpF,
+                           Data.String.fromString ", ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a6DpB
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy :: PGTypeName "inet")
+                             _p_a6DpG,
+                           Data.String.fromString
+                             ", 'add'::audit.action, * FROM audit_row RETURNING measure.datum"]))
+          (recordId $ recordRow $ measureRecord m)
+          (metricId $ measureMetric m)
+          (measureDatum m)
+          (auditWho ident)
+          (auditIp ident))
+         (\ [_cdatum_a6DpH]
+                  -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a6DpB
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy :: PGTypeName "text")
+                        _cdatum_a6DpH))))
   case r of
     Left () -> return Nothing
     Right (_, [d]) -> return $ Just $ upMeasure d
