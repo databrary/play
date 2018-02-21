@@ -3,6 +3,7 @@ module Databrary.Model.Measure.SQL
   ( insertMeasure
   , updateMeasure
   , deleteMeasure
+  , setMeasureDatum -- temporarily expose
   ) where
 
 import qualified Language.Haskell.TH as TH
