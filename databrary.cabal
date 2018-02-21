@@ -16,6 +16,11 @@ Source-Repository head
   Type:	git
   Location: https://github.com/databrary/databrary
 
+Flag replTest
+  description: Get set to run tests in the repl
+  default: False
+  manual: True
+
 Flag devel
   description: Enable development mode
   default: False
@@ -377,8 +382,6 @@ library
   default-language: Haskell2010
   default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
 
-  ghc-options: -Wall -fwarn-tabs -funbox-strict-fields
-
   if flag(devel)
     cpp-options: -DDEVEL
   if flag(sandbox)
@@ -526,11 +529,365 @@ test-suite databrary-test
   main-is: Test.hs
   hs-source-dirs: test
   build-depends:
-    databrary
-    , base
+    base
     , tasty
     , tasty-expected-failure
     , tasty-hunit
+  if flag(replTest)
+    hs-source-dirs: src
+    extra-libraries: crack, crypto
+    pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
+    c-sources: src/Databrary/Store/avFrame.c
+    default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
+    other-modules:
+      Paths_databrary
+      Blaze.ByteString.Builder.Html.Word
+      Data.ByteString.Builder.Escape
+      Data.RangeSet.Parse
+      Databrary.Warp
+      Databrary.Solr.Service
+      Databrary.Solr.Search
+      Databrary.Solr.Tag
+      Databrary.Solr.StringUtil
+      Databrary.Solr.Index
+      Databrary.Solr.Document
+      Databrary.JSON
+      Databrary.Web
+      Databrary.Routes.JS
+      Databrary.Routes
+      Databrary.Static.Fillin
+      Databrary.Static.Service
+      Databrary.Action.Form
+      Databrary.Action.Run
+      Databrary.Action.Types
+      Databrary.Action.Route
+      Databrary.Action.Response
+      Databrary.Action.Request
+      Databrary.Has
+      Databrary.Context
+      Databrary.EZID.Volume
+      Databrary.EZID.Service
+      Databrary.EZID.DataCite
+      Databrary.EZID.API
+      Databrary.EZID.ANVL
+      Databrary.Model.Format
+      Databrary.Model.RecordSlot
+      Databrary.Model.Audit.Types
+      Databrary.Model.Audit.SQL
+      Databrary.Model.Volume
+      Databrary.Model.Activity
+      Databrary.Model.Asset.Types
+      Databrary.Model.Asset.SQL
+      Databrary.Model.Excerpt.SQL
+      Databrary.Model.AssetSegment
+      Databrary.Model.Excerpt
+      Databrary.Model.VolumeMetric
+      Databrary.Model.Comment
+      Databrary.Model.Token
+      Databrary.Model.Slot
+      Databrary.Model.Category.Types
+      Databrary.Model.Category.SQL
+      Databrary.Model.Category.Boot
+      Databrary.Model.Authorize
+      Databrary.Model.RecordSlot.Types
+      Databrary.Model.RecordSlot.SQL
+      Databrary.Model.VolumeState.Types
+      Databrary.Model.VolumeState.SQL
+      Databrary.Model.Citation
+      Databrary.Model.Container
+      Databrary.Model.Transcode.Types
+      Databrary.Model.Transcode.SQL
+      Databrary.Model.Paginate.SQL
+      Databrary.Model.AssetSlot
+      Databrary.Model.Segment
+      Databrary.Model.Enum
+      Databrary.Model.Metric
+      Databrary.Model.Container.Types
+      Databrary.Model.Container.SQL
+      Databrary.Model.Slot.Types
+      Databrary.Model.Slot.SQL
+      Databrary.Model.Permission
+      Databrary.Model.Kind
+      Databrary.Model.Metric.Types
+      Databrary.Model.Metric.SQL
+      Databrary.Model.Metric.Boot
+      Databrary.Model.Permission.Types
+      Databrary.Model.Permission.SQL
+      Databrary.Model.Party
+      Databrary.Model.Authorize.Types
+      Databrary.Model.Authorize.SQL
+      Databrary.Model.Notification.Notice
+      Databrary.Model.Notification.Notify
+      Databrary.Model.Notification.Types
+      Databrary.Model.Notification.SQL
+      Databrary.Model.Notification.Boot
+      Databrary.Model.Periodic
+      Databrary.Model.Funding
+      Databrary.Model.Release
+      Databrary.Model.Measure.SQL
+      Databrary.Model.Activity.Types
+      Databrary.Model.Activity.SQL
+      Databrary.Model.EnumStringUtil
+      Databrary.Model.Token.Types
+      Databrary.Model.Token.SQL
+      Databrary.Model.Notification
+      Databrary.Model.Funding.Types
+      Databrary.Model.Funding.FundRef
+      Databrary.Model.Funding.SQL
+      Databrary.Model.Comment.Types
+      Databrary.Model.Comment.SQL
+      Databrary.Model.Release.Types
+      Databrary.Model.Release.SQL
+      Databrary.Model.Asset
+      Databrary.Model.VolumeAccess.Types
+      Databrary.Model.VolumeAccess.SQL
+      Databrary.Model.Identity
+      Databrary.Model.Category
+      Databrary.Model.Party.Types
+      Databrary.Model.Party.SQL
+      Databrary.Model.Party.Boot
+      Databrary.Model.Time
+      Databrary.Model.Measure
+      Databrary.Model.Id.Types
+      Databrary.Model.AssetSlot.Types
+      Databrary.Model.AssetSlot.SQL
+      Databrary.Model.PermissionUtil
+      Databrary.Model.ORCID
+      Databrary.Model.Audit
+      Databrary.Model.Record.Types
+      Databrary.Model.Record.SQL
+      Databrary.Model.VolumeMetric.SQL
+      Databrary.Model.SQL.Select
+      Databrary.Model.Paginate
+      Databrary.Model.Record
+      Databrary.Model.Citation.CrossRef
+      Databrary.Model.Citation.Types
+      Databrary.Model.Citation.SQL
+      Databrary.Model.Stats.Types
+      Databrary.Model.AssetRevision.Types
+      Databrary.Model.AssetRevision.SQL
+      Databrary.Model.VolumeState
+      Databrary.Model.Ingest
+      Databrary.Model.GeoNames
+      Databrary.Model.Tag
+      Databrary.Model.VolumeAccess
+      Databrary.Model.URL
+      Databrary.Model.Identity.Types
+      Databrary.Model.Age
+      Databrary.Model.Tag.Types
+      Databrary.Model.Tag.SQL
+      Databrary.Model.SQL
+      Databrary.Model.Id
+      Databrary.Model.Stats
+      Databrary.Model.Format.Types
+      Databrary.Model.Format.SQL
+      Databrary.Model.Transcode
+      Databrary.Model.AssetSegment.Types
+      Databrary.Model.AssetSegment.SQL
+      Databrary.Model.AssetRevision
+      Databrary.Model.Offset
+      Databrary.Model.Volume.Types
+      Databrary.Model.Volume.SQL
+      Databrary.Model.Volume.Boot
+      Databrary.View.Format
+      Databrary.View.Volume
+      Databrary.View.Activity
+      Databrary.View.Comment
+      Databrary.View.Token
+      Databrary.View.Authorize
+      Databrary.View.Container
+      Databrary.View.Form
+      Databrary.View.Error
+      Databrary.View.Party
+      Databrary.View.Periodic
+      Databrary.View.Login
+      Databrary.View.Register
+      Databrary.View.Email
+      Databrary.View.Template
+      Databrary.View.Zip
+      Databrary.View.Notification
+      Databrary.View.Asset
+      Databrary.View.Root
+      Databrary.View.Angular
+      Databrary.View.Paginate
+      Databrary.View.Record
+      Databrary.View.Ingest
+      Databrary.View.VolumeAccess
+      Databrary.View.Html
+      Databrary.View.Transcode
+      Databrary.Files
+      Databrary.Store.Upload
+      Databrary.Store.AssetSegment
+      Databrary.Store.Service
+      Databrary.Store.Probe
+      Databrary.Store.CSV
+      Databrary.Store.Filename
+      Databrary.Store.Stage
+      Databrary.Store.Transcoder
+      Databrary.Store.Asset
+      Databrary.Store.Types
+      Databrary.Store.Temp
+      Databrary.Store.AV
+      Databrary.Store.Transcode
+      Databrary.Store.Config
+      Databrary.Service.Mail
+      Databrary.Service.Entropy
+      Databrary.Service.DB
+      Databrary.Service.Periodic
+      Databrary.Service.Crypto
+      Databrary.Service.Messages
+      Databrary.Service.Notification
+      Databrary.Service.Types
+      Databrary.Service.Init
+      Databrary.Service.Log
+      Databrary.Service.Passwd
+      Databrary.Main
+      Databrary.Web.Service
+      Databrary.Web.Routes
+      Databrary.Web.Cache
+      Databrary.Web.JSHint
+      Databrary.Web.Uglify
+      Databrary.Web.Generate
+      Databrary.Web.GZip
+      Databrary.Web.Libs
+      Databrary.Web.Messages
+      Databrary.Web.Coffee
+      Databrary.Web.Constants
+      Databrary.Web.Files
+      Databrary.Web.Types
+      Databrary.Web.Rules
+      Databrary.Web.Templates
+      Databrary.Web.Info
+      Databrary.Web.All
+      Databrary.Web.Stylus
+      Databrary.Action
+      Databrary.Ingest.Service
+      Databrary.Ingest.JSON
+      Databrary.Ingest.Action
+      Databrary.HTTP
+      Databrary.Controller.Format
+      Databrary.Controller.Paths
+      Databrary.Controller.Upload
+      Databrary.Controller.Volume
+      Databrary.Controller.Activity
+      Databrary.Controller.AssetSegment
+      Databrary.Controller.Excerpt
+      Databrary.Controller.Comment
+      Databrary.Controller.Token
+      Databrary.Controller.Slot
+      Databrary.Controller.Web
+      Databrary.Controller.Authorize
+      Databrary.Controller.Citation
+      Databrary.Controller.Container
+      Databrary.Controller.Form
+      Databrary.Controller.Metric
+      Databrary.Controller.CSV
+      Databrary.Controller.Permission
+      Databrary.Controller.Party
+      Databrary.Controller.Periodic
+      Databrary.Controller.Funding
+      Databrary.Controller.Login
+      Databrary.Controller.Register
+      Databrary.Controller.Zip
+      Databrary.Controller.Notification
+      Databrary.Controller.Asset
+      Databrary.Controller.Root
+      Databrary.Controller.Angular
+      Databrary.Controller.Search
+      Databrary.Controller.IdSet
+      Databrary.Controller.Record
+      Databrary.Controller.VolumeState
+      Databrary.Controller.Ingest
+      Databrary.Controller.Tag
+      Databrary.Controller.VolumeAccess
+      Databrary.Controller.Transcode
+      Databrary.HTTP.File
+      Databrary.HTTP.Cookie
+      Databrary.HTTP.Form
+      Databrary.HTTP.Path.Parser
+      Databrary.HTTP.Method.Map
+      Databrary.HTTP.Form.Data
+      Databrary.HTTP.Form.Deform
+      Databrary.HTTP.Form.Errors
+      Databrary.HTTP.Form.View
+      Databrary.HTTP.Parse
+      Databrary.HTTP.Route
+      Databrary.HTTP.Client
+      Databrary.HTTP.Request
+      Databrary.Ops
+      Control.Invert
+    build-depends:
+      base >= 4.8.2.0,
+      bytestring >= 0.10,
+      containers >= 0.5.6.2,
+      array >= 0.5.1.0,
+      transformers >= 0.4.3.0,
+      transformers-base >= 0.4.4,
+      mtl >= 2.2.1,
+      monad-control >= 1,
+      lifted-base >= 0.2.3.6,
+      template-haskell >= 2.10.0.0,
+      th-lift >= 0.7.6,
+      th-lift-instances >= 0.1.7,
+      time >= 1.5.0.1,
+      unix >= 2.7.1.0,
+      filepath >= 1.4.0.0,
+      posix-paths >= 0.2.1.0,
+      directory >= 1.2.2.0,
+      process >= 1.2.3.0,
+      data-default-class >= 0.0.1,
+      text >= 1.2.2.1,
+      utf8-string >= 1.0.1.1,
+      hashable >= 1.2.1,
+      unordered-containers >= 0.2.7.0,
+      parsec >= 3,
+      attoparsec >= 0.13.0.1,
+      network >= 2.6.2.1,
+      network-uri >= 2.6.1.0,
+      http-types >= 0.9,
+      wai >= 3.2.1,
+      wai-extra >= 3.0.15.1,
+      warp >= 3.2.6,
+      warp-tls >= 3.2.1,
+      case-insensitive >= 1.2.0.6,
+      aeson >= 0.11.1.4,
+      vector >= 0.11.0.0,
+      cookie >= 0.4.1.6,
+      resource-pool >= 0.2.3.2,
+      scientific >= 0.3.4.6,
+      postgresql-typed >= 0.4.5,
+      postgresql-simple >= 0.5.3.0,
+      memory >= 0.8,
+      cryptonite >= 0.15,
+      resourcet >= 1.1.7.4,
+      streaming-commons >= 0.1.15.2,
+      -- blaze-builder >= 0.4,
+      blaze-markup >= 0.8.0.0,
+      blaze-html >= 0.9.0.1,
+      regex-posix >= 0.95.2,
+      bcrypt >= 0.0.9,
+      http-client >= 0.4.27,
+      http-client-tls >= 0.2.4,
+      mime-mail >= 0.4.11,
+      mime-types >= 0.1.0.6,
+      fast-logger >= 2.4.6,
+      hjsonschema == 0.9.0.0,
+      -- file-embed >= 0.0.9.1,
+      aeson-better-errors > 0.9.0,
+      xml >= 1.3.14,
+      zlib >= 0.6.1.1,
+      range-set-list >= 0.1.2.0,
+      invertible >= 0.1.1,
+      web-inv-route >= 0.1,
+      smtp-mail >= 0.1.4.6,
+      zip >= 0.1.3,
+      conduit-combinators >= 1.1.1,
+      binary >= 0.8.3.0,
+      path >= 0.5.13,
+      path-io >= 1.2.2
+  else
+    build-depends: databrary
+
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
   default-language: Haskell2010
 

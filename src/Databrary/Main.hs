@@ -1,5 +1,11 @@
 {-# LANGUAGE CPP, OverloadedStrings #-}
-module Databrary.Main (main) where
+
+module Databrary.Main
+    ( main
+    , -- * For tests
+      Flag (..)
+    , flagConfig
+    ) where
 
 import Control.Exception (evaluate)
 import Control.Monad (void)
@@ -25,7 +31,7 @@ data Flag
   = FlagConfig FilePath
   | FlagWeb
   | FlagEZID
-  deriving (Eq)
+  deriving (Show,Eq)
 
 opts :: [Opt.OptDescr Flag]
 opts =
