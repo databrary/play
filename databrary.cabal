@@ -114,7 +114,7 @@ library
     Databrary.Model.Periodic
     Databrary.Model.Funding
     Databrary.Model.Release
-    Databrary.Model.Measure.SQL
+    -- Databrary.Model.Measure.SQL
     Databrary.Model.Activity.Types
     Databrary.Model.Activity.SQL
     Databrary.Model.EnumStringUtil
@@ -127,7 +127,7 @@ library
     Databrary.Model.Comment.Types
     Databrary.Model.Comment.SQL
     Databrary.Model.Release.Types
-    Databrary.Model.Release.SQL
+    -- Databrary.Model.Release.SQL
     Databrary.Model.Asset
     Databrary.Model.VolumeAccess.Types
     Databrary.Model.VolumeAccess.SQL
