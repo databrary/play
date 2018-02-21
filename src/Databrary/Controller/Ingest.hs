@@ -15,6 +15,7 @@ import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Csv as CSV
 import qualified Data.Csv.Parser as CSVP
+import qualified Data.HashMap.Strict as HMP
 import qualified Data.Map as MAP
 import Data.Map (Map)
 import Data.Monoid ((<>))
@@ -87,7 +88,6 @@ maxCsvSize = 16*1024*1024
 -- TODO: maybe put csv file save/retrieve in Databrary.Store module
 detectParticipantCSV :: ActionRoute (Id Volume)
 detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCSV") $ \vi -> withAuth $ do
-    -- checkMemberADMIN to start
     v <- getVolume PermissionEDIT vi
     reqCtxt <- peek
     csvFileInfo <-
@@ -96,8 +96,7 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
           csrfForm
           fileInfo :: (FileInfo TL.Text) <- "file" .:> deform
           return fileInfo
-    let -- uploadFileContents = "idcol\nA1\nA2\n" -- TODO: handle nothing
-        uploadFileContents = (BSL.toStrict . TLE.encodeUtf8 . fileContent) csvFileInfo
+    let uploadFileContents = (BSL.toStrict . TLE.encodeUtf8 . fileContent) csvFileInfo
         uploadFileName = (BSC.unpack . fileName) csvFileInfo  -- TODO: add prefix to filename
     let eCsvHeaders = ATTO.parseOnly (CSVP.csvWithHeader CSVP.defaultDecodeOptions) uploadFileContents
     case eCsvHeaders of
@@ -115,8 +114,8 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
                                     $      "csv_upload_id" JSON..= (uploadFileName)
                                         <> "suggested_mapping" JSON..= headerMappingJSON mpng
                 Nothing ->
-                  -- if detect headers failed, then don't save csv file and response is error
-                  pure (forbiddenResponse reqCtxt) -- place holder for error
+                    -- if detect headers failed, then don't save csv file and response is error
+                    pure (forbiddenResponse reqCtxt) -- place holder for error
 
 getHeaders :: CSV.Header -> [Text]
 getHeaders hdrs =
@@ -124,8 +123,8 @@ getHeaders hdrs =
 
 runParticipantUpload :: ActionRoute (Id Volume)
 runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUpload") $ \vi -> withAuth $ do
-    -- checkMemberADMIN to start
     v <- getVolume PermissionEDIT vi
+    reqCtxt <- peek
     (csvUploadId :: String, selectedMapping :: JSON.Value) <- runForm (Nothing) $ do
         csrfForm
         (uploadId :: String) <- "csv_upload_id" .:> deform
@@ -134,13 +133,19 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
     let eMpngs = JSON.parseEither parseMapping selectedMapping
     liftIO $ print ("upload id", csvUploadId, "mapping", eMpngs)
     -- TODO: resolve csv id to absolute path; http error if unknown
-    csvContents <- liftIO (readFile ("/tmp/" ++ csvUploadId))
-    -- invoke cassava here
-    pure
-        $ okResponse []
-            $ JSON.recordEncoding -- TODO: not record encoding
-                $ JSON.Record vi $ "succeeded" JSON..= True
+    uploadFileContents <- (liftIO . BS.readFile) ("/tmp/" ++ csvUploadId)
+    case ATTO.parseOnly (CSVP.csvWithHeader CSVP.defaultDecodeOptions) uploadFileContents of
+        Left err ->
+            pure (forbiddenResponse reqCtxt) -- TODO: better error
+        Right (hdrs, records) -> do
+            let Right mpngs = eMpngs -- TODO: handle either above
+            eRes <- (liftIO . runImport records) mpngs
+            pure
+                $ okResponse []
+                    $ JSON.recordEncoding -- TODO: not record encoding
+                        $ JSON.Record vi $ "succeeded" JSON..= True
 
+-- TODO: unit tests
 parseMapping :: JSON.Value -> JSON.Parser ParticipantFieldMapping -- TODO: take record description
 parseMapping val = do
     (entries :: [HeaderMappingEntry]) <- JSON.parseJSON val
@@ -152,16 +157,24 @@ parseMapping val = do
             Nothing -> fail "missing participant metric 'ID'"
     pure participantMapping
 
--- runImport :: Mapping -> 
---    bldr = mkRecordBuilder mappings
---    foreach row in csvRows
---       bldr row
---    pure result
+runImport :: V.Vector CSV.NamedRecord -> ParticipantFieldMapping -> IO (V.Vector ()) -- TODO: error or count
+runImport records mapping =
+    mapM
+        (\record -> createRecord mapping record)
+        records
 
--- mkRecordBuilder :: Map CSVField MetricName -> (CSVRow -> IO Record)
---   record <- makeRecord
---   for each (field, name)
---     metricId = getId name
---     csvVal = getCSVField row field
---     saveMeasure record metricId csvVal
---   pure record
+createRecord :: ParticipantFieldMapping -> CSV.NamedRecord -> IO () -- TODO: error or record
+createRecord mapping csvRecord = do
+     -- record <- makeRecord
+     -- for each field
+     case pfmId mapping of --     metricId = getId name
+         Just idCol ->
+             case HMP.lookup (TE.encodeUtf8 idCol) csvRecord of
+                 Just fieldVal ->
+                     -- getCSVField row field
+                     print ("save measure", "ID", fieldVal)
+                 Nothing ->
+                     pure () -- TODO: error, impossible?
+         Nothing ->
+             pure () -- field isn't used by this volume, so don't need to save the measure
+     pure ()
