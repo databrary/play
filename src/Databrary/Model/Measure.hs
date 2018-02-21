@@ -33,9 +33,12 @@ import Databrary.Model.Permission
 import Databrary.Model.Audit
 import Databrary.Model.Metric
 import Databrary.Model.Record.Types
-import Databrary.Model.Measure.SQL
+-- import Databrary.Model.Measure.SQL
 import Databrary.Model.PermissionUtil (maskRestrictedString)
-import qualified Databrary.Model.Measure.SQL
+-- import qualified Databrary.Model.Measure.SQL
+
+setMeasureDatum :: Measure -> MeasureDatum -> Measure
+setMeasureDatum m d = m{ measureDatum = d }
 
 measureOrder :: Measure -> Measure -> Ordering
 measureOrder = comparing $ metricId . measureMetric
@@ -75,7 +78,7 @@ changeRecordMeasure m = do
     -- $(updateMeasure 'ident 'm)
     (fmap
       (\ (vdatum_a6DoR)
-         -> Databrary.Model.Measure.SQL.setMeasureDatum
+         -> setMeasureDatum
               m vdatum_a6DoR)
       (mapQuery
           ((\ _p_a6DoT _p_a6DoU _p_a6DoV _p_a6DoW _p_a6DoX ->
@@ -125,7 +128,7 @@ changeRecordMeasure m = do
     -- $(insertMeasure 'ident 'm)
     (fmap
       (\ (vdatum_a6Dpm)
-         -> Databrary.Model.Measure.SQL.setMeasureDatum
+         -> setMeasureDatum
               m vdatum_a6Dpm)
       (mapQuery
          ((\ _p_a6DpC _p_a6DpD _p_a6DpE _p_a6DpF _p_a6DpG ->
