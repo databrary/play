@@ -10,6 +10,7 @@ module Databrary.Model.Ingest
   , replaceSlotAsset
   , detectBestHeaderMapping
   , headerMappingJSON
+  , HeaderMappingEntry(..)
   ) where
 
 -- TODO: delete bimap from databrary.nix
@@ -20,6 +21,7 @@ import Database.PostgreSQL.Typed.Query (pgSQL)
 
 import Databrary.Service.DB
 import qualified Databrary.JSON as JSON
+import Databrary.JSON (FromJSON, ToJSON)
 import Databrary.Model.SQL (selectQuery)
 import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
@@ -78,3 +80,17 @@ headerMappingJSON headerMapping =
             (\idCol -> JSON.object [ "csv_field" JSON..= idCol, "metric" JSON..= ("id" :: String) ])
             (pfmId headerMapping)
         ]
+
+data HeaderMappingEntry =
+    HeaderMappingEntry {
+          hmeCsvField :: String
+        , hmeMetricName :: String
+    } deriving (Show, Eq, Ord)
+
+instance FromJSON HeaderMappingEntry where
+    parseJSON =
+        JSON.withObject "HeaderMappingEntry"
+            (\o ->
+                 HeaderMappingEntry
+                     <$> o JSON..: "csv_field"
+                     <*> o JSON..: "metric") -- TODO: validate that it matches a real metric name

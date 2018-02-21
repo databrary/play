@@ -34,7 +34,7 @@ import Databrary.Model.Permission
 import Databrary.Model.Volume
 import Databrary.Model.Container
 import Databrary.Model.Record
-import Databrary.Model.Ingest (detectBestHeaderMapping, headerMappingJSON)
+import Databrary.Model.Ingest (detectBestHeaderMapping, headerMappingJSON, HeaderMappingEntry(..))
 import Databrary.Ingest.Action
 import Databrary.Ingest.JSON
 import Databrary.HTTP.Path.Parser
@@ -139,14 +139,14 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
             $ JSON.recordEncoding -- TODO: not record encoding
                 $ JSON.Record vi $ "succeeded" JSON..= True
 
-parseMapping :: JSON.Value -> JSON.Parser ParticipantFieldMapping
-parseMapping val =
-  fail "to implement"
-
--- parseMapping :: Value -> Parser [Mapping]
+parseMapping :: JSON.Value -> JSON.Parser ParticipantFieldMapping -- TODO: take record description
+parseMapping val = do
+    (entries :: [HeaderMappingEntry]) <- JSON.parseJSON val
 --   build up list of Map of entries
 --   using record description + entries to build mapping record
+    fail (show ("implementing", entries))
 
+-- runImport :: Mapping -> 
 --    bldr = mkRecordBuilder mappings
 --    foreach row in csvRows
 --       bldr row
