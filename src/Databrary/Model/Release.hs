@@ -20,7 +20,7 @@ import Databrary.Model.Audit
 import Databrary.Model.Slot.Types
 import Databrary.Model.Container.Types
 import Databrary.Model.Release.Types
-import Databrary.Model.Release.SQL
+-- import Databrary.Model.Release.SQL
 
 -- useTDB
 

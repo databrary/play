@@ -127,7 +127,7 @@ library
     Databrary.Model.Comment.Types
     Databrary.Model.Comment.SQL
     Databrary.Model.Release.Types
-    Databrary.Model.Release.SQL
+    -- Databrary.Model.Release.SQL
     Databrary.Model.Asset
     Databrary.Model.VolumeAccess.Types
     Databrary.Model.VolumeAccess.SQL
