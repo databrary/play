@@ -83,8 +83,8 @@ headerMappingJSON headerMapping =
 
 data HeaderMappingEntry =
     HeaderMappingEntry {
-          hmeCsvField :: String
-        , hmeMetricName :: String
+          hmeCsvField :: Text
+        , hmeMetricName :: Text
     } deriving (Show, Eq, Ord)
 
 instance FromJSON HeaderMappingEntry where

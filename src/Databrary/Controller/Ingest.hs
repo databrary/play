@@ -15,6 +15,8 @@ import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Csv as CSV
 import qualified Data.Csv.Parser as CSVP
+import qualified Data.Map as MAP
+import Data.Map (Map)
 import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text.Encoding as TE
@@ -124,16 +126,15 @@ runParticipantUpload :: ActionRoute (Id Volume)
 runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUpload") $ \vi -> withAuth $ do
     -- checkMemberADMIN to start
     v <- getVolume PermissionEDIT vi
-    -- get body json
     (csvUploadId :: String, selectedMapping :: JSON.Value) <- runForm (Nothing) $ do
         csrfForm
         (uploadId :: String) <- "csv_upload_id" .:> deform
         mapping <- "selected_mapping" .:> deform
         pure (uploadId, mapping)
-    -- parse mappings
-    liftIO $ print ("upload id", csvUploadId, "mapping", selectedMapping)
-    -- TODO: resolve csv id to absolute path
-    csvContents <- liftIO (readFile ("/tmp/" ++ csvUploadId)) -- TODO: cassava
+    let eMpngs = JSON.parseEither parseMapping selectedMapping
+    liftIO $ print ("upload id", csvUploadId, "mapping", eMpngs)
+    -- TODO: resolve csv id to absolute path; http error if unknown
+    csvContents <- liftIO (readFile ("/tmp/" ++ csvUploadId)) -- TODO: cassava <<<
     pure
         $ okResponse []
             $ JSON.recordEncoding -- TODO: not record encoding
@@ -142,9 +143,13 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
 parseMapping :: JSON.Value -> JSON.Parser ParticipantFieldMapping -- TODO: take record description
 parseMapping val = do
     (entries :: [HeaderMappingEntry]) <- JSON.parseJSON val
---   build up list of Map of entries
---   using record description + entries to build mapping record
-    fail (show ("implementing", entries))
+    let metricField :: Map Text Text
+        metricField = (MAP.fromList . fmap (\e -> (hmeMetricName e, hmeCsvField e))) entries
+    participantMapping <-
+        case MAP.lookup "id" metricField of
+            Just csvField -> pure (ParticipantFieldMapping { pfmId = Just csvField })
+            Nothing -> fail "missing participant metric 'ID'"
+    pure participantMapping
 
 -- runImport :: Mapping -> 
 --    bldr = mkRecordBuilder mappings
