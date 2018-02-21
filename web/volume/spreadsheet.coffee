@@ -1535,5 +1535,8 @@ app.directive 'spreadsheet', [
         state.volume = $scope.volume.id
         storage.setValue('spreadsheet-state', state)
         return
+      $('.spreadsheet-btn-metadata').click ->
+        alert 'hi'
+        return
       return
 ]
