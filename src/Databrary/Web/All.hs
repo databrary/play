@@ -17,7 +17,7 @@ import Databrary.Web.Generate
 import Databrary.Web.Libs
 
 generateMerged :: [WebFilePath] -> WebGenerator
-generateMerged inputFiles = \fo@(fileToGen, _) -> do
+generateMerged inputFiles = \fileToGenInfo@(fileToGen, _) -> do
   fp <- liftIO $ unRawFilePath $ webFileAbs fileToGen
   webRegenerate
     (allocaBytes totalAlloc $ \allocatedPtr ->
@@ -28,8 +28,8 @@ generateMerged inputFiles = \fo@(fileToGen, _) -> do
             bufferedCopy allocatedPtr generatingFileWriteHandle inputFileReadHandle)
           hPutChar generatingFileWriteHandle '\n')
     []
-    inputFiles 
-    fo
+    inputFiles
+    fileToGenInfo
   where
   bufferedCopy :: (Ptr a) -> Handle -> Handle -> IO ()
   bufferedCopy buffer output input = do
