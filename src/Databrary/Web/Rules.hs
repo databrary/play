@@ -64,14 +64,14 @@ generateStatic :: WebGenerator
 generateStatic fo@(f, _) = fileNewer (webFileAbs f) fo
 
 generateRules :: Bool -> WebGenerator
-generateRules includeStatic mPriorFileInfo = msum $ map ($ mPriorFileInfo)
-  [ 
-    generateFixed includeStatic
-  , generateCoffeeJS
-  , generateLib
-  , generateGZip
-  , generateStatic
-  ]
+generateRules includeStatic (fileToGen, mPriorFileInfo) = msum $ map (\gen -> gen (fileToGen, mPriorFileInfo))
+  ([ 
+     generateFixed includeStatic
+   , generateCoffeeJS
+   , generateLib
+   , generateGZip
+   , generateStatic
+   ] :: [WebGenerator])
 
 updateWebInfo :: WebFilePath -> WebGeneratorM WebFileInfo
 updateWebInfo f = do
