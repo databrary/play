@@ -55,8 +55,8 @@ fixedGenerators =
   ]
 
 generateFixed :: Bool -> WebGenerator
-generateFixed a = \fo@(f, _) -> do
-  case lookup (webFileRel f) $ (if a then (staticGenerators ++) else id) fixedGenerators of
+generateFixed includeStatic = \fo@(f, _) -> do
+  case lookup (webFileRel f) $ (if includeStatic then (staticGenerators ++) else id) fixedGenerators of
     Just g -> g fo
     _ -> mzero
 
@@ -64,14 +64,14 @@ generateStatic :: WebGenerator
 generateStatic fo@(f, _) = fileNewer (webFileAbs f) fo
 
 generateRules :: Bool -> WebGenerator
-generateRules a f = msum $ map ($ f)
-  [ 
-    generateFixed a
-  , generateCoffeeJS
-  , generateLib
-  , generateGZip
-  , generateStatic
-  ]
+generateRules includeStatic (fileToGen, mPriorFileInfo) = msum $ map (\gen -> gen (fileToGen, mPriorFileInfo))
+  ([ 
+     generateFixed includeStatic
+   , generateCoffeeJS
+   , generateLib
+   , generateGZip
+   , generateStatic
+   ] :: [WebGenerator])
 
 updateWebInfo :: WebFilePath -> WebGeneratorM WebFileInfo
 updateWebInfo f = do
@@ -80,10 +80,13 @@ updateWebInfo f = do
   return n
 
 generateWebFile :: Bool -> WebFilePath -> WebGeneratorM WebFileInfo
-generateWebFile a f = withExceptT (label $ show (webFileRel f)) $ do
-  o <- gets $ HM.lookup f
-  r <- generateRules a (f, o)
-  fromMaybeM (updateWebInfo f) (guard (not r) >> o)
+generateWebFile includeStatic f =
+  withExceptT (\val -> label (show (webFileRel f)) val) $ do
+      mExistingInfo <- gets $ HM.lookup f
+      r <- generateRules includeStatic (f, mExistingInfo)
+      fromMaybeM
+          (updateWebInfo f)
+          (guard (not r) >> mExistingInfo :: Maybe WebFileInfo)
   where
   label n "" = n
   label n s = n ++ ": " ++ s
@@ -91,15 +94,22 @@ generateWebFile a f = withExceptT (label $ show (webFileRel f)) $ do
 generateAll :: WebGeneratorM ()
 generateAll = do
   svg <- liftIO $ findWebFiles ".svg"
-  mapM_ (generateWebFile True) <=< mapM (liftIO . makeWebFilePath) $ mconcat
-    [ (map fst staticGenerators)
-    , ["constants.json.gz", "all.min.js.gz", "all.min.css.gz"]
-    , map ((RF.<.> ".gz") . webFileRel) svg
-    ]
+  (    mapM_ (\webFilePath -> generateWebFile True webFilePath)
+   <=< mapM (liftIO . makeWebFilePath)
+      $ mconcat
+          [ (map fst staticGenerators)
+          , ["constants.json.gz", "all.min.js.gz", "all.min.css.gz"]
+          , map ((RF.<.> ".gz") . webFileRel) svg
+          ])
 
 generateWebFiles :: IO WebFileMap
 generateWebFiles = do
-  fm <- execStateT (either fail return =<< runExceptT generateAll) HM.empty
+  webFileMap <-
+      execStateT
+          (do
+            eWebFileMap <- runExceptT generateAll
+            either fail return eWebFileMap)
+          HM.empty
   -- TODO: variables for filenames
   callCommand "cat web/all.min.js web/all.min.css | md5sum | cut -d ' ' -f 1 > jsCssVersion.txt"
-  pure fm
+  pure webFileMap

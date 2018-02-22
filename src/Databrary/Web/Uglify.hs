@@ -30,21 +30,34 @@ appWebJS = do
     pre' = ["debug.js", "app.js", "constants.js", "routes.js", "messages.js", "templates.js"]
 
 generateUglifyJS :: WebGenerator
-generateUglifyJS = \fo@(f, _) -> do
-  jl <- liftIO appWebJS
-  guard (not $ null jl)
-  jlFPs <- mapM ((liftIO . unRawFilePath) . webFileAbs) jl
-  fpAbs <- liftIO $ unRawFilePath $ webFileAbs f
-  let fm = (webFileAbs f) RF.<.> ".map"
-  fmAbs <- liftIO $ unRawFilePath fm
+generateUglifyJS = \fileToGenInfo@(fileToGen, _) -> do
+  inputFiles <- liftIO appWebJS
+  guard (not $ null inputFiles)
+  inputFilesAbs <- mapM ((liftIO . unRawFilePath) . webFileAbs) inputFiles
+  fileToGenAbs <- liftIO $ unRawFilePath $ webFileAbs fileToGen
+  let fileToGenMap = (webFileAbs fileToGen) RF.<.> ".map"
+  fileToGenMapAbs <- liftIO $ unRawFilePath fileToGenMap
   webRegenerate (do
-    callProcess "uglifyjs" $
-      ["--output", fpAbs
-      , "--source-map", fmAbs
+    print "making minified with command..."
+    print 
+      ("uglifyjs", 
+      ["--output", fileToGenAbs
+      , "--source-map", fileToGenMapAbs
       , "--prefix", "relative"
       , "--screw-ie8", "--mangle", "--compress"
       , "--define", "DEBUG=false"
       , "--wrap", "app"
       ]
-      ++ jlFPs)
-    [] jl fo
+      ++ inputFilesAbs)
+    callProcess "uglifyjs" $
+      ["--output", fileToGenAbs
+      , "--source-map", fileToGenMapAbs
+      , "--prefix", "relative"
+      , "--screw-ie8", "--mangle", "--compress"
+      , "--define", "DEBUG=false"
+      , "--wrap", "app"
+      ]
+      ++ inputFilesAbs)
+    []
+    inputFiles
+    fileToGenInfo

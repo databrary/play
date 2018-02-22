@@ -21,9 +21,9 @@ generateCoffeeJS fo@(f, _) = do
       b' <- liftIO $ unRawFilePath $ webFileRel b
       f' <- liftIO $ unRawFilePath $ webFileAbs f
       let src = b' <.> ".coffee"
-      liftIO $ print src
+      -- liftIO $ print src
       srcRaw <- liftIO $ makeWebFilePath =<< rawFilePath src
-      liftIO $ print srcRaw
+      -- liftIO $ print srcRaw
       srcAbs <- liftIO $ unRawFilePath $ webFileAbs srcRaw
       webRegenerate
         (callProcess "coffee" ["-b", "-c", "-m", "-o", takeDirectory f', srcAbs ])
