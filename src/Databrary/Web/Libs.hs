@@ -50,7 +50,13 @@ generateLib = \fo@(f, _) -> do
     _ -> mzero
 
 webJS :: Bool -> [(FilePath, FilePath)] -> IO [WebFilePath]
-webJS mn = makeWebFilePaths . map (("lib" </>) . (<.> if mn then ".min.js" else ".js") . fst)
+webJS mn =
+    makeWebFilePaths
+  . map
+        (  ("lib" </>)
+         . (<.> if mn then ".min.js" else ".js")
+         . fst
+        )
 
 webDeps :: Bool -> IO [WebFilePath]
 webDeps debug = webJS (not debug) jsDeps

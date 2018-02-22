@@ -16,8 +16,8 @@ import Databrary.Web.Generate
 import Databrary.Web.Libs
 
 generateMerged :: [WebFilePath] -> WebGenerator
-generateMerged l = \fo@(f, _) -> do
-  fp <- liftIO $ unRawFilePath $ webFileAbs f
+generateMerged l = \fo@(fileToGen, _) -> do
+  fp <- liftIO $ unRawFilePath $ webFileAbs fileToGen
   webRegenerate
     (allocaBytes z $ \b ->
       withBinaryFile fp WriteMode $ \h ->
@@ -36,8 +36,9 @@ generateMerged l = \fo@(f, _) -> do
   z = 32768
 
 generateAllJS :: WebGenerator
-generateAllJS = \f -> do
-  deps <- liftIO $ webDeps True -- TODO: what does this do??
+generateAllJS = \f@(fileToGen, mPriorFileInfo) -> do
+  let debugOn = True
+  deps <- liftIO $ webDeps debugOn
   appMinJs <- liftIO $ makeWebFilePath "app.min.js"
   generateMerged (deps ++ [appMinJs]) f
 
