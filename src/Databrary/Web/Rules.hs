@@ -99,7 +99,12 @@ generateAll = do
 
 generateWebFiles :: IO WebFileMap
 generateWebFiles = do
-  fm <- execStateT (either fail return =<< runExceptT generateAll) HM.empty
+  webFileMap <-
+      execStateT
+          (do
+            eWebFileMap <- runExceptT generateAll
+            either fail return eWebFileMap)
+          HM.empty
   -- TODO: variables for filenames
   callCommand "cat web/all.min.js web/all.min.css | md5sum | cut -d ' ' -f 1 > jsCssVersion.txt"
-  pure fm
+  pure webFileMap
