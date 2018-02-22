@@ -1535,5 +1535,14 @@ app.directive 'spreadsheet', [
         state.volume = $scope.volume.id
         storage.setValue('spreadsheet-state', state)
         return
+      $(document).on 'click', '.uploadinstuction', ->
+        $('input[name="metadata"]').click()
+        return
+      $(document).on 'change', 'input[name="metadata"]', ->
+        file = $(this).val().replace(/C:\\fakepath\\/ig, '')
+        $('.uploadinstuction').hide()
+        $('.uploadsubmit').show()
+        $('.filename').text file
+        return
       return
 ]
