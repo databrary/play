@@ -38,7 +38,7 @@ flagConfig :: Flag -> Either FilePath Flag
 flagConfig (FlagConfig f) = Left f
 flagConfig f = Right f
 
-main :: IO ()
+main :: IO () -- TODO: optparse
 main = do
   putStrLn "Starting Main..."
   prog <- getProgName
@@ -49,34 +49,29 @@ main = do
   conf <- mconcat <$> mapM Conf.load (case configs of
     [] -> ["databrary.conf"]
     l -> l)
-  startServer <- case (flags', args', err) of
+  case (flags', args', err) of
     ([FlagWeb], [], []) -> do
       putStrLn "generating files..." 
       void generateWebFiles
       putStrLn "finished generating web files..."
-      return False
+    {- seems like a good idea for testing and generally factoring out monolith, add back when used
     ([FlagEZID], [], []) -> do
       putStrLn "update EZID..."
       r <- withService False conf $ runContextM $ withBackgroundContextM updateEZID
       putStrLn "update EZID finished..."
-      if r == Just True then return False else exitFailure
+      if r == Just True then pure () else exitFailure
+    -}
     ([], [], []) -> do 
       putStrLn "No flags or args...."
-      return True
+      putStrLn "evaluating routemap..."
+      routes <- evaluate routeMap
+      putStrLn "evaluating routemap...withService..."
+      withService True conf $ \rc -> do
+        -- used to run migrations on startup when not in devel mode
+        -- should check migrations2 table for last migration against last entry in schema2 dir
+        putStrLn "running warp"
+        runWarp conf rc (runActionRoute routes rc)
     _ -> do
       mapM_ putStrLn err
       putStrLn $ Opt.usageInfo ("Usage: " ++ prog ++ " [OPTION...]") opts
       exitFailure
-
-  if startServer
-  then do
-    putStrLn "evaluating routemap..."
-    routes <- evaluate routeMap
-    putStrLn "evaluating routemap...withService..."
-    withService True conf $ \rc -> do
-      -- used to run migrations on startup when not in devel mode
-      -- should check migrations2 table for last migration against last entry in schema2 dir
-      putStrLn "running warp"
-      runWarp conf rc (runActionRoute routes rc)
-  else
-    return ()
