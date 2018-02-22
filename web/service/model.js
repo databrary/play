@@ -538,6 +538,14 @@ app.factory('modelService', [
         });
     };
 
+    Volume.prototype.detectcsv = function (data) {
+      var v = this;
+      return router.http(router.controllers.detectParticipantCSV, this.id, data)
+        .then(function (res) {
+          console.log(res);
+        });
+    };
+
     Volume.create = function (data, owner) {
       if (owner !== undefined)
         data.owner = owner;
