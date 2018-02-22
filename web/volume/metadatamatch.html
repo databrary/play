@@ -1,0 +1,8 @@
+<ng-form name="metadataMatchForm">
+  <div ng-repeat="x in volume.suggested_mapping">
+    Should {{x.csv_field}} in your csv file be used as {{x.metric}} in your spreadsheet?
+  </div>
+  <button class="white" ng-click="metadataMatchForm.save()">
+    Yes
+  </button>
+</ng-form>

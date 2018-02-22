@@ -435,6 +435,8 @@ app.factory('modelService', [
       state: false,
       publicaccess: false,
       publicsharefull: false,
+      suggested_mapping: false,
+      csv_upload_id: false
       // consumers: false,
       // producers: false,
     };
@@ -472,6 +474,10 @@ app.factory('modelService', [
         this.publicsharefull = init.publicsharefull
       if ('publicaccess' in init)
         this.publicaccess = init.publicaccess
+      if ('suggested_mapping' in init)
+        this.suggested_mapping = init.suggested_mapping
+      if ('csv_upload_id' in init)
+        this.csv_upload_id = init.csv_upload_id
     };
 
     function volumeMake(init) {
@@ -542,7 +548,15 @@ app.factory('modelService', [
       var v = this;
       return router.http(router.controllers.detectParticipantCSV, this.id, data)
         .then(function (res) {
-          console.log(res);
+          return v.update(res.data);
+        });
+    };
+
+    Volume.prototype.matchcsv = function (data) {
+      var v = this;
+      return router.http(router.controllers.runParticipantUpload, this.id, data)
+        .then(function (res) {
+          console.log(res.data);
         });
     };
 
