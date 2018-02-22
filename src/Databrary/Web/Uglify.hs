@@ -38,6 +38,17 @@ generateUglifyJS = \fileToGenInfo@(fileToGen, _) -> do
   let fileToGenMap = (webFileAbs fileToGen) RF.<.> ".map"
   fileToGenMapAbs <- liftIO $ unRawFilePath fileToGenMap
   webRegenerate (do
+    print "making minified with command..."
+    print 
+      ("uglifyjs", 
+      ["--output", fileToGenAbs
+      , "--source-map", fileToGenMapAbs
+      , "--prefix", "relative"
+      , "--screw-ie8", "--mangle", "--compress"
+      , "--define", "DEBUG=false"
+      , "--wrap", "app"
+      ]
+      ++ inputFilesAbs)
     callProcess "uglifyjs" $
       ["--output", fileToGenAbs
       , "--source-map", fileToGenMapAbs

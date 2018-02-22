@@ -47,7 +47,7 @@ whether :: Bool -> IO () -> IO Bool
 whether g = (g <$) . when g
 
 webRegenerate :: IO () -> [RawFilePath] -> [WebFilePath] -> WebGenerator
-webRegenerate combineGeneratedIntoOutputFile fs inputFiles (fileToGen, mPriorFileInfo) = do
+webRegenerate createOrCombineGeneratedIntoOutputFile fs inputFiles (fileToGen, mPriorFileInfo) = do
   let dontIncludeStatic = False
   wr <- mapM (generateWebFile dontIncludeStatic) inputFiles
   ft <-
@@ -56,7 +56,7 @@ webRegenerate combineGeneratedIntoOutputFile fs inputFiles (fileToGen, mPriorFil
   fr <- maybe (return False) (\t -> anyM $ map (fileNewerThan t) fs) ft
   liftIO
       $ whether (all (\t -> fr || any ((t <) . webFileTimestamp) wr) ft)
-            combineGeneratedIntoOutputFile
+            createOrCombineGeneratedIntoOutputFile
 
 -- | Generates a file and compares with the existing file to determine whether
 -- replacement is necessary
