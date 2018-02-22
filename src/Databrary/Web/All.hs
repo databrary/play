@@ -6,8 +6,9 @@ module Databrary.Web.All
 
 import Control.Monad (when, forM_)
 import Control.Monad.IO.Class (liftIO)
+import Foreign.Ptr (Ptr)
 import Foreign.Marshal.Alloc (allocaBytes)
-import System.IO (withBinaryFile, IOMode(ReadMode, WriteMode), hPutChar, hGetBufSome, hPutBuf)
+import System.IO (withBinaryFile, IOMode(ReadMode, WriteMode), hPutChar, hGetBufSome, hPutBuf, Handle)
 
 import Databrary.Web
 import Databrary.Files
@@ -16,24 +17,27 @@ import Databrary.Web.Generate
 import Databrary.Web.Libs
 
 generateMerged :: [WebFilePath] -> WebGenerator
-generateMerged l = \fo@(fileToGen, _) -> do
+generateMerged inputFiles = \fo@(fileToGen, _) -> do
   fp <- liftIO $ unRawFilePath $ webFileAbs fileToGen
   webRegenerate
-    (allocaBytes z $ \b ->
-      withBinaryFile fp WriteMode $ \h ->
-        forM_ l $ \s -> do
-          fps <- unRawFilePath $ webFileAbs s
-          withBinaryFile fps ReadMode $
-            copy b h
-          hPutChar h '\n')
-    [] l fo
+    (allocaBytes totalAlloc $ \allocatedPtr ->
+      withBinaryFile fp WriteMode $ \generatingFileWriteHandle ->
+        forM_ inputFiles $ \inputFile -> do
+          fps <- unRawFilePath $ webFileAbs inputFile
+          withBinaryFile fps ReadMode $ (\inputFileReadHandle ->
+            bufferedCopy allocatedPtr generatingFileWriteHandle inputFileReadHandle)
+          hPutChar generatingFileWriteHandle '\n')
+    []
+    inputFiles 
+    fo
   where
-  copy b h i = do
-    n <- hGetBufSome i b z
+  bufferedCopy :: (Ptr a) -> Handle -> Handle -> IO ()
+  bufferedCopy buffer output input = do
+    n <- hGetBufSome input buffer totalAlloc
     when (n > 0) $ do
-      hPutBuf h b n
-      copy b h i
-  z = 32768
+      hPutBuf output buffer n
+      bufferedCopy buffer output input
+  totalAlloc = 32768
 
 generateAllJS :: WebGenerator
 generateAllJS = \f@(fileToGen, mPriorFileInfo) -> do
