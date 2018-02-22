@@ -24,7 +24,8 @@ import Databrary.Model.Category
 import Databrary.Model.Metric.Types
 import qualified Databrary.Model.Release.Types
 
-allMetrics :: [Metric]  -- TODO: drop metrics table
+-- TODO: db coherence
+allMetrics :: [Metric]
 allMetrics = 
     [Metric
        (Id 1)
