@@ -64,7 +64,7 @@ generateStatic :: WebGenerator
 generateStatic fo@(f, _) = fileNewer (webFileAbs f) fo
 
 generateRules :: Bool -> WebGenerator
-generateRules includeStatic f = msum $ map ($ f)
+generateRules includeStatic mPriorFileInfo = msum $ map ($ mPriorFileInfo)
   [ 
     generateFixed includeStatic
   , generateCoffeeJS
@@ -80,10 +80,13 @@ updateWebInfo f = do
   return n
 
 generateWebFile :: Bool -> WebFilePath -> WebGeneratorM WebFileInfo
-generateWebFile includeStatic f = withExceptT (label $ show (webFileRel f)) $ do
-  o <- gets $ HM.lookup f
-  r <- generateRules includeStatic (f, o)
-  fromMaybeM (updateWebInfo f) (guard (not r) >> o)
+generateWebFile includeStatic f =
+  withExceptT (\val -> label (show (webFileRel f)) val) $ do
+      mExistingInfo <- gets $ HM.lookup f
+      r <- generateRules includeStatic (f, mExistingInfo)
+      fromMaybeM
+          (updateWebInfo f)
+          (guard (not r) >> mExistingInfo :: Maybe WebFileInfo)
   where
   label n "" = n
   label n s = n ++ ": " ++ s
