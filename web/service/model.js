@@ -556,7 +556,7 @@ app.factory('modelService', [
       var v = this;
       return router.http(router.controllers.runParticipantUpload, this.id, data)
         .then(function (res) {
-          console.log(res.data);
+          return v.update(res.data);
         });
     };
 

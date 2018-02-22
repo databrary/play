@@ -2,6 +2,7 @@
   <div ng-repeat="x in volume.suggested_mapping">
     Should {{x.csv_field}} in your csv file be used as {{x.metric}} in your spreadsheet?
   </div>
+  <input type="text" name="{{x.metric}}" value="{{x.csv_field}}" class="hide"/>
   <button class="white" ng-click="metadataMatchForm.save()">
     Yes
   </button>

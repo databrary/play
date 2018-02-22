@@ -21,7 +21,7 @@ app.directive('metadataForm', [
             form.validator.server({});
             messages.add({
               type: 'green',
-              body: constants.message('volume.edit.success'),
+              body: constants.message('volume.metadatadetect.success'),
               owner: form
             });
             form.$setPristine();
@@ -29,7 +29,7 @@ app.directive('metadataForm', [
             form.$setUnsubmitted();
             form.validator.server(res);
             messages.addError({
-              body: constants.message('volume.edit.error'),
+              body: constants.message('volume.metadatadetect.error'),
               report: res,
               owner: form
             });
@@ -49,22 +49,16 @@ app.directive('metadataMatchForm', [
         var form, volume;
         volume = $scope.volume;
         form = $scope.metadataMatchForm;
-        
         form.save = function() {
-          var data;
           messages.clear(form);
-          console.log(volume.suggested_mapping);
-          data = new FormData();
-          data.append('csv_upload_id', volume.csv_upload_id);
-          var json_arr = JSON.stringify([{ "metric": "id", "csv_field": "col1"}])
-          data.append('selected_mapping', json_arr);
-          console.log(data);
+          var data = { "csv_upload_id": volume.csv_upload_id, "selected_mapping":[{ "metric": volume.suggested_mapping[0].metric, "csv_field": volume.suggested_mapping[0].csv_field}]};
           form.$setSubmitted();
           return volume.matchcsv(data).then(function() {
+            $('metadata-match-form').hide();
             form.validator.server({});
             messages.add({
               type: 'green',
-              body: constants.message('volume.edit.success'),
+              body: constants.message('volume.metadataupload.success'),
               owner: form
             });
             form.$setPristine();
@@ -72,7 +66,7 @@ app.directive('metadataMatchForm', [
             form.$setUnsubmitted();
             form.validator.server(res);
             messages.addError({
-              body: constants.message('volume.edit.error'),
+              body: constants.message('volume.metadataupload.error'),
               report: res,
               owner: form
             });
