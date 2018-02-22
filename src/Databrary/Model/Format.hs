@@ -55,6 +55,7 @@ mimeTypeTopCompare a b = mttc (BSC.unpack a) (BSC.unpack b) where
   mttc _       []      = GT
   mttc (ac:as) (bc:bs) = compare ac bc <> mttc as bs
 
+-- TODO: db coherence
 allFormats :: [Format]
 allFormats
     = [ Format (Id (-800)) "video/mp4"  ["mp4"]         "MPEG-4 video"

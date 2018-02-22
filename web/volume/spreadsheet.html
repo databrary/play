@@ -3,10 +3,10 @@
 <ng-form name="form">
 <div class="spreadsheet-dynamic-info" ng-if="::editing">
   <a href="" ng-click="showConsents=false" ng-show="showConsents">
-    Hide Databrary release levels
+    Hide legend of session release levels
   </a>
   <a href="" ng-click="showConsents=true" ng-hide="showConsents">
-    Show Databrary release levels
+    Show legend of session release levels
   </a>
   <ul class="release-legend flat" ng-show="showConsents">
     <li ng-repeat="c in ::page.constants.releases">
