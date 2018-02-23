@@ -56,7 +56,7 @@ htmlAngular cssDeps jsDeps nojs auth = H.docTypeHtml H.! ngAttribute "app" "data
         H.! HA.href (webURL $ webFileRel css)
     H.link
         H.! HA.rel "stylesheet"
-        H.! HA.href "https://fonts.googleapis.com/css?family=Heebo|Karla|Nunito+Sans|Oxygen|Poppins|Quattrocento+Sans|Questrial|Raleway|Roboto|Rubik|Work+Sans"
+        H.! HA.href "https://fonts.googleapis.com/css?family=Poppins"
     H.script $ do
       H.preEscapedString "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src= 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f); })(window,document,'script','dataLayer','GTM-NW6PSFL');"
     H.script $ do

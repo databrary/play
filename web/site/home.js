@@ -26,7 +26,5 @@ app.controller('site/home', [
             modal.style.display = "none";
         }
     }
-
-    $('body').addClass($location.search().font);
   }
 ]);
