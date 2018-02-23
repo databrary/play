@@ -26,5 +26,12 @@ app.controller('site/home', [
             modal.style.display = "none";
         }
     }
+
+    $('.site-footer-grants').hide();
+
+    $scope.$on('$locationChangeStart', function( event ) {
+        $('.site-footer-grants').show();
+    });
+
   }
 ]);

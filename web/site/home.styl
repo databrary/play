@@ -320,7 +320,7 @@ div
 
 .stream
   box-sizing border-box
-  width 332.8rem
+  width 1000rem
   height 31.33333333333333rem
   transition all 300ms ease-in-out
   @media screen and (max-width:grid-mobile-width)
@@ -331,6 +331,8 @@ div
   text-rendering optimizeLegibility
   -webkit-font-smoothing antialiased
   font-smoothing antialiased
+  .asset-display video
+    width 100% !important
   .full-height
     padding 0
     .asset-display
@@ -642,8 +644,13 @@ div
     width 300px
     margin 30px 80px
     vertical-align middle
+    position relative
     img
-      width 300px
+      width 100%
       height auto
+    span
+      position absolute
+      top 58px
+      left 110px
 
 
