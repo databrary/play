@@ -1,5 +1,4 @@
-{ nodePackages ? import ./node-default.nix {}
-, databraryRoot ? ./.
+{
 }:
 
 let
@@ -12,6 +11,7 @@ let
   }) {};
   # Definition of nixpkgs, version controlled by Reflex-FRP
   nixpkgs = reflex-platform.nixpkgs;
+  nodePackages = import ./node-default.nix { pkgs = nixpkgs; };
   inherit (nixpkgs) fetchFromGitHub writeScriptBin cpio wget;
   # nixpkgs functions used to regulate Haskell overrides
   inherit (nixpkgs.haskell.lib) dontCheck overrideCabal doJailbreak;
