@@ -35,8 +35,41 @@ mapQuery qry mkResult =
 changeVolumeState :: (MonadDB c m) => VolumeState -> m ()
 changeVolumeState VolumeState{..} = do
   let _tenv_a5HPz = unknownPGTypeEnv
+      _tenv_a5FNg = unknownPGTypeEnv
   void $ updateOrInsert
-    [pgSQL|UPDATE volume_state SET value = ${volumeStateValue}, public = ${volumeStatePublic} WHERE volume = ${volumeId $ volumeRow stateVolume} AND key = ${volumeStateKey}|]
+    -- [pgSQL|UPDATE volume_state SET value = ${volumeStateValue}, public = ${volumeStatePublic} WHERE volume = ${volumeId $ volumeRow stateVolume} AND key = ${volumeStateKey}|]
+    (mapQuery
+        ((\ _p_a5FNh _p_a5FNi _p_a5FNj _p_a5FNk ->
+                    (Data.ByteString.concat
+                       [Data.String.fromString "UPDATE volume_state SET value = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a5FNg
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "jsonb")
+                          _p_a5FNh,
+                        Data.String.fromString ", public = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a5FNg
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "boolean")
+                          _p_a5FNi,
+                        Data.String.fromString " WHERE volume = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a5FNg
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a5FNj,
+                        Data.String.fromString " AND key = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a5FNg
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                          _p_a5FNk]))
+         volumeStateValue
+         volumeStatePublic
+         (volumeId $ volumeRow stateVolume)
+         volumeStateKey)
+        (\[] -> ()))
     -- [pgSQL|INSERT INTO volume_state (volume, key, value, public) VALUES (${volumeId $ volumeRow stateVolume}, ${volumeStateKey}, ${volumeStateValue}, ${volumeStatePublic})|]
     (mapQuery
        ((\ _p_a5HPA _p_a5HPB _p_a5HPC _p_a5HPD ->
