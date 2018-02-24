@@ -25,7 +25,7 @@ data Context = Context
   { contextService :: !Service
   , contextTimestamp :: !Timestamp
   , contextResourceState :: !InternalState
-  , contextDB :: !DBConn
+  , contextDB :: !DBConn2
   }
 
 makeHasRec ''Context ['contextService, 'contextTimestamp, 'contextResourceState, 'contextDB]
