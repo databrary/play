@@ -33,9 +33,46 @@ mapQuery qry mkResult =
   fmap mkResult (rawPGSimpleQuery qry)
 
 changeVolumeState :: (MonadDB c m) => VolumeState -> m ()
-changeVolumeState VolumeState{..} = void $ updateOrInsert
-  [pgSQL|UPDATE volume_state SET value = ${volumeStateValue}, public = ${volumeStatePublic} WHERE volume = ${volumeId $ volumeRow stateVolume} AND key = ${volumeStateKey}|]
-  [pgSQL|INSERT INTO volume_state (volume, key, value, public) VALUES (${volumeId $ volumeRow stateVolume}, ${volumeStateKey}, ${volumeStateValue}, ${volumeStatePublic})|]
+changeVolumeState VolumeState{..} = do
+  let _tenv_a5HPz = unknownPGTypeEnv
+  void $ updateOrInsert
+    [pgSQL|UPDATE volume_state SET value = ${volumeStateValue}, public = ${volumeStatePublic} WHERE volume = ${volumeId $ volumeRow stateVolume} AND key = ${volumeStateKey}|]
+    -- [pgSQL|INSERT INTO volume_state (volume, key, value, public) VALUES (${volumeId $ volumeRow stateVolume}, ${volumeStateKey}, ${volumeStateValue}, ${volumeStatePublic})|]
+    (mapQuery
+       ((\ _p_a5HPA _p_a5HPB _p_a5HPC _p_a5HPD ->
+                    (Data.ByteString.concat
+                       [Data.String.fromString
+                          "INSERT INTO volume_state (volume, key, value, public) VALUES (",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a5HPz
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a5HPA,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a5HPz
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
+                          _p_a5HPB,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a5HPz
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "jsonb")
+                          _p_a5HPC,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a5HPz
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "boolean")
+                          _p_a5HPD,
+                        Data.String.fromString ")"]))
+         (volumeId $ volumeRow stateVolume)
+         volumeStateKey
+         volumeStateValue
+         volumeStatePublic)
+       (\[] -> ()))
+
 
 removeVolumeState :: (MonadDB c m) => Volume -> VolumeStateKey -> m Bool
 removeVolumeState v k = do
