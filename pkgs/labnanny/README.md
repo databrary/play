@@ -1,1 +1,1 @@
-Nanny javafx desktop application under construction
+Lab Nanny javafx desktop application under construction
