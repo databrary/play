@@ -151,13 +151,13 @@ parseTextContent = ContentText <$> limitRequestChunks maxTextSize textChunks'
   -- really would be better to catch the error and return ContentUnknown
 
 parseRequestContent :: FileContent a => (BS.ByteString -> Word64) -> ActionM (Content a)
-parseRequestContent ff = do
+parseRequestContent fileLimits = do
   ct <- peeks $ lookupRequestHeader hContentType
   case fmap parseContentType ct of
     Just ("application/x-www-form-urlencoded", _) ->
       parseFormContent UrlEncoded
     Just ("multipart/form-data", attrs) | Just bound <- lookup "boundary" attrs ->
-      parseFormFileContent (ff . fileContent) $ Multipart bound
+      parseFormFileContent (fileLimits . fileContent) $ Multipart bound
     Just ("text/json", _) ->
       parseJSONContent
     Just ("application/json", _) ->
