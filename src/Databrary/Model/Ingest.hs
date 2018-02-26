@@ -63,9 +63,11 @@ replaceSlotAsset o n =
 
 -- verify that all expected columns are present, with some leniency
 requiredColumnsPresent :: ParticipantFieldMapping -> [Text] -> Either [Text] () -- left if not enough columns or other mismatch
-requiredColumnsPresent participantFieldMapping csvHeaders =
-  Right ()
-  -- case pfmId participantFieldMapping
+requiredColumnsPresent participantFieldMapping csvHeaders = do
+    _ <- case pfmId participantFieldMapping of
+             Just idCol -> -- TODO: case insensitive
+                 if idCol `elem` csvHeaders then Right () else Left [idCol]
+    pure ()
   
 {-
   -- TODO read volume spreadsheet definition and use that to determine whether Just or Nothing for each field
