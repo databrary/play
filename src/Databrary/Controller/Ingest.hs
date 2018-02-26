@@ -36,8 +36,9 @@ import Databrary.Model.Id
 import Databrary.Model.Permission
 import Databrary.Model.Volume
 import Databrary.Model.Container
+import Databrary.Model.Metric (ParticipantFieldMapping(..))
 import Databrary.Model.Record
-import Databrary.Model.Ingest (detectBestHeaderMapping, headerMappingJSON, HeaderMappingEntry(..))
+import Databrary.Model.Ingest -- (requiredColumnsPresent, headerMappingJSON, HeaderMappingEntry(..))
 import Databrary.Ingest.Action
 import Databrary.Ingest.JSON
 import Databrary.HTTP.Path.Parser
@@ -99,22 +100,22 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
     let uploadFileContents = (BSL.toStrict . TLE.encodeUtf8 . fileContent) csvFileInfo
         uploadFileName = (BSC.unpack . fileName) csvFileInfo  -- TODO: add prefix to filename
     let eCsvHeaders = ATTO.parseOnly (CSVP.csvWithHeader CSVP.defaultDecodeOptions) uploadFileContents
+    participantFieldMapping <- undefined -- loadParticipantFieldMapping vi
     case eCsvHeaders of
         Left err ->
             pure (forbiddenResponse reqCtxt)
         Right (hdrs, _) -> do
-            let mMpng = detectBestHeaderMapping (getHeaders hdrs)
-            case mMpng of
-                Just mpng -> do
+            case requiredColumnsPresent participantFieldMapping (getHeaders hdrs) of
+                Right _ -> do
                     liftIO (BS.writeFile ("/tmp/" ++ uploadFileName) uploadFileContents)
                     pure
                         $ okResponse []
                             $ JSON.recordEncoding -- TODO: not record encoding
                                 $ JSON.Record vi
                                     $      "csv_upload_id" JSON..= (uploadFileName)
-                                        <> "suggested_mapping" JSON..= headerMappingJSON mpng
-                Nothing ->
-                    -- if detect headers failed, then don't save csv file and response is error
+                                    --    <> "suggested_mapping" JSON..= headerMappingJSON mpng
+                Left missingColumns ->
+                    -- if column check failed, then don't save csv file and response is error
                     pure (forbiddenResponse reqCtxt) -- place holder for error
 
 getHeaders :: CSV.Header -> [Text]

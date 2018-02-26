@@ -39,3 +39,7 @@ removeVolumeMetric v m =
 removeVolumeCategory :: (MonadDB c m) => Volume -> Id Category -> m Int
 removeVolumeCategory v c =
   dbExecute [pgSQL|DELETE FROM volume_metric USING metric WHERE volume = ${volumeId $ volumeRow v} AND metric = id AND category = ${c}|]
+
+lookupParticipantFieldMapping :: (MonadDB c m) => Id Volume -> m ParticipantFieldMapping
+lookupParticipantFieldMapping volId =
+    pure (ParticipantFieldMapping { pfmId = Nothing })

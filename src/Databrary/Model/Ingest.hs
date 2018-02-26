@@ -8,12 +8,11 @@ module Databrary.Model.Ingest
   , lookupIngestAsset
   , addIngestAsset
   , replaceSlotAsset
-  , detectBestHeaderMapping
-  , headerMappingJSON
+  , requiredColumnsPresent
+  -- , headerMappingJSON
   , HeaderMappingEntry(..)
   ) where
 
--- TODO: delete bimap from databrary.nix
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -61,8 +60,11 @@ replaceSlotAsset :: MonadDB c m => Asset -> Asset -> m Bool
 replaceSlotAsset o n =
   dbExecute1 [pgSQL|UPDATE slot_asset SET asset = ${assetId $ assetRow n} WHERE asset = ${assetId $ assetRow o}|]
 
-detectBestHeaderMapping :: [Text] -> Maybe ParticipantFieldMapping -- nothing if not enough columns or other mismatch
-detectBestHeaderMapping csvHeaders =
+-- verify that all expected columns are present, with some leniency
+requiredColumnsPresent :: a -> [Text] -> Either [Text] () -- left if not enough columns or other mismatch
+requiredColumnsPresent participantFieldMapping csvHeaders =
+  Right ()
+{-
   -- TODO read volume spreadsheet definition and use that to determine whether Just or Nothing for each field
   case csvHeaders of
       hdr1:_ ->
@@ -72,7 +74,9 @@ detectBestHeaderMapping csvHeaders =
                   })
       [] ->
           Nothing
+-}
 
+{-
 headerMappingJSON :: ParticipantFieldMapping -> [JSON.Value] -- TODO: Value or list of Value?
 headerMappingJSON headerMapping =
     catMaybes
@@ -80,6 +84,7 @@ headerMappingJSON headerMapping =
             (\idCol -> JSON.object [ "csv_field" JSON..= idCol, "metric" JSON..= ("id" :: String) ])
             (pfmId headerMapping)
         ]
+-}
 
 data HeaderMappingEntry =
     HeaderMappingEntry {
