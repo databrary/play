@@ -44,3 +44,6 @@ removeVolumeCategory v c =
 lookupParticipantFieldMapping :: (MonadDB c m) => Id Volume -> m ParticipantFieldMapping
 lookupParticipantFieldMapping volId =
     pure (ParticipantFieldMapping { pfmId = Just "id" })
+
+-- get all metrics for participant category for given volume from db
+--   branch on each metric, filling in field mapping structure
