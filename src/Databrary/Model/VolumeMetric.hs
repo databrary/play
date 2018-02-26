@@ -1,10 +1,11 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds, OverloadedStrings #-}
 module Databrary.Model.VolumeMetric
   ( lookupVolumeMetrics
   , addVolumeCategory
   , addVolumeMetric
   , removeVolumeMetric
   , removeVolumeCategory
+  , lookupParticipantFieldMapping
   ) where
 
 import Control.Exception.Lifted (handleJust)
@@ -42,4 +43,4 @@ removeVolumeCategory v c =
 
 lookupParticipantFieldMapping :: (MonadDB c m) => Id Volume -> m ParticipantFieldMapping
 lookupParticipantFieldMapping volId =
-    pure (ParticipantFieldMapping { pfmId = Nothing })
+    pure (ParticipantFieldMapping { pfmId = Just "id" })

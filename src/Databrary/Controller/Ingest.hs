@@ -37,6 +37,7 @@ import Databrary.Model.Permission
 import Databrary.Model.Volume
 import Databrary.Model.Container
 import Databrary.Model.Metric (ParticipantFieldMapping(..))
+import Databrary.Model.VolumeMetric (lookupParticipantFieldMapping)
 import Databrary.Model.Record
 import Databrary.Model.Ingest -- (requiredColumnsPresent, headerMappingJSON, HeaderMappingEntry(..))
 import Databrary.Ingest.Action
@@ -100,7 +101,7 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
     let uploadFileContents = (BSL.toStrict . TLE.encodeUtf8 . fileContent) csvFileInfo
         uploadFileName = (BSC.unpack . fileName) csvFileInfo  -- TODO: add prefix to filename
     let eCsvHeaders = ATTO.parseOnly (CSVP.csvWithHeader CSVP.defaultDecodeOptions) uploadFileContents
-    participantFieldMapping <- undefined -- loadParticipantFieldMapping vi
+    participantFieldMapping <- lookupParticipantFieldMapping vi
     case eCsvHeaders of
         Left err ->
             pure (forbiddenResponse reqCtxt)
