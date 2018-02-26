@@ -205,8 +205,6 @@ html
 .stream .asset-display
   padding 10px
   background-color #fff
-.stream .asset-display img, .stream .asset-display video
-  max-height 325px
 
 .stream .asset-display video
   @media screen and (max-width:grid-mobile-width)
@@ -337,7 +335,9 @@ div
     padding 0
     .asset-display
       padding 0
-      video, img
+      video
+        height 440px
+      img
         max-height 440px
 
   .photo
