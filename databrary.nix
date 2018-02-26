@@ -1,6 +1,6 @@
 { mkDerivation, aeson, aeson-better-errors, array, attoparsec, base
 , bcrypt, binary, blaze-html, blaze-markup, bytestring
-, case-insensitive, conduit-combinators, containers, cookie, cracklib
+, case-insensitive, cassava, conduit-combinators, containers, cookie, cracklib
 , cryptonite, data-default-class, directory, fast-logger, ffmpeg
 , filepath, hashable, hjsonschema, http-client, http-client-tls
 , http-types, invertible
@@ -40,7 +40,7 @@ in
   isExecutable = true;
   libraryHaskellDepends = [
     aeson aeson-better-errors array attoparsec base bcrypt binary
-    blaze-html blaze-markup bytestring case-insensitive
+    blaze-html blaze-markup bytestring case-insensitive cassava
     conduit-combinators containers cookie cryptonite data-default-class
     directory fast-logger filepath hashable hjsonschema http-client
     http-client-tls http-types invertible lifted-base memory mime-mail
@@ -59,7 +59,7 @@ in
   ];
   executableHaskellDepends = [
     aeson aeson-better-errors array attoparsec base bcrypt binary
-    blaze-html blaze-markup bytestring case-insensitive
+    blaze-html blaze-markup bytestring case-insensitive cassava
     conduit-combinators containers cookie cryptonite data-default-class
     directory fast-logger filepath hashable hjsonschema http-client
     http-client-tls http-types invertible lifted-base memory mime-mail

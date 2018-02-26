@@ -125,12 +125,17 @@ processParty api p = do
     orcid <- "orcid" .:> deformNonEmpty (deformRead blankORCID)
     affiliation <- "affiliation" .:> deformNonEmpty deform
     url <- "url" .:> deformNonEmpty deform
-    avatar <- "avatar" .:>
-      (maybe (deformOptional $ return Nothing) (\a -> do
-        f <- deformCheck "Must be an image." formatIsImage =<<
-          deformMaybe' "Unknown or unsupported file format."
-          (getFormatByFilename (fileName a))
-        return $ Just $ Just (a, f)) =<< deform)
+    (avatar :: (Maybe (Maybe (FileInfo TempFile, Format)))) <- "avatar" .:> do
+      mFileInfo <- deform
+      (maybe
+         (deformOptional $ return Nothing)
+         (\avatarFileInfo -> do
+            format <- do
+              fmt <-
+                deformMaybe' "Unknown or unsupported file format." (getFormatByFilename (fileName avatarFileInfo))
+              deformCheck "Must be an image." formatIsImage fmt
+            return $ Just $ Just (avatarFileInfo, format))
+         mFileInfo)
     return (bp
       { partyRow = (partyRow bp)
         { partySortName = name
