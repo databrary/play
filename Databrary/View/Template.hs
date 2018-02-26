@@ -81,7 +81,13 @@ htmlFooter = H.footer H.! HA.id "site-footer" H.! HA.class_ "site-footer" $
       H.div H.! HA.class_ "site-footer-social-address" $ do
         htmlAddress
         htmlSocialMedia
-      H.ul H.! HA.class_ "site-footer-grants col-desktop-8 col-tablet-5 col-mobile-6" $ do
+      H.ul H.! HA.class_ "site-footer-grants col-desktop-12 col-tablet-5 col-mobile-6" $ do
+        H.li $
+          H.a H.! HA.href "http://www.nyu.edu" $ do
+            H.img H.! HA.src "/web/images/grants/nyu-small.jpg" H.! HA.class_ "nyu"
+        H.li $
+          H.a H.! HA.href "http://www.psu.edu" $ do
+            H.img H.! HA.src "/web/images/grants/pennstate.png" H.! HA.class_ "psu"
         H.li $
           H.a H.! HA.href "http://www.nsf.gov/awardsearch/showAward?AWD_ID=1238599&HistoricalAwards=false" $ do
             H.img H.! HA.src "/web/images/grants/nsf.png" H.! HA.class_ "nsf"
