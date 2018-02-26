@@ -25,6 +25,7 @@ import Databrary.Model.SQL (selectQuery)
 import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
 import Databrary.Model.Container.SQL
+import Databrary.Model.Metric.Types
 import Databrary.Model.Record.Types
 import Databrary.Model.Record.SQL
 import Databrary.Model.Asset.Types
@@ -61,9 +62,11 @@ replaceSlotAsset o n =
   dbExecute1 [pgSQL|UPDATE slot_asset SET asset = ${assetId $ assetRow n} WHERE asset = ${assetId $ assetRow o}|]
 
 -- verify that all expected columns are present, with some leniency
-requiredColumnsPresent :: a -> [Text] -> Either [Text] () -- left if not enough columns or other mismatch
+requiredColumnsPresent :: ParticipantFieldMapping -> [Text] -> Either [Text] () -- left if not enough columns or other mismatch
 requiredColumnsPresent participantFieldMapping csvHeaders =
   Right ()
+  -- case pfmId participantFieldMapping
+  
 {-
   -- TODO read volume spreadsheet definition and use that to determine whether Just or Nothing for each field
   case csvHeaders of
