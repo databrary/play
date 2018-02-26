@@ -67,6 +67,8 @@ requiredColumnsPresent participantFieldMapping csvHeaders = do
     _ <- case pfmId participantFieldMapping of
              Just idCol -> -- TODO: case insensitive
                  if idCol `elem` csvHeaders then Right () else Left [idCol]
+             Nothing ->
+                 Right ()
     pure ()
   
 {-
