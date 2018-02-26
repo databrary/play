@@ -1,4 +1,4 @@
-<div ng-if="::editing" class="div-grey">Changes are saved automatically</div>
+<div ng-if="::editing" class="div-grey">Changes are saved automatically.</div>
 <p ng-if="::editing">See our <a href="/asset/formats">list of accepted file types</a>.</p>
 <ng-form name="form">
 <div class="spreadsheet-dynamic-info" ng-if="::editing">
@@ -46,8 +46,12 @@
       </li>
     </ul>
   </div>
-  <div class="small reminder top-2">
-    <span ng-if="!anyGlobal">You can view your data aggregated by participant, task, context...whatever options you have selected in the Design Spreadsheet tab.</span>
+  <div class="spreadsheet-metadata" ng-if="filter.key === 1">
+    <metadata-form></metadata-form>
+    <metadata-match-form></metadata-match-form>
+  </div>
+  <div class="small reminder top-2" ng-class="'margin' + filter.key">
+    <span ng-if="!anyGlobal">Here you can manage the list of options in this category.</span>
     <span ng-if="anyGlobal">Some categories are {{showGlobal ? 'shown': 'hidden'}}. <button class="link" ng-click="showHideGlobal()">Click to {{showGlobal ? 'hide all' : 'show all'}}.</button> </span><br>
   </div>
 </div>

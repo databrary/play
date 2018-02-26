@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds, OverloadedStrings #-}
 module Databrary.Model.Ingest
   ( IngestKey
   , lookupIngestContainer
@@ -8,12 +8,20 @@ module Databrary.Model.Ingest
   , lookupIngestAsset
   , addIngestAsset
   , replaceSlotAsset
+  , detectBestHeaderMapping
+  , headerMappingJSON
+  , HeaderMappingEntry(..)
   ) where
 
+-- TODO: delete bimap from databrary.nix
+import Data.Maybe (catMaybes)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Database.PostgreSQL.Typed.Query (pgSQL)
 
 import Databrary.Service.DB
+import qualified Databrary.JSON as JSON
+import Databrary.JSON (FromJSON, ToJSON)
 import Databrary.Model.SQL (selectQuery)
 import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
@@ -52,3 +60,37 @@ addIngestAsset r k =
 replaceSlotAsset :: MonadDB c m => Asset -> Asset -> m Bool
 replaceSlotAsset o n =
   dbExecute1 [pgSQL|UPDATE slot_asset SET asset = ${assetId $ assetRow n} WHERE asset = ${assetId $ assetRow o}|]
+
+detectBestHeaderMapping :: [Text] -> Maybe ParticipantFieldMapping -- nothing if not enough columns or other mismatch
+detectBestHeaderMapping csvHeaders =
+  -- TODO read volume spreadsheet definition and use that to determine whether Just or Nothing for each field
+  case csvHeaders of
+      hdr1:_ ->
+          Just
+              (ParticipantFieldMapping
+                  { pfmId = Just hdr1
+                  })
+      [] ->
+          Nothing
+
+headerMappingJSON :: ParticipantFieldMapping -> [JSON.Value] -- TODO: Value or list of Value?
+headerMappingJSON headerMapping =
+    catMaybes
+        [ fmap
+            (\idCol -> JSON.object [ "csv_field" JSON..= idCol, "metric" JSON..= ("id" :: String) ])
+            (pfmId headerMapping)
+        ]
+
+data HeaderMappingEntry =
+    HeaderMappingEntry {
+          hmeCsvField :: Text
+        , hmeMetricName :: Text
+    } deriving (Show, Eq, Ord)
+
+instance FromJSON HeaderMappingEntry where
+    parseJSON =
+        JSON.withObject "HeaderMappingEntry"
+            (\o ->
+                 HeaderMappingEntry
+                     <$> o JSON..: "csv_field"
+                     <*> o JSON..: "metric") -- TODO: validate that it matches a real metric name
