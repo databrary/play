@@ -70,18 +70,6 @@ requiredColumnsPresent participantFieldMapping csvHeaders = do
              Nothing ->
                  Right ()
     pure ()
-  
-{-
-  -- TODO read volume spreadsheet definition and use that to determine whether Just or Nothing for each field
-  case csvHeaders of
-      hdr1:_ ->
-          Just
-              (ParticipantFieldMapping
-                  { pfmId = Just hdr1
-                  })
-      [] ->
-          Nothing
--}
 
 {-
 headerMappingJSON :: ParticipantFieldMapping -> [JSON.Value] -- TODO: Value or list of Value?
