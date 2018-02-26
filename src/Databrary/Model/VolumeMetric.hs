@@ -134,3 +134,7 @@ removeVolumeCategory v c = do
         (volumeId $ volumeRow v) c)
             (\[] -> ()))
 
+lookupParticipantFieldMapping :: (MonadDB c m) => Id Volume -> m ParticipantFieldMapping
+lookupParticipantFieldMapping volId =
+    pure (ParticipantFieldMapping { pfmId = Nothing })
+
