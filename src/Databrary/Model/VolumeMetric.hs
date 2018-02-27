@@ -89,8 +89,27 @@ addVolumeMetric v m = liftDBM $ do
             (\ [] -> ()))
 
 removeVolumeMetric :: (MonadDB c m) => Volume -> Id Metric -> m Bool
-removeVolumeMetric v m =
-  dbExecute1 [pgSQL|DELETE FROM volume_metric WHERE volume = ${volumeId $ volumeRow v} AND metric = ${m}|]
+removeVolumeMetric v m = do
+  let _tenv_a6DCn = unknownPGTypeEnv
+  dbExecute1 -- [pgSQL|DELETE FROM volume_metric WHERE volume = ${volumeId $ volumeRow v} AND metric = ${m}|]
+    (mapQuery
+      ((\ _p_a6DCo _p_a6DCp ->
+                    (Data.ByteString.concat
+                       [Data.String.fromString
+                          "DELETE FROM volume_metric WHERE volume = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6DCn
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6DCo,
+                        Data.String.fromString " AND metric = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6DCn
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6DCp]))
+       (volumeId $ volumeRow v) m)
+            (\[] -> ()))
 
 removeVolumeCategory :: (MonadDB c m) => Volume -> Id Category -> m Int
 removeVolumeCategory v c =
