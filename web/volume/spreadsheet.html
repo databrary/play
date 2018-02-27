@@ -48,7 +48,7 @@
   </div>
   <div class="spreadsheet-metadata" ng-if="filter.key === 1">
     <metadata-form></metadata-form>
-    <metadata-match-form></metadata-match-form>
+    <metadata-match-form ng-model="data"></metadata-match-form>
   </div>
   <div class="small reminder top-2" ng-class="'margin' + filter.key">
     <span ng-if="!anyGlobal">You can view your data aggregated by participant, task, context...whatever options you have selected in the Design Spreadsheet tab.</span>

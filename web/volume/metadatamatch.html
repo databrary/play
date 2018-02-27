@@ -1,9 +1,19 @@
 <ng-form name="metadataMatchForm">
-  <div ng-repeat="x in volume.suggested_mapping">
-    Should {{x.csv_field}} in your csv file be used as {{x.metric}} in your spreadsheet?
+  <div ng-repeat="x in volume.selected_mapping track by $index">
+    Match {{x.csv_field}} to the following column name
+    <select name="{{x.csv_field}}" ng-model="x.metric">
+    	<option value="">Please select</option>
+    	<option value="{{x.metric}}">{{x.metric}}</option>
+    	<option value="hello">hello</option>
+    </select>
+    <span>
+	  	{{x.metric}}
+	  </span>
+	<button class="green" ng-click="metadataMatchForm.save()">
+	    Save
+	</button>
+	<a>
+	    Skip
+	</a>
   </div>
-  <input type="text" name="{{x.metric}}" value="{{x.csv_field}}" class="hide"/>
-  <button class="white" ng-click="metadataMatchForm.save()">
-    Yes
-  </button>
 </ng-form>

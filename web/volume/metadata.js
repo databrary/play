@@ -25,6 +25,7 @@ app.directive('metadataForm', [
               owner: form
             });
             form.$setPristine();
+            volume.selected_mapping = volume.suggested_mapping;
           }, function(res) {
             form.$setUnsubmitted();
             form.validator.server(res);
@@ -45,13 +46,14 @@ app.directive('metadataMatchForm', [
     return {
       restrict: 'E',
       templateUrl: 'volume/metadatamatch.html',
-      link: function($scope) {
-        var form, volume;
+      require: 'ngModel',
+      link: function($scope, ctrl) {
+        var form, volume, selected_mapping;
         volume = $scope.volume;
         form = $scope.metadataMatchForm;
         form.save = function() {
           messages.clear(form);
-          var data = { "csv_upload_id": volume.csv_upload_id, "selected_mapping":[{ "metric": volume.suggested_mapping[0].metric, "csv_field": volume.suggested_mapping[0].csv_field}]};
+          var data = { "csv_upload_id": volume.csv_upload_id, "selected_mapping": volume.selected_mapping};
           form.$setSubmitted();
           return volume.matchcsv(data).then(function() {
             $('metadata-match-form').hide();
