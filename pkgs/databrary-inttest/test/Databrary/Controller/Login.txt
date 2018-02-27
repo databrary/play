@@ -1,1 +1,14 @@
+viewUser
+- logged out
+  - error?
+- logged in as test
+  - json should match test's info
 
+postUser
+-
+
+postLogin
+- 
+
+postLogout
+-
