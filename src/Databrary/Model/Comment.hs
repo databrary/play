@@ -132,16 +132,10 @@ lookupVolumeCommentRows v = do
 
 addComment :: MonadDB c m => Comment -> m Comment
 addComment c@Comment{..} = do
-  (i, t) <- dbQuery1' [pgSQL|INSERT INTO comment (who, container, segment, text, parent) VALUES (${partyId $ partyRow $ accountParty commentWho}, ${containerId $ containerRow $ slotContainer commentSlot}, ${slotSegment commentSlot}, ${commentText}, ${listToMaybe commentParents}) RETURNING id, time|]
-  return c
-    { commentId = i
-    , commentTime = t
-    }
-{-
-    (\ _p_a8Iai _p_a8Iak _p_a8Ial _p_a8Iam _p_a8Ian
-       -> Database.PostgreSQL.Typed.Query.QueryParser
-            (\ _tenv_a8Iah
-               -> Database.PostgreSQL.Typed.Query.SimpleQuery
+  let _tenv_a8Iah = unknownPGTypeEnv
+  (i, t) <- dbQuery1' -- [pgSQL|INSERT INTO comment (who, container, segment, text, parent) VALUES (${partyId $ partyRow $ accountParty commentWho}, ${containerId $ containerRow $ slotContainer commentSlot}, ${slotSegment commentSlot}, ${commentText}, ${listToMaybe commentParents}) RETURNING id, time|]
+    (mapQuery
+      ((\ _p_a8Iai _p_a8Iak _p_a8Ial _p_a8Iam _p_a8Ian ->
                     (Data.ByteString.concat
                        [Data.String.fromString
                           "INSERT INTO comment (who, container, segment, text, parent) VALUES (",
@@ -175,7 +169,12 @@ addComment c@Comment{..} = do
                              Database.PostgreSQL.Typed.Types.PGTypeName "integer")
                           _p_a8Ian,
                         Data.String.fromString ") RETURNING id, time"]))
-            (\ _tenv_a8Iah [_cid_a8Iap, _ctime_a8Iaq]
+       (partyId $ partyRow $ accountParty commentWho)
+       (containerId $ containerRow $ slotContainer commentSlot)
+       (slotSegment commentSlot)
+       commentText
+       (listToMaybe commentParents))
+          (\ [_cid_a8Iap, _ctime_a8Iaq]
                -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                      _tenv_a8Iah
                      (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -186,12 +185,10 @@ addComment c@Comment{..} = do
                      (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                         Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
                      _ctime_a8Iaq)))
-      (partyId $ partyRow $ accountParty commentWho)
-      (containerId $ containerRow $ slotContainer commentSlot)
-      (slotSegment commentSlot)
-      commentText
-      (listToMaybe commentParents)
--}
+  return c
+    { commentId = i
+    , commentTime = t
+    }
 
 commentJSON :: JSON.ToNestedObject o u => Comment -> JSON.Record (Id Comment) o
 commentJSON Comment{ commentSlot = Slot{..}, ..} = JSON.Record commentId $
