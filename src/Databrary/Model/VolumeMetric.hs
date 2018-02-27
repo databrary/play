@@ -112,5 +112,25 @@ removeVolumeMetric v m = do
             (\[] -> ()))
 
 removeVolumeCategory :: (MonadDB c m) => Volume -> Id Category -> m Int
-removeVolumeCategory v c =
-  dbExecute [pgSQL|DELETE FROM volume_metric USING metric WHERE volume = ${volumeId $ volumeRow v} AND metric = id AND category = ${c}|]
+removeVolumeCategory v c = do
+  let _tenv_a6Gu0 = unknownPGTypeEnv
+  dbExecute -- [pgSQL|DELETE FROM volume_metric USING metric WHERE volume = ${volumeId $ volumeRow v} AND metric = id AND category = ${c}|]
+    (mapQuery
+       ((\ _p_a6Gu1 _p_a6Gu2 ->
+                    (Data.ByteString.concat
+                       [Data.String.fromString
+                          "DELETE FROM volume_metric USING metric WHERE volume = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6Gu0
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6Gu1,
+                        Data.String.fromString " AND metric = id AND category = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6Gu0
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "smallint")
+                          _p_a6Gu2]))
+        (volumeId $ volumeRow v) c)
+            (\[] -> ()))
+
