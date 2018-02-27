@@ -19,6 +19,14 @@ import Data.Maybe (isNothing, isJust)
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Database.PostgreSQL.Typed (pgSQL)
+import Database.PostgreSQL.Typed
+import Database.PostgreSQL.Typed.Query
+import Database.PostgreSQL.Typed.Types
+import qualified Database.PostgreSQL.Typed.Query
+import qualified Database.PostgreSQL.Typed.Types
+import qualified Data.ByteString
+import Data.ByteString (ByteString)
+import qualified Data.String
 
 import Databrary.Ops
 import Databrary.Has (view, peek)
@@ -38,6 +46,10 @@ import Databrary.Model.Format
 import Databrary.Model.Asset.Types
 import Databrary.Model.Asset.SQL
 
+mapQuery :: ByteString -> ([PGValue] -> a) -> PGSimpleQuery a
+mapQuery qry mkResult =
+  fmap mkResult (rawPGSimpleQuery qry)
+
 assetBacked :: Asset -> Bool
 assetBacked = isJust . assetSHA1 . assetRow
 
@@ -53,7 +65,79 @@ lookupOrigAsset ai = do
 
 lookupVolumeAsset :: (MonadDB c m) => Volume -> Id Asset -> m (Maybe Asset)
 lookupVolumeAsset vol ai = do
-  dbQuery1 $ (`Asset` vol) <$> $(selectQuery selectAssetRow "WHERE asset.id = ${ai} AND asset.volume = ${volumeId $ volumeRow vol}")
+  let _tenv_a87rh = unknownPGTypeEnv
+  dbQuery1 $ (`Asset` vol) <$> -- $(selectQuery selectAssetRow "WHERE asset.id = ${ai} AND asset.volume = ${volumeId $ volumeRow vol}")
+    fmap
+      (\ (vid_a87qZ, vformat_a87r0, vrelease_a87r1, vduration_a87r2,
+          vname_a87r3, vc_a87r4, vsize_a87r5)
+         -> makeAssetRow
+              vid_a87qZ
+              vformat_a87r0
+              vrelease_a87r1
+              vduration_a87r2
+              vname_a87r3
+              vc_a87r4
+              vsize_a87r5)
+      (mapQuery
+        ((\ _p_a87ri _p_a87rj ->
+                       (Data.ByteString.concat
+                          [Data.String.fromString
+                             "SELECT asset.id,asset.format,asset.release,asset.duration,asset.name,asset.sha1,asset.size FROM asset WHERE asset.id = ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a87rh
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                             _p_a87ri,
+                           Data.String.fromString " AND asset.volume = ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a87rh
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                             _p_a87rj]))
+         ai (volumeId $ volumeRow vol))
+                (\
+                  [_cid_a87rk,
+                   _cformat_a87rl,
+                   _crelease_a87rm,
+                   _cduration_a87rn,
+                   _cname_a87ro,
+                   _csha1_a87rp,
+                   _csize_a87rq]
+                  -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a87rh
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                        _cid_a87rk, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a87rh
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "smallint")
+                        _cformat_a87rl, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a87rh
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "release")
+                        _crelease_a87rm, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a87rh
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "interval")
+                        _cduration_a87rn, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a87rh
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _cname_a87ro, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a87rh
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "bytea")
+                        _csha1_a87rp, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a87rh
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
+                        _csize_a87rq)))
 
 addAsset :: (MonadAudit c m, MonadStorage c m) => Asset -> Maybe RawFilePath -> m Asset
 addAsset ba fp = do
