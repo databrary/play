@@ -143,7 +143,95 @@ addAsset :: (MonadAudit c m, MonadStorage c m) => Asset -> Maybe RawFilePath -> 
 addAsset ba fp = do
   ident <- getAuditIdentity
   ba' <- maybe (return ba) (storeAssetFile ba) fp
-  dbQuery1' $(insertAsset 'ident 'ba')
+  let _tenv_a87Hi = unknownPGTypeEnv
+  dbQuery1' -- $(insertAsset 'ident 'ba')
+    (fmap
+      (\ (vid_a87Bv)
+         -> setAssetId ba' vid_a87Bv)
+      (mapQuery
+        ((\ _p_a87Hj
+          _p_a87Hk
+          _p_a87Hr
+          _p_a87Hv
+          _p_a87Hw
+          _p_a87Hx
+          _p_a87Hy
+          _p_a87Hz
+          _p_a87HB ->
+                       (Data.ByteString.concat
+                          [Data.String.fromString
+                             "WITH audit_row AS (INSERT INTO asset (volume,format,release,duration,name,sha1,size) VALUES (",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a87Hi
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                             _p_a87Hj,
+                           Data.String.fromString ",",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a87Hi
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "smallint")
+                             _p_a87Hk,
+                           Data.String.fromString ",",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a87Hi
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "release")
+                             _p_a87Hr,
+                           Data.String.fromString ",",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a87Hi
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "interval")
+                             _p_a87Hv,
+                           Data.String.fromString ",",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a87Hi
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                             _p_a87Hw,
+                           Data.String.fromString ",",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a87Hi
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "bytea")
+                             _p_a87Hx,
+                           Data.String.fromString ",",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a87Hi
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
+                             _p_a87Hy,
+                           Data.String.fromString
+                             ") RETURNING *) INSERT INTO audit.asset SELECT CURRENT_TIMESTAMP, ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a87Hi
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                             _p_a87Hz,
+                           Data.String.fromString ", ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a87Hi
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                             _p_a87HB,
+                           Data.String.fromString
+                             ", 'add'::audit.action, * FROM audit_row RETURNING asset.id"]))
+         (volumeId $ volumeRow $ assetVolume ba')
+         (formatId $ assetFormat $ assetRow ba')
+         (assetRelease $ assetRow ba')
+         (assetDuration $ assetRow ba')
+         (assetName $ assetRow ba')
+         (assetSHA1 $ assetRow ba')
+         (assetSize $ assetRow ba')
+         (auditWho ident)
+         (auditIp ident))
+               (\ [_cid_a87HC]
+                  -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a87Hi
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                        _cid_a87HC))))
 
 changeAsset :: (MonadAudit c m, MonadStorage c m) => Asset -> Maybe RawFilePath -> m Asset
 changeAsset a fp = do
