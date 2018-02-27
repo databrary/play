@@ -113,7 +113,6 @@ removeVolumeMetric v m = do
             (\[] -> ()))
 
 removeVolumeCategory :: (MonadDB c m) => Volume -> Id Category -> m Int
-<<<<<<< HEAD
 removeVolumeCategory v c = do
   let _tenv_a6Gu0 = unknownPGTypeEnv
   dbExecute -- [pgSQL|DELETE FROM volume_metric USING metric WHERE volume = ${volumeId $ volumeRow v} AND metric = id AND category = ${c}|]
@@ -135,10 +134,6 @@ removeVolumeCategory v c = do
                           _p_a6Gu2]))
         (volumeId $ volumeRow v) c)
             (\[] -> ()))
-=======
-removeVolumeCategory v c =
-  dbExecute [pgSQL|DELETE FROM volume_metric USING metric WHERE volume = ${volumeId $ volumeRow v} AND metric = id AND category = ${c}|]
->>>>>>> 16288ddab15f4376cd238a5c517182cb427e8017
 
 lookupParticipantFieldMapping :: (MonadDB c m) => Id Volume -> m ParticipantFieldMapping
 lookupParticipantFieldMapping volId =
