@@ -140,6 +140,7 @@ lookupParticipantFieldMapping :: (MonadDB c m) => Volume -> m ParticipantFieldMa
 lookupParticipantFieldMapping vol = do
     metricIds <- lookupVolumeMetrics vol
     liftIO (print ("metric ids", metricIds))
+    -- use static allMetrics to resolve to actual metric values, filter out participant metrics
     pure (ParticipantFieldMapping { pfmId = Just "id" })
 
 -- get all metrics for participant category for given volume from db
