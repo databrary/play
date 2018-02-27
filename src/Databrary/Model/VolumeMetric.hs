@@ -10,6 +10,7 @@ module Databrary.Model.VolumeMetric
 
 import Control.Exception.Lifted (handleJust)
 import Control.Monad (guard)
+import Control.Monad.IO.Class (liftIO)
 import Database.PostgreSQL.Typed.Query (pgSQL)
 import Database.PostgreSQL.Typed
 import Database.PostgreSQL.Typed.Query
@@ -135,8 +136,10 @@ removeVolumeCategory v c = do
         (volumeId $ volumeRow v) c)
             (\[] -> ()))
 
-lookupParticipantFieldMapping :: (MonadDB c m) => Id Volume -> m ParticipantFieldMapping
-lookupParticipantFieldMapping volId =
+lookupParticipantFieldMapping :: (MonadDB c m) => Volume -> m ParticipantFieldMapping
+lookupParticipantFieldMapping vol = do
+    metricIds <- lookupVolumeMetrics vol
+    liftIO (print ("metric ids", metricIds))
     pure (ParticipantFieldMapping { pfmId = Just "id" })
 
 -- get all metrics for participant category for given volume from db

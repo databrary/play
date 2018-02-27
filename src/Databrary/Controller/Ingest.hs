@@ -101,7 +101,7 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
     let uploadFileContents = (BSL.toStrict . TLE.encodeUtf8 . fileContent) csvFileInfo
         uploadFileName = (BSC.unpack . fileName) csvFileInfo  -- TODO: add prefix to filename
     let eCsvHeaders = ATTO.parseOnly (CSVP.csvWithHeader CSVP.defaultDecodeOptions) uploadFileContents
-    participantFieldMapping <- lookupParticipantFieldMapping vi
+    participantFieldMapping <- lookupParticipantFieldMapping v
     case eCsvHeaders of
         Left err -> do
             liftIO (print ("csv parse error", err))
