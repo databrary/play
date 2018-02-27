@@ -103,7 +103,8 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
     let eCsvHeaders = ATTO.parseOnly (CSVP.csvWithHeader CSVP.defaultDecodeOptions) uploadFileContents
     participantFieldMapping <- lookupParticipantFieldMapping vi
     case eCsvHeaders of
-        Left err ->
+        Left err -> do
+            liftIO (print ("csv parse error", err))
             pure (forbiddenResponse reqCtxt)
         Right (hdrs, _) -> do
             case requiredColumnsPresent participantFieldMapping (getHeaders hdrs) of
@@ -115,7 +116,8 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
                                 $ JSON.Record vi
                                     $      "csv_upload_id" JSON..= (uploadFileName)
                                     --    <> "suggested_mapping" JSON..= headerMappingJSON mpng
-                Left missingColumns ->
+                Left missingColumns -> do
+                    liftIO (print ("missing columns", missingColumns))
                     -- if column check failed, then don't save csv file and response is error
                     pure (forbiddenResponse reqCtxt) -- place holder for error
 
