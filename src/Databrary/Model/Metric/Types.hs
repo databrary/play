@@ -4,6 +4,7 @@ module Databrary.Model.Metric.Types
   ( MeasureDatum
   , MeasureType(..)
   , Metric(..)
+  , ParticipantFieldMapping(..)
   -- for tests
   , testMetric1
   , testMeasureType1
@@ -13,6 +14,7 @@ import qualified Data.ByteString as BS
 import Data.Function (on)
 import Data.Ord (comparing)
 import qualified Data.Text as T
+import Data.Text (Text)
 import Instances.TH.Lift ()
 import Language.Haskell.TH.Lift (deriveLiftMany)
 import qualified Data.Typeable.Internal
@@ -112,6 +114,12 @@ instance Ord Metric where
 
 makeHasRec ''Metric ['metricId, 'metricCategory, 'metricRelease, 'metricType]
 deriveLiftMany [''MeasureType, ''Metric]
+
+data ParticipantFieldMapping =  -- each field can be nothing = not used, or just "colname" for csv column
+    ParticipantFieldMapping
+        { pfmId :: Maybe Text 
+        } 
+    deriving (Show, Eq, Ord)
 
 testMeasureType1 :: MeasureType
 testMeasureType1 = MeasureTypeText
