@@ -65,9 +65,28 @@ addVolumeCategory v c = do
                      _cmetric_a6DpA)))
 
 addVolumeMetric :: (MonadDB c m) => Volume -> Id Metric -> m Bool
-addVolumeMetric v m = liftDBM $
+addVolumeMetric v m = liftDBM $ do
+  let _tenv_a6Dqi = unknownPGTypeEnv
   handleJust (guard . isUniqueViolation) (const $ return False) $
-    dbExecute1 [pgSQL|INSERT INTO volume_metric VALUES (${volumeId $ volumeRow v}, ${m})|]
+    dbExecute1 -- [pgSQL|INSERT INTO volume_metric VALUES (${volumeId $ volumeRow v}, ${m})|]
+      (mapQuery
+        ((\ _p_a6Dqk _p_a6Dql ->
+                    (Data.ByteString.concat
+                       [Data.String.fromString "INSERT INTO volume_metric VALUES (",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6Dqi
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6Dqk,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6Dqi
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6Dql,
+                        Data.String.fromString ")"]))
+         (volumeId $ volumeRow v) m)
+            (\ [] -> ()))
 
 removeVolumeMetric :: (MonadDB c m) => Volume -> Id Metric -> m Bool
 removeVolumeMetric v m =
