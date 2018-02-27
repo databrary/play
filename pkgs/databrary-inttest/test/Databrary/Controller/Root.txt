@@ -1,1 +1,8 @@
+viewRoot
+- expect empty json object
 
+viewRobotsTxt
+- expect empty string
+
+viewConstants
+- golden file test
