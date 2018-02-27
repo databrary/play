@@ -1,19 +1,23 @@
 <ng-form name="metadataMatchForm">
-  <div ng-repeat="x in volume.selected_mapping track by $index">
-    Match {{x.csv_field}} to the following column name
+  <div ng-repeat="x in volume.selected_mapping track by $index" class="repeat-card">
+    <span class=>Match <strong>{{x.csv_field}}</strong> to the following column name</span>
+    <span class="skip-text">
+      <strong>{{x.csv_field}}</strong> will not be imported
+      <br />
+      <br />
+      <a ng-click="edit()">
+        Edit
+      </a>
+    </span>
     <select name="{{x.csv_field}}" ng-model="x.metric">
     	<option value="">Please select</option>
-    	<option value="{{x.metric}}">{{x.metric}}</option>
-    	<option value="hello">hello</option>
+    	<option ng-repeat="y in volume.selected_mapping track by $index" value="{{y.metric}}">{{y.metric}}</option>
     </select>
-    <span>
-	  	{{x.metric}}
-	  </span>
-	<button class="green" ng-click="metadataMatchForm.save()">
-	    Save
-	</button>
-	<a>
-	    Skip
-	</a>
+  	<button class="green" ng-click="metadataMatchForm.save()">
+  	    Save
+  	</button>
+  	<a ng-click="skip();">
+  	    Skip
+  	</a>
   </div>
 </ng-form>

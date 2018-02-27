@@ -74,6 +74,14 @@ app.directive('metadataMatchForm', [
             });
           });
         };
+        $scope.skip = function(){
+          $('.skip-text').show();
+          $('.repeat-card > *').not('.skip-text').hide();
+        }
+        $scope.edit = function(){
+          $('.skip-text').hide();
+          $('.repeat-card > *').not('.skip-text').show();
+        }
       }
     };
   }
