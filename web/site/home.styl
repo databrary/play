@@ -644,6 +644,15 @@ div
     display inline-block
     width 300px
     margin 30px 80px
+    &.srcd-container
+      width 430px
+      margin 80px 30px
+      @media screen and (max-width:grid-mobile-width)
+        width 200px
+        margin 20px 10px
+    @media screen and (max-width:grid-mobile-width)
+      width 210px
+      margin 20px 10px
     vertical-align middle
     position relative
     img
@@ -653,5 +662,8 @@ div
       position absolute
       top 58px
       left 110px
-
+      @media screen and (max-width:grid-mobile-width)
+        position relative
+        top 0
+        left 0
 

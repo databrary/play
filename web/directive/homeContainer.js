@@ -116,6 +116,38 @@ app.directive('homeContainer', [
           document.getElementsByTagName("main")[0].appendChild(script);
         });
 
+        function getUnique(count) {
+          var arrayVideo = [595, ]
+          // Make a copy of the array
+          var tmp = arrayVideo.slice();
+          var ret = [];
+          
+          for (var i = 0; i < count; i++) {
+            var index = Math.floor(Math.random() * tmp.length);
+            var removed = tmp.splice(index, 1);
+            // Since we are only removing one element
+            ret.push(removed[0]);
+          }
+          return ret;  
+        }
+        var videolist = getUnique(5);
+        $('.ord-1').each(function(){
+          if (videolist.includes($(this))) {
+            console.log('true');
+          } else {
+            console.log('false');
+          }
+        });
+        
+        // $('.ord-1').each(function(){
+        //   var checkVideo;
+        //   if videolist.includes($(this)) {
+        //     checkVideo = true;
+        //   } else {
+        //     checkVideo = false;
+        //   }
+        //   console.log(checkVideo);
+        // })
       }
     };
   }
