@@ -155,6 +155,15 @@ app.directive('homeContainer', [
             });
           });
           
+        });
+
+        //no hover for div with no a href
+        $('a.ui-link').each(function(){
+          if($(this).attr("href")) {
+            $(this).closest('div.block').addClass('hover');
+          } else {
+            $(this).css('cursor', 'text');
+          }
         })
       }
     };

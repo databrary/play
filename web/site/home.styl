@@ -155,7 +155,7 @@ html
       background-color #b2ddd4
     &.promo
       &.light
-        &:hover
+        &.hover:hover
           background-color #7dc6b6
 
 .stream .block, .stream .block.social.light
@@ -170,7 +170,7 @@ html
 .stream-viewport:not(.mobile) .stream .block.features:hover::before, .stream-viewport:not(.mobile) .stream .block.news:hover::before
   background-color rgba(255, 255, 255, 0)
 
-.stream .block.promo.dark:hover, .stream .block.social.dark:hover
+.stream .block.promo.dark.hover:hover, .stream .block.social.dark.hover:hover
   background-color rgba(247, 171, 122, 1)
 
 .stream .block span, .stream .block span a
@@ -307,12 +307,12 @@ div
     .stream
       .block
         &.promo
-          &:hover
-            &::before
+          &.hover:hover
+            &.hover::before
               background-image url('https://www.nyu.edu/etc/designs/nyuseventy/clientlib/assets/img/promo_corner_white.svg')
         &.news
-          &:hover
-            &::before
+          &.hover:hover
+            &.hover::before
               background-color rgba(0, 0, 0, .55)
               background-image url('https://www.nyu.edu/etc/designs/nyuseventy/clientlib/assets/img/promo_corner_white.svg')
 
@@ -436,8 +436,8 @@ div
     height 31.33333333333333rem
     margin-top 0
 
-.stream .block.news::before,
-.stream .block.promo::before
+.stream .block.news.hover::before,
+.stream .block.promo.hover::before
   position absolute
   top 0
   left 0
