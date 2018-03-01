@@ -109,18 +109,18 @@ app.directive('homeContainer', [
 
         function getUnique(count) {
           var arrayVideo = [
-            ["554", "controls", "", "https://nyu.databrary.org/slot/23424/0,41984/asset/102588/download?inline=true", "Trehub, S.E. &amp; Cirelli, L. (2017). Naturalistic Examples of Infant/Toddler Musical Engagement.", "B7.554"],
-            ["46", "controls", "", "https://nyu.databrary.org/slot/9861/-/asset/11368/download?inline=true", "Vishton, P. (2014). Different Gestalt processing for different actions? Comparing object-directed reaching and looking time measures.", "B78G6V"],
-            ["595", "controls", "", "https://nyu.databrary.org/slot/25319/0,7108/asset/112350/download?inline=true", "Adolph, K. (2018). Excerpt: The organization of exploratory behaviors in infant locomotor planning.", "B7.595"],
-            ["596", "controls", "", "https://nyu.databrary.org/slot/25322/0,12912/asset/112356/download?inline=true", "Adolph, K. &amp; Tamis-LeMonda, C. (2018). Excerpt: Learning the Designed Actions of Everyday Objects.", "B7.596"],
-            ["112", "controls", "", "https://nyu.databrary.org/slot/9860/-/asset/16631/download?inline=true", "Fausey, C.M., Smith, L.B. &amp; Jayaraman, S. (2015). From faces to hands: Changing visual input in the first two years.", "B7JS39"],
-            ["38", "controls", "", "https://nyu.databrary.org/slot/9817/-/asset/11240/download?inline=true", "Frank, M.C. (2014). The development of predictive processes in children’s discourse understanding.", "B72018"],
-            ["1", "controls", "", "https://nyu.databrary.org/slot/17886/16852000,16916503/asset/84000/download?inline=true", "Adolph, K., Gilmore, R.O. &amp; Staff (2013). Databrary sponsored workshops and events.", "B7159Q"],
-            ["70", "", "https://nyu.databrary.org/slot/11883/-/asset/45810/download?inline=true", "", "Adolph, K., Baker, D. (2014). Arnold Gesell’s Films of Infant and Child Development.", "B7.70"],
-            ["27", "controls", "", "https://nyu.databrary.org/slot/11141/0,5000/asset/37968/download?inline=true", "Wilkinson, K. (2014). Preliminary investigation of visual attention to human figures in photographs: Potential considerations for the design of aided AAC visual scene displays.", "B7G59R"],
-            ["44", "controls", "", "https://nyu.databrary.org/slot/9809/-/asset/11354/download?inline=true", "Naigles, L. (2014). Children use syntax to learn verb meanings.", "B7J01M"],
-            ["326", "controls", "https://nyu.databrary.org/slot/16668/-/asset/73157/download?inline=true", "https://nyu.databrary.org/slot/16668/0,140984/asset/72645/download?inline=true", "Bahrick, L.E. (2017). Multisensory Attention Assessment Protocol (MAAP).", "B7.326"],
-            ["336", "controls", "https://nyu.databrary.org/slot/16670/-/asset/73158/download?inline=true", "https://nyu.databrary.org/slot/16670/0,67110/asset/72647/download?inline=true", "Bahrick, L.E. (2017). Intersensory Processing Efficiency Protocol (IPEP).", "B7.336"],
+            ["554", "controls", "", "/slot/23424/0,41984/asset/102588/download?inline=true", "Trehub, S.E. &amp; Cirelli, L. (2017). Naturalistic Examples of Infant/Toddler Musical Engagement.", "B7.554"],
+            ["46", "controls", "", "/slot/9861/-/asset/11368/download?inline=true", "Vishton, P. (2014). Different Gestalt processing for different actions? Comparing object-directed reaching and looking time measures.", "B78G6V"],
+            ["595", "controls", "", "/slot/25319/0,7108/asset/112350/download?inline=true", "Adolph, K. (2018). Excerpt: The organization of exploratory behaviors in infant locomotor planning.", "B7.595"],
+            ["596", "controls", "", "/slot/25322/0,12912/asset/112356/download?inline=true", "Adolph, K. &amp; Tamis-LeMonda, C. (2018). Excerpt: Learning the Designed Actions of Everyday Objects.", "B7.596"],
+            ["112", "controls", "", "/slot/9860/-/asset/16631/download?inline=true", "Fausey, C.M., Smith, L.B. &amp; Jayaraman, S. (2015). From faces to hands: Changing visual input in the first two years.", "B7JS39"],
+            ["38", "controls", "", "/slot/9817/-/asset/11240/download?inline=true", "Frank, M.C. (2014). The development of predictive processes in children’s discourse understanding.", "B72018"],
+            ["1", "controls", "", "/slot/17886/16852000,16916503/asset/84000/download?inline=true", "Adolph, K., Gilmore, R.O. &amp; Staff (2013). Databrary sponsored workshops and events.", "B7159Q"],
+            ["70", "", "/slot/11883/-/asset/45810/download?inline=true", "", "Adolph, K., Baker, D. (2014). Arnold Gesell’s Films of Infant and Child Development.", "B7.70"],
+            ["27", "controls", "", "/slot/11141/0,5000/asset/37968/download?inline=true", "Wilkinson, K. (2014). Preliminary investigation of visual attention to human figures in photographs: Potential considerations for the design of aided AAC visual scene displays.", "B7G59R"],
+            ["44", "controls", "", "/slot/9809/-/asset/11354/download?inline=true", "Naigles, L. (2014). Children use syntax to learn verb meanings.", "B7J01M"],
+            ["326", "controls", "/slot/16668/-/asset/73157/download?inline=true", "/slot/16668/0,140984/asset/72645/download?inline=true", "Bahrick, L.E. (2017). Multisensory Attention Assessment Protocol (MAAP).", "B7.326"],
+            ["336", "controls", "/slot/16670/-/asset/73158/download?inline=true", "/slot/16670/0,67110/asset/72647/download?inline=true", "Bahrick, L.E. (2017). Intersensory Processing Efficiency Protocol (IPEP).", "B7.336"],
           ]
           // Make a copy of the array
           var tmp = arrayVideo.slice();
@@ -130,7 +130,7 @@ app.directive('homeContainer', [
             var index = Math.floor(Math.random() * tmp.length);
             var removed = tmp.splice(index, 1);
             // Since we are only removing one element
-            var removedHtml = '<div id="first-tile" class="block features full-height"><a target="_blank" href="https://nyu.databrary.org/volume/' + removed[0][0] + '"><div class="asset-display"><video ' + removed[0][1] + ' poster="' + removed[0][2] + '"><source type="video/mp4" src="' + removed[0][3] + '"></video></div></a><p class="citation">' + removed[0][4] + ' <em>Databrary</em>. <a href="http://doi.org/10.17910/' + removed[0][5] + '" target="_blank">http://doi.org/10.17910/' + removed[0][5] + '</a>.</p></div>';
+            var removedHtml = '<div id="first-tile" class="block features full-height"><a target="_blank" href="/volume/' + removed[0][0] + '"><div class="asset-display"><video ' + removed[0][1] + ' poster="' + removed[0][2] + '"><source type="video/mp4" src="' + removed[0][3] + '"></video></div></a><p class="citation">' + removed[0][4] + ' <em>Databrary</em>. <a href="http://doi.org/10.17910/' + removed[0][5] + '" target="_blank">http://doi.org/10.17910/' + removed[0][5] + '</a>.</p></div>';
             ret.push(removedHtml);
           }
           return ret;  

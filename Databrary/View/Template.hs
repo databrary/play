@@ -102,6 +102,9 @@ htmlFooter = H.footer H.! HA.id "site-footer" H.! HA.class_ "site-footer" $
         H.li $
           H.a H.! HA.href "https://sloan.org/" $ do
             H.img H.! HA.src "/web/images/grants/sloan.png" H.! HA.class_ "sloan"
+        H.li $
+          H.a H.! HA.href "https://www.lego.com" $ do
+            H.img H.! HA.src "/web/images/grants/lego.png" H.! HA.class_ "lego"
       H.div H.! HA.class_ "site-footer-legal col" $ do
         H.p $ do
           void "Each dataset on Databrary represents an individual work owned by the party who contributed it. Data on Databrary is provided for non-commercial use and is subject to the terms of use outlined in the "
