@@ -107,7 +107,7 @@ htmlFooter = H.footer H.! HA.id "site-footer" H.! HA.class_ "site-footer" $
             H.img H.! HA.src "/web/images/grants/lego.png" H.! HA.class_ "lego"
       H.div H.! HA.class_ "site-footer-legal col" $ do
         H.p $ do
-          void "Each dataset on Databrary represents an individual work owned by the party who contributed it. Data on Databrary is provided for non-commercial use and is subject to the terms of use outlined in the "
+          void "Each dataset on Databrary represents an individual work owned by the party who contributed it. Data on Databrary are provided for non-commercial use and are subject to the terms of use outlined in the "
           H.a H.! HA.href "//databrary.org/access/policies/agreement.html" H.! HA.target "_blank" $
             "Databrary Access Agreement"
           void ". ["
