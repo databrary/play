@@ -103,7 +103,7 @@ htmlFooter = H.footer H.! HA.id "site-footer" H.! HA.class_ "site-footer" $
           H.a H.! HA.href "https://sloan.org/" $ do
             H.img H.! HA.src "/web/images/grants/sloan.png" H.! HA.class_ "sloan"
         H.li $
-          H.a H.! HA.href "https://www.lego.com" $ do
+          H.a H.! HA.href "http://www.legofoundation.com" $ do
             H.img H.! HA.src "/web/images/grants/lego.png" H.! HA.class_ "lego"
       H.div H.! HA.class_ "site-footer-legal col" $ do
         H.p $ do
