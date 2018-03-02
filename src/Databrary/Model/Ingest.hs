@@ -78,12 +78,26 @@ headerMappingJSON :: ParticipantFieldMapping -> [a] -> [JSON.Value] -- TODO: Val
 headerMappingJSON headerMapping leftoverColumns =
     catMaybes
         [ fieldToMaybeMapping pfmId "id"
-        ]
+        , fieldToMaybeMapping pfmInfo "info"
+        , fieldToMaybeMapping pfmDescription "description"
+        , fieldToMaybeMapping pfmBirthdate "birthdate"
+        , fieldToMaybeMapping pfmGender "gender"
+        , fieldToMaybeMapping pfmRace "race"
+        , fieldToMaybeMapping pfmEthnicity "ethnicity"
+        , fieldToMaybeMapping pfmGestationalAge "gestationalAge"
+        , fieldToMaybeMapping pfmPregnancyTerm "pregnancyTerm"
+        , fieldToMaybeMapping pfmBirthWeight "birthWeight"
+        , fieldToMaybeMapping pfmDisability "disability"
+        , fieldToMaybeMapping pfmLanguage "language"
+        , fieldToMaybeMapping pfmCountry "country"
+        , fieldToMaybeMapping pfmState "state"
+        , fieldToMaybeMapping pfmSetting "setting"
+        ] -- TODO: add leftover columns
   where
     fieldToMaybeMapping :: (ParticipantFieldMapping -> Maybe Text) -> String -> Maybe JSON.Value
-    fieldToMaybeMapping getField metricName = do
+    fieldToMaybeMapping getField fieldMetricName = do
         colName <- getField headerMapping
-        pure (JSON.object [ "csv_field" JSON..= colName, "metric" JSON..= metricName ])
+        pure (JSON.object [ "csv_field" JSON..= colName, "metric" JSON..= fieldMetricName ]) -- TODO: add data_type
 
 data HeaderMappingEntry =
     HeaderMappingEntry {
