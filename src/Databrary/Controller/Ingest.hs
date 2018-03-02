@@ -114,7 +114,8 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
                         $ okResponse []
                             $ JSON.recordEncoding -- TODO: not record encoding
                                 $ JSON.Record vi
-                                    $      "csv_upload_id" JSON..= (uploadFileName)
+                                    $      "csv_upload_id" JSON..= uploadFileName
+                                        <> "sample_rows" JSON..= ([] :: [Int])
                                     --    <> "suggested_mapping" JSON..= headerMappingJSON mpng
                 Left missingColumns -> do
                     liftIO (print ("missing columns", missingColumns))
