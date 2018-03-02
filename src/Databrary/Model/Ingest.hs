@@ -70,6 +70,9 @@ requiredColumnsPresent participantFieldMapping csvHeaders = do
              Nothing ->
                  Right ()
     pure ()
+  where
+    checkIfUsed :: () -> () -- TODO: implement this and use above for each field
+    checkIfUsed a = a
 
 {-
 headerMappingJSON :: ParticipantFieldMapping -> [JSON.Value] -- TODO: Value or list of Value?

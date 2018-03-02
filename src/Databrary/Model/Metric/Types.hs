@@ -116,8 +116,22 @@ makeHasRec ''Metric ['metricId, 'metricCategory, 'metricRelease, 'metricType]
 deriveLiftMany [''MeasureType, ''Metric]
 
 data ParticipantFieldMapping =  -- each field can be nothing = not used, or just "colname" for csv column
-    ParticipantFieldMapping
-        { pfmId :: Maybe Text 
+    ParticipantFieldMapping -- are all of these maybe or are some required?
+        { pfmId :: Maybe Text  -- TODO: strict fields
+        , pfmInfo :: Maybe Text
+        , pfmDescription :: Maybe Text
+        , pfmBirthdate :: Maybe Text
+        , pfmGender :: Maybe Text
+        , pfmRace :: Maybe Text
+        , pfmEthnicity :: Maybe Text
+        , pfmGestationalAge :: Maybe Text
+        , pfmPregnancyTerm :: Maybe Text
+        , pfmBirthWeight :: Maybe Text
+        , pfmDisability :: Maybe Text
+        , pfmLanguage :: Maybe Text
+        , pfmCountry :: Maybe Text
+        , pfmState :: Maybe Text
+        , pfmSetting :: Maybe Text
         } 
     deriving (Show, Eq, Ord)
 

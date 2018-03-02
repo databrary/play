@@ -160,7 +160,21 @@ metricsToFieldMapping :: [Metric] -> ParticipantFieldMapping
 metricsToFieldMapping volParticipantMetrics =
     ParticipantFieldMapping {
         pfmId = getNameIfUsed 1
-        }
+      , pfmInfo = getNameIfUsed 2
+      , pfmDescription = getNameIfUsed 3
+      , pfmBirthdate = getNameIfUsed 4
+      , pfmGender = getNameIfUsed 5
+      , pfmRace = getNameIfUsed 6
+      , pfmEthnicity = getNameIfUsed 7
+      , pfmGestationalAge = getNameIfUsed 8
+      , pfmPregnancyTerm = getNameIfUsed 9
+      , pfmBirthWeight = getNameIfUsed 10
+      , pfmDisability = getNameIfUsed 11
+      , pfmLanguage = getNameIfUsed 12
+      , pfmCountry = getNameIfUsed 13
+      , pfmState = getNameIfUsed 14
+      , pfmSetting = getNameIfUsed 15
+      }
   where
     getNameIfUsed :: Int32 -> Maybe Text
     getNameIfUsed mid =
