@@ -164,7 +164,13 @@ app.directive('homeContainer', [
           } else {
             $(this).css('cursor', 'text');
           }
-        })
+        });
+
+        setInterval(function(){
+          $('.tag-flip:visible').fadeOut(function(){
+            $('.tag-flip').not($(this)).fadeIn();
+          });
+        }, 5000);
       }
     };
   }
