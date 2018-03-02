@@ -9,7 +9,7 @@ module Databrary.Model.Ingest
   , addIngestAsset
   , replaceSlotAsset
   , requiredColumnsPresent
-  -- , headerMappingJSON
+  , headerMappingJSON
   , HeaderMappingEntry(..)
   ) where
 
@@ -74,7 +74,6 @@ requiredColumnsPresent participantFieldMapping csvHeaders = do
     checkIfUsed :: () -> () -- TODO: implement this and use above for each field
     checkIfUsed a = a
 
-{-
 headerMappingJSON :: ParticipantFieldMapping -> [JSON.Value] -- TODO: Value or list of Value?
 headerMappingJSON headerMapping =
     catMaybes
@@ -82,7 +81,6 @@ headerMappingJSON headerMapping =
             (\idCol -> JSON.object [ "csv_field" JSON..= idCol, "metric" JSON..= ("id" :: String) ])
             (pfmId headerMapping)
         ]
--}
 
 data HeaderMappingEntry =
     HeaderMappingEntry {

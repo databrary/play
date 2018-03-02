@@ -118,7 +118,7 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
                                 $ JSON.Record vi
                                     $      "csv_upload_id" JSON..= uploadFileName
                                         <> "sample_rows" JSON..= (extractSampleRows participantFieldMapping records)
-                                    --    <> "suggested_mapping" JSON..= headerMappingJSON mpng -- TODO: add this back
+                                        <> "suggested_mapping" JSON..= headerMappingJSON participantFieldMapping
                 Left missingColumns -> do
                     liftIO (print ("missing columns", missingColumns))
                     -- if column check failed, then don't save csv file and response is error
@@ -178,13 +178,17 @@ participantJson :: ParticipantFieldMapping -> CSV.NamedRecord -> JSON.Value
 participantJson mapping record =
     JSON.object
         (catMaybes
-            [ idFieldJson
+            [ mIdFieldJson
             ])
   where
-    idFieldJson :: Maybe JSON.Pair
-    idFieldJson = do
-        colName <- pfmId mapping
+    getColumnValue :: (ParticipantFieldMapping -> Maybe Text) -> Maybe (Text, BSC.ByteString)
+    getColumnValue getField = do
+        colName <- getField mapping
         fieldVal <- HMP.lookup (TE.encodeUtf8 colName) record
+        pure (colName, fieldVal)
+    mIdFieldJson :: Maybe JSON.Pair
+    mIdFieldJson = do
+        (colName, fieldVal) <- getColumnValue pfmId
         pure (colName JSON..= fieldVal)
 
 createRecord :: ParticipantFieldMapping -> CSV.NamedRecord -> IO () -- TODO: error or record
