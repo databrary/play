@@ -170,7 +170,7 @@ runImport records mapping =
         (\record -> createRecord mapping record)
         records
 
-extractSampleRows :: ParticipantFieldMapping -> V.Vector CSV.NamedRecord -> [JSON.Value]
+extractSampleRows :: ParticipantFieldMapping -> V.Vector CSV.NamedRecord -> [JSON.Value] -- TODO: add num rows to sample
 extractSampleRows mapping records =
     (V.toList . fmap (\record -> participantJson mapping record)) records
 
@@ -178,21 +178,14 @@ participantJson :: ParticipantFieldMapping -> CSV.NamedRecord -> JSON.Value
 participantJson mapping record =
     JSON.object
         (catMaybes
-            [ (case pfmId mapping of
-                   Just idCol ->
-                       case HMP.lookup (TE.encodeUtf8 idCol) record of
-                           Just fieldVal ->
-                               Just (idCol JSON..= fieldVal)
-                           Nothing ->
-                               Nothing
-                   Nothing ->
-                       Nothing)
+            [ idFieldJson
             ])
-    -- if field used
-    --   get record value
-    --   include field in json output
-    -- else
-    --   don't include field in json output
+  where
+    idFieldJson :: Maybe JSON.Pair
+    idFieldJson = do
+        colName <- pfmId mapping
+        fieldVal <- HMP.lookup (TE.encodeUtf8 colName) record
+        pure (colName JSON..= fieldVal)
 
 createRecord :: ParticipantFieldMapping -> CSV.NamedRecord -> IO () -- TODO: error or record
 createRecord mapping csvRecord = do
