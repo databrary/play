@@ -115,7 +115,7 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
                             $ JSON.recordEncoding -- TODO: not record encoding
                                 $ JSON.Record vi
                                     $      "csv_upload_id" JSON..= uploadFileName
-                                        <> "sample_rows" JSON..= (extractSampleRows participantFieldMapping records)
+                                        <> "sample_rows" JSON..= (extractSampleRows 5 participantFieldMapping records)
                                         <> "suggested_mapping" JSON..= headerMappingJSON participantFieldMapping
                 Left missingColumns -> do
                     liftIO (print ("missing columns", missingColumns))
@@ -168,26 +168,24 @@ runImport records mapping =
         (\record -> createRecord mapping record)
         records
 
-extractSampleRows :: ParticipantFieldMapping -> V.Vector CSV.NamedRecord -> [JSON.Value] -- TODO: add num rows to sample
-extractSampleRows mapping records =
-    (V.toList . fmap (\record -> participantJson mapping record)) records
+extractSampleRows :: Int -> ParticipantFieldMapping -> V.Vector CSV.NamedRecord -> [JSON.Value]
+extractSampleRows numRows mapping records =
+    (V.toList . V.take numRows . fmap (\record -> participantJson mapping record)) records
 
 participantJson :: ParticipantFieldMapping -> CSV.NamedRecord -> JSON.Value
 participantJson mapping record =
     JSON.object
         (catMaybes
-            [ mIdFieldJson
+            [ getColumnValue pfmId (Just . id)
+            --
             ])
   where
-    getColumnValue :: (ParticipantFieldMapping -> Maybe Text) -> Maybe (Text, BSC.ByteString)
-    getColumnValue getField = do
+    getColumnValue :: JSON.ToJSON a => (ParticipantFieldMapping -> Maybe Text) -> (BSC.ByteString -> Maybe a) -> Maybe JSON.Pair
+    getColumnValue getField extractValue = do
         colName <- getField mapping
         fieldVal <- HMP.lookup (TE.encodeUtf8 colName) record
-        pure (colName, fieldVal)
-    mIdFieldJson :: Maybe JSON.Pair
-    mIdFieldJson = do
-        (colName, fieldVal) <- getColumnValue pfmId
-        pure (colName JSON..= fieldVal)
+        extractedFieldVal <- extractValue fieldVal
+        pure (colName JSON..= extractedFieldVal)
 
 createRecord :: ParticipantFieldMapping -> CSV.NamedRecord -> IO () -- TODO: error or record
 createRecord mapping csvRecord = do
