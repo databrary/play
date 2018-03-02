@@ -19,7 +19,10 @@ import qualified Database.PostgreSQL.Typed.Query
 import qualified Database.PostgreSQL.Typed.Types
 import qualified Data.ByteString
 import Data.ByteString (ByteString)
+import Data.List (find)
 import qualified Data.String
+import Data.Text (Text)
+import qualified Data.Text as T
 
 import Databrary.Service.DB
 import Databrary.Model.SQL
@@ -141,7 +144,32 @@ lookupParticipantFieldMapping vol = do
     metricIds <- lookupVolumeMetrics vol
     liftIO (print ("metric ids", metricIds))
     -- use static allMetrics to resolve to actual metric values, filter out participant metrics
-    pure (ParticipantFieldMapping { pfmId = Just "id" })
+    let mMetrics :: Maybe [Metric]
+        mMetrics = traverse (resolveMetric allMetrics) metricIds
+    case mMetrics of
+       Nothing ->
+           error ("Invalid metric id in list" ++ show metricIds) -- TODO: http error
+       Just metrics -> do
+           let participantCategoryId :: Id Category -- TODO: get from allCategories
+               participantCategoryId = Id 1
+               participantMetrics =
+                   filter (\m -> (categoryId . metricCategory) m == participantCategoryId) metrics
+           pure (metricsToFieldMapping participantMetrics)
+
+metricsToFieldMapping :: [Metric] -> ParticipantFieldMapping
+metricsToFieldMapping volParticipantMetrics =
+    ParticipantFieldMapping {
+        pfmId = getNameIfUsed 1
+        }
+  where
+    getNameIfUsed :: Int32 -> Maybe Text
+    getNameIfUsed mid =
+      let mMetric = find (\m -> (Id mid) == metricId m) volParticipantMetrics
+      in fmap (T.toLower . metricName) mMetric
+
+resolveMetric :: [Metric] -> Id Metric -> Maybe Metric
+resolveMetric metrics mid =
+    find (\m -> metricId m == mid) metrics
 
 -- get all metrics for participant category for given volume from db
 --   branch on each metric, filling in field mapping structure
