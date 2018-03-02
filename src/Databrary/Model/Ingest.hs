@@ -74,13 +74,16 @@ requiredColumnsPresent participantFieldMapping csvHeaders = do
     checkIfUsed :: () -> () -- TODO: implement this and use above for each field
     checkIfUsed a = a
 
-headerMappingJSON :: ParticipantFieldMapping -> [JSON.Value] -- TODO: Value or list of Value?
-headerMappingJSON headerMapping =
+headerMappingJSON :: ParticipantFieldMapping -> [a] -> [JSON.Value] -- TODO: Value or list of Value?
+headerMappingJSON headerMapping leftoverColumns =
     catMaybes
-        [ fmap
-            (\idCol -> JSON.object [ "csv_field" JSON..= idCol, "metric" JSON..= ("id" :: String) ])
-            (pfmId headerMapping)
+        [ fieldToMaybeMapping pfmId "id"
         ]
+  where
+    fieldToMaybeMapping :: (ParticipantFieldMapping -> Maybe Text) -> String -> Maybe JSON.Value
+    fieldToMaybeMapping getField metricName = do
+        colName <- getField headerMapping
+        pure (JSON.object [ "csv_field" JSON..= colName, "metric" JSON..= metricName ])
 
 data HeaderMappingEntry =
     HeaderMappingEntry {

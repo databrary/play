@@ -116,7 +116,7 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
                                 $ JSON.Record vi
                                     $      "csv_upload_id" JSON..= uploadFileName
                                         <> "sample_rows" JSON..= (extractSampleRows 5 participantFieldMapping records)
-                                        <> "suggested_mapping" JSON..= headerMappingJSON participantFieldMapping
+                                        <> "suggested_mapping" JSON..= headerMappingJSON participantFieldMapping []
                 Left missingColumns -> do
                     liftIO (print ("missing columns", missingColumns))
                     -- if column check failed, then don't save csv file and response is error
@@ -176,28 +176,28 @@ participantJson :: ParticipantFieldMapping -> CSV.NamedRecord -> JSON.Value
 participantJson mapping record =
     JSON.object
         (catMaybes
-            [ getColumnValue pfmId (Just . id)
-            , getColumnValue pfmInfo (Just . id)
-            , getColumnValue pfmDescription (Just . id)
-            , getColumnValue pfmBirthdate (Just . id)
-            , getColumnValue pfmGender (Just . id)
-            , getColumnValue pfmRace (Just . id)
-            , getColumnValue pfmEthnicity (Just . id)
-            , getColumnValue pfmGestationalAge (Just . id)
-            , getColumnValue pfmPregnancyTerm (Just . id)
-            , getColumnValue pfmBirthWeight (Just . id)
-            , getColumnValue pfmDisability (Just . id)
-            , getColumnValue pfmLanguage (Just . id)
-            , getColumnValue pfmCountry (Just . id)
-            , getColumnValue pfmState (Just . id)
-            , getColumnValue pfmSetting (Just . id)
+            [ fieldToMaybePair pfmId (Just . id)
+            , fieldToMaybePair pfmInfo (Just . id)
+            , fieldToMaybePair pfmDescription (Just . id)
+            , fieldToMaybePair pfmBirthdate (Just . id)
+            , fieldToMaybePair pfmGender (Just . id)
+            , fieldToMaybePair pfmRace (Just . id)
+            , fieldToMaybePair pfmEthnicity (Just . id)
+            , fieldToMaybePair pfmGestationalAge (Just . id)
+            , fieldToMaybePair pfmPregnancyTerm (Just . id)
+            , fieldToMaybePair pfmBirthWeight (Just . id)
+            , fieldToMaybePair pfmDisability (Just . id)
+            , fieldToMaybePair pfmLanguage (Just . id)
+            , fieldToMaybePair pfmCountry (Just . id)
+            , fieldToMaybePair pfmState (Just . id)
+            , fieldToMaybePair pfmSetting (Just . id)
             ])
   where
-    getColumnValue :: JSON.ToJSON a => (ParticipantFieldMapping -> Maybe Text) -> (BSC.ByteString -> Maybe a) -> Maybe JSON.Pair
-    getColumnValue getField extractValue = do
+    fieldToMaybePair :: JSON.ToJSON a => (ParticipantFieldMapping -> Maybe Text) -> (BSC.ByteString -> Maybe a) -> Maybe JSON.Pair
+    fieldToMaybePair getField extractValue = do
         colName <- getField mapping
-        fieldVal <- HMP.lookup (TE.encodeUtf8 colName) record
-        extractedFieldVal <- extractValue fieldVal
+        fieldVal <- HMP.lookup (TE.encodeUtf8 colName) record -- TODO: error
+        extractedFieldVal <- extractValue fieldVal -- TODO: error
         pure (colName JSON..= extractedFieldVal)
 
 createRecord :: ParticipantFieldMapping -> CSV.NamedRecord -> IO () -- TODO: error or record
