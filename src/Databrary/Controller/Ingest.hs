@@ -177,7 +177,20 @@ participantJson mapping record =
     JSON.object
         (catMaybes
             [ getColumnValue pfmId (Just . id)
-            --
+            , getColumnValue pfmInfo (Just . id)
+            , getColumnValue pfmDescription (Just . id)
+            , getColumnValue pfmBirthdate (Just . id)
+            , getColumnValue pfmGender (Just . id)
+            , getColumnValue pfmRace (Just . id)
+            , getColumnValue pfmEthnicity (Just . id)
+            , getColumnValue pfmGestationalAge (Just . id)
+            , getColumnValue pfmPregnancyTerm (Just . id)
+            , getColumnValue pfmBirthWeight (Just . id)
+            , getColumnValue pfmDisability (Just . id)
+            , getColumnValue pfmLanguage (Just . id)
+            , getColumnValue pfmCountry (Just . id)
+            , getColumnValue pfmState (Just . id)
+            , getColumnValue pfmSetting (Just . id)
             ])
   where
     getColumnValue :: JSON.ToJSON a => (ParticipantFieldMapping -> Maybe Text) -> (BSC.ByteString -> Maybe a) -> Maybe JSON.Pair
