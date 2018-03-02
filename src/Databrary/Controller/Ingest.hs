@@ -16,6 +16,7 @@ import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Csv as CSV
 import qualified Data.Csv.Parser as CSVP
 import qualified Data.HashMap.Strict as HMP
+import Data.Maybe (catMaybes)
 import qualified Data.Map as MAP
 import Data.Map (Map)
 import Data.Monoid ((<>))
@@ -106,17 +107,18 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
         Left err -> do
             liftIO (print ("csv parse error", err))
             pure (forbiddenResponse reqCtxt)
-        Right (hdrs, _) -> do
-            case requiredColumnsPresent participantFieldMapping (getHeaders hdrs) of
+        Right (hdrs, records) -> do
+            case requiredColumnsPresent participantFieldMapping (getHeaders hdrs) of -- TODO: change back to determine mapping
                 Right _ -> do
+                    let 
                     liftIO (BS.writeFile ("/tmp/" ++ uploadFileName) uploadFileContents)
                     pure
                         $ okResponse []
                             $ JSON.recordEncoding -- TODO: not record encoding
                                 $ JSON.Record vi
                                     $      "csv_upload_id" JSON..= uploadFileName
-                                        <> "sample_rows" JSON..= ([] :: [Int])
-                                    --    <> "suggested_mapping" JSON..= headerMappingJSON mpng
+                                        <> "sample_rows" JSON..= (extractSampleRows participantFieldMapping records)
+                                    --    <> "suggested_mapping" JSON..= headerMappingJSON mpng -- TODO: add this back
                 Left missingColumns -> do
                     liftIO (print ("missing columns", missingColumns))
                     -- if column check failed, then don't save csv file and response is error
@@ -167,6 +169,30 @@ runImport records mapping =
     mapM
         (\record -> createRecord mapping record)
         records
+
+extractSampleRows :: ParticipantFieldMapping -> V.Vector CSV.NamedRecord -> [JSON.Value]
+extractSampleRows mapping records =
+    (V.toList . fmap (\record -> participantJson mapping record)) records
+
+participantJson :: ParticipantFieldMapping -> CSV.NamedRecord -> JSON.Value
+participantJson mapping record =
+    JSON.object
+        (catMaybes
+            [ (case pfmId mapping of
+                   Just idCol ->
+                       case HMP.lookup (TE.encodeUtf8 idCol) record of
+                           Just fieldVal ->
+                               Just (idCol JSON..= fieldVal)
+                           Nothing ->
+                               Nothing
+                   Nothing ->
+                       Nothing)
+            ])
+    -- if field used
+    --   get record value
+    --   include field in json output
+    -- else
+    --   don't include field in json output
 
 createRecord :: ParticipantFieldMapping -> CSV.NamedRecord -> IO () -- TODO: error or record
 createRecord mapping csvRecord = do
