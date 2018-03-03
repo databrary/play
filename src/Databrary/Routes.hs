@@ -1,9 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Routes
   ( routeMap
+  , newRouteMap
   ) where
 
+import qualified Data.ByteString as BS
 import Web.Route.Invertible (RouteMap, routes, routeCase)
+import qualified Network.Wai.Route as WAR
 
 import Databrary.Action
 import Databrary.Controller.Root
@@ -37,11 +40,27 @@ import Databrary.Controller.Web
 import Databrary.Controller.Search
 import Databrary.Controller.Periodic
 import Databrary.Controller.Notification
+import Databrary.Action.Run (runAction)
+import Databrary.Service.Types (Service)
+
+newRouteMap :: Service -> [(BS.ByteString, WAR.Handler IO)]
+newRouteMap routeContext =
+    [
+        ("/robots.txt", (\ps req respond -> runAction routeContext (viewRobotsTxtHandler ps) req respond))
+
+        -- hack to override not found
+      , ("/:a", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
+      , ("/:a/:b", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
+      , ("/:a/:b/:c", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
+      , ("/:a/:b/:c/:d", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
+      , ("/:a/:b/:c/:d/:e", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
+      , ("/:a/:b/:c/:d/:e:/:f", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
+    ]
 
 routeMap :: RouteMap Action
 routeMap = routes
   [ route viewRoot
-  , route viewRobotsTxt
+  -- , route viewRobotsTxt
 
   , route viewUser
   , route postUser

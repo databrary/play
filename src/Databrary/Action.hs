@@ -23,9 +23,11 @@ module Databrary.Action
   , runActionRoute
   ) where
 
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Lazy as BSL
-import Network.HTTP.Types (Status, seeOther303, forbidden403, notFound404, ResponseHeaders, hLocation)
+import Data.Text (Text)
+import Network.HTTP.Types (Status, seeOther303, forbidden403, notFound404, ResponseHeaders, hLocation, ok200)
 import qualified Network.Wai as Wai
 import qualified Web.Route.Invertible.Wai as R
 import qualified Network.Wai.Route as WAR
@@ -56,13 +58,43 @@ maybeAction :: Maybe a -> ActionM a
 maybeAction (Just a) = return a
 maybeAction Nothing = result =<< peeks notFoundResponse
 
-runActionRoute :: R.RouteMap Action -> Service -> Wai.Application
-runActionRoute routeMap routeContext req =
+runActionRoute
+  :: R.RouteMap Action -> (Service -> [(BS.ByteString, WAR.Handler IO)]) -> Service -> Wai.Application
+runActionRoute routeMap newRouteMap routeContext req =
     let eMatchedAction :: Either (Status, ResponseHeaders) Action
         eMatchedAction = R.routeWai req routeMap
-        resultingAction :: Action
-        resultingAction = either err id eMatchedAction
-    in runAction routeContext resultingAction req
+    in
+      case eMatchedAction of
+        Right act ->
+            runAction routeContext act req
+        Left (st,hdrs) ->
+            if st == notFound404 -- currently, this might be only possible error result?
+            then
+                WAR.route (newRouteMap routeContext) req
+            else
+                runAction routeContext (err (st,hdrs)) req
   where
     err :: (Status, ResponseHeaders) -> Action
     err (status, headers) = withoutAuth $ peeks $ response status headers . htmlNotFound
+
+-- TODO: delete notes below
+-- route
+--  :: Monad m => [(ByteString, Handler m)] -> Request -> (Response -> m ResponseReceived) -> m ResponseReceived
+{-
+type Handler m
+= [(ByteString, ByteString)] -- The captured path parameters.
+-> Request -- The matched Request.
+-> (Response -> m ResponseReceived) -- The continuation.
+-> m ResponseReceived
+-}
+
+{-
+type ActionRoute a = R.RouteAction a Action
+
+data Action = Action
+  { _actionAuth :: !Bool
+  , _actionM :: !(ActionM Response)
+  }
+newtype ActionM a = ActionM { unActionM :: ReaderT RequestContext IO a }
+  deriving (Functor, Applicative, Alternative, Monad, MonadPlus, MonadIO, MonadBase IO, MonadThrow, MonadReader RequestContext)
+-}
