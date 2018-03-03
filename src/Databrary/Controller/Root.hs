@@ -3,6 +3,7 @@ module Databrary.Controller.Root
   ( viewRoot
   , viewConstants
   , viewRobotsTxtHandler
+  , notFoundResponseHandler
   ) where
 
 import Control.Monad (when)
@@ -11,6 +12,7 @@ import qualified Data.ByteString as BS
 import Data.Maybe (isNothing)
 import qualified Data.Text as T
 import Data.Text (Text)
+import Network.HTTP.Types (notFound404)
 
 import Databrary.Has
 import qualified Databrary.JSON as JSON
@@ -20,6 +22,7 @@ import Databrary.Action
 import Databrary.Controller.Angular
 import Databrary.View.Root
 import Databrary.Web.Constants
+import Databrary.View.Error (htmlNotFound)
 
 viewRoot :: ActionRoute API
 viewRoot = action GET pathAPI $ \api -> withAuth $ do
@@ -39,3 +42,6 @@ viewRobotsTxtHandler :: [(BS.ByteString, BS.ByteString)] -> Action
 viewRobotsTxtHandler [] =  -- TODO: ensure GET
     withoutAuth $ return $ okResponse [] ("" :: Text)
     -- NOTE: DEVEL/SANDBOX behavior wasn't copied here
+
+notFoundResponseHandler :: [(BS.ByteString, BS.ByteString)] -> Action
+notFoundResponseHandler _ = withoutAuth $ peeks $ response notFound404 [] . htmlNotFound

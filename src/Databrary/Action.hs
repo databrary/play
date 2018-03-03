@@ -70,25 +70,15 @@ runActionRoute routeMap newRouteMap routeContext req =
         Left (st,hdrs) ->
             if st == notFound404 -- currently, this might be only possible error result?
             then
-                -- match with wai-route
-                --   -- success
-                --   -- error
                 WAR.route (newRouteMap routeContext) req
+                -- TODO: add not found handler in route map?
             else
                 runAction routeContext (err (st,hdrs)) req
-        -- resultingAction :: Action
-        -- resultingAction = either err id eMatchedAction
   where
     err :: (Status, ResponseHeaders) -> Action
     err (status, headers) = withoutAuth $ peeks $ response status headers . htmlNotFound
 
-{-
-newRouteMap :: Service -> [(BS.ByteString, WAR.Handler IO)]
-newRouteMap routeContext =
-    [ ("/robots.txt", (\ps req respond -> runAction routeContext (robotsTxtHandler ps) req respond))
-    ]
-  -}    
-
+-- TODO: delete notes below
 -- route
 --  :: Monad m => [(ByteString, Handler m)] -> Request -> (Response -> m ResponseReceived) -> m ResponseReceived
 {-

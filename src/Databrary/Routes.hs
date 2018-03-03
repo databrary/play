@@ -46,8 +46,15 @@ import Databrary.Service.Types (Service)
 newRouteMap :: Service -> [(BS.ByteString, WAR.Handler IO)]
 newRouteMap routeContext =
     [
-      ("/robots.txt", (\ps req respond -> runAction routeContext (viewRobotsTxtHandler ps) req respond))
-      
+        ("/robots.txt", (\ps req respond -> runAction routeContext (viewRobotsTxtHandler ps) req respond))
+
+        -- hack to override not found
+      , ("/:a", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
+      , ("/:a/:b", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
+      , ("/:a/:b/:c", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
+      , ("/:a/:b/:c/:d", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
+      , ("/:a/:b/:c/:d/:e", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
+      , ("/:a/:b/:c/:d/:e:/:f", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
     ]
 
 routeMap :: RouteMap Action
