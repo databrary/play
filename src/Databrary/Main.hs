@@ -16,7 +16,7 @@ import Databrary.Service.Init (withService)
 import Databrary.Context
 import Databrary.Web.Rules (generateWebFiles)
 import Databrary.Action (runActionRoute)
-import Databrary.Routes (routeMap)
+import Databrary.Routes (routeMap, newRouteMap)
 import Databrary.Warp (runWarp)
 import Databrary.EZID.Volume (updateEZID)
 
@@ -70,7 +70,7 @@ main = do
         -- used to run migrations on startup when not in devel mode
         -- should check migrations2 table for last migration against last entry in schema2 dir
         putStrLn "running warp"
-        runWarp conf rc (runActionRoute routes rc)
+        runWarp conf rc (runActionRoute routes newRouteMap rc)
     _ -> do
       mapM_ putStrLn err
       putStrLn $ Opt.usageInfo ("Usage: " ++ prog ++ " [OPTION...]") opts
