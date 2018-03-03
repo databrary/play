@@ -71,7 +71,6 @@ runActionRoute routeMap newRouteMap routeContext req =
             if st == notFound404 -- currently, this might be only possible error result?
             then
                 WAR.route (newRouteMap routeContext) req
-                -- TODO: add not found handler in route map?
             else
                 runAction routeContext (err (st,hdrs)) req
   where
