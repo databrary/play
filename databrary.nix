@@ -11,7 +11,7 @@
 , stdenv, streaming-commons, tasty, tasty-expected-failure
 , tasty-hunit, template-haskell, text, th-lift, th-lift-instances
 , time, transformers, transformers-base, unix, unordered-containers
-, utf8-string, vector, wai, wai-extra, warp, warp-tls
+, utf8-string, vector, wai, wai-extra, wai-route, warp, warp-tls
 , web-inv-route, xml, zip, zlib
 , gargoyle, gargoyle-postgresql, postgresql
 , nodePackages, nodejs, dbName ? "databrary-nix-db", jdk
@@ -49,7 +49,7 @@ in
     range-set-list regex-posix resource-pool resourcet scientific
     smtp-mail streaming-commons template-haskell text th-lift
     th-lift-instances time transformers transformers-base unix
-    unordered-containers utf8-string vector wai wai-extra warp warp-tls
+    unordered-containers utf8-string vector wai wai-extra wai-route warp warp-tls
     web-inv-route xml zip zlib
     gargoyle gargoyle-postgresql
   ];
@@ -68,7 +68,7 @@ in
     range-set-list regex-posix resource-pool resourcet scientific
     smtp-mail streaming-commons template-haskell text th-lift
     th-lift-instances time transformers transformers-base unix
-    unordered-containers utf8-string vector wai wai-extra warp warp-tls
+    unordered-containers utf8-string vector wai wai-extra wai-route warp warp-tls
     web-inv-route xml zip zlib
     gargoyle gargoyle-postgresql
   ];

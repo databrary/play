@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Action
   ( Request
   , RequestContext
@@ -28,6 +28,7 @@ import qualified Data.ByteString.Lazy as BSL
 import Network.HTTP.Types (Status, seeOther303, forbidden403, notFound404, ResponseHeaders, hLocation)
 import qualified Network.Wai as Wai
 import qualified Web.Route.Invertible.Wai as R
+import qualified Network.Wai.Route as WAR
 
 import Databrary.Has (peeks)
 import Databrary.HTTP.Request
@@ -56,7 +57,12 @@ maybeAction (Just a) = return a
 maybeAction Nothing = result =<< peeks notFoundResponse
 
 runActionRoute :: R.RouteMap Action -> Service -> Wai.Application
-runActionRoute rm rc req = runAction rc
-  (either err id $ R.routeWai req rm)
-  req where
-  err (s, h) = withoutAuth $ peeks $ response s h . htmlNotFound
+runActionRoute routeMap routeContext req =
+    let eMatchedAction :: Either (Status, ResponseHeaders) Action
+        eMatchedAction = R.routeWai req routeMap
+        resultingAction :: Action
+        resultingAction = either err id eMatchedAction
+    in runAction routeContext resultingAction req
+  where
+    err :: (Status, ResponseHeaders) -> Action
+    err (status, headers) = withoutAuth $ peeks $ response status headers . htmlNotFound
