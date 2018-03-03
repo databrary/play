@@ -16,7 +16,7 @@ devel: node ; nix-shell --run ghci-databrary
 .PHONY: devel
 
 ## One can always build with Nix.
-nix.build: ; nix-build -A databrary --cores 4 -K
+nix.build: ; nix-build -A databrary -Q
 .PHONY: nix.build
 
 ## You can also build with Cabal if that suits you

@@ -1,17 +1,9 @@
-{ nodePackages ? import ./node-default.nix {}
-, databraryRoot ? ./.
+{
 }:
 
 let
-  reflex-platform = import
-    ((import <nixpkgs> {}).fetchFromGitHub {
-      owner= "reflex-frp";
-      repo = "reflex-platform";
-      rev = "bdc94c605bf72f1a65cbd12075fbb661e28b24ea";
-      sha256 = "1i4zk7xc2x8yj9ms4gsg70immm29dp8vzqq7gdzxig5i3kva0a61";
-  }) {};
-  # Definition of nixpkgs, version controlled by Reflex-FRP
-  nixpkgs = reflex-platform.nixpkgs;
+  nixpkgs = import <nixpkgs> {};
+  nodePackages = import ./node-default.nix { pkgs = nixpkgs; };
   inherit (nixpkgs) fetchFromGitHub writeScriptBin cpio wget;
   # nixpkgs functions used to regulate Haskell overrides
   inherit (nixpkgs.haskell.lib) dontCheck overrideCabal doJailbreak;
@@ -64,35 +56,38 @@ let
   };
   inherit (nixpkgs) coreutils;
   # Define GHC compiler override
-  pkgs = reflex-platform.ghc.override {
-    overrides = self: super: rec {
-      databrary = self.callPackage ./databrary.nix {
-        # postgresql with ranges plugin
-        inherit postgresql nodePackages coreutils;
-        # ffmpeg override with with --enable-libfdk-aac and --enable-nonfree flags set
-        ffmpeg = nixpkgs.ffmpeg-full.override {
-          nonfreeLicensing = true;
-          fdkaacExtlib = true;
-        };
-      };
-      # cabal override to enable ghcid (GHCi daemon) development tool
-      databrary-dev = overrideCabal databrary (drv: {
-        libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ (with self; [ghcid cabal-install ghciDatabrary]);
-      });
-      gargoyle = self.callPackage "${gargoyleSrc}/gargoyle" {};
-      gargoyle-postgresql= self.callPackage "${gargoyleSrc}/gargoyle-postgresql" {};
-      # Define hjsonschema  package with explicit version number
-      hjsonschema = dontCheck (doJailbreak (self.callHackage "hjsonschema" "0.9.0.0" {}));
-      # Define hjsonpointer  package with explicit version number
-      hjsonpointer = dontCheck (doJailbreak (self.callHackage "hjsonpointer" "0.3.0.2" {}));
-      # Define invertible as invertible from reflex-platform
-      invertible = dontCheck super.invertible;
-      # postgresql-typed 0.4.5 requires a version <= 0.10
-      postgresql-binary = dontCheck (self.callHackage  "postgresql-binary" "0.10" {});
-      # Define postgresql-typed package with explicit version number
-      postgresql-typed = dontCheck (self.callHackage  "postgresql-typed" "0.4.5" {});
-      # Define zip with special fork including streaming support; dontCheck to save time
-      zip = dontCheck (self.callPackage ./zip-blind.nix {});
+  overrider = { overrides = self: super: haskellPackages self super; };
+  overlay = self: super: {
+    haskellPackages = super.haskellPackages.override overrider;
+    # ffmpeg override with with --enable-libfdk-aac and --enable-nonfree flags set
+    ffmpeg = self.ffmpeg-full.override {
+      nonfreeLicensing = true;
+      fdkaacExtlib = true;
     };
   };
-in { databrary = pkgs.databrary; databrary-dev = pkgs.databrary-dev; }
+
+  pkgs = import <nixpkgs> { overlays = [ overlay ]; };
+  haskellPackages = self: super: rec {
+    databrary = self.callPackage ./databrary.nix {
+      # postgresql with ranges plugin
+      inherit postgresql nodePackages coreutils;
+    };
+    # cabal override to enable ghcid (GHCi daemon) development tool
+    databrary-dev = overrideCabal databrary (drv: {
+      libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ (with self; [ghcid cabal-install ghciDatabrary]);
+    });
+    gargoyle = self.callPackage "${gargoyleSrc}/gargoyle" {};
+    gargoyle-postgresql= self.callPackage "${gargoyleSrc}/gargoyle-postgresql" {};
+    # Define hjsonschema  package with explicit version number
+    hjsonschema = dontCheck (doJailbreak (self.callHackage "hjsonschema" "0.9.0.0" {}));
+    # Define hjsonpointer  package with explicit version number
+    hjsonpointer = dontCheck (doJailbreak (self.callHackage "hjsonpointer" "0.3.0.2" {}));
+    invertible = dontCheck super.invertible;
+    # postgresql-typed 0.4.5 requires a version <= 0.10
+    postgresql-binary = dontCheck (self.callHackage  "postgresql-binary" "0.10" {});
+    # Define postgresql-typed package with explicit version number
+    postgresql-typed = dontCheck (self.callHackage  "postgresql-typed" "0.4.5" {});
+    # Define zip with special fork including streaming support; dontCheck to save time
+    zip = dontCheck (self.callPackage ./zip-blind.nix {});
+  };
+in { inherit (pkgs.haskellPackages) databrary databrary-dev; }
