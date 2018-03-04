@@ -31,6 +31,8 @@ import Network.HTTP.Types (Status, seeOther303, forbidden403, notFound404, Respo
 import qualified Network.Wai as Wai
 import qualified Web.Route.Invertible.Wai as R
 import qualified Network.Wai.Route as WAR
+import Servant.API
+import Servant
 
 import Databrary.Has (peeks)
 import Databrary.HTTP.Request
@@ -58,9 +60,22 @@ maybeAction :: Maybe a -> ActionM a
 maybeAction (Just a) = return a
 maybeAction Nothing = result =<< peeks notFoundResponse
 
+type API1 = Raw
+
+api1 :: Proxy API1
+api1 = Proxy
+
+serverApi1 :: [(BS.ByteString, WAR.Handler IO)] -> Server API1
+serverApi1 newRouteMap =
+    Tagged (WAR.route newRouteMap)
+
+api1App :: [(BS.ByteString, WAR.Handler IO)] -> Application
+api1App newRouteMap =
+    serve api1 (serverApi1 newRouteMap)
+
 runActionRoute
   :: R.RouteMap Action -> (Service -> [(BS.ByteString, WAR.Handler IO)]) -> Service -> Wai.Application
-runActionRoute routeMap newRouteMap routeContext req =
+runActionRoute routeMap mkNewRouteMap routeContext req =
     let eMatchedAction :: Either (Status, ResponseHeaders) Action
         eMatchedAction = R.routeWai req routeMap
     in
@@ -70,7 +85,7 @@ runActionRoute routeMap newRouteMap routeContext req =
         Left (st,hdrs) ->
             if st == notFound404 -- currently, this might be only possible error result?
             then
-                WAR.route (newRouteMap routeContext) req
+                api1App (mkNewRouteMap routeContext) req
             else
                 runAction routeContext (err (st,hdrs)) req
   where

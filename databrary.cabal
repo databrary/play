@@ -374,8 +374,10 @@ library
     binary >= 0.8.3.0,
     path >= 0.5.13,
     path-io >= 1.2.2,
-    wai-route >= 0.3.1.1
-    
+    wai-route >= 0.3.1.1,
+    servant >= 0.11,
+    servant-server >= 0.11
+            
   default-language: Haskell2010
   default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
 
@@ -464,8 +466,10 @@ Executable databrary
     binary >= 0.8.3.0,
     path >= 0.5.13,
     path-io >= 1.2.2,
-    wai-route >= 0.3.1.1
-    
+    wai-route >= 0.3.1.1,
+    servant >= 0.11,
+    servant-server >= 0.11
+            
   default-language: Haskell2010
   default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
 
