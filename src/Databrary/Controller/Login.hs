@@ -4,6 +4,7 @@ module Databrary.Controller.Login
   , loginAccount
   , viewLogin
   , postLogin
+  , loginHandler
   , postLogout
   -- , viewUser
   , postUser
@@ -19,6 +20,7 @@ import Data.Function (on)
 import Data.Maybe (fromMaybe)
 import qualified Network.Wai as Wai
 import Network.HTTP.Types.Method (methodGet, methodPost)
+import qualified Network.HTTP.Types.Method as HTM
 
 import Databrary.Ops
 import Databrary.Has
@@ -51,8 +53,17 @@ loginAccount api auth su = do
     JSON -> return $ okResponse [cook] $ JSON.recordEncoding $ identityJSON (Identified sess)
     HTML -> peeks $ otherRouteResponse [cook] viewParty (HTML, TargetProfile)
 
+loginHandler :: API -> HTM.Method -> [(BS.ByteString, BS.ByteString)] -> Action
+loginHandler api method _
+    | method == methodGet && api == HTML = viewLoginAction
+    | method == methodPost = postLoginAction api
+    | otherwise = error "unhandled api/method combo" -- TODO: better error 
+
 viewLogin :: ActionRoute ()
-viewLogin = action GET ("user" >/> "login") $ \() -> withAuth $ do
+viewLogin = action GET ("user" >/> "login") $ \() -> viewLoginAction
+
+viewLoginAction :: Action
+viewLoginAction = withAuth $ do
   angular
   maybeIdentity
     (peeks $ blankForm . htmlLogin)
@@ -62,7 +73,10 @@ checkPassword :: BS.ByteString -> SiteAuth -> Bool
 checkPassword p = any (`BCrypt.validatePassword` p) . accountPasswd
 
 postLogin :: ActionRoute API
-postLogin = action POST (pathAPI </< "user" </< "login") $ \api -> withoutAuth $ do
+postLogin = action POST (pathAPI </< "user" </< "login") $ postLoginAction
+
+postLoginAction :: API -> Action
+postLoginAction = \api -> withoutAuth $ do
   (Just auth, su) <- runForm (api == HTML ?> htmlLogin) $ do
     email <- "email" .:> emailTextForm
     password <- "password" .:> deform
@@ -108,7 +122,7 @@ viewUserAction = do
   q <- JSON.jsonQuery userJSONField =<< peeks Wai.queryString
   return $ okResponse [] (i JSON..<> q)
 
-postUser :: ActionRoute API
+postUser :: ActionRoute API -- TODO: remove when 
 postUser = action POST (pathAPI </< "user") $ \api -> withAuth $ postUserAction api
 
 postUserAction :: API -> ActionM Response
