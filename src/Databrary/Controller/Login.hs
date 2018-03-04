@@ -6,6 +6,7 @@ module Databrary.Controller.Login
   , postLogin
   , loginHandler
   , postLogout
+  , postLogoutHandler
   -- , viewUser
   , postUser
   , userHandler
@@ -94,7 +95,10 @@ postLoginAction = \api -> withoutAuth $ do
   loginAccount api auth su
 
 postLogout :: ActionRoute API
-postLogout = action POST (pathAPI </< "user" </< "logout") $ \api -> withAuth $ do
+postLogout = action POST (pathAPI </< "user" </< "logout") $ \api -> postLogoutHandler api []
+
+postLogoutHandler :: API -> [(BS.ByteString, BS.ByteString)] -> Action  -- TODO: guard against methods besides POST
+postLogoutHandler = \api _ -> withAuth $ do
   _ <- maybeIdentity (return False) removeSession
   case api of
     JSON -> return $ okResponse [cook] $ JSON.recordEncoding $ identityJSON NotIdentified

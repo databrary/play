@@ -56,6 +56,10 @@ newRouteMap routeContext =
       , ("/user", hn (userHandler HTML))
       , ("/api/user/login", hnm (loginHandler JSON))
       , ("/user/login", hnm (loginHandler HTML))
+      , ("/user/logout", hn (postLogoutHandler HTML))
+      , ("/api/user/logout", hn (postLogoutHandler JSON))
+      , ("/user/register", hnm (registerHandler HTML))
+      , ("/api/user/register", hnm (registerHandler JSON))
       
       , ("/api/constants", hn viewConstantsHandler)
 
@@ -92,10 +96,10 @@ routeMap = routes
   --, route postUser
   --  route viewLogin
   -- , route postLogin
-    route postLogout
-  , route viewRegister
-  , route postRegister
-  , route viewPasswordReset
+  --  route postLogout
+  --  route viewRegister
+  --, route postRegister
+    route viewPasswordReset
   , route postPasswordReset
   , route viewLoginToken
   , route postPasswordToken
