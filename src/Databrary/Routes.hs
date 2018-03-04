@@ -45,12 +45,15 @@ import Databrary.Service.Types (Service)
 
 newRouteMap :: Service -> [(BS.ByteString, WAR.Handler IO)]
 newRouteMap routeContext =
-    [   ("", (\ps req resp -> runAction routeContext (viewRootHandler HTML ps) req resp))
-      , ("/", (\ps req resp -> runAction routeContext (viewRootHandler HTML ps) req resp))
-      , ("/api", (\ps req resp -> runAction routeContext (viewRootHandler JSON ps) req resp))
-      , ("/robots.txt", (\ps req resp -> runAction routeContext (viewRobotsTxtHandler ps) req resp))
+    [   ("", hn (viewRootHandler HTML)) -- (\ps req resp -> runAction routeContext (viewRootHandler HTML ps) req resp))
+      , ("/", hn (viewRootHandler HTML))
+      , ("/api", hn (viewRootHandler JSON))
+      , ("/robots.txt", hn viewRobotsTxtHandler)
 
-      , ("/api/constants", (\ps req resp -> runAction routeContext (viewConstantsHandler ps) req resp))
+      , ("/api/user", hn (userHandler JSON))
+      , ("/user", hn (userHandler HTML))
+      
+      , ("/api/constants", hn viewConstantsHandler)
 
       -- notifications
 
@@ -69,6 +72,9 @@ newRouteMap routeContext =
       , ("/:a/:b/:c/:d/:e:/:f", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
       -}
     ]
+  where
+    hn :: ([(BS.ByteString, BS.ByteString)] -> Action) -> WAR.Handler IO  -- make handler
+    hn mkAction = \ps req responder -> runAction routeContext (mkAction ps) req responder
 
 routeMap :: RouteMap Action
 routeMap = routes
@@ -76,9 +82,9 @@ routeMap = routes
   --   route viewRoot
   -- , route viewRobotsTxt
 
-    route viewUser
-  , route postUser
-  , route viewLogin
+  --  route viewUser
+  --, route postUser
+    route viewLogin
   , route postLogin
   , route postLogout
   , route viewRegister
