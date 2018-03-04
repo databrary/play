@@ -7,6 +7,8 @@ module Databrary.Routes
 import qualified Data.ByteString as BS
 import Web.Route.Invertible (RouteMap, routes, routeCase)
 import qualified Network.Wai.Route as WAR
+import qualified Network.Wai as WAI
+import qualified Network.HTTP.Types.Method as HTM
 
 import Databrary.Action
 import Databrary.Controller.Root
@@ -52,6 +54,8 @@ newRouteMap routeContext =
 
       , ("/api/user", hn (userHandler JSON))
       , ("/user", hn (userHandler HTML))
+      , ("/api/user/login", hnm (loginHandler JSON))
+      , ("/user/login", hnm (loginHandler HTML))
       
       , ("/api/constants", hn viewConstantsHandler)
 
@@ -75,6 +79,8 @@ newRouteMap routeContext =
   where
     hn :: ([(BS.ByteString, BS.ByteString)] -> Action) -> WAR.Handler IO  -- make handler
     hn mkAction = \ps req responder -> runAction routeContext (mkAction ps) req responder
+    hnm :: (HTM.Method -> [(BS.ByteString, BS.ByteString)] -> Action) -> WAR.Handler IO  -- make handler with method
+    hnm mkAction = \ps req responder -> runAction routeContext (mkAction (WAI.requestMethod req) ps) req responder
 
 routeMap :: RouteMap Action
 routeMap = routes
@@ -84,9 +90,9 @@ routeMap = routes
 
   --  route viewUser
   --, route postUser
-    route viewLogin
-  , route postLogin
-  , route postLogout
+  --  route viewLogin
+  -- , route postLogin
+    route postLogout
   , route viewRegister
   , route postRegister
   , route viewPasswordReset
