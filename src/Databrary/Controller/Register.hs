@@ -1,23 +1,28 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Controller.Register
-  ( viewPasswordReset
+  ( passwordResetHandler
+  , viewPasswordReset
   , postPasswordReset
   , registerHandler
   , viewRegister
   , postRegister
+  , resendInvestigatorHandler
   , resendInvestigator
   ) where
 
 import Control.Applicative ((<$>))
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
+import qualified Data.ByteString.Char8 as BSC
 import Data.Monoid ((<>))
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
 import qualified Network.Wai as Wai
 import Network.HTTP.Types.Method (methodGet, methodPost)
 import qualified Network.HTTP.Types.Method as HTM
+import Servant (FromHttpApiData(..))
 
 import Databrary.Ops
 import Databrary.Has
@@ -100,19 +105,37 @@ postRegisterAction = \api -> withoutAuth $ do
   return $ okResponse [] $ "Your confirmation email has been sent to '" <> accountEmail reg <> "'."
 
 resendInvestigator :: ActionRoute (Id Party)
-resendInvestigator = action POST (pathHTML >/> pathId </< "investigator") $ \i -> withAuth $ do
+resendInvestigator = action POST (pathHTML >/> pathId </< "investigator") $
+    \i -> resendInvestigatorHandler [("partyId", (BSC.pack . show) i)]
+
+resendInvestigatorHandler :: [(BS.ByteString, BS.ByteString)] -> Action
+resendInvestigatorHandler params = withAuth $ do
+  let paramId = maybe (error "partyId missing") TE.decodeUtf8 (lookup "partyId" params)
+  let i = either (error . show) Id (parseUrlPiece paramId)
   checkMemberADMIN
   p <- getParty (Just PermissionREAD) (TargetParty i)
   focusIO $ staticSendInvestigator p
   return $ okResponse [] ("sent" :: String)
 
+passwordResetHandler :: API -> HTM.Method -> [(BS.ByteString, BS.ByteString)] -> Action
+passwordResetHandler api method _
+    | method == methodGet && api == HTML = viewPasswordResetAction
+    | method == methodPost = postPasswordResetAction api
+    | otherwise = error "unhandled api/method combo" -- TODO: better error 
+
 viewPasswordReset :: ActionRoute ()
-viewPasswordReset = action GET (pathHTML </< "user" </< "password") $ \() -> withoutAuth $ do
+viewPasswordReset = action GET (pathHTML </< "user" </< "password") $ \() -> viewPasswordResetAction
+
+viewPasswordResetAction :: Action
+viewPasswordResetAction = withoutAuth $ do
   angular
   peeks $ blankForm . htmlPasswordReset
 
 postPasswordReset :: ActionRoute API
-postPasswordReset = action POST (pathAPI </< "user" </< "password") $ \api -> withoutAuth $ do
+postPasswordReset = action POST (pathAPI </< "user" </< "password") $ postPasswordResetAction
+
+postPasswordResetAction :: API -> Action
+postPasswordResetAction = \api -> withoutAuth $ do
   email <- runForm (api == HTML ?> htmlPasswordReset) $ do
     "email" .:> emailTextForm
   auth <- lookupPasswordResetAccount email
