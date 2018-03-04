@@ -1,12 +1,14 @@
 {-# LANGUAGE CPP, OverloadedStrings #-}
 module Databrary.Controller.Root
   ( viewRoot
-  , viewConstants
+  , viewRootHandler
+  , viewConstantsHandler
   , viewRobotsTxtHandler
   , notFoundResponseHandler
   ) where
 
 import Control.Monad (when)
+import Control.Monad.IO.Class (liftIO)
 import qualified Data.Aeson.Types as JSON
 import qualified Data.ByteString as BS
 import Data.Maybe (isNothing)
@@ -24,22 +26,35 @@ import Databrary.View.Root
 import Databrary.Web.Constants
 import Databrary.View.Error (htmlNotFound)
 
+-- TODO: remove when View.Template actionLink replaced
 viewRoot :: ActionRoute API
-viewRoot = action GET pathAPI $ \api -> withAuth $ do
-  down <- peeks serviceDown
-  when (api == HTML && isNothing down) angular
-  case api of
-    JSON -> return $ okResponse [] JSON.emptyObject
-    HTML -> peeks $ okResponse [] . maybe htmlRoot htmlDown down
+viewRoot = action GET pathAPI $ \api -> viewRootHandler api []
 
-viewConstants :: ActionRoute ()
-viewConstants = action GET (pathJSON >/> "constants") $ \() -> withoutAuth $
-  return $ okResponse [] $ JSON.objectEncoding constantsJSON
+-- NEW HANDLERS
+{-
+getApiOrFail :: [(BS.ByteString, BS.ByteString)] -> ActionM API
+getApiOrFail params =
+  case params of
+    [] -> pure HTML
+    ("api", "api"):_ -> pure JSON
+    _ -> undefined -- TODO: action m error
+-}      
 
--- NEW HANDLERS 
+viewRootHandler :: API -> [(BS.ByteString, BS.ByteString)] -> Action 
+viewRootHandler api _ = -- TOOD: ensure GET
+  withAuth $ do
+    down <- peeks serviceDown
+    when (api == HTML && isNothing down) angular
+    case api of
+      JSON -> return $ okResponse [] JSON.emptyObject
+      HTML -> peeks $ okResponse [] . maybe htmlRoot htmlDown down
+
+viewConstantsHandler :: [(BS.ByteString, BS.ByteString)] -> Action
+viewConstantsHandler _ = -- TODO: ensure GET
+  withoutAuth $ return $ okResponse [] $ JSON.objectEncoding constantsJSON
 
 viewRobotsTxtHandler :: [(BS.ByteString, BS.ByteString)] -> Action
-viewRobotsTxtHandler [] =  -- TODO: ensure GET
+viewRobotsTxtHandler _ =  -- TODO: ensure GET
     withoutAuth $ return $ okResponse [] ("" :: Text)
     -- NOTE: DEVEL/SANDBOX behavior wasn't copied here
 
