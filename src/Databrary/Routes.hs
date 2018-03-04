@@ -173,7 +173,7 @@ newRouteMap routeContext =
         -- , route viewNotify  <<<<<<<<<<
         -- , route postNotify <<<<<<<<<
 
-        -- , route viewTranscodes <<<<<<<<<
+      , ("/admin/transcode", hn0 viewTranscodesHandler)
         -- , route postTranscode  -- second pass
         -- , route viewIngest -- second pass
         -- , route postIngest  -- second pass
@@ -188,6 +188,8 @@ newRouteMap routeContext =
       -}
     ]
   where
+    hn0 :: Action -> WAR.Handler IO  -- make handler
+    hn0 action = \ps req responder -> runAction routeContext action req responder
     hn :: ([(BS.ByteString, BS.ByteString)] -> Action) -> WAR.Handler IO  -- make handler
     hn mkAction = \ps req responder -> runAction routeContext (mkAction ps) req responder
     hnm :: (HTM.Method -> [(BS.ByteString, BS.ByteString)] -> Action) -> WAR.Handler IO  -- make handler with method
@@ -317,7 +319,7 @@ routeMap = routes
   , route viewNotify
   , route postNotify
 
-  , route viewTranscodes
+  -- , route viewTranscodes
   , route postTranscode
   , route viewIngest
   , route postIngest
