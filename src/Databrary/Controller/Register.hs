@@ -109,7 +109,7 @@ resendInvestigator = action POST (pathHTML >/> pathId </< "investigator") $
     \i -> resendInvestigatorHandler [("partyId", (BSC.pack . show) i)]
 
 resendInvestigatorHandler :: [(BS.ByteString, BS.ByteString)] -> Action
-resendInvestigatorHandler params = withAuth $ do
+resendInvestigatorHandler params = withAuth $ do  -- TODO: handle POST only
   let paramId = maybe (error "partyId missing") TE.decodeUtf8 (lookup "partyId" params)
   let i = either (error . show) Id (parseUrlPiece paramId)
   checkMemberADMIN

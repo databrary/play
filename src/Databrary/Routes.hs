@@ -64,24 +64,127 @@ newRouteMap routeContext =
       , ("/api/user/password", hnm (passwordResetHandler JSON))
       -- login token x 2
       , ("/party/:partyId/investigator", hn resendInvestigatorHandler)
+
+      -- , ("/party/:partyId", hnm (partyHandler HTML))  -- get, post
+      -- , ("/profile", hnm (partyHandler JSON)) -- get, post
+      -- , ("/api/party/:partyId", hnm (partyHandler JSON)) -- get, post
+      -- , ("/api/profile", hnm (partyHandler JSON)) -- get, post
+      -- , ("/party/party/:partyId/edit", hn viewPartyEditHandler)  -- get
+      -- , ("/party/profile/edit", hn viewPartyEditHandler)  -- get
+      -- , ("/party/create", hn viewPartyCreateHandler)  -- get  <<<<<<<<<<
+      -- , route viewAuthorize
+      -- , route postAuthorize
+      -- , route deleteAuthorize
+      -- , route postAuthorizeNotFound
+      -- , ("/party/:partyId/avatar", hn avatarHandler)  -- get 
+      -- , route viewPartyActivity  -- 2nd pass
+      --, ("/party", hnm (createPartyHandler HTML)) -- post, get   <<<<<<<<<
+      --, ("/api/party", hnm (createPartyHandler JSON)) -- post, get    <<<<<<<<
+      --, ("/party/:partyId/delete", hnm (deletePartyHandler HTML)) -- post, get
+      --, ("/party/admin", hn adminPartiesHandler) -- get        <<<<<<<
+      --, ("/party/csv", hn csvPartiesHandler) -- get            <<<<<<<
+      --, ("/party/duplicate/csv", hn csvDuplicatePartiesHandler) -- get    <<<<<<<
       
+        -- , route viewVolume
+        -- , route postVolume
+        -- , route viewVolumeEdit
+        -- , route viewVolumeAccess
+        -- , route postVolumeAccess
+        -- , route viewVolumeLinks
+        -- , route postVolumeLinks
+        -- , route postVolumeFunding  -- 2nd pass
+        -- , route deleteVolumeFunder  -- 2nd pass
+        -- , route postVolumeAssist
+        -- , route viewVolumeCreate <<<<
+        -- , route createVolume  <<<<<<
+        -- , route queryVolumes  <<<<<
+        -- , route $ zipVolume False 
+        -- , route $ zipVolume True 
+        -- , route viewVolumeDescription
+        -- , route thumbVolume
+        -- , route csvVolume
+        -- , route viewVolumeActivity -- 2nd pass
+
+        -- , route createContainer  -- all 2nd pass
+        -- , route $ viewSlot False 
+        -- , route viewContainerEdit
+        -- , route postContainer
+        -- , route deleteContainer
+        -- , route viewContainerActivity  -- 2nd pass
+        -- , route $ zipContainer False 
+        -- , route $ zipContainer True 
+        -- , route thumbSlot
+
+        -- , route viewFormats  <<<<<<<<<
+
+        -- , route viewAsset  -- all 2nd pass
+        -- , route postAsset
+        -- , route viewAssetEdit
+        -- , route deleteAsset
+        -- , route downloadAsset
+        -- , route downloadOrigAsset 
+        -- , route thumbAsset
+        -- , route viewAssetCreate
+        -- , route createAsset
+        -- , route createSlotAsset
+        -- , route viewSlotAssetCreate
+
+        -- , route (viewAssetSegment False)  -- all 2nd pass
+        -- , route downloadAssetSegment 
+        -- , route downloadOrigAssetSegment 
+        -- , route (thumbAssetSegment False) 
+        -- , route postExcerpt
+        -- , route deleteExcerpt
+
+        -- , route createRecord  -- all 2nd pass
+        -- , route viewRecord
+        -- , route postRecordMeasure
+        -- , route deleteRecord
+        -- , route postRecordSlot
+        -- , route deleteRecordSlot
+        -- , route deleteRecordAllSlot
+
+        -- , route postVolumeMetric  -- all 2nd pass
+        -- , route deleteVolumeMetric
+        -- , route postVolumeState
+        -- , route deleteVolumeState
+
+        -- , route queryTags -- 2nd pass
+        -- , route postTag -- 2nd pass
+        -- , route deleteTag -- 2nd pass
+        -- , route postComment -- 2nd pass
+
+        -- , route postSearch <<<<<<<<<<<
+
+        -- , route uploadStart  -- 2nd pass
+        -- , route uploadChunk  <<<<<<<<<<<
+        -- , route testChunk   <<<<<<<<<
+
+
       , ("/api/constants", hn viewConstantsHandler)
+        -- , route getCitation  <<<<
+        -- , route queryFunder <<<<
+        -- , route remoteTranscode  -- second pass
+        -- , route viewSiteActivity <<<<<<<<
 
-      -- notifications
+        -- , route viewNotifications <<<<<<<<
+        -- , route deleteNotification -- second pass
+        -- , route deleteNotifications -- second pass
+        -- , route viewNotify  <<<<<<<<<<
+        -- , route postNotify <<<<<<<<<
 
-      -- trans*
+        -- , route viewTranscodes <<<<<<<<<
+        -- , route postTranscode  -- second pass
+        -- , route viewIngest -- second pass
+        -- , route postIngest  -- second pass
+      , ("/admin/periodic", hnm periodicHandler)
 
-      -- webfile
-      
+        -- , route webFile -- hard?
+
         -- hack to override not found
-      -- TODO: add below back? clashes with /:api
+      -- TODO: add below back? can clash with above
       {-
       , ("/:a", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
-      , ("/:a/:b", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
-      , ("/:a/:b/:c", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
-      , ("/:a/:b/:c/:d", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
-      , ("/:a/:b/:c/:d/:e", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
-      , ("/:a/:b/:c/:d/:e:/:f", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
       -}
     ]
   where
@@ -218,8 +321,8 @@ routeMap = routes
   , route postTranscode
   , route viewIngest
   , route postIngest
-  , route viewPeriodic
-  , route postPeriodic
+  -- , route viewPeriodic
+  -- , route postPeriodic
 
   , route webFile
   ] where
