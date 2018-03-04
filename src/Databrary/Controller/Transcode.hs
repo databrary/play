@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Controller.Transcode
   ( remoteTranscode
-  , viewTranscodes
+  -- , viewTranscodes
+  , viewTranscodesHandler
   , TranscodeAction(..)
   , postTranscode
   ) where
@@ -62,7 +63,10 @@ remoteTranscode = action POST (pathJSON >/> pathId) $ \ti -> withoutAuth $ do
     return $ okResponse [] BS.empty
 
 viewTranscodes :: ActionRoute ()
-viewTranscodes = action GET (pathHTML >/> "admin" >/> "transcode") $ \() -> withAuth $ do
+viewTranscodes = action GET (pathHTML >/> "admin" >/> "transcode") $ \() -> viewTranscodesHandler
+
+viewTranscodesHandler :: Action -- TODO: GET only 
+viewTranscodesHandler = withAuth $ do
   checkMemberADMIN
   t <- lookupActiveTranscodes
   peeks $ okResponse [] . htmlTranscodes t
