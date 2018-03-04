@@ -5,8 +5,9 @@ module Databrary.Controller.Login
   , viewLogin
   , postLogin
   , postLogout
-  , viewUser
+  -- , viewUser
   , postUser
+  , userHandler
   ) where
 
 import Control.Applicative ((<|>))
@@ -17,6 +18,7 @@ import qualified Data.ByteString as BS
 import Data.Function (on)
 import Data.Maybe (fromMaybe)
 import qualified Network.Wai as Wai
+import Network.HTTP.Types.Method (methodGet, methodPost)
 
 import Databrary.Ops
 import Databrary.Has
@@ -89,14 +91,28 @@ userJSONField :: BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Enc
 userJSONField "notifications" _ = Just . JSON.toEncoding <$> countUserNotifications
 userJSONField _ _ = return Nothing
 
-viewUser :: ActionRoute ()
-viewUser = action GET (pathJSON </< "user") $ \() -> withAuth $ do
+userHandler :: API -> [(BS.ByteString, BS.ByteString)] -> Action
+userHandler api _ =
+    withAuth $ do
+        method <- peeks Wai.requestMethod
+        if method == methodGet && api == JSON then viewUserAction
+        else if method == methodPost then postUserAction api
+        else error "unhandled api/method combo" -- TODO: better error
+
+-- viewUser :: ActionRoute ()
+-- viewUser = action GET (pathJSON </< "user") $ \() -> withAuth $ viewUserAction
+
+viewUserAction :: ActionM Response
+viewUserAction = do
   i <- peeks identityJSON
   q <- JSON.jsonQuery userJSONField =<< peeks Wai.queryString
   return $ okResponse [] (i JSON..<> q)
 
 postUser :: ActionRoute API
-postUser = action POST (pathAPI </< "user") $ \api -> withAuth $ do
+postUser = action POST (pathAPI </< "user") $ \api -> withAuth $ postUserAction api
+
+postUserAction :: API -> ActionM Response
+postUserAction api = do
   auth <- peek
   let acct = siteAccount auth
   auth' <- runForm (api == HTML ?> htmlUserForm acct) $ do

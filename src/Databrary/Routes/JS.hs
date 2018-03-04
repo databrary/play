@@ -374,8 +374,8 @@ fakeBackendDepend2 =
   , zipVolume :: Bool -> ActionRoute (Id Volume)
   , viewVolumeDescription :: ActionRoute (Id Volume)
   , viewRoot :: ActionRoute API
-  , viewUser :: ActionRoute ()
-  , postUser :: ActionRoute API
+  , userHandler :: API -> [(BS.ByteString, BS.ByteString)] -> Action
+  -- , postUser :: ActionRoute API
   , postLogin :: ActionRoute API
   , postLogout :: ActionRoute API
   , postRegister :: ActionRoute API
