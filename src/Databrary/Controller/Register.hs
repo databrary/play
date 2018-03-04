@@ -2,6 +2,7 @@
 module Databrary.Controller.Register
   ( viewPasswordReset
   , postPasswordReset
+  , registerHandler
   , viewRegister
   , postRegister
   , resendInvestigator
@@ -14,6 +15,9 @@ import Data.Monoid ((<>))
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
+import qualified Network.Wai as Wai
+import Network.HTTP.Types.Method (methodGet, methodPost)
+import qualified Network.HTTP.Types.Method as HTM
 
 import Databrary.Ops
 import Databrary.Has
@@ -44,15 +48,27 @@ resetPasswordMail (Right auth) subj body = do
   sendMail [Right $ view auth] [] subj
     (body $ Just $ TLE.decodeLatin1 $ BSB.toLazyByteString $ actionURL (Just req) viewLoginToken (HTML, tok) [])
 
+registerHandler :: API -> HTM.Method -> [(BS.ByteString, BS.ByteString)] -> Action
+registerHandler api method _
+    | method == methodGet && api == HTML = viewRegisterAction
+    | method == methodPost = postRegisterAction api
+    | otherwise = error "unhandled api/method combo" -- TODO: better error 
+
 viewRegister :: ActionRoute ()
-viewRegister = action GET (pathHTML </< "user" </< "register") $ \() -> withAuth $ do
+viewRegister = action GET (pathHTML </< "user" </< "register") $ \() -> viewRegisterAction
+
+viewRegisterAction :: Action
+viewRegisterAction = withAuth $ do
   angular
   maybeIdentity
     (peeks $ blankForm . htmlRegister)
     (\_ -> peeks $ otherRouteResponse [] viewParty (HTML, TargetProfile))
 
 postRegister :: ActionRoute API
-postRegister = action POST (pathAPI </< "user" </< "register") $ \api -> withoutAuth $ do
+postRegister = action POST (pathAPI </< "user" </< "register") $ postRegisterAction
+
+postRegisterAction :: API -> Action
+postRegisterAction = \api -> withoutAuth $ do
   reg <- runForm (api == HTML ?> htmlRegister) $ do
     name <- "sortname" .:> (deformRequired =<< deform)
     prename <- "prename" .:> deformNonEmpty deform
