@@ -45,24 +45,38 @@ import Databrary.Service.Types (Service)
 
 newRouteMap :: Service -> [(BS.ByteString, WAR.Handler IO)]
 newRouteMap routeContext =
-    [
-        ("/robots.txt", (\ps req respond -> runAction routeContext (viewRobotsTxtHandler ps) req respond))
+    [   ("", (\ps req resp -> runAction routeContext (viewRootHandler HTML ps) req resp))
+      , ("/", (\ps req resp -> runAction routeContext (viewRootHandler HTML ps) req resp))
+      , ("/api", (\ps req resp -> runAction routeContext (viewRootHandler JSON ps) req resp))
+      , ("/robots.txt", (\ps req resp -> runAction routeContext (viewRobotsTxtHandler ps) req resp))
 
+      , ("/api/constants", (\ps req resp -> runAction routeContext (viewConstantsHandler ps) req resp))
+
+      -- notifications
+
+      -- trans*
+
+      -- webfile
+      
         -- hack to override not found
+      -- TODO: add below back? clashes with /:api
+      {-
       , ("/:a", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
       , ("/:a/:b", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
       , ("/:a/:b/:c", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
       , ("/:a/:b/:c/:d", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
       , ("/:a/:b/:c/:d/:e", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
       , ("/:a/:b/:c/:d/:e:/:f", (\ps req respond -> runAction routeContext (notFoundResponseHandler ps) req respond))
+      -}
     ]
 
 routeMap :: RouteMap Action
 routeMap = routes
-  [ route viewRoot
+  [
+  --   route viewRoot
   -- , route viewRobotsTxt
 
-  , route viewUser
+    route viewUser
   , route postUser
   , route viewLogin
   , route postLogin
@@ -168,7 +182,7 @@ routeMap = routes
   , route uploadChunk
   , route testChunk
 
-  , route viewConstants
+  -- , route viewConstants
   , route getCitation
   , route queryFunder
   , route remoteTranscode
