@@ -60,6 +60,10 @@ newRouteMap routeContext =
       , ("/api/user/logout", hn (postLogoutHandler JSON))
       , ("/user/register", hnm (registerHandler HTML))
       , ("/api/user/register", hnm (registerHandler JSON))
+      , ("/user/password", hnm (passwordResetHandler HTML))
+      , ("/api/user/password", hnm (passwordResetHandler JSON))
+      -- login token x 2
+      , ("/party/:partyId/investigator", hn resendInvestigatorHandler)
       
       , ("/api/constants", hn viewConstantsHandler)
 
@@ -99,11 +103,11 @@ routeMap = routes
   --  route postLogout
   --  route viewRegister
   --, route postRegister
-    route viewPasswordReset
-  , route postPasswordReset
-  , route viewLoginToken
+  --  route viewPasswordReset
+  -- , route postPasswordReset
+    route viewLoginToken
   , route postPasswordToken
-  , route resendInvestigator
+  -- , route resendInvestigator
 
   , route viewParty
   , route postParty

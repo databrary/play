@@ -17,6 +17,7 @@ import qualified Data.Invertible as I
 import Data.String (fromString)
 import qualified Web.Route.Invertible as R
 import Web.Route.Invertible (Parameter, PathString)
+-- import Servant
 
 import Databrary.Model.Kind
 import Databrary.Model.Id.Types
