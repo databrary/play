@@ -107,10 +107,9 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
             pure (forbiddenResponse reqCtxt)
         Right (hdrs, records) -> do -- vol -> participantMetrics; metrics hdrs records -> (fieldMapping, leftovers)
             participantMetrics <- lookupParticipantFieldMapping v
-            -- case requiredColumnsPresent participantFieldMapping (getHeaders hdrs) of -- TODO: change back to determine mapping
+            -- detect datatypes
             case checkDetermineMapping participantMetrics (getHeaders hdrs) records of
-                Right participantFieldMapping -> do
-                    -- TODO: detect datatype for each 
+                Right (participantFieldMapping, skippedCols) -> do
                     liftIO (BS.writeFile ("/tmp/" ++ uploadFileName) uploadFileContents)
                     pure
                         $ okResponse []
@@ -118,7 +117,7 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
                                 $ JSON.Record vi
                                     $      "csv_upload_id" JSON..= uploadFileName
                                         <> "sample_rows" JSON..= (extractSampleRows 5 participantFieldMapping records)
-                                        <> "suggested_mapping" JSON..= headerMappingJSON participantFieldMapping []
+                                        <> "suggested_mapping" JSON..= headerMappingJSON participantFieldMapping skippedCols
                 -- TODO: more errors than missing columns
                 Left err -> do
                     liftIO (print ("missing columns", err))

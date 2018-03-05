@@ -14,7 +14,7 @@ module Databrary.Model.Ingest
   ) where
 
 import qualified Data.Csv as CSV
-import Data.List (find)
+import Data.List (find, (\\))
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -68,7 +68,7 @@ replaceSlotAsset o n =
 -- verify that all expected columns are present, with some leniency
 -- left if not enough columns or other mismatch
 -- TODO: use abstract type instead of CSV's NamedRecord?
-checkDetermineMapping :: [Metric] -> [Text] -> Vector CSV.NamedRecord -> Either String ParticipantFieldMapping
+checkDetermineMapping :: [Metric] -> [Text] -> Vector CSV.NamedRecord -> Either String (ParticipantFieldMapping, [Text])
 checkDetermineMapping participantMetrics csvHeaders csvRows = do
     mIdMatch <- checkDetermineMatch checkDetermineMatchId 1
     mInfoMatch <- checkDetermineMatch checkDetermineMatchInfo 2
@@ -86,23 +86,31 @@ checkDetermineMapping participantMetrics csvHeaders csvRows = do
     mStateMatch <- checkDetermineMatch checkDetermineMatchState 14
     mSettingMatch <- checkDetermineMatch checkDetermineMatchSetting 15
     --   TODO: if there is any collision, then error
-    pure ParticipantFieldMapping {
-        pfmId = mIdMatch
-      , pfmInfo = mInfoMatch 
-      , pfmDescription = mDescriptionMatch 
-      , pfmBirthdate = mBirthdateMatch
-      , pfmGender = mGenderMatch
-      , pfmRace = mRaceMatch
-      , pfmEthnicity = mEthnicityMatch
-      , pfmGestationalAge = mGestationalAgeMatch
-      , pfmPregnancyTerm = mPregnancyTermMatch
-      , pfmBirthWeight = mBirthWeightMatch
-      , pfmDisability = mDisabilityMatch
-      , pfmLanguage = mLanguageMatch
-      , pfmCountry = mCountryMatch
-      , pfmState = mStateMatch
-      , pfmSetting = mSettingMatch
-      }
+    let usedCols =
+            catMaybes [ mIdMatch, mInfoMatch, mDescriptionMatch, mBirthdateMatch, mGenderMatch, mRaceMatch
+                      , mEthnicityMatch, mGestationalAgeMatch, mPregnancyTermMatch, mBirthWeightMatch, mDisabilityMatch
+                      , mLanguageMatch, mCountryMatch, mStateMatch, mSettingMatch ]
+        skippedCols = csvHeaders \\ usedCols    
+    pure
+        (ParticipantFieldMapping {
+              pfmId = mIdMatch
+            , pfmInfo = mInfoMatch 
+            , pfmDescription = mDescriptionMatch 
+            , pfmBirthdate = mBirthdateMatch
+            , pfmGender = mGenderMatch
+            , pfmRace = mRaceMatch
+            , pfmEthnicity = mEthnicityMatch
+            , pfmGestationalAge = mGestationalAgeMatch
+            , pfmPregnancyTerm = mPregnancyTermMatch
+            , pfmBirthWeight = mBirthWeightMatch
+            , pfmDisability = mDisabilityMatch
+            , pfmLanguage = mLanguageMatch
+            , pfmCountry = mCountryMatch
+            , pfmState = mStateMatch
+            , pfmSetting = mSettingMatch
+            }
+        , skippedCols
+        )
   where
     checkDetermineMatch :: ([Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text) -> Int32 -> Either String (Maybe Text)
     checkDetermineMatch checker metricId = do
@@ -201,9 +209,9 @@ metricsToFieldMapping volParticipantMetrics =
 -}
 
 
-headerMappingJSON :: ParticipantFieldMapping -> [a] -> [JSON.Value] -- TODO: Value or list of Value?
+headerMappingJSON :: ParticipantFieldMapping -> [Text] -> [JSON.Value] -- TODO: Value or list of Value?
 headerMappingJSON headerMapping leftoverColumns =
-    catMaybes
+    (catMaybes
         [ fieldToMaybeMapping pfmId "id"
         , fieldToMaybeMapping pfmInfo "info"
         , fieldToMaybeMapping pfmDescription "description"
@@ -219,12 +227,16 @@ headerMappingJSON headerMapping leftoverColumns =
         , fieldToMaybeMapping pfmCountry "country"
         , fieldToMaybeMapping pfmState "state"
         , fieldToMaybeMapping pfmSetting "setting"
-        ] -- TODO: add leftover columns
+        ]
+     ++ (fmap skippedFieldInfo leftoverColumns))
   where
     fieldToMaybeMapping :: (ParticipantFieldMapping -> Maybe Text) -> String -> Maybe JSON.Value
     fieldToMaybeMapping getField fieldMetricName = do
         colName <- getField headerMapping
         pure (JSON.object [ "csv_field" JSON..= colName, "metric" JSON..= fieldMetricName ]) -- TODO: add data_type
+    skippedFieldInfo :: Text -> JSON.Value
+    skippedFieldInfo colName = 
+        JSON.object [ "csv_field" JSON..= colName, "metric" JSON..= (Nothing :: Maybe Text) ] -- TODO: add data_type
 
 data HeaderMappingEntry =
     HeaderMappingEntry {
