@@ -139,7 +139,7 @@ removeVolumeCategory v c = do
         (volumeId $ volumeRow v) c)
             (\[] -> ()))
 
-lookupParticipantFieldMapping :: (MonadDB c m) => Volume -> m ParticipantFieldMapping
+lookupParticipantFieldMapping :: (MonadDB c m) => Volume -> m [Metric]  -- ParticipantFieldMapping
 lookupParticipantFieldMapping vol = do
     metricIds <- lookupVolumeMetrics vol
     liftIO (print ("metric ids", metricIds))
@@ -154,36 +154,8 @@ lookupParticipantFieldMapping vol = do
                participantCategoryId = Id 1
                participantMetrics =
                    filter (\m -> (categoryId . metricCategory) m == participantCategoryId) metrics
-           pure (metricsToFieldMapping participantMetrics)
-
-metricsToFieldMapping :: [Metric] -> ParticipantFieldMapping
-metricsToFieldMapping volParticipantMetrics =
-    ParticipantFieldMapping {
-        pfmId = getNameIfUsed 1
-      , pfmInfo = getNameIfUsed 2
-      , pfmDescription = getNameIfUsed 3
-      , pfmBirthdate = getNameIfUsed 4
-      , pfmGender = getNameIfUsed 5
-      , pfmRace = getNameIfUsed 6
-      , pfmEthnicity = getNameIfUsed 7
-      , pfmGestationalAge = getNameIfUsed 8
-      , pfmPregnancyTerm = getNameIfUsed 9
-      , pfmBirthWeight = getNameIfUsed 10
-      , pfmDisability = getNameIfUsed 11
-      , pfmLanguage = getNameIfUsed 12
-      , pfmCountry = getNameIfUsed 13
-      , pfmState = getNameIfUsed 14
-      , pfmSetting = getNameIfUsed 15
-      }
-  where
-    getNameIfUsed :: Int32 -> Maybe Text
-    getNameIfUsed mid =
-      let mMetric = find (\m -> (Id mid) == metricId m) volParticipantMetrics
-      in fmap (T.toLower . metricName) mMetric
+           pure participantMetrics -- (metricsToFieldMapping participantMetrics)
 
 resolveMetric :: [Metric] -> Id Metric -> Maybe Metric
 resolveMetric metrics mid =
     find (\m -> metricId m == mid) metrics
-
--- get all metrics for participant category for given volume from db
---   branch on each metric, filling in field mapping structure

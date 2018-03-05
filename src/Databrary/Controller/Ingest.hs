@@ -106,9 +106,11 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
             liftIO (print ("csv parse error", err))
             pure (forbiddenResponse reqCtxt)
         Right (hdrs, records) -> do -- vol -> participantMetrics; metrics hdrs records -> (fieldMapping, leftovers)
-            participantFieldMapping <- lookupParticipantFieldMapping v
-            case requiredColumnsPresent participantFieldMapping (getHeaders hdrs) of -- TODO: change back to determine mapping
-                Right _ -> do
+            participantMetrics <- lookupParticipantFieldMapping v
+            -- case requiredColumnsPresent participantFieldMapping (getHeaders hdrs) of -- TODO: change back to determine mapping
+            case checkDetermineMapping participantMetrics (getHeaders hdrs) records of
+                Right participantFieldMapping -> do
+                    -- TODO: detect datatype for each 
                     liftIO (BS.writeFile ("/tmp/" ++ uploadFileName) uploadFileContents)
                     pure
                         $ okResponse []
@@ -117,8 +119,9 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
                                     $      "csv_upload_id" JSON..= uploadFileName
                                         <> "sample_rows" JSON..= (extractSampleRows 5 participantFieldMapping records)
                                         <> "suggested_mapping" JSON..= headerMappingJSON participantFieldMapping []
-                Left missingColumns -> do
-                    liftIO (print ("missing columns", missingColumns))
+                -- TODO: more errors than missing columns
+                Left err -> do
+                    liftIO (print ("missing columns", err))
                     -- if column check failed, then don't save csv file and response is error
                     pure (forbiddenResponse reqCtxt) -- place holder for error
 

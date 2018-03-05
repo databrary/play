@@ -8,20 +8,24 @@ module Databrary.Model.Ingest
   , lookupIngestAsset
   , addIngestAsset
   , replaceSlotAsset
-  , requiredColumnsPresent
+  , checkDetermineMapping
   , headerMappingJSON
   , HeaderMappingEntry(..)
   ) where
 
+import qualified Data.Csv as CSV
+import Data.List (find)
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Vector (Vector)
 import Database.PostgreSQL.Typed.Query (pgSQL)
 
 import Databrary.Service.DB
 import qualified Databrary.JSON as JSON
 import Databrary.JSON (FromJSON, ToJSON)
 import Databrary.Model.SQL (selectQuery)
+import Databrary.Model.Id.Types
 import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
 import Databrary.Model.Container.SQL
@@ -62,17 +66,70 @@ replaceSlotAsset o n =
   dbExecute1 [pgSQL|UPDATE slot_asset SET asset = ${assetId $ assetRow n} WHERE asset = ${assetId $ assetRow o}|]
 
 -- verify that all expected columns are present, with some leniency
-requiredColumnsPresent :: ParticipantFieldMapping -> [Text] -> Either [Text] () -- left if not enough columns or other mismatch
-requiredColumnsPresent participantFieldMapping csvHeaders = do
-    _ <- case pfmId participantFieldMapping of
-             Just idCol -> -- TODO: case insensitive
-                 if idCol `elem` csvHeaders then Right () else Left [idCol]
-             Nothing ->
-                 Right ()
-    pure ()
+-- left if not enough columns or other mismatch
+-- TODO: use abstract type instead of CSV's NamedRecord?
+checkDetermineMapping :: [Metric] -> [Text] -> Vector CSV.NamedRecord -> Either String ParticipantFieldMapping
+checkDetermineMapping participantMetrics csvHeaders csvRows = do
+    mIdMatch <- checkDetermineMatch checkDetermineMatchId 1
+    --   TODO: if there is any collision, then error
+    pure ParticipantFieldMapping {
+        pfmId = mIdMatch
+      , pfmInfo = Nothing -- getNameIfUsed 2
+      , pfmDescription = Nothing -- getNameIfUsed 3
+      , pfmBirthdate = Nothing -- getNameIfUsed 4
+      , pfmGender = Nothing -- getNameIfUsed 5
+      , pfmRace = Nothing -- getNameIfUsed 6
+      , pfmEthnicity = Nothing -- getNameIfUsed 7
+      , pfmGestationalAge = Nothing -- getNameIfUsed 8
+      , pfmPregnancyTerm = Nothing -- getNameIfUsed 9
+      , pfmBirthWeight = Nothing -- getNameIfUsed 10
+      , pfmDisability = Nothing -- getNameIfUsed 11
+      , pfmLanguage = Nothing -- getNameIfUsed 12
+      , pfmCountry = Nothing -- getNameIfUsed 13
+      , pfmState = Nothing -- getNameIfUsed 14
+      , pfmSetting = Nothing -- getNameIfUsed 15
+      }
   where
-    checkIfUsed :: () -> () -- TODO: implement this and use above for each field
-    checkIfUsed a = a
+    checkDetermineMatch :: ([Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text) -> Int32 -> Either String (Maybe Text)
+    checkDetermineMatch checker metricId = do
+        case findMetric metricId of
+            Just metric ->
+                maybe (Left ("checker failed for " ++ show metricId)) (Right . Just) (checker csvHeaders csvRows metric)
+            Nothing ->
+                Right Nothing
+    findMetric :: Int32 -> Maybe Metric
+    findMetric mid = find (\m -> metricId m == Id mid) participantMetrics
+
+checkDetermineMatchId :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchId hdrs rows _ =
+    genericChecker hdrs "id"
+    
+genericChecker :: [Text] -> Text -> Maybe Text
+genericChecker hdrs metricName =  -- TODO: case insensitive
+    if metricName `elem` hdrs then Just metricName else Nothing
+
+{-
+metricsToFieldMapping :: [Metric] -> ParticipantFieldMapping
+metricsToFieldMapping volParticipantMetrics =
+    ParticipantFieldMapping {
+        pfmId = getNameIfUsed 1
+      , pfmInfo = getNameIfUsed 2
+      , pfmDescription = getNameIfUsed 3
+      , pfmBirthdate = getNameIfUsed 4
+      , pfmGender = getNameIfUsed 5
+      , pfmRace = getNameIfUsed 6
+      , pfmEthnicity = getNameIfUsed 7
+      , pfmGestationalAge = getNameIfUsed 8
+      , pfmPregnancyTerm = getNameIfUsed 9
+      , pfmBirthWeight = getNameIfUsed 10
+      , pfmDisability = getNameIfUsed 11
+      , pfmLanguage = getNameIfUsed 12
+      , pfmCountry = getNameIfUsed 13
+      , pfmState = getNameIfUsed 14
+      , pfmSetting = getNameIfUsed 15
+      }
+-}
+
 
 headerMappingJSON :: ParticipantFieldMapping -> [a] -> [JSON.Value] -- TODO: Value or list of Value?
 headerMappingJSON headerMapping leftoverColumns =
