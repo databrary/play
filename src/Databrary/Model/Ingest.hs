@@ -71,23 +71,37 @@ replaceSlotAsset o n =
 checkDetermineMapping :: [Metric] -> [Text] -> Vector CSV.NamedRecord -> Either String ParticipantFieldMapping
 checkDetermineMapping participantMetrics csvHeaders csvRows = do
     mIdMatch <- checkDetermineMatch checkDetermineMatchId 1
+    mInfoMatch <- checkDetermineMatch checkDetermineMatchInfo 2
+    mDescriptionMatch <- checkDetermineMatch checkDetermineMatchDescription 3
+    mBirthdateMatch <- checkDetermineMatch checkDetermineMatchBirthdate 4
+    mGenderMatch <- checkDetermineMatch checkDetermineMatchGender 5
+    mRaceMatch <- checkDetermineMatch checkDetermineMatchRace 6
+    mEthnicityMatch <- checkDetermineMatch checkDetermineMatchEthnicity 7
+    mGestationalAgeMatch <- checkDetermineMatch checkDetermineMatchGestationalAge 8
+    mPregnancyTermMatch <- checkDetermineMatch checkDetermineMatchPregnancyTerm 9
+    mBirthWeightMatch <- checkDetermineMatch checkDetermineMatchBirthWeight 10
+    mDisabilityMatch <- checkDetermineMatch checkDetermineMatchDisability 11
+    mLanguageMatch <- checkDetermineMatch checkDetermineMatchLanguage 12
+    mCountryMatch <- checkDetermineMatch checkDetermineMatchCountry 13
+    mStateMatch <- checkDetermineMatch checkDetermineMatchState 14
+    mSettingMatch <- checkDetermineMatch checkDetermineMatchSetting 15
     --   TODO: if there is any collision, then error
     pure ParticipantFieldMapping {
         pfmId = mIdMatch
-      , pfmInfo = Nothing -- getNameIfUsed 2
-      , pfmDescription = Nothing -- getNameIfUsed 3
-      , pfmBirthdate = Nothing -- getNameIfUsed 4
-      , pfmGender = Nothing -- getNameIfUsed 5
-      , pfmRace = Nothing -- getNameIfUsed 6
-      , pfmEthnicity = Nothing -- getNameIfUsed 7
-      , pfmGestationalAge = Nothing -- getNameIfUsed 8
-      , pfmPregnancyTerm = Nothing -- getNameIfUsed 9
-      , pfmBirthWeight = Nothing -- getNameIfUsed 10
-      , pfmDisability = Nothing -- getNameIfUsed 11
-      , pfmLanguage = Nothing -- getNameIfUsed 12
-      , pfmCountry = Nothing -- getNameIfUsed 13
-      , pfmState = Nothing -- getNameIfUsed 14
-      , pfmSetting = Nothing -- getNameIfUsed 15
+      , pfmInfo = mInfoMatch 
+      , pfmDescription = mDescriptionMatch 
+      , pfmBirthdate = mBirthdateMatch
+      , pfmGender = mGenderMatch
+      , pfmRace = mRaceMatch
+      , pfmEthnicity = mEthnicityMatch
+      , pfmGestationalAge = mGestationalAgeMatch
+      , pfmPregnancyTerm = mPregnancyTermMatch
+      , pfmBirthWeight = mBirthWeightMatch
+      , pfmDisability = mDisabilityMatch
+      , pfmLanguage = mLanguageMatch
+      , pfmCountry = mCountryMatch
+      , pfmState = mStateMatch
+      , pfmSetting = mSettingMatch
       }
   where
     checkDetermineMatch :: ([Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text) -> Int32 -> Either String (Maybe Text)
@@ -103,7 +117,63 @@ checkDetermineMapping participantMetrics csvHeaders csvRows = do
 checkDetermineMatchId :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
 checkDetermineMatchId hdrs rows _ =
     genericChecker hdrs "id"
-    
+
+checkDetermineMatchInfo :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchInfo hdrs rows _ =
+    genericChecker hdrs "info"
+
+checkDetermineMatchDescription :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchDescription hdrs rows _ =
+    genericChecker hdrs "description"
+
+checkDetermineMatchBirthdate :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchBirthdate hdrs rows _ =
+    genericChecker hdrs "birthdate"
+
+checkDetermineMatchGender :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchGender hdrs rows _ =
+    genericChecker hdrs "gender"
+
+checkDetermineMatchRace :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchRace hdrs rows _ =
+    genericChecker hdrs "race"
+
+checkDetermineMatchEthnicity :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchEthnicity hdrs rows _ =
+    genericChecker hdrs "ethnicity"
+
+checkDetermineMatchGestationalAge :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchGestationalAge hdrs rows _ =
+    genericChecker hdrs "gestationalage"
+
+checkDetermineMatchPregnancyTerm :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchPregnancyTerm hdrs rows _ =
+    genericChecker hdrs "pregnancyterm"
+
+checkDetermineMatchBirthWeight :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchBirthWeight hdrs rows _ =
+    genericChecker hdrs "birthweight"
+
+checkDetermineMatchDisability :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchDisability hdrs rows _ =
+    genericChecker hdrs "disability"
+
+checkDetermineMatchLanguage :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchLanguage hdrs rows _ =
+    genericChecker hdrs "language"
+
+checkDetermineMatchCountry :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchCountry hdrs rows _ =
+    genericChecker hdrs "country"
+
+checkDetermineMatchState :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchState hdrs rows _ =
+    genericChecker hdrs "state"
+
+checkDetermineMatchSetting :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchSetting hdrs rows _ =
+    genericChecker hdrs "setting"
+
 genericChecker :: [Text] -> Text -> Maybe Text
 genericChecker hdrs metricName =  -- TODO: case insensitive
     if metricName `elem` hdrs then Just metricName else Nothing
