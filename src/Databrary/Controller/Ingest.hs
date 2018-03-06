@@ -16,6 +16,7 @@ import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Csv as CSV
 import qualified Data.Csv.Parser as CSVP
 import qualified Data.HashMap.Strict as HMP
+import qualified Data.List as L
 import Data.Maybe (catMaybes)
 import qualified Data.Map as MAP
 import Data.Map (Map)
@@ -37,7 +38,7 @@ import Databrary.Model.Id
 import Databrary.Model.Permission
 import Databrary.Model.Volume
 import Databrary.Model.Container
-import Databrary.Model.Metric (ParticipantFieldMapping(..))
+import Databrary.Model.Metric (ParticipantFieldMapping(..), Metric)
 import Databrary.Model.VolumeMetric (lookupParticipantFieldMapping)
 import Databrary.Model.Record
 import Databrary.Model.Ingest -- (requiredColumnsPresent, headerMappingJSON, HeaderMappingEntry(..))
@@ -109,15 +110,15 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
             participantMetrics <- lookupParticipantFieldMapping v
             -- detect datatypes
             case checkDetermineMapping participantMetrics (getHeaders hdrs) records of
-                Right (participantFieldMapping, skippedCols) -> do
+                Right columnCompatibleMetrics -> do
                     liftIO (BS.writeFile ("/tmp/" ++ uploadFileName) uploadFileContents)
                     pure
                         $ okResponse []
                             $ JSON.recordEncoding -- TODO: not record encoding
                                 $ JSON.Record vi
                                     $      "csv_upload_id" JSON..= uploadFileName
-                                        <> "sample_rows" JSON..= (extractSampleRows 5 participantFieldMapping records)
-                                        <> "suggested_mapping" JSON..= headerMappingJSON participantFieldMapping skippedCols
+                                        <> "column_samples" JSON..= extractSampleColumns 5 hdrs records
+                                        <> "suggested_mapping" JSON..= headerMappingJSON columnCompatibleMetrics
                 -- TODO: more errors than missing columns
                 Left err -> do
                     liftIO (print ("missing columns", err))
@@ -160,9 +161,30 @@ parseMapping val = do
         metricField = (MAP.fromList . fmap (\e -> (hmeMetricName e, hmeCsvField e))) entries
     participantMapping <-
         case MAP.lookup "id" metricField of
-            Just csvField -> pure (ParticipantFieldMapping { pfmId = Just csvField })
+            Just csvField -> pure (mkFieldMapping csvField)
             Nothing -> fail "missing participant metric 'ID'"
     pure participantMapping
+
+mkFieldMapping :: Text -> ParticipantFieldMapping
+mkFieldMapping field =
+    ParticipantFieldMapping {
+          pfmId = Just field
+        , pfmInfo = Nothing
+        , pfmDescription = Nothing
+        , pfmBirthdate = Nothing
+        , pfmGender = Nothing
+        , pfmRace = Nothing
+        , pfmEthnicity = Nothing
+        , pfmGestationalAge = Nothing
+        , pfmPregnancyTerm = Nothing
+        , pfmBirthWeight = Nothing
+        , pfmDisability = Nothing
+        , pfmLanguage = Nothing
+        , pfmCountry = Nothing
+        , pfmState = Nothing
+        , pfmSetting = Nothing
+        }
+
 
 runImport :: V.Vector CSV.NamedRecord -> ParticipantFieldMapping -> IO (V.Vector ()) -- TODO: error or count
 runImport records mapping =
@@ -170,12 +192,28 @@ runImport records mapping =
         (\record -> createRecord mapping record)
         records
 
-extractSampleRows :: Int -> ParticipantFieldMapping -> V.Vector CSV.NamedRecord -> [JSON.Value]
-extractSampleRows numRows mapping records =
-    (V.toList . V.take numRows . fmap (\record -> participantJson mapping record)) records
+extractSampleColumns :: Int -> CSV.Header -> V.Vector CSV.NamedRecord -> [JSON.Value]
+extractSampleColumns maxSamples hdrs records =
+    (V.toList . fmap (\hdr -> sampleColumnJson maxSamples hdr (extractColumn hdr))) hdrs
+  where
+    extractColumn :: BS.ByteString -> [Maybe BS.ByteString]  -- Should error out if receive nothing
+    extractColumn hdr = 
+        V.toList (fmap (\rowMap -> HMP.lookup hdr rowMap) records)
 
-participantJson :: ParticipantFieldMapping -> CSV.NamedRecord -> JSON.Value
+sampleColumnJson :: Int -> BS.ByteString -> [Maybe BS.ByteString] -> JSON.Value
+sampleColumnJson maxSamples hdr columnValues =
+    let
+        uniqueSamples = (take maxSamples . L.nub . fmap (maybe "" id)) columnValues
+    in
+        JSON.object [
+            "column_name" JSON..= hdr
+          , "samples" JSON..= uniqueSamples
+          ]
+{-
+participantJson :: Map Text [Metric] -> CSV.NamedRecord -> JSON.Value
 participantJson mapping record =
+  JSON.object []
+  {-
     JSON.object
         (catMaybes
             [ fieldToMaybePair pfmId (Just . id)
@@ -201,6 +239,8 @@ participantJson mapping record =
         fieldVal <- HMP.lookup (TE.encodeUtf8 colName) record -- TODO: error
         extractedFieldVal <- extractValue fieldVal -- TODO: error
         pure (colName JSON..= extractedFieldVal)
+  -}
+-}
 
 createRecord :: ParticipantFieldMapping -> CSV.NamedRecord -> IO () -- TODO: error or record
 createRecord mapping csvRecord = do

@@ -15,6 +15,8 @@ module Databrary.Model.Ingest
 
 import qualified Data.Csv as CSV
 import Data.List (find, (\\))
+import Data.Map (Map)
+import qualified Data.Map as MAP
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -68,8 +70,10 @@ replaceSlotAsset o n =
 -- verify that all expected columns are present, with some leniency
 -- left if not enough columns or other mismatch
 -- TODO: use abstract type instead of CSV's NamedRecord?
-checkDetermineMapping :: [Metric] -> [Text] -> Vector CSV.NamedRecord -> Either String (ParticipantFieldMapping, [Text])
+checkDetermineMapping :: [Metric] -> [Text] -> Vector CSV.NamedRecord -> Either String (Map Text [Metric])
 checkDetermineMapping participantMetrics csvHeaders csvRows = do
+  Left "undefined"
+  {-
     mIdMatch <- checkDetermineMatch checkDetermineMatchId 1
     mInfoMatch <- checkDetermineMatch checkDetermineMatchInfo 2
     mDescriptionMatch <- checkDetermineMatch checkDetermineMatchDescription 3
@@ -112,7 +116,7 @@ checkDetermineMapping participantMetrics csvHeaders csvRows = do
         , skippedCols
         )
   where
-    checkDetermineMatch :: ([Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text) -> Int32 -> Either String (Maybe Text)
+    checkDetermineMatch :: ([Text] -> Vector CSV.NamedRecord -> Metric -> Maybe [Text]) -> Int32 -> Either String (Maybe [Text])
     checkDetermineMatch checker metricId = do
         case findMetric metricId of
             Just metric ->
@@ -121,96 +125,78 @@ checkDetermineMapping participantMetrics csvHeaders csvRows = do
                 Right Nothing
     findMetric :: Int32 -> Maybe Metric
     findMetric mid = find (\m -> metricId m == Id mid) participantMetrics
+  -}
 
-checkDetermineMatchId :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchId :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe [Text]
 checkDetermineMatchId hdrs rows _ =
     genericChecker hdrs "id"
 
-checkDetermineMatchInfo :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchInfo :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe [Text]
 checkDetermineMatchInfo hdrs rows _ =
     genericChecker hdrs "info"
 
-checkDetermineMatchDescription :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchDescription :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe [Text]
 checkDetermineMatchDescription hdrs rows _ =
     genericChecker hdrs "description"
 
-checkDetermineMatchBirthdate :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchBirthdate :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe [Text]
 checkDetermineMatchBirthdate hdrs rows _ =
     genericChecker hdrs "birthdate"
 
-checkDetermineMatchGender :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchGender :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe [Text]
 checkDetermineMatchGender hdrs rows _ =
     genericChecker hdrs "gender"
 
-checkDetermineMatchRace :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchRace :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe [Text]
 checkDetermineMatchRace hdrs rows _ =
     genericChecker hdrs "race"
 
-checkDetermineMatchEthnicity :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchEthnicity :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe [Text]
 checkDetermineMatchEthnicity hdrs rows _ =
     genericChecker hdrs "ethnicity"
 
-checkDetermineMatchGestationalAge :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchGestationalAge :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe [Text]
 checkDetermineMatchGestationalAge hdrs rows _ =
     genericChecker hdrs "gestationalage"
 
-checkDetermineMatchPregnancyTerm :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchPregnancyTerm :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe [Text]
 checkDetermineMatchPregnancyTerm hdrs rows _ =
     genericChecker hdrs "pregnancyterm"
 
-checkDetermineMatchBirthWeight :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchBirthWeight :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe [Text]
 checkDetermineMatchBirthWeight hdrs rows _ =
     genericChecker hdrs "birthweight"
 
-checkDetermineMatchDisability :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchDisability :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe [Text]
 checkDetermineMatchDisability hdrs rows _ =
     genericChecker hdrs "disability"
 
-checkDetermineMatchLanguage :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchLanguage :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe [Text]
 checkDetermineMatchLanguage hdrs rows _ =
     genericChecker hdrs "language"
 
-checkDetermineMatchCountry :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchCountry :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe [Text]
 checkDetermineMatchCountry hdrs rows _ =
     genericChecker hdrs "country"
 
-checkDetermineMatchState :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchState :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe [Text]
 checkDetermineMatchState hdrs rows _ =
     genericChecker hdrs "state"
 
-checkDetermineMatchSetting :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe Text
+checkDetermineMatchSetting :: [Text] -> Vector CSV.NamedRecord -> Metric -> Maybe [Text]
 checkDetermineMatchSetting hdrs rows _ =
     genericChecker hdrs "setting"
 
-genericChecker :: [Text] -> Text -> Maybe Text
+genericChecker :: [Text] -> Text -> Maybe [Text]
 genericChecker hdrs metricName =  -- TODO: case insensitive
-    if metricName `elem` hdrs then Just metricName else Nothing
+    if metricName `elem` hdrs then Just [metricName] else Nothing
 
-{-
-metricsToFieldMapping :: [Metric] -> ParticipantFieldMapping
-metricsToFieldMapping volParticipantMetrics =
-    ParticipantFieldMapping {
-        pfmId = getNameIfUsed 1
-      , pfmInfo = getNameIfUsed 2
-      , pfmDescription = getNameIfUsed 3
-      , pfmBirthdate = getNameIfUsed 4
-      , pfmGender = getNameIfUsed 5
-      , pfmRace = getNameIfUsed 6
-      , pfmEthnicity = getNameIfUsed 7
-      , pfmGestationalAge = getNameIfUsed 8
-      , pfmPregnancyTerm = getNameIfUsed 9
-      , pfmBirthWeight = getNameIfUsed 10
-      , pfmDisability = getNameIfUsed 11
-      , pfmLanguage = getNameIfUsed 12
-      , pfmCountry = getNameIfUsed 13
-      , pfmState = getNameIfUsed 14
-      , pfmSetting = getNameIfUsed 15
-      }
--}
-
-
-headerMappingJSON :: ParticipantFieldMapping -> [Text] -> [JSON.Value] -- TODO: Value or list of Value?
-headerMappingJSON headerMapping leftoverColumns =
+headerMappingJSON :: Map Text [Metric] -> [JSON.Value] -- TODO: Value or list of Value?
+headerMappingJSON columnCompatibleMetrics =
+    undefined
+    -- for each col
+    --    output object 
+{-  
     (catMaybes
         [ fieldToMaybeMapping pfmId "id"
         , fieldToMaybeMapping pfmInfo "info"
@@ -237,6 +223,7 @@ headerMappingJSON headerMapping leftoverColumns =
     skippedFieldInfo :: Text -> JSON.Value
     skippedFieldInfo colName = 
         JSON.object [ "csv_field" JSON..= colName, "compatible_metrics" JSON..= ([] :: [String]) ] -- TODO: add data_type
+-}
 
 data HeaderMappingEntry =
     HeaderMappingEntry {
