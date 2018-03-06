@@ -119,9 +119,8 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
                                     $      "csv_upload_id" JSON..= uploadFileName
                                         <> "column_samples" JSON..= extractSampleColumns 5 hdrs records
                                         <> "suggested_mapping" JSON..= headerMappingJSON columnCompatibleMetrics
-                -- TODO: more errors than missing columns
                 Left err -> do
-                    liftIO (print ("missing columns", err))
+                    liftIO (print ("failed to determine mapping", err))
                     -- if column check failed, then don't save csv file and response is error
                     pure (forbiddenResponse reqCtxt) -- place holder for error
 
