@@ -88,6 +88,7 @@ checkDetermineMapping participantActiveMetrics csvHeaders csvRows = do
     detectMatches :: Text -> [Metric]
     detectMatches hdr =
         let column = extractColumn (TE.encodeUtf8 hdr) csvRows
+        -- detect datatypes
         in detectMatches' hdr column participantActiveMetrics
     detectMatches' :: Text -> [BS.ByteString] -> [Metric] -> [Metric]
     detectMatches' hdr columnValues activeMetrics =

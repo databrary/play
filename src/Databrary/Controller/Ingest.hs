@@ -22,6 +22,7 @@ import qualified Data.Map as MAP
 import Data.Map (Map)
 import Data.Monoid ((<>))
 import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy.Encoding as TLE
 import qualified Data.Text.Lazy as TL
@@ -38,7 +39,7 @@ import Databrary.Model.Id
 import Databrary.Model.Permission
 import Databrary.Model.Volume
 import Databrary.Model.Container
-import Databrary.Model.Metric (ParticipantFieldMapping(..), Metric)
+import Databrary.Model.Metric (ParticipantFieldMapping(..), Metric(..))
 import Databrary.Model.VolumeMetric (lookupParticipantFieldMapping)
 import Databrary.Model.Record
 import Databrary.Model.Ingest -- (requiredColumnsPresent, headerMappingJSON, HeaderMappingEntry(..))
@@ -108,7 +109,6 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
             pure (forbiddenResponse reqCtxt)
         Right (hdrs, records) -> do
             participantMetrics <- lookupParticipantFieldMapping v
-            -- detect datatypes
             case checkDetermineMapping participantMetrics (getHeaders hdrs) records of
                 Right columnCompatibleMetrics -> do
                     liftIO (BS.writeFile ("/tmp/" ++ uploadFileName) uploadFileContents)
@@ -137,7 +137,8 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
         (uploadId :: String) <- "csv_upload_id" .:> deform
         mapping <- "selected_mapping" .:> deform
         pure (uploadId, mapping)
-    let eMpngs = JSON.parseEither parseMapping selectedMapping
+    participantActiveMetrics <- lookupParticipantFieldMapping v
+    let eMpngs = JSON.parseEither (parseMapping participantActiveMetrics) selectedMapping
     liftIO $ print ("upload id", csvUploadId, "mapping", eMpngs)
     -- TODO: resolve csv id to absolute path; http error if unknown
     uploadFileContents <- (liftIO . BS.readFile) ("/tmp/" ++ csvUploadId)
@@ -145,6 +146,7 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
         Left err ->
             pure (forbiddenResponse reqCtxt) -- TODO: better error
         Right (hdrs, records) -> do
+            -- TODO: validate mappings against allowed/detected data types
             let Right mpngs = eMpngs -- TODO: handle either above
             eRes <- (liftIO . runImport records) mpngs
             pure
@@ -153,16 +155,40 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
                         $ JSON.Record vi $ "succeeded" JSON..= True
 
 -- TODO: unit tests
-parseMapping :: JSON.Value -> JSON.Parser ParticipantFieldMapping -- TODO: take record description
-parseMapping val = do
+parseMapping :: [Metric] -> JSON.Value -> JSON.Parser ParticipantFieldMapping -- TODO: split into simple parser + validator
+parseMapping participantActiveMetrics val = do
     (entries :: [HeaderMappingEntry]) <- JSON.parseJSON val
     let metricField :: Map Text Text
         metricField = (MAP.fromList . fmap (\e -> (hmeMetricName e, hmeCsvField e))) entries
-    participantMapping <-
-        case MAP.lookup "id" metricField of
-            Just csvField -> pure (mkFieldMapping csvField)
-            Nothing -> fail "missing participant metric 'ID'"
-    pure participantMapping
+    ParticipantFieldMapping
+        <$> getFieldIfUsed "id" metricField
+        <*> getFieldIfUsed "info" metricField
+        <*> getFieldIfUsed "description" metricField
+        <*> getFieldIfUsed "birthdate" metricField
+        <*> getFieldIfUsed "gender" metricField
+        <*> getFieldIfUsed "race" metricField
+        <*> getFieldIfUsed "ethnicity" metricField
+        <*> getFieldIfUsed "gestationalage" metricField
+        <*> getFieldIfUsed "pregnancyterm" metricField
+        <*> getFieldIfUsed "birthweight" metricField
+        <*> getFieldIfUsed "disability" metricField
+        <*> getFieldIfUsed "language" metricField
+        <*> getFieldIfUsed "country" metricField
+        <*> getFieldIfUsed "state" metricField
+        <*> getFieldIfUsed "setting" metricField
+  where
+    getFieldIfUsed :: Text -> Map Text Text -> JSON.Parser (Maybe Text)
+    getFieldIfUsed metricSymbolicName metricField =
+        case findMetricBySymbolicName metricSymbolicName of
+            Just metric ->
+                case MAP.lookup metricSymbolicName metricField of
+                    Just csvField -> pure (Just csvField)
+                    Nothing -> fail "missing expected participant metric" -- TODO: name metric
+            Nothing ->
+                fail "couldn't resolve metric definition"
+    findMetricBySymbolicName :: Text -> Maybe Metric
+    findMetricBySymbolicName symbolicName =
+        L.find (\m -> (T.toLower . metricName) m == symbolicName) participantActiveMetrics
 
 mkFieldMapping :: Text -> ParticipantFieldMapping
 mkFieldMapping field =
