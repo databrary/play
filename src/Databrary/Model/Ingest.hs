@@ -95,13 +95,13 @@ checkDetermineMapping participantActiveMetrics csvHeaders csvRows = do
 
 columnMetricCompatible :: Text -> [BS.ByteString] -> Metric -> Bool
 columnMetricCompatible hdr columnValues metric =
-    metricName metric == T.toLower hdr
+    T.toLower (metricName metric) == T.toLower hdr
 
 headerMappingJSON :: Map Text [Metric] -> [JSON.Value] -- TODO: Value or list of Value?
 headerMappingJSON columnCompatibleMetrics =
     ( (fmap
           (\(colName, metrics) ->
-               JSON.object [ "csv_field" JSON..= colName, "compatible_metrics" JSON..= (fmap metricName metrics) ]))
+               JSON.object [ "csv_field" JSON..= colName, "compatible_metrics" JSON..= (fmap (T.toLower . metricName) metrics) ]))
     . MAP.toList )
       columnCompatibleMetrics
 
