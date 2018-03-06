@@ -191,27 +191,6 @@ parseMapping participantActiveMetrics val = do
     findMetricBySymbolicName symbolicName =
         L.find (\m -> (T.filter (/= ' ') . T.toLower . metricName) m == symbolicName) participantActiveMetrics
 
-mkFieldMapping :: Text -> ParticipantFieldMapping
-mkFieldMapping field =
-    ParticipantFieldMapping {
-          pfmId = Just field
-        , pfmInfo = Nothing
-        , pfmDescription = Nothing
-        , pfmBirthdate = Nothing
-        , pfmGender = Nothing
-        , pfmRace = Nothing
-        , pfmEthnicity = Nothing
-        , pfmGestationalAge = Nothing
-        , pfmPregnancyTerm = Nothing
-        , pfmBirthWeight = Nothing
-        , pfmDisability = Nothing
-        , pfmLanguage = Nothing
-        , pfmCountry = Nothing
-        , pfmState = Nothing
-        , pfmSetting = Nothing
-        }
-
-
 runImport :: V.Vector CSV.NamedRecord -> ParticipantFieldMapping -> IO (V.Vector ()) -- TODO: error or count
 runImport records mapping =
     mapM
@@ -235,38 +214,6 @@ sampleColumnJson maxSamples hdr columnValues =
             "column_name" JSON..= hdr
           , "samples" JSON..= uniqueSamples
           ]
-{-
-participantJson :: Map Text [Metric] -> CSV.NamedRecord -> JSON.Value
-participantJson mapping record =
-  JSON.object []
-  {-
-    JSON.object
-        (catMaybes
-            [ fieldToMaybePair pfmId (Just . id)
-            , fieldToMaybePair pfmInfo (Just . id)
-            , fieldToMaybePair pfmDescription (Just . id)
-            , fieldToMaybePair pfmBirthdate (Just . id)
-            , fieldToMaybePair pfmGender (Just . id)
-            , fieldToMaybePair pfmRace (Just . id)
-            , fieldToMaybePair pfmEthnicity (Just . id)
-            , fieldToMaybePair pfmGestationalAge (Just . id)
-            , fieldToMaybePair pfmPregnancyTerm (Just . id)
-            , fieldToMaybePair pfmBirthWeight (Just . id)
-            , fieldToMaybePair pfmDisability (Just . id)
-            , fieldToMaybePair pfmLanguage (Just . id)
-            , fieldToMaybePair pfmCountry (Just . id)
-            , fieldToMaybePair pfmState (Just . id)
-            , fieldToMaybePair pfmSetting (Just . id)
-            ])
-  where
-    fieldToMaybePair :: JSON.ToJSON a => (ParticipantFieldMapping -> Maybe Text) -> (BSC.ByteString -> Maybe a) -> Maybe JSON.Pair
-    fieldToMaybePair getField extractValue = do
-        colName <- getField mapping
-        fieldVal <- HMP.lookup (TE.encodeUtf8 colName) record -- TODO: error
-        extractedFieldVal <- extractValue fieldVal -- TODO: error
-        pure (colName JSON..= extractedFieldVal)
-  -}
--}
 
 createRecord :: ParticipantFieldMapping -> CSV.NamedRecord -> IO () -- TODO: error or record
 createRecord mapping csvRecord = do
