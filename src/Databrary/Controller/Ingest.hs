@@ -168,9 +168,9 @@ parseMapping participantActiveMetrics val = do
         <*> getFieldIfUsed "gender" metricField
         <*> getFieldIfUsed "race" metricField
         <*> getFieldIfUsed "ethnicity" metricField
-        <*> getFieldIfUsed "gestationalage" metricField
-        <*> getFieldIfUsed "pregnancyterm" metricField
-        <*> getFieldIfUsed "birthweight" metricField
+        <*> getFieldIfUsed "gestationalage" metricField  -- space
+        <*> getFieldIfUsed "pregnancyterm" metricField  -- space
+        <*> getFieldIfUsed "birthweight" metricField  -- space
         <*> getFieldIfUsed "disability" metricField
         <*> getFieldIfUsed "language" metricField
         <*> getFieldIfUsed "country" metricField
@@ -185,10 +185,10 @@ parseMapping participantActiveMetrics val = do
                     Just csvField -> pure (Just csvField)
                     Nothing -> fail "missing expected participant metric" -- TODO: name metric
             Nothing ->
-                fail "couldn't resolve metric definition"
+                pure Nothing
     findMetricBySymbolicName :: Text -> Maybe Metric
     findMetricBySymbolicName symbolicName =
-        L.find (\m -> (T.toLower . metricName) m == symbolicName) participantActiveMetrics
+        L.find (\m -> (T.filter (/= ' ') . T.toLower . metricName) m == symbolicName) participantActiveMetrics
 
 mkFieldMapping :: Text -> ParticipantFieldMapping
 mkFieldMapping field =
