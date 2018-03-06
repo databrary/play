@@ -193,37 +193,11 @@ genericChecker hdrs metricName =  -- TODO: case insensitive
 
 headerMappingJSON :: Map Text [Metric] -> [JSON.Value] -- TODO: Value or list of Value?
 headerMappingJSON columnCompatibleMetrics =
-    undefined
-    -- for each col
-    --    output object 
-{-  
-    (catMaybes
-        [ fieldToMaybeMapping pfmId "id"
-        , fieldToMaybeMapping pfmInfo "info"
-        , fieldToMaybeMapping pfmDescription "description"
-        , fieldToMaybeMapping pfmBirthdate "birthdate"
-        , fieldToMaybeMapping pfmGender "gender"
-        , fieldToMaybeMapping pfmRace "race"
-        , fieldToMaybeMapping pfmEthnicity "ethnicity"
-        , fieldToMaybeMapping pfmGestationalAge "gestationalAge"
-        , fieldToMaybeMapping pfmPregnancyTerm "pregnancyTerm"
-        , fieldToMaybeMapping pfmBirthWeight "birthWeight"
-        , fieldToMaybeMapping pfmDisability "disability"
-        , fieldToMaybeMapping pfmLanguage "language"
-        , fieldToMaybeMapping pfmCountry "country"
-        , fieldToMaybeMapping pfmState "state"
-        , fieldToMaybeMapping pfmSetting "setting"
-        ]
-     ++ (fmap skippedFieldInfo leftoverColumns))
-  where
-    fieldToMaybeMapping :: (ParticipantFieldMapping -> Maybe Text) -> String -> Maybe JSON.Value
-    fieldToMaybeMapping getField fieldMetricName = do
-        colName <- getField headerMapping
-        pure (JSON.object [ "csv_field" JSON..= colName, "compatible_metrics" JSON..= [fieldMetricName] ]) -- TODO: add data_type
-    skippedFieldInfo :: Text -> JSON.Value
-    skippedFieldInfo colName = 
-        JSON.object [ "csv_field" JSON..= colName, "compatible_metrics" JSON..= ([] :: [String]) ] -- TODO: add data_type
--}
+    ( (fmap
+          (\(colName, metrics) ->
+               JSON.object [ "csv_field" JSON..= colName, "compatible_metrics" JSON..= (fmap metricName metrics) ]))
+    . MAP.toList )
+      columnCompatibleMetrics
 
 data HeaderMappingEntry =
     HeaderMappingEntry {
