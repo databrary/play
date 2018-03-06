@@ -105,7 +105,7 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
         Left err -> do
             liftIO (print ("csv parse error", err))
             pure (forbiddenResponse reqCtxt)
-        Right (hdrs, records) -> do -- vol -> participantMetrics; metrics hdrs records -> (fieldMapping, leftovers)
+        Right (hdrs, records) -> do
             participantMetrics <- lookupParticipantFieldMapping v
             -- detect datatypes
             case checkDetermineMapping participantMetrics (getHeaders hdrs) records of

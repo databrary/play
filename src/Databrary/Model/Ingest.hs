@@ -233,10 +233,10 @@ headerMappingJSON headerMapping leftoverColumns =
     fieldToMaybeMapping :: (ParticipantFieldMapping -> Maybe Text) -> String -> Maybe JSON.Value
     fieldToMaybeMapping getField fieldMetricName = do
         colName <- getField headerMapping
-        pure (JSON.object [ "csv_field" JSON..= colName, "metric" JSON..= fieldMetricName ]) -- TODO: add data_type
+        pure (JSON.object [ "csv_field" JSON..= colName, "compatible_metrics" JSON..= [fieldMetricName] ]) -- TODO: add data_type
     skippedFieldInfo :: Text -> JSON.Value
     skippedFieldInfo colName = 
-        JSON.object [ "csv_field" JSON..= colName, "metric" JSON..= (Nothing :: Maybe Text) ] -- TODO: add data_type
+        JSON.object [ "csv_field" JSON..= colName, "compatible_metrics" JSON..= ([] :: [String]) ] -- TODO: add data_type
 
 data HeaderMappingEntry =
     HeaderMappingEntry {
