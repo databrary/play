@@ -137,15 +137,15 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
         (uploadId :: String) <- "csv_upload_id" .:> deform
         mapping <- "selected_mapping" .:> deform
         pure (uploadId, mapping)
-    participantActiveMetrics <- lookupParticipantFieldMapping v
-    let eMpngs = JSON.parseEither (parseMapping participantActiveMetrics) selectedMapping
-    liftIO $ print ("upload id", csvUploadId, "mapping", eMpngs)
     -- TODO: resolve csv id to absolute path; http error if unknown
     uploadFileContents <- (liftIO . BS.readFile) ("/tmp/" ++ csvUploadId)
     case ATTO.parseOnly (CSVP.csvWithHeader CSVP.defaultDecodeOptions) uploadFileContents of
         Left err ->
             pure (forbiddenResponse reqCtxt) -- TODO: better error
         Right (hdrs, records) -> do
+            participantActiveMetrics <- lookupParticipantFieldMapping v
+            let eMpngs = JSON.parseEither (parseMapping participantActiveMetrics) selectedMapping
+            liftIO $ print ("upload id", csvUploadId, "mapping", eMpngs)
             -- TODO: validate mappings against allowed/detected data types
             let Right mpngs = eMpngs -- TODO: handle either above
             eRes <- (liftIO . runImport records) mpngs
@@ -155,6 +155,7 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
                         $ JSON.Record vi $ "succeeded" JSON..= True
 
 -- TODO: unit tests
+-- TODO: validator should also ensure each col mentioned is a real column
 parseMapping :: [Metric] -> JSON.Value -> JSON.Parser ParticipantFieldMapping -- TODO: split into simple parser + validator
 parseMapping participantActiveMetrics val = do
     (entries :: [HeaderMappingEntry]) <- JSON.parseJSON val
