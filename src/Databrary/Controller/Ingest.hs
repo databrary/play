@@ -215,18 +215,36 @@ sampleColumnJson maxSamples hdr columnValues =
           , "samples" JSON..= uniqueSamples
           ]
 
+-- validated records instead of namedrecord? use Participant type?
 createRecord :: ParticipantFieldMapping -> CSV.NamedRecord -> IO () -- TODO: error or record
 createRecord mapping csvRecord = do
-     -- record <- makeRecord
-     -- for each field
-     case pfmId mapping of --     metricId = getId name
-         Just idCol ->
-             case HMP.lookup (TE.encodeUtf8 idCol) csvRecord of
-                 Just fieldVal ->
-                     -- getCSVField row field
-                     print ("save measure", "ID", fieldVal)
-                 Nothing ->
-                     pure () -- TODO: error, impossible?
-         Nothing ->
-             pure () -- field isn't used by this volume, so don't need to save the measure
-     pure ()
+    -- record <- makeRecord
+    let mId = getFieldVal pfmId
+        mInfo = getFieldVal pfmInfo
+        mDescription = getFieldVal pfmDescription
+        mBirthdate = getFieldVal pfmBirthdate
+        mGender = getFieldVal pfmGender
+        mEthnicity = getFieldVal pfmEthnicity
+        mGestationalAge = getFieldVal pfmGestationalAge
+        mPregnancyTerm = getFieldVal pfmPregnancyTerm
+        mBirthWeight = getFieldVal pfmBirthWeight
+        mDisability = getFieldVal pfmDisability
+        mLanguage = getFieldVal pfmLanguage
+        mCountry = getFieldVal pfmCountry
+        mState = getFieldVal pfmState
+        mSetting = getFieldVal pfmSetting
+    pure ()
+  where
+    getFieldVal :: (ParticipantFieldMapping -> Maybe Text) -> Maybe BS.ByteString
+    getFieldVal extractColumnName =
+        case extractColumnName mapping of
+            Just columnName ->
+                case HMP.lookup (TE.encodeUtf8 columnName) csvRecord of
+                    Just fieldVal ->
+                        pure fieldVal
+                        -- print ("save measure", "ID", fieldVal)
+                    Nothing -> do
+                        -- print ("couldn't find col", idCol)
+                        Nothing -- TODO: error ... impossible?
+            Nothing ->
+                Nothing -- field isn't used by this volume, so don't need to save the measure
