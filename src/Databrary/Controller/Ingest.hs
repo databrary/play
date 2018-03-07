@@ -239,6 +239,19 @@ createRecord participantActiveMetrics vol mapping csvRecord = do
         mSetting = getFieldVal pfmSetting "setting"
     -- print ("save measure id:", mId)
     changeRecordMeasureIfUsed record mId
+    changeRecordMeasureIfUsed record mInfo
+    changeRecordMeasureIfUsed record mDescription
+    changeRecordMeasureIfUsed record mBirthdate
+    changeRecordMeasureIfUsed record mGender
+    changeRecordMeasureIfUsed record mEthnicity
+    changeRecordMeasureIfUsed record mGestationalAge
+    changeRecordMeasureIfUsed record mPregnancyTerm
+    changeRecordMeasureIfUsed record mBirthWeight
+    changeRecordMeasureIfUsed record mDisability
+    changeRecordMeasureIfUsed record mLanguage
+    changeRecordMeasureIfUsed record mCountry
+    changeRecordMeasureIfUsed record mState
+    changeRecordMeasureIfUsed record mSetting
   where
     getFieldVal :: (ParticipantFieldMapping -> Maybe Text) -> Text -> Maybe (BS.ByteString, Metric)
     getFieldVal extractColumnName metricSymbolicName =
@@ -257,4 +270,7 @@ createRecord participantActiveMetrics vol mapping csvRecord = do
         (fromJust . L.find (\m -> (T.filter (/= ' ') . T.toLower . metricName) m == symbolicName)) participantActiveMetrics
     changeRecordMeasureIfUsed :: Record -> Maybe (BS.ByteString, Metric) -> ActionM ()
     changeRecordMeasureIfUsed record mValueMetric =
-        maybe (pure ()) (\(val, met) -> void (changeRecordMeasure (Measure record met val))) mValueMetric
+        maybe
+          (pure ())
+          (\(val, met) -> void (changeRecordMeasure (Measure record met val)))
+          mValueMetric
