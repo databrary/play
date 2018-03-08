@@ -962,7 +962,7 @@ INSERT INTO party (id, prename, sortname, affiliation) VALUES (3, 'Lisa', 'Steig
 INSERT INTO party (id, prename, sortname, affiliation) VALUES (5, 'Karen', 'Adolph', 'New York University');
 INSERT INTO party (id, prename, sortname, affiliation) VALUES (6, 'Rick', 'Gilmore', 'Penn State University');
 INSERT INTO party (id, prename, sortname, affiliation) VALUES (7, 'Testarosa', 'Tesla', 'Carnegie Melon');
-SELECT setval('party_id_seq', 6);
+SELECT setval('party_id_seq', 7);
 
 INSERT INTO account (id, email, password) VALUES (1, 'admin@databrary.org', '$2a$12$mMp6Qflw72NkK/x.8xgni.Z/S8ajjWezMoylHI0Yo0nkAq5J/Dm5y');
 INSERT INTO account (id, email, openid) VALUES (3, 'lisa@databrary.org', NULL);
