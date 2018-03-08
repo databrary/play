@@ -43,6 +43,7 @@ import Databrary.Model.Measure
 import Databrary.Model.Metric (ParticipantFieldMapping(..), Metric(..))
 import Databrary.Model.VolumeMetric (lookupParticipantFieldMapping)
 import Databrary.Model.Record
+import Databrary.Model.Category
 import Databrary.Model.Ingest -- (requiredColumnsPresent, headerMappingJSON, HeaderMappingEntry(..))
 import Databrary.Ingest.Action
 import Databrary.Ingest.JSON
@@ -221,7 +222,7 @@ sampleColumnJson maxSamples hdr columnValues =
 createRecord :: [Metric] -> Volume -> ParticipantFieldMapping -> CSV.NamedRecord -> ActionM () -- TODO: error or record
 createRecord participantActiveMetrics vol mapping csvRecord = do
     -- TODO: ingestRecord instead of record
-    let participantCategory = undefined
+    let participantCategory = getCategory' (Id 1) -- TODO: use global variable
     record <- addRecord (blankRecord participantCategory vol)
     let mId = getFieldVal pfmId "id"
         mInfo = getFieldVal pfmInfo "info"
