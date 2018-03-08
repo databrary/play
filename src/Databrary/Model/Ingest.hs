@@ -78,12 +78,13 @@ extractColumn hdr records =
 -- verify that all expected columns are present, with some leniency
 -- left if not enough columns or other mismatch
 -- TODO: use abstract type instead of CSV's NamedRecord?
-checkDetermineMapping :: [Metric] -> [Text] -> Vector CSV.NamedRecord -> Either String (Map Text [Metric])
+checkDetermineMapping :: [Metric] -> [Text] -> Vector CSV.NamedRecord -> Either String (Map Metric [Text])
 checkDetermineMapping participantActiveMetrics csvHeaders csvRows = do
-    let pairs = (zip csvHeaders . fmap detectMatches) csvHeaders
-        columnCompatibleMetrics = MAP.fromList pairs
+    let pairs :: [(Text, [Metric])] -- TODO: compute in reverse
+        pairs = (zip csvHeaders . fmap detectMatches) csvHeaders
+        metricCompatibleColumns = buildReverseMap participantActiveMetrics pairs
     -- TODO: check for unsolvable matchings (column with no metrics; two columns with only 1 solution)..Its a CSP!
-    pure columnCompatibleMetrics
+    pure metricCompatibleColumns
   where
     detectMatches :: Text -> [Metric]
     detectMatches hdr =
@@ -93,20 +94,27 @@ checkDetermineMapping participantActiveMetrics csvHeaders csvRows = do
     detectMatches' :: Text -> [BS.ByteString] -> [Metric] -> [Metric]
     detectMatches' hdr columnValues activeMetrics =
         filter (columnMetricCompatible hdr columnValues) activeMetrics
+    buildReverseMap :: [Metric] -> [(Text, [Metric])] -> Map Metric [Text]
+    buildReverseMap activeMetrics colMetrics =
+        (MAP.fromList . zip activeMetrics . fmap (\m -> getColumns m colMetrics)) activeMetrics
+    getColumns :: Metric -> [(Text, [Metric])] -> [Text]
+    getColumns m colMetrics =
+        (fmap (\(col, metrics) -> col) . filter (\(col, metrics) -> m `elem` metrics)) colMetrics
 
 columnMetricCompatible :: Text -> [BS.ByteString] -> Metric -> Bool
 columnMetricCompatible hdr columnValues metric =
     (T.filter (/= ' ') . T.toLower . metricName) metric == T.toLower hdr
 
-headerMappingJSON :: Map Text [Metric] -> [JSON.Value] -- TODO: Value or list of Value?
-headerMappingJSON columnCompatibleMetrics =
+headerMappingJSON :: Map Metric [Text] -> [JSON.Value] -- TODO: Value or list of Value?
+headerMappingJSON metricCompatibleColumns =
     ( (fmap
-          (\(colName, metrics) ->
+          (\(metric, colNames) ->
                JSON.object
-                   [ "csv_field" JSON..= colName
-                   , "compatible_metrics" JSON..= (fmap (T.filter (/= ' ') . T.toLower . metricName) metrics) ]))
+                   [ "metric" JSON..= (T.filter (/= ' ') . T.toLower . metricName) metric
+                   , "compatible_csv_fields" JSON..= colNames
+                   ]))
     . MAP.toList )
-      columnCompatibleMetrics
+      metricCompatibleColumns
 
 data HeaderMappingEntry =
     HeaderMappingEntry {
