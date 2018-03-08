@@ -436,7 +436,8 @@ app.factory('modelService', [
       publicaccess: false,
       publicsharefull: false,
       suggested_mapping: false,
-      csv_upload_id: false
+      csv_upload_id: false,
+      column_samples: false,
       // consumers: false,
       // producers: false,
     };
@@ -478,6 +479,8 @@ app.factory('modelService', [
         this.suggested_mapping = init.suggested_mapping
       if ('csv_upload_id' in init)
         this.csv_upload_id = init.csv_upload_id
+      if ('column_samples' in init)
+        this.column_samples = init.column_samples
     };
 
     function volumeMake(init) {

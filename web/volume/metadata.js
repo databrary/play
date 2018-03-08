@@ -16,7 +16,6 @@ app.directive('metadataForm', [
           data.append('file', form.data.metadata[0]);
           form.$setSubmitted();
           return volume.detectcsv(data).then(function() {
-            $('metadata-form').hide();
             $('metadata-match-form').show();
             form.validator.server({});
             messages.add({
@@ -25,7 +24,16 @@ app.directive('metadataForm', [
               owner: form
             });
             form.$setPristine();
-            volume.selected_mapping = volume.suggested_mapping;
+            var selected_mapping_array = [];
+            for (var i = 0; i < volume.suggested_mapping.length; i++) {
+              if(volume.suggested_mapping[i].compatible_csv_fields[0]){
+                selected_mapping_array.push({"metric": volume.suggested_mapping[i].metric, "csv_field": volume.suggested_mapping[i].compatible_csv_fields[0]})
+              }
+            }
+            volume.selected_mapping = selected_mapping_array;
+            if(volume.selected_mapping.length === volume.suggested_mapping.length){
+              $('metadata-form').hide();
+            }
           }, function(res) {
             form.$setUnsubmitted();
             form.validator.server(res);
@@ -63,6 +71,7 @@ app.directive('metadataMatchForm', [
               owner: form
             });
             form.$setPristine();
+            $scope.skiptrue = false;
           }, function(res) {
             form.$setUnsubmitted();
             form.validator.server(res);
@@ -73,17 +82,8 @@ app.directive('metadataMatchForm', [
             });
           });
         };
-        $scope.skip = function(metric){
-          $('.skip-text').show();
-          $('.repeat-card > *').not('.skip-text').hide();
-          volume.selected_mapping = volume.selected_mapping.filter(function( obj ) {
-            return obj.metric !== metric;
-          });
-          form.save();
-        }
-        $scope.edit = function(){
-          $('.skip-text').hide();
-          $('.repeat-card > *').not('.skip-text').show();
+        $scope.skip = function(){
+          $scope.skiptrue = true;
         }
       }
     };

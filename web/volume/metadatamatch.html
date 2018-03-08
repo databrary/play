@@ -1,23 +1,40 @@
 <ng-form name="metadataMatchForm">
-  <div ng-repeat="x in volume.selected_mapping track by $index" class="repeat-card">
-    <span class=>Match <strong>{{x.csv_field}}</strong> to the following column name</span>
-    <span class="skip-text">
-      <strong>{{x.csv_field}}</strong> will not be imported
-      <br />
-      <br />
-      <a ng-click="edit()">
-        Edit
-      </a>
-    </span>
-    <select name="{{x.csv_field}}" ng-model="x.metric">
-    	<option value="">Please select</option>
-    	<option ng-repeat="y in volume.selected_mapping track by $index" value="{{y.metric}}">{{y.metric}}</option>
-    </select>
-  	<button class="green" ng-click="metadataMatchForm.save()">
-  	    Save
-  	</button>
-  	<a ng-click="skip(x.metric);">
-  	    Skip
-  	</a>
+  <div ng-if="volume.selected_mapping.length === volume.suggested_mapping.length">
+    We've detected the following match.
+    <table>
+      <tr>
+        <th>Databrary field</th>
+        <th ng-repeat="x in volume.selected_mapping track by $index">
+          <span ng-if="x.metric === 'id'">{{x.metric | uppercase}}</span>
+          <span ng-if="x.metric !== 'id'">{{x.metric}}</span>
+        </th>
+      </tr>
+      <tr>
+        <th>Your CSV field</th>
+        <td ng-repeat="x in volume.selected_mapping track by $index">
+          <span>{{x.csv_field}}</span>
+        </td>
+      </tr>
+      <tr>
+        <th>Your CSV sample data</th>
+        <td ng-repeat="x in volume.selected_mapping track by $index">
+          <span ng-repeat="y in volume.column_samples track by $index" ng-if="y.column_name === x.metric">{{y.samples.join(', ')}}</span>
+        </td>
+      </tr>
+    </table>
+    <div>
+      Do you accept this match?
+      <div class="margin-top">
+        <button class="green" ng-click="metadataMatchForm.save()">
+            Yes
+        </button>
+        <a ng-click="skip();">
+            No
+        </a>
+      </div>
+    </div>
+  </div>
+  <div ng-if="volume.selected_mapping.length !== volume.suggested_mapping.length || skiptrue">
+    We were unable to match the data in your .csv file to the appropriate Databrary fields. Please return to the Design Spreadsheet tab and be sure that your .csv includes all of the fields you selected, and is labeled and formatted appropriately.
   </div>
 </ng-form>
