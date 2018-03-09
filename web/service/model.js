@@ -438,6 +438,7 @@ app.factory('modelService', [
       suggested_mapping: false,
       csv_upload_id: false,
       column_samples: false,
+      columns_firstvals: false,
       // consumers: false,
       // producers: false,
     };
@@ -481,6 +482,8 @@ app.factory('modelService', [
         this.csv_upload_id = init.csv_upload_id
       if ('column_samples' in init)
         this.column_samples = init.column_samples
+      if ('columns_firstvals' in init)
+        this.columns_firstvals = init.columns_firstvals
     };
 
     function volumeMake(init) {

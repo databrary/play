@@ -48,6 +48,14 @@ app.directive('metadataForm', [
             if(volume.selected_mapping.length === volume.suggested_mapping.length){
               $('metadata-form').hide();
             }
+            for (var i = 0; i < volume.column_samples.length; i++) {
+              for (var j = 0; j < volume.column_samples[i].samples.length; j++) {
+                if(volume.column_samples[i].samples[j] === "") {
+                  volume.column_samples[i].samples[j] = "null";
+                  $('.nulltext').show();
+                }
+              }
+            }
           }, function(res) {
             form.$setUnsubmitted();
             form.validator.server(res);
