@@ -121,6 +121,7 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
                                     $      "csv_upload_id" JSON..= uploadFileName
                                         <> "column_samples" JSON..= extractSampleColumns 5 hdrs records
                                         <> "suggested_mapping" JSON..= headerMappingJSON columnCompatibleMetrics
+                                        <> "columns_firstvals" JSON..= extractColumnsFirstVals 5 hdrs records
                 Left err -> do
                     liftIO (print ("failed to determine mapping", err))
                     -- if column check failed, then don't save csv file and response is error
@@ -200,18 +201,26 @@ runImport activeMetrics vol records mapping =
         (\record -> createRecord activeMetrics vol mapping record)
         records
 
-extractSampleColumns :: Int -> CSV.Header -> V.Vector CSV.NamedRecord -> [JSON.Value]
-extractSampleColumns maxSamples hdrs records =
-    (V.toList . fmap (\hdr -> sampleColumnJson maxSamples hdr (extractColumn hdr))) hdrs
+extractColumnsFirstVals :: Int -> CSV.Header -> V.Vector CSV.NamedRecord -> [JSON.Value] -- TODO: duplicated
+extractColumnsFirstVals maxRows hdrs records =
+    (V.toList . fmap (\hdr -> sampleColumnJson False maxRows hdr (extractColumn hdr))) hdrs
   where
     extractColumn :: BS.ByteString -> [Maybe BS.ByteString]  -- Should error out if receive nothing
     extractColumn hdr = 
         V.toList (fmap (\rowMap -> HMP.lookup hdr rowMap) records)
 
-sampleColumnJson :: Int -> BS.ByteString -> [Maybe BS.ByteString] -> JSON.Value
-sampleColumnJson maxSamples hdr columnValues =
+extractSampleColumns :: Int -> CSV.Header -> V.Vector CSV.NamedRecord -> [JSON.Value]
+extractSampleColumns maxSamples hdrs records =
+    (V.toList . fmap (\hdr -> sampleColumnJson True maxSamples hdr (extractColumn hdr))) hdrs
+  where
+    extractColumn :: BS.ByteString -> [Maybe BS.ByteString]  -- Should error out if receive nothing
+    extractColumn hdr = 
+        V.toList (fmap (\rowMap -> HMP.lookup hdr rowMap) records)
+
+sampleColumnJson :: Bool -> Int -> BS.ByteString -> [Maybe BS.ByteString] -> JSON.Value
+sampleColumnJson useDistinct maxSamples hdr columnValues =
     let
-        uniqueSamples = (take maxSamples . L.nub . fmap (maybe "" id)) columnValues
+        uniqueSamples = (take maxSamples . (if useDistinct then L.nub else fmap id) . fmap (maybe "" id)) columnValues
     in
         JSON.object [
             "column_name" JSON..= hdr
