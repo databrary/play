@@ -3,9 +3,13 @@
     <span class="icon upload"></span> <span>participant metadata</span>
   </button>
   <input type="file" name="metadata" accept=".csv" file-model="metadataForm.data.metadata">
-  <button class="white uploadsubmit" ng-click="metadataForm.save()">
-    <span class="icon upload"></span> <span class="filename">participant metadata</span>
-  </button>
+  <div class="white uploadsubmit">
+    <span>Upload <span class="filename"></span>?</span>
+    <div class="margin-top">
+      <button class="green" ng-click="metadataForm.save()">Yes</button>
+      <a class="showinstruct">No, upload another file</a>
+    </div>
+  </div>
 </ng-form>
 <ul>
   <li>
