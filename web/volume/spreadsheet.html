@@ -1,4 +1,4 @@
-<div ng-if="::editing" class="div-grey">Changes are saved automatically</div>
+<div ng-if="::editing" class="div-grey">Changes are saved automatically.</div>
 <p ng-if="::editing">See our <a href="/asset/formats">list of accepted file types</a>.</p>
 <ng-form name="form">
 <div class="spreadsheet-dynamic-info" ng-if="::editing">
@@ -41,12 +41,16 @@
   <div class="inline-block spreadsheet-switch-view">
     Summarize by: &nbsp;
     <ul class="flat spreadsheet-tab-options">
-      <li ng-repeat="c in views track by c.id" ng-click="setKey(c.id)" ng-class="c.name == key.name ? 'spreadsheet-tab-option clickable selected': 'spreadsheet-tab-option clickable'">
+      <li ng-repeat="c in views track by c.id" ng-click="setKey(c.id)" class="spreadsheet-tab-option clickable" ng-class="{selected: $first}">
         <span ng-bind="::c.name"></span>
       </li>
     </ul>
   </div>
-  <div class="small reminder top-2">
+  <div class="spreadsheet-metadata" ng-if="filter.key === 1">
+    <metadata-form></metadata-form>
+    <metadata-match-form ng-model="data"></metadata-match-form>
+  </div>
+  <div class="small reminder top-2" ng-class="'margin' + filter.key">
     <span ng-if="!anyGlobal">You can view your data aggregated by participant, task, context...whatever options you have selected in the Design Spreadsheet tab.</span>
     <span ng-if="anyGlobal">Some categories are {{showGlobal ? 'shown': 'hidden'}}. <button class="link" ng-click="showHideGlobal()">Click to {{showGlobal ? 'hide all' : 'show all'}}.</button> </span><br>
   </div>

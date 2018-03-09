@@ -359,7 +359,16 @@ app.directive 'spreadsheet', [
             }
           $scope.cols = Cols
           $scope.views = all
-          $scope.views.unshift(pseudoCategory.slot)
+          partindex = false
+          i = 0
+          while i < $scope.views.length
+            if $scope.views[i].name == 'participant'
+              partindex = true
+            i++
+          if partindex == false
+            $scope.views.unshift pseudoCategory.slot
+          else
+            $scope.views.splice 1, 0, pseudoCategory.slot
           return
 
         populateSlotData = (s) ->
@@ -547,7 +556,6 @@ app.directive 'spreadsheet', [
             if width > 1
               td.setAttribute("colspan", width-1)
               td.classList.add('prompt')
-              console.log(info.c)
               td.appendChild(document.createTextNode("\u2190 add " + info.category.name)) if info.c != 'slot'
             else
               info.tr.removeChild(td)
@@ -1530,6 +1538,8 @@ app.directive 'spreadsheet', [
       state = storage.getValue('spreadsheet-state')
       state = undefined unless state?.volume == $scope.volume.id
       $scope.state.restore($attrs.key || $location.search().key, state)
+      # show the first tab on angular load
+      $scope.setKey($scope.views[0].id)
       $scope.$on '$destroy', ->
         state = $scope.state.get()
         state.volume = $scope.volume.id
