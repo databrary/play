@@ -55,6 +55,46 @@ let
     cabal configure --datadir=. --datasubdir=.
     cabal repl lib:databrary
   '';
+  ghciDatabraryInttest = writeScriptBin "ghci-databrary-inttest" ''
+    if [ ! -d "solr-6.6.0" ]; then
+      if [ ! -d "/tmp/solr-6.6.0" ]; then
+        pushd /tmp > /dev/null
+        ${wget}/bin/wget -qO- http://archive.apache.org/dist/lucene/solr/6.6.0/solr-6.6.0.tgz | tar -zxv
+        popd > /dev/null
+      fi
+      cp -R /tmp/solr-6.6.0 .
+    fi
+    if [ ! -d "cracklib" ]; then
+      echo download and create cracklib dict
+      # {wget}/bin/wget http://mirror.centos.org/centos/7/os/x86_64/Packages/cracklib-dicts-2.9.0-11.el7.x86_64.rpm
+      # {rpm}/bin/rpm2cpio cracklib-dicts-2.9.0-11.el7.x86_64.rpm > tmp/cracklib-dicts-2.9.0-11.el7.x86_64.cpio
+      cp ../../install/cracklib-dicts-2.9.0-11.el7.x86_64.cpio /tmp
+      cd /tmp
+      ${cpio}/bin/cpio -idmv < cracklib-dicts-2.9.0-11.el7.x86_64.cpio
+      cd -
+      mkdir -p cracklib
+      cp -r /tmp/usr/share/cracklib/pw_dict* cracklib
+    fi
+    if [ ! -d "node_modules" ]; then
+      echo linking node_modules
+      ln -sf ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
+    fi
+    # make store related dirs
+    mkdir -p cache/tmp stage tmp trans upload
+    if [ ! -d "store" ]; then
+      cp -R ../../install/store-seed store
+    fi
+    if [ ! -d "databrary_logs" ]; then
+      mkdir databrary_logs
+      touch databrary_logs/solr_log
+    fi
+    if [ ! -e "config/email" ]; then
+      cp ../../install/config.email config/email
+    fi
+    rm -rf dist
+    cabal configure --datadir=. --datasubdir=.
+    cabal repl lib:databrary
+  '';
   postgresql = import ./db.nix { inherit nixpkgs; };
   gargoyleSrc = fetchFromGitHub {
         owner= "obsidiansystems";
@@ -77,7 +117,7 @@ let
       };
       # cabal override to enable ghcid (GHCi daemon) development tool
       databrary-dev = overrideCabal databrary (drv: {
-        libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ (with self; [ghcid cabal-install ghciDatabrary]);
+        libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ (with self; [ghcid cabal-install ghciDatabrary ghciDatabraryInttest]);
       });
       gargoyle = self.callPackage "${gargoyleSrc}/gargoyle" {};
       gargoyle-postgresql= self.callPackage "${gargoyleSrc}/gargoyle-postgresql" {};

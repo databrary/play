@@ -1,5 +1,3 @@
 :module + Databrary.Main
 :main -w
-:reload
-:main -w
 :main -c databrary.conf
