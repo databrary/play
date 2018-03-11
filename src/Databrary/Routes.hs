@@ -71,7 +71,7 @@ newRouteMap routeContext =
       -- , ("/api/profile", hnm (partyHandler JSON)) -- get, post
       -- , ("/party/party/:partyId/edit", hn viewPartyEditHandler)  -- get
       -- , ("/party/profile/edit", hn viewPartyEditHandler)  -- get
-      -- , ("/party/create", hn viewPartyCreateHandler)  -- get  <<<<<<<<<<
+      , ("/party/create", hn0 viewPartyCreateHandler)
       -- , route viewAuthorize
       -- , route postAuthorize
       -- , route deleteAuthorize
@@ -81,9 +81,9 @@ newRouteMap routeContext =
       --, ("/party", hnm (createPartyHandler HTML)) -- post, get   <<<<<<<<<
       --, ("/api/party", hnm (createPartyHandler JSON)) -- post, get    <<<<<<<<
       --, ("/party/:partyId/delete", hnm (deletePartyHandler HTML)) -- post, get
-      --, ("/party/admin", hn adminPartiesHandler) -- get        <<<<<<<
-      --, ("/party/csv", hn csvPartiesHandler) -- get            <<<<<<<
-      --, ("/party/duplicate/csv", hn csvDuplicatePartiesHandler) -- get    <<<<<<<
+      , ("/party/admin", hn0 adminPartiesHandler)
+      , ("/party/csv", hn0 csvPartiesHandler)
+      , ("/party/duplicate/csv", hn0 csvDuplicatePartiesHandler)
       
         -- , route viewVolume
         -- , route postVolume
@@ -217,7 +217,7 @@ routeMap = routes
   , route viewParty
   , route postParty
   , route viewPartyEdit
-  , route viewPartyCreate
+  -- , route viewPartyCreate
   , route viewPartyDelete
   , route viewAuthorize
   , route postAuthorize
@@ -228,9 +228,9 @@ routeMap = routes
   , route createParty
   , route deleteParty
   , route queryParties
-  , route adminParties
-  , route csvParties
-  , route csvDuplicateParties
+  -- , route adminParties
+  -- , route csvParties
+  -- , route csvDuplicateParties
 
   , route viewVolume
   , route postVolume
