@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, TupleSections #-}
 module Databrary.Controller.Search
-  ( postSearch
+  ( postSearchHandler
   ) where
 
 import Control.Monad (when)
@@ -33,8 +33,8 @@ searchForm = SearchQuery
   sv False = SearchParties
   sv True = SearchVolumes
 
-postSearch :: ActionRoute API
-postSearch = action GET (pathAPI </< "search") $ \api -> withAuth $ do
+postSearchHandler :: API -> Action  -- TODO: GET only
+postSearchHandler = \api -> withAuth $ do
   when (api == HTML) angular
   q <- runForm Nothing searchForm
   proxyResponse <$> search q

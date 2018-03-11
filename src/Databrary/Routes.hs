@@ -154,7 +154,8 @@ newRouteMap routeContext =
         -- , route deleteTag -- 2nd pass
         -- , route postComment -- 2nd pass
 
-        -- , route postSearch <<<<<<<<<<<
+      , ("/search", hn0 (postSearchHandler HTML))
+      , ("/api/search", hn0 (postSearchHandler JSON))
 
         -- , route uploadStart  -- 2nd pass
         -- , route uploadChunk  <<<<<<<<<<<
@@ -301,7 +302,7 @@ routeMap = routes
   , route deleteTag
   , route postComment
 
-  , route postSearch
+  -- , route postSearch
 
   , route uploadStart
   , route uploadChunk
