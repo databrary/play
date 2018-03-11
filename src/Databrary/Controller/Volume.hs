@@ -3,7 +3,7 @@ module Databrary.Controller.Volume
   ( getVolume
   , viewVolume
   , viewVolumeEdit
-  , viewVolumeCreate
+  , viewVolumeCreateHandler
   , postVolume
   , createVolume
   , viewVolumeLinks
@@ -277,8 +277,8 @@ viewVolumeEdit = action GET (pathHTML >/> pathId </< "edit") $ \vi -> withAuth $
   cite <- lookupVolumeCitation v
   peeks $ blankForm . htmlVolumeEdit (Just (v, cite))
 
-viewVolumeCreate :: ActionRoute ()
-viewVolumeCreate = action GET (pathHTML </< "volume" </< "create") $ \() -> withAuth $ do
+viewVolumeCreateHandler :: Action  -- TODO : GET only
+viewVolumeCreateHandler = withAuth $ do
   angular
   peeks $ blankForm . htmlVolumeEdit Nothing
 

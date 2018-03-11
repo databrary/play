@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Controller.Format
-  ( viewFormats
+  ( viewFormatsHandler
   , formatIcon
   ) where
 
@@ -30,7 +30,7 @@ formatIcon = (pf I.:<->: fp) `R.mapActionRoute` webFile where
     , Just f <- getFormatByExtension e = f
   pf _ = unknownFormat
 
-viewFormats :: ActionRoute ()
-viewFormats = action GET ("asset" >/> "formats") $ \() -> withoutAuth $ do
+viewFormatsHandler :: Action -- TODO: GET only
+viewFormatsHandler = withoutAuth $ do
   angular
   okResponse [] <$> asks htmlFormats
