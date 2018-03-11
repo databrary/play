@@ -347,7 +347,7 @@ fakeBackendDepend1 = -- TODO: how to silence warning on this name only?
   , viewAvatar :: ActionRoute (Id Party)
   , viewPartyActivity :: ActionRoute (API, PartyTarget)
   , viewVolume :: ActionRoute (API, Id Volume)
-  , viewVolumeCreate :: ActionRoute ()
+  , viewVolumeCreateHandler :: Action
   , viewVolumeEdit :: ActionRoute (Id Volume)
   , queryVolumes :: ActionRoute (API)
   , thumbVolume :: ActionRoute (Id Volume)

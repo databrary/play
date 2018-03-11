@@ -95,6 +95,7 @@ newRouteMap routeContext =
         -- , route postVolumeFunding  -- 2nd pass
         -- , route deleteVolumeFunder  -- 2nd pass
         -- , route postVolumeAssist
+      , ("/volume/create", hn0 viewVolumeCreateHandler)
         -- , route viewVolumeCreate <<<<
         -- , route createVolume  <<<<<<
         -- , route queryVolumes  <<<<<
@@ -242,7 +243,7 @@ routeMap = routes
   , route postVolumeFunding
   , route deleteVolumeFunder
   , route postVolumeAssist
-  , route viewVolumeCreate
+  -- , route viewVolumeCreate
   , route createVolume
   , route queryVolumes
   , route $ zipVolume False 
