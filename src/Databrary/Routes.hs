@@ -96,7 +96,6 @@ newRouteMap routeContext =
         -- , route deleteVolumeFunder  -- 2nd pass
         -- , route postVolumeAssist
       , ("/volume/create", hn0 viewVolumeCreateHandler)
-        -- , route viewVolumeCreate <<<<
         -- , route createVolume  <<<<<<
         -- , route queryVolumes  <<<<<
         -- , route $ zipVolume False 
@@ -116,7 +115,7 @@ newRouteMap routeContext =
         -- , route $ zipContainer True 
         -- , route thumbSlot
 
-        -- , route viewFormats  <<<<<<<<<
+      , ("asset/formats", hn0 viewFormatsHandler)
 
         -- , route viewAsset  -- all 2nd pass
         -- , route postAsset
@@ -263,7 +262,7 @@ routeMap = routes
   , route $ zipContainer True 
   , route thumbSlot
 
-  , route viewFormats
+  -- , route viewFormats
 
   , route viewAsset
   , route postAsset

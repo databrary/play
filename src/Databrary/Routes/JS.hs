@@ -361,7 +361,7 @@ fakeBackendDepend1 = -- TODO: how to silence warning on this name only?
   )
 
 fakeBackendDepend2 =
-  ( viewFormats :: ActionRoute ()
+  ( viewFormatsHandler :: Action
   , viewAssetSegment :: Bool -> ActionRoute (API, Maybe (Id Volume), Id Slot, Id Asset)
   , downloadAssetSegment :: ActionRoute (Id Slot, Id Asset)
   , downloadOrigAssetSegment :: ActionRoute (Id Slot, Id Asset)
