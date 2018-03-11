@@ -369,7 +369,7 @@ fakeBackendDepend2 =
   , downloadAsset :: ActionRoute (Id Asset, Segment)
   , downloadOrigAsset :: ActionRoute (Id Asset, Segment)
   , thumbAsset :: ActionRoute (Id Asset, Segment)
-  , postSearch :: ActionRoute (API)
+  , postSearchHandler :: API -> Action
   , zipContainer :: Bool -> ActionRoute (Maybe (Id Volume), Id Slot)
   , zipVolume :: Bool -> ActionRoute (Id Volume)
   , viewVolumeDescription :: ActionRoute (Id Volume)
