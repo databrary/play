@@ -3,7 +3,8 @@ module Databrary.Controller.Party
   ( getParty
   , viewParty
   , viewPartyEdit
-  , viewPartyCreate
+  -- , viewPartyCreate
+  , viewPartyCreateHandler
   , viewPartyDelete
   , postParty
   , createParty
@@ -11,8 +12,9 @@ module Databrary.Controller.Party
   , viewAvatar
   , queryParties
   , adminParties
-  , csvParties
-  , csvDuplicateParties
+  , adminPartiesHandler
+  , csvPartiesHandler
+  , csvDuplicatePartiesHandler
   ) where
 
 import Control.Applicative (optional)
@@ -167,8 +169,8 @@ viewPartyEdit = action GET (pathHTML >/> pathPartyTarget </< "edit") $ \i -> wit
   p <- getParty (Just PermissionEDIT) i
   peeks $ blankForm . htmlPartyEdit (Just p)
 
-viewPartyCreate :: ActionRoute ()
-viewPartyCreate = action GET (pathHTML </< "party" </< "create") $ \() -> withAuth $ do
+viewPartyCreateHandler :: Action
+viewPartyCreateHandler = withAuth $ do
   checkMemberADMIN
   peeks $ blankForm . htmlPartyEdit Nothing
 
@@ -231,14 +233,17 @@ queryParties = action GET (pathAPI </< "party") $ \api -> withAuth $ do
     HTML -> peeks $ blankForm . htmlPartySearch pf p
 
 adminParties :: ActionRoute ()
-adminParties = action GET ("party" </< "admin") $ \() -> withAuth $ do
+adminParties = action GET ("party" </< "admin") $ \() -> adminPartiesHandler
+
+adminPartiesHandler :: Action  --TODO: GET only
+adminPartiesHandler = withAuth $ do
   checkMemberADMIN
   pf <- runForm (Just $ htmlPartyAdmin mempty []) partySearchForm
   p <- findParties pf
   peeks $ blankForm . htmlPartyAdmin pf p
 
-csvParties :: ActionRoute ()
-csvParties = action GET ("party" </< "csv") $ \() -> withAuth $ do
+csvPartiesHandler :: Action -- TODO: GET only
+csvPartiesHandler = withAuth $ do
   checkMemberADMIN
   pl <- lookupNoticePartyAuthorization NoticeNewsletter
   return $ csvResponse 
@@ -252,8 +257,8 @@ csvParties = action GET ("party" </< "csv") $ \() -> withAuth $ do
     | (p, a, d) <- pl ] "party"
   where c = maybe BS.empty
 
-csvDuplicateParties :: ActionRoute ()
-csvDuplicateParties = action GET ("party" </< "duplicate" </< "csv") $ \() -> withAuth $ do
+csvDuplicatePartiesHandler :: Action -- TODO: GET only
+csvDuplicatePartiesHandler = withAuth $ do
   checkMemberADMIN
   ps <- getDuplicateParties
   return $ csvResponse 
