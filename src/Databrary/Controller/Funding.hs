@@ -23,7 +23,7 @@ import Databrary.Controller.Form
 import Databrary.Controller.Permission
 import Databrary.Controller.Volume
 
-queryFunderHandler :: Action
+queryFunderHandler :: Action -- TODO: GET only
 queryFunderHandler = withAuth $ do
   _ <- authAccount
   (q, a) <- runForm Nothing $ liftM2 (,)

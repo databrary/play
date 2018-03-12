@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Controller.Activity
-  ( viewSiteActivity
+  ( viewSiteActivityHandler
+  , viewSiteActivity -- remove when view not using it
   , viewPartyActivity
   , viewVolumeActivity
   , viewContainerActivity
@@ -37,7 +38,10 @@ import Databrary.Controller.Container
 import Databrary.View.Activity
 
 viewSiteActivity :: ActionRoute API
-viewSiteActivity = action GET (pathAPI </< "activity") $ \api -> withAuth $ do
+viewSiteActivity = action GET (pathAPI </< "activity") $ \api -> viewSiteActivityHandler api
+
+viewSiteActivityHandler :: API -> Action -- TODO: GET only
+viewSiteActivityHandler = \api -> withAuth $ do
   ss <- focusIO $ readIORef . serviceStats
   vl <- map (second $ ("volume" JSON..=:) . (\v -> volumeJSONSimple v)) . nubBy ((==) `on` volumeId . volumeRow . snd) <$> lookupVolumeShareActivity 8
   al <- map (second $ ("party"  JSON..=:) . partyJSON)  . nubBy ((==) `on` partyId  . partyRow  . snd) <$> lookupAuthorizeActivity 8
