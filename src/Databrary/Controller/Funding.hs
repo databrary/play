@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Controller.Funding
-  ( queryFunder
+  ( queryFunderHandler
   , postVolumeFunding
   , deleteVolumeFunder
   ) where
@@ -23,8 +23,8 @@ import Databrary.Controller.Form
 import Databrary.Controller.Permission
 import Databrary.Controller.Volume
 
-queryFunder :: ActionRoute ()
-queryFunder = action GET (pathJSON </< "funder") $ \() -> withAuth $ do
+queryFunderHandler :: Action
+queryFunderHandler = withAuth $ do
   _ <- authAccount
   (q, a) <- runForm Nothing $ liftM2 (,)
     ("query" .:> (deformRequired =<< deform))
