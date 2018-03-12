@@ -166,7 +166,8 @@ newRouteMap routeContext =
       , ("/api/cite", hn0 getCitationHandler)
       , ("/api/funder", hn0 queryFunderHandler)
         -- , route remoteTranscode  -- second pass
-        -- , route viewSiteActivity <<<<<<<<
+      , ("/api/activity", hn0 (viewSiteActivityHandler JSON))
+      , ("/activity", hn0 (viewSiteActivityHandler HTML))
 
         -- , route viewNotifications <<<<<<<<
         -- , route deleteNotification -- second pass
@@ -312,7 +313,7 @@ routeMap = routes
   -- , route getCitation
   -- , route queryFunder
   , route remoteTranscode
-  , route viewSiteActivity
+  -- , route viewSiteActivity
 
   , route viewNotifications
   , route deleteNotification
