@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Controller.Citation
-  ( getCitation
+  ( getCitationHandler
   ) where
 
 import Databrary.Has (focusIO)
@@ -11,8 +11,8 @@ import Databrary.Action
 import Databrary.Controller.Form
 import Databrary.Model.Citation.CrossRef
 
-getCitation :: ActionRoute ()
-getCitation = action GET (pathJSON </< "cite") $ \() -> withoutAuth $ do
+getCitationHandler :: Action -- TODO: GET only
+getCitationHandler = withoutAuth $ do
   url <- runForm Nothing $ "url" .:> deform
   cite <- maybeAction =<< focusIO (lookupCitation url)
   return $ okResponse [] $ JSON.toEncoding cite

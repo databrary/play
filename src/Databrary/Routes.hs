@@ -163,7 +163,7 @@ newRouteMap routeContext =
 
 
       , ("/api/constants", hn viewConstantsHandler)
-        -- , route getCitation  <<<<
+      , ("/api/cite", hn0 getCitationHandler)
         -- , route queryFunder <<<<
         -- , route remoteTranscode  -- second pass
         -- , route viewSiteActivity <<<<<<<<
@@ -309,7 +309,7 @@ routeMap = routes
   , route testChunk
 
   -- , route viewConstants
-  , route getCitation
+  -- , route getCitation
   , route queryFunder
   , route remoteTranscode
   , route viewSiteActivity
