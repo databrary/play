@@ -95,7 +95,9 @@ maxCsvSize = 16*1024*1024
 -- TODO: maybe put csv file save/retrieve in Databrary.Store module
 detectParticipantCSV :: ActionRoute (Id Volume)
 detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCSV") $ \vi -> withAuth $ do
+    liftIO (print ("starting detect"))
     v <- getVolume PermissionEDIT vi
+    liftIO (print ("have access to volume"))
     reqCtxt <- peek
     csvFileInfo <-
       -- TODO: is Nothing okay here?
@@ -103,8 +105,13 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
           csrfForm
           fileInfo :: (FileInfo TL.Text) <- "file" .:> deform
           return fileInfo
-    let uploadFileContents = (BSL.toStrict . TLE.encodeUtf8 . fileContent) csvFileInfo
+    liftIO (print ("after extract form"))
+    let uploadFileContentsOrig = (BSL.toStrict . TLE.encodeUtf8 . fileContent) csvFileInfo
+        uploadFileContents = repairCarriageReturnOnly uploadFileContentsOrig
         uploadFileName = (BSC.unpack . fileName) csvFileInfo  -- TODO: add prefix to filename
+    liftIO (print ("uploaded a file"))
+    liftIO (print "contents below")
+    liftIO (print uploadFileContents)
     case ATTO.parseOnly (CSVP.csvWithHeader CSVP.defaultDecodeOptions) uploadFileContents of
         Left err -> do
             liftIO (print ("csv parse error", err))
@@ -126,6 +133,15 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
                     liftIO (print ("failed to determine mapping", err))
                     -- if column check failed, then don't save csv file and response is error
                     pure (forbiddenResponse reqCtxt) -- place holder for error
+
+repairCarriageReturnOnly :: BS.ByteString -> BS.ByteString
+repairCarriageReturnOnly contents =
+    let
+        hasNewline = BSC.elem '\n' contents
+    in
+        if hasNewline
+        then contents
+        else BSC.concatMap (\c -> if c == '\r' then "\r\n" else BSC.singleton c) contents
 
 getHeaders :: CSV.Header -> [Text]
 getHeaders hdrs =
