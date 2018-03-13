@@ -242,16 +242,19 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
     -- handle structure (metrics) + field values (measures) for record
     _ <- inObj r $ JE.forEachInObject $ \mn ->
       unless (mn `elem` ["id", "key", "category", "positions"]) $ do -- for all non special keys, treat as data
-        metric <- do
+        (metric :: Metric) <- do
             let mMetric = find (\m -> mn == metricName m && recordCategory (recordRow r) == metricCategory m) allMetrics
             fromMaybeM (throwPE $ "metric " <> mn <> " not found") mMetric
-        datum <-
-            maybe
-              (return . Just)
-              (check . measureDatum)
-              (getMeasure metric (recordMeasures r))
-          . TE.encodeUtf8 =<< JE.asText
-        forM_ datum $ lift . changeRecordMeasure . Measure r metric -- save measure data
+        (datum :: Maybe BS.ByteString) <- do
+          (newMeasureVal :: T.Text) <- JE.asText
+          let newMeasureValBS :: BS.ByteString
+              newMeasureValBS = TE.encodeUtf8 newMeasureVal
+          maybe 
+            (return (Just newMeasureValBS))  -- always update
+            (\existingMeasure -> check (measureDatum existingMeasure) newMeasureValBS) -- only update if changed and allowed
+            (getMeasure metric (recordMeasures r)) -- look for existing measure for this metric on the record
+        forM_ datum
+          $ \measureDatumVal -> (lift . changeRecordMeasure) (Measure r metric measureDatumVal) -- save measure data
     -- return record
     return r
   asset :: String -> IngestM (Asset, Maybe Probe)
