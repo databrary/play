@@ -201,9 +201,9 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
             unless o $ throwPE "asset link failed"
       return c
   record = do
-    rid <- JE.keyMay "id" $ Id <$> JE.asIntegral
-    key <- JE.key "key" $ asKey
-    mIngestRecord <- lift (lookupIngestRecord vol key)
+    (rid :: Maybe (Id Record)) <- JE.keyMay "id" $ Id <$> JE.asIntegral
+    (key :: IngestKey) <- JE.key "key" $ asKey
+    (mIngestRecord :: Maybe Record) <- lift (lookupIngestRecord vol key)
     (r :: Record) <- maybe
       (do
         r <- maybe
