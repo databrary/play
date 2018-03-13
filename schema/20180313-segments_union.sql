@@ -57,8 +57,21 @@ $$;
 -- and now, a test
 -- FIXME add this to the test suite
 /*
-create temporary table segs ( s segment );
-insert into segs values ('empty'), ('(4,5)'),('(0,1)'), ('(1,2)'), ('(2,3)'), ('(-1,0)'), ('[2,2]'), ('[6,7]'),('(5,7]'),('[6,8]'), ('empty');
-select ss.s = '{"(-1,0)","(0,1)","(1,3)","(4,5)","(5,8]"}' as "test passed"
-from (select segments_union(s) s from segs) as ss;
+select s.seg_union = '{"(-1,0)","(0,1)","(1,3)","(4,5)","(5,8]"}' as "test passed"
+from (
+    select segments_union(segval) seg_union
+    from (values
+        ('empty'::segment),
+        ('(4, 5)'),
+        ('(0, 1)'),
+        ('(1, 2)'),
+        ('(2, 3)'),
+        ('(-1, 0)'),
+        ('[2, 2]'),
+        ('[6, 7]'),
+        ('(5, 7]'),
+        ('[6, 8]'),
+        ('empty')
+    ) as vals (segval)
+) as s;
 */
