@@ -243,12 +243,18 @@ sampleColumnJson useDistinct maxSamples hdr columnValues =
           , "samples" JSON..= uniqueSamples
           ]
 
+data RecordStatus = Created Record | Found Record
+    -- deriving (Show, Eq)
+
+data MeasureUpdateAction = Upsert BS.ByteString | Unchanged
+    deriving (Show, Eq)
+
 -- validated records instead of namedrecord? use Participant type?
 createRecord :: [Metric] -> Volume -> ParticipantFieldMapping -> CSV.NamedRecord -> ActionM () -- TODO: error or record
 createRecord participantActiveMetrics vol mapping csvRecord = do
-    -- TODO: ingestRecord instead of record
     let participantCategory = getCategory' (Id 1) -- TODO: use global variable
     record <- addRecord (blankRecord participantCategory vol)
+    let recordStatus = Created record
     let mId = getFieldVal pfmId "id"
         mInfo = getFieldVal pfmInfo "info"
         mDescription = getFieldVal pfmDescription "description"
@@ -264,20 +270,20 @@ createRecord participantActiveMetrics vol mapping csvRecord = do
         mState = getFieldVal pfmState "state"
         mSetting = getFieldVal pfmSetting "setting"
     -- print ("save measure id:", mId)
-    changeRecordMeasureIfUsed record mId
-    changeRecordMeasureIfUsed record mInfo
-    changeRecordMeasureIfUsed record mDescription
-    changeRecordMeasureIfUsed record mBirthdate
-    changeRecordMeasureIfUsed record mGender
-    changeRecordMeasureIfUsed record mEthnicity
-    changeRecordMeasureIfUsed record mGestationalAge
-    changeRecordMeasureIfUsed record mPregnancyTerm
-    changeRecordMeasureIfUsed record mBirthWeight
-    changeRecordMeasureIfUsed record mDisability
-    changeRecordMeasureIfUsed record mLanguage
-    changeRecordMeasureIfUsed record mCountry
-    changeRecordMeasureIfUsed record mState
-    changeRecordMeasureIfUsed record mSetting
+    changeRecordMeasureIfUsed recordStatus mId
+    changeRecordMeasureIfUsed recordStatus mInfo
+    changeRecordMeasureIfUsed recordStatus mDescription
+    changeRecordMeasureIfUsed recordStatus mBirthdate
+    changeRecordMeasureIfUsed recordStatus mGender
+    changeRecordMeasureIfUsed recordStatus mEthnicity
+    changeRecordMeasureIfUsed recordStatus mGestationalAge
+    changeRecordMeasureIfUsed recordStatus mPregnancyTerm
+    changeRecordMeasureIfUsed recordStatus mBirthWeight
+    changeRecordMeasureIfUsed recordStatus mDisability
+    changeRecordMeasureIfUsed recordStatus mLanguage
+    changeRecordMeasureIfUsed recordStatus mCountry
+    changeRecordMeasureIfUsed recordStatus mState
+    changeRecordMeasureIfUsed recordStatus mSetting
   where
     getFieldVal :: (ParticipantFieldMapping -> Maybe Text) -> Text -> Maybe (BS.ByteString, Metric)
     getFieldVal extractColumnName metricSymbolicName =
@@ -294,9 +300,22 @@ createRecord participantActiveMetrics vol mapping csvRecord = do
     findMetricBySymbolicName :: Text -> Metric  -- TODO: copied from above, move to shared function
     findMetricBySymbolicName symbolicName =
         (fromJust . L.find (\m -> (T.filter (/= ' ') . T.toLower . metricName) m == symbolicName)) participantActiveMetrics
-    changeRecordMeasureIfUsed :: Record -> Maybe (BS.ByteString, Metric) -> ActionM ()
-    changeRecordMeasureIfUsed record mValueMetric =
-        maybe
-          (pure ())
-          (\(val, met) -> void (changeRecordMeasure (Measure record met val)))
-          mValueMetric
+    changeRecordMeasureIfUsed :: RecordStatus -> Maybe (BS.ByteString, Metric) -> ActionM ()
+    changeRecordMeasureIfUsed recordStatus mValueMetric =
+        case mValueMetric of
+            Just (val, met) -> do
+                case recordStatus of
+                    Created record ->
+                        void (changeRecordMeasure (Measure record met val))
+                    Found record -> do
+                        -- TODO: 
+                        -- mOldVal <- getOldVal metric record
+                        -- action = maybe (Upsert val) (\o -> if o == val then Unchanged else Upsert val)
+                        let measureAction = Upsert val
+                        case measureAction of
+                            Upsert newVal ->
+                                void (changeRecordMeasure (Measure record met newVal))
+                            Unchanged ->
+                                pure ()
+            Nothing ->
+                pure ()
