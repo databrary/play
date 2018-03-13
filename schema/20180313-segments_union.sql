@@ -31,7 +31,14 @@ begin
         if acc_length = 0 then
             result := ARRAY[seg];
         else -- state is non-empty array
-            -- 1. Skip over strictly less-than, unadjacent segments
+            -- Range operators used here are documented at
+            -- https://www.postgresql.org/docs/9.6/static/functions-range.html#RANGE-OPERATORS-TABLE
+            --
+            -- (<<) : strictly left of
+            -- (-|-): adjacent (a commutative operator)
+            -- (&&) : overlaps (also commutative, obviously)
+
+            -- 1. Skip over strictly less-than, unadjacent segments.
             i := 1;
             while acc[i] << seg and acc[i] -|- seg is false and i <= acc_length
             loop
@@ -39,7 +46,7 @@ begin
                 i := i + 1;
             end loop;
             -- 2. Merge with overlapping/adjacent segments. (Or none, if seg
-            --    fell directly between two.)
+            --    falls directly between two or at an edge.)
             tmp := seg;
             while (tmp && acc[i] or tmp -|- acc[i]) and i <= acc_length
             loop
