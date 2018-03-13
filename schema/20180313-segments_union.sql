@@ -14,7 +14,7 @@ drop function if exists segments_union(segment[], segment[]);
 -- is sorted and non-overlapping, because we are building it ourselves.
 create or replace function segments_union(acc segment[], seg segment)
 returns segment[]
-immutable strict parallel safe language plpgsql
+immutable strict language plpgsql
 as $$
 declare
     result segment[] := '{}';
