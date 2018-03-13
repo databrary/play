@@ -33,7 +33,9 @@ in
   version = "1";
   src =
     builtins.filterSource
-      (path: _type: ! builtins.elem (baseNameOf path) [dbName ".git" "result"])
+      (path: _type: ! builtins.elem
+          (baseNameOf path)
+          [dbName ".git" "result" "node_modules"])
       ./.;
   isLibrary = true;
   enableStaticLibraries = false;
@@ -106,7 +108,7 @@ in
   '';
   postBuild = ''
     kill -INT `head -1 $socket_path/postmaster.pid`
-    ln -sf ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
+    ln -sf ${nodePackages.shell.nodeDependencies}/lib/node_modules .
   '';
   postInstall = ''
     databrary_datadir=. $out/bin/databrary -w
