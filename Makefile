@@ -1,27 +1,40 @@
+# Editing this Makefile? run make with `make BUILDDEV=1` for better build
+# debugging.
+NIX_OPTIONS := --option binary-caches "http://devdatabrary2.home.nyu.edu:5000"
+# These below intentionally use '='to pick up following changes to NIX_OPTIONS
+nix-build = nix-build $(NIX_OPTIONS)
+nix-shell = nix-shell $(NIX_OPTIONS)
+ifdef BUILDDEV
+nix-build += -K
+nix-shell += --pure
+else
+NIX_OPTIONS += -Q
+endif
+
 #
 # COMMON TASKS
 #
 
 ## The default action is to run tests
-cabal.test: ; nix-shell -Q --cores 4 --run 'cabal -j new-test'
+cabal.test: ; $(nix-shell) --run 'cabal -j new-test'
 .PHONY: cabal.test
 
 ## Start the db (needed for cabal.test and cabal.build, but that relationship is
 ## not captured by Make yet)
-db: ; nix-shell -Q --run ./init-db-pql.sh
+db: ; $(nix-shell) --run ./init-db-pql.sh
 .PHONY: db
 
 ## Start the dev repl
-devel: ; nix-shell --run ghci-databrary
+devel: ; $(nix-shell) --run ghci-databrary
 .PHONY: devel
 
 ## One can always build with Nix.
-nix.build: ; nix-build -A databrary --cores 4 -K
-.PHONY: nix.build
+nix-build: ; $(nix-build) --cores 4 -A databrary
+.PHONY: nix-build
 
 ## You can also build with Cabal if that suits you
-cabal.build: ; nix-shell -Q --cores 4 --run 'cabal -j new-build'
-.PHONY: cabal.build
+cabal-build: ; $(nix-shell) --run 'cabal -j new-build'
+.PHONY: cabal-build
 
 #
 # Experimental tasks

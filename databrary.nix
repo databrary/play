@@ -33,7 +33,9 @@ in
   version = "1";
   src =
     builtins.filterSource
-      (path: _type: ! builtins.elem (baseNameOf path) [dbName ".git" "result"])
+      (path: _type: ! builtins.elem
+          (baseNameOf path)
+          [dbName ".git" "result" "node_modules"])
       ./.;
   isLibrary = true;
   enableStaticLibraries = false;
@@ -80,7 +82,7 @@ in
     base tasty tasty-expected-failure tasty-hunit
   ];
   executableToolDepends = [
-    postgresql.postgres
+    postgresql
     # Put coffee, uglifyjs, etc in scope
     nodePackages.shell.nodeDependencies
     nodejs
@@ -106,7 +108,8 @@ in
   '';
   postBuild = ''
     kill -INT `head -1 $socket_path/postmaster.pid`
-    ln -sf ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
+    # Link node_modules into the current directory
+    ln -sf ${nodePackages.shell.nodeDependencies}/lib/node_modules
   '';
   postInstall = ''
     databrary_datadir=. $out/bin/databrary -w
