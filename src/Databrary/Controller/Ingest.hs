@@ -214,7 +214,7 @@ parseMapping participantActiveMetrics val = do
 runImport :: [Metric] -> Volume -> V.Vector CSV.NamedRecord -> ParticipantFieldMapping -> ActionM (V.Vector ())
 runImport activeMetrics vol records mapping =
     mapM
-        (\record -> createRecord activeMetrics vol mapping record)
+        (\record -> createOrUpdateRecord activeMetrics vol mapping record)
         records
 
 extractColumnsFirstVals :: Int -> CSV.Header -> V.Vector CSV.NamedRecord -> [JSON.Value] -- TODO: duplicated
@@ -243,20 +243,25 @@ sampleColumnJson useDistinct maxSamples hdr columnValues =
           , "samples" JSON..= uniqueSamples
           ]
 
-data RecordStatus = Created Record | Found Record
+data ParticipantStatus = Created Record | Found Record
     -- deriving (Show, Eq)
 
 data MeasureUpdateAction = Upsert BS.ByteString | Unchanged
     deriving (Show, Eq)
 
 -- validated records instead of namedrecord? use Participant type?
-createRecord :: [Metric] -> Volume -> ParticipantFieldMapping -> CSV.NamedRecord -> ActionM () -- TODO: error or record
-createRecord participantActiveMetrics vol mapping csvRecord = do
+createOrUpdateRecord :: [Metric] -> Volume -> ParticipantFieldMapping -> CSV.NamedRecord -> ActionM () -- TODO: error or record
+createOrUpdateRecord participantActiveMetrics vol mapping csvRecord = do
     let participantCategory = getCategory' (Id 1) -- TODO: use global variable
-    record <- addRecord (blankRecord participantCategory vol)
-    let recordStatus = Created record
-    let mId = getFieldVal pfmId "id"
-        mInfo = getFieldVal pfmInfo "info"
+        idVal = maybe (error "id missing") id (getFieldVal pfmId "id")
+    mOldParticipant <- pure Nothing -- getParticipantById idVal vol -- should provide error if idVal exists and not a participant
+    recordStatus <-
+        case mOldParticipant of
+            Nothing ->
+                Created <$> addRecord (blankRecord participantCategory vol)
+            Just oldParticipant ->
+                pure (Found oldParticipant)
+    let mInfo = getFieldVal pfmInfo "info"
         mDescription = getFieldVal pfmDescription "description"
         mBirthdate = getFieldVal pfmBirthdate "birthdate"
         mGender = getFieldVal pfmGender "gender"
@@ -270,7 +275,7 @@ createRecord participantActiveMetrics vol mapping csvRecord = do
         mState = getFieldVal pfmState "state"
         mSetting = getFieldVal pfmSetting "setting"
     -- print ("save measure id:", mId)
-    changeRecordMeasureIfUsed recordStatus mId
+    changeRecordMeasureIfUsed recordStatus (Just idVal)
     changeRecordMeasureIfUsed recordStatus mInfo
     changeRecordMeasureIfUsed recordStatus mDescription
     changeRecordMeasureIfUsed recordStatus mBirthdate
@@ -300,7 +305,7 @@ createRecord participantActiveMetrics vol mapping csvRecord = do
     findMetricBySymbolicName :: Text -> Metric  -- TODO: copied from above, move to shared function
     findMetricBySymbolicName symbolicName =
         (fromJust . L.find (\m -> (T.filter (/= ' ') . T.toLower . metricName) m == symbolicName)) participantActiveMetrics
-    changeRecordMeasureIfUsed :: RecordStatus -> Maybe (BS.ByteString, Metric) -> ActionM ()
+    changeRecordMeasureIfUsed :: ParticipantStatus -> Maybe (BS.ByteString, Metric) -> ActionM ()
     changeRecordMeasureIfUsed recordStatus mValueMetric =
         case mValueMetric of
             Just (val, met) -> do
