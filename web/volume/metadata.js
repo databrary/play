@@ -38,6 +38,8 @@ app.directive('metadataForm', [
               owner: form
             });
             form.$setPristine();
+            $('.uploadsubmit').hide();
+            $('.uploadinstuction').show();
             var selected_mapping_array = [];
             for (var i = 0; i < volume.suggested_mapping.length; i++) {
               if(volume.suggested_mapping[i].compatible_csv_fields[0]){
@@ -93,7 +95,10 @@ app.directive('metadataMatchForm', [
               owner: form
             });
             form.$setPristine();
+            $('metadata-match-form').hide();
+            $('metadata-form').show();
             $scope.skiptrue = false;
+            $scope.$emit('refreshParent');
           }, function(res) {
             form.$setUnsubmitted();
             form.validator.server(res);

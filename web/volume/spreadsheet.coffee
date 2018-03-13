@@ -1540,6 +1540,16 @@ app.directive 'spreadsheet', [
       $scope.state.restore($attrs.key || $location.search().key, state)
       # show the first tab on angular load
       $scope.setKey($scope.views[0].id)
+      $scope.$on 'refreshParent', ->
+        $scope.volume.get(records: true).then ((res) ->
+          $scope.volume.records = res.records
+          $scope.setKey($scope.views[0].id)
+          return
+        ), (res) ->
+          messages.addError
+            body: constants.message('Please refresh the page.')
+            report: res
+        return
       $scope.$on '$destroy', ->
         state = $scope.state.get()
         state.volume = $scope.volume.id
