@@ -1,8 +1,4 @@
--- Implement segments_union(segment[], segment) in plpgsql. Remove the unused
--- segments_union(segment[], segment[]).
-
--- Fare thee well
-drop function if exists segments_union(segment[], segment[]);
+-- Implement segments_union aggregate, and its state function of the same name.
 
 -- | Add a new segment to a list, merging overlapping or adjacent segments into
 -- one.
@@ -60,6 +56,9 @@ begin
     return result;
 end
 $$;
+
+-- Now use the above to create the aggregate.
+create aggregate "segments_union" (segment) (sfunc = segments_union, stype = segment[], initcond = '{}');
 
 -- and now, a test
 -- FIXME add this to the test suite
