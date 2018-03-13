@@ -1,0 +1,3 @@
+:module + Databrary.Main
+:main -w
+:main -c databrary.conf
