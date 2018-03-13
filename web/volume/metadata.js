@@ -38,8 +38,6 @@ app.directive('metadataForm', [
               owner: form
             });
             form.$setPristine();
-            $('.uploadsubmit').hide();
-            $('.uploadinstuction').show();
             var selected_mapping_array = [];
             for (var i = 0; i < volume.suggested_mapping.length; i++) {
               if(volume.suggested_mapping[i].compatible_csv_fields[0]){
