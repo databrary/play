@@ -181,12 +181,109 @@ lookupIngestRecord vol k = do
                         _crecord_release_a6GtL))))
 
 addIngestRecord :: MonadDB c m => Record -> IngestKey -> m ()
-addIngestRecord r k =
-  dbExecute1' [pgSQL|INSERT INTO ingest.record (id, volume, key) VALUES (${recordId $ recordRow r}, ${volumeId $ volumeRow $ recordVolume r}, ${k})|]
+addIngestRecord r k = do
+  let _tenv_a6PCz = unknownPGTypeEnv
+  dbExecute1' -- [pgSQL|INSERT INTO ingest.record (id, volume, key) VALUES (${recordId $ recordRow r}, ${volumeId $ volumeRow $ recordVolume r}, ${k})|]
+   (mapQuery
+    ((\ _p_a6PCA _p_a6PCB _p_a6PCC ->
+                    (Data.ByteString.concat
+                       [Data.String.fromString
+                          "INSERT INTO ingest.record (id, volume, key) VALUES (",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PCz
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6PCA,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PCz
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6PCB,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PCz
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                          _p_a6PCC,
+                        Data.String.fromString ")"]))
+      (recordId $ recordRow r) (volumeId $ volumeRow $ recordVolume r) k)
+            (\ [] -> ()))
 
 lookupIngestAsset :: MonadDB c m => Volume -> FilePath -> m (Maybe Asset)
-lookupIngestAsset vol k =
-  dbQuery1 $ fmap (`Asset` vol) $(selectQuery selectAssetRow "JOIN ingest.asset AS ingest USING (id) WHERE ingest.file = ${k} AND asset.volume = ${volumeId $ volumeRow vol}")
+lookupIngestAsset vol k = do
+  let _tenv_a6PDv = unknownPGTypeEnv
+  dbQuery1 $ fmap (`Asset` vol) -- $(selectQuery selectAssetRow "JOIN ingest.asset AS ingest USING (id) WHERE ingest.file = ${k} AND asset.volume = ${volumeId $ volumeRow vol}")
+    (fmap
+      (\ (vid_a6PDo, vformat_a6PDp, vrelease_a6PDq, vduration_a6PDr,
+          vname_a6PDs, vc_a6PDt, vsize_a6PDu)
+         -> Databrary.Model.Asset.SQL.makeAssetRow
+              vid_a6PDo
+              vformat_a6PDp
+              vrelease_a6PDq
+              vduration_a6PDr
+              vname_a6PDs
+              vc_a6PDt
+              vsize_a6PDu)
+     (mapQuery
+      ((\ _p_a6PDw _p_a6PDx ->
+                       (Data.ByteString.concat
+                          [Data.String.fromString
+                             "SELECT asset.id,asset.format,asset.release,asset.duration,asset.name,asset.sha1,asset.size FROM asset JOIN ingest.asset AS ingest USING (id) WHERE ingest.file = ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a6PDv
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                             _p_a6PDw,
+                           Data.String.fromString " AND asset.volume = ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a6PDv
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                             _p_a6PDx]))
+         k (volumeId $ volumeRow vol))
+               (\ [_cid_a6PDy,
+                   _cformat_a6PDz,
+                   _crelease_a6PDA,
+                   _cduration_a6PDB,
+                   _cname_a6PDC,
+                   _csha1_a6PDD,
+                   _csize_a6PDE]
+                  -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a6PDv
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                        _cid_a6PDy, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a6PDv
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "smallint")
+                        _cformat_a6PDz, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a6PDv
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "release")
+                        _crelease_a6PDA, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a6PDv
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "interval")
+                        _cduration_a6PDB, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a6PDv
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _cname_a6PDC, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a6PDv
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "bytea")
+                        _csha1_a6PDD, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a6PDv
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
+                        _csize_a6PDE))))
 
 addIngestAsset :: MonadDB c m => Asset -> FilePath -> m ()
 addIngestAsset r k =
