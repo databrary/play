@@ -14,5 +14,5 @@ echo "copy closure of Databrary binaries completed..."
 # NOTE: this is overly complex, simplify using multiple lines later
 ssh -t "$rcvr" " \
            nix-env --install $RESULT \
-        && sudo -u demo bash -c \"cd /home/demo && rm -f databraryExeLink && ln -s $RESULT/bin/databrary databraryExeLink \"  \
+        && cd /home/demo && rm -f databraryExeLink && ln -s $RESULT/bin/databrary databraryExeLink \
 "
