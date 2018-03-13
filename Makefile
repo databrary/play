@@ -12,7 +12,7 @@ db: ; nix-shell -Q --run ./init-db-pql.sh
 .PHONY: db
 
 ## Start the dev repl
-devel: node ; nix-shell --run ghci-databrary
+devel: ; nix-shell --run ghci-databrary
 .PHONY: devel
 
 ## One can always build with Nix.
