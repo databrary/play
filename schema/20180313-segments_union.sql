@@ -18,9 +18,6 @@ declare
     i int;
     tmp segment;
 begin
-    raise notice 'acc_length %', acc_length;
-    raise notice 'SEG %', seg;
-    raise notice 'ACC %', acc;
     if coalesce(array_ndims(acc), 0) > 1 then
         raise exception 'Expected one-dimensional state';
     end if;
