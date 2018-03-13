@@ -286,9 +286,47 @@ lookupIngestAsset vol k = do
                         _csize_a6PDE))))
 
 addIngestAsset :: MonadDB c m => Asset -> FilePath -> m ()
-addIngestAsset r k =
-  dbExecute1' [pgSQL|INSERT INTO ingest.asset (id, file) VALUES (${assetId $ assetRow r}, ${k})|]
+addIngestAsset r k = do
+  let _tenv_a6PFc = unknownPGTypeEnv
+  dbExecute1' -- [pgSQL|INSERT INTO ingest.asset (id, file) VALUES (${assetId $ assetRow r}, ${k})|]
+   (mapQuery
+    ((\ _p_a6PFd _p_a6PFe ->
+                    (Data.ByteString.concat
+                       [Data.String.fromString
+                          "INSERT INTO ingest.asset (id, file) VALUES (",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PFc
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6PFd,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PFc
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                          _p_a6PFe,
+                        Data.String.fromString ")"]))
+      (assetId $ assetRow r) k)
+            (\ [] -> ()))
 
 replaceSlotAsset :: MonadDB c m => Asset -> Asset -> m Bool
-replaceSlotAsset o n =
-  dbExecute1 [pgSQL|UPDATE slot_asset SET asset = ${assetId $ assetRow n} WHERE asset = ${assetId $ assetRow o}|]
+replaceSlotAsset o n = do
+  let _tenv_a6PFB = unknownPGTypeEnv
+  dbExecute1 -- [pgSQL|UPDATE slot_asset SET asset = ${assetId $ assetRow n} WHERE asset = ${assetId $ assetRow o}|]
+   (mapQuery
+    ((\ _p_a6PFC _p_a6PFD ->
+                    (Data.ByteString.concat
+                       [Data.String.fromString "UPDATE slot_asset SET asset = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PFB
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6PFC,
+                        Data.String.fromString " WHERE asset = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PFB
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6PFD]))
+      (assetId $ assetRow n) (assetId $ assetRow o))
+            (\ [] -> ()))
