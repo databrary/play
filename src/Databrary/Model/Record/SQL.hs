@@ -5,6 +5,7 @@ module Databrary.Model.Record.SQL
   , insertRecord
   , updateRecord
   , deleteRecord
+  , makeRecord
   ) where
 
 import qualified Data.ByteString.Char8 as BSC
