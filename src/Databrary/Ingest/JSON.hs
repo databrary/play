@@ -109,13 +109,15 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
   let errs = schema jdata
   unless (null errs) $ throwError $ map (T.pack . show) errs
   if run
-    then ExceptT $ left (JE.displayError id) <$> JE.parseValueM volume jdata
-    else return []
-  where
+  then ExceptT $ left (JE.displayError id) <$> JE.parseValueM volume jdata
+  else return []
+    where
+  check :: (Eq a, Show a) => a -> a -> IngestM (Maybe a)
   check cur new
     | cur == new = return Nothing
     | not overwrite = throwPE $ "conflicting value: " <> T.pack (show new) <> " <> " <> T.pack (show cur)
     | otherwise = return $ Just new
+  volume :: IngestM [Container]
   volume = do
     dir <- JE.keyOrDefault "directory" "" $ stageFileRel <$> asStageFile ""
     _ <- JE.keyMay "name" $ do
@@ -123,6 +125,7 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
       forM_ name $ \n -> lift $ changeVolume vol{ volumeRow = (volumeRow vol){ volumeName = n } }
     top <- lift (lookupVolumeTopContainer vol)
     JE.key "containers" $ JE.eachInArray (container top dir)
+  container :: Container -> String -> IngestM Container
   container topc dir = do
     cid <- JE.keyMay "id" $ Id <$> JE.asIntegral
     key <- JE.key "key" $ asKey
@@ -200,52 +203,61 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
             o <- lift $ changeAssetSlot $ AssetSlot a $ Just ss
             unless o $ throwPE "asset link failed"
       return c
+  record :: IngestM Record
   record = do
-    rid <- JE.keyMay "id" $ Id <$> JE.asIntegral
-    key <- JE.key "key" $ asKey
-    mIngestRecord <- lift (lookupIngestRecord vol key)
+    -- handle record shell
+    (rid :: Maybe (Id Record)) <- JE.keyMay "id" $ Id <$> JE.asIntegral -- insert = nothing, update = just id
+    (key :: IngestKey) <- JE.key "key" $ asKey
+    (mIngestRecord :: Maybe Record) <- lift (lookupIngestRecord vol key)
     (r :: Record) <- maybe
+      -- first run of any ingest for this record. could be updating or insert, but need an ingest entry
       (do
-        r <- maybe
-          (do
-            category <- JE.key "category" asCategory
-            lift $ addRecord $ blankRecord category vol)  -- if no existing record, then add a new record
-          (\i -> fromMaybeM (throwPE $ "record " <> T.pack (show i) <> "/" <> key <> " not found")
-            =<< lift (lookupVolumeRecord vol i)) -- else find the existing record by vol + record id
+        (r :: Record) <- maybe
+          (do -- if no existing record, then add a new record
+            (category :: Category) <- JE.key "category" asCategory
+            lift $ addRecord $ blankRecord category vol)  
+          (\i -> do  -- else find the existing record by vol + record id
+            (mRecord :: Maybe Record) <- lift (lookupVolumeRecord vol i)
+            fromMaybeM (throwPE $ "record " <> T.pack (show i) <> "/" <> key <> " not found") mRecord)
           rid
-        inObj r $ lift $ addIngestRecord r key -- log that a record was ingested
+        inObj r $ lift $ addIngestRecord r key -- log that a record was ingested, assoc key with the record
         return r)
+      -- there has been a prior ingest using the same key for this record
       (\priorIngestRecord -> inObj priorIngestRecord $ do
-        unless (all (recordId (recordRow priorIngestRecord) ==) rid) $ do
+        unless (all (recordId (recordRow priorIngestRecord) ==) rid) $ do -- all here refers to either value in maybe or nothing
           throwPE "id mismatch"
         _ <- JE.key "category" $ do
-          category <- asCategory
-          category' <-
-              (category <$)
+          (category :: Category) <- asCategory
+          (category' :: Maybe Category) <-
+              (category <$) -- check whether category name is different from the category on the existing record
                   <$> on check categoryName (recordCategory $ recordRow priorIngestRecord) category
-          -- update record category for a prior ingest
-          forM_ category' $ \c -> lift $ changeRecord priorIngestRecord
-            { recordRow = (recordRow priorIngestRecord)
-              { recordCategory = c
-              }
-            }
+          -- update record category for a prior ingest, if category changed
+          forM_ category'
+            $ \c ->
+                 lift
+                   $ changeRecord priorIngestRecord
+                       { recordRow = (recordRow priorIngestRecord) { recordCategory = c } }
         return priorIngestRecord)
       mIngestRecord
+    -- handle structure (metrics) + field values (measures) for record
     _ <- inObj r $ JE.forEachInObject $ \mn ->
       unless (mn `elem` ["id", "key", "category", "positions"]) $ do -- for all non special keys, treat as data
-        metric <-
-            fromMaybeM (throwPE $ "metric " <> mn <> " not found")
-                $ find
-                      (\m -> mn == metricName m && recordCategory (recordRow r) == metricCategory m)
-                      allMetrics
-        datum <-
-            maybe
-              (return . Just)
-              (check . measureDatum)
-              (getMeasure metric (recordMeasures r))
-          . TE.encodeUtf8 =<< JE.asText
-        forM_ datum $ lift . changeRecordMeasure . Measure r metric -- save measure data
+        (metric :: Metric) <- do
+            let mMetric = find (\m -> mn == metricName m && recordCategory (recordRow r) == metricCategory m) allMetrics
+            fromMaybeM (throwPE $ "metric " <> mn <> " not found") mMetric
+        (datum :: Maybe BS.ByteString) <- do
+          (newMeasureVal :: T.Text) <- JE.asText
+          let newMeasureValBS :: BS.ByteString
+              newMeasureValBS = TE.encodeUtf8 newMeasureVal
+          maybe 
+            (return (Just newMeasureValBS))  -- always update
+            (\existingMeasure -> check (measureDatum existingMeasure) newMeasureValBS) -- only update if changed and allowed
+            (getMeasure metric (recordMeasures r)) -- look for existing measure for this metric on the record
+        forM_ datum
+          $ \measureDatumVal -> (lift . changeRecordMeasure) (Measure r metric measureDatumVal) -- save measure data
+    -- return record
     return r
+  asset :: String -> IngestM (Asset, Maybe Probe)
   asset dir = do
     sa <- fromMaybeM
       (JE.key "file" $ do
