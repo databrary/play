@@ -93,7 +93,10 @@ app.directive('metadataMatchForm', [
               owner: form
             });
             form.$setPristine();
+            $('metadata-match-form').hide();
+            $('metadata-form').show();
             $scope.skiptrue = false;
+            $scope.$emit('refreshParent');
           }, function(res) {
             form.$setUnsubmitted();
             form.validator.server(res);
