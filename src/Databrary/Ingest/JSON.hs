@@ -205,44 +205,46 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
       return c
   record :: IngestM Record
   record = do
-    (rid :: Maybe (Id Record)) <- JE.keyMay "id" $ Id <$> JE.asIntegral
+    -- handle record shell
+    (rid :: Maybe (Id Record)) <- JE.keyMay "id" $ Id <$> JE.asIntegral -- insert = nothing, update = just id
     (key :: IngestKey) <- JE.key "key" $ asKey
     (mIngestRecord :: Maybe Record) <- lift (lookupIngestRecord vol key)
     (r :: Record) <- maybe
+      -- first run of any ingest for this record. could be updating or insert, but need an ingest entry
       (do
         (r :: Record) <- maybe
           (do -- if no existing record, then add a new record
             (category :: Category) <- JE.key "category" asCategory
             lift $ addRecord $ blankRecord category vol)  
           (\i -> do  -- else find the existing record by vol + record id
-            mRecord <- lift (lookupVolumeRecord vol i)
+            (mRecord :: Maybe Record) <- lift (lookupVolumeRecord vol i)
             fromMaybeM (throwPE $ "record " <> T.pack (show i) <> "/" <> key <> " not found") mRecord)
           rid
-        inObj r $ lift $ addIngestRecord r key -- log that a record was ingested
+        inObj r $ lift $ addIngestRecord r key -- log that a record was ingested, assoc key with the record
         return r)
+      -- there has been a prior ingest using the same key for this record
       (\priorIngestRecord -> inObj priorIngestRecord $ do
-        unless (all (recordId (recordRow priorIngestRecord) ==) rid) $ do
+        unless (all (recordId (recordRow priorIngestRecord) ==) rid) $ do -- all here refers to either value in maybe or nothing
           throwPE "id mismatch"
         _ <- JE.key "category" $ do
-          category <- asCategory
-          category' <-
-              (category <$)
+          (category :: Category) <- asCategory
+          (category' :: Maybe Category) <-
+              (category <$) -- check whether category name is different from the category on the existing record
                   <$> on check categoryName (recordCategory $ recordRow priorIngestRecord) category
-          -- update record category for a prior ingest
-          forM_ category' $ \c -> lift $ changeRecord priorIngestRecord
-            { recordRow = (recordRow priorIngestRecord)
-              { recordCategory = c
-              }
-            }
+          -- update record category for a prior ingest, if category changed
+          forM_ category'
+            $ \c ->
+                 lift
+                   $ changeRecord priorIngestRecord
+                       { recordRow = (recordRow priorIngestRecord) { recordCategory = c } }
         return priorIngestRecord)
       mIngestRecord
+    -- handle structure (metrics) + field values (measures) for record
     _ <- inObj r $ JE.forEachInObject $ \mn ->
       unless (mn `elem` ["id", "key", "category", "positions"]) $ do -- for all non special keys, treat as data
-        metric <-
-            fromMaybeM (throwPE $ "metric " <> mn <> " not found")
-                $ find
-                      (\m -> mn == metricName m && recordCategory (recordRow r) == metricCategory m)
-                      allMetrics
+        metric <- do
+            let mMetric = find (\m -> mn == metricName m && recordCategory (recordRow r) == metricCategory m) allMetrics
+            fromMaybeM (throwPE $ "metric " <> mn <> " not found") mMetric
         datum <-
             maybe
               (return . Just)
@@ -250,6 +252,7 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
               (getMeasure metric (recordMeasures r))
           . TE.encodeUtf8 =<< JE.asText
         forM_ datum $ lift . changeRecordMeasure . Measure r metric -- save measure data
+    -- return record
     return r
   asset :: String -> IngestM (Asset, Maybe Probe)
   asset dir = do
