@@ -253,8 +253,8 @@ data MeasureUpdateAction = Upsert BS.ByteString | Unchanged
 createOrUpdateRecord :: [Metric] -> Volume -> ParticipantFieldMapping -> CSV.NamedRecord -> ActionM () -- TODO: error or record
 createOrUpdateRecord participantActiveMetrics vol mapping csvRecord = do
     let participantCategory = getCategory' (Id 1) -- TODO: use global variable
-        idVal = maybe (error "id missing") id (getFieldVal pfmId "id")
-    mOldParticipant <- pure Nothing -- getParticipantById idVal vol -- should provide error if idVal exists and not a participant
+        (idVal, idMetric) = maybe (error "id missing") id (getFieldVal pfmId "id")
+    mOldParticipant <- lookupVolumeParticipant vol idVal
     recordStatus <-
         case mOldParticipant of
             Nothing ->
@@ -275,7 +275,7 @@ createOrUpdateRecord participantActiveMetrics vol mapping csvRecord = do
         mState = getFieldVal pfmState "state"
         mSetting = getFieldVal pfmSetting "setting"
     -- print ("save measure id:", mId)
-    changeRecordMeasureIfUsed recordStatus (Just idVal)
+    changeRecordMeasureIfUsed recordStatus (Just (idVal, idMetric))
     changeRecordMeasureIfUsed recordStatus mInfo
     changeRecordMeasureIfUsed recordStatus mDescription
     changeRecordMeasureIfUsed recordStatus mBirthdate
