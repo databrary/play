@@ -3,6 +3,7 @@ module Databrary.Model.Record
   ( module Databrary.Model.Record.Types
   , lookupRecord
   , lookupVolumeRecord
+  , lookupVolumeParticipant
   , lookupVolumeRecords
   , addRecord
   , changeRecord
@@ -13,6 +14,7 @@ module Databrary.Model.Record
 
 import Control.Monad (guard)
 import Data.Either (isRight)
+import Data.List (find)
 import Data.Monoid ((<>))
 
 import Databrary.Has (peek, view)
@@ -26,6 +28,8 @@ import Databrary.Model.Volume.Types
 import Databrary.Model.Party.Types
 import Databrary.Model.Category
 import Databrary.Model.Measure
+import Databrary.Model.Metric
+import Databrary.Model.Metric.Types
 import Databrary.Model.Record.Types
 import Databrary.Model.Record.SQL
 
@@ -37,6 +41,22 @@ lookupRecord ri = do
 lookupVolumeRecord :: MonadDB c m => Volume -> Id Record -> m (Maybe Record)
 lookupVolumeRecord vol ri =
   dbQuery1 $ fmap ($ vol) $(selectQuery selectVolumeRecord "$WHERE record.id = ${ri} AND record.volume = ${volumeId $ volumeRow vol}")
+
+lookupVolumeParticipant :: MonadDB c m => Volume -> MeasureDatum -> m (Maybe Record)
+lookupVolumeParticipant vol idMeasureVal = do
+    allVolumeRecords <- lookupVolumeRecords vol
+    let mIdMatch = find matchesId allVolumeRecords
+    -- check record type is participant, if not, then error
+    pure mIdMatch
+  where
+    idMetric :: Metric
+    idMetric = getMetric' (Id 1)
+    matchesId :: Record -> Bool
+    matchesId r =
+         maybe
+           False
+           (const True)
+           (find (\msr -> measureMetric msr == idMetric && measureDatum msr == idMeasureVal) (recordMeasures r))
 
 lookupVolumeRecords :: MonadDB c m => Volume -> m [Record]
 lookupVolumeRecords vol =
