@@ -8,6 +8,7 @@
 -- NB: This function is (only) designed to be used as the state-transition
 -- function of the segments_union aggregate. In that usage, we can guarantee acc
 -- is sorted and non-overlapping, because we are building it ourselves.
+drop function if exists segments_union(segment[], segment) cascade;
 create or replace function segments_union(acc segment[], seg segment)
 returns segment[]
 immutable strict language plpgsql
@@ -50,7 +51,7 @@ begin
                 i := i + 1;
             end loop;
             -- 3. Tack on the rest.
-            result := result || tmp || acc[i :];
+            result := result || tmp || acc[i : array_upper(acc, 1)];
         end if;
     end if;
     return result;

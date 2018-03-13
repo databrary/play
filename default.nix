@@ -55,8 +55,8 @@ let
     cabal configure --datadir=. --datasubdir=.
     cabal repl lib:databrary
   '';
-  # Pin at postgresql96, which is not the default for our pinned nixpkgs yet.
-  postgresql = nixpkgs.postgresql96;
+  # Pin at postgresql95, which is what's in prod
+  postgresql = nixpkgs.postgresql95;
   gargoyleSrc = fetchFromGitHub {
         owner= "obsidiansystems";
         repo = "gargoyle";
