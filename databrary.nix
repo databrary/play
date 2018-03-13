@@ -108,7 +108,8 @@ in
   '';
   postBuild = ''
     kill -INT `head -1 $socket_path/postmaster.pid`
-    ln -sf ${nodePackages.shell.nodeDependencies}/lib/node_modules .
+    # Link node_modules into the current directory
+    ln -sf ${nodePackages.shell.nodeDependencies}/lib/node_modules
   '';
   postInstall = ''
     databrary_datadir=. $out/bin/databrary -w

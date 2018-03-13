@@ -8,6 +8,10 @@ drop function if exists segments_union(segment[], segment[]);
 -- one.
 --
 -- We assume acc (the input list) is sorted and non-overlapping.
+--
+-- NB: This function is (only) designed to be used as the state-transition
+-- function of the segments_union aggregate. In that usage, we can guarantee acc
+-- is sorted and non-overlapping, because we are building it ourselves.
 create or replace function segments_union(acc segment[], seg segment)
 returns segment[]
 immutable strict parallel safe language plpgsql
