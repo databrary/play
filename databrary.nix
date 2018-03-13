@@ -82,7 +82,7 @@ in
     base tasty tasty-expected-failure tasty-hunit
   ];
   executableToolDepends = [
-    postgresql.postgres
+    postgresql
     # Put coffee, uglifyjs, etc in scope
     nodePackages.shell.nodeDependencies
     nodejs

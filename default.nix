@@ -55,7 +55,8 @@ let
     cabal configure --datadir=. --datasubdir=.
     cabal repl lib:databrary
   '';
-  postgresql = import ./db.nix { inherit nixpkgs; };
+  # Pin at postgresql96, which is not the default for our pinned nixpkgs yet.
+  postgresql = nixpkgs.postgresql96;
   gargoyleSrc = fetchFromGitHub {
         owner= "obsidiansystems";
         repo = "gargoyle";
@@ -67,7 +68,6 @@ let
   pkgs = reflex-platform.ghc.override {
     overrides = self: super: rec {
       databrary = self.callPackage ./databrary.nix {
-        # postgresql with ranges plugin
         inherit postgresql nodePackages coreutils;
         # ffmpeg override with with --enable-libfdk-aac and --enable-nonfree flags set
         ffmpeg = nixpkgs.ffmpeg-full.override {
