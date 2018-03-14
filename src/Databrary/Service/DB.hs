@@ -32,9 +32,11 @@ import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Control (MonadBaseControl, liftBaseOp_)
 import Control.Monad.Trans.Reader (ReaderT(..))
 import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString.Char8 as BS
 import Data.IORef (IORef, newIORef, atomicModifyIORef')
 import Data.Maybe (fromMaybe, isJust, fromJust)
 import Data.Pool (Pool, withResource, createPool, destroyAllResources)
+import qualified Database.PostgreSQL.Simple as PGSimple
 import Database.PostgreSQL.Typed.Protocol
 import Database.PostgreSQL.Typed.Query
 import Database.PostgreSQL.Typed.TH (withTPGConnection, useTPGDatabase)
@@ -61,27 +63,46 @@ confPGDatabase conf = defaultPGDatabase
   user = conf C.! "user"
 
 
-newtype DBPool = PGPool (Pool PGConnection)
+data DBPool = DBPool
+        { dBPoolTyped :: Pool PGConnection
+        , dBPoolSimple :: Pool PGSimple.Connection
+        }
 type DBConn = PGConnection
 
 initDB :: C.Config -> IO DBPool
 initDB conf =
-  PGPool <$> createPool
-    (pgConnect db)
-    pgDisconnect
-    stripes (fromInteger idle) conn
+    DBPool
+        <$> (createPool' (pgConnect db) pgDisconnect)
+        <*> (createPool' (PGSimple.connect simpleConnInfo) (PGSimple.close))
   where
-  db = confPGDatabase conf
-  stripes = fromMaybe 1 $ conf C.! "stripes"
-  idle = fromMaybe 300 $ conf C.! "idle"
-  conn = fromMaybe 16 $ conf C.! "maxconn"
+    createPool' :: IO a -> (a -> IO ()) -> IO (Pool a)
+    createPool' get release =
+        createPool get release stripes (fromInteger idle) conn
+    db = confPGDatabase conf
+    simpleConnInfo = PGSimple.defaultConnectInfo
+        { PGSimple.connectHost     = pgDBHost db
+        , PGSimple.connectPort     = case pgDBPort db of
+            PortNumber x -> fromIntegral x -- x is opaque
+            UnixSocket _ ->
+                PGSimple.connectPort PGSimple.defaultConnectInfo
+            Service _ ->
+                PGSimple.connectPort PGSimple.defaultConnectInfo
+        , PGSimple.connectUser     = BS.unpack (pgDBUser db)
+        , PGSimple.connectPassword = BS.unpack (pgDBPass db)
+        , PGSimple.connectDatabase = BS.unpack (pgDBName db)
+        }
+    stripes = fromMaybe 1 $ conf C.! "stripes"
+    idle    = fromMaybe 300 $ conf C.! "idle"
+    conn    = fromMaybe 16 $ conf C.! "maxconn"
 
 finiDB :: DBPool -> IO ()
-finiDB (PGPool p) = do
-  destroyAllResources p
+finiDB (DBPool p p') = do
+   -- Different types -> no 'travers'ing
+   destroyAllResources p
+   destroyAllResources p'
 
 withDB :: DBPool -> (DBConn -> IO a) -> IO a
-withDB (PGPool p) = withResource p
+withDB (DBPool p _) = withResource p
 
 type MonadDB c m = (MonadIO m, MonadHas DBConn c m)
 
