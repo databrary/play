@@ -8,13 +8,21 @@ module Databrary.Model.Record
   , changeRecord
   , removeRecord
   , recordJSON
+  , columnSampleJson
 --  , recordJSONRestricted
+  -- for testing only
+  , extractParticipantFieldRows
   ) where
 
 import Control.Monad (guard)
+import qualified Data.ByteString as BS
+import qualified Data.Csv as CSV
 import Data.Either (isRight)
 import Data.Monoid ((<>))
+import qualified Data.Vector as V
+import Data.Vector (Vector)
 
+import Data.Csv.Contrib (extractColumnDefaulting)
 import Databrary.Has (peek, view)
 import Databrary.Service.DB
 import qualified Databrary.JSON as JSON
@@ -63,3 +71,20 @@ recordJSON publicRestricted r@Record{ recordRow = RecordRow{..}, ..} = JSON.Reco
      "category" JSON..= categoryId recordCategory
   <> "measures" JSON..=. measuresJSON publicRestricted (getRecordMeasures r)
 
+extractParticipantFieldRowsJson :: Int -> [BS.ByteString] -> Vector CSV.NamedRecord -> [JSON.Value]
+extractParticipantFieldRowsJson maxRows participantFieldHeaders records =
+    ( fmap (\(colHdr, vals) -> columnSampleJson colHdr vals)
+    . extractParticipantFieldRows participantFieldHeaders
+    . V.take maxRows)
+    records
+
+extractParticipantFieldRows :: [BS.ByteString] -> Vector CSV.NamedRecord -> [(BS.ByteString, [BS.ByteString])]
+extractParticipantFieldRows participantFieldHeaders records =
+    (zip participantFieldHeaders . fmap (\hdr -> extractColumnDefaulting hdr records)) participantFieldHeaders
+
+columnSampleJson :: BS.ByteString -> [BS.ByteString] -> JSON.Value
+columnSampleJson hdr sampleValues =
+    JSON.object [
+          "column_name" JSON..= hdr
+        , "samples" JSON..= sampleValues
+        ]

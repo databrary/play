@@ -12,4 +12,14 @@ tests :: TestTree
 tests = testGroup "Data.Csv.ContribTest"
     [ testCase "extractColumnDefaulting"
         (extractColumnDefaulting "c1" (V.fromList [(HMP.fromList [("c1", "val1")])]) @?= ["val1"])
+    , testCase "extractColumnsDistinctSample"
+        (extractColumnsDistinctSample
+           1
+           (V.fromList ["c1"])
+           (V.fromList
+              [ (HMP.fromList [("c1", "val1")])
+              , (HMP.fromList [("c1", "val1")])
+              , (HMP.fromList [("c1", "val2")])
+              ])
+           @?= [("c1", ["val1"])])
     ]

@@ -10,6 +10,7 @@ module Databrary.Model.Ingest
   , replaceSlotAsset
   ) where
 
+import qualified Data.Csv as CSV
 import qualified Data.Text as T
 import Database.PostgreSQL.Typed.Query (pgSQL)
 import Database.PostgreSQL.Typed
@@ -20,14 +21,18 @@ import qualified Database.PostgreSQL.Typed.Types
 import qualified Data.ByteString
 import Data.ByteString (ByteString)
 import qualified Data.String
+import Data.Vector (Vector)
 
+import Data.Csv.Contrib (extractColumnsDistinctSample)
 import Databrary.Service.DB
+import qualified Databrary.JSON as JSON
 import Databrary.Model.SQL (selectQuery)
 import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
 import Databrary.Model.Container.SQL
 import qualified Databrary.Model.Record.SQL
 import Databrary.Model.Record.Types
+import Databrary.Model.Record (columnSampleJson)
 import Databrary.Model.Record.SQL
 import Databrary.Model.Asset.Types
 import Databrary.Model.Asset.SQL
@@ -330,3 +335,9 @@ replaceSlotAsset o n = do
                           _p_a6PFD]))
       (assetId $ assetRow n) (assetId $ assetRow o))
             (\ [] -> ()))
+
+extractColumnsDistinctSampleJson :: Int -> CSV.Header -> Vector CSV.NamedRecord -> [JSON.Value]
+extractColumnsDistinctSampleJson maxSamples hdrs records =
+    ( fmap (\(colHdr, vals) -> columnSampleJson colHdr vals)
+    . extractColumnsDistinctSample maxSamples hdrs)
+    records
