@@ -62,7 +62,7 @@ htmlAngular assetsVersion cssDeps jsDeps nojs auth = H.docTypeHtml H.! ngAttribu
       H.! HA.href "http://allfont.net/cache/css/lucida-sans-unicode.css"
     H.link
       H.! HA.rel "stylesheet"
-      H.! HA.href "https://fonts.googleapis.com/css?family=Heebo:400,500,700|Karla:400,400i,700,700i|Nunito+Sans:400,400i,600,600i,700,700i|Oxygen:400,700|Poppins:400,400i,500,500i,600,600i,700,700i|Quattrocento+Sans:400,400i,700,700i|Questrial|Raleway:400,400i,500,500i,600,600i,700,700i|Roboto:400,400i,500,500i,700,700i|Rubik:400,400i,500,500i,700,700i|Work+Sans:400,500,600,700"
+      H.! HA.href "https://fonts.googleapis.com/css?family=Questrial"
     H.script $ do
       H.preEscapedString "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src= 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f); })(window,document,'script','dataLayer','GTM-NW6PSFL');"
     H.script $ do

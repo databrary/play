@@ -6,6 +6,5 @@ app.controller('volume/view', [
     $scope.volume = volume;
     display.title = volume.name;
     $scope.checkpublicsharefull = volume.publicsharefull || volume.publicsharefull === null;
-    $('body').addClass($location.search().font);
   }
 ]);
