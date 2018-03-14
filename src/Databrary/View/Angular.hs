@@ -59,7 +59,7 @@ htmlAngular assetsVersion cssDeps jsDeps nojs auth = H.docTypeHtml H.! ngAttribu
         H.! HA.href (versionedWebURL assetsVersion $ webFileRel css)
     H.link
       H.! HA.rel "stylesheet"
-      H.! HA.href "http://allfont.net/cache/css/lucida-sans-unicode.css"
+      H.! HA.href "https://allfont.net/cache/css/lucida-sans-unicode.css"
     H.link
       H.! HA.rel "stylesheet"
       H.! HA.href "https://fonts.googleapis.com/css?family=Questrial"
