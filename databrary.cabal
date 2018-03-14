@@ -34,6 +34,7 @@ library
     Paths_databrary
     Blaze.ByteString.Builder.Html.Word
     Data.ByteString.Builder.Escape
+    Data.Csv.Contrib
     Data.RangeSet.Parse
     Databrary.Warp
     Databrary.Solr.Service
@@ -539,9 +540,12 @@ test-suite databrary-test
     , tasty
     , tasty-expected-failure
     , tasty-hunit
+    , unordered-containers
+    , vector
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
   default-language: Haskell2010
   other-modules:
       Databrary.HTTP.Form.DeformTest
-
+    , Data.Csv.ContribTest
+      
 -- vim: shiftwidth=2
