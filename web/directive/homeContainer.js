@@ -87,19 +87,6 @@ app.directive('homeContainer', [
           stopCarousel = true;
         })
 
-        $scope.$on('$destroy', function(){
-          if(google !== null && typeof google === 'object' && typeof google.maps === 'object'){
-            google.maps = null;
-          }
-          var i;
-          var x = document.getElementsByTagName("script");
-          for (i = 0; i < x.length; i++) {
-            if(x[i].src.indexOf('https://maps.googleapis.com') !== -1){
-              x[i].parentNode.removeChild(x[i]);
-            }
-          }
-        });
- 
         jQuery(function($) {
           // Asynchronously Load the map API 
           var script = document.createElement('script');
@@ -166,11 +153,26 @@ app.directive('homeContainer', [
           }
         });
 
-        setInterval(function(){
+        var tagFlip = setInterval(function(){
           $('.tag-flip:visible').fadeOut(function(){
             $('.tag-flip').not($(this)).fadeIn();
           });
         }, 5000);
+
+        $scope.$on('$destroy', function(){
+          if(google !== null && typeof google === 'object' && typeof google.maps === 'object'){
+            google.maps = null;
+          }
+          var i;
+          var x = document.getElementsByTagName("script");
+          for (i = 0; i < x.length; i++) {
+            if(x[i].src.indexOf('https://maps.googleapis.com') !== -1){
+              x[i].parentNode.removeChild(x[i]);
+            }
+          }
+          clearInterval(tagFlip);
+        });
+ 
       }
     };
   }
