@@ -14,6 +14,14 @@ module Databrary.Model.AssetSegment
 import Control.Applicative (pure, empty)
 import Data.Monoid ((<>))
 import Database.PostgreSQL.Typed (pgSQL)
+import Database.PostgreSQL.Typed
+import Database.PostgreSQL.Typed.Query
+import Database.PostgreSQL.Typed.Types
+import qualified Database.PostgreSQL.Typed.Query
+import qualified Database.PostgreSQL.Typed.Types
+import qualified Data.ByteString
+import Data.ByteString (ByteString)
+import qualified Data.String
 
 import Databrary.Ops
 import Databrary.Has (peek, view)
@@ -70,12 +78,74 @@ lookupSlotSegmentThumb (Slot c s) = do
       \AND (asset.duration IS NOT NULL AND format.mimetype LIKE 'video/%' OR format.mimetype LIKE 'image/%') \
     \LIMIT 1")
 
+mapQuery :: ByteString -> ([PGValue] -> a) -> PGSimpleQuery a
+mapQuery qry mkResult =
+  fmap mkResult (rawPGSimpleQuery qry)
+
 auditAssetSegmentDownload :: MonadAudit c m => Bool -> AssetSegment -> m ()
-auditAssetSegmentDownload success AssetSegment{ segmentAsset = AssetSlot{ slotAsset = a, assetSlot = as }, assetSegment = seg } = do
+auditAssetSegmentDownload success AssetSegment{ segmentAsset = AssetSlot{ slotAsset = a, assetSlot = as }, assetSegment = seg } = do  
   ai <- getAuditIdentity
+  let _tenv_a9v9T = unknownPGTypeEnv
   maybe
-    (dbExecute1' [pgSQL|INSERT INTO audit.asset (audit_action, audit_user, audit_ip, id, volume, format, release) VALUES
-      (${act}, ${auditWho ai}, ${auditIp ai}, ${assetId $ assetRow a}, ${volumeId $ volumeRow $ assetVolume a}, ${formatId $ assetFormat $ assetRow a}, ${assetRelease $ assetRow a})|])
+    (dbExecute1'
+       {- [pgSQL|INSERT INTO audit.asset (audit_action, audit_user, audit_ip, id, volume, format, release) VALUES
+           (${act}, ${auditWho ai}, ${auditIp ai}, ${assetId $ assetRow a}, ${volumeId $ volumeRow $ assetVolume a}, ${formatId $ assetFormat $ assetRow a}, ${assetRelease $ assetRow a})|] -}
+      (mapQuery
+          ((\ _p_a9v9U _p_a9v9V _p_a9v9W _p_a9v9X _p_a9v9Y _p_a9v9Z _p_a9va0 ->
+                    (Data.ByteString.concat
+                       [Data.String.fromString
+                          "INSERT INTO audit.asset (audit_action, audit_user, audit_ip, id, volume, format, release) VALUES\n\
+                          \      (",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a9v9T
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "audit.action")
+                          _p_a9v9U,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a9v9T
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a9v9V,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a9v9T
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                          _p_a9v9W,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a9v9T
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a9v9X,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a9v9T
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a9v9Y,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a9v9T
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "smallint")
+                          _p_a9v9Z,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a9v9T
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "release")
+                          _p_a9va0,
+                        Data.String.fromString ")"]))
+      act
+      (auditWho ai)
+      (auditIp ai)
+      (assetId $ assetRow a)
+      (volumeId $ volumeRow $ assetVolume a)
+      (formatId $ assetFormat $ assetRow a)
+      (assetRelease $ assetRow a))
+            (\[] -> ())))
     (\s -> dbExecute1' [pgSQL|$INSERT INTO audit.slot_asset (audit_action, audit_user, audit_ip, container, segment, asset) VALUES
       (${act}, ${auditWho ai}, ${auditIp ai}, ${containerId $ containerRow $ slotContainer s}, ${seg}, ${assetId $ assetRow a})|])
     as
