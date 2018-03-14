@@ -29,7 +29,7 @@ Flag sandbox
 library
   hs-source-dirs: src
   c-sources: src/Databrary/Store/avFrame.c
-  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
+  ghc-options: -Wall -Wcompat -Wredundant-constraints
   exposed-modules:
     Paths_databrary
     Blaze.ByteString.Builder.Html.Word
@@ -542,7 +542,7 @@ test-suite databrary-test
     , tasty-hunit
     , unordered-containers
     , vector
-  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
+  ghc-options: -Wall -Wcompat -Wredundant-constraints
   default-language: Haskell2010
   other-modules:
       Databrary.HTTP.Form.DeformTest

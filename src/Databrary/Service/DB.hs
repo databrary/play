@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, ConstraintKinds, DefaultSignatures, GeneralizedNewtypeDeriving, TypeFamilies, OverloadedStrings, StandaloneDeriving #-}
 module Databrary.Service.DB
   ( DBPool
-  , DBConn2
+  , DBConn
   , initDB
   , finiDB
   , withDB
@@ -32,9 +32,11 @@ import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Control (MonadBaseControl, liftBaseOp_)
 import Control.Monad.Trans.Reader (ReaderT(..))
 import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString.Char8 as BS
 import Data.IORef (IORef, newIORef, atomicModifyIORef')
 import Data.Maybe (fromMaybe, isJust, fromJust)
 import Data.Pool (Pool, withResource, createPool, destroyAllResources)
+import qualified Database.PostgreSQL.Simple as PGSimple
 import Database.PostgreSQL.Typed.Protocol
 import Database.PostgreSQL.Typed.Query
 import Database.PostgreSQL.Typed.TH (withTPGConnection, useTPGDatabase)
@@ -61,41 +63,54 @@ confPGDatabase conf = defaultPGDatabase
   user = conf C.! "user"
 
 
-newtype DBPool = PGPool (Pool PGConnection)
--- type DBConn = PGConnection
-data DBConn2 =
-    DBConn2 {
-        dbcConnTyped :: PGConnection
-      , dbcConn :: () -- TODO: postgresql-simple conn
-    }
+data DBPool = DBPool
+        { dBPoolTyped :: Pool PGConnection
+        , dBPoolSimple :: Pool PGSimple.Connection
+        }
+type DBConn = PGConnection
 
 initDB :: C.Config -> IO DBPool
 initDB conf =
-  PGPool <$> createPool
-    (pgConnect db)
-    pgDisconnect
-    stripes (fromInteger idle) conn
+    DBPool
+        <$> (createPool' (pgConnect db) pgDisconnect)
+        <*> (createPool' (PGSimple.connect simpleConnInfo) (PGSimple.close))
   where
-  db = confPGDatabase conf
-  stripes = fromMaybe 1 $ conf C.! "stripes"
-  idle = fromMaybe 300 $ conf C.! "idle"
-  conn = fromMaybe 16 $ conf C.! "maxconn"
+    createPool' :: IO a -> (a -> IO ()) -> IO (Pool a)
+    createPool' get release =
+        createPool get release stripes (fromInteger idle) conn
+    db = confPGDatabase conf
+    simpleConnInfo = PGSimple.defaultConnectInfo
+        { PGSimple.connectHost     = pgDBHost db
+        , PGSimple.connectPort     = case pgDBPort db of
+            PortNumber x -> fromIntegral x -- x is opaque
+            UnixSocket _ ->
+                PGSimple.connectPort PGSimple.defaultConnectInfo
+            Service _ ->
+                PGSimple.connectPort PGSimple.defaultConnectInfo
+        , PGSimple.connectUser     = BS.unpack (pgDBUser db)
+        , PGSimple.connectPassword = BS.unpack (pgDBPass db)
+        , PGSimple.connectDatabase = BS.unpack (pgDBName db)
+        }
+    stripes = fromMaybe 1 $ conf C.! "stripes"
+    idle    = fromMaybe 300 $ conf C.! "idle"
+    conn    = fromMaybe 16 $ conf C.! "maxconn"
 
 finiDB :: DBPool -> IO ()
-finiDB (PGPool p) = do
-  destroyAllResources p
+finiDB (DBPool p p') = do
+   -- Different types -> no 'travers'ing
+   destroyAllResources p
+   destroyAllResources p'
 
-withDB :: DBPool -> (DBConn2 -> IO a) -> IO a
-withDB (PGPool p) useConn =
-    withResource p (\c -> useConn (DBConn2 c ()))
+withDB :: DBPool -> (DBConn -> IO a) -> IO a
+withDB (DBPool p _) = withResource p
 
-type MonadDB c m = (MonadIO m, MonadHas DBConn2 c m)
+type MonadDB c m = (MonadIO m, MonadHas DBConn c m)
 
 {-# INLINE liftDB #-}
-liftDB :: MonadDB c m => (DBConn2 -> IO a) -> m a
+liftDB :: MonadDB c m => (PGConnection -> IO a) -> m a
 liftDB = focusIO
 
-type DBM a = ReaderT DBConn2 IO a
+type DBM a = ReaderT PGConnection IO a
 
 runDBM :: DBPool -> DBM a -> IO a
 runDBM p = withDB p . runReaderT
@@ -108,10 +123,10 @@ dbTryJust :: MonadDB c m => (PGError -> Maybe e) -> DBM a -> m (Either e a)
 dbTryJust err q = liftDB $ tryJust err . runReaderT q
 
 dbRunQuery :: (MonadDB c m, PGQuery q a) => q -> m (Int, [a])
-dbRunQuery q = liftDB $ \c -> pgRunQuery (dbcConnTyped c) q
+dbRunQuery q = liftDB $ \c -> pgRunQuery c q
 
 dbExecute :: (MonadDB c m, PGQuery q ()) => q -> m Int
-dbExecute q = liftDB $ \c -> pgExecute (dbcConnTyped c) q
+dbExecute q = liftDB $ \c -> pgExecute c q
 
 dbExecuteSimple :: MonadDB c m => PGSimpleQuery () -> m Int
 dbExecuteSimple = dbExecute
@@ -130,10 +145,10 @@ dbExecute1' q = do
   unless r $ fail $ "pgExecute1' " ++ show q ++ ": failed"
 
 dbExecute_ :: (MonadDB c m) => BSL.ByteString -> m ()
-dbExecute_ q = liftDB $ \c -> pgSimpleQueries_ (dbcConnTyped c) q
+dbExecute_ q = liftDB $ \c -> pgSimpleQueries_ c q
 
 dbQuery :: (MonadDB c m, PGQuery q a) => q -> m [a]
-dbQuery q = liftDB $ \c -> pgQuery (dbcConnTyped c) q
+dbQuery q = liftDB $ \c -> pgQuery c q
 
 dbQuery1 :: (MonadDB c m, PGQuery q a, Show q) => q -> m (Maybe a)
 dbQuery1 q = do
@@ -147,12 +162,12 @@ dbQuery1' :: (MonadDB c m, PGQuery q a, Show q) => q -> m a
 dbQuery1' q = maybe (fail $ "pgQuery1' " ++ show q ++ ": no results") return =<< dbQuery1 q
 
 dbTransaction :: MonadDB c m => DBM a -> m a
-dbTransaction f = liftDB $ \c -> pgTransaction (dbcConnTyped c) (runReaderT f c)
+dbTransaction f = liftDB $ \c -> pgTransaction c (runReaderT f c)
 
 dbTransaction' :: (MonadBaseControl IO m, MonadDB c m) => m a -> m a
 dbTransaction' f = do
   c <- peek
-  liftBaseOp_ (pgTransaction (dbcConnTyped c)) f
+  liftBaseOp_ (pgTransaction c) f
 
 -- For connections outside runtime:
 
@@ -163,7 +178,7 @@ runDBConnection :: DBM a -> IO a
 runDBConnection f = bracket
   (pgConnect =<< loadPGDatabase)
   pgDisconnect
-  (\c -> runReaderT f (DBConn2 c ()))
+  (runReaderT f)
 
 loadTDB :: TH.DecsQ
 loadTDB = do 
@@ -183,4 +198,4 @@ useTDB = do
 runTDB :: DBM a -> TH.Q a
 runTDB f = do
   _ <- useTDB
-  TH.runIO $ withTPGConnection $ (\c -> runReaderT f (DBConn2 c ()))
+  TH.runIO $ withTPGConnection $ runReaderT f
