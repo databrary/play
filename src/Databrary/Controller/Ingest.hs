@@ -10,6 +10,7 @@ import Network.HTTP.Types (badRequest400)
 import Network.Wai.Parse (FileInfo(..))
 import System.Posix.FilePath (takeExtension)
 
+import qualified Databrary.JSON as JSON
 import Databrary.Ops
 import Databrary.Has
 import Databrary.Model.Id
@@ -46,10 +47,12 @@ postIngest = multipartAction $ action POST (pathId </< "ingest") $ \vi -> withAu
     abort ?!$> (,,)
       <$> ("run" .:> deform)
       <*> ("overwrite" .:> deform)
-      <*> ("json" .:>
-        (deformCheck "Must be JSON." (\f ->
-          fileContentType f `elem` ["text/json", "application/json"] || takeExtension (fileName f) == ".json")
-        =<< deform))
+      <*> ("json" .:> do
+              (fileInfo :: FileInfo JSON.Value) <- deform
+              (deformCheck
+                   "Must be JSON."
+                   (\f -> fileContentType f `elem` ["text/json", "application/json"] || takeExtension (fileName f) == ".json")
+                   fileInfo))
   r <- maybe
     (True <$ focusIO abortIngest)
     (\(r,o,j) -> runIngest $ right (map (unId . containerId . containerRow)) <$> ingestJSON v (fileContent j) r o)
