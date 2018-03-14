@@ -8,6 +8,7 @@ module Databrary.Model.Record
   , changeRecord
   , removeRecord
   , recordJSON
+  , columnSampleJson
 --  , recordJSONRestricted
   -- for testing only
   , extractParticipantFieldRows
@@ -70,43 +71,20 @@ recordJSON publicRestricted r@Record{ recordRow = RecordRow{..}, ..} = JSON.Reco
      "category" JSON..= categoryId recordCategory
   <> "measures" JSON..=. measuresJSON publicRestricted (getRecordMeasures r)
 
-{-
 extractParticipantFieldRowsJson :: Int -> [BS.ByteString] -> Vector CSV.NamedRecord -> [JSON.Value]
 extractParticipantFieldRowsJson maxRows participantFieldHeaders records =
     ( fmap (\(colHdr, vals) -> columnSampleJson colHdr vals)
-    . extractParticipantFieldRows participantFieldHeaders)
-    (V.take maxRows records)
--}
+    . extractParticipantFieldRows participantFieldHeaders
+    . V.take maxRows)
+    records
 
 extractParticipantFieldRows :: [BS.ByteString] -> Vector CSV.NamedRecord -> [(BS.ByteString, [BS.ByteString])]
 extractParticipantFieldRows participantFieldHeaders records =
     (zip participantFieldHeaders . fmap (\hdr -> extractColumnDefaulting hdr records)) participantFieldHeaders
 
--- columnSampleJson = undefined
-{-
-extractColumnsFirstVals :: Int -> CSV.Header -> V.Vector CSV.NamedRecord -> [JSON.Value] -- TODO: duplicated
-extractColumnsFirstVals maxRows hdrs records =
-    (V.toList . fmap (\hdr -> sampleColumnJson False maxRows hdr (extractColumn hdr))) hdrs
-  where
-    extractColumn :: BS.ByteString -> [Maybe BS.ByteString]  -- Should error out if receive nothing
-    extractColumn hdr = 
-        V.toList (fmap (\rowMap -> HMP.lookup hdr rowMap) records)
-
-extractSampleColumns :: Int -> CSV.Header -> V.Vector CSV.NamedRecord -> [JSON.Value]
-extractSampleColumns maxSamples hdrs records =
-    (V.toList . fmap (\hdr -> sampleColumnJson True maxSamples hdr (extractColumn hdr))) hdrs
-  where
-    extractColumn :: BS.ByteString -> [Maybe BS.ByteString]  -- Should error out if receive nothing
-    extractColumn hdr = 
-        V.toList (fmap (\rowMap -> HMP.lookup hdr rowMap) records)
-
-sampleColumnJson :: Bool -> Int -> BS.ByteString -> [Maybe BS.ByteString] -> JSON.Value
-sampleColumnJson useDistinct maxSamples hdr columnValues =
-    let
-        uniqueSamples = (take maxSamples . (if useDistinct then L.nub else fmap id) . fmap (maybe "" id)) columnValues
-    in
-        JSON.object [
-            "column_name" JSON..= hdr
-          , "samples" JSON..= uniqueSamples
-          ]
--}
+columnSampleJson :: BS.ByteString -> [BS.ByteString] -> JSON.Value
+columnSampleJson hdr sampleValues =
+    JSON.object [
+          "column_name" JSON..= hdr
+        , "samples" JSON..= sampleValues
+        ]
