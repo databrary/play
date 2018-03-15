@@ -546,7 +546,11 @@ test-suite databrary-test
   default-language: Haskell2010
   other-modules:
       Databrary.HTTP.Form.DeformTest
+    , Databrary.Controller.IngestTest
+    , Databrary.Model.IngestTest
     , Databrary.Model.RecordTest
+    , Databrary.Model.Metric.TypesTest
+    , Databrary.Model.MetricTest
     , Data.Csv.ContribTest
       
 -- vim: shiftwidth=2
