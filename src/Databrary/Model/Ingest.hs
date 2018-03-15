@@ -11,10 +11,13 @@ module Databrary.Model.Ingest
   , HeaderMappingEntry(..)
   ) where
 
+import Control.Monad (when)
+import qualified Data.ByteString as BS
 import qualified Data.Csv as CSV
 import qualified Data.List as L
 import qualified Data.Map as Map
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import Data.Text (Text)
 import Data.Map (Map)
 import Database.PostgreSQL.Typed.Query (pgSQL)
@@ -370,9 +373,10 @@ instance FromJSON HeaderMappingEntry where
                          fail ("metric name does not match any participant metric: " ++ show metricCanonicalName))
 
 -- TODO: unit tests
--- TODO: validator should also ensure each col mentioned is a real column
-parseParticipantFieldMapping :: [Metric] -> Map Metric Text -> Either String ParticipantFieldMapping
-parseParticipantFieldMapping volParticipantActiveMetrics requestedMapping = do
+parseParticipantFieldMapping :: [Metric] -> [BS.ByteString] -> Map Metric Text -> Either String ParticipantFieldMapping
+parseParticipantFieldMapping volParticipantActiveMetrics colHdrs requestedMapping = do
+    -- TODO: generate error or warning if metrics provided that are actually used on the volume?
+    when (((length . Map.elems) requestedMapping) /= ((length . L.nub . Map.elems) requestedMapping)) (fail "columns values not unique")
     ParticipantFieldMapping
         <$> getFieldIfUsed participantMetricId
         <*> getFieldIfUsed participantMetricInfo
@@ -396,8 +400,9 @@ parseParticipantFieldMapping volParticipantActiveMetrics requestedMapping = do
         then 
             case Map.lookup participantMetric requestedMapping of
                 Just csvField ->
-                    -- validate csv field
-                    pure (Just csvField)
-                Nothing -> fail ("missing expected participant metric" ++ (show . metricName) participantMetric)
+                    if (TE.encodeUtf8 csvField) `elem` colHdrs
+                    then pure (Just csvField)
+                    else fail ("unknown column (" ++ (show csvField) ++ ") for metric (" ++ (show . metricName) participantMetric)
+                Nothing -> fail ("missing expected participant metric:" ++ (show . metricName) participantMetric)
         else
             pure Nothing
