@@ -11,6 +11,7 @@ app.directive('metadataForm', [
 
         $(document).on('click', '.showinstruct, .uploadinstuction', function() {
           $('input[name="metadata"]').click();
+          $('input[name="metadata"]').value = null;
         });
 
         $(document).on('change', 'input[name="metadata"]', function() {
@@ -20,7 +21,12 @@ app.directive('metadataForm', [
           $('.uploadsubmit').show(function(){
             $('.filename').addClass('padding');
           });
-          $('.filename').text(file);
+          if(file) {
+            $('.filename').text(file);
+          } else {
+            $('.filename').text('no file');
+          }
+          
         });
         
         form.save = function() {
