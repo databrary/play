@@ -4,6 +4,7 @@ module Databrary.Model.Metric
   , allMetrics
   , getMetric
   , getMetric'
+  , participantMetrics
   , metricLong
   , birthdateMetric
   , metricJSON
@@ -699,6 +700,9 @@ getMetric (Id i) = IntMap.lookup (fromIntegral i) metricsById
 
 getMetric' :: Id Metric -> Metric
 getMetric' (Id i) = metricsById IntMap.! fromIntegral i
+
+participantMetrics :: [Metric]
+participantMetrics = filter ((== participantCategory) . metricCategory) allMetrics
 
 -- this is a hack, should be in database
 metricLong :: Metric -> Bool

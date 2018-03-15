@@ -5,6 +5,7 @@ module Databrary.Model.Category
   , getCategory
   , getCategory'
   , categoryJSON
+  , participantCategory
   ) where
 
 import qualified Data.IntMap.Strict as IntMap
@@ -72,3 +73,6 @@ categoryJSON :: JSON.ToObject o => Category -> JSON.Record (Id Category) o
 categoryJSON Category{..} = JSON.Record categoryId $
      "name" JSON..= categoryName
   <> "description" JSON..=? categoryDescription
+
+participantCategory :: Category
+participantCategory = head allCategories
