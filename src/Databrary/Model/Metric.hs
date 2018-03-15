@@ -4,6 +4,7 @@ module Databrary.Model.Metric
   , allMetrics
   , getMetric
   , getMetric'
+  , lookupParticipantMetricBySymbolicName
   , participantMetrics
   , metricLong
   , birthdateMetric
@@ -17,6 +18,7 @@ import Data.List (find)
 import Data.Maybe (fromJust)
 import Data.Monoid ((<>))
 import qualified Data.Text
+import Data.Text (Text)
 
 import Databrary.Ops
 import qualified Databrary.JSON as JSON
@@ -700,6 +702,10 @@ getMetric (Id i) = IntMap.lookup (fromIntegral i) metricsById
 
 getMetric' :: Id Metric -> Metric
 getMetric' (Id i) = metricsById IntMap.! fromIntegral i
+
+lookupParticipantMetricBySymbolicName :: Text -> Maybe Metric
+lookupParticipantMetricBySymbolicName symbolicName =
+    find (\m -> (Data.Text.filter (/= ' ') . Data.Text.toLower . metricName) m == symbolicName) participantMetrics
 
 participantMetrics :: [Metric]
 participantMetrics = filter ((== participantCategory) . metricCategory) allMetrics

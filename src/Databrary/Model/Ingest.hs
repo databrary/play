@@ -37,6 +37,7 @@ import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
 import Databrary.Model.Container.SQL
 import Databrary.Model.Metric.Types
+import Databrary.Model.Metric (lookupParticipantMetricBySymbolicName)
 import qualified Databrary.Model.Record.SQL
 import Databrary.Model.Record.Types
 import Databrary.Model.Record (columnSampleJson)
@@ -352,16 +353,22 @@ extractColumnsDistinctSampleJson maxSamples hdrs records =
 data HeaderMappingEntry =
     HeaderMappingEntry {
           hmeCsvField :: Text
-        , hmeMetricName :: Text
+        , hmeMetric :: Metric -- only participant metrics
     } deriving (Show, Eq, Ord)
 
 instance FromJSON HeaderMappingEntry where
     parseJSON =
         JSON.withObject "HeaderMappingEntry"
-            (\o ->
-                 HeaderMappingEntry
-                     <$> o JSON..: "csv_field"
-                     <*> o JSON..: "metric") -- TODO: validate that it matches a real metric name
+            (\o -> do
+                 metricCanonicalName <- o JSON..: "metric"
+                 -- TODO: check name against real metric list
+                 case lookupParticipantMetricBySymbolicName metricCanonicalName of
+                     Just metric ->
+                         HeaderMappingEntry
+                             <$> o JSON..: "csv_field"
+                             <*> pure metric
+                     Nothing ->
+                         fail ("metric name does not match any participant metric: " ++ show metricCanonicalName))
 
 -- TODO: unit tests
 -- TODO: validator should also ensure each col mentioned is a real column

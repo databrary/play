@@ -19,7 +19,7 @@ import qualified Databrary.JSON as JSON
 import Databrary.Ops
 import Databrary.Has
 import Databrary.Model.Id
--- import Databrary.Model.Metric (ParticipantFieldMapping, Metric)
+import Databrary.Model.Metric (Metric)
 import Databrary.Model.Ingest
 import Databrary.Model.Permission
 import Databrary.Model.Volume
@@ -75,7 +75,7 @@ runParticipantUpload :: ActionRoute (Id Volume)
 runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUpload") $ \vi -> withAuth $ do
     pure $ okResponse [] ("" :: String)
 
-parseMapping :: JSON.Value -> JSON.Parser (Map Text Text)
+parseMapping :: JSON.Value -> JSON.Parser (Map Metric Text)
 parseMapping val = do
     (entries :: [HeaderMappingEntry]) <- JSON.parseJSON val
-    pure ((Map.fromList . fmap (\e -> (hmeMetricName e, hmeCsvField e))) entries)
+    pure ((Map.fromList . fmap (\e -> (hmeMetric e, hmeCsvField e))) entries)

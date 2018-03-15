@@ -100,7 +100,7 @@ data Metric = Metric
   , metricAssumed :: !(Maybe MeasureDatum)
   , metricDescription :: !(Maybe T.Text)
   , metricRequired :: !(Maybe Bool)
-  }
+  } deriving (Show)
 
 instance Kinded Metric where
   kindOf _ = "metric"
