@@ -17,6 +17,7 @@ import qualified Database.PostgreSQL.Typed.Query
 import qualified Database.PostgreSQL.Typed.Types
 import qualified Data.ByteString
 import Data.ByteString (ByteString)
+import qualified Data.List as L
 import qualified Data.String
 
 import Databrary.Service.DB
@@ -30,6 +31,12 @@ import Databrary.Model.VolumeMetric.SQL
 lookupVolumeMetrics :: (MonadDB c m) => Volume -> m [Id Metric]
 lookupVolumeMetrics v =
   dbQuery $(selectQuery selectVolumeMetric "$WHERE volume = ${volumeId $ volumeRow v} ORDER BY metric")
+
+lookupVolumeParticipantMetrics :: (MonadDB c m) => Volume -> m [Metric]
+lookupVolumeParticipantMetrics vol = do
+    volumeActiveMetricIds <- lookupVolumeMetrics vol
+    -- liftIO (print ("metric ids", metricIds))
+    pure ((fmap getMetric' volumeActiveMetricIds) `L.intersect` participantMetrics)
 
 mapQuery :: ByteString -> ([PGValue] -> a) -> PGSimpleQuery a
 mapQuery qry mkResult =
@@ -133,4 +140,3 @@ removeVolumeCategory v c = do
                           _p_a6Gu2]))
         (volumeId $ volumeRow v) c)
             (\[] -> ()))
-
