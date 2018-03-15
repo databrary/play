@@ -10,6 +10,8 @@ import Databrary.Model.Metric
 
 tests :: TestTree
 tests = testGroup "Databrary.Model.Metric"
-    [ testCase "tbd"
-        (True @?= True)
+    [ testCase "lookupParticipantMetricBySymbolicName-1"
+        (lookupParticipantMetricBySymbolicName "birthweight" @?= Just participantMetricBirthWeight)
+    , testCase "lookupParticipantMetricBySymbolicName-2"
+        (lookupParticipantMetricBySymbolicName "junk" @?= Nothing)
     ]

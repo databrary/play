@@ -4,6 +4,8 @@ module Databrary.Controller.Ingest
   , postIngest
   , detectParticipantCSV
   , runParticipantUpload
+  -- for tests
+  , mappingParser
   ) where
 
 import Control.Arrow (right)
@@ -75,7 +77,7 @@ runParticipantUpload :: ActionRoute (Id Volume)
 runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUpload") $ \vi -> withAuth $ do
     pure $ okResponse [] ("" :: String)
 
-parseMapping :: JSON.Value -> JSON.Parser (Map Metric Text)
-parseMapping val = do
+mappingParser :: JSON.Value -> JSON.Parser (Map Metric Text)
+mappingParser val = do
     (entries :: [HeaderMappingEntry]) <- JSON.parseJSON val
     pure ((Map.fromList . fmap (\e -> (hmeMetric e, hmeCsvField e))) entries)

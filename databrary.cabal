@@ -536,7 +536,9 @@ test-suite databrary-test
   hs-source-dirs: test
   build-depends:
     databrary
+    , aeson
     , base
+    , containers
     , tasty
     , tasty-expected-failure
     , tasty-hunit
