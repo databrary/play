@@ -300,6 +300,11 @@ jsRoutes =
   -- , jsRoute "getNotify" viewNotify ()
   , rt "\"postNotify\":{method:\"POST\",route:function(){return \"/api/notify\";}},"
   -- , jsRoute "postNotify" postNotify ()
+
+  , rt "\"detectParticipantCSV\":{method:\"POST\",route:function(int320){return \"/api/volume/\"+int320+\"/detectParticipantCSV\";}},"
+    -- , jsRoute "detectParticipantCSV" detectParticipantCSV (JSON, volume)
+  , rt "\"runParticipantUpload\":{method:\"POST\",route:function(int320){return \"/api/volume/\"+int320+\"/runParticipantUpload\";}},"
+    -- , jsRoute "runParticipantUpload" runParticipantUpload (JSON, volume)
   ]
 
 {- COVERED BY BELOW, delete this soon

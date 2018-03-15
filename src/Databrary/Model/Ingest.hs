@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds, OverloadedStrings #-}
 module Databrary.Model.Ingest
   ( IngestKey
   , lookupIngestContainer
@@ -8,10 +8,19 @@ module Databrary.Model.Ingest
   , lookupIngestAsset
   , addIngestAsset
   , replaceSlotAsset
+  , HeaderMappingEntry(..)
+  , parseParticipantFieldMapping
   ) where
 
+import Control.Monad (when)
+import qualified Data.ByteString as BS
 import qualified Data.Csv as CSV
+import qualified Data.List as L
+import qualified Data.Map as Map
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
+import Data.Text (Text)
+import Data.Map (Map)
 import Database.PostgreSQL.Typed.Query (pgSQL)
 import Database.PostgreSQL.Typed
 import Database.PostgreSQL.Typed.Query
@@ -26,10 +35,13 @@ import Data.Vector (Vector)
 import Data.Csv.Contrib (extractColumnsDistinctSample)
 import Databrary.Service.DB
 import qualified Databrary.JSON as JSON
+import Databrary.JSON (FromJSON(..))
 import Databrary.Model.SQL (selectQuery)
 import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
 import Databrary.Model.Container.SQL
+import Databrary.Model.Metric.Types
+import Databrary.Model.Metric
 import qualified Databrary.Model.Record.SQL
 import Databrary.Model.Record.Types
 import Databrary.Model.Record (columnSampleJson)
@@ -341,3 +353,56 @@ extractColumnsDistinctSampleJson maxSamples hdrs records =
     ( fmap (\(colHdr, vals) -> columnSampleJson colHdr vals)
     . extractColumnsDistinctSample maxSamples hdrs)
     records
+
+data HeaderMappingEntry =
+    HeaderMappingEntry {
+          hmeCsvField :: Text
+        , hmeMetric :: Metric -- only participant metrics
+    } deriving (Show, Eq, Ord)
+
+instance FromJSON HeaderMappingEntry where
+    parseJSON =
+        JSON.withObject "HeaderMappingEntry"
+            (\o -> do
+                 metricCanonicalName <- o JSON..: "metric"
+                 case lookupParticipantMetricBySymbolicName metricCanonicalName of
+                     Just metric ->
+                         HeaderMappingEntry
+                             <$> o JSON..: "csv_field"
+                             <*> pure metric
+                     Nothing ->
+                         fail ("metric name does not match any participant metric: " ++ show metricCanonicalName))
+
+parseParticipantFieldMapping :: [Metric] -> [BS.ByteString] -> Map Metric Text -> Either String ParticipantFieldMapping
+parseParticipantFieldMapping volParticipantActiveMetrics colHdrs requestedMapping = do
+    -- TODO: generate error or warning if metrics provided that are actually used on the volume?
+    when (((length . Map.elems) requestedMapping) /= ((length . L.nub . Map.elems) requestedMapping)) (fail "columns values not unique")
+    ParticipantFieldMapping
+        <$> getFieldIfUsed participantMetricId
+        <*> getFieldIfUsed participantMetricInfo
+        <*> getFieldIfUsed participantMetricDescription
+        <*> getFieldIfUsed participantMetricBirthdate
+        <*> getFieldIfUsed participantMetricGender
+        <*> getFieldIfUsed participantMetricRace
+        <*> getFieldIfUsed participantMetricEthnicity
+        <*> getFieldIfUsed participantMetricGestationalAge -- have spaces
+        <*> getFieldIfUsed participantMetricPregnancyTerm  -- space
+        <*> getFieldIfUsed participantMetricBirthWeight -- space
+        <*> getFieldIfUsed participantMetricDisability
+        <*> getFieldIfUsed participantMetricLanguage
+        <*> getFieldIfUsed participantMetricCountry
+        <*> getFieldIfUsed participantMetricState
+        <*> getFieldIfUsed participantMetricSetting
+  where
+    getFieldIfUsed :: Metric -> Either String (Maybe Text)
+    getFieldIfUsed participantMetric =
+        if participantMetric `elem` volParticipantActiveMetrics
+        then 
+            case Map.lookup participantMetric requestedMapping of
+                Just csvField ->
+                    if (TE.encodeUtf8 csvField) `elem` colHdrs
+                    then pure (Just csvField)
+                    else fail ("unknown column (" ++ (show csvField) ++ ") for metric (" ++ (show . metricName) participantMetric)
+                Nothing -> fail ("missing expected participant metric:" ++ (show . metricName) participantMetric)
+        else
+            pure Nothing

@@ -2,8 +2,24 @@
 module Databrary.Model.Metric
   ( module Databrary.Model.Metric.Types
   , allMetrics
+  , participantMetricId
+  , participantMetricInfo
+  , participantMetricDescription
+  , participantMetricBirthdate
+  , participantMetricGender
+  , participantMetricRace
+  , participantMetricEthnicity
+  , participantMetricGestationalAge
+  , participantMetricPregnancyTerm
+  , participantMetricBirthWeight
+  , participantMetricDisability
+  , participantMetricLanguage
+  , participantMetricCountry
+  , participantMetricState
+  , participantMetricSetting
   , getMetric
   , getMetric'
+  , lookupParticipantMetricBySymbolicName
   , participantMetrics
   , metricLong
   , birthdateMetric
@@ -17,6 +33,7 @@ import Data.List (find)
 import Data.Maybe (fromJust)
 import Data.Monoid ((<>))
 import qualified Data.Text
+import Data.Text (Text)
 
 import Databrary.Ops
 import qualified Databrary.JSON as JSON
@@ -691,7 +708,52 @@ allMetrics =
        Nothing
        (Just (Data.Text.pack "State/territory of data collection"))
        (Just False)]
+
+participantMetricId :: Metric
+participantMetricId = getMetric' (Id 1)
   
+participantMetricInfo :: Metric
+participantMetricInfo = getMetric' (Id 2)
+
+participantMetricDescription :: Metric
+participantMetricDescription = getMetric' (Id 3)
+
+participantMetricBirthdate :: Metric
+participantMetricBirthdate = getMetric' (Id 4)
+
+participantMetricGender :: Metric
+participantMetricGender = getMetric' (Id 5)
+
+participantMetricRace :: Metric
+participantMetricRace = getMetric' (Id 6)
+
+participantMetricEthnicity :: Metric
+participantMetricEthnicity = getMetric' (Id 7)
+
+participantMetricGestationalAge :: Metric
+participantMetricGestationalAge = getMetric' (Id 8)
+
+participantMetricPregnancyTerm :: Metric
+participantMetricPregnancyTerm = getMetric' (Id 9)
+
+participantMetricBirthWeight :: Metric
+participantMetricBirthWeight = getMetric' (Id 10)
+
+participantMetricDisability :: Metric
+participantMetricDisability = getMetric' (Id 11)
+
+participantMetricLanguage :: Metric
+participantMetricLanguage = getMetric' (Id 12)
+
+participantMetricCountry :: Metric
+participantMetricCountry = getMetric' (Id 13)
+
+participantMetricState :: Metric
+participantMetricState = getMetric' (Id 14)
+
+participantMetricSetting :: Metric
+participantMetricSetting = getMetric' (Id 15)
+
 metricsById :: IntMap.IntMap Metric
 metricsById = IntMap.fromAscList $ map (\a -> (fromIntegral $ unId $ metricId a, a)) allMetrics
 
@@ -700,6 +762,10 @@ getMetric (Id i) = IntMap.lookup (fromIntegral i) metricsById
 
 getMetric' :: Id Metric -> Metric
 getMetric' (Id i) = metricsById IntMap.! fromIntegral i
+
+lookupParticipantMetricBySymbolicName :: Text -> Maybe Metric
+lookupParticipantMetricBySymbolicName symbolicName =
+    find (\m -> (Data.Text.filter (/= ' ') . Data.Text.toLower . metricName) m == symbolicName) participantMetrics
 
 participantMetrics :: [Metric]
 participantMetrics = filter ((== participantCategory) . metricCategory) allMetrics

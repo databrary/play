@@ -179,6 +179,8 @@ newRouteMap routeContext =
         -- , route postTranscode  -- second pass
         -- , route viewIngest -- second pass
         -- , route postIngest  -- second pass
+        -- , route detectParticipantCSV -- second pass
+        -- , route runParticipantUpload -- second pass
       , ("/admin/periodic", hnm periodicHandler)
 
         -- , route webFile -- hard?
@@ -325,6 +327,8 @@ routeMap = routes
   , route postTranscode
   , route viewIngest
   , route postIngest
+  , route detectParticipantCSV
+  , route runParticipantUpload
   -- , route viewPeriodic
   -- , route postPeriodic
 

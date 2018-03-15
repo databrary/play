@@ -22,7 +22,7 @@ data Category = Category
   { categoryId :: !(Id Category)
   , categoryName :: !T.Text
   , categoryDescription :: !(Maybe T.Text)
-  }
+  } deriving (Show)
 
 instance Kinded Category where
   kindOf _ = "category"
