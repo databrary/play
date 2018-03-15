@@ -37,7 +37,7 @@ import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
 import Databrary.Model.Container.SQL
 import Databrary.Model.Metric.Types
-import Databrary.Model.Metric (lookupParticipantMetricBySymbolicName)
+import Databrary.Model.Metric
 import qualified Databrary.Model.Record.SQL
 import Databrary.Model.Record.Types
 import Databrary.Model.Record (columnSampleJson)
@@ -361,7 +361,6 @@ instance FromJSON HeaderMappingEntry where
         JSON.withObject "HeaderMappingEntry"
             (\o -> do
                  metricCanonicalName <- o JSON..: "metric"
-                 -- TODO: check name against real metric list
                  case lookupParticipantMetricBySymbolicName metricCanonicalName of
                      Just metric ->
                          HeaderMappingEntry
@@ -372,34 +371,33 @@ instance FromJSON HeaderMappingEntry where
 
 -- TODO: unit tests
 -- TODO: validator should also ensure each col mentioned is a real column
-parseParticipantFieldMapping :: [Metric] -> Map Text Text -> Either String ParticipantFieldMapping
+parseParticipantFieldMapping :: [Metric] -> Map Metric Text -> Either String ParticipantFieldMapping
 parseParticipantFieldMapping volParticipantActiveMetrics requestedMapping = do
     ParticipantFieldMapping
-        <$> getFieldIfUsed "id"
-        <*> getFieldIfUsed "info"
-        <*> getFieldIfUsed "description"
-        <*> getFieldIfUsed "birthdate"
-        <*> getFieldIfUsed "gender"
-        <*> getFieldIfUsed "race"
-        <*> getFieldIfUsed "ethnicity"
-        <*> getFieldIfUsed "gestationalage" -- handled space in name
-        <*> getFieldIfUsed "pregnancyterm" -- space
-        <*> getFieldIfUsed "birthweight" -- space
-        <*> getFieldIfUsed "disability"
-        <*> getFieldIfUsed "language"
-        <*> getFieldIfUsed "country"
-        <*> getFieldIfUsed "state"
-        <*> getFieldIfUsed "setting"
+        <$> getFieldIfUsed participantMetricId
+        <*> getFieldIfUsed participantMetricInfo
+        <*> getFieldIfUsed participantMetricDescription
+        <*> getFieldIfUsed participantMetricBirthdate
+        <*> getFieldIfUsed participantMetricGender
+        <*> getFieldIfUsed participantMetricRace
+        <*> getFieldIfUsed participantMetricEthnicity
+        <*> getFieldIfUsed participantMetricGestationalAge -- have spaces
+        <*> getFieldIfUsed participantMetricPregnancyTerm  -- space
+        <*> getFieldIfUsed participantMetricBirthWeight -- space
+        <*> getFieldIfUsed participantMetricDisability
+        <*> getFieldIfUsed participantMetricLanguage
+        <*> getFieldIfUsed participantMetricCountry
+        <*> getFieldIfUsed participantMetricState
+        <*> getFieldIfUsed participantMetricSetting
   where
-    getFieldIfUsed :: Text -> Either String (Maybe Text)
-    getFieldIfUsed metricSymbolicName =
-        case findMetricBySymbolicName metricSymbolicName of
-            Just metric ->
-                case Map.lookup metricSymbolicName requestedMapping of
-                    Just csvField -> pure (Just csvField)
-                    Nothing -> fail "missing expected participant metric" -- TODO: name metric
-            Nothing ->
-                pure Nothing
-    findMetricBySymbolicName :: Text -> Maybe Metric
-    findMetricBySymbolicName symbolicName =
-        L.find (\m -> (T.filter (/= ' ') . T.toLower . metricName) m == symbolicName) volParticipantActiveMetrics
+    getFieldIfUsed :: Metric -> Either String (Maybe Text)
+    getFieldIfUsed participantMetric =
+        if participantMetric `elem` volParticipantActiveMetrics
+        then 
+            case Map.lookup participantMetric requestedMapping of
+                Just csvField ->
+                    -- validate csv field
+                    pure (Just csvField)
+                Nothing -> fail ("missing expected participant metric" ++ (show . metricName) participantMetric)
+        else
+            pure Nothing
