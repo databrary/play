@@ -10,8 +10,9 @@ app.directive('metadataForm', [
         form = $scope.metadataForm;
 
         $(document).on('click', '.showinstruct, .uploadinstuction', function() {
-          $('input[name="metadata"]').click();
           $('input[name="metadata"]').value = null;
+          $('input[name="metadata"]').click();
+          return false;
         });
 
         $(document).on('change', 'input[name="metadata"]', function() {
