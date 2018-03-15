@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds, OverloadedStrings #-}
 module Databrary.Model.Ingest
   ( IngestKey
   , lookupIngestContainer
@@ -8,10 +8,15 @@ module Databrary.Model.Ingest
   , lookupIngestAsset
   , addIngestAsset
   , replaceSlotAsset
+  , HeaderMappingEntry(..)
   ) where
 
 import qualified Data.Csv as CSV
+import qualified Data.List as L
+import qualified Data.Map as Map
 import qualified Data.Text as T
+import Data.Text (Text)
+import Data.Map (Map)
 import Database.PostgreSQL.Typed.Query (pgSQL)
 import Database.PostgreSQL.Typed
 import Database.PostgreSQL.Typed.Query
@@ -26,10 +31,12 @@ import Data.Vector (Vector)
 import Data.Csv.Contrib (extractColumnsDistinctSample)
 import Databrary.Service.DB
 import qualified Databrary.JSON as JSON
+import Databrary.JSON (FromJSON(..))
 import Databrary.Model.SQL (selectQuery)
 import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
 import Databrary.Model.Container.SQL
+import Databrary.Model.Metric.Types
 import qualified Databrary.Model.Record.SQL
 import Databrary.Model.Record.Types
 import Databrary.Model.Record (columnSampleJson)
@@ -341,3 +348,51 @@ extractColumnsDistinctSampleJson maxSamples hdrs records =
     ( fmap (\(colHdr, vals) -> columnSampleJson colHdr vals)
     . extractColumnsDistinctSample maxSamples hdrs)
     records
+
+data HeaderMappingEntry =
+    HeaderMappingEntry {
+          hmeCsvField :: Text
+        , hmeMetricName :: Text
+    } deriving (Show, Eq, Ord)
+
+instance FromJSON HeaderMappingEntry where
+    parseJSON =
+        JSON.withObject "HeaderMappingEntry"
+            (\o ->
+                 HeaderMappingEntry
+                     <$> o JSON..: "csv_field"
+                     <*> o JSON..: "metric") -- TODO: validate that it matches a real metric name
+
+-- TODO: unit tests
+-- TODO: validator should also ensure each col mentioned is a real column
+parseParticipantFieldMapping :: [Metric] -> Map Text Text -> Either String ParticipantFieldMapping
+parseParticipantFieldMapping volParticipantActiveMetrics requestedMapping = do
+    ParticipantFieldMapping
+        <$> getFieldIfUsed "id"
+        <*> getFieldIfUsed "info"
+        <*> getFieldIfUsed "description"
+        <*> getFieldIfUsed "birthdate"
+        <*> getFieldIfUsed "gender"
+        <*> getFieldIfUsed "race"
+        <*> getFieldIfUsed "ethnicity"
+        <*> getFieldIfUsed "gestationalage" -- handled space in name
+        <*> getFieldIfUsed "pregnancyterm" -- space
+        <*> getFieldIfUsed "birthweight" -- space
+        <*> getFieldIfUsed "disability"
+        <*> getFieldIfUsed "language"
+        <*> getFieldIfUsed "country"
+        <*> getFieldIfUsed "state"
+        <*> getFieldIfUsed "setting"
+  where
+    getFieldIfUsed :: Text -> Either String (Maybe Text)
+    getFieldIfUsed metricSymbolicName =
+        case findMetricBySymbolicName metricSymbolicName of
+            Just metric ->
+                case Map.lookup metricSymbolicName requestedMapping of
+                    Just csvField -> pure (Just csvField)
+                    Nothing -> fail "missing expected participant metric" -- TODO: name metric
+            Nothing ->
+                pure Nothing
+    findMetricBySymbolicName :: Text -> Maybe Metric
+    findMetricBySymbolicName symbolicName =
+        L.find (\m -> (T.filter (/= ' ') . T.toLower . metricName) m == symbolicName) volParticipantActiveMetrics

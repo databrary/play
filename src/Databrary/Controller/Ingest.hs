@@ -2,10 +2,15 @@
 module Databrary.Controller.Ingest
   ( viewIngest
   , postIngest
+  , detectParticipantCSV
+  , runParticipantUpload
   ) where
 
 import Control.Arrow (right)
 import Control.Monad (unless)
+import qualified Data.Map as Map
+import Data.Map (Map)
+import Data.Text (Text)
 import Network.HTTP.Types (badRequest400)
 import Network.Wai.Parse (FileInfo(..))
 import System.Posix.FilePath (takeExtension)
@@ -14,6 +19,8 @@ import qualified Databrary.JSON as JSON
 import Databrary.Ops
 import Databrary.Has
 import Databrary.Model.Id
+-- import Databrary.Model.Metric (ParticipantFieldMapping, Metric)
+import Databrary.Model.Ingest
 import Databrary.Model.Permission
 import Databrary.Model.Volume
 import Databrary.Model.Container
@@ -59,3 +66,16 @@ postIngest = multipartAction $ action POST (pathId </< "ingest") $ \vi -> withAu
     a
   unless r $ result $ response badRequest400 [] ("failed" :: String)
   peeks $ otherRouteResponse [] viewIngest (volumeId $ volumeRow v)
+
+detectParticipantCSV :: ActionRoute (Id Volume)
+detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCSV") $ \vi -> withAuth $ do
+    pure $ okResponse [] ("" :: String)
+
+runParticipantUpload :: ActionRoute (Id Volume)
+runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUpload") $ \vi -> withAuth $ do
+    pure $ okResponse [] ("" :: String)
+
+parseMapping :: JSON.Value -> JSON.Parser (Map Text Text)
+parseMapping val = do
+    (entries :: [HeaderMappingEntry]) <- JSON.parseJSON val
+    pure ((Map.fromList . fmap (\e -> (hmeMetricName e, hmeCsvField e))) entries)
