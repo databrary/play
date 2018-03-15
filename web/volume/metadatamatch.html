@@ -18,27 +18,27 @@
       <tr>
         <th rowspan="5">Your csv sample rows</th>
         <td ng-repeat="x in volume.selected_mapping track by $index">
-          <span ng-repeat="y in volume.columns_firstvals track by $index" ng-if="y.column_name === x.metric" ng-bind="y.samples[0]"></span>
+          <span ng-repeat="y in volume.columns_firstvals track by $index" ng-if="y.column_name.toLowerCase() === x.metric.toLowerCase();" ng-bind="y.samples[0]"></span>
         </td>
       </tr>
       <tr>
         <td ng-repeat="x in volume.selected_mapping track by $index">
-          <span ng-repeat="y in volume.columns_firstvals track by $index" ng-if="y.column_name === x.metric" ng-bind="y.samples[1]"></span>
+          <span ng-repeat="y in volume.columns_firstvals track by $index" ng-if="y.column_name.toLowerCase() === x.metric.toLowerCase();" ng-bind="y.samples[1]"></span>
         </td>
       </tr>
       <tr>
         <td ng-repeat="x in volume.selected_mapping track by $index">
-          <span ng-repeat="y in volume.columns_firstvals track by $index" ng-if="y.column_name === x.metric" ng-bind="y.samples[2]"></span>
+          <span ng-repeat="y in volume.columns_firstvals track by $index" ng-if="y.column_name.toLowerCase() === x.metric.toLowerCase();" ng-bind="y.samples[2]"></span>
         </td>
       </tr>
       <tr>
         <td ng-repeat="x in volume.selected_mapping track by $index">
-          <span ng-repeat="y in volume.columns_firstvals track by $index" ng-if="y.column_name === x.metric" ng-bind="y.samples[3]"></span>
+          <span ng-repeat="y in volume.columns_firstvals track by $index" ng-if="y.column_name.toLowerCase() === x.metric.toLowerCase();" ng-bind="y.samples[3]"></span>
         </td>
       </tr>
       <tr>
         <td ng-repeat="x in volume.selected_mapping track by $index">
-          <span ng-repeat="y in volume.columns_firstvals track by $index" ng-if="y.column_name === x.metric" ng-bind="y.samples[4]"></span>
+          <span ng-repeat="y in volume.columns_firstvals track by $index" ng-if="y.column_name.toLowerCase() === x.metric.toLowerCase();" ng-bind="y.samples[4]"></span>
         </td>
       </tr>
       <tr>
@@ -60,8 +60,5 @@
         </a>
       </div>
     </div>
-  </div>
-  <div ng-if="volume.selected_mapping.length !== volume.suggested_mapping.length || skiptrue">
-    We were unable to match the data in your .csv file to the appropriate Databrary fields. Please return to the Design Spreadsheet tab and be sure that your .csv includes all of the fields you selected, and is labeled and formatted appropriately.
   </div>
 </ng-form>

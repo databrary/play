@@ -47,6 +47,9 @@
     </ul>
   </div>
   <div class="spreadsheet-metadata" ng-if="filter.key === 1">
+    <div ng-if="volume.selected_mapping.length !== volume.suggested_mapping.length || skiptrue" class="error margin-top">
+      We were unable to match the data in your .csv file to the appropriate Databrary fields. Please return to the Design Spreadsheet tab and be sure that your .csv includes all of the fields you selected, and is labeled and formatted appropriately.
+    </div>
     <metadata-form></metadata-form>
     <metadata-match-form ng-model="data"></metadata-match-form>
   </div>

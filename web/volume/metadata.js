@@ -56,6 +56,7 @@ app.directive('metadataForm', [
                 }
               }
             }
+            $scope.$emit('skipfalse');
           }, function(res) {
             form.$setUnsubmitted();
             form.validator.server(res);
@@ -95,7 +96,6 @@ app.directive('metadataMatchForm', [
             form.$setPristine();
             $('metadata-match-form').hide();
             $('metadata-form').show();
-            $scope.skiptrue = false;
             $scope.$emit('refreshParent');
           }, function(res) {
             form.$setUnsubmitted();
@@ -108,7 +108,9 @@ app.directive('metadataMatchForm', [
           });
         };
         $scope.skip = function(){
-          $scope.skiptrue = true;
+          $scope.$emit('skiptrue');
+          $('metadata-match-form').hide();
+          $('metadata-form').show();
         }
       }
     };

@@ -1550,6 +1550,12 @@ app.directive 'spreadsheet', [
             body: constants.message('Please refresh the page.')
             report: res
         return
+      $scope.$on 'skiptrue', ->
+        $scope.skiptrue = true
+        return
+      $scope.$on 'skipfalse', ->
+        $scope.skiptrue = false
+        return
       $scope.$on '$destroy', ->
         state = $scope.state.get()
         state.volume = $scope.volume.id
