@@ -26,6 +26,26 @@ participantFieldMapping1 =
         , pfmSetting = Nothing
         }
 
+emptyParticipantFieldMapping :: ParticipantFieldMapping
+emptyParticipantFieldMapping =
+    ParticipantFieldMapping
+        { pfmId = Nothing
+        , pfmInfo = Nothing
+        , pfmDescription = Nothing
+        , pfmBirthdate = Nothing
+        , pfmGender = Nothing
+        , pfmRace = Nothing
+        , pfmEthnicity = Nothing
+        , pfmGestationalAge = Nothing
+        , pfmPregnancyTerm = Nothing
+        , pfmBirthWeight = Nothing
+        , pfmDisability = Nothing
+        , pfmLanguage = Nothing
+        , pfmCountry = Nothing
+        , pfmState = Nothing
+        , pfmSetting = Nothing
+        }
+
 tests :: TestTree
 tests = testGroup "Databrary.Model.Metric.Types"
     [

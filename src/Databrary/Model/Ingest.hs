@@ -9,6 +9,7 @@ module Databrary.Model.Ingest
   , addIngestAsset
   , replaceSlotAsset
   , HeaderMappingEntry(..)
+  , parseParticipantFieldMapping
   ) where
 
 import Control.Monad (when)
@@ -372,7 +373,6 @@ instance FromJSON HeaderMappingEntry where
                      Nothing ->
                          fail ("metric name does not match any participant metric: " ++ show metricCanonicalName))
 
--- TODO: unit tests
 parseParticipantFieldMapping :: [Metric] -> [BS.ByteString] -> Map Metric Text -> Either String ParticipantFieldMapping
 parseParticipantFieldMapping volParticipantActiveMetrics colHdrs requestedMapping = do
     -- TODO: generate error or warning if metrics provided that are actually used on the volume?
