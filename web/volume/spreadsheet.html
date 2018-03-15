@@ -41,7 +41,7 @@
   <div class="inline-block spreadsheet-switch-view">
     Summarize by: &nbsp;
     <ul class="flat spreadsheet-tab-options">
-      <li ng-repeat="c in views track by c.id" ng-click="setKey(c.id)" class="spreadsheet-tab-option clickable" ng-class="{selected: $first}">
+      <li ng-repeat="c in views track by c.id" ng-click="setKey(c.id)" ng-class="c.name == key.name ? 'spreadsheet-tab-option clickable selected': 'spreadsheet-tab-option clickable'">
         <span ng-bind="::c.name"></span>
       </li>
     </ul>

@@ -1381,6 +1381,8 @@ app.directive 'spreadsheet', [
             Order = (row.i for row in Rows when row)
             currentSort = undefined
             sortBy(Cols.find((c) -> c.category.id == 'slot' && c.metric.id == 'date'))
+          Order.sort (a, b) ->
+            a - b
           for i in Order
             generateRow(i)
           if Editing
