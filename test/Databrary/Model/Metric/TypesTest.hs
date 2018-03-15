@@ -6,7 +6,7 @@ import Test.Tasty.HUnit
 
 import Databrary.Model.Metric.Types
 
-participantFieldMapping1 :: participantFieldMapping1
+participantFieldMapping1 :: ParticipantFieldMapping
 participantFieldMapping1 =
     ParticipantFieldMapping
         { pfmId = Just "col1"
