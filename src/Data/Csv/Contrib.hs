@@ -4,19 +4,25 @@ module Data.Csv.Contrib
   , extractColumnsDistinctSample
   , extractColumnDefaulting
   , extractColumn
+  , parseCsvWithHeader
+  -- for testing only
+  , repairCarriageReturnOnly
   ) where
 
+import qualified Data.Attoparsec.ByteString as ATTO
 import qualified Data.ByteString as BS
-import qualified Data.Csv as CSV
+import qualified Data.ByteString.Char8 as BSC
+import qualified Data.Csv as Csv
+import qualified Data.Csv.Parser as Csv
 import qualified Data.HashMap.Strict as HMP
 import qualified Data.List as L
 import qualified Data.Vector as V
 import Data.Vector (Vector)
 
-getHeaders :: CSV.Header -> [BS.ByteString]
+getHeaders :: Csv.Header -> [BS.ByteString]
 getHeaders = V.toList
 
-extractColumnsDistinctSample :: Int -> CSV.Header -> Vector CSV.NamedRecord -> [(BS.ByteString, [BS.ByteString])]
+extractColumnsDistinctSample :: Int -> Csv.Header -> Vector Csv.NamedRecord -> [(BS.ByteString, [BS.ByteString])]
 extractColumnsDistinctSample maxSamples hdrs records =
     zip hdrs'
         ( fmap
@@ -30,12 +36,33 @@ extractColumnsDistinctSample maxSamples hdrs records =
     hdrs' :: [BS.ByteString]
     hdrs' = getHeaders hdrs
 
-extractColumnDefaulting :: BS.ByteString -> Vector CSV.NamedRecord -> [BS.ByteString]
+extractColumnDefaulting :: BS.ByteString -> Vector Csv.NamedRecord -> [BS.ByteString]
 extractColumnDefaulting hdr records =
    extractColumn hdr records (maybe "" id)
 
-extractColumn :: BS.ByteString -> Vector CSV.NamedRecord -> (Maybe BS.ByteString -> a) -> [a]
+extractColumn :: BS.ByteString -> Vector Csv.NamedRecord -> (Maybe BS.ByteString -> a) -> [a]
 extractColumn hdr records applyDefault =
    ( V.toList
    . fmap (\rowMap -> (applyDefault . HMP.lookup hdr) rowMap))
    records
+
+parseCsvWithHeader :: BS.ByteString -> Either String (Csv.Header, Vector Csv.NamedRecord)
+parseCsvWithHeader contents =
+    runCsvParser ATTO.parseOnly contents
+
+runCsvParser
+    :: (ATTO.Parser (Csv.Header, Vector Csv.NamedRecord) -> BS.ByteString -> Either String (Csv.Header, Vector Csv.NamedRecord))
+    -> BS.ByteString
+    -> Either String (Csv.Header, Vector Csv.NamedRecord)
+runCsvParser parse contents =
+    parse (Csv.csvWithHeader Csv.defaultDecodeOptions) (repairCarriageReturnOnly contents)
+
+-- | only fix newlines for bizarre macOS endings that use \r instead of \r\n
+repairCarriageReturnOnly :: BS.ByteString -> BS.ByteString
+repairCarriageReturnOnly contents =
+    let
+        hasNewline = BSC.elem '\n' contents
+    in
+        if hasNewline
+        then contents
+        else BSC.concatMap (\c -> if c == '\r' then "\r\n" else BSC.singleton c) contents

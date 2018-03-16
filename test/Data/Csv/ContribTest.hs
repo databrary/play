@@ -22,4 +22,8 @@ tests = testGroup "Data.Csv.ContribTest"
               , (HMP.fromList [("c1", "val2")])
               ])
            @?= [("c1", ["val1"])])
+    , testCase "repairCarriageReturnOnly-1"
+        (repairCarriageReturnOnly "abc\r\n" @?= "abc\r\n")
+    , testCase "repairCarriageReturnOnly-2"
+        (repairCarriageReturnOnly "abc\r" @?= "abc\r\n")
     ]
