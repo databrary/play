@@ -8,6 +8,8 @@ module Databrary.Model.Ingest
   , lookupIngestAsset
   , addIngestAsset
   , replaceSlotAsset
+  , checkDetermineMapping
+  , extractColumnsDistinctSampleJson
   , HeaderMappingEntry(..)
   , parseParticipantFieldMapping
   ) where
