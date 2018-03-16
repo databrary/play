@@ -14,7 +14,7 @@ module Databrary.Model.Ingest
 
 import Control.Monad (when)
 import qualified Data.ByteString as BS
-import qualified Data.Csv as CSV
+import qualified Data.Csv as Csv
 import qualified Data.List as L
 import qualified Data.Map as Map
 import qualified Data.Text as T
@@ -32,7 +32,7 @@ import Data.ByteString (ByteString)
 import qualified Data.String
 import Data.Vector (Vector)
 
-import Data.Csv.Contrib (extractColumnsDistinctSample)
+import Data.Csv.Contrib (extractColumnsDistinctSample, extractColumnDefaulting)
 import Databrary.Service.DB
 import qualified Databrary.JSON as JSON
 import Databrary.JSON (FromJSON(..))
@@ -348,7 +348,37 @@ replaceSlotAsset o n = do
       (assetId $ assetRow n) (assetId $ assetRow o))
             (\ [] -> ()))
 
-extractColumnsDistinctSampleJson :: Int -> CSV.Header -> Vector CSV.NamedRecord -> [JSON.Value]
+-- verify that all expected columns are present, with some leniency
+-- left if not enough columns or other mismatch
+-- TODO: use abstract type instead of Csv's NamedRecord?
+checkDetermineMapping :: [Metric] -> [Text] -> Vector Csv.NamedRecord -> Either String (Map Metric [Text])
+checkDetermineMapping participantActiveMetrics csvHeaders csvRows = do
+    let pairs :: [(Text, [Metric])] -- TODO: compute in reverse
+        pairs = (zip csvHeaders . fmap detectMatches) csvHeaders
+        metricCompatibleColumns = buildReverseMap participantActiveMetrics pairs
+    -- TODO: check for unsolvable matchings (column with no metrics; two columns with only 1 solution)..Its a CSP!
+    pure metricCompatibleColumns
+  where
+    detectMatches :: Text -> [Metric]
+    detectMatches hdr =
+        let column = extractColumnDefaulting (TE.encodeUtf8 hdr) csvRows
+        -- detect datatypes
+        in detectMatches' hdr column participantActiveMetrics
+    detectMatches' :: Text -> [BS.ByteString] -> [Metric] -> [Metric]
+    detectMatches' hdr columnValues activeMetrics =
+        filter (columnMetricCompatible hdr columnValues) activeMetrics
+    buildReverseMap :: [Metric] -> [(Text, [Metric])] -> Map Metric [Text]
+    buildReverseMap activeMetrics colMetrics =
+        (Map.fromList . zip activeMetrics . fmap (\m -> getColumns m colMetrics)) activeMetrics
+    getColumns :: Metric -> [(Text, [Metric])] -> [Text]
+    getColumns m colMetrics =
+        (fmap (\(col, metrics) -> col) . filter (\(col, metrics) -> m `elem` metrics)) colMetrics
+
+columnMetricCompatible :: Text -> [BS.ByteString] -> Metric -> Bool
+columnMetricCompatible hdr columnValues metric =
+    (T.filter (/= ' ') . T.toLower . metricName) metric == T.toLower hdr
+
+extractColumnsDistinctSampleJson :: Int -> Csv.Header -> Vector Csv.NamedRecord -> [JSON.Value]
 extractColumnsDistinctSampleJson maxSamples hdrs records =
     ( fmap (\(colHdr, vals) -> columnSampleJson colHdr vals)
     . extractColumnsDistinctSample maxSamples hdrs)
