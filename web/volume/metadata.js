@@ -14,6 +14,10 @@ app.directive('metadataForm', [
           $('input[name="metadata"]').click();
         });
 
+        $('input[name="metadata"]').click(function(e){
+          e.stopPropagation();
+        });
+
         $(document).on('change', 'input[name="metadata"]', function() {
           var file;
           file = $(this).val().replace(/C:\\fakepath\\/ig, '');
