@@ -1,6 +1,7 @@
 {-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds #-}
 module Databrary.Model.VolumeMetric
   ( lookupVolumeMetrics
+  , lookupVolumeParticipantMetrics
   , addVolumeCategory
   , addVolumeMetric
   , removeVolumeMetric

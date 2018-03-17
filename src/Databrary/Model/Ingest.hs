@@ -11,6 +11,7 @@ module Databrary.Model.Ingest
   , checkDetermineMapping
   , extractColumnsDistinctSampleJson
   , HeaderMappingEntry(..)
+  , mappingToHeaderMappingEntries
   , parseParticipantFieldMapping
   ) where
 
@@ -37,7 +38,7 @@ import Data.Vector (Vector)
 import Data.Csv.Contrib (extractColumnsDistinctSample, extractColumnDefaulting)
 import Databrary.Service.DB
 import qualified Databrary.JSON as JSON
-import Databrary.JSON (FromJSON(..))
+import Databrary.JSON (FromJSON(..), ToJSON(..))
 import Databrary.Model.SQL (selectQuery)
 import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
@@ -404,6 +405,21 @@ instance FromJSON HeaderMappingEntry where
                              <*> pure metric
                      Nothing ->
                          fail ("metric name does not match any participant metric: " ++ show metricCanonicalName))
+
+
+instance ToJSON HeaderMappingEntry where
+    toJSON (HeaderMappingEntry field metric) =
+        JSON.object
+            [ "metric" JSON..= (T.filter (/= ' ') . T.toLower . metricName) metric
+            , "compatible_csv_fields" JSON..= [field] -- change to single value soon
+            ]
+        
+mappingToHeaderMappingEntries :: Map Metric [Text] -> [HeaderMappingEntry] -- TODO: Value or list of Value?
+mappingToHeaderMappingEntries metricCompatibleColumns =
+    ( (fmap
+          (\(metric, colNames) -> HeaderMappingEntry (head colNames) metric)) -- change single column soon
+    . Map.toList )
+      metricCompatibleColumns
 
 parseParticipantFieldMapping :: [Metric] -> [BS.ByteString] -> Map Metric Text -> Either String ParticipantFieldMapping
 parseParticipantFieldMapping volParticipantActiveMetrics colHdrs requestedMapping = do
