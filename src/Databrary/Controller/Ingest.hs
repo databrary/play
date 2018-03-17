@@ -26,6 +26,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
+import Data.Vector (Vector)
 import Data.Word (Word64)
 import Network.HTTP.Types (badRequest400)
 import Network.Wai.Parse (FileInfo(..))
@@ -133,12 +134,42 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
 
 runParticipantUpload :: ActionRoute (Id Volume)
 runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUpload") $ \vi -> withAuth $ do
-    pure $ okResponse [] ("" :: String)
+    v <- getVolume PermissionEDIT vi
+    reqCtxt <- peek
+    (csvUploadId :: String, selectedMapping :: JSON.Value) <- runForm (Nothing) $ do
+        csrfForm
+        (uploadId :: String) <- "csv_upload_id" .:> deform
+        mapping <- "selected_mapping" .:> deform
+        pure (uploadId, mapping)
+    -- TODO: resolve csv id to absolute path; http error if unknown
+    uploadFileContents <- (liftIO . BS.readFile) ("/tmp/" ++ csvUploadId)
+    case parseCsvWithHeader uploadFileContents of
+        Left err ->
+            pure (forbiddenResponse reqCtxt) -- TODO: better error
+        Right (hdrs, records) -> do
+            participantActiveMetrics <- lookupVolumeParticipantMetrics v
+            let (Right mpngVal) = JSON.parseEither mappingParser selectedMapping
+            let eMpngs = parseParticipantFieldMapping participantActiveMetrics (getHeaders hdrs) mpngVal
+            liftIO $ print ("upload id", csvUploadId, "mapping", eMpngs)
+            -- TODO: validate mappings against allowed/detected data types
+            let Right mpngs = eMpngs -- TODO: handle either above
+            eRes <- (runImport participantActiveMetrics v records) mpngs
+            pure
+                $ okResponse []
+                    $ JSON.recordEncoding -- TODO: not record encoding
+                        $ JSON.Record vi $ "succeeded" JSON..= True
 
 mappingParser :: JSON.Value -> JSON.Parser (Map Metric Text)
 mappingParser val = do
     (entries :: [HeaderMappingEntry]) <- JSON.parseJSON val
     pure ((Map.fromList . fmap (\e -> (hmeMetric e, hmeCsvField e))) entries)
+
+ -- TODO: error or count
+runImport :: [Metric] -> Volume -> Vector Csv.NamedRecord -> ParticipantFieldMapping -> ActionM (Vector ())
+runImport activeMetrics vol records mapping =
+    mapM
+        (\record -> createOrUpdateRecord activeMetrics vol mapping record)
+        records
 
 data ParticipantStatus = Created Record | Found Record
     -- deriving (Show, Eq)
