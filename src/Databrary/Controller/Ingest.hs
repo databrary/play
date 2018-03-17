@@ -9,15 +9,20 @@ module Databrary.Controller.Ingest
   ) where
 
 import Control.Arrow (right)
-import Control.Monad (unless)
+import Control.Monad (unless, void)
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy as BSL
+import qualified Data.Csv as Csv
+import qualified Data.HashMap.Strict as HMP
+import qualified Data.List as L
 import qualified Data.Map as Map
 import Data.Map (Map)
+import Data.Maybe (fromJust)
 import Data.Monoid ((<>))
 import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
@@ -30,10 +35,14 @@ import Data.Csv.Contrib (parseCsvWithHeader, getHeaders, extractColumnsDistinctS
 import qualified Databrary.JSON as JSON
 import Databrary.Ops
 import Databrary.Has
+import Databrary.Model.Category
 import Databrary.Model.Id
 import Databrary.Model.Metric (Metric)
 import Databrary.Model.Ingest
 import Databrary.Model.Permission
+import Databrary.Model.Measure
+import Databrary.Model.Metric
+import Databrary.Model.Record
 import Databrary.Model.Volume
 import Databrary.Model.VolumeMetric
 import Databrary.Model.Container
@@ -130,3 +139,85 @@ mappingParser :: JSON.Value -> JSON.Parser (Map Metric Text)
 mappingParser val = do
     (entries :: [HeaderMappingEntry]) <- JSON.parseJSON val
     pure ((Map.fromList . fmap (\e -> (hmeMetric e, hmeCsvField e))) entries)
+
+data ParticipantStatus = Created Record | Found Record
+    -- deriving (Show, Eq)
+
+data MeasureUpdateAction = Upsert BS.ByteString | Unchanged
+    deriving (Show, Eq)
+
+-- validated records instead of namedrecord? use Participant type?
+createOrUpdateRecord :: [Metric] -> Volume -> ParticipantFieldMapping -> Csv.NamedRecord -> ActionM () -- TODO: error or record
+createOrUpdateRecord participantActiveMetrics vol mapping csvRecord = do
+    let participantCategory = getCategory' (Id 1) -- TODO: use global variable
+        (idVal, idMetric) = maybe (error "id missing") id (getFieldVal pfmId "id")
+    mOldParticipant <- lookupVolumeParticipant vol idVal
+    recordStatus <-
+        case mOldParticipant of
+            Nothing ->
+                Created <$> addRecord (blankRecord participantCategory vol)
+            Just oldParticipant ->
+                pure (Found oldParticipant)
+    let mInfo = getFieldVal pfmInfo "info"
+        mDescription = getFieldVal pfmDescription "description"
+        mBirthdate = getFieldVal pfmBirthdate "birthdate"
+        mGender = getFieldVal pfmGender "gender"
+        mEthnicity = getFieldVal pfmEthnicity "ethnicity"
+        mGestationalAge = getFieldVal pfmGestationalAge "gestationalage"
+        mPregnancyTerm = getFieldVal pfmPregnancyTerm "pregnancyterm"
+        mBirthWeight = getFieldVal pfmBirthWeight "birthweight"
+        mDisability = getFieldVal pfmDisability "disability"
+        mLanguage = getFieldVal pfmLanguage "language"
+        mCountry = getFieldVal pfmCountry "country"
+        mState = getFieldVal pfmState "state"
+        mSetting = getFieldVal pfmSetting "setting"
+    -- print ("save measure id:", mId)
+    changeRecordMeasureIfUsed recordStatus (Just (idVal, idMetric))
+    changeRecordMeasureIfUsed recordStatus mInfo
+    changeRecordMeasureIfUsed recordStatus mDescription
+    changeRecordMeasureIfUsed recordStatus mBirthdate
+    changeRecordMeasureIfUsed recordStatus mGender
+    changeRecordMeasureIfUsed recordStatus mEthnicity
+    changeRecordMeasureIfUsed recordStatus mGestationalAge
+    changeRecordMeasureIfUsed recordStatus mPregnancyTerm
+    changeRecordMeasureIfUsed recordStatus mBirthWeight
+    changeRecordMeasureIfUsed recordStatus mDisability
+    changeRecordMeasureIfUsed recordStatus mLanguage
+    changeRecordMeasureIfUsed recordStatus mCountry
+    changeRecordMeasureIfUsed recordStatus mState
+    changeRecordMeasureIfUsed recordStatus mSetting
+  where
+    getFieldVal :: (ParticipantFieldMapping -> Maybe Text) -> Text -> Maybe (BS.ByteString, Metric)
+    getFieldVal extractColumnName metricSymbolicName =
+        case extractColumnName mapping of
+            Just columnName ->
+                case HMP.lookup (TE.encodeUtf8 columnName) csvRecord of
+                    Just fieldVal ->
+                        pure (fieldVal, findMetricBySymbolicName metricSymbolicName) -- <<<<<<<< lookup metric
+                    Nothing -> do
+                        -- print ("couldn't find col", idCol)
+                        Nothing -- TODO: error ... impossible?
+            Nothing ->
+                Nothing -- field isn't used by this volume, so don't need to save the measure
+    findMetricBySymbolicName :: Text -> Metric  -- TODO: copied from above, move to shared function
+    findMetricBySymbolicName symbolicName =
+        (fromJust . L.find (\m -> (T.filter (/= ' ') . T.toLower . metricName) m == symbolicName)) participantActiveMetrics
+    changeRecordMeasureIfUsed :: ParticipantStatus -> Maybe (BS.ByteString, Metric) -> ActionM ()
+    changeRecordMeasureIfUsed recordStatus mValueMetric =
+        case mValueMetric of
+            Just (val, met) -> do
+                case recordStatus of
+                    Created record ->
+                        void (changeRecordMeasure (Measure record met val))
+                    Found record -> do
+                        -- TODO: 
+                        -- mOldVal <- getOldVal metric record
+                        -- action = maybe (Upsert val) (\o -> if o == val then Unchanged else Upsert val)
+                        let measureAction = Upsert val
+                        case measureAction of
+                            Upsert newVal ->
+                                void (changeRecordMeasure (Measure record met newVal))
+                            Unchanged ->
+                                pure ()
+            Nothing ->
+                pure ()
