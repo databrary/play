@@ -116,7 +116,7 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
         Right (hdrs, records) -> do
             participantMetrics <- lookupVolumeParticipantMetrics v
             case checkDetermineMapping participantMetrics ((fmap TE.decodeUtf8 . getHeaders) hdrs) records of
-                Right columnCompatibleMetrics -> do
+                Right participantFieldMapping -> do
                     let uploadFileName = (BSC.unpack . fileName) csvFileInfo  -- TODO: add prefix to filename
                     liftIO (BS.writeFile ("/tmp/" ++ uploadFileName) uploadFileContents)
                     pure
@@ -125,7 +125,7 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
                                 $ JSON.Record vi
                                     $      "csv_upload_id" JSON..= uploadFileName
                                         <> "column_samples" JSON..= extractColumnsDistinctSampleJson 5 hdrs records
-                                        <> "suggested_mapping" JSON..= mappingToHeaderMappingEntries columnCompatibleMetrics
+                                        <> "suggested_mapping" JSON..= participantFieldMappingToJSON participantFieldMapping
                                         <> "columns_firstvals" JSON..= extractColumnsInitialJson 5 hdrs records
                 Left err -> do
                     liftIO (print ("failed to determine mapping", err))
