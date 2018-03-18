@@ -143,7 +143,7 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
         pure (uploadId, mapping)
     -- TODO: resolve csv id to absolute path; http error if unknown
     uploadFileContents <- (liftIO . BS.readFile) ("/tmp/" ++ csvUploadId)
-    case parseCsvWithHeader uploadFileContents of
+    case parseCsvWithHeader uploadFileContents of  -- skip this, go straight to parsing records
         Left err ->
             pure (forbiddenResponse reqCtxt) -- TODO: better error
         Right (hdrs, records) -> do
@@ -186,7 +186,7 @@ createOrUpdateRecord participantActiveMetrics vol mapping csvRecord = do
     recordStatus <-
         case mOldParticipant of
             Nothing ->
-                Created <$> addRecord (blankRecord participantCategory vol)
+                Created <$> addRecord (blankRecord participantCategory vol) -- blankParticipantRecord
             Just oldParticipant ->
                 pure (Found oldParticipant)
     let mInfo = getFieldVal pfmInfo "info"
@@ -237,6 +237,7 @@ createOrUpdateRecord participantActiveMetrics vol mapping csvRecord = do
     changeRecordMeasureIfUsed recordStatus mValueMetric =
         case mValueMetric of
             Just (val, met) -> do
+                -- separate function
                 case recordStatus of
                     Created record ->
                         void (changeRecordMeasure (Measure record met val))
