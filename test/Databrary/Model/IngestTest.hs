@@ -3,6 +3,7 @@ module Databrary.Model.IngestTest where
 
 -- import qualified Data.HashMap.Strict as HMP
 -- import qualified Data.Vector as V
+import qualified Data.Aeson as Aeson
 import qualified Data.Map as Map
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -24,4 +25,10 @@ tests = testGroup "Databrary.Model.Ingest"
                 , (participantMetricGender, "col2")
                 ])
            @?= Right participantFieldMapping1)
+    , testCase "participantFieldMappingToJSON"
+        (participantFieldMappingToJSON emptyParticipantFieldMapping @?= Aeson.toJSON ([] :: [Bool]))
+    , testCase "determineMapping-1"
+        (determineMapping [] [] @?= Right emptyParticipantFieldMapping)
+    , testCase "determineMapping-2"
+        (determineMapping [participantMetricId] ["id"] @?= Right (undefined))
     ]

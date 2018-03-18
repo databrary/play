@@ -9,9 +9,10 @@ module Databrary.Model.Ingest
   , addIngestAsset
   , replaceSlotAsset
   , checkDetermineMapping
+  , determineMapping
   , extractColumnsDistinctSampleJson
   , HeaderMappingEntry(..)
-  , mappingToHeaderMappingEntries
+  , participantFieldMappingToJSON
   , parseParticipantFieldMapping
   ) where
 
@@ -19,6 +20,7 @@ import Control.Monad (when)
 import qualified Data.ByteString as BS
 import qualified Data.Csv as Csv
 import qualified Data.List as L
+import Data.Maybe (catMaybes)
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
@@ -351,25 +353,27 @@ replaceSlotAsset o n = do
       (assetId $ assetRow n) (assetId $ assetRow o))
             (\ [] -> ()))
 
+checkDetermineMapping :: [Metric] -> [Text] -> Vector Csv.NamedRecord -> Either String ParticipantFieldMapping
+checkDetermineMapping participantActiveMetrics csvHeaders csvRows = do
+    -- shoudl also return skipped columns
+    determineMapping participantActiveMetrics csvHeaders
+
 -- verify that all expected columns are present, with some leniency
 -- left if not enough columns or other mismatch
--- TODO: use abstract type instead of Csv's NamedRecord?
-checkDetermineMapping :: [Metric] -> [Text] -> Vector Csv.NamedRecord -> Either String (Map Metric [Text])
-checkDetermineMapping participantActiveMetrics csvHeaders csvRows = do
+determineMapping :: [Metric] -> [Text] -> Either String ParticipantFieldMapping
+determineMapping participantActiveMetrics csvHeaders = do
     let pairs :: [(Text, [Metric])] -- TODO: compute in reverse
         pairs = (zip csvHeaders . fmap detectMatches) csvHeaders
         metricCompatibleColumns = buildReverseMap participantActiveMetrics pairs
-    -- TODO: check for unsolvable matchings (column with no metrics; two columns with only 1 solution)..Its a CSP!
-    pure metricCompatibleColumns
+    -- pure metricCompatibleColumns
+    undefined
   where
     detectMatches :: Text -> [Metric]
     detectMatches hdr =
-        let column = extractColumnDefaulting (TE.encodeUtf8 hdr) csvRows
-        -- detect datatypes
-        in detectMatches' hdr column participantActiveMetrics
-    detectMatches' :: Text -> [BS.ByteString] -> [Metric] -> [Metric]
-    detectMatches' hdr columnValues activeMetrics =
-        filter (columnMetricCompatible hdr columnValues) activeMetrics
+        detectMatches' hdr participantActiveMetrics
+    detectMatches' :: Text -> [Metric] -> [Metric]
+    detectMatches' hdr activeMetrics =
+        filter (columnMetricCompatible hdr) activeMetrics
     buildReverseMap :: [Metric] -> [(Text, [Metric])] -> Map Metric [Text]
     buildReverseMap activeMetrics colMetrics =
         (Map.fromList . zip activeMetrics . fmap (\m -> getColumns m colMetrics)) activeMetrics
@@ -377,8 +381,8 @@ checkDetermineMapping participantActiveMetrics csvHeaders csvRows = do
     getColumns m colMetrics =
         (fmap (\(col, metrics) -> col) . filter (\(col, metrics) -> m `elem` metrics)) colMetrics
 
-columnMetricCompatible :: Text -> [BS.ByteString] -> Metric -> Bool
-columnMetricCompatible hdr columnValues metric =
+columnMetricCompatible :: Text -> Metric -> Bool
+columnMetricCompatible hdr metric =
     (T.filter (/= ' ') . T.toLower . metricName) metric == T.toLower hdr
 
 extractColumnsDistinctSampleJson :: Int -> Csv.Header -> Vector Csv.NamedRecord -> [JSON.Value]
@@ -407,19 +411,36 @@ instance FromJSON HeaderMappingEntry where
                          fail ("metric name does not match any participant metric: " ++ show metricCanonicalName))
 
 
-instance ToJSON HeaderMappingEntry where
-    toJSON (HeaderMappingEntry field metric) =
-        JSON.object
-            [ "metric" JSON..= (T.filter (/= ' ') . T.toLower . metricName) metric
-            , "compatible_csv_fields" JSON..= [field] -- change to single value soon
-            ]
-        
-mappingToHeaderMappingEntries :: Map Metric [Text] -> [HeaderMappingEntry] -- TODO: Value or list of Value?
-mappingToHeaderMappingEntries metricCompatibleColumns =
-    ( (fmap
-          (\(metric, colNames) -> HeaderMappingEntry (head colNames) metric)) -- change single column soon
-    . Map.toList )
-      metricCompatibleColumns
+participantFieldMappingToJSON :: ParticipantFieldMapping -> JSON.Value
+participantFieldMappingToJSON fldMap =
+    -- didn't use tojson to avoid orphan warning. didn't move tojson to metric.types because of circular ref to metric instances
+    toJSON
+        (catMaybes
+            [ fieldToMaybeEntry pfmId participantMetricId
+            , fieldToMaybeEntry pfmInfo participantMetricInfo
+            , fieldToMaybeEntry pfmDescription participantMetricDescription
+            , fieldToMaybeEntry pfmBirthdate participantMetricBirthdate
+            , fieldToMaybeEntry pfmGender participantMetricGender
+            , fieldToMaybeEntry pfmRace participantMetricRace
+            , fieldToMaybeEntry pfmEthnicity participantMetricEthnicity
+            , fieldToMaybeEntry pfmGestationalAge participantMetricGestationalAge
+            , fieldToMaybeEntry pfmPregnancyTerm participantMetricPregnancyTerm
+            , fieldToMaybeEntry pfmBirthWeight participantMetricBirthWeight
+            , fieldToMaybeEntry pfmDisability participantMetricDisability
+            , fieldToMaybeEntry pfmLanguage participantMetricLanguage
+            , fieldToMaybeEntry pfmCountry participantMetricCountry
+            , fieldToMaybeEntry pfmState participantMetricState
+            , fieldToMaybeEntry pfmSetting participantMetricSetting
+            ])
+  where
+    fieldToMaybeEntry :: (ParticipantFieldMapping -> Maybe Text) -> Metric -> Maybe JSON.Value
+    fieldToMaybeEntry getMaybeColName metric = do
+        colName <- getMaybeColName fldMap
+        pure
+            (JSON.object
+                [ "metric" JSON..= (T.filter (/= ' ') . T.toLower . metricName) metric -- TODO: use shared function
+                , "compatible_csv_fields" JSON..= [colName] -- change to single value soon
+                ])
 
 parseParticipantFieldMapping :: [Metric] -> [BS.ByteString] -> Map Metric Text -> Either String ParticipantFieldMapping
 parseParticipantFieldMapping volParticipantActiveMetrics colHdrs requestedMapping = do
