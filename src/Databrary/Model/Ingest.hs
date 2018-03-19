@@ -371,7 +371,7 @@ attemptParseRows participantFieldMapping contents =
 
 participantRecordParseNamedRecord :: ParticipantFieldMapping -> Csv.NamedRecord -> Parser ParticipantRecord
 participantRecordParseNamedRecord fieldMap m = do
-    mId <- extractIfUsed pfmId
+    mId <- extractIfUsed2 pfmId validateParticipantId
     mInfo <- extractIfUsed pfmInfo
     mDescription <- extractIfUsed pfmDescription
     mBirthdate <- extractIfUsed pfmBirthdate
@@ -410,6 +410,16 @@ participantRecordParseNamedRecord fieldMap m = do
         case maybeGetField fieldMap of
             Just colName -> m .: (TE.encodeUtf8 colName)
             Nothing -> pure Nothing
+    extractIfUsed2
+      :: (ParticipantFieldMapping -> Maybe Text) -> (BS.ByteString -> Maybe BS.ByteString) -> Parser (Maybe BS.ByteString)
+    extractIfUsed2 maybeGetField validateValue = do
+        case maybeGetField fieldMap of
+            Just colName -> do
+                contents <- m .: (TE.encodeUtf8 colName)
+                maybe (fail ("invalid value for " ++ show colName)) (pure . Just) (validateValue contents)
+            Nothing ->
+                pure Nothing
+    
 
 -- verify that all expected columns are present, with some leniency in matching
 -- left if no match possible
@@ -472,7 +482,6 @@ instance FromJSON HeaderMappingEntry where
                              <*> pure metric
                      Nothing ->
                          fail ("metric name does not match any participant metric: " ++ show metricCanonicalName))
-
 
 participantFieldMappingToJSON :: ParticipantFieldMapping -> JSON.Value
 participantFieldMappingToJSON fldMap =
