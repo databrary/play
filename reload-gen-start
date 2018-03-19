@@ -1,6 +1,10 @@
 :module + Databrary.Main
+
+-- This is a hack, required since Databrary.Web doesn't do a perfect job as a
+-- build system.
 :!rm -r web/lib
 :!touch web/site/home.html
+
 :main -w
 :reload
 :main -w
