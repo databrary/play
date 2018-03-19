@@ -14,6 +14,8 @@ tests = testGroup "Databrary.Model.Metric"
         (lookupParticipantMetricBySymbolicName "birthweight" @?= Just participantMetricBirthWeight)
     , testCase "lookupParticipantMetricBySymbolicName-2"
         (lookupParticipantMetricBySymbolicName "junk" @?= Nothing)
-    , testCase "validateParticipantId-2"
+    , testCase "validateParticipantId-1"
         (validateParticipantId "01" @?= Just "01")
+    , testCase "validateParticipantInfo-1"
+        (validateParticipantInfo "details" @?= Just "details")
     ]
