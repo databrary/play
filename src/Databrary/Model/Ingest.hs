@@ -373,7 +373,7 @@ attemptParseRows participantFieldMapping contents =
 participantRecordParseNamedRecord :: ParticipantFieldMapping -> Csv.NamedRecord -> Parser ParticipantRecord
 participantRecordParseNamedRecord fieldMap m = do
     mId <- extractIfUsed2 pfmId validateParticipantId
-    mInfo <- extractIfUsed pfmInfo
+    mInfo <- extractIfUsed2 pfmInfo validateParticipantInfo
     mDescription <- extractIfUsed pfmDescription
     mBirthdate <- extractIfUsed pfmBirthdate
     mGender <- extractIfUsed pfmGender

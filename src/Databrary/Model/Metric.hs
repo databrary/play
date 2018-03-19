@@ -22,6 +22,7 @@ module Databrary.Model.Metric
   , lookupParticipantMetricBySymbolicName
   , participantMetrics
   , validateParticipantId
+  , validateParticipantInfo
   , metricLong
   , birthdateMetric
   , metricJSON
@@ -774,6 +775,12 @@ participantMetrics = filter ((== participantCategory) . metricCategory) allMetri
 
 validateParticipantId :: BS.ByteString -> Maybe BS.ByteString
 validateParticipantId val =
+    if BS.length val > 0
+    then Just val
+    else Nothing
+
+validateParticipantInfo :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantInfo val =
     if BS.length val > 0
     then Just val
     else Nothing
