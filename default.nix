@@ -35,10 +35,8 @@ let
       mkdir -p cracklib
       cp -r /tmp/usr/share/cracklib/pw_dict* cracklib
     fi
-    if [ ! -d "node_modules" ]; then
-      echo linking node_modules
-      ln -sf ${nodePackages.shell.nodeDependencies}/lib/node_modules node_modules
-    fi
+    echo linking node_modules
+    ln -sf ${nodePackages.shell.nodeDependencies}/lib/node_modules
     # make store related dirs
     mkdir -p cache/tmp stage tmp trans upload
     if [ ! -d "store" ]; then
