@@ -144,17 +144,16 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
         pure (uploadId, mapping)
     -- TODO: resolve csv id to absolute path; http error if unknown
     uploadFileContents <- (liftIO . BS.readFile) ("/tmp/" ++ csvUploadId)
-    case parseCsvWithHeader uploadFileContents of  -- skip this, go straight to parsing records
+    let (Right mpngVal) = JSON.parseEither mappingParser selectedMapping
+    participantActiveMetrics <- lookupVolumeParticipantMetrics v
+    let eMpngs = parseParticipantFieldMapping participantActiveMetrics Nothing mpngVal
+    liftIO $ print ("upload id", csvUploadId, "mapping", eMpngs)
+    let Right mpngs = eMpngs -- TODO: handle either above
+    case attemptParseRows mpngs uploadFileContents of
         Left err ->
             pure (forbiddenResponse reqCtxt) -- TODO: better error
         Right (hdrs, records) -> do
-            participantActiveMetrics <- lookupVolumeParticipantMetrics v
-            let (Right mpngVal) = JSON.parseEither mappingParser selectedMapping
-            let eMpngs = parseParticipantFieldMapping participantActiveMetrics (getHeaders hdrs) mpngVal
-            liftIO $ print ("upload id", csvUploadId, "mapping", eMpngs)
-            -- TODO: validate mappings against allowed/detected data types
-            let Right mpngs = eMpngs -- TODO: handle either above
-            eRes <- (runImport participantActiveMetrics v records) mpngs
+            eRes <- runImport participantActiveMetrics v records
             pure
                 $ okResponse []
                     $ JSON.recordEncoding -- TODO: not record encoding
@@ -166,11 +165,9 @@ mappingParser val = do
     pure ((Map.fromList . fmap (\e -> (hmeMetric e, hmeCsvField e))) entries)
 
  -- TODO: error or count
-runImport :: [Metric] -> Volume -> Vector Csv.NamedRecord -> ParticipantFieldMapping -> ActionM (Vector ())
-runImport activeMetrics vol records mapping =
-    mapM
-        (\record -> createOrUpdateRecord activeMetrics vol mapping record)
-        records
+runImport :: [Metric] -> Volume -> Vector ParticipantRecord -> ActionM (Vector ())
+runImport activeMetrics vol records =
+    mapM (createOrUpdateRecord activeMetrics vol) records
 
 data ParticipantStatus = Created Record | Found Record
     -- deriving (Show, Eq)
@@ -178,11 +175,10 @@ data ParticipantStatus = Created Record | Found Record
 data MeasureUpdateAction = Upsert BS.ByteString | Unchanged
     deriving (Show, Eq)
 
--- validated records instead of namedrecord? use Participant type?
-createOrUpdateRecord :: [Metric] -> Volume -> ParticipantFieldMapping -> Csv.NamedRecord -> ActionM () -- TODO: error or record
-createOrUpdateRecord participantActiveMetrics vol mapping csvRecord = do
+createOrUpdateRecord :: [Metric] -> Volume -> ParticipantRecord -> ActionM () -- TODO: error or record
+createOrUpdateRecord participantActiveMetrics vol participantRecord = do
     let participantCategory = getCategory' (Id 1) -- TODO: use global variable
-        (idVal, idMetric) = maybe (error "id missing") id (getFieldVal pfmId "id")
+        (idVal, idMetric) = maybe (error "id missing") id (getFieldVal prdId "id")
     mOldParticipant <- lookupVolumeParticipant vol idVal
     recordStatus <-
         case mOldParticipant of
@@ -190,19 +186,19 @@ createOrUpdateRecord participantActiveMetrics vol mapping csvRecord = do
                 Created <$> addRecord (blankRecord participantCategory vol) -- blankParticipantRecord
             Just oldParticipant ->
                 pure (Found oldParticipant)
-    let mInfo = getFieldVal pfmInfo "info"
-        mDescription = getFieldVal pfmDescription "description"
-        mBirthdate = getFieldVal pfmBirthdate "birthdate"
-        mGender = getFieldVal pfmGender "gender"
-        mEthnicity = getFieldVal pfmEthnicity "ethnicity"
-        mGestationalAge = getFieldVal pfmGestationalAge "gestationalage"
-        mPregnancyTerm = getFieldVal pfmPregnancyTerm "pregnancyterm"
-        mBirthWeight = getFieldVal pfmBirthWeight "birthweight"
-        mDisability = getFieldVal pfmDisability "disability"
-        mLanguage = getFieldVal pfmLanguage "language"
-        mCountry = getFieldVal pfmCountry "country"
-        mState = getFieldVal pfmState "state"
-        mSetting = getFieldVal pfmSetting "setting"
+    let mInfo = getFieldVal prdInfo "info"
+        mDescription = getFieldVal prdDescription "description"
+        mBirthdate = getFieldVal prdBirthdate "birthdate"
+        mGender = getFieldVal prdGender "gender"
+        mEthnicity = getFieldVal prdEthnicity "ethnicity"
+        mGestationalAge = getFieldVal prdGestationalAge "gestationalage"
+        mPregnancyTerm = getFieldVal prdPregnancyTerm "pregnancyterm"
+        mBirthWeight = getFieldVal prdBirthWeight "birthweight"
+        mDisability = getFieldVal prdDisability "disability"
+        mLanguage = getFieldVal prdLanguage "language"
+        mCountry = getFieldVal prdCountry "country"
+        mState = getFieldVal prdState "state"
+        mSetting = getFieldVal prdSetting "setting"
     -- print ("save measure id:", mId)
     changeRecordMeasureIfUsed recordStatus (Just (idVal, idMetric))
     changeRecordMeasureIfUsed recordStatus mInfo
@@ -219,16 +215,11 @@ createOrUpdateRecord participantActiveMetrics vol mapping csvRecord = do
     changeRecordMeasureIfUsed recordStatus mState
     changeRecordMeasureIfUsed recordStatus mSetting
   where
-    getFieldVal :: (ParticipantFieldMapping -> Maybe Text) -> Text -> Maybe (BS.ByteString, Metric)
-    getFieldVal extractColumnName metricSymbolicName =
-        case extractColumnName mapping of
-            Just columnName ->
-                case HMP.lookup (TE.encodeUtf8 columnName) csvRecord of
-                    Just fieldVal ->
-                        pure (fieldVal, findMetricBySymbolicName metricSymbolicName) -- <<<<<<<< lookup metric
-                    Nothing -> do
-                        -- print ("couldn't find col", idCol)
-                        Nothing -- TODO: error ... impossible?
+    getFieldVal :: (ParticipantRecord -> Maybe BS.ByteString) -> Text -> Maybe (BS.ByteString, Metric)
+    getFieldVal extractFieldVal metricSymbolicName =
+        case extractFieldVal participantRecord of
+            Just fieldVal ->
+                pure (fieldVal, findMetricBySymbolicName metricSymbolicName) -- <<<<<<<< lookup metric
             Nothing ->
                 Nothing -- field isn't used by this volume, so don't need to save the measure
     findMetricBySymbolicName :: Text -> Metric  -- TODO: copied from above, move to shared function
