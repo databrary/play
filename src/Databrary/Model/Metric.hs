@@ -31,6 +31,7 @@ module Databrary.Model.Metric
   , validateParticipantPregnancyTerm
   , validateParticipantState
   , validateParticipantSetting
+  , validateParticipantDisability
   , metricLong
   , birthdateMetric
   , metricJSON
@@ -38,6 +39,7 @@ module Databrary.Model.Metric
 
 import Control.Applicative (empty, pure)
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString
 import qualified Data.IntMap.Strict as IntMap
 import Data.List (find)
@@ -45,6 +47,7 @@ import Data.Maybe (fromJust)
 import Data.Monoid ((<>))
 import qualified Data.Text
 import Data.Text (Text)
+import qualified Text.Read as TR
 
 import Databrary.Ops
 import qualified Databrary.JSON as JSON
@@ -790,6 +793,9 @@ validateParticipantInfo val = validateNotEmpty val
 validateParticipantDescription :: BS.ByteString -> Maybe BS.ByteString
 validateParticipantDescription val = validateNotEmpty val
 
+validateParticipantDisability :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantDisability val = validateNotEmpty val
+
 validateParticipantGender :: BS.ByteString -> Maybe BS.ByteString
 validateParticipantGender val =
     validateInOptions val participantMetricGender
@@ -816,6 +822,13 @@ validateParticipantState val =
 validateParticipantSetting :: BS.ByteString -> Maybe BS.ByteString
 validateParticipantSetting val =
     validateInOptions val participantMetricSetting
+
+validateParticipantGestationalAge :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantGestationalAge val = do
+    _ <- (TR.readMaybe (BSC.unpack val) :: Maybe Integer)
+    pure val
+
+-- TODO: birth weight, birthdate
 
 validateInOptions :: BS.ByteString -> Metric -> Maybe BS.ByteString
 validateInOptions val metric =
