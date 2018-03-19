@@ -13,7 +13,7 @@ let
   # Definition of nixpkgs, version controlled by Reflex-FRP
   nixpkgs = reflex-platform.nixpkgs;
   inherit (nixpkgs.lib) id;
-  nodePackages = import ./node-default.nix { pkgs = nixpkgs; };
+  nodePackages = import ./node {};
   inherit (nixpkgs) fetchFromGitHub writeScriptBin cpio wget;
   # nixpkgs functions used to regulate Haskell overrides
   inherit (nixpkgs.haskell.lib)
