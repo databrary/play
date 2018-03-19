@@ -149,7 +149,7 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
             pure (forbiddenResponse reqCtxt) -- bad json shape or keys
         Right mpngVal -> do
             participantActiveMetrics <- lookupVolumeParticipantMetrics v
-            case parseParticipantFieldMapping participantActiveMetrics Nothing mpngVal of
+            case parseParticipantFieldMapping participantActiveMetrics mpngVal of
                 Left err ->
                     pure (forbiddenResponse reqCtxt) -- mapping of inactive metrics or missing metric
                 Right mpngs -> do

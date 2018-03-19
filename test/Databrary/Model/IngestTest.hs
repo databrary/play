@@ -17,11 +17,10 @@ import Databrary.Model.Metric.TypesTest
 tests :: TestTree
 tests = testGroup "Databrary.Model.Ingest"
     [ testCase "parseParticipantFieldMapping-1"
-        (parseParticipantFieldMapping [] Nothing (Map.fromList []) @?= Right emptyParticipantFieldMapping)
+        (parseParticipantFieldMapping [] (Map.fromList []) @?= Right emptyParticipantFieldMapping)
     , testCase "parseParticipantFieldMapping-2"
         (parseParticipantFieldMapping
            [participantMetricId, participantMetricGender]
-           Nothing
            (Map.fromList
                 [ (participantMetricId, "col1")
                 , (participantMetricGender, "col2")
