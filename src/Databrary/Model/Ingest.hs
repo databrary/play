@@ -21,7 +21,9 @@ module Databrary.Model.Ingest
 
 import Control.Monad (when)
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Csv as Csv
+import Data.Csv hiding (Record)
 import qualified Data.List as L
 import Data.Maybe (catMaybes)
 import qualified Data.Map as Map
@@ -40,7 +42,7 @@ import Data.ByteString (ByteString)
 import qualified Data.String
 import Data.Vector (Vector)
 
-import Data.Csv.Contrib (extractColumnsDistinctSample, extractColumnDefaulting, extractColumnsInitialRows)
+import Data.Csv.Contrib (extractColumnsDistinctSample, extractColumnDefaulting, decodeCsvByNameWith, extractColumnsInitialRows)
 import Databrary.Service.DB
 import qualified Databrary.JSON as JSON
 import Databrary.JSON (FromJSON(..), ToJSON(..))
@@ -356,16 +358,42 @@ replaceSlotAsset o n = do
       (assetId $ assetRow n) (assetId $ assetRow o))
             (\ [] -> ()))
 
-checkDetermineMapping :: [Metric] -> [Text] -> BS.ByteString -> Either String ParticipantFieldMapping
+checkDetermineMapping :: [Metric] -> [Text] -> BSL.ByteString -> Either String ParticipantFieldMapping
 checkDetermineMapping participantActiveMetrics csvHeaders csvContents = do
     -- should also return skipped columns
     mpng <- determineMapping participantActiveMetrics csvHeaders
     -- _ <- attemptParseRows (buildNamedRecordDecoder mpng) csvContents
     pure mpng
 
-attemptParseRows :: ParticipantFieldMapping -> BS.ByteString -> Either String ParticipantRecord
+attemptParseRows
+    :: ParticipantFieldMapping -> BSL.ByteString -> Either String (Csv.Header, Vector ParticipantRecord)
 attemptParseRows participantFieldMapping contents =
-    pure undefined
+    decodeCsvByNameWith contents
+
+instance FromNamedRecord ParticipantRecord where
+    parseNamedRecord m = do
+        let fieldMapping :: ParticipantFieldMapping
+            fieldMapping = undefined
+        idVal <- m .: "id"
+        genderVal <- m .: "gender"
+        pure
+            (ParticipantRecord
+                { prdId = Just idVal
+                , prdInfo = Nothing
+                , prdDescription = Nothing
+                , prdBirthdate = Nothing
+                , prdGender = Just genderVal
+                , prdRace = Nothing
+                , prdEthnicity = Nothing
+                , prdGestationalAge = Nothing
+                , prdPregnancyTerm = Nothing
+                , prdBirthWeight = Nothing
+                , prdDisability = Nothing
+                , prdLanguage = Nothing
+                , prdCountry = Nothing
+                , prdState = Nothing
+                , prdSetting = Nothing
+                } )
 
 -- verify that all expected columns are present, with some leniency in matching
 -- left if no match possible
