@@ -23,6 +23,7 @@ module Databrary.Model.Metric
   , participantMetrics
   , validateParticipantId
   , validateParticipantInfo
+  , validateParticipantDescription
   , metricLong
   , birthdateMetric
   , metricJSON
@@ -774,16 +775,17 @@ participantMetrics :: [Metric]
 participantMetrics = filter ((== participantCategory) . metricCategory) allMetrics
 
 validateParticipantId :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantId val =
-    if BS.length val > 0
-    then Just val
-    else Nothing
+validateParticipantId val = validateNotEmpty val
 
 validateParticipantInfo :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantInfo val =
-    if BS.length val > 0
-    then Just val
-    else Nothing
+validateParticipantInfo val = validateNotEmpty val
+
+validateParticipantDescription :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantDescription val = validateNotEmpty val
+
+validateNotEmpty :: BS.ByteString -> Maybe BS.ByteString
+validateNotEmpty val =
+    if BS.length val > 0 then Just val else Nothing
 
 -- this is a hack, should be in database
 metricLong :: Metric -> Bool

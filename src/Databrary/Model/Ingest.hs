@@ -374,7 +374,7 @@ participantRecordParseNamedRecord :: ParticipantFieldMapping -> Csv.NamedRecord 
 participantRecordParseNamedRecord fieldMap m = do
     mId <- extractIfUsed2 pfmId validateParticipantId
     mInfo <- extractIfUsed2 pfmInfo validateParticipantInfo
-    mDescription <- extractIfUsed pfmDescription
+    mDescription <- extractIfUsed2 pfmDescription validateParticipantDescription
     mBirthdate <- extractIfUsed pfmBirthdate
     mGender <- extractIfUsed pfmGender
     mRace <- extractIfUsed pfmRace
