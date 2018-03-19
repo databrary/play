@@ -152,8 +152,8 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
             case parseParticipantFieldMapping participantActiveMetrics Nothing mpngVal of
                 Left err ->
                     pure (forbiddenResponse reqCtxt)
-                Right mpngs ->
-                    liftIO $ print ("upload id", csvUploadId, "mapping", eMpngs)
+                Right mpngs -> do
+                    liftIO $ print ("upload id", csvUploadId, "mapping", mpngs)
                     case attemptParseRows mpngs uploadFileContents of
                         Left err ->
                             pure (forbiddenResponse reqCtxt) -- TODO: better error
