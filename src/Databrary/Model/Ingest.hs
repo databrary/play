@@ -9,11 +9,13 @@ module Databrary.Model.Ingest
   , addIngestAsset
   , replaceSlotAsset
   , checkDetermineMapping
-  , determineMapping
+  , attemptParseRows
   , extractColumnsDistinctSampleJson
   , HeaderMappingEntry(..)
   , participantFieldMappingToJSON
   , parseParticipantFieldMapping
+  -- for testing:
+  , determineMapping
   ) where
 
 import Control.Monad (when)
@@ -353,33 +355,49 @@ replaceSlotAsset o n = do
       (assetId $ assetRow n) (assetId $ assetRow o))
             (\ [] -> ()))
 
-checkDetermineMapping :: [Metric] -> [Text] -> Vector Csv.NamedRecord -> Either String ParticipantFieldMapping
-checkDetermineMapping participantActiveMetrics csvHeaders csvRows = do
-    -- shoudl also return skipped columns
-    determineMapping participantActiveMetrics csvHeaders
+checkDetermineMapping :: [Metric] -> [Text] -> BS.ByteString -> Either String ParticipantFieldMapping
+checkDetermineMapping participantActiveMetrics csvHeaders csvContents = do
+    -- should also return skipped columns
+    mpng <- determineMapping participantActiveMetrics csvHeaders
+    -- _ <- attemptParseRows (buildNamedRecordDecoder mpng) csvContents
+    pure mpng
 
--- verify that all expected columns are present, with some leniency
--- left if not enough columns or other mismatch
+attemptParseRows :: ParticipantFieldMapping -> BS.ByteString -> Either String ParticipantRecord
+attemptParseRows participantFieldMapping contents =
+    pure undefined
+
+-- verify that all expected columns are present, with some leniency in matching
+-- left if no match possible
 determineMapping :: [Metric] -> [Text] -> Either String ParticipantFieldMapping
 determineMapping participantActiveMetrics csvHeaders = do
-    let pairs :: [(Text, [Metric])] -- TODO: compute in reverse
-        pairs = (zip csvHeaders . fmap detectMatches) csvHeaders
-        metricCompatibleColumns = buildReverseMap participantActiveMetrics pairs
-    -- pure metricCompatibleColumns
-    undefined
+    columnMatches <- traverse (detectMetricMatch csvHeaders) participantActiveMetrics
+    let metricColumnMatches :: Map Metric Text
+        metricColumnMatches = (Map.fromList . zip participantActiveMetrics) columnMatches
+    -- TODO: sanity check -- all cols distinct
+    pure
+        (ParticipantFieldMapping
+            { pfmId = Map.lookup participantMetricId metricColumnMatches
+            , pfmInfo = Map.lookup participantMetricInfo metricColumnMatches
+            , pfmDescription = Map.lookup participantMetricDescription metricColumnMatches
+            , pfmBirthdate = Map.lookup participantMetricBirthdate metricColumnMatches
+            , pfmGender = Map.lookup participantMetricGender metricColumnMatches
+            , pfmRace = Map.lookup participantMetricRace metricColumnMatches
+            , pfmEthnicity = Map.lookup participantMetricEthnicity metricColumnMatches
+            , pfmGestationalAge = Map.lookup participantMetricGestationalAge metricColumnMatches
+            , pfmPregnancyTerm = Map.lookup participantMetricPregnancyTerm metricColumnMatches
+            , pfmBirthWeight = Map.lookup participantMetricBirthWeight metricColumnMatches
+            , pfmDisability = Map.lookup participantMetricDisability metricColumnMatches
+            , pfmLanguage = Map.lookup participantMetricLanguage metricColumnMatches
+            , pfmCountry = Map.lookup participantMetricCountry metricColumnMatches
+            , pfmState = Map.lookup participantMetricState metricColumnMatches
+            , pfmSetting = Map.lookup participantMetricSetting metricColumnMatches
+            })
   where
-    detectMatches :: Text -> [Metric]
-    detectMatches hdr =
-        detectMatches' hdr participantActiveMetrics
-    detectMatches' :: Text -> [Metric] -> [Metric]
-    detectMatches' hdr activeMetrics =
-        filter (columnMetricCompatible hdr) activeMetrics
-    buildReverseMap :: [Metric] -> [(Text, [Metric])] -> Map Metric [Text]
-    buildReverseMap activeMetrics colMetrics =
-        (Map.fromList . zip activeMetrics . fmap (\m -> getColumns m colMetrics)) activeMetrics
-    getColumns :: Metric -> [(Text, [Metric])] -> [Text]
-    getColumns m colMetrics =
-        (fmap (\(col, metrics) -> col) . filter (\(col, metrics) -> m `elem` metrics)) colMetrics
+    detectMetricMatch :: [Text] -> Metric -> Either String Text
+    detectMetricMatch hdrs metric =
+        case L.find (\h -> columnMetricCompatible h metric) hdrs of
+            Just hdr -> pure hdr
+            Nothing -> fail ("no compatible header found for metric" ++ (show . metricName) metric)
 
 columnMetricCompatible :: Text -> Metric -> Bool
 columnMetricCompatible hdr metric =
