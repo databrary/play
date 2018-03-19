@@ -48,9 +48,14 @@ extractColumn hdr records applyDefault =
    . fmap (\rowMap -> (applyDefault . HMP.lookup hdr) rowMap))
    records
 
-decodeCsvByNameWith :: Csv.FromNamedRecord a => BSL.ByteString -> Either String (Csv.Header, Vector a)
-decodeCsvByNameWith contents =
-    Csv.decodeByNameWith Csv.defaultDecodeOptions contents
+decodeCsvByNameWith :: Csv.FromNamedRecord a => BS.ByteString -> Either String (Csv.Header, Vector a)
+decodeCsvByNameWith contents = do
+    -- Csv.decodeByNameWith Csv.defaultDecodeOptions contents
+    (hdr, rcrds) <- parseCsvWithHeader contents
+    let nRcrds = fmap Csv.toNamedRecord rcrds
+    let rcrdsParser = traverse Csv.parseNamedRecord nRcrds
+    vals <- Csv.runParser rcrdsParser
+    pure (hdr, vals)
 
 parseCsvWithHeader :: BS.ByteString -> Either String (Csv.Header, Vector Csv.NamedRecord)
 parseCsvWithHeader contents =
