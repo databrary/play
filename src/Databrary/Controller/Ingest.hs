@@ -146,16 +146,16 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
     uploadFileContents <- (liftIO . BS.readFile) ("/tmp/" ++ csvUploadId)
     case JSON.parseEither mappingParser selectedMapping of
         Left err ->
-            pure (forbiddenResponse reqCtxt)
+            pure (forbiddenResponse reqCtxt) -- bad json shape or keys
         Right mpngVal -> do
             participantActiveMetrics <- lookupVolumeParticipantMetrics v
             case parseParticipantFieldMapping participantActiveMetrics Nothing mpngVal of
                 Left err ->
-                    pure (forbiddenResponse reqCtxt)
+                    pure (forbiddenResponse reqCtxt) -- mapping of inactive metrics or missing metric
                 Right mpngs -> do
                     liftIO $ print ("upload id", csvUploadId, "mapping", mpngs)
                     case attemptParseRows mpngs uploadFileContents of
-                        Left err ->
+                        Left err ->   -- invalid value in row
                             pure (forbiddenResponse reqCtxt) -- TODO: better error
                         Right (hdrs, records) -> do
                             eRes <- runImport participantActiveMetrics v records
