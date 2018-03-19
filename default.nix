@@ -1,4 +1,4 @@
-{ nodePackages ? import ./node-default.nix {}
+{ nodePackages ? import ./node {}
 , databraryRoot ? ./.
 }:
 

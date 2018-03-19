@@ -837,13 +837,7 @@ let
     name = "databrary";
     packageName = "databrary";
     version = "0.0.0";
-    ## MANUAL EDIT to ignore the files that Nix doesn't like
-    src =
-      builtins.filterSource
-        (path: _type: ! builtins.elem
-            (baseNameOf path)
-            ["databrary-nix-db" ".git" "result" "node_modules"])
-        ./.;
+    src = ./.;
     dependencies = [
       sources."@flowjs/ng-flow-2.7.1"
       sources."angular-1.6.9"
