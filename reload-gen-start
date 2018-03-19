@@ -1,4 +1,6 @@
 :module + Databrary.Main
+:!rm -r web/lib
+:!touch web/site/home.html
 :main -w
 :reload
 :main -w
