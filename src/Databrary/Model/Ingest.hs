@@ -10,6 +10,7 @@ module Databrary.Model.Ingest
   , replaceSlotAsset
   , checkDetermineMapping
   , extractColumnsDistinctSampleJson
+  , extractColumnsInitialJson
   , HeaderMappingEntry(..)
   , mappingToHeaderMappingEntries
   , parseParticipantFieldMapping
@@ -35,7 +36,7 @@ import Data.ByteString (ByteString)
 import qualified Data.String
 import Data.Vector (Vector)
 
-import Data.Csv.Contrib (extractColumnsDistinctSample, extractColumnDefaulting)
+import Data.Csv.Contrib (extractColumnsDistinctSample, extractColumnDefaulting, extractColumnsInitialRows)
 import Databrary.Service.DB
 import qualified Databrary.JSON as JSON
 import Databrary.JSON (FromJSON(..), ToJSON(..))
@@ -385,6 +386,12 @@ extractColumnsDistinctSampleJson :: Int -> Csv.Header -> Vector Csv.NamedRecord 
 extractColumnsDistinctSampleJson maxSamples hdrs records =
     ( fmap (\(colHdr, vals) -> columnSampleJson colHdr vals)
     . extractColumnsDistinctSample maxSamples hdrs)
+    records
+
+extractColumnsInitialJson :: Int -> Csv.Header -> Vector Csv.NamedRecord -> [JSON.Value]
+extractColumnsInitialJson maxRows hdrs records =
+    ( fmap (\(colHdr, vals) -> columnSampleJson colHdr vals)
+    . extractColumnsInitialRows maxRows hdrs )
     records
 
 data HeaderMappingEntry =

@@ -124,9 +124,9 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
                             $ JSON.recordEncoding -- TODO: not record encoding
                                 $ JSON.Record vi
                                     $      "csv_upload_id" JSON..= uploadFileName
-                                        <> "column_samples" JSON..= extractColumnsDistinctSample 5 hdrs records
+                                        <> "column_samples" JSON..= extractColumnsDistinctSampleJson 5 hdrs records
                                         <> "suggested_mapping" JSON..= mappingToHeaderMappingEntries columnCompatibleMetrics
-                                        <> "columns_firstvals" JSON..= extractColumnsDistinctSampleJson 5 hdrs records
+                                        <> "columns_firstvals" JSON..= extractColumnsInitialJson 5 hdrs records
                 Left err -> do
                     liftIO (print ("failed to determine mapping", err))
                     -- if column check failed, then don't save csv file and response is error

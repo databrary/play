@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Data.Csv.Contrib
   ( getHeaders
+  , extractColumnsInitialRows
   , extractColumnsDistinctSample
   , extractColumnDefaulting
   , extractColumn
@@ -21,6 +22,16 @@ import Data.Vector (Vector)
 
 getHeaders :: Csv.Header -> [BS.ByteString]
 getHeaders = V.toList
+
+extractColumnsInitialRows :: Int -> Csv.Header -> Vector Csv.NamedRecord -> [(BS.ByteString, [BS.ByteString])]
+extractColumnsInitialRows maxRows hdrs records =
+    zip
+        hdrs'
+        (fmap (\hdr -> extractColumnDefaulting hdr truncatedRecords) hdrs')
+  where
+    truncatedRecords = V.take maxRows records
+    hdrs' :: [BS.ByteString]
+    hdrs' = getHeaders hdrs
 
 extractColumnsDistinctSample :: Int -> Csv.Header -> Vector Csv.NamedRecord -> [(BS.ByteString, [BS.ByteString])]
 extractColumnsDistinctSample maxSamples hdrs records =
