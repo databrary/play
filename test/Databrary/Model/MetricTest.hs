@@ -24,4 +24,6 @@ tests = testGroup "Databrary.Model.Metric"
         (validateParticipantGender "Male" @?= Just "Male")
     , testCase "validateParticipantGender-2"
         (validateParticipantGender "m" @?= Nothing)
+    , testCase "validateParticipantCountry-1"
+        (validateParticipantCountry "UK" @?= Just "UK")
     ]

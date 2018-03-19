@@ -375,7 +375,7 @@ participantRecordParseNamedRecord fieldMap m = do
     mId <- extractIfUsed2 pfmId validateParticipantId
     mInfo <- extractIfUsed2 pfmInfo validateParticipantInfo
     mDescription <- extractIfUsed2 pfmDescription validateParticipantDescription
-    mBirthdate <- extractIfUsed pfmBirthdate
+    mBirthdate <- extractIfUsed pfmBirthdate -- last
     mGender <- extractIfUsed2 pfmGender validateParticipantGender
     mRace <- extractIfUsed pfmRace
     mEthnicity <- extractIfUsed pfmEthnicity
@@ -384,7 +384,7 @@ participantRecordParseNamedRecord fieldMap m = do
     mBirthWeight <- extractIfUsed pfmBirthWeight
     mDisability <- extractIfUsed pfmDisability
     mLanguage <- extractIfUsed pfmLanguage
-    mCountry <- extractIfUsed pfmCountry
+    mCountry <- extractIfUsed2 pfmCountry validateParticipantCountry
     mState <- extractIfUsed pfmState
     mSetting <- extractIfUsed pfmSetting
     pure

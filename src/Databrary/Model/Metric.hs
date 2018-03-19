@@ -25,6 +25,7 @@ module Databrary.Model.Metric
   , validateParticipantInfo
   , validateParticipantDescription
   , validateParticipantGender
+  , validateParticipantCountry
   , metricLong
   , birthdateMetric
   , metricJSON
@@ -787,6 +788,9 @@ validateParticipantDescription val = validateNotEmpty val
 validateParticipantGender :: BS.ByteString -> Maybe BS.ByteString
 validateParticipantGender val =
     find (== val) (metricOptions participantMetricGender)
+
+validateParticipantCountry :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantCountry val = validateNotEmpty val
 
 validateNotEmpty :: BS.ByteString -> Maybe BS.ByteString
 validateNotEmpty val =
