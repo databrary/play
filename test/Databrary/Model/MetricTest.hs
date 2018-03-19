@@ -24,4 +24,28 @@ tests = testGroup "Databrary.Model.Metric"
         (validateParticipantGender "Male" @?= Just "Male")
     , testCase "validateParticipantGender-2"
         (validateParticipantGender "m" @?= Nothing)
+    , testCase "validateParticipantCountry-1"
+        (validateParticipantCountry "UK" @?= Just "UK")
+    , testCase "validateParticipantRace-1"
+        (validateParticipantRace "White" @?= Just "White")
+    , testCase "validateParticipantEthnicity-1"
+        (validateParticipantEthnicity "Hispanic or Latino" @?= Just "Hispanic or Latino")
+    , testCase "validateParticipantPregnancyTerm-1"
+        (validateParticipantPregnancyTerm "Preterm" @?= Just "Preterm")
+    , testCase "validateParticipantState-1"
+        (validateParticipantState "MA" @?= Just "MA")
+    , testCase "validateParticipantSetting-1"
+        (validateParticipantSetting "Lab" @?= Just "Lab")
+    , testCase "validateParticipantDisability-1"
+        (validateParticipantDisability "none" @?= Just "none")
+    , testCase "validateParticipantGestationalAge-1"
+        (validateParticipantGestationalAge "3" @?= Just "3")
+    , testCase "validateParticipantGestationalAge-1"
+        (validateParticipantGestationalAge "3.5" @?= Nothing)
+    , testCase "validateParticipantBirthWeight-1"
+        (validateParticipantBirthWeight "10.2" @?= Just "10.2")
+    , testCase "validateParticipantBirthWeight-1"
+        (validateParticipantBirthWeight "10.2" @?= Just "10.2")
+    , testCase "validateParticipantLanguage-1"
+        (validateParticipantLanguage "english" @?= Just "english")
     ]

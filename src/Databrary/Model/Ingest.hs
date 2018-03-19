@@ -375,18 +375,18 @@ participantRecordParseNamedRecord fieldMap m = do
     mId <- extractIfUsed2 pfmId validateParticipantId
     mInfo <- extractIfUsed2 pfmInfo validateParticipantInfo
     mDescription <- extractIfUsed2 pfmDescription validateParticipantDescription
-    mBirthdate <- extractIfUsed pfmBirthdate
+    mBirthdate <- extractIfUsed2 pfmBirthdate validateParticipantBirthdate
     mGender <- extractIfUsed2 pfmGender validateParticipantGender
-    mRace <- extractIfUsed pfmRace
-    mEthnicity <- extractIfUsed pfmEthnicity
-    mGestationalAge <- extractIfUsed pfmGestationalAge
-    mPregnancyTerm <- extractIfUsed pfmPregnancyTerm
-    mBirthWeight <- extractIfUsed pfmBirthWeight
-    mDisability <- extractIfUsed pfmDisability
-    mLanguage <- extractIfUsed pfmLanguage
-    mCountry <- extractIfUsed pfmCountry
-    mState <- extractIfUsed pfmState
-    mSetting <- extractIfUsed pfmSetting
+    mRace <- extractIfUsed2 pfmRace validateParticipantRace
+    mEthnicity <- extractIfUsed2 pfmEthnicity validateParticipantEthnicity
+    mGestationalAge <- extractIfUsed2 pfmGestationalAge validateParticipantGestationalAge
+    mPregnancyTerm <- extractIfUsed2 pfmPregnancyTerm validateParticipantPregnancyTerm
+    mBirthWeight <- extractIfUsed2 pfmBirthWeight validateParticipantBirthWeight
+    mDisability <- extractIfUsed2 pfmDisability validateParticipantDisability
+    mLanguage <- extractIfUsed2 pfmLanguage validateParticipantLanguage
+    mCountry <- extractIfUsed2 pfmCountry validateParticipantCountry
+    mState <- extractIfUsed2 pfmState validateParticipantState
+    mSetting <- extractIfUsed2 pfmSetting validateParticipantSetting
     pure
         (ParticipantRecord
             { prdId = mId
@@ -406,11 +406,6 @@ participantRecordParseNamedRecord fieldMap m = do
             , prdSetting = mSetting
             } )
   where
-    extractIfUsed :: (ParticipantFieldMapping -> Maybe Text) -> Parser (Maybe BS.ByteString)
-    extractIfUsed maybeGetField = do
-        case maybeGetField fieldMap of
-            Just colName -> m .: (TE.encodeUtf8 colName)
-            Nothing -> pure Nothing
     extractIfUsed2
       :: (ParticipantFieldMapping -> Maybe Text) -> (BS.ByteString -> Maybe BS.ByteString) -> Parser (Maybe BS.ByteString)
     extractIfUsed2 maybeGetField validateValue = do

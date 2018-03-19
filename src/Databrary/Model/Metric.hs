@@ -25,6 +25,17 @@ module Databrary.Model.Metric
   , validateParticipantInfo
   , validateParticipantDescription
   , validateParticipantGender
+  , validateParticipantCountry
+  , validateParticipantRace
+  , validateParticipantEthnicity
+  , validateParticipantPregnancyTerm
+  , validateParticipantState
+  , validateParticipantSetting
+  , validateParticipantDisability
+  , validateParticipantGestationalAge
+  , validateParticipantBirthWeight
+  , validateParticipantBirthdate
+  , validateParticipantLanguage
   , metricLong
   , birthdateMetric
   , metricJSON
@@ -32,6 +43,7 @@ module Databrary.Model.Metric
 
 import Control.Applicative (empty, pure)
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString
 import qualified Data.IntMap.Strict as IntMap
 import Data.List (find)
@@ -39,6 +51,7 @@ import Data.Maybe (fromJust)
 import Data.Monoid ((<>))
 import qualified Data.Text
 import Data.Text (Text)
+import qualified Text.Read as TR
 
 import Databrary.Ops
 import qualified Databrary.JSON as JSON
@@ -784,9 +797,60 @@ validateParticipantInfo val = validateNotEmpty val
 validateParticipantDescription :: BS.ByteString -> Maybe BS.ByteString
 validateParticipantDescription val = validateNotEmpty val
 
+validateParticipantDisability :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantDisability val = validateNotEmpty val
+
 validateParticipantGender :: BS.ByteString -> Maybe BS.ByteString
 validateParticipantGender val =
-    find (== val) (metricOptions participantMetricGender)
+    validateInOptions val participantMetricGender
+
+validateParticipantCountry :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantCountry val = validateNotEmpty val
+
+validateParticipantRace :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantRace val =
+    validateInOptions val participantMetricRace
+
+validateParticipantEthnicity :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantEthnicity val =
+    validateInOptions val participantMetricEthnicity
+
+validateParticipantPregnancyTerm :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantPregnancyTerm val =
+    validateInOptions val participantMetricPregnancyTerm
+
+validateParticipantState :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantState val =
+    validateInOptions val participantMetricState
+
+validateParticipantSetting :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantSetting val =
+    validateInOptions val participantMetricSetting
+
+validateParticipantGestationalAge :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantGestationalAge val = do
+    _ <- (TR.readMaybe (BSC.unpack val) :: Maybe Integer)
+    pure val
+
+validateParticipantBirthWeight :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantBirthWeight val = do
+    _ <- (TR.readMaybe (BSC.unpack val) :: Maybe Double)
+    pure val
+
+validateParticipantBirthdate :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantBirthdate val = do
+    -- TODO: which date format??
+    -- _ <- (TR.readMaybe (BSC.unpack val) :: Maybe Double)
+    -- pure val
+    validateNotEmpty val
+
+validateParticipantLanguage :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantLanguage val = do
+    validateNotEmpty val
+
+validateInOptions :: BS.ByteString -> Metric -> Maybe BS.ByteString
+validateInOptions val metric =
+    find (== val) (metricOptions metric)
 
 validateNotEmpty :: BS.ByteString -> Maybe BS.ByteString
 validateNotEmpty val =
