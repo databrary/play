@@ -106,10 +106,11 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
           fileInfo :: (FileInfo TL.Text) <- "file" .:> deform
           return fileInfo
     liftIO (print ("after extract form"))
-    let uploadFileContents = (BSL.toStrict . TLE.encodeUtf8 . fileContent) csvFileInfo
+    let uploadFileContents = (TLE.encodeUtf8 . fileContent) csvFileInfo
+        uploadFileContents' = BSL.toStrict uploadFileContents
     liftIO (print "uploaded contents below")
-    liftIO (print uploadFileContents)
-    case parseCsvWithHeader uploadFileContents of
+    liftIO (print uploadFileContents')
+    case parseCsvWithHeader uploadFileContents' of
         Left err -> do
             liftIO (print ("csv parse error", err))
             pure (forbiddenResponse reqCtxt)
@@ -118,7 +119,7 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
             case checkDetermineMapping participantMetrics ((fmap TE.decodeUtf8 . getHeaders) hdrs) uploadFileContents of
                 Right participantFieldMapping -> do
                     let uploadFileName = (BSC.unpack . fileName) csvFileInfo  -- TODO: add prefix to filename
-                    liftIO (BS.writeFile ("/tmp/" ++ uploadFileName) uploadFileContents)
+                    liftIO (BS.writeFile ("/tmp/" ++ uploadFileName) uploadFileContents')
                     pure
                         $ okResponse []
                             $ JSON.recordEncoding -- TODO: not record encoding
