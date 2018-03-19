@@ -538,6 +538,7 @@ test-suite databrary-test
     databrary
     , aeson
     , base
+    , bytestring
     , containers
     , tasty
     , tasty-expected-failure

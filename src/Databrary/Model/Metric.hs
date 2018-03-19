@@ -21,12 +21,17 @@ module Databrary.Model.Metric
   , getMetric'
   , lookupParticipantMetricBySymbolicName
   , participantMetrics
+  , validateParticipantId
+  , validateParticipantInfo
+  , validateParticipantDescription
+  , validateParticipantGender
   , metricLong
   , birthdateMetric
   , metricJSON
   ) where
 
 import Control.Applicative (empty, pure)
+import qualified Data.ByteString as BS
 import qualified Data.ByteString
 import qualified Data.IntMap.Strict as IntMap
 import Data.List (find)
@@ -769,6 +774,23 @@ lookupParticipantMetricBySymbolicName symbolicName =
 
 participantMetrics :: [Metric]
 participantMetrics = filter ((== participantCategory) . metricCategory) allMetrics
+
+validateParticipantId :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantId val = validateNotEmpty val
+
+validateParticipantInfo :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantInfo val = validateNotEmpty val
+
+validateParticipantDescription :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantDescription val = validateNotEmpty val
+
+validateParticipantGender :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantGender val =
+    find (== val) (metricOptions participantMetricGender)
+
+validateNotEmpty :: BS.ByteString -> Maybe BS.ByteString
+validateNotEmpty val =
+    if BS.length val > 0 then Just val else Nothing
 
 -- this is a hack, should be in database
 metricLong :: Metric -> Bool

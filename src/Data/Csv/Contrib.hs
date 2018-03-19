@@ -5,6 +5,7 @@ module Data.Csv.Contrib
   , extractColumnsDistinctSample
   , extractColumnDefaulting
   , extractColumn
+  , decodeCsvByNameWith
   , parseCsvWithHeader
   -- for testing only
   , repairCarriageReturnOnly
@@ -13,6 +14,7 @@ module Data.Csv.Contrib
 import qualified Data.Attoparsec.ByteString as ATTO
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
+import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Csv as Csv
 import qualified Data.Csv.Parser as Csv
 import qualified Data.HashMap.Strict as HMP
@@ -56,6 +58,16 @@ extractColumn hdr records applyDefault =
    ( V.toList
    . fmap (\rowMap -> (applyDefault . HMP.lookup hdr) rowMap))
    records
+
+-- similar to decodeByName with except make parser parameter explicity
+decodeCsvByNameWith :: (Csv.NamedRecord -> Csv.Parser a) -> BS.ByteString -> Either String (Csv.Header, Vector a)
+decodeCsvByNameWith parseNamedRecord' contents = do
+    -- Csv.decodeByNameWith Csv.defaultDecodeOptions contents
+    (hdr, rcrds) <- parseCsvWithHeader contents
+    let nRcrds = fmap Csv.toNamedRecord rcrds
+    let rcrdsParser = traverse parseNamedRecord' nRcrds
+    vals <- Csv.runParser rcrdsParser
+    pure (hdr, vals)
 
 parseCsvWithHeader :: BS.ByteString -> Either String (Csv.Header, Vector Csv.NamedRecord)
 parseCsvWithHeader contents =

@@ -106,26 +106,27 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
           fileInfo :: (FileInfo TL.Text) <- "file" .:> deform
           return fileInfo
     liftIO (print ("after extract form"))
-    let uploadFileContents = (BSL.toStrict . TLE.encodeUtf8 . fileContent) csvFileInfo
+    let uploadFileContents = (TLE.encodeUtf8 . fileContent) csvFileInfo
+        uploadFileContents' = BSL.toStrict uploadFileContents
     liftIO (print "uploaded contents below")
-    liftIO (print uploadFileContents)
-    case parseCsvWithHeader uploadFileContents of
+    liftIO (print uploadFileContents')
+    case parseCsvWithHeader uploadFileContents' of
         Left err -> do
             liftIO (print ("csv parse error", err))
             pure (forbiddenResponse reqCtxt)
         Right (hdrs, records) -> do
             participantMetrics <- lookupVolumeParticipantMetrics v
-            case checkDetermineMapping participantMetrics ((fmap TE.decodeUtf8 . getHeaders) hdrs) records of
-                Right columnCompatibleMetrics -> do
+            case checkDetermineMapping participantMetrics ((fmap TE.decodeUtf8 . getHeaders) hdrs) uploadFileContents' of
+                Right participantFieldMapping -> do
                     let uploadFileName = (BSC.unpack . fileName) csvFileInfo  -- TODO: add prefix to filename
-                    liftIO (BS.writeFile ("/tmp/" ++ uploadFileName) uploadFileContents)
+                    liftIO (BS.writeFile ("/tmp/" ++ uploadFileName) uploadFileContents')
                     pure
                         $ okResponse []
                             $ JSON.recordEncoding -- TODO: not record encoding
                                 $ JSON.Record vi
                                     $      "csv_upload_id" JSON..= uploadFileName
                                         <> "column_samples" JSON..= extractColumnsDistinctSampleJson 5 hdrs records
-                                        <> "suggested_mapping" JSON..= mappingToHeaderMappingEntries columnCompatibleMetrics
+                                        <> "suggested_mapping" JSON..= participantFieldMappingToJSON participantFieldMapping
                                         <> "columns_firstvals" JSON..= extractColumnsInitialJson 5 hdrs records
                 Left err -> do
                     liftIO (print ("failed to determine mapping", err))
@@ -143,21 +144,25 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
         pure (uploadId, mapping)
     -- TODO: resolve csv id to absolute path; http error if unknown
     uploadFileContents <- (liftIO . BS.readFile) ("/tmp/" ++ csvUploadId)
-    case parseCsvWithHeader uploadFileContents of
+    case JSON.parseEither mappingParser selectedMapping of
         Left err ->
-            pure (forbiddenResponse reqCtxt) -- TODO: better error
-        Right (hdrs, records) -> do
+            pure (forbiddenResponse reqCtxt) -- bad json shape or keys
+        Right mpngVal -> do
             participantActiveMetrics <- lookupVolumeParticipantMetrics v
-            let (Right mpngVal) = JSON.parseEither mappingParser selectedMapping
-            let eMpngs = parseParticipantFieldMapping participantActiveMetrics (getHeaders hdrs) mpngVal
-            liftIO $ print ("upload id", csvUploadId, "mapping", eMpngs)
-            -- TODO: validate mappings against allowed/detected data types
-            let Right mpngs = eMpngs -- TODO: handle either above
-            eRes <- (runImport participantActiveMetrics v records) mpngs
-            pure
-                $ okResponse []
-                    $ JSON.recordEncoding -- TODO: not record encoding
-                        $ JSON.Record vi $ "succeeded" JSON..= True
+            case parseParticipantFieldMapping participantActiveMetrics mpngVal of
+                Left err ->
+                    pure (forbiddenResponse reqCtxt) -- mapping of inactive metrics or missing metric
+                Right mpngs -> do
+                    liftIO $ print ("upload id", csvUploadId, "mapping", mpngs)
+                    case attemptParseRows mpngs uploadFileContents of
+                        Left err ->   -- invalid value in row
+                            pure (forbiddenResponse reqCtxt) -- TODO: better error
+                        Right (hdrs, records) -> do
+                            eRes <- runImport participantActiveMetrics v records
+                            pure
+                                $ okResponse []
+                                    $ JSON.recordEncoding -- TODO: not record encoding
+                                        $ JSON.Record vi $ "succeeded" JSON..= True
 
 mappingParser :: JSON.Value -> JSON.Parser (Map Metric Text)
 mappingParser val = do
@@ -165,11 +170,9 @@ mappingParser val = do
     pure ((Map.fromList . fmap (\e -> (hmeMetric e, hmeCsvField e))) entries)
 
  -- TODO: error or count
-runImport :: [Metric] -> Volume -> Vector Csv.NamedRecord -> ParticipantFieldMapping -> ActionM (Vector ())
-runImport activeMetrics vol records mapping =
-    mapM
-        (\record -> createOrUpdateRecord activeMetrics vol mapping record)
-        records
+runImport :: [Metric] -> Volume -> Vector ParticipantRecord -> ActionM (Vector ())
+runImport activeMetrics vol records =
+    mapM (createOrUpdateRecord activeMetrics vol) records
 
 data ParticipantStatus = Created Record | Found Record
     -- deriving (Show, Eq)
@@ -177,31 +180,30 @@ data ParticipantStatus = Created Record | Found Record
 data MeasureUpdateAction = Upsert BS.ByteString | Unchanged
     deriving (Show, Eq)
 
--- validated records instead of namedrecord? use Participant type?
-createOrUpdateRecord :: [Metric] -> Volume -> ParticipantFieldMapping -> Csv.NamedRecord -> ActionM () -- TODO: error or record
-createOrUpdateRecord participantActiveMetrics vol mapping csvRecord = do
+createOrUpdateRecord :: [Metric] -> Volume -> ParticipantRecord -> ActionM () -- TODO: error or record
+createOrUpdateRecord participantActiveMetrics vol participantRecord = do
     let participantCategory = getCategory' (Id 1) -- TODO: use global variable
-        (idVal, idMetric) = maybe (error "id missing") id (getFieldVal pfmId "id")
+        (idVal, idMetric) = maybe (error "id missing") id (getFieldVal prdId "id")
     mOldParticipant <- lookupVolumeParticipant vol idVal
     recordStatus <-
         case mOldParticipant of
             Nothing ->
-                Created <$> addRecord (blankRecord participantCategory vol)
+                Created <$> addRecord (blankRecord participantCategory vol) -- blankParticipantRecord
             Just oldParticipant ->
                 pure (Found oldParticipant)
-    let mInfo = getFieldVal pfmInfo "info"
-        mDescription = getFieldVal pfmDescription "description"
-        mBirthdate = getFieldVal pfmBirthdate "birthdate"
-        mGender = getFieldVal pfmGender "gender"
-        mEthnicity = getFieldVal pfmEthnicity "ethnicity"
-        mGestationalAge = getFieldVal pfmGestationalAge "gestationalage"
-        mPregnancyTerm = getFieldVal pfmPregnancyTerm "pregnancyterm"
-        mBirthWeight = getFieldVal pfmBirthWeight "birthweight"
-        mDisability = getFieldVal pfmDisability "disability"
-        mLanguage = getFieldVal pfmLanguage "language"
-        mCountry = getFieldVal pfmCountry "country"
-        mState = getFieldVal pfmState "state"
-        mSetting = getFieldVal pfmSetting "setting"
+    let mInfo = getFieldVal prdInfo "info"
+        mDescription = getFieldVal prdDescription "description"
+        mBirthdate = getFieldVal prdBirthdate "birthdate"
+        mGender = getFieldVal prdGender "gender"
+        mEthnicity = getFieldVal prdEthnicity "ethnicity"
+        mGestationalAge = getFieldVal prdGestationalAge "gestationalage"
+        mPregnancyTerm = getFieldVal prdPregnancyTerm "pregnancyterm"
+        mBirthWeight = getFieldVal prdBirthWeight "birthweight"
+        mDisability = getFieldVal prdDisability "disability"
+        mLanguage = getFieldVal prdLanguage "language"
+        mCountry = getFieldVal prdCountry "country"
+        mState = getFieldVal prdState "state"
+        mSetting = getFieldVal prdSetting "setting"
     -- print ("save measure id:", mId)
     changeRecordMeasureIfUsed recordStatus (Just (idVal, idMetric))
     changeRecordMeasureIfUsed recordStatus mInfo
@@ -218,16 +220,11 @@ createOrUpdateRecord participantActiveMetrics vol mapping csvRecord = do
     changeRecordMeasureIfUsed recordStatus mState
     changeRecordMeasureIfUsed recordStatus mSetting
   where
-    getFieldVal :: (ParticipantFieldMapping -> Maybe Text) -> Text -> Maybe (BS.ByteString, Metric)
-    getFieldVal extractColumnName metricSymbolicName =
-        case extractColumnName mapping of
-            Just columnName ->
-                case HMP.lookup (TE.encodeUtf8 columnName) csvRecord of
-                    Just fieldVal ->
-                        pure (fieldVal, findMetricBySymbolicName metricSymbolicName) -- <<<<<<<< lookup metric
-                    Nothing -> do
-                        -- print ("couldn't find col", idCol)
-                        Nothing -- TODO: error ... impossible?
+    getFieldVal :: (ParticipantRecord -> Maybe BS.ByteString) -> Text -> Maybe (BS.ByteString, Metric)
+    getFieldVal extractFieldVal metricSymbolicName =
+        case extractFieldVal participantRecord of
+            Just fieldVal ->
+                pure (fieldVal, findMetricBySymbolicName metricSymbolicName) -- <<<<<<<< lookup metric
             Nothing ->
                 Nothing -- field isn't used by this volume, so don't need to save the measure
     findMetricBySymbolicName :: Text -> Metric  -- TODO: copied from above, move to shared function
@@ -237,6 +234,7 @@ createOrUpdateRecord participantActiveMetrics vol mapping csvRecord = do
     changeRecordMeasureIfUsed recordStatus mValueMetric =
         case mValueMetric of
             Just (val, met) -> do
+                -- separate function
                 case recordStatus of
                     Created record ->
                         void (changeRecordMeasure (Measure record met val))
