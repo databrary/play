@@ -26,4 +26,14 @@ tests = testGroup "Databrary.Model.Metric"
         (validateParticipantGender "m" @?= Nothing)
     , testCase "validateParticipantCountry-1"
         (validateParticipantCountry "UK" @?= Just "UK")
+    , testCase "validateParticipantRace-1"
+        (validateParticipantRace "White" @?= Just "White")
+    , testCase "validateParticipantEthnicity-1"
+        (validateParticipantEthnicity "Hispanic or Latino" @?= Just "Hispanic or Latino")
+    , testCase "validateParticipantPregnancyTerm-1"
+        (validateParticipantPregnancyTerm "Preterm" @?= Just "Preterm")
+    , testCase "validateParticipantState-1"
+        (validateParticipantState "MA" @?= Just "MA")
+    , testCase "validateParticipantSetting-1"
+        (validateParticipantSetting "Lab" @?= Just "Lab")
     ]
