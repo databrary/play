@@ -406,11 +406,6 @@ participantRecordParseNamedRecord fieldMap m = do
             , prdSetting = mSetting
             } )
   where
-    extractIfUsed :: (ParticipantFieldMapping -> Maybe Text) -> Parser (Maybe BS.ByteString)
-    extractIfUsed maybeGetField = do
-        case maybeGetField fieldMap of
-            Just colName -> m .: (TE.encodeUtf8 colName)
-            Nothing -> pure Nothing
     extractIfUsed2
       :: (ParticipantFieldMapping -> Maybe Text) -> (BS.ByteString -> Maybe BS.ByteString) -> Parser (Maybe BS.ByteString)
     extractIfUsed2 maybeGetField validateValue = do
