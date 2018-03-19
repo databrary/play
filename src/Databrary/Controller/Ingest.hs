@@ -144,20 +144,25 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
         pure (uploadId, mapping)
     -- TODO: resolve csv id to absolute path; http error if unknown
     uploadFileContents <- (liftIO . BS.readFile) ("/tmp/" ++ csvUploadId)
-    let (Right mpngVal) = JSON.parseEither mappingParser selectedMapping
-    participantActiveMetrics <- lookupVolumeParticipantMetrics v
-    let eMpngs = parseParticipantFieldMapping participantActiveMetrics Nothing mpngVal
-    liftIO $ print ("upload id", csvUploadId, "mapping", eMpngs)
-    let Right mpngs = eMpngs -- TODO: handle either above
-    case attemptParseRows mpngs uploadFileContents of
+    case JSON.parseEither mappingParser selectedMapping of
         Left err ->
-            pure (forbiddenResponse reqCtxt) -- TODO: better error
-        Right (hdrs, records) -> do
-            eRes <- runImport participantActiveMetrics v records
-            pure
-                $ okResponse []
-                    $ JSON.recordEncoding -- TODO: not record encoding
-                        $ JSON.Record vi $ "succeeded" JSON..= True
+            pure (forbiddenResponse reqCtxt)
+        Right mpngVal -> do
+            participantActiveMetrics <- lookupVolumeParticipantMetrics v
+            case parseParticipantFieldMapping participantActiveMetrics Nothing mpngVal of
+                Left err ->
+                    pure (forbiddenResponse reqCtxt)
+                Right mpngs ->
+                    liftIO $ print ("upload id", csvUploadId, "mapping", eMpngs)
+                    case attemptParseRows mpngs uploadFileContents of
+                        Left err ->
+                            pure (forbiddenResponse reqCtxt) -- TODO: better error
+                        Right (hdrs, records) -> do
+                            eRes <- runImport participantActiveMetrics v records
+                            pure
+                                $ okResponse []
+                                    $ JSON.recordEncoding -- TODO: not record encoding
+                                        $ JSON.Record vi $ "succeeded" JSON..= True
 
 mappingParser :: JSON.Value -> JSON.Parser (Map Metric Text)
 mappingParser val = do
