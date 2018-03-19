@@ -116,7 +116,7 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
             pure (forbiddenResponse reqCtxt)
         Right (hdrs, records) -> do
             participantMetrics <- lookupVolumeParticipantMetrics v
-            case checkDetermineMapping participantMetrics ((fmap TE.decodeUtf8 . getHeaders) hdrs) uploadFileContents of
+            case checkDetermineMapping participantMetrics ((fmap TE.decodeUtf8 . getHeaders) hdrs) uploadFileContents' of
                 Right participantFieldMapping -> do
                     let uploadFileName = (BSC.unpack . fileName) csvFileInfo  -- TODO: add prefix to filename
                     liftIO (BS.writeFile ("/tmp/" ++ uploadFileName) uploadFileContents')

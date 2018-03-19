@@ -358,15 +358,15 @@ replaceSlotAsset o n = do
       (assetId $ assetRow n) (assetId $ assetRow o))
             (\ [] -> ()))
 
-checkDetermineMapping :: [Metric] -> [Text] -> BSL.ByteString -> Either String ParticipantFieldMapping
+checkDetermineMapping :: [Metric] -> [Text] -> BS.ByteString -> Either String ParticipantFieldMapping
 checkDetermineMapping participantActiveMetrics csvHeaders csvContents = do
-    -- should also return skipped columns
+    -- return skipped columns or not?
     mpng <- determineMapping participantActiveMetrics csvHeaders
     -- _ <- attemptParseRows (buildNamedRecordDecoder mpng) csvContents
     pure mpng
 
 attemptParseRows
-    :: ParticipantFieldMapping -> BSL.ByteString -> Either String (Csv.Header, Vector ParticipantRecord)
+    :: ParticipantFieldMapping -> BS.ByteString -> Either String (Csv.Header, Vector ParticipantRecord)
 attemptParseRows participantFieldMapping contents =
     decodeCsvByNameWith contents
 
