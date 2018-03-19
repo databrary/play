@@ -361,38 +361,55 @@ checkDetermineMapping :: [Metric] -> [Text] -> BS.ByteString -> Either String Pa
 checkDetermineMapping participantActiveMetrics csvHeaders csvContents = do
     -- return skipped columns or not?
     mpng <- determineMapping participantActiveMetrics csvHeaders
-    -- _ <- attemptParseRows (buildNamedRecordDecoder mpng) csvContents
+    _ <- attemptParseRows mpng csvContents
     pure mpng
 
 attemptParseRows
     :: ParticipantFieldMapping -> BS.ByteString -> Either String (Csv.Header, Vector ParticipantRecord)
 attemptParseRows participantFieldMapping contents =
-    decodeCsvByNameWith contents
+    decodeCsvByNameWith (participantRecordParseNamedRecord participantFieldMapping) contents
 
-instance FromNamedRecord ParticipantRecord where
-    parseNamedRecord m = do
-        let fieldMapping :: ParticipantFieldMapping
-            fieldMapping = undefined
-        idVal <- m .: "id"
-        genderVal <- m .: "gender"
-        pure
-            (ParticipantRecord
-                { prdId = Just idVal
-                , prdInfo = Nothing
-                , prdDescription = Nothing
-                , prdBirthdate = Nothing
-                , prdGender = Just genderVal
-                , prdRace = Nothing
-                , prdEthnicity = Nothing
-                , prdGestationalAge = Nothing
-                , prdPregnancyTerm = Nothing
-                , prdBirthWeight = Nothing
-                , prdDisability = Nothing
-                , prdLanguage = Nothing
-                , prdCountry = Nothing
-                , prdState = Nothing
-                , prdSetting = Nothing
-                } )
+participantRecordParseNamedRecord :: ParticipantFieldMapping -> Csv.NamedRecord -> Parser ParticipantRecord
+participantRecordParseNamedRecord fieldMap m = do
+    mId <- extractIfUsed pfmId
+    mInfo <- extractIfUsed pfmInfo
+    mDescription <- extractIfUsed pfmDescription
+    mBirthdate <- extractIfUsed pfmBirthdate
+    mGender <- extractIfUsed pfmGender
+    mRace <- extractIfUsed pfmRace
+    mEthnicity <- extractIfUsed pfmEthnicity
+    mGestationalAge <- extractIfUsed pfmGestationalAge
+    mPregnancyTerm <- extractIfUsed pfmPregnancyTerm
+    mBirthWeight <- extractIfUsed pfmBirthWeight
+    mDisability <- extractIfUsed pfmDisability
+    mLanguage <- extractIfUsed pfmLanguage
+    mCountry <- extractIfUsed pfmCountry
+    mState <- extractIfUsed pfmState
+    mSetting <- extractIfUsed pfmSetting
+    pure
+        (ParticipantRecord
+            { prdId = mId
+            , prdInfo = mInfo
+            , prdDescription = mDescription
+            , prdBirthdate = mBirthdate
+            , prdGender = mGender
+            , prdRace = mRace
+            , prdEthnicity = mEthnicity
+            , prdGestationalAge = mGestationalAge
+            , prdPregnancyTerm = mPregnancyTerm
+            , prdBirthWeight = mBirthWeight
+            , prdDisability = mDisability
+            , prdLanguage = mLanguage
+            , prdCountry = mCountry
+            , prdState = mState
+            , prdSetting = mSetting
+            } )
+  where
+    extractIfUsed :: (ParticipantFieldMapping -> Maybe Text) -> Parser (Maybe BS.ByteString)
+    extractIfUsed maybeGetField = do
+        case maybeGetField fieldMap of
+            Just colName -> m .: (TE.encodeUtf8 colName)
+            Nothing -> pure Nothing
 
 -- verify that all expected columns are present, with some leniency in matching
 -- left if no match possible
