@@ -27,8 +27,13 @@ tests = testGroup "Databrary.Model.Ingest"
            @?= Right participantFieldMapping1)
     , testCase "participantFieldMappingToJSON"
         (participantFieldMappingToJSON emptyParticipantFieldMapping @?= Aeson.toJSON ([] :: [Bool]))
+    , testCase "attemptParseRows-1"
+        (attemptParseRows emptyParticipantFieldMapping "id,gender\n1,male\n" @?= Left "bad data")
     , testCase "determineMapping-1"
         (determineMapping [] [] @?= Right emptyParticipantFieldMapping)
     , testCase "determineMapping-2"
-        (determineMapping [participantMetricId] ["id"] @?= Right (undefined))
+        (determineMapping [participantMetricId] ["id"] @?= Right participantFieldMappingId)
     ]
+
+participantFieldMappingId :: ParticipantFieldMapping
+participantFieldMappingId = emptyParticipantFieldMapping { pfmId = Just "id" }
