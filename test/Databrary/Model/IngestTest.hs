@@ -4,6 +4,7 @@ module Databrary.Model.IngestTest where
 -- import qualified Data.HashMap.Strict as HMP
 import qualified Data.Vector as V
 import qualified Data.Aeson as Aeson
+import qualified Data.Either as E
 import qualified Data.ByteString as BS
 import qualified Data.Map as Map
 import Test.Tasty
@@ -38,6 +39,8 @@ tests = testGroup "Databrary.Model.Ingest"
         (determineMapping [] [] @?= Right emptyParticipantFieldMapping)
     , testCase "determineMapping-2"
         (determineMapping [participantMetricId] ["id"] @?= Right participantFieldMappingId)
+    , testCase "determineMapping-3"
+        (E.isLeft (determineMapping [participantMetricId] ["junkcol"]) @? "expected left")
     ]
 
 participantFieldMappingId :: ParticipantFieldMapping

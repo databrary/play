@@ -98,7 +98,6 @@ maxWidelyAcceptableHttpBodyFileSize = 16*1024*1024
 detectParticipantCSV :: ActionRoute (Id Volume)
 detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCSV") $ \vi -> withAuth $ do
     v <- getVolume PermissionEDIT vi
-    reqCtxt <- peek
     csvFileInfo <-
       -- TODO: is Nothing okay here?
       runFormFiles [("file", maxWidelyAcceptableHttpBodyFileSize)] (Nothing :: Maybe (RequestContext -> FormHtml TL.Text)) $ do
@@ -106,17 +105,21 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
           fileInfo :: (FileInfo TL.Text) <- "file" .:> deform
           return fileInfo
     liftIO (print ("after extract form"))
-    let uploadFileContents = (TLE.encodeUtf8 . fileContent) csvFileInfo
-        uploadFileContents' = BSL.toStrict uploadFileContents
+    let uploadFileContents' = (BSL.toStrict . TLE.encodeUtf8 . fileContent) csvFileInfo
     liftIO (print "uploaded contents below")
     liftIO (print uploadFileContents')
     case parseCsvWithHeader uploadFileContents' of
         Left err -> do
             liftIO (print ("csv parse error", err))
-            pure (forbiddenResponse reqCtxt)
+            pure (response badRequest400 [] err)
         Right (hdrs, records) -> do
             participantMetrics <- lookupVolumeParticipantMetrics v
+            liftIO (print ("before check determine", show hdrs))
             case checkDetermineMapping participantMetrics ((fmap TE.decodeUtf8 . getHeaders) hdrs) uploadFileContents' of
+                Left err -> do
+                    liftIO (print ("failed to determine mapping", err))
+                    -- if column check failed, then don't save csv file and response is error
+                    pure (response badRequest400 [] err)
                 Right participantFieldMapping -> do
                     let uploadFileName = (BSC.unpack . fileName) csvFileInfo  -- TODO: add prefix to filename
                     liftIO (BS.writeFile ("/tmp/" ++ uploadFileName) uploadFileContents')
@@ -128,15 +131,11 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
                                         <> "column_samples" JSON..= extractColumnsDistinctSampleJson 5 hdrs records
                                         <> "suggested_mapping" JSON..= participantFieldMappingToJSON participantFieldMapping
                                         <> "columns_firstvals" JSON..= extractColumnsInitialJson 5 hdrs records
-                Left err -> do
-                    liftIO (print ("failed to determine mapping", err))
-                    -- if column check failed, then don't save csv file and response is error
-                    pure (forbiddenResponse reqCtxt) -- place holder for error
 
 runParticipantUpload :: ActionRoute (Id Volume)
 runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUpload") $ \vi -> withAuth $ do
     v <- getVolume PermissionEDIT vi
-    reqCtxt <- peek
+    -- reqCtxt <- peek
     (csvUploadId :: String, selectedMapping :: JSON.Value) <- runForm (Nothing) $ do
         csrfForm
         (uploadId :: String) <- "csv_upload_id" .:> deform
@@ -146,17 +145,17 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
     uploadFileContents <- (liftIO . BS.readFile) ("/tmp/" ++ csvUploadId)
     case JSON.parseEither mappingParser selectedMapping of
         Left err ->
-            pure (forbiddenResponse reqCtxt) -- bad json shape or keys
+            pure (response badRequest400 [] err) -- bad json shape or keys
         Right mpngVal -> do
             participantActiveMetrics <- lookupVolumeParticipantMetrics v
             case parseParticipantFieldMapping participantActiveMetrics mpngVal of
                 Left err ->
-                    pure (forbiddenResponse reqCtxt) -- mapping of inactive metrics or missing metric
+                    pure (response badRequest400 [] err) -- mapping of inactive metrics or missing metric
                 Right mpngs -> do
                     liftIO $ print ("upload id", csvUploadId, "mapping", mpngs)
                     case attemptParseRows mpngs uploadFileContents of
                         Left err ->   -- invalid value in row
-                            pure (forbiddenResponse reqCtxt) -- TODO: better error
+                            pure (response badRequest400 [] err)
                         Right (hdrs, records) -> do
                             eRes <- runImport participantActiveMetrics v records
                             pure

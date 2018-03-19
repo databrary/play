@@ -412,7 +412,10 @@ participantRecordParseNamedRecord fieldMap m = do
         case maybeGetField fieldMap of
             Just colName -> do
                 contents <- m .: (TE.encodeUtf8 colName)
-                maybe (fail ("invalid value for " ++ show colName)) (pure . Just) (validateValue contents)
+                maybe
+                    (fail ("invalid value for " ++ show colName ++ ", found " ++ show contents))
+                    (pure . Just)
+                    (validateValue contents)
             Nothing ->
                 pure Nothing
     
@@ -421,7 +424,7 @@ participantRecordParseNamedRecord fieldMap m = do
 -- left if no match possible
 determineMapping :: [Metric] -> [Text] -> Either String ParticipantFieldMapping
 determineMapping participantActiveMetrics csvHeaders = do
-    columnMatches <- traverse (detectMetricMatch csvHeaders) participantActiveMetrics
+    (columnMatches :: [Text]) <- traverse (detectMetricMatch csvHeaders) participantActiveMetrics
     let metricColumnMatches :: Map Metric Text
         metricColumnMatches = (Map.fromList . zip participantActiveMetrics) columnMatches
     -- TODO: sanity check -- all cols distinct
@@ -447,8 +450,8 @@ determineMapping participantActiveMetrics csvHeaders = do
     detectMetricMatch :: [Text] -> Metric -> Either String Text
     detectMetricMatch hdrs metric =
         case L.find (\h -> columnMetricCompatible h metric) hdrs of
-            Just hdr -> pure hdr
-            Nothing -> fail ("no compatible header found for metric" ++ (show . metricName) metric)
+            Just hdr -> Right hdr
+            Nothing -> Left ("no compatible header found for metric: " ++ (show . metricName) metric)
 
 columnMetricCompatible :: Text -> Metric -> Bool
 columnMetricCompatible hdr metric =
@@ -519,7 +522,7 @@ participantFieldMappingToJSON fldMap =
 parseParticipantFieldMapping :: [Metric] -> Map Metric Text -> Either String ParticipantFieldMapping
 parseParticipantFieldMapping volParticipantActiveMetrics requestedMapping = do
     -- TODO: generate error or warning if metrics provided that are actually used on the volume?
-    when (((length . Map.elems) requestedMapping) /= ((length . L.nub . Map.elems) requestedMapping)) (fail "columns values not unique")
+    when (((length . Map.elems) requestedMapping) /= ((length . L.nub . Map.elems) requestedMapping)) (Left "columns values not unique")
     ParticipantFieldMapping
         <$> getFieldIfUsed participantMetricId
         <*> getFieldIfUsed participantMetricInfo
@@ -548,9 +551,9 @@ parseParticipantFieldMapping volParticipantActiveMetrics requestedMapping = do
                         Just colHdrs ->
                             if (TE.encodeUtf8 csvField) `elem` colHdrs
                             then pure (Just csvField)
-                            else fail ("unknown column (" ++ (show csvField) ++ ") for metric (" ++ (show . metricName) participantMetric)
+                            else Left ("unknown column (" ++ (show csvField) ++ ") for metric (" ++ (show . metricName) participantMetric)
                     -}
                 Nothing ->
-                    fail ("missing expected participant metric:" ++ (show . metricName) participantMetric)
+                    Left ("missing expected participant metric:" ++ (show . metricName) participantMetric)
         else
             pure Nothing
