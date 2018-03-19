@@ -18,4 +18,6 @@ tests = testGroup "Databrary.Model.Metric"
         (validateParticipantId "01" @?= Just "01")
     , testCase "validateParticipantInfo-1"
         (validateParticipantInfo "details" @?= Just "details")
+    , testCase "validateParticipantDescription-1"
+        (validateParticipantDescription "a description here" @?= Just "a description here")
     ]
