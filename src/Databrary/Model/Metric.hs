@@ -34,6 +34,8 @@ module Databrary.Model.Metric
   , validateParticipantDisability
   , validateParticipantGestationalAge
   , validateParticipantBirthWeight
+  , validateParticipantBirthdate
+  , validateParticipantLanguage
   , metricLong
   , birthdateMetric
   , metricJSON
@@ -835,7 +837,16 @@ validateParticipantBirthWeight val = do
     _ <- (TR.readMaybe (BSC.unpack val) :: Maybe Double)
     pure val
 
--- TODO: birth weight, birthdate
+validateParticipantBirthdate :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantBirthdate val = do
+    -- TODO: which date format??
+    -- _ <- (TR.readMaybe (BSC.unpack val) :: Maybe Double)
+    -- pure val
+    validateNotEmpty val
+
+validateParticipantLanguage :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantLanguage val = do
+    validateNotEmpty val
 
 validateInOptions :: BS.ByteString -> Metric -> Maybe BS.ByteString
 validateInOptions val metric =

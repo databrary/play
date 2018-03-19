@@ -375,18 +375,18 @@ participantRecordParseNamedRecord fieldMap m = do
     mId <- extractIfUsed2 pfmId validateParticipantId
     mInfo <- extractIfUsed2 pfmInfo validateParticipantInfo
     mDescription <- extractIfUsed2 pfmDescription validateParticipantDescription
-    mBirthdate <- extractIfUsed pfmBirthdate -- last
+    mBirthdate <- extractIfUsed2 pfmBirthdate validateParticipantBirthdate
     mGender <- extractIfUsed2 pfmGender validateParticipantGender
-    mRace <- extractIfUsed pfmRace
-    mEthnicity <- extractIfUsed pfmEthnicity
-    mGestationalAge <- extractIfUsed pfmGestationalAge
-    mPregnancyTerm <- extractIfUsed pfmPregnancyTerm
-    mBirthWeight <- extractIfUsed pfmBirthWeight
-    mDisability <- extractIfUsed pfmDisability
-    mLanguage <- extractIfUsed pfmLanguage
+    mRace <- extractIfUsed2 pfmRace validateParticipantRace
+    mEthnicity <- extractIfUsed2 pfmEthnicity validateParticipantEthnicity
+    mGestationalAge <- extractIfUsed2 pfmGestationalAge validateParticipantGestationalAge
+    mPregnancyTerm <- extractIfUsed2 pfmPregnancyTerm validateParticipantPregnancyTerm
+    mBirthWeight <- extractIfUsed2 pfmBirthWeight validateParticipantBirthWeight
+    mDisability <- extractIfUsed2 pfmDisability validateParticipantDisability
+    mLanguage <- extractIfUsed2 pfmLanguage validateParticipantLanguage
     mCountry <- extractIfUsed2 pfmCountry validateParticipantCountry
-    mState <- extractIfUsed pfmState
-    mSetting <- extractIfUsed pfmSetting
+    mState <- extractIfUsed2 pfmState validateParticipantState
+    mSetting <- extractIfUsed2 pfmSetting validateParticipantSetting
     pure
         (ParticipantRecord
             { prdId = mId

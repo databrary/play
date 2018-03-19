@@ -46,4 +46,6 @@ tests = testGroup "Databrary.Model.Metric"
         (validateParticipantBirthWeight "10.2" @?= Just "10.2")
     , testCase "validateParticipantBirthWeight-1"
         (validateParticipantBirthWeight "10.2" @?= Just "10.2")
+    , testCase "validateParticipantLanguage-1"
+        (validateParticipantLanguage "english" @?= Just "english")
     ]
