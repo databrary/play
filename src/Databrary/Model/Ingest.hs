@@ -512,8 +512,8 @@ participantFieldMappingToJSON fldMap =
                 , "compatible_csv_fields" JSON..= [colName] -- change to single value soon
                 ])
 
-parseParticipantFieldMapping :: [Metric] -> [BS.ByteString] -> Map Metric Text -> Either String ParticipantFieldMapping
-parseParticipantFieldMapping volParticipantActiveMetrics colHdrs requestedMapping = do
+parseParticipantFieldMapping :: [Metric] -> (Maybe [BS.ByteString]) -> Map Metric Text -> Either String ParticipantFieldMapping
+parseParticipantFieldMapping volParticipantActiveMetrics mColHdrs requestedMapping = do
     -- TODO: generate error or warning if metrics provided that are actually used on the volume?
     when (((length . Map.elems) requestedMapping) /= ((length . L.nub . Map.elems) requestedMapping)) (fail "columns values not unique")
     ParticipantFieldMapping
@@ -539,9 +539,13 @@ parseParticipantFieldMapping volParticipantActiveMetrics colHdrs requestedMappin
         then 
             case Map.lookup participantMetric requestedMapping of
                 Just csvField ->
-                    if (TE.encodeUtf8 csvField) `elem` colHdrs
-                    then pure (Just csvField)
-                    else fail ("unknown column (" ++ (show csvField) ++ ") for metric (" ++ (show . metricName) participantMetric)
+                    case mColHdrs of
+                        Nothing ->
+                            pure (Just csvField)
+                        Just colHdrs ->
+                            if (TE.encodeUtf8 csvField) `elem` colHdrs
+                            then pure (Just csvField)
+                            else fail ("unknown column (" ++ (show csvField) ++ ") for metric (" ++ (show . metricName) participantMetric)
                 Nothing -> fail ("missing expected participant metric:" ++ (show . metricName) participantMetric)
         else
             pure Nothing
