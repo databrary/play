@@ -16,14 +16,22 @@ tests = testGroup "Databrary.Model.Metric"
         (lookupParticipantMetricBySymbolicName "junk" @?= Nothing)
     , testCase "validateParticipantId-1"
         (validateParticipantId "01" @?= Just "01")
+    , testCase "validateParticipantId-required"
+        (validateParticipantId "" @?= Nothing)
     , testCase "validateParticipantInfo-1"
         (validateParticipantInfo "details" @?= Just "details")
+    , testCase "validateParticipantInfo-optional"
+        (validateParticipantInfo "" @?= Just "")
     , testCase "validateParticipantDescription-1"
         (validateParticipantDescription "a description here" @?= Just "a description here")
+    , testCase "validateParticipantDescription-optional"
+        (validateParticipantDescription "" @?= Just "")
     , testCase "validateParticipantGender-1"
         (validateParticipantGender "Male" @?= Just "Male")
     , testCase "validateParticipantGender-2"
         (validateParticipantGender "m" @?= Nothing)
+    , testCase "validateParticipantGender-optional"
+        (validateParticipantGender "" @?= Just "")
     , testCase "validateParticipantCountry-1"
         (validateParticipantCountry "UK" @?= Just "UK")
     , testCase "validateParticipantRace-1"
