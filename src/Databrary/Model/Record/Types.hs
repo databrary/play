@@ -27,7 +27,7 @@ type instance IdType Record = Int32
 data RecordRow = RecordRow
   { recordId :: Id Record
   , recordCategory :: Category
-  }
+  } deriving (Show, Eq)
 
 testRecordRow1 :: RecordRow
 testRecordRow1 =

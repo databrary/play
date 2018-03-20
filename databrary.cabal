@@ -553,6 +553,7 @@ test-suite databrary-test
     , Databrary.Model.IngestTest
     , Databrary.Model.RecordTest
     , Databrary.Model.Metric.TypesTest
+    , Databrary.Model.Record.TypesTest
     , Databrary.Model.MetricTest
     , Data.Csv.ContribTest
       

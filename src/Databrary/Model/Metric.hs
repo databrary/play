@@ -51,6 +51,7 @@ import Data.Maybe (fromJust)
 import Data.Monoid ((<>))
 import qualified Data.Text
 import Data.Text (Text)
+import qualified Data.Time as Time
 import qualified Text.Read as TR
 
 import Databrary.Ops
@@ -792,20 +793,20 @@ validateParticipantId :: BS.ByteString -> Maybe BS.ByteString
 validateParticipantId val = validateNotEmpty val
 
 validateParticipantInfo :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantInfo val = validateNotEmpty val
+validateParticipantInfo val = pure val
 
 validateParticipantDescription :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantDescription val = validateNotEmpty val
+validateParticipantDescription val = pure val
 
 validateParticipantDisability :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantDisability val = validateNotEmpty val
+validateParticipantDisability val = pure val
 
 validateParticipantGender :: BS.ByteString -> Maybe BS.ByteString
 validateParticipantGender val =
     validateInOptions val participantMetricGender
 
 validateParticipantCountry :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantCountry val = validateNotEmpty val
+validateParticipantCountry val = pure val
 
 validateParticipantRace :: BS.ByteString -> Maybe BS.ByteString
 validateParticipantRace val =
@@ -829,7 +830,7 @@ validateParticipantSetting val =
 
 validateParticipantGestationalAge :: BS.ByteString -> Maybe BS.ByteString
 validateParticipantGestationalAge val = do
-    _ <- (TR.readMaybe (BSC.unpack val) :: Maybe Integer)
+    _ <- (TR.readMaybe (BSC.unpack val) :: Maybe Double)
     pure val
 
 validateParticipantBirthWeight :: BS.ByteString -> Maybe BS.ByteString
@@ -839,18 +840,21 @@ validateParticipantBirthWeight val = do
 
 validateParticipantBirthdate :: BS.ByteString -> Maybe BS.ByteString
 validateParticipantBirthdate val = do
-    -- TODO: which date format??
-    -- _ <- (TR.readMaybe (BSC.unpack val) :: Maybe Double)
-    -- pure val
-    validateNotEmpty val
+    if val == ""
+    then pure val
+    else do
+      _ <- (Time.parseTimeM True Time.defaultTimeLocale "%F" (BSC.unpack val) :: Maybe Time.Day)
+      pure val
 
 validateParticipantLanguage :: BS.ByteString -> Maybe BS.ByteString
 validateParticipantLanguage val = do
-    validateNotEmpty val
+    pure val
 
 validateInOptions :: BS.ByteString -> Metric -> Maybe BS.ByteString
 validateInOptions val metric =
-    find (== val) (metricOptions metric)
+    if val == ""
+    then Just ""
+    else find (== val) (metricOptions metric)
 
 validateNotEmpty :: BS.ByteString -> Maybe BS.ByteString
 validateNotEmpty val =

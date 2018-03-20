@@ -4,8 +4,12 @@ module Databrary.Controller.Ingest
   , postIngest
   , detectParticipantCSV
   , runParticipantUpload
-  -- for tests
+  -- for tests  
   , mappingParser
+  , buildParticipantRecordAction
+  , ParticipantStatus(..)
+  , MeasureUpdateAction(..)
+  , ParticipantRecordAction(..)
   ) where
 
 import Control.Arrow (right)
@@ -19,7 +23,7 @@ import qualified Data.HashMap.Strict as HMP
 import qualified Data.List as L
 import qualified Data.Map as Map
 import Data.Map (Map)
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, catMaybes)
 import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -173,79 +177,115 @@ runImport :: [Metric] -> Volume -> Vector ParticipantRecord -> ActionM (Vector (
 runImport activeMetrics vol records =
     mapM (createOrUpdateRecord activeMetrics vol) records
 
-data ParticipantStatus = Created Record | Found Record
+data ParticipantStatus = Create | Found Record
     -- deriving (Show, Eq)
 
-data MeasureUpdateAction = Upsert BS.ByteString | Unchanged
+data MeasureUpdateAction = Upsert Metric MeasureDatum | Unchanged
     deriving (Show, Eq)
 
+data ParticipantRecordAction = ParticipantRecordAction ParticipantStatus [MeasureUpdateAction]
+    -- deriving (Show, Eq)
+
+buildParticipantRecordAction
+    :: [Metric] -> ParticipantRecord -> ParticipantStatus -> ParticipantRecordAction
+buildParticipantRecordAction participantActiveMetrics participantRecord updatingRecord =
+    let
+        mId = getFieldVal' prdId "id"
+        mInfo = getFieldVal' prdInfo "info"
+        mDescription = getFieldVal' prdDescription "description"
+        mBirthdate = getFieldVal' prdBirthdate "birthdate"
+        mGender = getFieldVal' prdGender "gender"
+        mRace = getFieldVal' prdRace "race"
+        mEthnicity = getFieldVal' prdEthnicity "ethnicity"
+        mGestationalAge = getFieldVal' prdGestationalAge "gestationalage"
+        mPregnancyTerm = getFieldVal' prdPregnancyTerm "pregnancyterm"
+        mBirthWeight = getFieldVal' prdBirthWeight "birthweight"
+        mDisability = getFieldVal' prdDisability "disability"
+        mLanguage = getFieldVal' prdLanguage "language"
+        mCountry = getFieldVal' prdCountry "country"
+        mState = getFieldVal' prdState "state"
+        mSetting = getFieldVal' prdSetting "setting"
+        -- print ("save measure id:", mId)
+        measureActions =
+            [ changeRecordMeasureIfUsed mId
+            , changeRecordMeasureIfUsed mInfo
+            , changeRecordMeasureIfUsed mDescription
+            , changeRecordMeasureIfUsed mBirthdate
+            , changeRecordMeasureIfUsed mGender
+            , changeRecordMeasureIfUsed mRace
+            , changeRecordMeasureIfUsed mEthnicity
+            , changeRecordMeasureIfUsed mGestationalAge
+            , changeRecordMeasureIfUsed mPregnancyTerm
+            , changeRecordMeasureIfUsed mBirthWeight
+            , changeRecordMeasureIfUsed mDisability
+            , changeRecordMeasureIfUsed mLanguage
+            , changeRecordMeasureIfUsed mCountry
+            , changeRecordMeasureIfUsed mState
+            , changeRecordMeasureIfUsed mSetting
+            ]
+    in
+        ParticipantRecordAction updatingRecord (catMaybes measureActions)
+  where
+    changeRecordMeasureIfUsed :: Maybe (BS.ByteString, Metric) -> Maybe MeasureUpdateAction
+    changeRecordMeasureIfUsed mValueMetric = do
+        (val, met) <- mValueMetric
+        pure (determineUpdatedMeasure val met)
+    determineUpdatedMeasure :: BS.ByteString -> Metric -> MeasureUpdateAction
+    determineUpdatedMeasure val met =
+        case updatingRecord of
+            Create ->
+                Upsert met val
+            Found record -> do
+                 -- TODO: 
+                 -- mOldVal <- getOldVal metric record
+                 -- action = maybe (Upsert val) (\o -> if o == val then Unchanged else Upsert val)
+                 let measureAction = Upsert met val
+                 measureAction
+    getFieldVal' :: (ParticipantRecord -> Maybe BS.ByteString) -> Text -> Maybe (BS.ByteString, Metric)
+    getFieldVal' = getFieldVal participantActiveMetrics participantRecord
+
+getFieldVal
+    :: [Metric]
+    -> ParticipantRecord 
+    -> (ParticipantRecord -> Maybe BS.ByteString)
+    -> Text
+    -> Maybe (BS.ByteString, Metric)
+getFieldVal participantActiveMetrics participantRecord extractFieldVal metricSymbolicName =
+    case extractFieldVal participantRecord of
+        Just fieldVal ->
+            pure (fieldVal, findMetricBySymbolicName metricSymbolicName) -- <<<<<<<< lookup metric
+        Nothing ->
+            Nothing -- field isn't used by this volume, so don't need to save the measure
+  where
+    findMetricBySymbolicName :: Text -> Metric  -- TODO: copied from above, move to shared function
+    findMetricBySymbolicName symbolicName =
+        (  fromJust
+         . L.find (\m -> (T.filter (/= ' ') . T.toLower . metricName) m == symbolicName))
+        participantActiveMetrics
+        
 createOrUpdateRecord :: [Metric] -> Volume -> ParticipantRecord -> ActionM () -- TODO: error or record
 createOrUpdateRecord participantActiveMetrics vol participantRecord = do
     let participantCategory = getCategory' (Id 1) -- TODO: use global variable
-        (idVal, idMetric) = maybe (error "id missing") id (getFieldVal prdId "id")
+        (idVal, idMetric) = maybe (error "id missing") id (getFieldVal' prdId "id")
     mOldParticipant <- lookupVolumeParticipant vol idVal
-    recordStatus <-
-        case mOldParticipant of
-            Nothing ->
-                Created <$> addRecord (blankRecord participantCategory vol) -- blankParticipantRecord
-            Just oldParticipant ->
-                pure (Found oldParticipant)
-    let mInfo = getFieldVal prdInfo "info"
-        mDescription = getFieldVal prdDescription "description"
-        mBirthdate = getFieldVal prdBirthdate "birthdate"
-        mGender = getFieldVal prdGender "gender"
-        mEthnicity = getFieldVal prdEthnicity "ethnicity"
-        mGestationalAge = getFieldVal prdGestationalAge "gestationalage"
-        mPregnancyTerm = getFieldVal prdPregnancyTerm "pregnancyterm"
-        mBirthWeight = getFieldVal prdBirthWeight "birthweight"
-        mDisability = getFieldVal prdDisability "disability"
-        mLanguage = getFieldVal prdLanguage "language"
-        mCountry = getFieldVal prdCountry "country"
-        mState = getFieldVal prdState "state"
-        mSetting = getFieldVal prdSetting "setting"
+    let recordStatus =
+            case mOldParticipant of
+                Nothing -> Create
+                Just oldParticipant -> Found oldParticipant
     -- print ("save measure id:", mId)
-    changeRecordMeasureIfUsed recordStatus (Just (idVal, idMetric))
-    changeRecordMeasureIfUsed recordStatus mInfo
-    changeRecordMeasureIfUsed recordStatus mDescription
-    changeRecordMeasureIfUsed recordStatus mBirthdate
-    changeRecordMeasureIfUsed recordStatus mGender
-    changeRecordMeasureIfUsed recordStatus mEthnicity
-    changeRecordMeasureIfUsed recordStatus mGestationalAge
-    changeRecordMeasureIfUsed recordStatus mPregnancyTerm
-    changeRecordMeasureIfUsed recordStatus mBirthWeight
-    changeRecordMeasureIfUsed recordStatus mDisability
-    changeRecordMeasureIfUsed recordStatus mLanguage
-    changeRecordMeasureIfUsed recordStatus mCountry
-    changeRecordMeasureIfUsed recordStatus mState
-    changeRecordMeasureIfUsed recordStatus mSetting
+    case buildParticipantRecordAction participantActiveMetrics participantRecord recordStatus of
+        ParticipantRecordAction Create measureActs -> do
+            newParticipantShell <- addRecord (blankRecord participantCategory vol) -- blankParticipantRecord
+            _ <- mapM (runMeasureUpdate newParticipantShell) measureActs
+            pure () -- TODO: reload participant
+        ParticipantRecordAction (Found oldRecord) measureActs -> do
+            _ <- mapM (runMeasureUpdate oldRecord) measureActs
+            pure ()
   where
-    getFieldVal :: (ParticipantRecord -> Maybe BS.ByteString) -> Text -> Maybe (BS.ByteString, Metric)
-    getFieldVal extractFieldVal metricSymbolicName =
-        case extractFieldVal participantRecord of
-            Just fieldVal ->
-                pure (fieldVal, findMetricBySymbolicName metricSymbolicName) -- <<<<<<<< lookup metric
-            Nothing ->
-                Nothing -- field isn't used by this volume, so don't need to save the measure
-    findMetricBySymbolicName :: Text -> Metric  -- TODO: copied from above, move to shared function
-    findMetricBySymbolicName symbolicName =
-        (fromJust . L.find (\m -> (T.filter (/= ' ') . T.toLower . metricName) m == symbolicName)) participantActiveMetrics
-    changeRecordMeasureIfUsed :: ParticipantStatus -> Maybe (BS.ByteString, Metric) -> ActionM ()
-    changeRecordMeasureIfUsed recordStatus mValueMetric =
-        case mValueMetric of
-            Just (val, met) -> do
-                -- separate function
-                case recordStatus of
-                    Created record ->
-                        void (changeRecordMeasure (Measure record met val))
-                    Found record -> do
-                        -- TODO: 
-                        -- mOldVal <- getOldVal metric record
-                        -- action = maybe (Upsert val) (\o -> if o == val then Unchanged else Upsert val)
-                        let measureAction = Upsert val
-                        case measureAction of
-                            Upsert newVal ->
-                                void (changeRecordMeasure (Measure record met newVal))
-                            Unchanged ->
-                                pure ()
-            Nothing ->
-                pure ()
+    runMeasureUpdate :: Record -> MeasureUpdateAction -> ActionM (Maybe Record)
+    runMeasureUpdate record act =
+        case act of
+            Upsert met val -> changeRecordMeasure (Measure record met val)
+            Unchanged -> pure Nothing
+    getFieldVal' :: (ParticipantRecord -> Maybe BS.ByteString) -> Text -> Maybe (BS.ByteString, Metric)
+    getFieldVal' = getFieldVal participantActiveMetrics participantRecord
