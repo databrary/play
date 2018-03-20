@@ -10,8 +10,10 @@ dist-reports
 /tmp/
 /upload/
 
-# dependency cache
+# node2nix dependency cache
 /node_modules
+# artifacts from running 'npm'
+/node/node_modules
 
 # compiler output
 *.hi
