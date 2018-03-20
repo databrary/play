@@ -4,6 +4,7 @@ module Databrary.Model.Record.Types
   , Record(..)
   , ParticipantRecord(..)
   , getRecordVolumePermission
+  -- , ParticipantFieldMapping(..)
   , Measure(..)
   , Measures
   , blankRecord
@@ -12,6 +13,7 @@ module Databrary.Model.Record.Types
   ) where
 
 import Control.Applicative ((<|>))
+import Data.Text (Text)
 
 import Databrary.Has (makeHasRec, Has(..))
 import Databrary.Model.Kind
