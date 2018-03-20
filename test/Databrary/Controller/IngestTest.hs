@@ -29,4 +29,42 @@ tests = testGroup "Databrary.Controller.Ingest"
              _ ->
                  False)
            @? "Expected create with upsert id val to 1")
+    , testCase "buildParticipantRecordAction-all"
+        ((case buildParticipantRecordAction participantMetrics participantRecordAll Create of
+             ParticipantRecordAction
+               Create
+               [ Upsert m1 "1"
+               , Upsert m2 "infoval"
+               , Upsert m3 "descval"
+               , Upsert m4 "06/17/2011"
+               , Upsert m5 "Male"
+               , Upsert m6 "White"
+               , Upsert m7 "Hispanic or Latino"
+               , Upsert m8 "2.5"
+               , Upsert m9 "Preterm"
+               , Upsert m10 "10.5"
+               , Upsert m11 "normal"
+               , Upsert m12 "English"
+               , Upsert m13 "USA"
+               , Upsert m14 "MA"
+               , Upsert m15 "Lab"
+               ] ->
+                    m1 == participantMetricId
+                 && m2 == participantMetricInfo
+                 && m3 == participantMetricDescription
+                 && m4 == participantMetricBirthdate
+                 && m5 == participantMetricGender
+                 && m6 == participantMetricRace
+                 && m7 == participantMetricEthnicity
+                 && m8 == participantMetricGestationalAge
+                 && m9 == participantMetricPregnancyTerm
+                 && m10 == participantMetricBirthWeight
+                 && m11 == participantMetricDisability
+                 && m12 == participantMetricLanguage
+                 && m13 == participantMetricCountry
+                 && m14 == participantMetricState
+                 && m15 == participantMetricSetting
+             _ ->
+                 False)
+           @? "Expected create with upsert for each metric")
     ]

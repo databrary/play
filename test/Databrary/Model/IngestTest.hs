@@ -70,23 +70,4 @@ allValuesOneRow =
 participantFieldMappingId :: ParticipantFieldMapping
 participantFieldMappingId = emptyParticipantFieldMapping { pfmId = Just "id" }
 
-participantRecordAll :: ParticipantRecord
-participantRecordAll =
-    ParticipantRecord
-         { prdId = Just "1"
-         , prdInfo = Just "infoval"
-         , prdDescription = Just "descval"
-         , prdBirthdate = Just "06/17/2011"
-         , prdGender = Just "Male"
-         , prdRace = Just "White"
-         , prdEthnicity = Just "Hispanic or Latino"
-         , prdGestationalAge = Just "2.5"
-         , prdPregnancyTerm = Just "Preterm"
-         , prdBirthWeight = Just "10.5"
-         , prdDisability = Just "normal"
-         , prdLanguage = Just "English"
-         , prdCountry = Just "USA"
-         , prdState = Just "MA"
-         , prdSetting = Just "Lab"
-         }
 
