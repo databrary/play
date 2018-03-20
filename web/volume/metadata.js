@@ -8,30 +8,6 @@ app.directive('metadataForm', [
         var form, volume;
         volume = $scope.volume;
         form = $scope.metadataForm;
-
-        $(document).on('click', '.showinstruct, .uploadinstuction', function() {
-          form.$setPristine();
-          $('input[name="metadata"]').click();
-        });
-
-        $('input[name="metadata"]').click(function(e){
-          e.stopPropagation();
-        });
-
-        $(document).on('change', 'input[name="metadata"]', function() {
-          var file;
-          file = $(this).val().replace(/C:\\fakepath\\/ig, '');
-          $('.uploadinstuction').hide();
-          $('.uploadsubmit').show(function(){
-            $('.filename').addClass('padding');
-          });
-          if(file) {
-            $('.filename').text(file);
-          } else {
-            $('.filename').text('no file');
-          }
-          
-        });
         
         form.save = function() {
           var data;

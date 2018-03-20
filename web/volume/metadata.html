@@ -1,14 +1,8 @@
 <ng-form name="metadataForm">
-  <button class="white uploadinstuction">
-    <span class="icon upload"></span> <span>participant metadata</span>
-  </button>
-  <input type="file" name="metadata" accept=".csv" file-model="metadataForm.data.metadata">
-  <div class="white uploadsubmit">
-    <span>Upload <span class="filename"></span>?</span>
-    <div class="margin-top">
-      <button class="green" ng-click="metadataForm.save()">Yes</button>
-      <a class="showinstruct">No, upload another file</a>
-    </div>
+  <span class="icon upload"></span> <span>participant metadata</span>
+  <div>
+    <input type="file" name="metadata" accept=".csv" file-model="metadataForm.data.metadata">
+    <button class="green" ng-click="metadataForm.save()">Upload</button>
   </div>
 </ng-form>
 <ul>
