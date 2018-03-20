@@ -7,6 +7,9 @@ module Databrary.Controller.Ingest
   -- for tests  
   , mappingParser
   , buildParticipantRecordAction
+  , ParticipantStatus(..)
+  , MeasureUpdateAction(..)
+  , ParticipantRecordAction(..)
   ) where
 
 import Control.Arrow (right)
