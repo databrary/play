@@ -41,7 +41,7 @@ tests = testGroup "Databrary.Model.Metric"
     , testCase "validateParticipantGestationalAge-1"
         (validateParticipantGestationalAge "3" @?= Just "3")
     , testCase "validateParticipantGestationalAge-1"
-        (validateParticipantGestationalAge "3.5" @?= Nothing)
+        (validateParticipantGestationalAge "3.5" @?= Just "3.5")
     , testCase "validateParticipantBirthWeight-1"
         (validateParticipantBirthWeight "10.2" @?= Just "10.2")
     , testCase "validateParticipantBirthWeight-1"

@@ -2,11 +2,13 @@
 module Databrary.Model.IngestTest where
 
 -- import qualified Data.HashMap.Strict as HMP
+-- import qualified Data.Csv as Csv
 import qualified Data.Vector as V
 import qualified Data.Aeson as Aeson
 import qualified Data.Either as E
 import qualified Data.ByteString as BS
 import qualified Data.Map as Map
+import Data.Monoid ((<>))
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -35,6 +37,11 @@ tests = testGroup "Databrary.Model.Ingest"
     , testCase "attemptParseRows-2"
         (attemptParseRows participantFieldMappingId "id,gender\n1,male\n" @?=
            Right (V.fromList ["id", "gender"], V.fromList [participantRecordId "1"]))
+    , testCase "attemptParseRows-all"
+        (attemptParseRows
+           participantFieldMappingAll
+           allValuesOneRow @?=
+           Right (allHeaders, V.fromList [participantRecordAll]))
     , testCase "determineMapping-1"
         (determineMapping [] [] @?= Right emptyParticipantFieldMapping)
     , testCase "determineMapping-2"
@@ -43,8 +50,44 @@ tests = testGroup "Databrary.Model.Ingest"
         (E.isLeft (determineMapping [participantMetricId] ["junkcol"]) @? "expected left")
     ]
 
+allHeaders :: V.Vector BS.ByteString
+allHeaders =
+    V.fromList
+        ["id","info","description","birthdate","gender","race"
+        ,"ethnicity","gestationalage","pregnancyterm","birthweight"
+        ,"disability","language","country","state","setting"]  
+
+allValuesOneRow :: BS.ByteString
+allValuesOneRow =
+    "id,info,description,birthdate,gender,race" <>
+    ",ethnicity,gestationalage,pregnancyterm,birthweight" <>
+    ",disability,language,country,state,setting\n" <>
+    "1,\"infoval\",\"descval\",\"06/17/2011\",\"Male\",\"White\"" <>
+    ",\"Hispanic or Latino\",2.5,\"Preterm\",10.5" <>
+    ",\"normal\",\"English\",\"USA\",\"MA\",\"Lab\"\n"
+
 participantFieldMappingId :: ParticipantFieldMapping
 participantFieldMappingId = emptyParticipantFieldMapping { pfmId = Just "id" }
+
+participantRecordAll :: ParticipantRecord
+participantRecordAll =
+    ParticipantRecord
+         { prdId = Just "1"
+         , prdInfo = Just "infoval"
+         , prdDescription = Just "descval"
+         , prdBirthdate = Just "06/17/2011"
+         , prdGender = Just "Male"
+         , prdRace = Just "White"
+         , prdEthnicity = Just "Hispanic or Latino"
+         , prdGestationalAge = Just "2.5"
+         , prdPregnancyTerm = Just "Preterm"
+         , prdBirthWeight = Just "10.5"
+         , prdDisability = Just "normal"
+         , prdLanguage = Just "English"
+         , prdCountry = Just "USA"
+         , prdState = Just "MA"
+         , prdSetting = Just "Lab"
+         }
 
 participantRecordId :: BS.ByteString -> ParticipantRecord
 participantRecordId idVal =

@@ -26,6 +26,26 @@ participantFieldMapping1 =
         , pfmSetting = Nothing
         }
 
+participantFieldMappingAll :: ParticipantFieldMapping
+participantFieldMappingAll =
+    ParticipantFieldMapping
+        { pfmId = Just "id"
+        , pfmInfo = Just "info"
+        , pfmDescription = Just "description"
+        , pfmBirthdate = Just "birthdate"
+        , pfmGender = Just "gender"
+        , pfmRace = Just "race"
+        , pfmEthnicity = Just "ethnicity"
+        , pfmGestationalAge = Just "gestationalage"
+        , pfmPregnancyTerm = Just "pregnancyterm"
+        , pfmBirthWeight = Just "birthweight"
+        , pfmDisability = Just "disability"
+        , pfmLanguage = Just "language"
+        , pfmCountry = Just "country"
+        , pfmState = Just "state"
+        , pfmSetting = Just "setting"
+        }
+
 emptyParticipantFieldMapping :: ParticipantFieldMapping
 emptyParticipantFieldMapping =
     ParticipantFieldMapping

@@ -829,7 +829,7 @@ validateParticipantSetting val =
 
 validateParticipantGestationalAge :: BS.ByteString -> Maybe BS.ByteString
 validateParticipantGestationalAge val = do
-    _ <- (TR.readMaybe (BSC.unpack val) :: Maybe Integer)
+    _ <- (TR.readMaybe (BSC.unpack val) :: Maybe Double)
     pure val
 
 validateParticipantBirthWeight :: BS.ByteString -> Maybe BS.ByteString
