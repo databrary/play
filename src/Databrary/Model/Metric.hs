@@ -51,6 +51,7 @@ import Data.Maybe (fromJust)
 import Data.Monoid ((<>))
 import qualified Data.Text
 import Data.Text (Text)
+import qualified Data.Time as Time
 import qualified Text.Read as TR
 
 import Databrary.Ops
@@ -839,10 +840,11 @@ validateParticipantBirthWeight val = do
 
 validateParticipantBirthdate :: BS.ByteString -> Maybe BS.ByteString
 validateParticipantBirthdate val = do
-    -- TODO: which date format??
-    -- _ <- (TR.readMaybe (BSC.unpack val) :: Maybe Double)
-    -- pure val
-    pure val
+    if val == ""
+    then pure val
+    else do
+      _ <- (Time.parseTimeM True Time.defaultTimeLocale "%F" (BSC.unpack val) :: Maybe Time.Day)
+      pure val
 
 validateParticipantLanguage :: BS.ByteString -> Maybe BS.ByteString
 validateParticipantLanguage val = do

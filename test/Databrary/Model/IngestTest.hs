@@ -63,7 +63,7 @@ allValuesOneRow =
     "id,info,description,birthdate,gender,race" <>
     ",ethnicity,gestationalage,pregnancyterm,birthweight" <>
     ",disability,language,country,state,setting\n" <>
-    "1,\"infoval\",\"descval\",\"06/17/2011\",\"Male\",\"White\"" <>
+    "1,\"infoval\",\"descval\",\"2011-06-17\",\"Male\",\"White\"" <>
     ",\"Hispanic or Latino\",2.5,\"Preterm\",10.5" <>
     ",\"normal\",\"English\",\"USA\",\"MA\",\"Lab\"\n"
 

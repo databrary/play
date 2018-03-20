@@ -54,6 +54,16 @@ tests = testGroup "Databrary.Model.Metric"
         (validateParticipantBirthWeight "10.2" @?= Just "10.2")
     , testCase "validateParticipantBirthWeight-1"
         (validateParticipantBirthWeight "10.2" @?= Just "10.2")
+    , testCase "validateParticipantBirthDate-1"
+        (validateParticipantBirthdate "1/2/2014" @?= Nothing)
+    , testCase "validateParticipantBirthDate-2"
+        (validateParticipantBirthdate "2014-01-02" @?= Just "2014-01-02")
+    , testCase "validateParticipantBirthDate-3"
+        (validateParticipantBirthdate "01/02/14" @?= Nothing)
+    , testCase "validateParticipantBirthDate-4"
+        (validateParticipantBirthdate "2014-1-2" @?= Nothing)
+    , testCase "validateParticipantBirthDate-optional"
+        (validateParticipantBirthdate "" @?= Just "")
     , testCase "validateParticipantLanguage-1"
         (validateParticipantLanguage "english" @?= Just "english")
     ]
