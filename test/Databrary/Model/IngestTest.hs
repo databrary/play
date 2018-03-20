@@ -16,6 +16,7 @@ import Databrary.Model.Metric
 import Databrary.Model.Record
 import Databrary.Model.Ingest
 import Databrary.Model.Metric.TypesTest
+import Databrary.Model.Record.TypesTest
 
 tests :: TestTree
 tests = testGroup "Databrary.Model.Ingest"
@@ -89,26 +90,3 @@ participantRecordAll =
          , prdSetting = Just "Lab"
          }
 
-participantRecordId :: BS.ByteString -> ParticipantRecord
-participantRecordId idVal =
-    emptyParticipantRecord { prdId = Just idVal }
-
-emptyParticipantRecord :: ParticipantRecord
-emptyParticipantRecord =
-    ParticipantRecord
-         { prdId = Nothing
-         , prdInfo = Nothing
-         , prdDescription = Nothing
-         , prdBirthdate = Nothing
-         , prdGender = Nothing
-         , prdRace = Nothing
-         , prdEthnicity = Nothing
-         , prdGestationalAge = Nothing
-         , prdPregnancyTerm = Nothing
-         , prdBirthWeight = Nothing
-         , prdDisability = Nothing
-         , prdLanguage = Nothing
-         , prdCountry = Nothing
-         , prdState = Nothing
-         , prdSetting = Nothing
-         }
