@@ -4,8 +4,9 @@ module Databrary.Controller.Ingest
   , postIngest
   , detectParticipantCSV
   , runParticipantUpload
-  -- for tests
+  -- for tests  
   , mappingParser
+  , buildParticipantRecordAction
   ) where
 
 import Control.Arrow (right)
@@ -183,8 +184,8 @@ data ParticipantRecordAction = ParticipantRecordAction ParticipantStatus [Measur
     -- deriving (Show, Eq)
 
 buildParticipantRecordAction
-    :: [Metric] -> Volume -> ParticipantRecord -> ParticipantStatus -> ParticipantRecordAction
-buildParticipantRecordAction participantActiveMetrics vol participantRecord updatingRecord =
+    :: [Metric] -> ParticipantRecord -> ParticipantStatus -> ParticipantRecordAction
+buildParticipantRecordAction participantActiveMetrics participantRecord updatingRecord =
     let
         mId = getFieldVal' prdId "id"
         mInfo = getFieldVal' prdInfo "info"
@@ -269,7 +270,7 @@ createOrUpdateRecord participantActiveMetrics vol participantRecord = do
                 Nothing -> Create
                 Just oldParticipant -> Found oldParticipant
     -- print ("save measure id:", mId)
-    case buildParticipantRecordAction participantActiveMetrics vol participantRecord recordStatus of
+    case buildParticipantRecordAction participantActiveMetrics participantRecord recordStatus of
         ParticipantRecordAction Create measureActs -> do
             newParticipantShell <- addRecord (blankRecord participantCategory vol) -- blankParticipantRecord
             _ <- mapM (runMeasureUpdate newParticipantShell) measureActs

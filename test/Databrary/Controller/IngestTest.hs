@@ -13,6 +13,7 @@ import Test.Tasty.HUnit
 
 import Databrary.Controller.Ingest
 import Databrary.Model.Metric
+import Databrary.Model.Record.TypesTest
 
 tests :: TestTree
 tests = testGroup "Databrary.Controller.Ingest"
@@ -21,4 +22,7 @@ tests = testGroup "Databrary.Controller.Ingest"
     , testCase "parseMapping-2"
         ((parseEither mappingParser ((MB.fromJust . decode) "[{\"csv_field\": \"col1\", \"metric\": \"id\"}]" :: Value))
            @?= (Right (Map.fromList [(participantMetricId, "col1")])))
+--    , testCase "buildParticipantRecordAction-1"
+--        (buildParticipantRecordAction [participantMetricId] participantRecordId Create
+--           @?= ParticipantRecordAction Create [Upsert participantMetricId "1"])
     ]
