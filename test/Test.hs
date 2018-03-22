@@ -3,6 +3,7 @@ module Main (main) where
 import Test.Tasty
 import qualified Databrary.HTTP.Form.DeformTest
 import qualified Databrary.Controller.IngestTest
+import qualified Databrary.Model.Audit.TypesTest
 import qualified Databrary.Model.AuditTest
 import qualified Databrary.Model.RecordTest
 import qualified Databrary.Model.Metric.TypesTest
