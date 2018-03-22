@@ -101,4 +101,4 @@ data Audit = Audit
   { auditWhen :: !Timestamp
   , auditIdentity :: !AuditIdentity
   , auditAction :: !AuditAction
-  }
+  } deriving (Eq)
