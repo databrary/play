@@ -537,6 +537,7 @@ test-suite databrary-test
   build-depends:
     databrary
     , aeson
+    , array
     , base
     , containers
     , tasty
