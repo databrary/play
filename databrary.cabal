@@ -553,6 +553,7 @@ test-suite databrary-test
     , Databrary.Model.RecordTest
     , Databrary.Model.Metric.TypesTest
     , Databrary.Model.MetricTest
+    , Databrary.Model.Stats.TypesTest
     , Data.Csv.ContribTest
       
 -- vim: shiftwidth=2
