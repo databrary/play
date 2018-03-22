@@ -1,0 +1,21 @@
+<ng-form name="metadataForm">
+  <span class="icon upload"></span> <span>participant metadata</span>
+  <div>
+    <input type="file" name="metadata" accept=".csv" file-model="metadataForm.data.metadata">
+    <button class="green" ng-click="metadataForm.save()">Upload</button>
+  </div>
+</ng-form>
+<ul>
+  <li>
+    Here you can upload participant metadata (i.e., demographics).
+  </li>
+  <li>
+    File must be in .csv format with headers in the first row.
+  </li>
+  <li>
+    You must have already used the Design Spreadsheet tab to select the variables that you want to upload.
+  </li>
+  <li>
+    Be sure that your .csv includes all of the fields you selected in the Design Spreadsheet tab, and is labeled and formatted appropriately.
+  </li>
+</ul>
