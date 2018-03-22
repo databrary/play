@@ -550,6 +550,7 @@ test-suite databrary-test
   other-modules:
       Databrary.HTTP.Form.DeformTest
     , Databrary.Controller.IngestTest
+    , Databrary.Model.AuditTest
     , Databrary.Model.IngestTest
     , Databrary.Model.RecordTest
     , Databrary.Model.Metric.TypesTest
