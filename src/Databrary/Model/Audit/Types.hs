@@ -95,10 +95,10 @@ instance Databrary.HTTP.Form.Deform.Deform f_a4NXR AuditAction where
 data AuditIdentity = AuditIdentity
   { auditWho :: !(Id Party)
   , auditIp :: !PGInet
-  } deriving (Eq)
+  } deriving (Eq, Show)
 
 data Audit = Audit
   { auditWhen :: !Timestamp
   , auditIdentity :: !AuditIdentity
   , auditAction :: !AuditAction
-  } deriving (Eq)
+  } deriving (Eq, Show)
