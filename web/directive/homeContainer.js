@@ -108,6 +108,7 @@ app.directive('homeContainer', [
             ["44", "controls", "", "/slot/9809/-/asset/11354/download?inline=true", "Naigles, L. (2014). Children use syntax to learn verb meanings.", "B7J01M"],
             ["326", "controls", "/slot/16668/-/asset/73157/download?inline=true", "/slot/16668/0,140984/asset/72645/download?inline=true", "Bahrick, L.E. (2017). Multisensory Attention Assessment Protocol (MAAP).", "B7.326"],
             ["336", "controls", "/slot/16670/-/asset/73158/download?inline=true", "/slot/16670/0,67110/asset/72647/download?inline=true", "Bahrick, L.E. (2017). Intersensory Processing Efficiency Protocol (IPEP).", "B7.336"],
+            ["330", "controls", "", "slot/16570/51810262,51849602/asset/113441/download?inline=true", "Bergelson, E. (2017). SEEDLingS 6 Month.", "B7.330"],
           ]
           // Make a copy of the array
           var tmp = arrayVideo.slice();
