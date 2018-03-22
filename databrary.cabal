@@ -544,6 +544,7 @@ test-suite databrary-test
     , tasty
     , tasty-expected-failure
     , tasty-hunit
+    , time
     , transformers
     , unordered-containers
     , vector
