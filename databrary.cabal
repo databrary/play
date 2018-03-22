@@ -540,11 +540,14 @@ test-suite databrary-test
     , array
     , base
     , containers
+    , postgresql-typed
     , tasty
     , tasty-expected-failure
     , tasty-hunit
+    , transformers
     , unordered-containers
     , vector
+    , wai
   ghc-options: -Wall -Wcompat -Wredundant-constraints
   default-language: Haskell2010
   other-modules:
