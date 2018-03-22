@@ -25,7 +25,9 @@ app.directive('metadataForm', [
             });
             form.$setPristine();
             var selected_mapping_array = [];
+            var selected_metric = [];
             for (var i = 0; i < volume.suggested_mapping.length; i++) {
+              selected_metric.push(volume.suggested_mapping[i].metric);
               if(volume.suggested_mapping[i].compatible_csv_fields[0]){
                 selected_mapping_array.push({"metric": volume.suggested_mapping[i].metric, "csv_field": volume.suggested_mapping[i].compatible_csv_fields[0]})
               }
@@ -35,10 +37,12 @@ app.directive('metadataForm', [
               $('metadata-form').hide();
             }
             for (var i = 0; i < volume.column_samples.length; i++) {
-              for (var j = 0; j < volume.column_samples[i].samples.length; j++) {
-                if(volume.column_samples[i].samples[j] === "") {
-                  volume.column_samples[i].samples[j] = "null";
-                  $('.nulltext').show();
+              if(selected_metric.indexOf(volume.column_samples[i].column_name) !== -1){
+                for (var j = 0; j < volume.column_samples[i].samples.length; j++) {
+                  if(volume.column_samples[i].samples[j] === "") {
+                    volume.column_samples[i].samples[j] = "null";
+                    $('.nulltext').show();
+                  }
                 }
               }
             }
