@@ -21,12 +21,29 @@ module Databrary.Model.Metric
   , getMetric'
   , lookupParticipantMetricBySymbolicName
   , participantMetrics
+  , validateParticipantId
+  , validateParticipantInfo
+  , validateParticipantDescription
+  , validateParticipantGender
+  , validateParticipantCountry
+  , validateParticipantRace
+  , validateParticipantEthnicity
+  , validateParticipantPregnancyTerm
+  , validateParticipantState
+  , validateParticipantSetting
+  , validateParticipantDisability
+  , validateParticipantGestationalAge
+  , validateParticipantBirthWeight
+  , validateParticipantBirthdate
+  , validateParticipantLanguage
   , metricLong
   , birthdateMetric
   , metricJSON
   ) where
 
 import Control.Applicative (empty, pure)
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString
 import qualified Data.IntMap.Strict as IntMap
 import Data.List (find)
@@ -34,6 +51,8 @@ import Data.Maybe (fromJust)
 import Data.Monoid ((<>))
 import qualified Data.Text
 import Data.Text (Text)
+import qualified Data.Time as Time
+import qualified Text.Read as TR
 
 import Databrary.Ops
 import qualified Databrary.JSON as JSON
@@ -769,6 +788,77 @@ lookupParticipantMetricBySymbolicName symbolicName =
 
 participantMetrics :: [Metric]
 participantMetrics = filter ((== participantCategory) . metricCategory) allMetrics
+
+validateParticipantId :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantId val = validateNotEmpty val
+
+validateParticipantInfo :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantInfo val = pure val
+
+validateParticipantDescription :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantDescription val = pure val
+
+validateParticipantDisability :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantDisability val = pure val
+
+validateParticipantGender :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantGender val =
+    validateInOptions val participantMetricGender
+
+validateParticipantCountry :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantCountry val = pure val
+
+validateParticipantRace :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantRace val =
+    validateInOptions val participantMetricRace
+
+validateParticipantEthnicity :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantEthnicity val =
+    validateInOptions val participantMetricEthnicity
+
+validateParticipantPregnancyTerm :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantPregnancyTerm val =
+    validateInOptions val participantMetricPregnancyTerm
+
+validateParticipantState :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantState val =
+    validateInOptions val participantMetricState
+
+validateParticipantSetting :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantSetting val =
+    validateInOptions val participantMetricSetting
+
+validateParticipantGestationalAge :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantGestationalAge val = do
+    _ <- (TR.readMaybe (BSC.unpack val) :: Maybe Double)
+    pure val
+
+validateParticipantBirthWeight :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantBirthWeight val = do
+    _ <- (TR.readMaybe (BSC.unpack val) :: Maybe Double)
+    pure val
+
+validateParticipantBirthdate :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantBirthdate val = do
+    if val == ""
+    then pure val
+    else do
+      _ <- (Time.parseTimeM True Time.defaultTimeLocale "%F" (BSC.unpack val) :: Maybe Time.Day)
+      pure val
+
+validateParticipantLanguage :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantLanguage val = do
+    pure val
+
+validateInOptions :: BS.ByteString -> Metric -> Maybe BS.ByteString
+validateInOptions val metric =
+    if val == ""
+    then Just ""
+    else find (== val) (metricOptions metric)
+
+validateNotEmpty :: BS.ByteString -> Maybe BS.ByteString
+validateNotEmpty val =
+    if BS.length val > 0 then Just val else Nothing
 
 -- this is a hack, should be in database
 metricLong :: Metric -> Bool

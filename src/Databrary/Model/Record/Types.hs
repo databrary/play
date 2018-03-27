@@ -2,6 +2,7 @@
 module Databrary.Model.Record.Types
   ( RecordRow(..)
   , Record(..)
+  , ParticipantRecord(..)
   , getRecordVolumePermission
   , Measure(..)
   , Measures
@@ -26,7 +27,7 @@ type instance IdType Record = Int32
 data RecordRow = RecordRow
   { recordId :: Id Record
   , recordCategory :: Category
-  }
+  } deriving (Show, Eq)
 
 testRecordRow1 :: RecordRow
 testRecordRow1 =
@@ -44,6 +45,26 @@ data Record = Record
 
 instance Kinded Record where
   kindOf _ = "record"
+
+data ParticipantRecord = -- each field can be nothing (not used) or just value
+    ParticipantRecord -- are some of these required?
+        { prdId :: !(Maybe MeasureDatum)
+        , prdInfo :: !(Maybe MeasureDatum)
+        , prdDescription :: !(Maybe MeasureDatum)
+        , prdBirthdate :: !(Maybe MeasureDatum)
+        , prdGender :: !(Maybe MeasureDatum)
+        , prdRace :: !(Maybe MeasureDatum)
+        , prdEthnicity :: !(Maybe MeasureDatum)
+        , prdGestationalAge :: !(Maybe MeasureDatum)
+        , prdPregnancyTerm :: !(Maybe MeasureDatum)
+        , prdBirthWeight :: !(Maybe MeasureDatum)
+        , prdDisability :: !(Maybe MeasureDatum)
+        , prdLanguage :: !(Maybe MeasureDatum)
+        , prdCountry :: !(Maybe MeasureDatum)
+        , prdState :: !(Maybe MeasureDatum)
+        , prdSetting :: !(Maybe MeasureDatum)
+        } 
+    deriving (Show, Eq, Ord)
 
 data Measure = Measure
   { measureRecord :: Record

@@ -8,14 +8,24 @@ module Databrary.Model.Ingest
   , lookupIngestAsset
   , addIngestAsset
   , replaceSlotAsset
+  , checkDetermineMapping
+  , attemptParseRows
+  , extractColumnsDistinctSampleJson
+  , extractColumnsInitialJson
   , HeaderMappingEntry(..)
+  , participantFieldMappingToJSON
   , parseParticipantFieldMapping
+  -- for testing:
+  , determineMapping
   ) where
 
 import Control.Monad (when)
 import qualified Data.ByteString as BS
-import qualified Data.Csv as CSV
+import qualified Data.ByteString.Lazy as BSL
+import qualified Data.Csv as Csv
+import Data.Csv hiding (Record)
 import qualified Data.List as L
+import Data.Maybe (catMaybes)
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
@@ -32,10 +42,10 @@ import Data.ByteString (ByteString)
 import qualified Data.String
 import Data.Vector (Vector)
 
-import Data.Csv.Contrib (extractColumnsDistinctSample)
+import Data.Csv.Contrib (extractColumnsDistinctSample, extractColumnDefaulting, decodeCsvByNameWith, extractColumnsInitialRows)
 import Databrary.Service.DB
 import qualified Databrary.JSON as JSON
-import Databrary.JSON (FromJSON(..))
+import Databrary.JSON (FromJSON(..), ToJSON(..))
 import Databrary.Model.SQL (selectQuery)
 import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
@@ -348,10 +358,115 @@ replaceSlotAsset o n = do
       (assetId $ assetRow n) (assetId $ assetRow o))
             (\ [] -> ()))
 
-extractColumnsDistinctSampleJson :: Int -> CSV.Header -> Vector CSV.NamedRecord -> [JSON.Value]
+checkDetermineMapping :: [Metric] -> [Text] -> BS.ByteString -> Either String ParticipantFieldMapping
+checkDetermineMapping participantActiveMetrics csvHeaders csvContents = do
+    -- return skipped columns or not?
+    mpng <- determineMapping participantActiveMetrics csvHeaders
+    _ <- attemptParseRows mpng csvContents
+    pure mpng
+
+attemptParseRows
+    :: ParticipantFieldMapping -> BS.ByteString -> Either String (Csv.Header, Vector ParticipantRecord)
+attemptParseRows participantFieldMapping contents =
+    decodeCsvByNameWith (participantRecordParseNamedRecord participantFieldMapping) contents
+
+participantRecordParseNamedRecord :: ParticipantFieldMapping -> Csv.NamedRecord -> Parser ParticipantRecord
+participantRecordParseNamedRecord fieldMap m = do
+    mId <- extractIfUsed2 pfmId validateParticipantId
+    mInfo <- extractIfUsed2 pfmInfo validateParticipantInfo
+    mDescription <- extractIfUsed2 pfmDescription validateParticipantDescription
+    mBirthdate <- extractIfUsed2 pfmBirthdate validateParticipantBirthdate
+    mGender <- extractIfUsed2 pfmGender validateParticipantGender
+    mRace <- extractIfUsed2 pfmRace validateParticipantRace
+    mEthnicity <- extractIfUsed2 pfmEthnicity validateParticipantEthnicity
+    mGestationalAge <- extractIfUsed2 pfmGestationalAge validateParticipantGestationalAge
+    mPregnancyTerm <- extractIfUsed2 pfmPregnancyTerm validateParticipantPregnancyTerm
+    mBirthWeight <- extractIfUsed2 pfmBirthWeight validateParticipantBirthWeight
+    mDisability <- extractIfUsed2 pfmDisability validateParticipantDisability
+    mLanguage <- extractIfUsed2 pfmLanguage validateParticipantLanguage
+    mCountry <- extractIfUsed2 pfmCountry validateParticipantCountry
+    mState <- extractIfUsed2 pfmState validateParticipantState
+    mSetting <- extractIfUsed2 pfmSetting validateParticipantSetting
+    pure
+        (ParticipantRecord
+            { prdId = mId
+            , prdInfo = mInfo
+            , prdDescription = mDescription
+            , prdBirthdate = mBirthdate
+            , prdGender = mGender
+            , prdRace = mRace
+            , prdEthnicity = mEthnicity
+            , prdGestationalAge = mGestationalAge
+            , prdPregnancyTerm = mPregnancyTerm
+            , prdBirthWeight = mBirthWeight
+            , prdDisability = mDisability
+            , prdLanguage = mLanguage
+            , prdCountry = mCountry
+            , prdState = mState
+            , prdSetting = mSetting
+            } )
+  where
+    extractIfUsed2
+      :: (ParticipantFieldMapping -> Maybe Text) -> (BS.ByteString -> Maybe BS.ByteString) -> Parser (Maybe BS.ByteString)
+    extractIfUsed2 maybeGetField validateValue = do
+        case maybeGetField fieldMap of
+            Just colName -> do
+                contents <- m .: (TE.encodeUtf8 colName)
+                maybe
+                    (fail ("invalid value for " ++ show colName ++ ", found " ++ show contents))
+                    (pure . Just)
+                    (validateValue contents)
+            Nothing ->
+                pure Nothing
+    
+
+-- verify that all expected columns are present, with some leniency in matching
+-- left if no match possible
+determineMapping :: [Metric] -> [Text] -> Either String ParticipantFieldMapping
+determineMapping participantActiveMetrics csvHeaders = do
+    (columnMatches :: [Text]) <- traverse (detectMetricMatch csvHeaders) participantActiveMetrics
+    let metricColumnMatches :: Map Metric Text
+        metricColumnMatches = (Map.fromList . zip participantActiveMetrics) columnMatches
+    -- TODO: sanity check -- all cols distinct
+    pure
+        (ParticipantFieldMapping
+            { pfmId = Map.lookup participantMetricId metricColumnMatches
+            , pfmInfo = Map.lookup participantMetricInfo metricColumnMatches
+            , pfmDescription = Map.lookup participantMetricDescription metricColumnMatches
+            , pfmBirthdate = Map.lookup participantMetricBirthdate metricColumnMatches
+            , pfmGender = Map.lookup participantMetricGender metricColumnMatches
+            , pfmRace = Map.lookup participantMetricRace metricColumnMatches
+            , pfmEthnicity = Map.lookup participantMetricEthnicity metricColumnMatches
+            , pfmGestationalAge = Map.lookup participantMetricGestationalAge metricColumnMatches
+            , pfmPregnancyTerm = Map.lookup participantMetricPregnancyTerm metricColumnMatches
+            , pfmBirthWeight = Map.lookup participantMetricBirthWeight metricColumnMatches
+            , pfmDisability = Map.lookup participantMetricDisability metricColumnMatches
+            , pfmLanguage = Map.lookup participantMetricLanguage metricColumnMatches
+            , pfmCountry = Map.lookup participantMetricCountry metricColumnMatches
+            , pfmState = Map.lookup participantMetricState metricColumnMatches
+            , pfmSetting = Map.lookup participantMetricSetting metricColumnMatches
+            })
+  where
+    detectMetricMatch :: [Text] -> Metric -> Either String Text
+    detectMetricMatch hdrs metric =
+        case L.find (\h -> columnMetricCompatible h metric) hdrs of
+            Just hdr -> Right hdr
+            Nothing -> Left ("no compatible header found for metric: " ++ (show . metricName) metric)
+
+columnMetricCompatible :: Text -> Metric -> Bool
+columnMetricCompatible hdr metric =
+    (T.filter (/= ' ') . T.toLower . metricName) metric == T.toLower hdr
+
+extractColumnsDistinctSampleJson :: Int -> Csv.Header -> Vector Csv.NamedRecord -> [JSON.Value]
 extractColumnsDistinctSampleJson maxSamples hdrs records =
     ( fmap (\(colHdr, vals) -> columnSampleJson colHdr vals)
     . extractColumnsDistinctSample maxSamples hdrs)
+    records
+
+extractColumnsInitialJson :: Int -> Csv.Header -> Vector Csv.NamedRecord -> [JSON.Value]
+extractColumnsInitialJson maxRows hdrs records =
+    ( fmap (\(colHdr, vals) -> columnSampleJson colHdr vals)
+    . extractColumnsInitialRows maxRows hdrs )
     records
 
 data HeaderMappingEntry =
@@ -373,10 +488,41 @@ instance FromJSON HeaderMappingEntry where
                      Nothing ->
                          fail ("metric name does not match any participant metric: " ++ show metricCanonicalName))
 
-parseParticipantFieldMapping :: [Metric] -> [BS.ByteString] -> Map Metric Text -> Either String ParticipantFieldMapping
-parseParticipantFieldMapping volParticipantActiveMetrics colHdrs requestedMapping = do
+participantFieldMappingToJSON :: ParticipantFieldMapping -> JSON.Value
+participantFieldMappingToJSON fldMap =
+    -- didn't use tojson to avoid orphan warning. didn't move tojson to metric.types because of circular ref to metric instances
+    toJSON
+        (catMaybes
+            [ fieldToMaybeEntry pfmId participantMetricId
+            , fieldToMaybeEntry pfmInfo participantMetricInfo
+            , fieldToMaybeEntry pfmDescription participantMetricDescription
+            , fieldToMaybeEntry pfmBirthdate participantMetricBirthdate
+            , fieldToMaybeEntry pfmGender participantMetricGender
+            , fieldToMaybeEntry pfmRace participantMetricRace
+            , fieldToMaybeEntry pfmEthnicity participantMetricEthnicity
+            , fieldToMaybeEntry pfmGestationalAge participantMetricGestationalAge
+            , fieldToMaybeEntry pfmPregnancyTerm participantMetricPregnancyTerm
+            , fieldToMaybeEntry pfmBirthWeight participantMetricBirthWeight
+            , fieldToMaybeEntry pfmDisability participantMetricDisability
+            , fieldToMaybeEntry pfmLanguage participantMetricLanguage
+            , fieldToMaybeEntry pfmCountry participantMetricCountry
+            , fieldToMaybeEntry pfmState participantMetricState
+            , fieldToMaybeEntry pfmSetting participantMetricSetting
+            ])
+  where
+    fieldToMaybeEntry :: (ParticipantFieldMapping -> Maybe Text) -> Metric -> Maybe JSON.Value
+    fieldToMaybeEntry getMaybeColName metric = do
+        colName <- getMaybeColName fldMap
+        pure
+            (JSON.object
+                [ "metric" JSON..= (T.filter (/= ' ') . T.toLower . metricName) metric -- TODO: use shared function
+                , "compatible_csv_fields" JSON..= [colName] -- change to single value soon
+                ])
+
+parseParticipantFieldMapping :: [Metric] -> Map Metric Text -> Either String ParticipantFieldMapping
+parseParticipantFieldMapping volParticipantActiveMetrics requestedMapping = do
     -- TODO: generate error or warning if metrics provided that are actually used on the volume?
-    when (((length . Map.elems) requestedMapping) /= ((length . L.nub . Map.elems) requestedMapping)) (fail "columns values not unique")
+    when (((length . Map.elems) requestedMapping) /= ((length . L.nub . Map.elems) requestedMapping)) (Left "columns values not unique")
     ParticipantFieldMapping
         <$> getFieldIfUsed participantMetricId
         <*> getFieldIfUsed participantMetricInfo
@@ -400,9 +546,14 @@ parseParticipantFieldMapping volParticipantActiveMetrics colHdrs requestedMappin
         then 
             case Map.lookup participantMetric requestedMapping of
                 Just csvField ->
-                    if (TE.encodeUtf8 csvField) `elem` colHdrs
-                    then pure (Just csvField)
-                    else fail ("unknown column (" ++ (show csvField) ++ ") for metric (" ++ (show . metricName) participantMetric)
-                Nothing -> fail ("missing expected participant metric:" ++ (show . metricName) participantMetric)
+                    pure (Just csvField)
+                    {-
+                        Just colHdrs ->
+                            if (TE.encodeUtf8 csvField) `elem` colHdrs
+                            then pure (Just csvField)
+                            else Left ("unknown column (" ++ (show csvField) ++ ") for metric (" ++ (show . metricName) participantMetric)
+                    -}
+                Nothing ->
+                    Left ("missing expected participant metric:" ++ (show . metricName) participantMetric)
         else
             pure Nothing
