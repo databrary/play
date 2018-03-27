@@ -4,13 +4,13 @@
 
 let
   sources = {
-    "@flowjs/ng-flow-2.7.1" = {
+    "@flowjs/ng-flow-2.7.8" = {
       name = "_at_flowjs_slash_ng-flow";
       packageName = "@flowjs/ng-flow";
-      version = "2.7.1";
+      version = "2.7.8";
       src = fetchurl {
-        url = "https://registry.npmjs.org/@flowjs/ng-flow/-/ng-flow-2.7.1.tgz";
-        sha1 = "04dbb4b799ea6d2ad2056f19a13718ad041ccdf8";
+        url = "https://registry.npmjs.org/@flowjs/ng-flow/-/ng-flow-2.7.8.tgz";
+        sha512 = "051wms4pyyzmvak80w923i3psp0a9dpnf1s3fc9xv4pfjd5r52g5x9q0cs4fl0j023dn2jv5fv34g9dmzgx8ziz4q787mpqzhva7vnc";
       };
     };
     "align-text-0.1.4" = {
@@ -58,22 +58,40 @@ let
         sha1 = "d76c0a54648d0d18d59c87e6c8338fae74135c75";
       };
     };
-    "autoprefixer-6.3.7" = {
-      name = "autoprefixer";
-      packageName = "autoprefixer";
-      version = "6.3.7";
+    "ansi-regex-2.1.1" = {
+      name = "ansi-regex";
+      packageName = "ansi-regex";
+      version = "2.1.1";
       src = fetchurl {
-        url = "https://registry.npmjs.org/autoprefixer/-/autoprefixer-6.3.7.tgz";
-        sha1 = "8edf3166dd9fd6116533662c8bb36a03c0efc874";
+        url = "https://registry.npmjs.org/ansi-regex/-/ansi-regex-2.1.1.tgz";
+        sha1 = "c3b33ab5ee360d86e0e628f0468ae7ef27d654df";
       };
     };
-    "autoprefixer-stylus-0.9.4" = {
+    "ansi-styles-2.2.1" = {
+      name = "ansi-styles";
+      packageName = "ansi-styles";
+      version = "2.2.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/ansi-styles/-/ansi-styles-2.2.1.tgz";
+        sha1 = "b432dd3358b634cf75e1e4664368240533c1ddbe";
+      };
+    };
+    "autoprefixer-7.1.0" = {
+      name = "autoprefixer";
+      packageName = "autoprefixer";
+      version = "7.1.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/autoprefixer/-/autoprefixer-7.1.0.tgz";
+        sha1 = "ae4913adc221fa6ca5ad3a6f8039f6a5c06b3877";
+      };
+    };
+    "autoprefixer-stylus-0.14.0" = {
       name = "autoprefixer-stylus";
       packageName = "autoprefixer-stylus";
-      version = "0.9.4";
+      version = "0.14.0";
       src = fetchurl {
-        url = "https://registry.npmjs.org/autoprefixer-stylus/-/autoprefixer-stylus-0.9.4.tgz";
-        sha1 = "760914695dce321c9980b490d81a4385c08d914d";
+        url = "https://registry.npmjs.org/autoprefixer-stylus/-/autoprefixer-stylus-0.14.0.tgz";
+        sha1 = "1ce93bc4c1d8c8f29b3a564cfbba3242042efce0";
       };
     };
     "balanced-match-1.0.0" = {
@@ -103,13 +121,13 @@ let
         sha512 = "248cnpbbf0p32h53rd3g8wzpgrkaj4p078ra1g6l16f82i6bzkvmhwqan5rk88apbll9ly1476kngd7f7z27i3b3zxpbb3064f8yaw8";
       };
     };
-    "browserslist-1.3.6" = {
+    "browserslist-2.11.3" = {
       name = "browserslist";
       packageName = "browserslist";
-      version = "1.3.6";
+      version = "2.11.3";
       src = fetchurl {
-        url = "https://registry.npmjs.org/browserslist/-/browserslist-1.3.6.tgz";
-        sha1 = "952ff48d56463d3b538f85ef2f8eaddfd284b133";
+        url = "https://registry.npmjs.org/browserslist/-/browserslist-2.11.3.tgz";
+        sha512 = "2c52470l3xpcqvzj8qpkwpb73gx4mq30wsk08n90waahj8g8qwd8cjmvf625f4836p39jiigrd0g4xh9k4p7mhcaykgw0pvfiqvjsy9";
       };
     };
     "camelcase-1.2.1" = {
@@ -121,13 +139,13 @@ let
         sha1 = "9bb5304d2e0b56698b2c758b08a3eaa9daa58a39";
       };
     };
-    "caniuse-db-1.0.30000820" = {
-      name = "caniuse-db";
-      packageName = "caniuse-db";
+    "caniuse-lite-1.0.30000820" = {
+      name = "caniuse-lite";
+      packageName = "caniuse-lite";
       version = "1.0.30000820";
       src = fetchurl {
-        url = "https://registry.npmjs.org/caniuse-db/-/caniuse-db-1.0.30000820.tgz";
-        sha1 = "7c20e25cea1768b261b724f82e3a6a253aaa1468";
+        url = "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30000820.tgz";
+        sha512 = "1nnr7yva91fnlwccl62brrjs8xilkjr2k48anqq4v5h9wxfwkk6xxwqrg1r7w79fhzgn9zb90blxyvvkbc82ik9k76p9mgd75b6jiqk";
       };
     };
     "center-align-0.1.3" = {
@@ -137,6 +155,15 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/center-align/-/center-align-0.1.3.tgz";
         sha1 = "aa0d32629b6ee972200411cbd4461c907bc2b7ad";
+      };
+    };
+    "chalk-1.1.3" = {
+      name = "chalk";
+      packageName = "chalk";
+      version = "1.1.3";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/chalk/-/chalk-1.1.3.tgz";
+        sha1 = "a8115c55e4a702fe4d150abd3872822a7e09fc98";
       };
     };
     "cli-0.6.6" = {
@@ -274,6 +301,15 @@ let
         sha1 = "dcd8488a26f563d61079e48c9f7b7e32373682cf";
       };
     };
+    "electron-to-chromium-1.3.40" = {
+      name = "electron-to-chromium";
+      packageName = "electron-to-chromium";
+      version = "1.3.40";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.40.tgz";
+        sha1 = "1fbd6d97befd72b8a6f921dc38d22413d2f6fddf";
+      };
+    };
     "emojis-list-2.1.0" = {
       name = "emojis-list";
       packageName = "emojis-list";
@@ -299,6 +335,15 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/entities/-/entities-1.1.1.tgz";
         sha1 = "6e5c2d0a5621b5dadaecef80b90edfb5cd7772f0";
+      };
+    };
+    "escape-string-regexp-1.0.5" = {
+      name = "escape-string-regexp";
+      packageName = "escape-string-regexp";
+      version = "1.0.5";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/escape-string-regexp/-/escape-string-regexp-1.0.5.tgz";
+        sha1 = "1b61c0562190a8dff6ae3bb2cf0200ca130b86d4";
       };
     };
     "exit-0.1.2" = {
@@ -335,6 +380,15 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/glob/-/glob-7.0.6.tgz";
         sha1 = "211bafaf49e525b8cd93260d14ab136152b3f57a";
+      };
+    };
+    "has-ansi-2.0.0" = {
+      name = "has-ansi";
+      packageName = "has-ansi";
+      version = "2.0.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/has-ansi/-/has-ansi-2.0.0.tgz";
+        sha1 = "34f5049ce1ecdf2b0649af3ef24e45ed35416d91";
       };
     };
     "has-flag-1.0.0" = {
@@ -407,15 +461,6 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/jquery-ui-dist/-/jquery-ui-dist-1.12.1.tgz";
         sha1 = "5c0815d3cc6f90ff5faaf5b268a6e23b4ca904fa";
-      };
-    };
-    "js-base64-2.4.3" = {
-      name = "js-base64";
-      packageName = "js-base64";
-      version = "2.4.3";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/js-base64/-/js-base64-2.4.3.tgz";
-        sha512 = "09rdlbny3prrfs56vf83jx9vv8w23aga68wp4lz4an711lkji1byy70dgxhgyn19p81spcq84nhjgf4zaq1jdys6b1jpq1pndh2pc8z";
       };
     };
     "jshint-2.8.0" = {
@@ -634,13 +679,13 @@ let
         sha1 = "f04f85fc6e12b62a1be2e3cb7e086eb3c9bcad73";
       };
     };
-    "postcss-5.0.21" = {
+    "postcss-6.0.1" = {
       name = "postcss";
       packageName = "postcss";
-      version = "5.0.21";
+      version = "6.0.1";
       src = fetchurl {
-        url = "https://registry.npmjs.org/postcss/-/postcss-5.0.21.tgz";
-        sha1 = "d4cf6f19774648c492ac57c298f6afb3c04caefe";
+        url = "https://registry.npmjs.org/postcss/-/postcss-6.0.1.tgz";
+        sha1 = "000dbd1f8eef217aa368b9a212c5fc40b2a8f3f2";
       };
     };
     "postcss-value-parser-3.3.0" = {
@@ -733,6 +778,15 @@ let
         sha1 = "62e203bc41766c6c28c9fc84301dab1c5310fa94";
       };
     };
+    "strip-ansi-3.0.1" = {
+      name = "strip-ansi";
+      packageName = "strip-ansi";
+      version = "3.0.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/strip-ansi/-/strip-ansi-3.0.1.tgz";
+        sha1 = "6a385fb8853d952d5ff05d0e8aaf94278dc63dcf";
+      };
+    };
     "strip-json-comments-1.0.4" = {
       name = "strip-json-comments";
       packageName = "strip-json-comments";
@@ -758,6 +812,15 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/stylus-loader/-/stylus-loader-3.0.2.tgz";
         sha512 = "18d4pn9iy3x6hkfkhy2lc5dj524cga321gylryisxc7i1g4inb37q96cig5079bg5izjd9nkj19jp7bmdw8mczzrkd4lsvssqyjcnpr";
+      };
+    };
+    "supports-color-2.0.0" = {
+      name = "supports-color";
+      packageName = "supports-color";
+      version = "2.0.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/supports-color/-/supports-color-2.0.0.tgz";
+        sha1 = "535d045ce6b6363fa40117084629995e9df324c7";
       };
     };
     "supports-color-3.2.3" = {
@@ -839,16 +902,20 @@ let
     version = "0.0.0";
     src = ./.;
     dependencies = [
-      sources."@flowjs/ng-flow-2.7.1"
+      sources."@flowjs/ng-flow-2.7.8"
       sources."angular-1.5.11"
       sources."angular-route-1.5.11"
       sources."angular-ui-slider-0.4.0"
-      (sources."autoprefixer-stylus-0.9.4" // {
+      (sources."autoprefixer-stylus-0.14.0" // {
         dependencies = [
-          (sources."autoprefixer-6.3.7" // {
+          (sources."autoprefixer-7.1.0" // {
             dependencies = [
-              sources."browserslist-1.3.6"
-              sources."caniuse-db-1.0.30000820"
+              (sources."browserslist-2.11.3" // {
+                dependencies = [
+                  sources."electron-to-chromium-1.3.40"
+                ];
+              })
+              sources."caniuse-lite-1.0.30000820"
               sources."normalize-range-0.1.2"
               sources."num2fraction-1.2.2"
               sources."postcss-value-parser-3.3.0"
@@ -863,9 +930,25 @@ let
               })
             ];
           })
-          (sources."postcss-5.0.21" // {
+          (sources."postcss-6.0.1" // {
             dependencies = [
-              sources."js-base64-2.4.3"
+              (sources."chalk-1.1.3" // {
+                dependencies = [
+                  sources."ansi-styles-2.2.1"
+                  sources."escape-string-regexp-1.0.5"
+                  (sources."has-ansi-2.0.0" // {
+                    dependencies = [
+                      sources."ansi-regex-2.1.1"
+                    ];
+                  })
+                  (sources."strip-ansi-3.0.1" // {
+                    dependencies = [
+                      sources."ansi-regex-2.1.1"
+                    ];
+                  })
+                  sources."supports-color-2.0.0"
+                ];
+              })
               sources."source-map-0.5.7"
               (sources."supports-color-3.2.3" // {
                 dependencies = [
