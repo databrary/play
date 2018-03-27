@@ -31,22 +31,22 @@ let
         sha1 = "4a5282ac164729e93619bcfd3ad151f817ce91f5";
       };
     };
-    "angular-1.6.9" = {
+    "angular-1.5.11" = {
       name = "angular";
       packageName = "angular";
-      version = "1.6.9";
+      version = "1.5.11";
       src = fetchurl {
-        url = "https://registry.npmjs.org/angular/-/angular-1.6.9.tgz";
-        sha512 = "3ad2wq51n1ld6w8nl6ixcskbhnbyrp6yirqrbh55hrabdr2cqbyaa2k11dc4vby7c1z481bkdls737jl5h3ac3z4xz1bcw8c4gica7a";
+        url = "https://registry.npmjs.org/angular/-/angular-1.5.11.tgz";
+        sha1 = "8c5ba7386f15965c9acf3429f6881553aada30d6";
       };
     };
-    "angular-route-1.4.14" = {
+    "angular-route-1.5.11" = {
       name = "angular-route";
       packageName = "angular-route";
-      version = "1.4.14";
+      version = "1.5.11";
       src = fetchurl {
-        url = "https://registry.npmjs.org/angular-route/-/angular-route-1.4.14.tgz";
-        sha1 = "2e5dbfe1239423c678165c39bb38601ad66a0794";
+        url = "https://registry.npmjs.org/angular-route/-/angular-route-1.5.11.tgz";
+        sha1 = "49614f3a167f54291e449fe8ba05d39c58924b83";
       };
     };
     "angular-ui-slider-0.4.0" = {
@@ -121,13 +121,13 @@ let
         sha1 = "9bb5304d2e0b56698b2c758b08a3eaa9daa58a39";
       };
     };
-    "caniuse-db-1.0.30000815" = {
+    "caniuse-db-1.0.30000820" = {
       name = "caniuse-db";
       packageName = "caniuse-db";
-      version = "1.0.30000815";
+      version = "1.0.30000820";
       src = fetchurl {
-        url = "https://registry.npmjs.org/caniuse-db/-/caniuse-db-1.0.30000815.tgz";
-        sha1 = "0e218fa133d0d071c886aa041b435258cc746891";
+        url = "https://registry.npmjs.org/caniuse-db/-/caniuse-db-1.0.30000820.tgz";
+        sha1 = "7c20e25cea1768b261b724f82e3a6a253aaa1468";
       };
     };
     "center-align-0.1.3" = {
@@ -625,13 +625,13 @@ let
         sha1 = "174b9268735534ffbc7ace6bf53a5a9e1b5c5f5f";
       };
     };
-    "pivottable-2.19.0" = {
+    "pivottable-2.20.0" = {
       name = "pivottable";
       packageName = "pivottable";
-      version = "2.19.0";
+      version = "2.20.0";
       src = fetchurl {
-        url = "https://registry.npmjs.org/pivottable/-/pivottable-2.19.0.tgz";
-        sha1 = "37dec4bd0ecc087fc6108a1c22ce2e1e0603992c";
+        url = "https://registry.npmjs.org/pivottable/-/pivottable-2.20.0.tgz";
+        sha1 = "f04f85fc6e12b62a1be2e3cb7e086eb3c9bcad73";
       };
     };
     "postcss-5.0.21" = {
@@ -840,15 +840,15 @@ let
     src = ./.;
     dependencies = [
       sources."@flowjs/ng-flow-2.7.1"
-      sources."angular-1.6.9"
-      sources."angular-route-1.4.14"
+      sources."angular-1.5.11"
+      sources."angular-route-1.5.11"
       sources."angular-ui-slider-0.4.0"
       (sources."autoprefixer-stylus-0.9.4" // {
         dependencies = [
           (sources."autoprefixer-6.3.7" // {
             dependencies = [
               sources."browserslist-1.3.6"
-              sources."caniuse-db-1.0.30000815"
+              sources."caniuse-db-1.0.30000820"
               sources."normalize-range-0.1.2"
               sources."num2fraction-1.2.2"
               sources."postcss-value-parser-3.3.0"
@@ -945,7 +945,7 @@ let
       sources."lodash-3.10.1"
       sources."nib-1.1.2"
       sources."normalize.styl-3.0.3"
-      sources."pivottable-2.19.0"
+      sources."pivottable-2.20.0"
       (sources."stylus-0.54.5" // {
         dependencies = [
           sources."css-parse-1.7.0"
