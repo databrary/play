@@ -8,6 +8,7 @@ module Data.Csv.Contrib
   , decodeCsvByNameWith
   , parseCsvWithHeader
   -- for testing only
+  , repairDuplicateLineEndings
   , repairCarriageReturnOnly
   ) where
 
@@ -79,6 +80,12 @@ runCsvParser
     -> Either String (Csv.Header, Vector Csv.NamedRecord)
 runCsvParser parse contents =
     parse (Csv.csvWithHeader Csv.defaultDecodeOptions) (repairCarriageReturnOnly contents)
+
+-- | fix duplicate line endings, unclear if SPSS or Excel introduces them
+repairDuplicateLineEndings :: BS.ByteString -> BS.ByteString
+repairDuplicateLineEndings contents =
+    contents
+    -- if \r\r\n then replace with \r\n
 
 -- | only fix newlines for bizarre macOS endings that use \r instead of \r\n
 repairCarriageReturnOnly :: BS.ByteString -> BS.ByteString
