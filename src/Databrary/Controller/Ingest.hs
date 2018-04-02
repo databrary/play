@@ -36,7 +36,7 @@ import Network.HTTP.Types (badRequest400)
 import Network.Wai.Parse (FileInfo(..))
 import System.Posix.FilePath (takeExtension)
 
-import Data.Csv.Contrib (parseCsvWithHeader, getHeaders, extractColumnsDistinctSample)
+import Data.Csv.Contrib (parseCsvWithHeader, getHeaders, extractColumnsDistinctSample, removeBomPrefixText)
 import qualified Databrary.JSON as JSON
 import Databrary.Ops
 import Databrary.Has
@@ -109,7 +109,7 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
           fileInfo :: (FileInfo TL.Text) <- "file" .:> deform
           return fileInfo
     liftIO (print ("after extract form"))
-    let uploadFileContents' = (BSL.toStrict . TLE.encodeUtf8 . fileContent) csvFileInfo
+    let uploadFileContents' = (BSL.toStrict . TLE.encodeUtf8 . removeBomPrefixText . fileContent) csvFileInfo
     liftIO (print "uploaded contents below")
     liftIO (print uploadFileContents')
     case parseCsvWithHeader uploadFileContents' of

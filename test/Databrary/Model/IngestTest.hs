@@ -38,6 +38,11 @@ tests = testGroup "Databrary.Model.Ingest"
     , testCase "attemptParseRows-2"
         (attemptParseRows participantFieldMappingId "id,gender\n1,male\n" @?=
            Right (V.fromList ["id", "gender"], V.fromList [participantRecordId "1"]))
+    , testCase "attemptParseRows-3"
+        (attemptParseRows participantFieldMappingIdGender "id,gender\n1, \n" @?=
+           Right
+               ( V.fromList ["id", "gender"]
+               , V.fromList [emptyParticipantRecord { prdId = Just "1", prdGender = Just "" } ]))
     , testCase "attemptParseRows-all"
         (attemptParseRows
            participantFieldMappingAll
@@ -69,5 +74,8 @@ allValuesOneRow =
 
 participantFieldMappingId :: ParticipantFieldMapping
 participantFieldMappingId = emptyParticipantFieldMapping { pfmId = Just "id" }
+
+participantFieldMappingIdGender :: ParticipantFieldMapping
+participantFieldMappingIdGender = emptyParticipantFieldMapping { pfmId = Just "id", pfmGender = Just "gender" }
 
 

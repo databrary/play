@@ -34,4 +34,8 @@ tests = testGroup "Data.Csv.ContribTest"
         (removeBomPrefix "\357\273\277abc" @?= "abc")
     , testCase "removeBomPrefix-nofix"
         (removeBomPrefix "abc" @?= "abc")
+    , testCase "removeBomPrefixText-fix"
+        (removeBomPrefixText "\65279abc" @?= "abc")
+    , testCase "removeBomPrefixText-nofix"
+        (removeBomPrefixText "abc" @?= "abc")
     ]
