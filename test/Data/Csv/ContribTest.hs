@@ -30,4 +30,8 @@ tests = testGroup "Data.Csv.ContribTest"
         (repairDuplicateLineEndings "abc\r\r\n" @?= "abc\r\n")
     , testCase "repairDuplicateLineEndings-nofix"
         (repairDuplicateLineEndings "abc\r\n" @?= "abc\r\n")
+    , testCase "removeBomPrefix-fix"
+        (removeBomPrefix "\357\273\277abc" @?= "abc")
+    , testCase "removeBomPrefix-nofix"
+        (removeBomPrefix "abc" @?= "abc")
     ]

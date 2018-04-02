@@ -8,6 +8,7 @@ module Data.Csv.Contrib
   , decodeCsvByNameWith
   , parseCsvWithHeader
   -- for testing only
+  , removeBomPrefix
   , repairDuplicateLineEndings
   , repairCarriageReturnOnly
   ) where
@@ -21,6 +22,7 @@ import qualified Data.Csv as Csv
 import qualified Data.Csv.Parser as Csv
 import qualified Data.HashMap.Strict as HMP
 import qualified Data.List as L
+import qualified Data.Maybe as MB
 import qualified Data.Vector as V
 import Data.Vector (Vector)
 
@@ -82,7 +84,12 @@ runCsvParser
 runCsvParser parse contents =
     parse
         (Csv.csvWithHeader Csv.defaultDecodeOptions)
-        ((repairCarriageReturnOnly . repairDuplicateLineEndings) contents)
+        ((repairCarriageReturnOnly . repairDuplicateLineEndings . removeBomPrefix) contents)
+
+-- | some programs introduce a byte order mark when generating a CSV, remove this per cassava issue recipe
+removeBomPrefix :: BS.ByteString -> BS.ByteString
+removeBomPrefix contents =
+    MB.fromMaybe contents (BS.stripPrefix "\357\273\277" contents)
 
 -- | fix duplicate line endings, unclear if SPSS or Excel introduces them
 repairDuplicateLineEndings :: BS.ByteString -> BS.ByteString
