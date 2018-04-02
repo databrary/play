@@ -26,8 +26,8 @@ tests = testGroup "Data.Csv.ContribTest"
         (repairCarriageReturnOnly "abc\r\n" @?= "abc\r\n")
     , testCase "repairCarriageReturnOnly-2"
         (repairCarriageReturnOnly "abc\r" @?= "abc\r\n")
-    --, testCase "repairDuplicateLineEndings-fix"
-    --    (repairDuplicateLineEndings "abc\r\r\n" @?= "abc\r\n")
+    , testCase "repairDuplicateLineEndings-fix"
+        (repairDuplicateLineEndings "abc\r\r\n" @?= "abc\r\n")
     , testCase "repairDuplicateLineEndings-nofix"
         (repairDuplicateLineEndings "abc\r\n" @?= "abc\r\n")
     ]

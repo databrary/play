@@ -16,6 +16,7 @@ import qualified Data.Attoparsec.ByteString as ATTO
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString.Search as Search
 import qualified Data.Csv as Csv
 import qualified Data.Csv.Parser as Csv
 import qualified Data.HashMap.Strict as HMP
@@ -79,13 +80,14 @@ runCsvParser
     -> BS.ByteString
     -> Either String (Csv.Header, Vector Csv.NamedRecord)
 runCsvParser parse contents =
-    parse (Csv.csvWithHeader Csv.defaultDecodeOptions) (repairCarriageReturnOnly contents)
+    parse
+        (Csv.csvWithHeader Csv.defaultDecodeOptions)
+        ((repairCarriageReturnOnly . repairDuplicateLineEndings) contents)
 
 -- | fix duplicate line endings, unclear if SPSS or Excel introduces them
 repairDuplicateLineEndings :: BS.ByteString -> BS.ByteString
 repairDuplicateLineEndings contents =
-    contents
-    -- if \r\r\n then replace with \r\n
+    BSL.toStrict (Search.replace "\r\r\n" ("\r\n" :: BS.ByteString) contents)
 
 -- | only fix newlines for bizarre macOS endings that use \r instead of \r\n
 repairCarriageReturnOnly :: BS.ByteString -> BS.ByteString

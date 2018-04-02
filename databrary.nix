@@ -8,7 +8,7 @@
 , network, network-uri, openssl, parsec, path, path-io, posix-paths
 , postgresql-simple, postgresql-typed, process, range-set-list
 , regex-posix, resource-pool, resourcet, scientific, servant, servant-server, smtp-mail
-, stdenv, streaming-commons, tasty, tasty-expected-failure
+, stdenv, streaming-commons, stringsearch, tasty, tasty-expected-failure
 , tasty-hunit, template-haskell, text, th-lift, th-lift-instances
 , time, transformers, transformers-base, unix, unordered-containers
 , utf8-string, vector, wai, wai-extra, wai-route, warp, warp-tls
@@ -49,7 +49,7 @@ in
     mime-types monad-control mtl network network-uri parsec path
     path-io posix-paths postgresql-simple postgresql-typed process
     range-set-list regex-posix resource-pool resourcet scientific
-    servant servant-server smtp-mail streaming-commons template-haskell text th-lift
+    servant servant-server smtp-mail streaming-commons stringsearch template-haskell text th-lift
     th-lift-instances time transformers transformers-base unix
     unordered-containers utf8-string vector wai wai-extra wai-route warp warp-tls
     web-inv-route xml zip zlib
@@ -68,7 +68,7 @@ in
     mime-types monad-control mtl network network-uri parsec path
     path-io posix-paths postgresql-simple postgresql-typed process
     range-set-list regex-posix resource-pool resourcet scientific
-    servant servant-server smtp-mail streaming-commons template-haskell text th-lift
+    servant servant-server smtp-mail streaming-commons stringsearch template-haskell text th-lift
     th-lift-instances time transformers transformers-base unix
     unordered-containers utf8-string vector wai wai-extra wai-route warp warp-tls
     web-inv-route xml zip zlib
