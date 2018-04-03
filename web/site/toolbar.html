@@ -1,4 +1,7 @@
 <section id="toolbar" class="toolbar cf hide-print" ng-class="::{'sandbox':page.constants.sandbox}">
+  <div class="wrap toolbar-notice" ng-if="::notice">
+    Our site is down.
+  </div>
   <div class="wrap toolbar-sandbox" ng-if="::page.constants.sandbox">
     Welcome to the <strong>Databrary demo site</strong>. Explore Databrary in action and try out some of our features here!
   </div>

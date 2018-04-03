@@ -9,7 +9,9 @@ app.directive('toolbar', [
       scope: {},
       link: function ($scope) {
         $scope.page = page;
-        
+        //change notice to true to show the notice bar at the top
+        $scope.notice = true;
+
         var modal = document.getElementById('loginModal');
 
         $scope.$watch(function(){return page.models.Login.isLoggedIn()}, function(newVal, oldVal){
