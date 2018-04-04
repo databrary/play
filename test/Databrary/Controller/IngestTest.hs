@@ -25,14 +25,14 @@ tests = testGroup "Databrary.Controller.Ingest"
         ((parseEither mappingParser ((MB.fromJust . decode) "[{\"csv_field\": \"col1\", \"metric\": \"id\"}]" :: Value))
            @?= (Right [(participantMetricId, "col1")]))
     , testCase "buildParticipantRecordAction-1"
-        ((case buildParticipantRecordAction [participantMetricId] (participantRecordId "1") Create of
+        ((case buildParticipantRecordAction (participantRecordId "1") Create of
              ParticipantRecordAction Create [Upsert m "1"] ->
                  m == participantMetricId
              _ ->
                  False)
            @? "Expected create with upsert id val to 1")
     , testCase "buildParticipantRecordAction-all"
-        ((case buildParticipantRecordAction participantMetrics participantRecordAll Create of
+        ((case buildParticipantRecordAction participantRecordAll Create of
              ParticipantRecordAction
                Create
                [ Upsert m1 "1"
@@ -71,7 +71,6 @@ tests = testGroup "Databrary.Controller.Ingest"
            @? "Expected create with upsert for each metric")
     , testCase "buildParticipantRecordAction-3"
         ((case buildParticipantRecordAction
-                 [participantMetricId, participantMetricGender]
                  (participantRecordIdGender "1" Nothing)
                  Create of
              ParticipantRecordAction Create [Upsert m "1", NoAction m2] ->
@@ -82,7 +81,6 @@ tests = testGroup "Databrary.Controller.Ingest"
            @? "Expected create with upsert id val to 1 and no action gender")
     , testCase "buildParticipantRecordAction-4"
         ((case buildParticipantRecordAction
-                 [participantMetricId, participantMetricGender]
                  (participantRecordIdGender "1" Nothing)
                  (Found (blankRecord undefined undefined)) of
              ParticipantRecordAction (Found _) [Upsert m "1", Delete m2] ->

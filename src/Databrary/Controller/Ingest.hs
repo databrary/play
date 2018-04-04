@@ -161,7 +161,7 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
                         Left err ->   -- invalid value in row
                             pure (response badRequest400 [] err)
                         Right (hdrs, records) -> do
-                            eRes <- runImport participantActiveMetrics v records
+                            eRes <- runImport v records
                             pure
                                 $ okResponse []
                                     $ JSON.recordEncoding -- TODO: not record encoding
@@ -173,9 +173,9 @@ mappingParser val = do
     pure (fmap (\e -> (hmeMetric e, hmeCsvField e)) entries)
 
  -- TODO: error or count
-runImport :: [Metric] -> Volume -> Vector ParticipantRecord -> ActionM (Vector ())
-runImport activeMetrics vol records =
-    mapM (createOrUpdateRecord activeMetrics vol) records
+runImport :: Volume -> Vector ParticipantRecord -> ActionM (Vector ())
+runImport vol records =
+    mapM (createOrUpdateRecord vol) records
 
 data ParticipantStatus = Create | Found Record
     -- deriving (Show, Eq)
@@ -186,25 +186,24 @@ data MeasureUpdateAction = Upsert Metric MeasureDatum | Delete Metric | Unchange
 data ParticipantRecordAction = ParticipantRecordAction ParticipantStatus [MeasureUpdateAction]
     -- deriving (Show, Eq)
 
-buildParticipantRecordAction
-    :: [Metric] -> ParticipantRecord -> ParticipantStatus -> ParticipantRecordAction
-buildParticipantRecordAction participantActiveMetrics participantRecord updatingRecord =
+buildParticipantRecordAction :: ParticipantRecord -> ParticipantStatus -> ParticipantRecordAction
+buildParticipantRecordAction participantRecord updatingRecord =
     let
-        mId = getFieldVal' prdId "id"
-        mInfo = getFieldVal' prdInfo "info"
-        mDescription = getFieldVal' prdDescription "description"
-        mBirthdate = getFieldVal' prdBirthdate "birthdate"
-        mGender = getFieldVal' prdGender "gender"
-        mRace = getFieldVal' prdRace "race"
-        mEthnicity = getFieldVal' prdEthnicity "ethnicity"
-        mGestationalAge = getFieldVal' prdGestationalAge "gestationalage"
-        mPregnancyTerm = getFieldVal' prdPregnancyTerm "pregnancyterm"
-        mBirthWeight = getFieldVal' prdBirthWeight "birthweight"
-        mDisability = getFieldVal' prdDisability "disability"
-        mLanguage = getFieldVal' prdLanguage "language"
-        mCountry = getFieldVal' prdCountry "country"
-        mState = getFieldVal' prdState "state"
-        mSetting = getFieldVal' prdSetting "setting"
+        mId = getFieldVal' prdId participantMetricId
+        mInfo = getFieldVal' prdInfo participantMetricInfo
+        mDescription = getFieldVal' prdDescription participantMetricDescription
+        mBirthdate = getFieldVal' prdBirthdate participantMetricBirthdate
+        mGender = getFieldVal' prdGender participantMetricGender
+        mRace = getFieldVal' prdRace participantMetricRace
+        mEthnicity = getFieldVal' prdEthnicity participantMetricEthnicity
+        mGestationalAge = getFieldVal' prdGestationalAge participantMetricGestationalAge
+        mPregnancyTerm = getFieldVal' prdPregnancyTerm participantMetricPregnancyTerm
+        mBirthWeight = getFieldVal' prdBirthWeight participantMetricBirthWeight
+        mDisability = getFieldVal' prdDisability participantMetricDisability
+        mLanguage = getFieldVal' prdLanguage participantMetricLanguage
+        mCountry = getFieldVal' prdCountry participantMetricCountry
+        mState = getFieldVal' prdState participantMetricState
+        mSetting = getFieldVal' prdSetting participantMetricSetting
         -- print ("save measure id:", mId)
         measureActions =
             [ changeRecordMeasureIfUsed mId
@@ -241,34 +240,27 @@ buildParticipantRecordAction participantActiveMetrics participantRecord updating
                  -- action = maybe (Upsert val) (\o -> if o == val then Unchanged else Upsert val)
                  let measureAction = maybe (Delete met) (Upsert met) mVal
                  measureAction
-    getFieldVal' :: (ParticipantRecord -> Maybe (Maybe (a, MeasureDatum))) -> Text -> Maybe (Maybe MeasureDatum, Metric)
-    getFieldVal' = getFieldVal participantActiveMetrics participantRecord
+    getFieldVal' :: (ParticipantRecord -> Maybe (Maybe (a, MeasureDatum))) -> Metric -> Maybe (Maybe MeasureDatum, Metric)
+    getFieldVal' = getFieldVal participantRecord
 
 getFieldVal
-    :: [Metric]
-    -> ParticipantRecord 
+    :: ParticipantRecord 
     -> (ParticipantRecord -> Maybe (Maybe (a, MeasureDatum)))
-    -> Text
+    -> Metric
     -> Maybe (Maybe MeasureDatum, Metric)
-getFieldVal participantActiveMetrics participantRecord extractFieldVal metricSymbolicName =
+getFieldVal participantRecord extractFieldVal metric =
     case extractFieldVal participantRecord of
         Just (Just (_, fieldVal)) ->
-            pure (Just fieldVal, findMetricBySymbolicName metricSymbolicName) -- <<<<<<<< lookup metric
+            pure (Just fieldVal, metric)
         Just Nothing ->
-            pure (Nothing,  findMetricBySymbolicName metricSymbolicName)
+            pure (Nothing, metric)
         Nothing ->
             Nothing -- field isn't used by this volume, so don't need to save the measure
-  where
-    findMetricBySymbolicName :: Text -> Metric  -- TODO: copied from above, move to shared function
-    findMetricBySymbolicName symbolicName =
-        (  fromJust
-         . L.find (\m -> (T.filter (/= ' ') . T.toLower . metricName) m == symbolicName))
-        participantActiveMetrics
         
-createOrUpdateRecord :: [Metric] -> Volume -> ParticipantRecord -> ActionM () -- TODO: error or record
-createOrUpdateRecord participantActiveMetrics vol participantRecord = do
+createOrUpdateRecord :: Volume -> ParticipantRecord -> ActionM () -- TODO: error or record
+createOrUpdateRecord vol participantRecord = do
     let participantCategory = getCategory' (Id 1) -- TODO: use global variable
-        (mIdVal, idMetric) = maybe (error "id missing") id (getFieldVal' prdId "id")
+        (mIdVal, idMetric) = maybe (error "id missing") id (getFieldVal' prdId participantMetricId)
         idVal = maybe (error "id empty") id mIdVal
     mOldParticipant <- lookupVolumeParticipant vol idVal
     let recordStatus =
@@ -276,7 +268,7 @@ createOrUpdateRecord participantActiveMetrics vol participantRecord = do
                 Nothing -> Create
                 Just oldParticipant -> Found oldParticipant
     -- print ("save measure id:", mId)
-    case buildParticipantRecordAction participantActiveMetrics participantRecord recordStatus of
+    case buildParticipantRecordAction participantRecord recordStatus of
         ParticipantRecordAction Create measureActs -> do
             newParticipantShell <- addRecord (blankRecord participantCategory vol) -- blankParticipantRecord
             _ <- mapM (runMeasureUpdate newParticipantShell) measureActs
@@ -292,5 +284,5 @@ createOrUpdateRecord participantActiveMetrics vol participantRecord = do
             Delete met -> fmap Just (removeRecordMeasure (Measure record met ""))
             Unchanged _ -> pure Nothing
             NoAction _ -> pure Nothing
-    getFieldVal' :: (ParticipantRecord -> Maybe (Maybe (a, MeasureDatum))) -> Text -> Maybe (Maybe MeasureDatum, Metric)
-    getFieldVal' = getFieldVal participantActiveMetrics participantRecord
+    getFieldVal' :: (ParticipantRecord -> Maybe (Maybe (a, MeasureDatum))) -> Metric -> Maybe (Maybe MeasureDatum, Metric)
+    getFieldVal' = getFieldVal participantRecord
