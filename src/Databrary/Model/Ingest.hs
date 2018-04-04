@@ -8,14 +8,24 @@ module Databrary.Model.Ingest
   , lookupIngestAsset
   , addIngestAsset
   , replaceSlotAsset
+  , checkDetermineMapping
+  , attemptParseRows
+  , extractColumnsDistinctSampleJson
+  , extractColumnsInitialJson
   , HeaderMappingEntry(..)
+  , participantFieldMappingToJSON
   , parseParticipantFieldMapping
+  -- for testing:
+  , determineMapping
   ) where
 
 import Control.Monad (when)
 import qualified Data.ByteString as BS
-import qualified Data.Csv as CSV
+import qualified Data.ByteString.Lazy as BSL
+import qualified Data.Csv as Csv
+import Data.Csv hiding (Record)
 import qualified Data.List as L
+import Data.Maybe (catMaybes)
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
@@ -32,10 +42,10 @@ import Data.ByteString (ByteString)
 import qualified Data.String
 import Data.Vector (Vector)
 
-import Data.Csv.Contrib (extractColumnsDistinctSample)
+import Data.Csv.Contrib (extractColumnsDistinctSample, extractColumnDefaulting, decodeCsvByNameWith, extractColumnsInitialRows)
 import Databrary.Service.DB
 import qualified Databrary.JSON as JSON
-import Databrary.JSON (FromJSON(..))
+import Databrary.JSON (FromJSON(..), ToJSON(..))
 import Databrary.Model.SQL (selectQuery)
 import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
@@ -348,10 +358,97 @@ replaceSlotAsset o n = do
       (assetId $ assetRow n) (assetId $ assetRow o))
             (\ [] -> ()))
 
-extractColumnsDistinctSampleJson :: Int -> CSV.Header -> Vector CSV.NamedRecord -> [JSON.Value]
+checkDetermineMapping :: [Metric] -> [Text] -> BS.ByteString -> Either String ParticipantFieldMapping2
+checkDetermineMapping participantActiveMetrics csvHeaders csvContents = do
+    -- return skipped columns or not?
+    mpng <- determineMapping participantActiveMetrics csvHeaders
+    _ <- attemptParseRows mpng csvContents
+    pure mpng
+
+attemptParseRows
+    :: ParticipantFieldMapping2 -> BS.ByteString -> Either String (Csv.Header, Vector ParticipantRecord)
+attemptParseRows participantFieldMapping contents =
+    decodeCsvByNameWith (participantRecordParseNamedRecord participantFieldMapping) contents
+
+participantRecordParseNamedRecord :: ParticipantFieldMapping2 -> Csv.NamedRecord -> Parser ParticipantRecord
+participantRecordParseNamedRecord fieldMap m = do
+    mId <- extractIfUsed2 (lookupField participantMetricId) validateParticipantId
+    mInfo <- extractIfUsed2 (lookupField participantMetricInfo) validateParticipantInfo
+    mDescription <- extractIfUsed2 (lookupField participantMetricDescription) validateParticipantDescription
+    mBirthdate <- extractIfUsed2 (lookupField participantMetricBirthdate) validateParticipantBirthdate
+    mGender <- extractIfUsed2 (lookupField participantMetricGender) validateParticipantGender
+    mRace <- extractIfUsed2 (lookupField participantMetricRace) validateParticipantRace
+    mEthnicity <- extractIfUsed2 (lookupField participantMetricEthnicity) validateParticipantEthnicity
+    mGestationalAge <- extractIfUsed2 (lookupField participantMetricGestationalAge) validateParticipantGestationalAge
+    mPregnancyTerm <- extractIfUsed2 (lookupField participantMetricPregnancyTerm) validateParticipantPregnancyTerm
+    mBirthWeight <- extractIfUsed2 (lookupField participantMetricBirthWeight) validateParticipantBirthWeight
+    mDisability <- extractIfUsed2 (lookupField participantMetricDisability) validateParticipantDisability
+    mLanguage <- extractIfUsed2 (lookupField participantMetricLanguage) validateParticipantLanguage
+    mCountry <- extractIfUsed2 (lookupField participantMetricCountry) validateParticipantCountry
+    mState <- extractIfUsed2 (lookupField participantMetricState) validateParticipantState
+    mSetting <- extractIfUsed2 (lookupField participantMetricSetting) validateParticipantSetting
+    pure
+        (ParticipantRecord
+            { prdId = mId
+            , prdInfo = mInfo
+            , prdDescription = mDescription
+            , prdBirthdate = mBirthdate
+            , prdGender = mGender
+            , prdRace = mRace
+            , prdEthnicity = mEthnicity
+            , prdGestationalAge = mGestationalAge
+            , prdPregnancyTerm = mPregnancyTerm
+            , prdBirthWeight = mBirthWeight
+            , prdDisability = mDisability
+            , prdLanguage = mLanguage
+            , prdCountry = mCountry
+            , prdState = mState
+            , prdSetting = mSetting
+            } )
+  where
+    extractIfUsed2
+      :: (ParticipantFieldMapping2 -> Maybe Text)
+      -> (BS.ByteString -> Maybe (Maybe a))
+      -> Parser (Maybe (Maybe (a, MeasureDatum)))
+    extractIfUsed2 maybeGetField validateValue = do
+        case maybeGetField fieldMap of
+            Just colName -> do
+                contents <- m .: (TE.encodeUtf8 colName)
+                maybe
+                    (fail ("invalid value for " ++ show colName ++ ", found " ++ show contents))
+                    (\mV -> pure (Just (fmap (\v -> (v, contents)) mV)))
+                    (validateValue contents)
+            Nothing ->
+                pure Nothing
+    
+
+-- verify that all expected columns are present, with some leniency in matching
+-- left if no match possible
+determineMapping :: [Metric] -> [Text] -> Either String ParticipantFieldMapping2
+determineMapping participantActiveMetrics csvHeaders = do
+    (columnMatches :: [Text]) <- traverse (detectMetricMatch csvHeaders) participantActiveMetrics
+    mkParticipantFieldMapping2 (zip participantActiveMetrics columnMatches)
+  where
+    detectMetricMatch :: [Text] -> Metric -> Either String Text
+    detectMetricMatch hdrs metric =
+        case L.find (\h -> columnMetricCompatible h metric) hdrs of
+            Just hdr -> Right hdr
+            Nothing -> Left ("no compatible header found for metric: " ++ (show . metricName) metric)
+
+columnMetricCompatible :: Text -> Metric -> Bool
+columnMetricCompatible hdr metric =
+    (T.filter (/= ' ') . T.toLower . metricName) metric == T.toLower hdr
+
+extractColumnsDistinctSampleJson :: Int -> Csv.Header -> Vector Csv.NamedRecord -> [JSON.Value]
 extractColumnsDistinctSampleJson maxSamples hdrs records =
     ( fmap (\(colHdr, vals) -> columnSampleJson colHdr vals)
     . extractColumnsDistinctSample maxSamples hdrs)
+    records
+
+extractColumnsInitialJson :: Int -> Csv.Header -> Vector Csv.NamedRecord -> [JSON.Value]
+extractColumnsInitialJson maxRows hdrs records =
+    ( fmap (\(colHdr, vals) -> columnSampleJson colHdr vals)
+    . extractColumnsInitialRows maxRows hdrs )
     records
 
 data HeaderMappingEntry =
@@ -373,36 +470,21 @@ instance FromJSON HeaderMappingEntry where
                      Nothing ->
                          fail ("metric name does not match any participant metric: " ++ show metricCanonicalName))
 
-parseParticipantFieldMapping :: [Metric] -> [BS.ByteString] -> Map Metric Text -> Either String ParticipantFieldMapping
-parseParticipantFieldMapping volParticipantActiveMetrics colHdrs requestedMapping = do
-    -- TODO: generate error or warning if metrics provided that are actually used on the volume?
-    when (((length . Map.elems) requestedMapping) /= ((length . L.nub . Map.elems) requestedMapping)) (fail "columns values not unique")
-    ParticipantFieldMapping
-        <$> getFieldIfUsed participantMetricId
-        <*> getFieldIfUsed participantMetricInfo
-        <*> getFieldIfUsed participantMetricDescription
-        <*> getFieldIfUsed participantMetricBirthdate
-        <*> getFieldIfUsed participantMetricGender
-        <*> getFieldIfUsed participantMetricRace
-        <*> getFieldIfUsed participantMetricEthnicity
-        <*> getFieldIfUsed participantMetricGestationalAge -- have spaces
-        <*> getFieldIfUsed participantMetricPregnancyTerm  -- space
-        <*> getFieldIfUsed participantMetricBirthWeight -- space
-        <*> getFieldIfUsed participantMetricDisability
-        <*> getFieldIfUsed participantMetricLanguage
-        <*> getFieldIfUsed participantMetricCountry
-        <*> getFieldIfUsed participantMetricState
-        <*> getFieldIfUsed participantMetricSetting
+participantFieldMappingToJSON :: ParticipantFieldMapping2 -> JSON.Value
+participantFieldMappingToJSON fldMap =
+    -- didn't use tojson to avoid orphan warning. didn't move tojson to metric.types because of circular ref to metric instances
+    (toJSON . fmap fieldToEntry . Map.toList . pfmGetMapping) fldMap
   where
-    getFieldIfUsed :: Metric -> Either String (Maybe Text)
-    getFieldIfUsed participantMetric =
-        if participantMetric `elem` volParticipantActiveMetrics
-        then 
-            case Map.lookup participantMetric requestedMapping of
-                Just csvField ->
-                    if (TE.encodeUtf8 csvField) `elem` colHdrs
-                    then pure (Just csvField)
-                    else fail ("unknown column (" ++ (show csvField) ++ ") for metric (" ++ (show . metricName) participantMetric)
-                Nothing -> fail ("missing expected participant metric:" ++ (show . metricName) participantMetric)
-        else
-            pure Nothing
+    fieldToEntry :: (Metric, Text) -> JSON.Value
+    fieldToEntry (metric, colName) =
+        (JSON.object
+            [ "metric" JSON..= (T.filter (/= ' ') . T.toLower . metricName) metric -- TODO: use shared function
+            , "compatible_csv_fields" JSON..= [colName] -- change to single value soon
+            ])
+
+parseParticipantFieldMapping :: [Metric] -> [(Metric, Text)] -> Either String ParticipantFieldMapping2
+parseParticipantFieldMapping volParticipantActiveMetrics requestedMapping = do
+    when (   length volParticipantActiveMetrics /= length requestedMapping
+          || L.sort volParticipantActiveMetrics /= (L.sort . fmap fst) requestedMapping)
+        (Left "The requested metric mapping does not completely match the required volume metrics")
+    mkParticipantFieldMapping2 requestedMapping

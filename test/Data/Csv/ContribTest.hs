@@ -22,4 +22,20 @@ tests = testGroup "Data.Csv.ContribTest"
               , (HMP.fromList [("c1", "val2")])
               ])
            @?= [("c1", ["val1"])])
+    , testCase "repairCarriageReturnOnly-1"
+        (repairCarriageReturnOnly "abc\r\n" @?= "abc\r\n")
+    , testCase "repairCarriageReturnOnly-2"
+        (repairCarriageReturnOnly "abc\r" @?= "abc\r\n")
+    , testCase "repairDuplicateLineEndings-fix"
+        (repairDuplicateLineEndings "abc\r\r\n" @?= "abc\r\n")
+    , testCase "repairDuplicateLineEndings-nofix"
+        (repairDuplicateLineEndings "abc\r\n" @?= "abc\r\n")
+    , testCase "removeBomPrefix-fix"
+        (removeBomPrefix "\357\273\277abc" @?= "abc")
+    , testCase "removeBomPrefix-nofix"
+        (removeBomPrefix "abc" @?= "abc")
+    , testCase "removeBomPrefixText-fix"
+        (removeBomPrefixText "\65279abc" @?= "abc")
+    , testCase "removeBomPrefixText-nofix"
+        (removeBomPrefixText "abc" @?= "abc")
     ]
