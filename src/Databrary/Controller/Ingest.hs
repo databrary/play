@@ -180,7 +180,7 @@ runImport activeMetrics vol records =
 data ParticipantStatus = Create | Found Record
     -- deriving (Show, Eq)
 
-data MeasureUpdateAction = Upsert Metric (Maybe MeasureDatum) | Unchanged
+data MeasureUpdateAction = Upsert Metric MeasureDatum | Delete Metric | Unchanged Metric | NoAction Metric
     deriving (Show, Eq)
 
 data ParticipantRecordAction = ParticipantRecordAction ParticipantStatus [MeasureUpdateAction]
@@ -234,12 +234,12 @@ buildParticipantRecordAction participantActiveMetrics participantRecord updating
     determineUpdatedMeasure mVal met =
         case updatingRecord of
             Create ->
-                Upsert met mVal
+                maybe (NoAction met) (Upsert met) mVal
             Found record -> do
                  -- TODO: 
                  -- mOldVal <- getOldVal metric record
                  -- action = maybe (Upsert val) (\o -> if o == val then Unchanged else Upsert val)
-                 let measureAction = Upsert met mVal
+                 let measureAction = maybe (Delete met) (Upsert met) mVal
                  measureAction
     getFieldVal' :: (ParticipantRecord -> Maybe (Maybe (a, MeasureDatum))) -> Text -> Maybe (Maybe MeasureDatum, Metric)
     getFieldVal' = getFieldVal participantActiveMetrics participantRecord
@@ -288,8 +288,9 @@ createOrUpdateRecord participantActiveMetrics vol participantRecord = do
     runMeasureUpdate :: Record -> MeasureUpdateAction -> ActionM (Maybe Record)
     runMeasureUpdate record act =
         case act of
-            Upsert met (Just val) -> changeRecordMeasure (Measure record met val)
-            Upsert met Nothing -> pure Nothing -- TODO: conditionally delete if prior value was set
-            Unchanged -> pure Nothing
+            Upsert met val -> changeRecordMeasure (Measure record met val)
+            Delete met -> fmap Just (removeRecordMeasure (Measure record met ""))
+            Unchanged _ -> pure Nothing
+            NoAction _ -> pure Nothing
     getFieldVal' :: (ParticipantRecord -> Maybe (Maybe (a, MeasureDatum))) -> Text -> Maybe (Maybe MeasureDatum, Metric)
     getFieldVal' = getFieldVal participantActiveMetrics participantRecord
