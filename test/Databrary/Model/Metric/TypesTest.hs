@@ -1,70 +1,48 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Model.Metric.TypesTest where
 
+import Data.Text (Text)
 import Test.Tasty
 import Test.Tasty.HUnit
 
 import Databrary.Model.Metric.Types
+import Databrary.Model.Metric
 
-participantFieldMapping1 :: ParticipantFieldMapping
+mkParticipantFieldMapping2' :: [(Metric, Text)] -> ParticipantFieldMapping2
+mkParticipantFieldMapping2' ms =
+    let Right mp = mkParticipantFieldMapping2 ms
+    in mp
+
+participantFieldMapping1 :: ParticipantFieldMapping2
 participantFieldMapping1 =
-    ParticipantFieldMapping
-        { pfmId = Just "col1"
-        , pfmInfo = Nothing
-        , pfmDescription = Nothing
-        , pfmBirthdate = Nothing
-        , pfmGender = Just "col2"
-        , pfmRace = Nothing
-        , pfmEthnicity = Nothing
-        , pfmGestationalAge = Nothing
-        , pfmPregnancyTerm = Nothing
-        , pfmBirthWeight = Nothing
-        , pfmDisability = Nothing
-        , pfmLanguage = Nothing
-        , pfmCountry = Nothing
-        , pfmState = Nothing
-        , pfmSetting = Nothing
-        }
+    mkParticipantFieldMapping2'
+      [ (participantMetricId, "col1")
+      , (participantMetricGender, "col2")
+      ]
 
-participantFieldMappingAll :: ParticipantFieldMapping
+participantFieldMappingAll :: ParticipantFieldMapping2
 participantFieldMappingAll =
-    ParticipantFieldMapping
-        { pfmId = Just "id"
-        , pfmInfo = Just "info"
-        , pfmDescription = Just "description"
-        , pfmBirthdate = Just "birthdate"
-        , pfmGender = Just "gender"
-        , pfmRace = Just "race"
-        , pfmEthnicity = Just "ethnicity"
-        , pfmGestationalAge = Just "gestationalage"
-        , pfmPregnancyTerm = Just "pregnancyterm"
-        , pfmBirthWeight = Just "birthweight"
-        , pfmDisability = Just "disability"
-        , pfmLanguage = Just "language"
-        , pfmCountry = Just "country"
-        , pfmState = Just "state"
-        , pfmSetting = Just "setting"
-        }
+    mkParticipantFieldMapping2'
+      [ (participantMetricId, "id")
+      , (participantMetricInfo, "info")
+      , (participantMetricDescription, "description")
+      , (participantMetricBirthdate, "birthdate")
+      , (participantMetricGender, "gender")
+      , (participantMetricRace, "race")
+      , (participantMetricEthnicity, "ethnicity")
+      , (participantMetricGestationalAge, "gestationalage")
+      , (participantMetricPregnancyTerm, "pregnancyterm")
+      , (participantMetricBirthWeight, "birthweight")
+      , (participantMetricDisability, "disability")
+      , (participantMetricLanguage, "language")
+      , (participantMetricCountry, "country")
+      , (participantMetricState, "state")
+      , (participantMetricSetting, "setting")
+      ]
 
-emptyParticipantFieldMapping :: ParticipantFieldMapping
+emptyParticipantFieldMapping :: ParticipantFieldMapping2
 emptyParticipantFieldMapping =
-    ParticipantFieldMapping
-        { pfmId = Nothing
-        , pfmInfo = Nothing
-        , pfmDescription = Nothing
-        , pfmBirthdate = Nothing
-        , pfmGender = Nothing
-        , pfmRace = Nothing
-        , pfmEthnicity = Nothing
-        , pfmGestationalAge = Nothing
-        , pfmPregnancyTerm = Nothing
-        , pfmBirthWeight = Nothing
-        , pfmDisability = Nothing
-        , pfmLanguage = Nothing
-        , pfmCountry = Nothing
-        , pfmState = Nothing
-        , pfmSetting = Nothing
-        }
+    mkParticipantFieldMapping2' []
 
 tests :: TestTree
 tests = testGroup "Databrary.Model.Metric.Types"

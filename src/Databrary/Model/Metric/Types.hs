@@ -4,14 +4,20 @@ module Databrary.Model.Metric.Types
   ( MeasureDatum
   , MeasureType(..)
   , Metric(..)
-  , ParticipantFieldMapping(..)
+  , ParticipantFieldMapping2(..)
+  , mkParticipantFieldMapping2
+  , lookupField
   -- for tests
   , testMetric1
   , testMeasureType1
   ) where
 
+import Control.Monad (when)
 import qualified Data.ByteString as BS
 import Data.Function (on)
+import qualified Data.List as L
+import Data.Map (Map)
+import qualified Data.Map as Map
 import Data.Ord (comparing)
 import qualified Data.Text as T
 import Data.Text (Text)
@@ -115,25 +121,19 @@ instance Ord Metric where
 makeHasRec ''Metric ['metricId, 'metricCategory, 'metricRelease, 'metricType]
 deriveLiftMany [''MeasureType, ''Metric]
 
-data ParticipantFieldMapping =  -- each field can be nothing = not used, or just "colname" for selected column match
-    ParticipantFieldMapping -- are all of these maybe or are some required?
-        { pfmId :: !(Maybe Text)
-        , pfmInfo :: !(Maybe Text)
-        , pfmDescription :: !(Maybe Text)
-        , pfmBirthdate :: !(Maybe Text)
-        , pfmGender :: !(Maybe Text)
-        , pfmRace :: !(Maybe Text)
-        , pfmEthnicity :: !(Maybe Text)
-        , pfmGestationalAge :: !(Maybe Text)
-        , pfmPregnancyTerm :: !(Maybe Text)
-        , pfmBirthWeight :: !(Maybe Text)
-        , pfmDisability :: !(Maybe Text)
-        , pfmLanguage :: !(Maybe Text)
-        , pfmCountry :: !(Maybe Text)
-        , pfmState :: !(Maybe Text)
-        , pfmSetting :: !(Maybe Text)
-        } 
-    deriving (Show, Eq, Ord)
+mkParticipantFieldMapping2 :: [(Metric, Text)] -> Either String ParticipantFieldMapping2
+mkParticipantFieldMapping2 metricColumn = do
+    let mpng = Map.fromList metricColumn
+        columns = Map.elems mpng
+    when (length (L.nub columns) /= length columns) (Left "columns mapped to are not unique")
+    -- should we enforce minimum required metrics, such as requiring id?
+    (pure . ParticipantFieldMapping2) mpng
+
+lookupField :: Metric -> ParticipantFieldMapping2 -> Maybe Text
+lookupField m (ParticipantFieldMapping2 mp) = Map.lookup m mp
+
+newtype ParticipantFieldMapping2 = ParticipantFieldMapping2 { pfmGetMapping :: (Map Metric Text) }
+    deriving (Eq, Show)
 
 testMeasureType1 :: MeasureType
 testMeasureType1 = MeasureTypeText

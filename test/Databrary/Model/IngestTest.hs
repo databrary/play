@@ -21,14 +21,13 @@ import Databrary.Model.Record.TypesTest
 tests :: TestTree
 tests = testGroup "Databrary.Model.Ingest"
     [ testCase "parseParticipantFieldMapping-1"
-        (parseParticipantFieldMapping [] (Map.fromList []) @?= Right emptyParticipantFieldMapping)
+        (parseParticipantFieldMapping [] [] @?= Right emptyParticipantFieldMapping)
     , testCase "parseParticipantFieldMapping-2"
         (parseParticipantFieldMapping
            [participantMetricId, participantMetricGender]
-           (Map.fromList
-                [ (participantMetricId, "col1")
-                , (participantMetricGender, "col2")
-                ])
+           [ (participantMetricId, "col1")
+           , (participantMetricGender, "col2")
+           ]
            @?= Right participantFieldMapping1)
     , testCase "participantFieldMappingToJSON"
         (participantFieldMappingToJSON emptyParticipantFieldMapping @?= Aeson.toJSON ([] :: [Bool]))
@@ -72,10 +71,14 @@ allValuesOneRow =
     ",\"Hispanic or Latino\",2.5,\"Preterm\",10.5" <>
     ",\"normal\",\"English\",\"USA\",\"MA\",\"Lab\"\n"
 
-participantFieldMappingId :: ParticipantFieldMapping
-participantFieldMappingId = emptyParticipantFieldMapping { pfmId = Just "id" }
+participantFieldMappingId :: ParticipantFieldMapping2
+participantFieldMappingId = mkParticipantFieldMapping2' [(participantMetricId, "id")]
 
-participantFieldMappingIdGender :: ParticipantFieldMapping
-participantFieldMappingIdGender = emptyParticipantFieldMapping { pfmId = Just "id", pfmGender = Just "gender" }
+participantFieldMappingIdGender :: ParticipantFieldMapping2
+participantFieldMappingIdGender =
+    mkParticipantFieldMapping2'
+        [ (participantMetricId, "id")
+        , (participantMetricGender, "gender")
+        ]
 
 

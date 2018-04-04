@@ -18,10 +18,10 @@ import Databrary.Model.Record.TypesTest
 tests :: TestTree
 tests = testGroup "Databrary.Controller.Ingest"
     [ testCase "parseMapping-1"
-        ((parseEither mappingParser ((MB.fromJust . decode) "[]" :: Value)) @?= (Right (Map.fromList [])))
+        ((parseEither mappingParser ((MB.fromJust . decode) "[]" :: Value)) @?= (Right []))
     , testCase "parseMapping-2"
         ((parseEither mappingParser ((MB.fromJust . decode) "[{\"csv_field\": \"col1\", \"metric\": \"id\"}]" :: Value))
-           @?= (Right (Map.fromList [(participantMetricId, "col1")])))
+           @?= (Right [(participantMetricId, "col1")]))
     , testCase "buildParticipantRecordAction-1"
         ((case buildParticipantRecordAction [participantMetricId] (participantRecordId "1") Create of
              ParticipantRecordAction Create [Upsert m "1"] ->

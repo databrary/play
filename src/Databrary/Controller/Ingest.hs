@@ -167,10 +167,10 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
                                     $ JSON.recordEncoding -- TODO: not record encoding
                                         $ JSON.Record vi $ "succeeded" JSON..= True
 
-mappingParser :: JSON.Value -> JSON.Parser (Map Metric Text)
+mappingParser :: JSON.Value -> JSON.Parser [(Metric, Text)]
 mappingParser val = do
     (entries :: [HeaderMappingEntry]) <- JSON.parseJSON val
-    pure ((Map.fromList . fmap (\e -> (hmeMetric e, hmeCsvField e))) entries)
+    pure (fmap (\e -> (hmeMetric e, hmeCsvField e)) entries)
 
  -- TODO: error or count
 runImport :: [Metric] -> Volume -> Vector ParticipantRecord -> ActionM (Vector ())

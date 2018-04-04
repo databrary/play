@@ -545,6 +545,7 @@ test-suite databrary-test
     , tasty
     , tasty-expected-failure
     , tasty-hunit
+    , text
     , unordered-containers
     , vector
   ghc-options: -Wall -Wcompat -Wredundant-constraints
