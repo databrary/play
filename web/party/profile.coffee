@@ -191,7 +191,7 @@ app.controller 'party/profile', [
       volumeSort =
         switch b
           when 'name' then (a,b) -> stringSort(a.volume.displayName, b.volume.displayName)
-          when 'access' then (a,b) -> b.volume.accessPreset - a.volume.accessPreset || b.volume.permission - a.volume.permission || stringSort(a.volume.displayName, b.volume.displayName)
+          when 'access' then (a,b) -> b.volume.accessPreset - a.volume.accessPreset || b.self.children - a.self.children || b.volume.permission - a.volume.permission || stringSort(a.volume.displayName, b.volume.displayName)
           when 'permission' then (a,b) -> b.volume.permission - a.volume.permission || stringSort(a.volume.displayName, b.volume.displayName)
       volumes.individual.sort(volumeSort)
       volumes.collaborator.sort(volumeSort)
