@@ -47,6 +47,7 @@ import Databrary.Model.Ingest
 import Databrary.Model.Permission
 import Databrary.Model.Measure
 import Databrary.Model.Metric
+import Databrary.Model.Party
 import Databrary.Model.Record
 import Databrary.Model.Volume
 import Databrary.Model.VolumeMetric
@@ -102,6 +103,7 @@ maxWidelyAcceptableHttpBodyFileSize = 16*1024*1024
 detectParticipantCSV :: ActionRoute (Id Volume)
 detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCSV") $ \vi -> withAuth $ do
     v <- getVolume PermissionEDIT vi
+    (auth :: SiteAuth) <- peek
     csvFileInfo <-
       -- TODO: is Nothing okay here?
       runFormFiles [("file", maxWidelyAcceptableHttpBodyFileSize)] (Nothing :: Maybe (RequestContext -> FormHtml TL.Text)) $ do
@@ -125,16 +127,30 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
                     -- if column check failed, then don't save csv file and response is error
                     pure (response badRequest400 [] err)
                 Right participantFieldMapping -> do
-                    let uploadFileName = (BSC.unpack . fileName) csvFileInfo  -- TODO: add prefix to filename
+                    let uploadFileName =
+                            uniqueUploadName auth v ((BSC.unpack . fileName) csvFileInfo)
                     liftIO (BS.writeFile ("/tmp/" ++ uploadFileName) uploadFileContents')
                     pure
                         $ okResponse []
                             $ JSON.recordEncoding -- TODO: not record encoding
                                 $ JSON.Record vi
                                     $      "csv_upload_id" JSON..= uploadFileName
+                                        -- TODO: samples for mapped columns only
                                         <> "column_samples" JSON..= extractColumnsDistinctSampleJson 5 hdrs records
                                         <> "suggested_mapping" JSON..= participantFieldMappingToJSON participantFieldMapping
                                         <> "columns_firstvals" JSON..= extractColumnsInitialJson 5 hdrs records
+
+-- TODO: move this to Databrary.Store.ParticipantUploadTemp
+uniqueUploadName :: SiteAuth -> Volume -> String -> String
+uniqueUploadName siteAuth vol uploadName =
+    uniqueUploadName'
+        ((partyId . partyRow . accountParty . siteAccount) siteAuth)
+        ((volumeId . volumeRow) vol)
+        uploadName
+
+uniqueUploadName' :: Id Party -> Id Volume -> String -> String
+uniqueUploadName' uid vid uploadName =
+    show uid <> "-" <> show vid <> "-" <> uploadName
 
 runParticipantUpload :: ActionRoute (Id Volume)
 runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUpload") $ \vi -> withAuth $ do
