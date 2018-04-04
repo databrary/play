@@ -62,6 +62,7 @@ import Databrary.Controller.Paths
 import Databrary.Controller.Permission
 import Databrary.Controller.Form
 import Databrary.Controller.Volume
+import Databrary.Store.Types
 import Databrary.View.Form (FormHtml)
 import Databrary.View.Ingest
 
@@ -104,6 +105,7 @@ detectParticipantCSV :: ActionRoute (Id Volume)
 detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCSV") $ \vi -> withAuth $ do
     v <- getVolume PermissionEDIT vi
     (auth :: SiteAuth) <- peek
+    (store :: Storage) <- peek
     csvFileInfo <-
       -- TODO: is Nothing okay here?
       runFormFiles [("file", maxWidelyAcceptableHttpBodyFileSize)] (Nothing :: Maybe (RequestContext -> FormHtml TL.Text)) $ do
@@ -129,7 +131,10 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
                 Right participantFieldMapping -> do
                     let uploadFileName =
                             uniqueUploadName auth v ((BSC.unpack . fileName) csvFileInfo)
-                    liftIO (BS.writeFile ("/tmp/" ++ uploadFileName) uploadFileContents')
+                    liftIO
+                        (BS.writeFile
+                             ((BSC.unpack . getStorageTempParticipantUpload uploadFileName) store)
+                             uploadFileContents')
                     pure
                         $ okResponse []
                             $ JSON.recordEncoding -- TODO: not record encoding
@@ -151,10 +156,12 @@ uniqueUploadName siteAuth vol uploadName =
 uniqueUploadName' :: Id Party -> Id Volume -> String -> String
 uniqueUploadName' uid vid uploadName =
     show uid <> "-" <> show vid <> "-" <> uploadName
+----- end
 
 runParticipantUpload :: ActionRoute (Id Volume)
 runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUpload") $ \vi -> withAuth $ do
     v <- getVolume PermissionEDIT vi
+    (store :: Storage) <- peek
     -- reqCtxt <- peek
     (csvUploadId :: String, selectedMapping :: JSON.Value) <- runForm (Nothing) $ do
         csrfForm
@@ -162,7 +169,8 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
         mapping <- "selected_mapping" .:> deform
         pure (uploadId, mapping)
     -- TODO: resolve csv id to absolute path; http error if unknown
-    uploadFileContents <- (liftIO . BS.readFile) ("/tmp/" ++ csvUploadId)
+    uploadFileContents <-
+        (liftIO . BS.readFile) ((BSC.unpack . getStorageTempParticipantUpload csvUploadId) store)
     case JSON.parseEither mappingParser selectedMapping of
         Left err ->
             pure (response badRequest400 [] err) -- bad json shape or keys
@@ -188,6 +196,7 @@ mappingParser val = do
     (entries :: [HeaderMappingEntry]) <- JSON.parseJSON val
     pure (fmap (\e -> (hmeMetric e, hmeCsvField e)) entries)
 
+-- TODO: move all below to Model.Ingest
  -- TODO: error or count
 runImport :: Volume -> Vector ParticipantRecord -> ActionM (Vector ())
 runImport vol records =
