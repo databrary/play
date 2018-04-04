@@ -3,6 +3,7 @@ module Databrary.Controller.IngestTest where
 
 import Data.Aeson
 import Data.Aeson.Types
+import qualified Data.ByteString as BS
 -- import qualified Data.Either as E
 import qualified Data.Maybe as MB
 import qualified Data.Map as Map
@@ -13,6 +14,7 @@ import Test.Tasty.HUnit
 
 import Databrary.Controller.Ingest
 import Databrary.Model.Metric
+import Databrary.Model.Record
 import Databrary.Model.Record.TypesTest
 
 tests :: TestTree
@@ -67,4 +69,30 @@ tests = testGroup "Databrary.Controller.Ingest"
              _ ->
                  False)
            @? "Expected create with upsert for each metric")
+    , testCase "buildParticipantRecordAction-3"
+        ((case buildParticipantRecordAction
+                 [participantMetricId, participantMetricGender]
+                 (participantRecordIdGender "1" Nothing)
+                 Create of
+             ParticipantRecordAction Create [Upsert m "1", NoAction m2] ->
+                    m == participantMetricId
+                 && m2 == participantMetricGender
+             _ ->
+                 False)
+           @? "Expected create with upsert id val to 1 and no action gender")
+    , testCase "buildParticipantRecordAction-4"
+        ((case buildParticipantRecordAction
+                 [participantMetricId, participantMetricGender]
+                 (participantRecordIdGender "1" Nothing)
+                 (Found (blankRecord undefined undefined)) of
+             ParticipantRecordAction (Found _) [Upsert m "1", Delete m2] ->
+                    m == participantMetricId
+                 && m2 == participantMetricGender
+             _ ->
+                 False)
+           @? "Expected create with upsert id val to 1 and delete gender")
     ]
+
+participantRecordIdGender :: BS.ByteString -> Maybe BS.ByteString -> ParticipantRecord
+participantRecordIdGender idVal mGen =
+    (participantRecordId idVal) { prdGender = Just (fmap (\v -> (v,v)) mGen) }

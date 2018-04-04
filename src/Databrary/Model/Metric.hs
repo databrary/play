@@ -789,66 +789,80 @@ lookupParticipantMetricBySymbolicName symbolicName =
 participantMetrics :: [Metric]
 participantMetrics = filter ((== participantCategory) . metricCategory) allMetrics
 
-validateParticipantId :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantId val = validateNotEmpty val
+validateParticipantId :: BS.ByteString -> Maybe (Maybe BS.ByteString) -- TODO: not optional
+validateParticipantId val = do
+    _ <- validateNotEmpty val
+    pure (Just val)
 
-validateParticipantInfo :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantInfo val = pure val
+validateParticipantInfo :: BS.ByteString -> Maybe (Maybe BS.ByteString)
+validateParticipantInfo val = pure (valToMaybe val)
 
-validateParticipantDescription :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantDescription val = pure val
+validateParticipantDescription :: BS.ByteString -> Maybe (Maybe BS.ByteString)
+validateParticipantDescription val = pure (valToMaybe val)
 
-validateParticipantDisability :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantDisability val = pure val
+validateParticipantDisability :: BS.ByteString -> Maybe (Maybe BS.ByteString)
+validateParticipantDisability val = pure (valToMaybe val)
 
-validateParticipantGender :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantGender val =
-    validateInOptions val participantMetricGender
+validateParticipantGender :: BS.ByteString -> Maybe (Maybe BS.ByteString)
+validateParticipantGender val = do
+    _ <- validateInOptions val participantMetricGender
+    pure (valToMaybe val)
 
-validateParticipantCountry :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantCountry val = pure val
+validateParticipantCountry :: BS.ByteString -> Maybe (Maybe BS.ByteString)
+validateParticipantCountry val = pure (valToMaybe val)
 
-validateParticipantRace :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantRace val =
-    validateInOptions val participantMetricRace
+validateParticipantRace :: BS.ByteString -> Maybe (Maybe BS.ByteString)
+validateParticipantRace val = do
+    _ <- validateInOptions val participantMetricRace
+    pure (valToMaybe val)
 
-validateParticipantEthnicity :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantEthnicity val =
-    validateInOptions val participantMetricEthnicity
+validateParticipantEthnicity :: BS.ByteString -> Maybe (Maybe BS.ByteString)
+validateParticipantEthnicity val = do
+    _ <- validateInOptions val participantMetricEthnicity
+    pure (valToMaybe val)
 
-validateParticipantPregnancyTerm :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantPregnancyTerm val =
-    validateInOptions val participantMetricPregnancyTerm
+validateParticipantPregnancyTerm :: BS.ByteString -> Maybe (Maybe BS.ByteString)
+validateParticipantPregnancyTerm val = do
+    _ <- validateInOptions val participantMetricPregnancyTerm
+    pure (valToMaybe val)
 
-validateParticipantState :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantState val =
-    validateInOptions val participantMetricState
+validateParticipantState :: BS.ByteString -> Maybe (Maybe BS.ByteString)
+validateParticipantState val = do
+    _ <- validateInOptions val participantMetricState
+    pure (valToMaybe val)
 
-validateParticipantSetting :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantSetting val =
-    validateInOptions val participantMetricSetting
+validateParticipantSetting :: BS.ByteString -> Maybe (Maybe BS.ByteString)
+validateParticipantSetting val = do
+    _ <- validateInOptions val participantMetricSetting
+    pure (valToMaybe val)
 
-validateParticipantGestationalAge :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantGestationalAge val = do
-    _ <- (TR.readMaybe (BSC.unpack val) :: Maybe Double)
-    pure val
+validateParticipantGestationalAge :: BS.ByteString -> Maybe (Maybe Double)
+validateParticipantGestationalAge val =
+    if val == ""
+    then pure Nothing
+    else do
+        age <- (TR.readMaybe (BSC.unpack val) :: Maybe Double)
+        pure (Just age)
 
-validateParticipantBirthWeight :: BS.ByteString -> Maybe BS.ByteString
-validateParticipantBirthWeight val = do
-    _ <- (TR.readMaybe (BSC.unpack val) :: Maybe Double)
-    pure val
+validateParticipantBirthWeight :: BS.ByteString -> Maybe (Maybe Double)
+validateParticipantBirthWeight val =
+    if val == ""
+    then pure Nothing
+    else do
+        weight <- (TR.readMaybe (BSC.unpack val) :: Maybe Double)
+        pure (Just weight)
 
-validateParticipantBirthdate :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantBirthdate :: BS.ByteString -> Maybe (Maybe Time.Day)
 validateParticipantBirthdate val = do
     if val == ""
-    then pure val
+    then pure Nothing
     else do
-      _ <- (Time.parseTimeM True Time.defaultTimeLocale "%F" (BSC.unpack val) :: Maybe Time.Day)
-      pure val
+        time <- Time.parseTimeM True Time.defaultTimeLocale "%F" (BSC.unpack val) -- :: Maybe Time.Day
+        pure (Just time)
 
-validateParticipantLanguage :: BS.ByteString -> Maybe BS.ByteString
+validateParticipantLanguage :: BS.ByteString -> Maybe (Maybe BS.ByteString)
 validateParticipantLanguage val = do
-    pure val
+    pure (valToMaybe val)
 
 validateInOptions :: BS.ByteString -> Metric -> Maybe BS.ByteString
 validateInOptions val metric =
@@ -859,6 +873,10 @@ validateInOptions val metric =
 validateNotEmpty :: BS.ByteString -> Maybe BS.ByteString
 validateNotEmpty val =
     if BS.length val > 0 then Just val else Nothing
+
+valToMaybe :: BS.ByteString -> Maybe BS.ByteString
+valToMaybe "" = Nothing
+valToMaybe v = Just v
 
 -- this is a hack, should be in database
 metricLong :: Metric -> Bool
