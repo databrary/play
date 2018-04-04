@@ -2,6 +2,7 @@
 module Databrary.Model.MetricTest where
 
 import qualified Data.HashMap.Strict as HMP
+import Data.Time (fromGregorian)
 import qualified Data.Vector as V
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -15,55 +16,57 @@ tests = testGroup "Databrary.Model.Metric"
     , testCase "lookupParticipantMetricBySymbolicName-2"
         (lookupParticipantMetricBySymbolicName "junk" @?= Nothing)
     , testCase "validateParticipantId-1"
-        (validateParticipantId "01" @?= Just "01")
+        (validateParticipantId "01" @?= Just (Just "01"))
     , testCase "validateParticipantId-required"
         (validateParticipantId "" @?= Nothing)
     , testCase "validateParticipantInfo-1"
-        (validateParticipantInfo "details" @?= Just "details")
+        (validateParticipantInfo "details" @?= Just (Just "details"))
     , testCase "validateParticipantInfo-optional"
-        (validateParticipantInfo "" @?= Just "")
+        (validateParticipantInfo "" @?= Just Nothing)
     , testCase "validateParticipantDescription-1"
-        (validateParticipantDescription "a description here" @?= Just "a description here")
+        (validateParticipantDescription "a description here" @?= Just (Just "a description here"))
     , testCase "validateParticipantDescription-optional"
-        (validateParticipantDescription "" @?= Just "")
+        (validateParticipantDescription "" @?= Just Nothing)
     , testCase "validateParticipantGender-1"
-        (validateParticipantGender "Male" @?= Just "Male")
+        (validateParticipantGender "Male" @?= Just (Just "Male"))
     , testCase "validateParticipantGender-2"
         (validateParticipantGender "m" @?= Nothing)
     , testCase "validateParticipantGender-optional"
-        (validateParticipantGender "" @?= Just "")
+        (validateParticipantGender "" @?= Just Nothing)
     , testCase "validateParticipantCountry-1"
-        (validateParticipantCountry "UK" @?= Just "UK")
+        (validateParticipantCountry "UK" @?= Just (Just "UK"))
     , testCase "validateParticipantRace-1"
-        (validateParticipantRace "White" @?= Just "White")
+        (validateParticipantRace "White" @?= Just (Just "White"))
     , testCase "validateParticipantEthnicity-1"
-        (validateParticipantEthnicity "Hispanic or Latino" @?= Just "Hispanic or Latino")
+        (validateParticipantEthnicity "Hispanic or Latino" @?= Just (Just "Hispanic or Latino"))
     , testCase "validateParticipantPregnancyTerm-1"
-        (validateParticipantPregnancyTerm "Preterm" @?= Just "Preterm")
+        (validateParticipantPregnancyTerm "Preterm" @?= Just (Just "Preterm"))
     , testCase "validateParticipantState-1"
-        (validateParticipantState "MA" @?= Just "MA")
+        (validateParticipantState "MA" @?= Just (Just "MA"))
     , testCase "validateParticipantSetting-1"
-        (validateParticipantSetting "Lab" @?= Just "Lab")
+        (validateParticipantSetting "Lab" @?= Just (Just "Lab"))
     , testCase "validateParticipantDisability-1"
-        (validateParticipantDisability "none" @?= Just "none")
+        (validateParticipantDisability "none" @?= Just (Just "none"))
     , testCase "validateParticipantGestationalAge-1"
-        (validateParticipantGestationalAge "3" @?= Just "3")
+        (validateParticipantGestationalAge "3" @?= Just (Just 3))
     , testCase "validateParticipantGestationalAge-1"
-        (validateParticipantGestationalAge "3.5" @?= Just "3.5")
+        (validateParticipantGestationalAge "3.5" @?= Just (Just 3.5))
     , testCase "validateParticipantBirthWeight-1"
-        (validateParticipantBirthWeight "10.2" @?= Just "10.2")
-    , testCase "validateParticipantBirthWeight-1"
-        (validateParticipantBirthWeight "10.2" @?= Just "10.2")
+        (validateParticipantBirthWeight "10.2" @?= Just (Just 10.2))
+    , testCase "validateParticipantBirthWeight-2"
+        (validateParticipantBirthWeight "x" @?= Nothing)
+    , testCase "validateParticipantBirthWeight-3"
+        (validateParticipantBirthWeight "" @?= Just Nothing)
     , testCase "validateParticipantBirthDate-1"
         (validateParticipantBirthdate "1/2/2014" @?= Nothing)
     , testCase "validateParticipantBirthDate-2"
-        (validateParticipantBirthdate "2014-01-02" @?= Just "2014-01-02")
+        (validateParticipantBirthdate "2014-01-02" @?= Just (Just (fromGregorian 2014 1 2)))
     , testCase "validateParticipantBirthDate-3"
         (validateParticipantBirthdate "01/02/14" @?= Nothing)
     , testCase "validateParticipantBirthDate-4"
         (validateParticipantBirthdate "2014-1-2" @?= Nothing)
     , testCase "validateParticipantBirthDate-optional"
-        (validateParticipantBirthdate "" @?= Just "")
+        (validateParticipantBirthdate "" @?= Just Nothing)
     , testCase "validateParticipantLanguage-1"
-        (validateParticipantLanguage "english" @?= Just "english")
+        (validateParticipantLanguage "english" @?= Just (Just "english"))
     ]

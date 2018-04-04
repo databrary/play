@@ -12,6 +12,8 @@ module Databrary.Model.Record.Types
   ) where
 
 import Control.Applicative ((<|>))
+import Data.ByteString (ByteString)
+import Data.Time (Day)
 
 import Databrary.Has (makeHasRec, Has(..))
 import Databrary.Model.Kind
@@ -46,23 +48,24 @@ data Record = Record
 instance Kinded Record where
   kindOf _ = "record"
 
-data ParticipantRecord = -- each field can be nothing (not used) or just value
+-- keep value as a pair of parsed and raw value until we come up with a clever way to dispatch on type
+data ParticipantRecord = -- each field can be nothing (not used) or just value, where value can be empty
     ParticipantRecord -- are some of these required?
-        { prdId :: !(Maybe MeasureDatum)
-        , prdInfo :: !(Maybe MeasureDatum)
-        , prdDescription :: !(Maybe MeasureDatum)
-        , prdBirthdate :: !(Maybe MeasureDatum)
-        , prdGender :: !(Maybe MeasureDatum)
-        , prdRace :: !(Maybe MeasureDatum)
-        , prdEthnicity :: !(Maybe MeasureDatum)
-        , prdGestationalAge :: !(Maybe MeasureDatum)
-        , prdPregnancyTerm :: !(Maybe MeasureDatum)
-        , prdBirthWeight :: !(Maybe MeasureDatum)
-        , prdDisability :: !(Maybe MeasureDatum)
-        , prdLanguage :: !(Maybe MeasureDatum)
-        , prdCountry :: !(Maybe MeasureDatum)
-        , prdState :: !(Maybe MeasureDatum)
-        , prdSetting :: !(Maybe MeasureDatum)
+        { prdId :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+        , prdInfo :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+        , prdDescription :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+        , prdBirthdate :: !(Maybe (Maybe (Day, MeasureDatum)))
+        , prdGender :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+        , prdRace :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+        , prdEthnicity :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+        , prdGestationalAge :: !(Maybe (Maybe (Double, MeasureDatum)))
+        , prdPregnancyTerm :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+        , prdBirthWeight :: !(Maybe (Maybe (Double, MeasureDatum)))
+        , prdDisability :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+        , prdLanguage :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+        , prdCountry :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+        , prdState :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+        , prdSetting :: !(Maybe (Maybe (ByteString, MeasureDatum)))
         } 
     deriving (Show, Eq, Ord)
 

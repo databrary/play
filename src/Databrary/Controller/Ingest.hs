@@ -180,7 +180,7 @@ runImport activeMetrics vol records =
 data ParticipantStatus = Create | Found Record
     -- deriving (Show, Eq)
 
-data MeasureUpdateAction = Upsert Metric MeasureDatum | Unchanged
+data MeasureUpdateAction = Upsert Metric (Maybe MeasureDatum) | Unchanged
     deriving (Show, Eq)
 
 data ParticipantRecordAction = ParticipantRecordAction ParticipantStatus [MeasureUpdateAction]
@@ -226,34 +226,36 @@ buildParticipantRecordAction participantActiveMetrics participantRecord updating
     in
         ParticipantRecordAction updatingRecord (catMaybes measureActions)
   where
-    changeRecordMeasureIfUsed :: Maybe (BS.ByteString, Metric) -> Maybe MeasureUpdateAction
+    changeRecordMeasureIfUsed :: Maybe (Maybe MeasureDatum, Metric) -> Maybe MeasureUpdateAction
     changeRecordMeasureIfUsed mValueMetric = do
-        (val, met) <- mValueMetric
-        pure (determineUpdatedMeasure val met)
-    determineUpdatedMeasure :: BS.ByteString -> Metric -> MeasureUpdateAction
-    determineUpdatedMeasure val met =
+        (mVal, met) <- mValueMetric
+        pure (determineUpdatedMeasure mVal met)
+    determineUpdatedMeasure :: Maybe MeasureDatum -> Metric -> MeasureUpdateAction
+    determineUpdatedMeasure mVal met =
         case updatingRecord of
             Create ->
-                Upsert met val
+                Upsert met mVal
             Found record -> do
                  -- TODO: 
                  -- mOldVal <- getOldVal metric record
                  -- action = maybe (Upsert val) (\o -> if o == val then Unchanged else Upsert val)
-                 let measureAction = Upsert met val
+                 let measureAction = Upsert met mVal
                  measureAction
-    getFieldVal' :: (ParticipantRecord -> Maybe BS.ByteString) -> Text -> Maybe (BS.ByteString, Metric)
+    getFieldVal' :: (ParticipantRecord -> Maybe (Maybe (a, MeasureDatum))) -> Text -> Maybe (Maybe MeasureDatum, Metric)
     getFieldVal' = getFieldVal participantActiveMetrics participantRecord
 
 getFieldVal
     :: [Metric]
     -> ParticipantRecord 
-    -> (ParticipantRecord -> Maybe BS.ByteString)
+    -> (ParticipantRecord -> Maybe (Maybe (a, MeasureDatum)))
     -> Text
-    -> Maybe (BS.ByteString, Metric)
+    -> Maybe (Maybe MeasureDatum, Metric)
 getFieldVal participantActiveMetrics participantRecord extractFieldVal metricSymbolicName =
     case extractFieldVal participantRecord of
-        Just fieldVal ->
-            pure (fieldVal, findMetricBySymbolicName metricSymbolicName) -- <<<<<<<< lookup metric
+        Just (Just (_, fieldVal)) ->
+            pure (Just fieldVal, findMetricBySymbolicName metricSymbolicName) -- <<<<<<<< lookup metric
+        Just Nothing ->
+            pure (Nothing,  findMetricBySymbolicName metricSymbolicName)
         Nothing ->
             Nothing -- field isn't used by this volume, so don't need to save the measure
   where
@@ -266,7 +268,8 @@ getFieldVal participantActiveMetrics participantRecord extractFieldVal metricSym
 createOrUpdateRecord :: [Metric] -> Volume -> ParticipantRecord -> ActionM () -- TODO: error or record
 createOrUpdateRecord participantActiveMetrics vol participantRecord = do
     let participantCategory = getCategory' (Id 1) -- TODO: use global variable
-        (idVal, idMetric) = maybe (error "id missing") id (getFieldVal' prdId "id")
+        (mIdVal, idMetric) = maybe (error "id missing") id (getFieldVal' prdId "id")
+        idVal = maybe (error "id empty") id mIdVal
     mOldParticipant <- lookupVolumeParticipant vol idVal
     let recordStatus =
             case mOldParticipant of
@@ -285,7 +288,8 @@ createOrUpdateRecord participantActiveMetrics vol participantRecord = do
     runMeasureUpdate :: Record -> MeasureUpdateAction -> ActionM (Maybe Record)
     runMeasureUpdate record act =
         case act of
-            Upsert met val -> changeRecordMeasure (Measure record met val)
+            Upsert met (Just val) -> changeRecordMeasure (Measure record met val)
+            Upsert met Nothing -> pure Nothing -- TODO: conditionally delete if prior value was set
             Unchanged -> pure Nothing
-    getFieldVal' :: (ParticipantRecord -> Maybe BS.ByteString) -> Text -> Maybe (BS.ByteString, Metric)
+    getFieldVal' :: (ParticipantRecord -> Maybe (Maybe (a, MeasureDatum))) -> Text -> Maybe (Maybe MeasureDatum, Metric)
     getFieldVal' = getFieldVal participantActiveMetrics participantRecord

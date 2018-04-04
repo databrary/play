@@ -22,6 +22,7 @@ tests = testGroup "Databrary.Controller.Ingest"
     , testCase "parseMapping-2"
         ((parseEither mappingParser ((MB.fromJust . decode) "[{\"csv_field\": \"col1\", \"metric\": \"id\"}]" :: Value))
            @?= (Right [(participantMetricId, "col1")]))
+        {-
     , testCase "buildParticipantRecordAction-1"
         ((case buildParticipantRecordAction [participantMetricId] (participantRecordId "1") Create of
              ParticipantRecordAction Create [Upsert m "1"] ->
@@ -67,4 +68,5 @@ tests = testGroup "Databrary.Controller.Ingest"
              _ ->
                  False)
            @? "Expected create with upsert for each metric")
+      -}
     ]

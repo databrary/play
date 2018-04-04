@@ -41,7 +41,8 @@ tests = testGroup "Databrary.Model.Ingest"
         (attemptParseRows participantFieldMappingIdGender "id,gender\n1, \n" @?=
            Right
                ( V.fromList ["id", "gender"]
-               , V.fromList [emptyParticipantRecord { prdId = Just "1", prdGender = Just "" } ]))
+               , V.fromList
+                   [emptyParticipantRecord { prdId = Just (Just ("1", "1")), prdGender = Just Nothing } ]))
     , testCase "attemptParseRows-all"
         (attemptParseRows
            participantFieldMappingAll
