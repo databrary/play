@@ -60,7 +60,7 @@ lookupAuthorize child parent =
       (\mkAuthorize' -> mkAuthorize' child parent)
           <$> $(selectQuery
                     authorizeRow
-                    -- only include authorizatoins that either have no expiration or have not expired yet
+                    -- only include authorizations that either have no expiration or have not expired yet
                     "$WHERE authorize.child = ${partyId $ partyRow child} AND authorize.parent = ${partyId $ partyRow parent} AND (expires IS NULL OR expires > CURRENT_TIMESTAMP)")
 
 lookupAuthorizeParent :: (MonadDB c m, MonadHasIdentity c m) => Party -> Id Party -> m (Maybe Authorize)

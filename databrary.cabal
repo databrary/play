@@ -565,6 +565,7 @@ test-suite databrary-test
     , Databrary.Model.Metric.TypesTest
     , Databrary.Model.Record.TypesTest
     , Databrary.Model.MetricTest
+    , Databrary.Model.Party.TypesTest
     , Databrary.Model.Permission.TypesTest
     , Databrary.Model.Stats.TypesTest
     , Data.Csv.ContribTest
