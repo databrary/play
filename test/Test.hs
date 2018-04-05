@@ -10,6 +10,7 @@ import qualified Databrary.Model.Record.TypesTest
 import qualified Databrary.Model.Metric.TypesTest
 import qualified Databrary.Model.MetricTest
 import qualified Databrary.Model.IngestTest
+import qualified Databrary.Model.Party.TypesTest
 import qualified Databrary.Model.Permission.TypesTest
 import qualified Databrary.Model.Stats.TypesTest
 import qualified Data.Csv.ContribTest
@@ -26,6 +27,7 @@ tests = testGroup "databrary"
     , Databrary.Model.Record.TypesTest.tests
     , Databrary.Model.Metric.TypesTest.tests
     , Databrary.Model.MetricTest.tests
+    , Databrary.Model.Party.TypesTest.tests
     , Databrary.Model.RecordTest.tests
     , Databrary.Model.Permission.TypesTest.tests
     , Databrary.Model.Stats.TypesTest.tests
