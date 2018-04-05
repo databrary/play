@@ -61,7 +61,7 @@ partyDelegates u = do
     . map (authorizeChild . authorization)
     <$> lookupAuthorizedChildren p (Just PermissionADMIN)
 
-removeAuthorizeNotify :: Maybe Authorize -> Maybe Authorize -> ActionM ()
+removeAuthorizeNotify :: Maybe Authorize -> ActionM ()
 removeAuthorizeNotify priorAuth =
     let noReplacementAuthorization = Nothing
     in updateAuthorize priorAuth noReplacementAuthorization
