@@ -48,6 +48,7 @@ let
       mkdir databrary_logs
       touch databrary_logs/solr_log
     fi
+    rm -f config/email # temporary to cleanup cached old file
     if [ ! -e "config/email" ]; then
       cp install/config.email config/email
     fi
