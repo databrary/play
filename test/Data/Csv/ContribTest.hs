@@ -26,4 +26,16 @@ tests = testGroup "Data.Csv.ContribTest"
         (repairCarriageReturnOnly "abc\r\n" @?= "abc\r\n")
     , testCase "repairCarriageReturnOnly-2"
         (repairCarriageReturnOnly "abc\r" @?= "abc\r\n")
+    , testCase "repairDuplicateLineEndings-fix"
+        (repairDuplicateLineEndings "abc\r\r\n" @?= "abc\r\n")
+    , testCase "repairDuplicateLineEndings-nofix"
+        (repairDuplicateLineEndings "abc\r\n" @?= "abc\r\n")
+    , testCase "removeBomPrefix-fix"
+        (removeBomPrefix "\357\273\277abc" @?= "abc")
+    , testCase "removeBomPrefix-nofix"
+        (removeBomPrefix "abc" @?= "abc")
+    , testCase "removeBomPrefixText-fix"
+        (removeBomPrefixText "\65279abc" @?= "abc")
+    , testCase "removeBomPrefixText-nofix"
+        (removeBomPrefixText "abc" @?= "abc")
     ]

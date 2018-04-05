@@ -36,7 +36,7 @@ import Network.HTTP.Types (badRequest400)
 import Network.Wai.Parse (FileInfo(..))
 import System.Posix.FilePath (takeExtension)
 
-import Data.Csv.Contrib (parseCsvWithHeader, getHeaders, extractColumnsDistinctSample)
+import Data.Csv.Contrib (parseCsvWithHeader, getHeaders, extractColumnsDistinctSample, removeBomPrefixText)
 import qualified Databrary.JSON as JSON
 import Databrary.Ops
 import Databrary.Has
@@ -47,6 +47,7 @@ import Databrary.Model.Ingest
 import Databrary.Model.Permission
 import Databrary.Model.Measure
 import Databrary.Model.Metric
+import Databrary.Model.Party
 import Databrary.Model.Record
 import Databrary.Model.Volume
 import Databrary.Model.VolumeMetric
@@ -61,6 +62,7 @@ import Databrary.Controller.Paths
 import Databrary.Controller.Permission
 import Databrary.Controller.Form
 import Databrary.Controller.Volume
+import Databrary.Store.Types
 import Databrary.View.Form (FormHtml)
 import Databrary.View.Ingest
 
@@ -102,6 +104,8 @@ maxWidelyAcceptableHttpBodyFileSize = 16*1024*1024
 detectParticipantCSV :: ActionRoute (Id Volume)
 detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCSV") $ \vi -> withAuth $ do
     v <- getVolume PermissionEDIT vi
+    (auth :: SiteAuth) <- peek
+    (store :: Storage) <- peek
     csvFileInfo <-
       -- TODO: is Nothing okay here?
       runFormFiles [("file", maxWidelyAcceptableHttpBodyFileSize)] (Nothing :: Maybe (RequestContext -> FormHtml TL.Text)) $ do
@@ -109,7 +113,7 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
           fileInfo :: (FileInfo TL.Text) <- "file" .:> deform
           return fileInfo
     liftIO (print ("after extract form"))
-    let uploadFileContents' = (BSL.toStrict . TLE.encodeUtf8 . fileContent) csvFileInfo
+    let uploadFileContents' = (BSL.toStrict . TLE.encodeUtf8 . removeBomPrefixText . fileContent) csvFileInfo
     liftIO (print "uploaded contents below")
     liftIO (print uploadFileContents')
     case parseCsvWithHeader uploadFileContents' of
@@ -125,20 +129,39 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
                     -- if column check failed, then don't save csv file and response is error
                     pure (response badRequest400 [] err)
                 Right participantFieldMapping -> do
-                    let uploadFileName = (BSC.unpack . fileName) csvFileInfo  -- TODO: add prefix to filename
-                    liftIO (BS.writeFile ("/tmp/" ++ uploadFileName) uploadFileContents')
+                    let uploadFileName =
+                            uniqueUploadName auth v ((BSC.unpack . fileName) csvFileInfo)
+                    liftIO
+                        (BS.writeFile
+                             ((BSC.unpack . getStorageTempParticipantUpload uploadFileName) store)
+                             uploadFileContents')
                     pure
                         $ okResponse []
                             $ JSON.recordEncoding -- TODO: not record encoding
                                 $ JSON.Record vi
                                     $      "csv_upload_id" JSON..= uploadFileName
+                                        -- TODO: samples for mapped columns only
                                         <> "column_samples" JSON..= extractColumnsDistinctSampleJson 5 hdrs records
                                         <> "suggested_mapping" JSON..= participantFieldMappingToJSON participantFieldMapping
                                         <> "columns_firstvals" JSON..= extractColumnsInitialJson 5 hdrs records
 
+-- TODO: move this to Databrary.Store.ParticipantUploadTemp
+uniqueUploadName :: SiteAuth -> Volume -> String -> String
+uniqueUploadName siteAuth vol uploadName =
+    uniqueUploadName'
+        ((partyId . partyRow . accountParty . siteAccount) siteAuth)
+        ((volumeId . volumeRow) vol)
+        uploadName
+
+uniqueUploadName' :: Id Party -> Id Volume -> String -> String
+uniqueUploadName' uid vid uploadName =
+    show uid <> "-" <> show vid <> "-" <> uploadName
+----- end
+
 runParticipantUpload :: ActionRoute (Id Volume)
 runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUpload") $ \vi -> withAuth $ do
     v <- getVolume PermissionEDIT vi
+    (store :: Storage) <- peek
     -- reqCtxt <- peek
     (csvUploadId :: String, selectedMapping :: JSON.Value) <- runForm (Nothing) $ do
         csrfForm
@@ -146,7 +169,8 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
         mapping <- "selected_mapping" .:> deform
         pure (uploadId, mapping)
     -- TODO: resolve csv id to absolute path; http error if unknown
-    uploadFileContents <- (liftIO . BS.readFile) ("/tmp/" ++ csvUploadId)
+    uploadFileContents <-
+        (liftIO . BS.readFile) ((BSC.unpack . getStorageTempParticipantUpload csvUploadId) store)
     case JSON.parseEither mappingParser selectedMapping of
         Left err ->
             pure (response badRequest400 [] err) -- bad json shape or keys
@@ -161,50 +185,50 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
                         Left err ->   -- invalid value in row
                             pure (response badRequest400 [] err)
                         Right (hdrs, records) -> do
-                            eRes <- runImport participantActiveMetrics v records
+                            eRes <- runImport v records
                             pure
                                 $ okResponse []
                                     $ JSON.recordEncoding -- TODO: not record encoding
                                         $ JSON.Record vi $ "succeeded" JSON..= True
 
-mappingParser :: JSON.Value -> JSON.Parser (Map Metric Text)
+mappingParser :: JSON.Value -> JSON.Parser [(Metric, Text)]
 mappingParser val = do
     (entries :: [HeaderMappingEntry]) <- JSON.parseJSON val
-    pure ((Map.fromList . fmap (\e -> (hmeMetric e, hmeCsvField e))) entries)
+    pure (fmap (\e -> (hmeMetric e, hmeCsvField e)) entries)
 
+-- TODO: move all below to Model.Ingest
  -- TODO: error or count
-runImport :: [Metric] -> Volume -> Vector ParticipantRecord -> ActionM (Vector ())
-runImport activeMetrics vol records =
-    mapM (createOrUpdateRecord activeMetrics vol) records
+runImport :: Volume -> Vector ParticipantRecord -> ActionM (Vector ())
+runImport vol records =
+    mapM (createOrUpdateRecord vol) records
 
 data ParticipantStatus = Create | Found Record
     -- deriving (Show, Eq)
 
-data MeasureUpdateAction = Upsert Metric MeasureDatum | Unchanged
+data MeasureUpdateAction = Upsert Metric MeasureDatum | Delete Metric | Unchanged Metric | NoAction Metric
     deriving (Show, Eq)
 
 data ParticipantRecordAction = ParticipantRecordAction ParticipantStatus [MeasureUpdateAction]
     -- deriving (Show, Eq)
 
-buildParticipantRecordAction
-    :: [Metric] -> ParticipantRecord -> ParticipantStatus -> ParticipantRecordAction
-buildParticipantRecordAction participantActiveMetrics participantRecord updatingRecord =
+buildParticipantRecordAction :: ParticipantRecord -> ParticipantStatus -> ParticipantRecordAction
+buildParticipantRecordAction participantRecord updatingRecord =
     let
-        mId = getFieldVal' prdId "id"
-        mInfo = getFieldVal' prdInfo "info"
-        mDescription = getFieldVal' prdDescription "description"
-        mBirthdate = getFieldVal' prdBirthdate "birthdate"
-        mGender = getFieldVal' prdGender "gender"
-        mRace = getFieldVal' prdRace "race"
-        mEthnicity = getFieldVal' prdEthnicity "ethnicity"
-        mGestationalAge = getFieldVal' prdGestationalAge "gestationalage"
-        mPregnancyTerm = getFieldVal' prdPregnancyTerm "pregnancyterm"
-        mBirthWeight = getFieldVal' prdBirthWeight "birthweight"
-        mDisability = getFieldVal' prdDisability "disability"
-        mLanguage = getFieldVal' prdLanguage "language"
-        mCountry = getFieldVal' prdCountry "country"
-        mState = getFieldVal' prdState "state"
-        mSetting = getFieldVal' prdSetting "setting"
+        mId = getFieldVal' prdId participantMetricId
+        mInfo = getFieldVal' prdInfo participantMetricInfo
+        mDescription = getFieldVal' prdDescription participantMetricDescription
+        mBirthdate = getFieldVal' prdBirthdate participantMetricBirthdate
+        mGender = getFieldVal' prdGender participantMetricGender
+        mRace = getFieldVal' prdRace participantMetricRace
+        mEthnicity = getFieldVal' prdEthnicity participantMetricEthnicity
+        mGestationalAge = getFieldVal' prdGestationalAge participantMetricGestationalAge
+        mPregnancyTerm = getFieldVal' prdPregnancyTerm participantMetricPregnancyTerm
+        mBirthWeight = getFieldVal' prdBirthWeight participantMetricBirthWeight
+        mDisability = getFieldVal' prdDisability participantMetricDisability
+        mLanguage = getFieldVal' prdLanguage participantMetricLanguage
+        mCountry = getFieldVal' prdCountry participantMetricCountry
+        mState = getFieldVal' prdState participantMetricState
+        mSetting = getFieldVal' prdSetting participantMetricSetting
         -- print ("save measure id:", mId)
         measureActions =
             [ changeRecordMeasureIfUsed mId
@@ -226,54 +250,50 @@ buildParticipantRecordAction participantActiveMetrics participantRecord updating
     in
         ParticipantRecordAction updatingRecord (catMaybes measureActions)
   where
-    changeRecordMeasureIfUsed :: Maybe (BS.ByteString, Metric) -> Maybe MeasureUpdateAction
+    changeRecordMeasureIfUsed :: Maybe (Maybe MeasureDatum, Metric) -> Maybe MeasureUpdateAction
     changeRecordMeasureIfUsed mValueMetric = do
-        (val, met) <- mValueMetric
-        pure (determineUpdatedMeasure val met)
-    determineUpdatedMeasure :: BS.ByteString -> Metric -> MeasureUpdateAction
-    determineUpdatedMeasure val met =
+        (mVal, met) <- mValueMetric
+        pure (determineUpdatedMeasure mVal met)
+    determineUpdatedMeasure :: Maybe MeasureDatum -> Metric -> MeasureUpdateAction
+    determineUpdatedMeasure mVal met =
         case updatingRecord of
             Create ->
-                Upsert met val
+                maybe (NoAction met) (Upsert met) mVal
             Found record -> do
                  -- TODO: 
                  -- mOldVal <- getOldVal metric record
                  -- action = maybe (Upsert val) (\o -> if o == val then Unchanged else Upsert val)
-                 let measureAction = Upsert met val
+                 let measureAction = maybe (Delete met) (Upsert met) mVal
                  measureAction
-    getFieldVal' :: (ParticipantRecord -> Maybe BS.ByteString) -> Text -> Maybe (BS.ByteString, Metric)
-    getFieldVal' = getFieldVal participantActiveMetrics participantRecord
+    getFieldVal' :: (ParticipantRecord -> Maybe (Maybe (a, MeasureDatum))) -> Metric -> Maybe (Maybe MeasureDatum, Metric)
+    getFieldVal' = getFieldVal participantRecord
 
 getFieldVal
-    :: [Metric]
-    -> ParticipantRecord 
-    -> (ParticipantRecord -> Maybe BS.ByteString)
-    -> Text
-    -> Maybe (BS.ByteString, Metric)
-getFieldVal participantActiveMetrics participantRecord extractFieldVal metricSymbolicName =
+    :: ParticipantRecord 
+    -> (ParticipantRecord -> Maybe (Maybe (a, MeasureDatum)))
+    -> Metric
+    -> Maybe (Maybe MeasureDatum, Metric)
+getFieldVal participantRecord extractFieldVal metric =
     case extractFieldVal participantRecord of
-        Just fieldVal ->
-            pure (fieldVal, findMetricBySymbolicName metricSymbolicName) -- <<<<<<<< lookup metric
+        Just (Just (_, fieldVal)) ->
+            pure (Just fieldVal, metric)
+        Just Nothing ->
+            pure (Nothing, metric)
         Nothing ->
             Nothing -- field isn't used by this volume, so don't need to save the measure
-  where
-    findMetricBySymbolicName :: Text -> Metric  -- TODO: copied from above, move to shared function
-    findMetricBySymbolicName symbolicName =
-        (  fromJust
-         . L.find (\m -> (T.filter (/= ' ') . T.toLower . metricName) m == symbolicName))
-        participantActiveMetrics
         
-createOrUpdateRecord :: [Metric] -> Volume -> ParticipantRecord -> ActionM () -- TODO: error or record
-createOrUpdateRecord participantActiveMetrics vol participantRecord = do
+createOrUpdateRecord :: Volume -> ParticipantRecord -> ActionM () -- TODO: error or record
+createOrUpdateRecord vol participantRecord = do
     let participantCategory = getCategory' (Id 1) -- TODO: use global variable
-        (idVal, idMetric) = maybe (error "id missing") id (getFieldVal' prdId "id")
+        (mIdVal, idMetric) = maybe (error "id missing") id (getFieldVal' prdId participantMetricId)
+        idVal = maybe (error "id empty") id mIdVal
     mOldParticipant <- lookupVolumeParticipant vol idVal
     let recordStatus =
             case mOldParticipant of
                 Nothing -> Create
                 Just oldParticipant -> Found oldParticipant
     -- print ("save measure id:", mId)
-    case buildParticipantRecordAction participantActiveMetrics participantRecord recordStatus of
+    case buildParticipantRecordAction participantRecord recordStatus of
         ParticipantRecordAction Create measureActs -> do
             newParticipantShell <- addRecord (blankRecord participantCategory vol) -- blankParticipantRecord
             _ <- mapM (runMeasureUpdate newParticipantShell) measureActs
@@ -286,6 +306,8 @@ createOrUpdateRecord participantActiveMetrics vol participantRecord = do
     runMeasureUpdate record act =
         case act of
             Upsert met val -> changeRecordMeasure (Measure record met val)
-            Unchanged -> pure Nothing
-    getFieldVal' :: (ParticipantRecord -> Maybe BS.ByteString) -> Text -> Maybe (BS.ByteString, Metric)
-    getFieldVal' = getFieldVal participantActiveMetrics participantRecord
+            Delete met -> fmap Just (removeRecordMeasure (Measure record met ""))
+            Unchanged _ -> pure Nothing
+            NoAction _ -> pure Nothing
+    getFieldVal' :: (ParticipantRecord -> Maybe (Maybe (a, MeasureDatum))) -> Metric -> Maybe (Maybe MeasureDatum, Metric)
+    getFieldVal' = getFieldVal participantRecord

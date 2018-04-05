@@ -40,12 +40,16 @@ initStorage conf
         tmpPath <- unRawFilePath tmp
         createDirectoryIfMissing False tmpPath
 
+      let tempPath = addTrailingPathSeparator temp
+      unTempPath <- unRawFilePath tempPath
+      createDirectoryIfMissing False (getStorageTempParticipantUpload' unTempPath)
+
       tc <- initTranscoder (conf C.! "transcode")
 
       return $ Storage
         { storageMaster = master
         , storageFallback = conf C.! "fallback"
-        , storageTemp = addTrailingPathSeparator temp
+        , storageTemp = tempPath
         , storageUpload = upload
         , storageCache = cache
         , storageStage = stage
