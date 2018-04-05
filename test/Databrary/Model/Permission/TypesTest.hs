@@ -7,14 +7,8 @@ import Test.Tasty.HUnit
 
 import Databrary.Model.Permission.Types
 
-{-
-  = PermissionNONE |
-    PermissionPUBLIC |
-    PermissionSHARED |
-    PermissionREAD |
-    PermissionEDIT |
-    PermissionADMIN
--}
+{- PermissionNONE | PermissionPUBLIC | PermissionSHARED | PermissionREAD | PermissionEDIT |
+   PermissionADMIN -}
 
 accessCommunity :: Access -- correct?
 accessCommunity = Access { accessSite' = PermissionSHARED, accessMember' = PermissionSHARED }
