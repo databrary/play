@@ -52,7 +52,7 @@ let
     if [ ! -e "config/email" ]; then
       cp install/config.email config/email
     fi
-    rm -rf dist
+    # rm -rf dist   # add this back when changing ffmpeg versions, c artifacts don't regenerate properly
     cabal configure --datadir=. --datasubdir=.
     cabal repl lib:databrary
   '';
