@@ -1,6 +1,9 @@
 # Editing this Makefile? run make with `make BUILDDEV=1` for better build
 # debugging.
-NIX_OPTIONS := --option binary-caches "http://devdatabrary2.home.nyu.edu:5000"
+
+# Not everything is cached in our own cache, so use both
+NIX_OPTIONS := --option binary-caches "https://cache.nixos.org http://devdatabrary2.home.nyu.edu:5000"
+
 # These below intentionally use '='to pick up following changes to NIX_OPTIONS
 nix-build = nix-build $(NIX_OPTIONS)
 nix-shell = nix-shell $(NIX_OPTIONS)
