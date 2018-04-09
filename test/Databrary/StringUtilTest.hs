@@ -8,7 +8,7 @@ import Test.Tasty.HUnit
 import Databrary.StringUtil
 
 tests :: TestTree
-tests = testGroup "Databrary.Model.EnumStringUtil"
+tests = testGroup "Databrary.Model.StringUtil"
   [ testCase "toCamel-1"
       (toCamel "abc" @?= "Abc")
   , testCase "toCamel-2"
