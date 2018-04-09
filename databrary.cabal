@@ -40,7 +40,6 @@ library
     Databrary.Solr.Service
     Databrary.Solr.Search
     Databrary.Solr.Tag
-    Databrary.Solr.StringUtil
     Databrary.Solr.Index
     Databrary.Solr.Document
     Databrary.JSON
@@ -118,7 +117,6 @@ library
     -- Databrary.Model.Measure.SQL
     Databrary.Model.Activity.Types
     Databrary.Model.Activity.SQL
-    Databrary.Model.EnumStringUtil
     Databrary.Model.Token.Types
     Databrary.Model.Token.SQL
     Databrary.Model.Notification
@@ -178,6 +176,7 @@ library
     Databrary.Model.Offset
     Databrary.Model.Volume.Types
     Databrary.Model.Volume.SQL
+    Databrary.StringUtil
     Databrary.View.Format
     Databrary.View.Volume
     Databrary.View.Activity
@@ -540,10 +539,13 @@ test-suite databrary-test
     databrary
     , aeson
     , array
+    , attoparsec
     , base
     , bytestring
     , containers
+    , http-types
     , postgresql-typed
+    , range-set-list
     , tasty
     , tasty-expected-failure
     , tasty-hunit

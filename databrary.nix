@@ -79,7 +79,7 @@ in
     ffmpeg
   ];
   testHaskellDepends = [
-    base tasty tasty-expected-failure tasty-hunit
+    attoparsec base range-set-list tasty tasty-expected-failure tasty-hunit http-types
   ];
   executableToolDepends = [
     postgresql
