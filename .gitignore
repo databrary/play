@@ -48,14 +48,12 @@ solr-6.6.0/bin/*.pid
 databrary_logs
 solr/databrary_core/data
 
-# compiler output
-pgranges/result
-
 # runtime working dirs
 trans
 
-# compiler output
+# Nix output
 /result
+/derivation
 
 # postgres data dir
 databrary-nix-db/
@@ -66,3 +64,7 @@ databrary-nix-db/
 
 # computed version file
 /jsCssVersion.txt
+
+# Generated reports
+haddock-coverage-report.txt
+hpc-report.txt

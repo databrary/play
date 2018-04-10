@@ -68,7 +68,7 @@ mapQuery qry mkResult =
 lookupIngestContainer :: MonadDB c m => Volume -> IngestKey -> m (Maybe Container)
 lookupIngestContainer vol k = do
   let _tenv_a6Dpp = unknownPGTypeEnv
-  dbQuery1 $ fmap ($ vol) -- $(selectQuery selectVolumeContainer "JOIN ingest.container AS ingest USING (id, volume) WHERE ingest.key = ${k} AND container.volume = ${volumeId $ volumeRow vol}")
+  dbQuery1 $ fmap ($ vol) -- .(selectQuery selectVolumeContainer "JOIN ingest.container AS ingest USING (id, volume) WHERE ingest.key = ${k} AND container.volume = ${volumeId $ volumeRow vol}")
     (fmap
       (\ (vid_a6Dph, vtop_a6Dpi, vname_a6Dpj, vdate_a6Dpk,
           vrelease_a6Dpl)
@@ -158,7 +158,7 @@ addIngestContainer c k = do
 lookupIngestRecord :: MonadDB c m => Volume -> IngestKey -> m (Maybe Record)
 lookupIngestRecord vol k = do
   let _tenv_a6GtF = unknownPGTypeEnv
-  dbQuery1 $ fmap ($ vol) -- $(selectQuery selectVolumeRecord "JOIN ingest.record AS ingest USING (id, volume) WHERE ingest.key = ${k} AND record.volume = ${volumeId $ volumeRow vol}")
+  dbQuery1 $ fmap ($ vol) -- .(selectQuery selectVolumeRecord "JOIN ingest.record AS ingest USING (id, volume) WHERE ingest.key = ${k} AND record.volume = ${volumeId $ volumeRow vol}")
     (fmap
       (\ (vid_a6GtB, vcategory_a6GtC, vmeasures_a6GtD, vc_a6GtE)
          -> ($)
@@ -240,7 +240,7 @@ addIngestRecord r k = do
 lookupIngestAsset :: MonadDB c m => Volume -> FilePath -> m (Maybe Asset)
 lookupIngestAsset vol k = do
   let _tenv_a6PDv = unknownPGTypeEnv
-  dbQuery1 $ fmap (`Asset` vol) -- $(selectQuery selectAssetRow "JOIN ingest.asset AS ingest USING (id) WHERE ingest.file = ${k} AND asset.volume = ${volumeId $ volumeRow vol}")
+  dbQuery1 $ fmap (`Asset` vol) -- .(selectQuery selectAssetRow "JOIN ingest.asset AS ingest USING (id) WHERE ingest.file = ${k} AND asset.volume = ${volumeId $ volumeRow vol}")
     (fmap
       (\ (vid_a6PDo, vformat_a6PDp, vrelease_a6PDq, vduration_a6PDr,
           vname_a6PDs, vc_a6PDt, vsize_a6PDu)
