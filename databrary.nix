@@ -25,11 +25,13 @@ let
     dontPatchELF = true;
     # was only needed when trans scripts were being copied by data-files
     dontPatchShebangs = true;
+    postHaddock = ''
+      kill -INT `head -1 $socket_path/postmaster.pid`
+    '';
   };
 in
 (mkDerivation rec {
   pname = "databrary";
-  doHaddock = false;
   version = "1";
   src =
     builtins.filterSource
@@ -37,6 +39,7 @@ in
           (baseNameOf path)
           [dbName ".git" "result" "node_modules"])
       ./.;
+  doHoogle = false;
   isLibrary = true;
   enableStaticLibraries = false;
   isExecutable = true;
@@ -100,6 +103,7 @@ in
     socket_path=$(pwd)/${dbName}/work/
     echo "$socket_path"
 
+    # This is kept alive until post-Haddock, fyi.
     postgres -D $socket_path -k . -h "" &
 
     cat databrary.conf
@@ -107,7 +111,6 @@ in
     ls -la $socket_path
   '';
   postBuild = ''
-    kill -INT `head -1 $socket_path/postmaster.pid`
     # Link node_modules into the current directory
     ln -sf ${nodePackages.shell.nodeDependencies}/lib/node_modules
   '';

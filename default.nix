@@ -14,7 +14,8 @@ let
   nodePackages = import ./node-default.nix { pkgs = nixpkgs; };
   inherit (nixpkgs) fetchFromGitHub writeScriptBin cpio wget;
   # nixpkgs functions used to regulate Haskell overrides
-  inherit (nixpkgs.haskell.lib) dontCheck overrideCabal doJailbreak;
+  inherit (nixpkgs.haskell.lib)
+    dontCheck overrideCabal doJailbreak doCoverage;
   ghciDatabrary = writeScriptBin "ghci-databrary" ''
     if [ ! -d "solr-6.6.0" ]; then
       if [ ! -d "/tmp/solr-6.6.0" ]; then
@@ -68,14 +69,14 @@ let
   # Define GHC compiler override
   pkgs = reflex-platform.ghc.override {
     overrides = self: super: rec {
-      databrary = self.callPackage ./databrary.nix {
+      databrary = doCoverage (self.callPackage ./databrary.nix {
         inherit postgresql nodePackages coreutils;
         # ffmpeg override with with --enable-libfdk-aac and --enable-nonfree flags set
         ffmpeg = nixpkgs.ffmpeg-full.override {
           nonfreeLicensing = true;
           fdkaacExtlib = true;
         };
-      };
+      });
       # cabal override to enable ghcid (GHCi daemon) development tool
       databrary-dev = overrideCabal databrary (drv: {
         libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ (with self; [ghcid cabal-install ghciDatabrary]);
