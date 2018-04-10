@@ -531,9 +531,9 @@ Executable generate
   if flag(sandbox)
     cpp-options: -DSANDBOX
 
-test-suite databrary-test
+test-suite discovered
   type: exitcode-stdio-1.0
-  main-is: Test.hs
+  main-is: Discovered.hs
   hs-source-dirs: test
   build-depends:
     databrary
@@ -547,6 +547,7 @@ test-suite databrary-test
     , postgresql-typed
     , range-set-list
     , tasty
+    , tasty-discover
     , tasty-expected-failure
     , tasty-hunit
     , transformers

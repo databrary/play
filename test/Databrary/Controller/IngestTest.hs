@@ -17,8 +17,8 @@ import Databrary.Model.Metric
 import Databrary.Model.Record
 import Databrary.Model.Record.TypesTest
 
-tests :: TestTree
-tests = testGroup "Databrary.Controller.Ingest"
+test_all :: TestTree
+test_all = testGroup "all"
     [ testCase "parseMapping-1"
         ((parseEither mappingParser ((MB.fromJust . decode) "[]" :: Value)) @?= (Right []))
     , testCase "parseMapping-2"

@@ -1,5 +1,4 @@
 module Databrary.Model.TimeTest
-   ( tests )
 where
 
 import Test.Tasty
@@ -8,8 +7,8 @@ import Test.Tasty.HUnit
 import Data.Time (fromGregorian)
 import Databrary.Model.Time
 
-tests :: TestTree
-tests = testGroup "Databrary.Model.Time"
+test_all :: TestTree
+test_all = testGroup "all"
   [ testCase "dateYear-1"
       (dateYear (fromGregorian 2017 1 2) @?= 2017)
   , testCase "maskDateIf-1"

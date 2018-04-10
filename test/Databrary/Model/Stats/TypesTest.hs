@@ -33,7 +33,7 @@ siteStats1 =
               ] -- should be list of category to count of records
         }
 
-tests :: TestTree
-tests = testGroup "Databrary.Model.Stats.Types"
+test_all :: TestTree
+test_all = testGroup "all"
     [
     ]

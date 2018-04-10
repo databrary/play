@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings, TypeFamilies, ScopedTypeVariables #-}
-module Databrary.HTTP.Form.DeformTest (tests) where
+module Databrary.HTTP.Form.DeformTest where
 
 import Test.Tasty
 import Test.Tasty.HUnit
 
 import Databrary.HTTP.Form.Deform
 
-tests :: TestTree
-tests = testGroup "Databrary.HTTP.Form.DeformTest"
+test_all :: TestTree
+test_all = testGroup "all"
     [ testCase "textInteger-1" (textInteger "1" @?= Right (1::Int))
     
     ]

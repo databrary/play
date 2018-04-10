@@ -9,8 +9,8 @@ import Test.Tasty.HUnit
 
 import Databrary.Model.Metric
 
-tests :: TestTree
-tests = testGroup "Databrary.Model.Metric"
+test_all :: TestTree
+test_all = testGroup "all"
     [ testCase "lookupParticipantMetricBySymbolicName-1"
         (lookupParticipantMetricBySymbolicName "birthweight" @?= Just participantMetricBirthWeight)
     , testCase "lookupParticipantMetricBySymbolicName-2"

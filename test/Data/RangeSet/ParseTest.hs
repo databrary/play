@@ -1,5 +1,4 @@
 module Data.RangeSet.ParseTest
-   ( tests )
 where
 
 import Test.Tasty
@@ -8,8 +7,8 @@ import Test.Tasty.HUnit
 import Data.RangeSet.Parse
 import qualified Data.RangeSet.List as R
 
-tests :: TestTree
-tests = testGroup "Data.RangeSet.Parse"
+test_all :: TestTree
+test_all = testGroup "all"
   [ testCase "parseRangeSet-1"
     (parseRangeSet "" @?= (Just (R.fromList [] :: R.RSet Bool)))
   , testCase "parseRangeSet-2"
