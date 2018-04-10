@@ -68,10 +68,11 @@ mailNotification msg Notification{..} = case notificationNotice of
       \Your data will remain private and accessible only to your lab members and collaborators until you are ready to share with the Databrary community. \
       \When you are ready, sharing is as easy as clicking a button!\
       \\n\n\
-      \You can use our template Databrary release form to obtain permission for sharing the data you collect from your participants, which can be found here: http://databrary.org/access/policies/release-template.html\n\
+      \You can use our template Databrary release form to obtain permission for sharing the data you collect from your participants, which can be found here: http://databrary.org/access/policies/release-template.html.\n\
       \The release form can be added to new or existing IRB protocols. \
       \It is completely adaptable and can be customized to suit your needs. \
-      \We also offer additional information and helpful tips about managing and sharing your video data in our User Guide: http://databrary.org/access/guide\n\
+      \We also offer additional information and helpful tips about managing and sharing your video data in our User Guide: http://databrary.org/access/guide. \
+      \Information about downloading data from Databrary and other useful instructions can be found in the Frequently Asked Questions: https://www.databrary.org/resources/faq.html.\n\
       \As soon as your protocol is amended to allow you to share data, you can start uploading your data from each new session. \
       \Don't wait until your study is complete to upload your videos. \
       \It's much easier to upload data after each data collection while your study is in progress!\
