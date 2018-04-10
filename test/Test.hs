@@ -18,6 +18,7 @@ import qualified Databrary.Model.Record.TypesTest
 import qualified Databrary.Model.RecordTest
 import qualified Databrary.Model.Stats.TypesTest
 import qualified Databrary.Model.TimeTest
+import qualified Databrary.OpsTest
 import qualified Databrary.Service.MailTest
 import qualified Databrary.Service.PasswdTest
 import qualified Databrary.Store.ConfigTest
@@ -46,6 +47,7 @@ tests = testGroup
     , Databrary.Model.RecordTest.tests
     , Databrary.Model.Stats.TypesTest.tests
     , Databrary.Model.TimeTest.tests
+    , Databrary.OpsTest.tests
     , Databrary.Service.MailTest.tests
     , Databrary.Service.PasswdTest.tests
     , Databrary.Store.ConfigTest.tests

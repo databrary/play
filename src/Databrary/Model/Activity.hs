@@ -49,15 +49,6 @@ orderActivity = onActivityTime compare
 mergeActivity :: [Activity] -> [Activity] -> [Activity]
 mergeActivity = mergeBy $ \x y -> orderActivity x y <> LT
 
--- |Merge two ordered lists using the given predicate, removing EQ "duplicates" (left-biased)
-mergeBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
-mergeBy _ [] l = l
-mergeBy _ l [] = l
-mergeBy p al@(a:ar) bl@(b:br) = case p a b of
-  LT -> a : mergeBy p ar bl
-  EQ -> mergeBy p al br
-  GT -> b : mergeBy p al br
-
 mergeActivities :: [[Activity]] -> [Activity]
 mergeActivities = foldr1 mergeActivity
 

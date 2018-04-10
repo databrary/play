@@ -30,7 +30,6 @@ import qualified Text.ParserCombinators.ReadPrec as RP (lift, readPrec_to_P, min
 import Text.Read (readMaybe, readPrec)
 import qualified Web.Route.Invertible as R
 
-import Databrary.Ops
 import qualified Databrary.JSON as JSON
 import Databrary.Model.Offset
 

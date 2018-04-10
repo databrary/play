@@ -1,14 +1,14 @@
-module Databrary.Model.ActivityTest
+module Databrary.OpsTest
    ( tests )
 where
 
 import Test.Tasty
 import Test.Tasty.HUnit
 
-import Databrary.Model.Activity
+import Databrary.Ops
 
 tests :: TestTree
-tests = testGroup "Databrary.Model.Activity"
+tests = testGroup "Databrary.Ops"
   [ testCase "rightJust-1"
       (rightJust (Right 10) @?= Just 10)
   , testCase "rightJust-2"

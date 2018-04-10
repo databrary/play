@@ -10,11 +10,9 @@ module Databrary.Model.Citation.SQL
   , deleteVolumeLink
   ) where
 
-import Control.Applicative ((<$>))
 import qualified Data.Text as T
 import qualified Language.Haskell.TH as TH
 
-import Databrary.Ops
 import Databrary.Model.SQL.Select
 import Databrary.Model.Audit.SQL
 import Databrary.Model.Volume.Types

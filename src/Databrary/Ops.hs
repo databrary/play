@@ -1,4 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, ViewPatterns #-}
+-- |
+-- FIXME: There is a lot of duplication of standard library tools in here.
 module Databrary.Ops
   ( (<?) ,   (?>)
   , (?!>)
@@ -8,12 +10,11 @@ module Databrary.Ops
   , fromMaybeM
   , orElseM
   , flatMapM
+  , groupTuplesBy
+  , mergeBy
   ) where
 
 import Control.Applicative
-import Control.Arrow
-import Data.Functor
--- import Data.Maybe (catMaybes)
 
 infixl 1 <?
 infixr 1 ?>, ?!>
@@ -71,3 +72,18 @@ orElseM m _ = return m
 
 flatMapM :: Monad m => (a -> m (Maybe b)) -> Maybe a -> m (Maybe b)
 flatMapM justAction mVal = maybe (return Nothing) justAction mVal
+
+groupTuplesBy :: (a -> a -> Bool) -> [(a, b)] -> [(a, [b])]
+groupTuplesBy _ [] = []
+groupTuplesBy p ((a,b):(span (p a . fst) -> (al, l))) = (a, b : map snd al) : groupTuplesBy p l
+
+-- |
+-- Merge two ordered lists using the given predicate, removing EQ "duplicates"
+-- (left-biased)
+mergeBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
+mergeBy _ [] l = l
+mergeBy _ l [] = l
+mergeBy p al@(a:ar) bl@(b:br) = case p a b of
+  LT -> a : mergeBy p ar bl
+  EQ -> mergeBy p al br
+  GT -> b : mergeBy p al br

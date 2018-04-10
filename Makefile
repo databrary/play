@@ -51,7 +51,16 @@ module_list.yaml:
 	echo -e '_modules:\n- Paths_databrary' > $@
 	find src -regex '.*\.hsc?' >> $@
 	sed -i -e 's@src/\(.*\).hs.*@- \1@' -e 's@/@.@g' $@
-.PHONY: module_list.yaml
+
+
+testFiles := $(shell find test -name '*Test.hs')
+tests_module_list.yaml: $(testFiles)
+	echo -e '_modules:\n' > $@
+	find test -regex '.*\.hsc?' >> $@
+	sed -i -e 's@test/\(.*\).hs.*@- \1@' -e 's@/@.@g' $@
+
+tests_module_list.cabalsnip: tests_module_list.yaml
+	yq -r '.[]|join("\n")' < $< > $@
 
 package.yaml: module_list.yaml
 

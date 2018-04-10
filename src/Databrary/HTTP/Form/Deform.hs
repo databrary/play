@@ -46,7 +46,6 @@ import qualified Network.URI as URI
 import Network.Wai.Parse (FileInfo)
 import Text.Read (readEither)
 
-import Databrary.Ops
 import Databrary.Model.URL
 import Databrary.Model.Time
 import Databrary.Model.Offset
