@@ -19,8 +19,8 @@ endif
 #
 
 ## The default action is to run tests
-cabal.test: ; $(nix-shell) --run 'cabal -j new-test'
-.PHONY: cabal.test
+cabal-test: ; $(nix-shell) --run 'cabal -j new-test'
+.PHONY: cabal-test
 
 ## Start the db (needed for cabal.test and cabal.build, but that relationship is
 ## not captured by Make yet)
