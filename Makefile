@@ -5,7 +5,7 @@
 NIX_OPTIONS := --option binary-caches "https://cache.nixos.org http://devdatabrary2.home.nyu.edu:5000"
 
 # These below intentionally use '='to pick up following changes to NIX_OPTIONS
-nix-build = nix-build $(NIX_OPTIONS)
+nix-build = nix-build $(NIX_OPTIONS) --drv-link $(PWD)/derivation
 nix-shell = nix-shell $(NIX_OPTIONS)
 ifdef BUILDDEV
 nix-build += -K
@@ -38,6 +38,15 @@ nix-build: ; $(nix-build) --cores 4 -A databrary
 ## You can also build with Cabal if that suits you
 cabal-build: ; $(nix-shell) --run 'cabal -j new-build'
 .PHONY: cabal-build
+
+## Simple report output
+hpc-report.txt: result # Depends on nix-build, but I don't want to build. Hm
+	hpc report result/share/hpc/dyn/tix/databrary-1/databrary-1.tix \
+		--hpcdir=result/share/hpc/dyn/mix/databrary-1 \
+		> $@
+
+haddock-coverage-report.txt: derivation # Also depends on nix-build. Hmmmm
+	nix-store -l $< | grep ") in '" > $@
 
 #
 # Experimental tasks
