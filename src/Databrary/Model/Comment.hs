@@ -70,7 +70,7 @@ makeCommentRow i c s w t x = CommentRow i w (SlotId c s) t x
 lookupVolumeCommentRows :: MonadDB c m => Volume -> m [CommentRow]
 lookupVolumeCommentRows v = do
   let _tenv_a8I48 = unknownPGTypeEnv
-  dbQuery -- $(selectQuery selectCommentRow "JOIN container ON comment.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container")
+  dbQuery -- .(selectQuery selectCommentRow "JOIN container ON comment.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container")
    (fmap
       (\ (vid_a8I38, vcontainer_a8I39, vsegment_a8I3a, vwho_a8I3b,
           vtime_a8I3c, vtext_a8I3d)

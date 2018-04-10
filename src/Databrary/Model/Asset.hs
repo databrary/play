@@ -66,7 +66,7 @@ lookupOrigAsset ai = do
 lookupVolumeAsset :: (MonadDB c m) => Volume -> Id Asset -> m (Maybe Asset)
 lookupVolumeAsset vol ai = do
   let _tenv_a87rh = unknownPGTypeEnv
-  dbQuery1 $ (`Asset` vol) <$> -- $(selectQuery selectAssetRow "WHERE asset.id = ${ai} AND asset.volume = ${volumeId $ volumeRow vol}")
+  dbQuery1 $ (`Asset` vol) <$> -- .(selectQuery selectAssetRow "WHERE asset.id = ${ai} AND asset.volume = ${volumeId $ volumeRow vol}")
     fmap
       (\ (vid_a87qZ, vformat_a87r0, vrelease_a87r1, vduration_a87r2,
           vname_a87r3, vc_a87r4, vsize_a87r5)
@@ -144,7 +144,7 @@ addAsset ba fp = do
   ident <- getAuditIdentity
   ba' <- maybe (return ba) (storeAssetFile ba) fp
   let _tenv_a87Hi = unknownPGTypeEnv
-  dbQuery1' -- $(insertAsset 'ident 'ba')
+  dbQuery1' -- .(insertAsset 'ident 'ba')
     (fmap
       (\ (vid_a87Bv)
          -> setAssetId ba' vid_a87Bv)
@@ -238,7 +238,7 @@ changeAsset a fp = do
   ident <- getAuditIdentity
   a2 <- maybe (return a) (storeAssetFile a) fp
   let _tenv_a87Mj = unknownPGTypeEnv
-  dbExecute1' -- $(updateAsset 'ident 'a2)
+  dbExecute1' -- .(updateAsset 'ident 'a2)
     (mapQuery
       ((\ _p_a87Mk
        _p_a87Ml

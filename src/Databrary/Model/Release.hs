@@ -32,7 +32,7 @@ changeRelease :: MonadAudit c m => Slot -> Maybe Release -> m Bool
 changeRelease s Nothing = do
   ident <- getAuditIdentity
   let _tenv_a649Y = unknownPGTypeEnv
-  dbExecute1 -- $(deleteRelease 'ident 's)
+  dbExecute1 -- .(deleteRelease 'ident 's)
     (mapQuery
                     (Data.ByteString.concat
                        [Data.String.fromString
@@ -74,7 +74,7 @@ changeRelease s (Just c) = do
   let _tenv_a64aA = unknownPGTypeEnv
       _tenv_a64bO = unknownPGTypeEnv
   either (const False) ((0 <) . fst) <$> tryUpdateOrInsert (guard . isExclusionViolation)
-    -- $(updateRelease 'ident 's 'c)
+    -- .(updateRelease 'ident 's 'c)
     (mapQuery
                     (Data.ByteString.concat
                        [Data.String.fromString
@@ -112,7 +112,7 @@ changeRelease s (Just c) = do
                         Data.String.fromString
                           ", 'change'::audit.action, * FROM audit_row"])
             (\[] -> ()))
-    -- $(insertRelease 'ident 's 'c)
+    -- .(insertRelease 'ident 's 'c)
     (mapQuery
                    (Data.ByteString.concat
                        [Data.String.fromString

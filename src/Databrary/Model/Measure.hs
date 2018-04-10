@@ -75,7 +75,7 @@ changeRecordMeasure m = do
   let _tenv_a6DoS = unknownPGTypeEnv
       _tenv_a6DpB = unknownPGTypeEnv
   r <- tryUpdateOrInsert (guard . isInvalidInputException)
-    -- $(updateMeasure 'ident 'm)
+    -- .(updateMeasure 'ident 'm)
     (fmap
       (\ (vdatum_a6DoR)
          -> setMeasureDatum
@@ -125,7 +125,7 @@ changeRecordMeasure m = do
                             _tenv_a6DoS
                             (Database.PostgreSQL.Typed.Types.PGTypeProxy :: PGTypeName "text")
                             _cdatum_a6DoY))))
-    -- $(insertMeasure 'ident 'm)
+    -- .(insertMeasure 'ident 'm)
     (fmap
       (\ (vdatum_a6Dpm)
          -> setMeasureDatum
@@ -184,7 +184,7 @@ removeRecordMeasure :: MonadAudit c m => Measure -> m Record
 removeRecordMeasure m = do
   ident <- getAuditIdentity
   let _tenv_a6Dqm = unknownPGTypeEnv
-  r <- dbExecute1 -- $(deleteMeasure 'ident 'm)
+  r <- dbExecute1 -- .(deleteMeasure 'ident 'm)
       (mapQuery
           ((\ _p_a6Dqn _p_a6Dqo _p_a6Dqp _p_a6Dqq ->
                     (Data.ByteString.concat
