@@ -11,19 +11,14 @@ import qualified Data.ByteString.Builder as B
 import qualified Data.ByteString as BS
 import Data.Monoid ((<>))
 
-import Databrary.Model.Container (Container)
-import Databrary.Model.Funding (Funder)
-import Databrary.Model.Metric (Metric)
-import Databrary.Model.Category (Category)
 import Databrary.Model.Record (Record)
 import Databrary.Model.Asset (Asset)
 import Databrary.Model.Volume (Volume)
 import Databrary.Model.Party (Party)
 import Databrary.Model.Id.Types
-import Databrary.Model.Token (Token, LoginToken)
+import Databrary.Model.Token (LoginToken)
 import Databrary.Model.Segment
 import Databrary.Model.Slot.Types
-import Databrary.Model.Tag.Types
 import Databrary.Action
 import Databrary.Controller.Paths
 import Databrary.Controller.Root
@@ -31,29 +26,17 @@ import Databrary.Controller.Login
 import Databrary.Controller.Register
 import Databrary.Controller.Token
 import Databrary.Controller.Party
-import Databrary.Controller.Authorize
 import Databrary.Controller.Volume
-import Databrary.Controller.VolumeAccess
-import Databrary.Controller.Funding
 import Databrary.Controller.Container
 import Databrary.Controller.Slot
 import Databrary.Controller.Record
-import Databrary.Controller.Metric
-import Databrary.Controller.Citation
-import Databrary.Controller.Upload
 import Databrary.Controller.Format
 import Databrary.Controller.Asset
 import Databrary.Controller.AssetSegment
-import Databrary.Controller.Excerpt
 import Databrary.Controller.Zip
-import Databrary.Controller.Tag
-import Databrary.Controller.Comment
 import Databrary.Controller.CSV
-import Databrary.Controller.VolumeState
 import Databrary.Controller.Search
 import Databrary.Controller.Activity
-import Databrary.Controller.Notification
--- import Databrary.Web.Routes
 
 rt :: BS.ByteString -> B.Builder
 rt routeKeyVal = B.byteString ("\n" <> routeKeyVal)

@@ -21,41 +21,31 @@ module Databrary.Model.Ingest
 
 import Control.Monad (when)
 import qualified Data.ByteString as BS
-import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Csv as Csv
 import Data.Csv hiding (Record)
 import qualified Data.List as L
-import Data.Maybe (catMaybes)
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import Data.Text (Text)
-import Data.Map (Map)
-import Database.PostgreSQL.Typed.Query (pgSQL)
-import Database.PostgreSQL.Typed
 import Database.PostgreSQL.Typed.Query
 import Database.PostgreSQL.Typed.Types
-import qualified Database.PostgreSQL.Typed.Query
-import qualified Database.PostgreSQL.Typed.Types
 import qualified Data.ByteString
 import Data.ByteString (ByteString)
 import qualified Data.String
 import Data.Vector (Vector)
 
-import Data.Csv.Contrib (extractColumnsDistinctSample, extractColumnDefaulting, decodeCsvByNameWith, extractColumnsInitialRows)
+import Data.Csv.Contrib (extractColumnsDistinctSample, decodeCsvByNameWith, extractColumnsInitialRows)
 import Databrary.Service.DB
 import qualified Databrary.JSON as JSON
 import Databrary.JSON (FromJSON(..), ToJSON(..))
-import Databrary.Model.SQL (selectQuery)
 import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
-import Databrary.Model.Container.SQL
 import Databrary.Model.Metric.Types
 import Databrary.Model.Metric
 import qualified Databrary.Model.Record.SQL
 import Databrary.Model.Record.Types
 import Databrary.Model.Record (columnSampleJson)
-import Databrary.Model.Record.SQL
 import Databrary.Model.Asset.Types
 import Databrary.Model.Asset.SQL
 

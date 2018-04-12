@@ -10,13 +10,12 @@ import Control.Concurrent.MVar (newMVar)
 #endif
 
 import qualified Data.ByteString as BS
-import qualified Data.ByteString.Char8 as BSC
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import qualified Data.Text.Encoding as TE
 import Databrary.Web.Types
 import Databrary.Web.Info
-import System.IO (FilePath, readFile)
+import System.IO (FilePath)
 import Paths_databrary (getDataFileName)
 
 versionFile :: FilePath

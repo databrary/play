@@ -4,7 +4,6 @@ module Databrary.Model.Audit.TypesTest where
 import Data.Time as Time
 import Database.PostgreSQL.Typed.Inet (PGInet(..))
 import Test.Tasty
-import Test.Tasty.HUnit
 
 import Databrary.Model.Audit.Types
 import Databrary.Model.Id.Types

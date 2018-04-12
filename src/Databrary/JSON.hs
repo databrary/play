@@ -28,9 +28,6 @@ import Data.Aeson
 import Data.Aeson.Types
 import Data.Aeson.Text (encodeToTextBuilder)
 import qualified Data.ByteString as BS
-import qualified Data.ByteString.Builder as B
-import qualified Data.ByteString.Builder.Prim as BP
-import Data.ByteString.Internal (c2w)
 import qualified Data.HashMap.Strict as HM
 import Data.Monoid ((<>))
 import qualified Data.Text as T
@@ -38,7 +35,6 @@ import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TLB
 import qualified Data.Vector as V
-import Data.Word (Word8)
 import Network.HTTP.Types (Query)
 import qualified Text.Blaze.Html as Html
 import qualified Text.Blaze.Html.Renderer.Text as Html

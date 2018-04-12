@@ -14,7 +14,6 @@ module Databrary.Model.VolumeAccess
   ) where
 
 import Data.Int (Int64)
-import Data.List (find)
 import Data.Monoid ((<>))
 
 import Databrary.Ops

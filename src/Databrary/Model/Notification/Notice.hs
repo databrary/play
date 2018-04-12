@@ -23,7 +23,6 @@ import qualified GHC.Arr
 import qualified Database.PostgreSQL.Typed.Types
 import qualified Database.PostgreSQL.Typed.Enum
 import qualified Data.ByteString
-import qualified Data.ByteString.Char8
 
 import Databrary.HTTP.Form (FormDatum(..))
 import Databrary.HTTP.Form.Deform

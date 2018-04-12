@@ -19,7 +19,6 @@ module Databrary.Model.Container
 import Control.Monad (guard)
 import Data.Either (isRight)
 import Data.Monoid ((<>))
-import qualified Data.Text as T
 import Data.Time.Format (formatTime, defaultTimeLocale)
 import Database.PostgreSQL.Typed.Query (pgSQL)
 

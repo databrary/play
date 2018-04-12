@@ -29,7 +29,6 @@ import qualified Database.PostgreSQL.Typed.Types
 import qualified Database.PostgreSQL.Typed.Dynamic
 import qualified Database.PostgreSQL.Typed.Enum
 import qualified Data.Aeson.Types
-import qualified Data.ByteString
 import qualified Data.ByteString.Char8
 
 import Databrary.Has (makeHasRec)
@@ -38,7 +37,6 @@ import Databrary.Model.Kind
 import Databrary.Model.Release.Types
 import Databrary.Model.Id.Types
 import Databrary.Model.Category.Types
-import qualified Databrary.Model.Kind
 import qualified Databrary.HTTP.Form.Deform
 
 -- makeDBEnum "data_type" "MeasureType"

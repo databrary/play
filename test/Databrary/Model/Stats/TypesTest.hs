@@ -4,13 +4,9 @@ module Databrary.Model.Stats.TypesTest where
 import qualified Data.Map as Map
 import qualified Data.Array.Unboxed as ArrayU
 import Test.Tasty
-import Test.Tasty.HUnit
 
 import Databrary.Model.Stats.Types
-import Databrary.Model.Category.Types
 import Databrary.Model.Id.Types
-import Databrary.Model.Permission.Types
-import Databrary.Model.Offset
 
 siteStats1 :: SiteStats
 siteStats1 =

@@ -19,7 +19,6 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
-import qualified Network.Wai as Wai
 import Network.HTTP.Types.Method (methodGet, methodPost)
 import qualified Network.HTTP.Types.Method as HTM
 import Servant (FromHttpApiData(..))

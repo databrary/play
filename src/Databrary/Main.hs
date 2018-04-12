@@ -13,12 +13,10 @@ import System.Exit (exitFailure)
 
 import qualified Databrary.Store.Config as Conf
 import Databrary.Service.Init (withService)
-import Databrary.Context
 import Databrary.Web.Rules (generateWebFiles)
 import Databrary.Action (runActionRoute)
 import Databrary.Routes (routeMap, newRouteMap)
 import Databrary.Warp (runWarp)
-import Databrary.EZID.Volume (updateEZID)
 
 
 data Flag

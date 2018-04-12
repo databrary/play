@@ -8,18 +8,15 @@ module Databrary.Controller.Root
   ) where
 
 import Control.Monad (when)
-import Control.Monad.IO.Class (liftIO)
 import qualified Data.Aeson.Types as JSON
 import qualified Data.ByteString as BS
 import Data.Maybe (isNothing)
-import qualified Data.Text as T
 import Data.Text (Text)
 import Network.HTTP.Types (notFound404)
 
 import Databrary.Has
 import qualified Databrary.JSON as JSON
 import Databrary.Service.Types
-import Databrary.HTTP.Path.Parser
 import Databrary.Action
 import Databrary.Controller.Angular
 import Databrary.View.Root

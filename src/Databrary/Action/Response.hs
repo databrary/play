@@ -28,7 +28,7 @@ import System.Posix.Types (FileOffset)
 import qualified Text.Blaze.Html as Html
 import qualified Text.Blaze.Html.Renderer.Utf8 as Html
 import qualified Conduit as CND
-import Conduit (Source, Flush, (.|), MonadResource)
+import Conduit (Source, (.|))
 import qualified Data.Binary.Builder as DBB
 
 import qualified Databrary.JSON as JSON

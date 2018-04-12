@@ -1,9 +1,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Model.MetricTest where
 
-import qualified Data.HashMap.Strict as HMP
 import Data.Time (fromGregorian)
-import qualified Data.Vector as V
 import Test.Tasty
 import Test.Tasty.HUnit
 

@@ -13,20 +13,14 @@ module Databrary.Controller.Ingest
   ) where
 
 import Control.Arrow (right)
-import Control.Monad (unless, void)
+import Control.Monad (unless)
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy as BSL
-import qualified Data.Csv as Csv
-import qualified Data.HashMap.Strict as HMP
-import qualified Data.List as L
-import qualified Data.Map as Map
-import Data.Map (Map)
-import Data.Maybe (fromJust, catMaybes)
+import Data.Maybe (catMaybes)
 import Data.Monoid ((<>))
 import Data.Text (Text)
-import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
@@ -36,7 +30,7 @@ import Network.HTTP.Types (badRequest400)
 import Network.Wai.Parse (FileInfo(..))
 import System.Posix.FilePath (takeExtension)
 
-import Data.Csv.Contrib (parseCsvWithHeader, getHeaders, extractColumnsDistinctSample, removeBomPrefixText)
+import Data.Csv.Contrib (parseCsvWithHeader, getHeaders, removeBomPrefixText)
 import qualified Databrary.JSON as JSON
 import Databrary.Ops
 import Databrary.Has

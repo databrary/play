@@ -21,7 +21,6 @@ import qualified Data.Csv as CSV
 import Data.Either (isRight)
 import Data.List (find)
 import Data.Monoid ((<>))
-import qualified Data.Vector as V
 import Data.Vector (Vector)
 
 import Data.Csv.Contrib (extractColumnDefaulting)
