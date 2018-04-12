@@ -17,7 +17,7 @@ let
   inherit (nixpkgs) fetchFromGitHub writeScriptBin cpio wget;
   # nixpkgs functions used to regulate Haskell overrides
   inherit (nixpkgs.haskell.lib)
-    dontCheck overrideCabal doJailbreak doCoverage doHaddock;
+    dontCheck overrideCabal doJailbreak doCoverage doHaddock dontHaddock;
   ghciDatabrary = writeScriptBin "ghci-databrary" ''
     if [ ! -d "solr-6.6.0" ]; then
       if [ ! -d "/tmp/solr-6.6.0" ]; then
@@ -72,7 +72,7 @@ let
   pkgs = reflex-platform.ghc.override {
     overrides = self: super: rec {
       databrary =
-        (if haddock then doHaddock else id)
+        (if haddock then doHaddock else dontHaddock)
           ((if coverage then doCoverage else id)
             (self.callPackage ./databrary.nix {
               inherit postgresql nodePackages coreutils;
