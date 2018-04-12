@@ -15,9 +15,12 @@ else
 NIX_OPTIONS += -Q
 endif
 
-# Sneaky option used in recursing make. Not for human consumption.
+# Sneaky options used in recursing make. Not for human consumption.
 ifdef __COVERAGE
 nix-build += --arg coverage true
+endif
+ifdef __HADDOCK
+nix-build += --arg haddock true
 endif
 
 #
@@ -46,14 +49,14 @@ cabal-build: ; $(nix-shell) --run 'cabal -j new-build'
 .PHONY: cabal-build
 
 ## Simple report output, long build time.
-hpc-report:
+hpc-report.txt: result
 	__COVERAGE=1 make nix-build
 	hpc report result/share/hpc/dyn/tix/databrary-1/databrary-1.tix \
 		--hpcdir=result/share/hpc/dyn/mix/databrary-1 \
-		> $@.txt
-.PHONY: hpc-report
+		> $@
 
 haddock-coverage-report.txt: derivation # Also depends on nix-build. Hmmmm
+	__HADDOCK=1 make nix-build
 	nix-store -l $< | grep ") in '" > $@
 
 #
