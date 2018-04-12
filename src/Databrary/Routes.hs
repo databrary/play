@@ -251,6 +251,8 @@ routeMap = routes
   , route queryVolumes
   , route $ zipVolume False 
   , route $ zipVolume True 
+  , route generateVolumeZip
+  , route downloadGeneratedVolumeZip
   , route viewVolumeDescription
   , route thumbVolume
   , route csvVolume

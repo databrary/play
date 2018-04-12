@@ -3,6 +3,8 @@ module Databrary.Controller.Zip
   ( zipContainer
   , zipVolume
   , viewVolumeDescription
+  , generateVolumeZip
+  , downloadGeneratedVolumeZip
   ) where
 
 import qualified Data.ByteString as BS
@@ -25,6 +27,7 @@ import qualified System.IO as IO
 import qualified System.Directory as DIR
 import qualified Conduit as CND
 import Path (parseRelFile)
+import qualified Web.Route.Invertible as Invertible
 -- import Path.IO (resolveFile')
 
 import Databrary.Ops
@@ -198,6 +201,30 @@ zipVolume isOrig =
   zipActs <- volumeZipEntry2 isOrig v top s (buildCSV <$> csv) a
   auditVolumeDownload (not $ null a) v
   zipResponse2 (BSC.pack $ "databrary-" ++ show (volumeId $ volumeRow v) ++ if idSetIsFull s then "" else "-partial") zipActs
+
+generateVolumeZip :: ActionRoute (Id Volume)
+generateVolumeZip =
+  action GET (pathId </< "generateZip" </< "false") $ \vi -> withAuth $ do -- TODO: change to POST
+    -- TODO: handle isOrig
+    _ <- getVolumeInfo vi -- for authorization only
+    let token = show vi -- TODO: gen unique token
+    -- insert (token, (Gen vid))
+    pure (okResponse [] token)
+
+downloadGeneratedVolumeZip :: ActionRoute (String)
+downloadGeneratedVolumeZip =
+  action GET (Invertible.parameter </< "downloadZip" </< "false") $ \tkn -> withAuth $ do
+    -- ent <- remove entry map
+    -- TODO: authorize retrieved against volume id, if not, then entry is discarded
+    -- if gen, then respond with not ready
+    pure (okResponse [] ("generating" :: String))
+    -- if ready, then serve
+    -- if no entry, then repond with unknown or expired
+    
+-- async job
+--    for each entry
+--        if Gen -> run generate and update with handle
+--        if Ready -> check generated date; if old then delete entry
 
 viewVolumeDescription :: ActionRoute (Id Volume)
 viewVolumeDescription = action GET (pathId </< "description") $ \vi -> withAuth $ do
