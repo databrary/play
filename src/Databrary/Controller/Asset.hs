@@ -80,16 +80,16 @@ import Control.Monad.IO.Class
 getAsset :: Bool -> Permission -> Bool -> Id Asset -> ActionM AssetSlot
 getAsset getOrig p checkDataPerm i = do
   mAssetSlot <- (if getOrig then lookupOrigAssetSlot else lookupAssetSlot) i
-  assetSlot <- maybeAction mAssetSlot
-  void (checkPermission2 (fst . getAssetSlotVolumePermission2) p assetSlot)
+  slot <- maybeAction mAssetSlot
+  void (checkPermission2 (fst . getAssetSlotVolumePermission2) p slot)
   when checkDataPerm $ do
     -- TODO: delete
-    liftIO $ print ("checking data perm", "assetSlot", assetSlot)
-    liftIO $ print ("checking data perm", "seg rlses", getAssetSlotRelease2 assetSlot,
-                    "vol prm", getAssetSlotVolumePermission2 assetSlot) 
-    liftIO $ print ("result perm", dataPermission3 getAssetSlotRelease2 getAssetSlotVolumePermission2 assetSlot)
-    void (userCanReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 assetSlot)
-  pure assetSlot
+    liftIO $ print ("checking data perm", "assetSlot", slot)
+    liftIO $ print ("checking data perm", "seg rlses", getAssetSlotRelease2 slot,
+                    "vol prm", getAssetSlotVolumePermission2 slot)
+    liftIO $ print ("result perm", dataPermission3 getAssetSlotRelease2 getAssetSlotVolumePermission2 slot)
+    void (userCanReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 slot)
+  pure slot
 
 assetJSONField :: AssetSlot -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
 assetJSONField a "container" _ =
@@ -124,8 +124,7 @@ assetDownloadName addPrefix trimFormat a =
     else maybeToList scrubbedAssetName
 
 scrubAssetName :: T.Text -> T.Text
-scrubAssetName assetName =
-  T.pack (FPW.makeValid (FPP.makeValid (T.unpack assetName))) -- needed for asset zip entry
+scrubAssetName = T.pack . FPW.makeValid . FPP.makeValid . T.unpack
 
 viewAsset :: ActionRoute (API, Id Asset)
 viewAsset = action GET (pathAPI </> pathId) $ \(api, i) -> withAuth $ do
@@ -162,7 +161,7 @@ data FileUpload = FileUpload
   , fileUploadProbe :: Probe
   }
 
-deformLookup :: (Monad m, Functor m, Deform f a) => FormErrorMessage -> (a -> m (Maybe b)) -> DeformT f m (Maybe b)
+deformLookup :: (Monad m, Deform f a) => FormErrorMessage -> (a -> m (Maybe b)) -> DeformT f m (Maybe b)
 deformLookup e l = mapM (deformMaybe' e <=< lift . l) =<< deformNonEmpty deform
 
 detectUpload :: FileUploadFile -> DeformActionM TempFile FileUpload

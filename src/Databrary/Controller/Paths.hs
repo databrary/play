@@ -45,6 +45,7 @@ data PartyTarget
   | TargetParty (Id Party)
 
 
+pathPartyTarget :: R.Path PartyTarget
 pathPartyTarget = [I.biCase|
     Left () <-> TargetProfile
     Right i <-> TargetParty i

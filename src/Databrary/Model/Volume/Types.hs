@@ -49,7 +49,7 @@ instance Kinded Volume where
 
 makeHasRec ''VolumeRow ['volumeId]
 makeHasRec ''Volume ['volumeRow, 'volumePermission]
-deriveLiftMany [''VolumeRow, ''Volume, ''VolumeAccessPolicy]
+deriveLiftMany [''VolumeRow, ''Volume]
 
 volumePermissionPolicy :: Volume -> (Permission, VolumeAccessPolicy)
 volumePermissionPolicy Volume{..} =

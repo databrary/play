@@ -112,3 +112,5 @@ deriveLiftMany [''Permission, ''Access]
 
 data VolumeAccessPolicy = PublicRestricted | PermLevelDefault
   deriving (Show, Eq)
+
+deriveLift ''VolumeAccessPolicy

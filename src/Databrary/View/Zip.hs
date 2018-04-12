@@ -150,6 +150,8 @@ htmlVolumeDescription inzip Volume{ volumeRow = VolumeRow{..}, ..} cite fund glo
     H.tbody $ abody acl
   abody [] = mempty
   abody (~(AssetSlot{ assetSlot = Nothing }:_):_) = mempty
+  -- FIXME, probably don't want lazy patterns since all this beautiful code
+  -- never evaluates.
   abody (~(a@AssetSlot{ assetSlot = Just Slot{ slotContainer = c } }:l):al) = do
     H.tr $ do
       H.td H.! rs $ H.a !? (inzip ?> HA.href (byteStringValue fn)) $

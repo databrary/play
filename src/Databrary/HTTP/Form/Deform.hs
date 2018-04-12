@@ -115,23 +115,23 @@ instance Monad m => MonadWriter FormErrors (DeformT f m) where
       Just (r, f) -> return (f e, Just r)
       Nothing -> return (e, Nothing)
 
-runDeform :: Functor m => DeformT f m a -> FormData f -> m (Either FormErrors a)
+runDeform :: Monad m => DeformT f m a -> FormData f -> m (Either FormErrors a)
 runDeform (DeformT fa) = fmap fr . fa . initForm where
   fr (e, Just a) | nullFormErrors e = Right a
   fr (e, _) = Left e
 
-deformSync' :: Functor m => DeformT f m a -> DeformT f m a
+deformSync' :: Monad m => DeformT f m a -> DeformT f m a
 deformSync' (DeformT f) = DeformT $ fmap sync . f where
   sync (e, a) = (e, guard (nullFormErrors e) >> a)
 
-withSubDeform :: (Functor m, Monad m) => FormKey -> DeformT f m a -> DeformT f m a
+withSubDeform :: Monad m => FormKey -> DeformT f m a -> DeformT f m a
 withSubDeform k (DeformT a) = DeformT $ fmap (first (unsubFormErrors k)) . a . subForm k
 
 infixr 2 .:>
-(.:>) :: (Functor m, Monad m) => T.Text -> DeformT f m a -> DeformT f m a
+(.:>) :: Monad m => T.Text -> DeformT f m a -> DeformT f m a
 (.:>) keyName subDeform = withSubDeform (FormField keyName) subDeform
 
-withSubDeforms :: (Functor m, Monad m) => (FormKey -> DeformT f m a) -> DeformT f m [a]
+withSubDeforms :: Monad m => (FormKey -> DeformT f m a) -> DeformT f m [a]
 withSubDeforms s = DeformT $
   fmap (unsubFormsErrors *** sequence) . mapAndUnzipM (uncurry $ runDeformT . s) . subForms
 
@@ -147,22 +147,22 @@ deformError' = deformErrorWith Nothing
 deformMaybe' :: Monad m => FormErrorMessage -> Maybe a -> DeformT f m a
 deformMaybe' e = maybe (deformError' e) return
 
-deformEither :: (Functor m, Monad m) => a -> Either FormErrorMessage a -> DeformT f m a
+deformEither :: Monad m => a -> Either FormErrorMessage a -> DeformT f m a
 deformEither def = either ((<$) def . deformError) return
 
-deformGuard :: (Monad m) => FormErrorMessage -> Bool -> DeformT f m ()
+deformGuard :: Monad m => FormErrorMessage -> Bool -> DeformT f m ()
 deformGuard _ True = return ()
 deformGuard e False = deformError e
 
-deformCheck :: (Functor m, Monad m) => FormErrorMessage -> (a -> Bool) -> a -> DeformT f m a
+deformCheck :: Monad m => FormErrorMessage -> (a -> Bool) -> a -> DeformT f m a
 deformCheck e f v = (deformGuard e . f) v $> v
 
-deformOptional :: (Functor m, Monad m) => DeformT f m a -> DeformT f m (Maybe a)
+deformOptional :: Monad m => DeformT f m a -> DeformT f m (Maybe a)
 deformOptional f = opt =<< asks formDatum where
   opt FormDatumNone = return Nothing
   opt _ = Just <$> f
 
-deformNonEmpty :: (Functor m, Monad m) => DeformT f m a -> DeformT f m (Maybe a)
+deformNonEmpty :: Monad m => DeformT f m a -> DeformT f m (Maybe a)
 deformNonEmpty f = opt =<< asks formDatum where
   opt FormDatumNone = return Nothing
   opt (FormDatumBS s) | BS.null s = return Nothing
@@ -172,10 +172,10 @@ deformNonEmpty f = opt =<< asks formDatum where
   opt (FormDatumJSON JSON.Null) = return Nothing
   opt _ = Just <$> f
 
-deformParse :: (Functor m, Monad m) => a -> (FormDatum -> Either FormErrorMessage a) -> DeformT f m a
+deformParse :: Monad m => a -> (FormDatum -> Either FormErrorMessage a) -> DeformT f m a
 deformParse def p = deformEither def =<< asks (p . formDatum)
 
-deformParseJSON :: (Functor m, Monad m, JSON.FromJSON a) => a -> (Maybe BS.ByteString -> Either FormErrorMessage a) -> DeformT f m a
+deformParseJSON :: (Monad m, JSON.FromJSON a) => a -> (Maybe BS.ByteString -> Either FormErrorMessage a) -> DeformT f m a
 deformParseJSON def p = do
   d <- asks formDatum
   case d of
@@ -187,7 +187,7 @@ deformParseJSON def p = do
     FormDatumFlag -> deformEither def $ p Nothing
 
 class Deform f a where
-  deform :: (Functor m, Monad m) => DeformT f m a
+  deform :: Monad m => DeformT f m a
 
 instance Deform f FormDatum where
   deform = asks formDatum
@@ -328,8 +328,8 @@ textInteger t = case TR.signed TR.decimal t of
     | T.null r -> Right i
     | otherwise -> Left ("Trailing \"" <> r `T.snoc` '"')
 
-deformRead :: (Functor m, Monad m) => Read a => a -> DeformT f m a
+deformRead :: Monad m => Read a => a -> DeformT f m a
 deformRead def = deformEither def . readParser =<< deform
 
-deformRequired :: (Functor m, Monad m) => T.Text -> DeformT f m T.Text
+deformRequired :: Monad m => T.Text -> DeformT f m T.Text
 deformRequired = deformCheck "Required" (not . T.null)

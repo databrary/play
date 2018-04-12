@@ -111,10 +111,12 @@ realVolume, databrarySystem :: Volume
 realVolume = testmakeVolume (Id 100)
 databrarySystem = testmakeVolume coreVolumeId
 
-containerDeletedPointerToFormerVolume, avatarAttachedToDatabrarySystemNoRelease :: AssetSlot
+containerDeletedPointerToFormerVolume     :: AssetSlot
+avatarAttachedToDatabrarySystemNoRelease  :: AssetSlot
+inContainerHasAssetRelease                :: AssetSlot
 avatarAttachedToDatabrarySystemHasRelease :: AssetSlot
--- inContainerHasAssetRelease, inContainerOnlyContainerRelease :: AssetSlot
-inContainerNoAsssetOrContainerRelease :: AssetSlot
+inContainerOnlyContainerRelease           :: AssetSlot
+inContainerNoAsssetOrContainerRelease     :: AssetSlot
 containerDeletedPointerToFormerVolume = testmakeAssetSlot (testmakeAsset realVolume Nothing) Nothing
 avatarAttachedToDatabrarySystemNoRelease = testmakeAssetSlot (testmakeAsset databrarySystem Nothing) Nothing
 avatarAttachedToDatabrarySystemHasRelease = testmakeAssetSlot (testmakeAsset databrarySystem (Just ReleasePUBLIC)) Nothing
@@ -171,7 +173,7 @@ getAssetSlotReleaseMaybe as =
 
 assetSlotIsDeletedFromItsContainer :: AssetSlot -> Bool
 assetSlotIsDeletedFromItsContainer (AssetSlot a Nothing) = volumeId (volumeRow $ assetVolume a) /= coreVolumeId
-assetSlotIsDeletedFromItsContainer (AssetSlot a (Just slot)) = False
+assetSlotIsDeletedFromItsContainer (AssetSlot _ (Just _)) = False
 
 getAssetSlotRelease2 :: AssetSlot -> EffectiveRelease  -- TODO: use this throughout?
 getAssetSlotRelease2 as =

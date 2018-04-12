@@ -51,7 +51,7 @@ instance ResponseData BS.ByteString where
 instance ResponseData (Source (CND.ResourceT IO) BS.ByteString) where
   response s h src =
     responseStream s h
-      (\send flush -> do
+      (\send _ -> do
          CND.runConduitRes (src .| (CND.mapM_C (\bs -> CND.lift (send (DBB.fromByteString bs))))))
 
 instance ResponseData StreamingBody where

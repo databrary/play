@@ -63,10 +63,7 @@ confPGDatabase conf = defaultPGDatabase
   user = conf C.! "user"
 
 
-data DBPool = DBPool
-        { dBPoolTyped :: Pool PGConnection
-        , dBPoolSimple :: Pool PGSimple.Connection
-        }
+data DBPool = DBPool (Pool PGConnection) (Pool PGSimple.Connection)
 type DBConn = PGConnection
 
 initDB :: C.Config -> IO DBPool

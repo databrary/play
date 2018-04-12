@@ -89,13 +89,6 @@ recordJSON publicRestricted r@Record{ recordRow = RecordRow{..}, ..} = JSON.Reco
      "category" JSON..= categoryId recordCategory
   <> "measures" JSON..=. measuresJSON publicRestricted (getRecordMeasures r)
 
-extractParticipantFieldRowsJson :: Int -> [BS.ByteString] -> Vector CSV.NamedRecord -> [JSON.Value]
-extractParticipantFieldRowsJson maxRows participantFieldHeaders records =
-    ( fmap (\(colHdr, vals) -> columnSampleJson colHdr vals)
-    . extractParticipantFieldRows participantFieldHeaders
-    . V.take maxRows)
-    records
-
 extractParticipantFieldRows :: [BS.ByteString] -> Vector CSV.NamedRecord -> [(BS.ByteString, [BS.ByteString])]
 extractParticipantFieldRows participantFieldHeaders records =
     (zip participantFieldHeaders . fmap (\hdr -> extractColumnDefaulting hdr records)) participantFieldHeaders

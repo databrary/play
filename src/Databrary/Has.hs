@@ -37,11 +37,11 @@ peeks :: (MonadReader c m, Has a c) => (a -> b) -> m b
 peeks f = reader (f . view)
 
 {-# INLINE focusReaderT #-}
-focusReaderT :: (Monad m, Has a c) => ReaderT a m r -> ReaderT c m r
+focusReaderT :: Has a c => ReaderT a m r -> ReaderT c m r
 focusReaderT = withReaderT view
 
 {-# INLINE focusReader #-}
-focusReader :: (Monad m, Has a c) => (a -> m b) -> ReaderT c m b
+focusReader :: Has a c => (a -> m b) -> ReaderT c m b
 focusReader f = ReaderT (f . view)
 
 {-# INLINE[2] focusLift #-}
