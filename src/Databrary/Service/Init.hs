@@ -3,6 +3,7 @@ module Databrary.Service.Init
   ( withService
   ) where
 
+import Control.Concurrent (ThreadId)
 import Control.Exception (bracket)
 import Control.Monad (when, void)
 import Data.IORef (newIORef)
@@ -25,7 +26,7 @@ import Databrary.Model.Stats
 import Databrary.Solr.Service (initSolr, finiSolr)
 import Databrary.EZID.Service (initEZID)
 import Databrary.Service.Notification
-import Databrary.Service.Periodic (forkPeriodic)
+import Databrary.Service.Periodic (forkPeriodic, forkZipGenerate)
 import Databrary.Service.Types
 import Databrary.Controller.Notification (forkNotifier)
 
@@ -70,6 +71,7 @@ initService fg conf = do
         , serviceDown = conf C.! "store.DOWN"
         }
   periodic <- fg ?$> forkPeriodic rc
+  (zipGenerate :: Maybe ThreadId) <- fg ?$> forkZipGenerate rc
   when fg $ void $ forkNotifier rc
   return $! rc
     { servicePeriodic = periodic

@@ -1,6 +1,7 @@
 {-# LANGUAGE TemplateHaskell, DeriveDataTypeable, TupleSections, Rank2Types, ScopedTypeVariables #-}
 module Databrary.Service.Periodic
   ( forkPeriodic
+  , forkZipGenerate
   ) where
 
 import Control.Concurrent (ThreadId, forkFinally, threadDelay)
@@ -70,3 +71,32 @@ forkPeriodic :: Service -> IO ThreadId
 forkPeriodic rc = forkFinally (mask $ runPeriodic rc) $ \r -> do
   t <- getCurrentTime
   logMsg t ("periodic aborted: " ++ show r) (view rc)
+
+-- TODO: move to separate module
+runOnce :: Service -> IO ()
+runOnce = runContextM $ withReaderT BackgroundContext $ do
+  t <- peek
+  focusIO $ logMsg t ("zip gen running")
+  -- ss <- lookupSiteStats
+--    for each entry
+--        if Gen -> run generate and update with handle, (+ vol id, generated date)
+--        if Ready -> check generated date; if old then delete entry
+--    swap in new map
+  -- focusIO $ (`writeIORef` ss) . serviceStats
+
+runZipGenerate :: Service -> (forall a . IO a -> IO a) -> IO ()
+runZipGenerate rc unmask = loop where
+  loop = do
+    t <- getCurrentTime
+    _ <- -- handle (\_ -> return ()) $ do
+      -- unmask $
+      threadDelay' $ realToFrac $ 2
+      -- return ()
+    handle (\(_ :: Period) -> logMsg t "zip generate interrupted" (view rc)) $
+      unmask $ runOnce rc
+    -- loop
+
+forkZipGenerate :: Service -> IO ThreadId
+forkZipGenerate rc = forkFinally (mask $ runZipGenerate rc) $ \r -> do
+  t <- getCurrentTime
+  logMsg t ("zip generate aborted: " ++ show r) (view rc)

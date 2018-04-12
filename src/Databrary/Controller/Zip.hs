@@ -220,11 +220,6 @@ downloadGeneratedVolumeZip =
     pure (okResponse [] ("generating" :: String))
     -- if ready, then serve
     -- if no entry, then repond with unknown or expired
-    
--- async job
---    for each entry
---        if Gen -> run generate and update with handle
---        if Ready -> check generated date; if old then delete entry
 
 viewVolumeDescription :: ActionRoute (Id Volume)
 viewVolumeDescription = action GET (pathId </< "description") $ \vi -> withAuth $ do
