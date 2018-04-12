@@ -137,7 +137,7 @@ deleteAuthorize = action DELETE (pathAPI </>> pathPartyTarget </> pathAuthorizeT
       mAuthorizeTargetParty <- lookupParty oi
       maybeAction mAuthorizeTargetParty
   let (child, parent) = if apply then (p, o) else (o, p) -- Delete request you sent vs request you recvd?
-  mAuth <- lookupAuthorize child parent
+  mAuth <- lookupAuthorizeForDelete child parent
   removeAuthorizeNotify mAuth
   case api of
     JSON -> return $ okResponse [] $ JSON.objectEncoding $ "party" JSON..=: partyJSON o

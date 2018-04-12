@@ -5,6 +5,7 @@ module Databrary.Model.Authorize
   , lookupAuthorizedChildren
   , lookupAuthorizedParents
   , lookupAuthorize
+  , lookupAuthorizeForDelete
   , lookupAuthorizeParent
   , lookupAuthorization
   , changeAuthorize
@@ -62,6 +63,16 @@ lookupAuthorize child parent =
                     authorizeRow
                     -- only include authorizations that either have no expiration or have not expired yet
                     "$WHERE authorize.child = ${partyId $ partyRow child} AND authorize.parent = ${partyId $ partyRow parent} AND (expires IS NULL OR expires > CURRENT_TIMESTAMP)")
+
+-- TODO: merge with above
+lookupAuthorizeForDelete :: (MonadDB c m, MonadHasIdentity c m) => Party -> Party -> m (Maybe Authorize)
+lookupAuthorizeForDelete child parent =
+  dbQuery1 $
+      (\mkAuthorize' -> mkAuthorize' child parent)
+          <$> $(selectQuery
+                    authorizeRow
+                    -- include expired authorizations
+                    "$WHERE authorize.child = ${partyId $ partyRow child} AND authorize.parent = ${partyId $ partyRow parent}")
 
 lookupAuthorizeParent :: (MonadDB c m, MonadHasIdentity c m) => Party -> Id Party -> m (Maybe Authorize)
 lookupAuthorizeParent child parent = do
