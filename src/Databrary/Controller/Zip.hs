@@ -32,6 +32,7 @@ import qualified Web.Route.Invertible as Invertible
 
 import Databrary.Ops
 import Databrary.Has (view, peek, peeks)
+import Databrary.Service.Periodic (getTokenValue, insertGeneratingToken, updateWithCompletedHandle)
 import Databrary.Store.Asset
 import Databrary.Store.Filename
 import Databrary.Store.CSV (buildCSV)
@@ -145,6 +146,25 @@ zipResponse2 n zipAddActions = do
     , (hContentLength, BSC.pack $ show $ sz)
     ] (CND.bracketP (return h) IO.hClose CND.sourceHandle :: CND.Source (CND.ResourceT IO) BS.ByteString)
 
+zipResponse3 :: String -> BS.ByteString -> ZIP.ZipArchive () -> ActionM ()
+zipResponse3 tkn n zipAddActions = do
+  req <- peek
+  u <- peek
+  store <- peek
+  let comment = BSL.toStrict $ BSB.toLazyByteString
+        $ BSB.string8 "Downloaded by " <> TE.encodeUtf8Builder (partyName $ partyRow u) <> BSB.string8 " <" <> actionURL (Just req) viewParty (HTML, TargetParty $ partyId $ partyRow u) [] <> BSB.char8 '>'
+  let temporaryZipName = (BSC.unpack . storageTemp) store <> "placeholder.zip" -- TODO: generate temporary name for extra caution?
+  h <- liftIO $ IO.openFile temporaryZipName IO.ReadWriteMode
+  liftIO $ DIR.removeFile temporaryZipName
+  liftIO $ IO.hSetBinaryMode h True
+  liftIO $ ZIP.createBlindArchive h $ do
+    ZIP.setArchiveComment (TE.decodeUtf8 comment)
+    zipAddActions
+  sz <- liftIO $ (IO.hSeek h IO.SeekFromEnd 0 >> IO.hTell h)
+  liftIO $ IO.hSeek h IO.AbsoluteSeek 0
+  srv <- peek
+  liftIO $ updateWithCompletedHandle tkn h sz srv
+
 checkAsset :: AssetSlot -> Bool
 checkAsset a = 
   canReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 a && assetBacked (view a)
@@ -205,21 +225,44 @@ zipVolume isOrig =
 generateVolumeZip :: ActionRoute (Id Volume)
 generateVolumeZip =
   action GET (pathId </< "generateZip" </< "false") $ \vi -> withAuth $ do -- TODO: change to POST
-    -- TODO: handle isOrig
-    _ <- getVolumeInfo vi -- for authorization only
+    let isOrig = False -- TODO: handle isOrig
+    (v, s, a) <- getVolumeInfo vi
     let token = show vi -- TODO: gen unique token
-    -- insert (token, (Gen vid))
+    srv <- peek
+    liftIO (insertGeneratingToken token srv)
+    top:cr <- lookupVolumeContainersRecords v
+    let cr' = filter ((`RS.member` s) . containerId . containerRow . fst) cr
+    csv <- null cr' ?!$> volumeCSV v cr'
+    zipActs <- volumeZipEntry2 isOrig v top s (buildCSV <$> csv) a
+    auditVolumeDownload (not $ null a) v
+    zipResponse3
+      token
+      (BSC.pack $ "databrary-" ++ show (volumeId $ volumeRow v) ++ if idSetIsFull s then "" else "-partial")
+      zipActs
+    -- forkGenerateVolumeZip token vi
     pure (okResponse [] token)
+
+-- forkGenerateVolumeZip
+--  run generate and update with handle, (+ vol id, generated date)
+--  on completion, update entry
 
 downloadGeneratedVolumeZip :: ActionRoute (String)
 downloadGeneratedVolumeZip =
-  action GET (Invertible.parameter </< "downloadZip" </< "false") $ \tkn -> withAuth $ do
+  action GET ("downloadZip" >/> Invertible.parameter) $ \tkn -> withAuth $ do
     -- ent <- remove entry map
+    srv <- peek
+    mStatus <- liftIO (getTokenValue tkn srv)
     -- TODO: authorize retrieved against volume id, if not, then entry is discarded
-    -- if gen, then respond with not ready
-    pure (okResponse [] ("generating" :: String))
-    -- if ready, then serve
-    -- if no entry, then repond with unknown or expired
+    case mStatus of
+      Just Nothing -> pure (okResponse [] ("generating" :: String))
+      Just (Just (h, sz)) ->
+        return $ okResponse
+          [ (hContentType, "application/zip")
+          , ("content-disposition", "attachment; filename=" <> quoteHTTP ("a" <.> "zip")) -- TODO, use name
+          , (hCacheControl, "max-age=31556926, private")
+          , (hContentLength, BSC.pack $ show $ sz)
+          ] (CND.bracketP (return h) IO.hClose CND.sourceHandle :: CND.Source (CND.ResourceT IO) BS.ByteString)
+      Nothing -> pure (okResponse [] ("unknown or expired token" :: String)) -- TODO: not found
 
 viewVolumeDescription :: ActionRoute (Id Volume)
 viewVolumeDescription = action GET (pathId </< "description") $ \vi -> withAuth $ do

@@ -7,6 +7,7 @@ import Control.Concurrent (ThreadId)
 import Control.Exception (bracket)
 import Control.Monad (when, void)
 import Data.IORef (newIORef)
+import qualified Data.Map as Map
 import Data.Time.Clock (getCurrentTime)
 
 import Databrary.Ops
@@ -49,6 +50,8 @@ initService fg conf = do
   notify <- initNotifications (conf C.! "notification")
   stats <- if fg then runDBM db lookupSiteStats else return (error "siteStats")
   statsref <- newIORef stats
+    -- TODO: perform in zip gen module
+  zipGenRef <- newIORef (Map.empty)
   let rc = Service
         { serviceStartTime = time
         , serviceSecret = Secret $ conf C.! "secret"
@@ -67,14 +70,16 @@ initService fg conf = do
         , serviceSolr = solr
         , serviceEZID = ezid
         , servicePeriodic = Nothing
+        , serviceZipGenerate = zipGenRef
         , serviceNotification = notify
         , serviceDown = conf C.! "store.DOWN"
         }
   periodic <- fg ?$> forkPeriodic rc
-  (zipGenerate :: Maybe ThreadId) <- fg ?$> forkZipGenerate rc
+  (mZipGenerate :: Maybe ThreadId) <- fg ?$> forkZipGenerate rc
   when fg $ void $ forkNotifier rc
   return $! rc
     { servicePeriodic = periodic
+    -- , serviceZipGenerate = ... mZipGenerate
     }
 
 finiService :: Service -> IO ()
