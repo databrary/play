@@ -51,7 +51,7 @@ emptyParticipantRecord =
          , prdSetting = Nothing
          }
 
-tests :: TestTree
-tests = testGroup "Databrary.Model.Record.Types"
+test_all :: TestTree
+test_all = testGroup "all"
     [
     ]

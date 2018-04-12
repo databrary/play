@@ -23,7 +23,7 @@ audit1 =
         , auditAction = AuditActionOpen
         }
 
-tests :: TestTree
-tests = testGroup "Databrary.Model.Audit.Types"
+test_all :: TestTree
+test_all = testGroup "all"
     [
     ]

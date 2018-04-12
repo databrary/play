@@ -12,8 +12,8 @@ import Test.Tasty.HUnit
 
 import Databrary.Model.Audit
 
-tests :: TestTree
-tests = testGroup "Databrary.Model.AuditTest"
+test_all :: TestTree
+test_all = testGroup "all"
     [ testCase "getRemoteIp-1" (
           let req :: Wai.Request
               req = Wai.defaultRequest

@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Databrary.HTTP.RequestTest ( tests ) where
+module Databrary.HTTP.RequestTest where
 import Test.Tasty
 import Test.Tasty.HUnit
 -- import Data.Time (fromGregorian)
@@ -10,8 +10,8 @@ import qualified Network.HTTP.Types.Header as HTTP
 
 import Databrary.HTTP.Request
 
-tests :: TestTree
-tests = testGroup "Databrary.HTTP.Request"
+test_all :: TestTree
+test_all = testGroup "all"
   [ testCase "boolParameterValue-1"
       (boolParameterValue (Just "0") @?= False)
   , testCase "boolParameterValue-2"

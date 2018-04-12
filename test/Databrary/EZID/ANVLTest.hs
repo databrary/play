@@ -1,6 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.EZID.ANVLTest
-   ( tests )
 where
 
 import Test.Tasty
@@ -10,8 +9,8 @@ import Data.ByteString.Builder (toLazyByteString)
 import Data.Attoparsec.ByteString (parseOnly)
 import Databrary.EZID.ANVL
 
-tests :: TestTree
-tests = testGroup "Databrary.EZID.ANVL"
+test_all :: TestTree
+test_all = testGroup "all"
   [ testCase "encode-1"
       (toLazyByteString (encode [("key", "val")]) @?= "key: val\n")
   , testCase "parse-1"

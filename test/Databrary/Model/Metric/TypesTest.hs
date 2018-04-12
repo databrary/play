@@ -43,7 +43,7 @@ emptyParticipantFieldMapping :: ParticipantFieldMapping2
 emptyParticipantFieldMapping =
     mkParticipantFieldMapping2' []
 
-tests :: TestTree
-tests = testGroup "Databrary.Model.Metric.Types"
+test_all :: TestTree
+test_all = testGroup "all"
     [
     ]
