@@ -40,6 +40,10 @@ db: ; $(nix-shell) --run ./init-db-pql.sh
 devel: ; $(nix-shell) --run ghci-databrary
 .PHONY: devel
 
+## Start tests in the repl
+repl-test: ; $(nix-shell) --run 'cabal repl test:discovered'
+.PHONY: repl-test
+
 ## One can always build with Nix.
 nix-build: ; $(nix-build)
 .PHONY: nix-build
