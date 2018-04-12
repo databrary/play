@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE OverloadedStrings, ViewPatterns, Rank2Types #-}
 module Databrary.Controller.Zip
   ( zipContainer
   , zipVolume
@@ -7,6 +7,9 @@ module Databrary.Controller.Zip
   , downloadGeneratedVolumeZip
   ) where
 
+import Control.Concurrent (forkIO)
+-- import Control.Exception (mask)
+import Control.Monad (void)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Char8 as BSC
@@ -18,6 +21,7 @@ import Control.Monad.IO.Class (liftIO)
 import Data.Monoid ((<>))
 import qualified Data.RangeSet.List as RS
 import qualified Data.Text.Encoding as TE
+import Data.Time (getCurrentTime)
 import Network.HTTP.Types (hContentType, hCacheControl, hContentLength)
 import System.Posix.FilePath ((<.>))
 import qualified Text.Blaze.Html5 as Html
@@ -32,7 +36,9 @@ import qualified Web.Route.Invertible as Invertible
 
 import Databrary.Ops
 import Databrary.Has (view, peek, peeks)
+import Databrary.Service.Log (Logs, logMsg)
 import Databrary.Service.Periodic (getTokenValue, insertGeneratingToken, updateWithCompletedHandle)
+import Databrary.Service.Types (Service)
 import Databrary.Store.Asset
 import Databrary.Store.Filename
 import Databrary.Store.CSV (buildCSV)
@@ -157,13 +163,29 @@ zipResponse3 tkn n zipAddActions = do
   h <- liftIO $ IO.openFile temporaryZipName IO.ReadWriteMode
   liftIO $ DIR.removeFile temporaryZipName
   liftIO $ IO.hSetBinaryMode h True
-  liftIO $ ZIP.createBlindArchive h $ do
-    ZIP.setArchiveComment (TE.decodeUtf8 comment)
-    zipAddActions
+  srv <- peek
+  lgr <- peek
+  let fullZipAddActions = do
+        ZIP.setArchiveComment (TE.decodeUtf8 comment)
+        zipAddActions
+  liftIO (forkGenerateVolumeZip (doGenerateVolumeZip srv fullZipAddActions tkn h) lgr)
+
+forkGenerateVolumeZip :: IO () -> Logs -> IO ()
+forkGenerateVolumeZip doGen _ =
+  void (forkIO doGen)
+  {-
+  void (forkFinally (mask $ doGen) $ \r -> do
+    t <- getCurrentTime
+    logMsg t ("generating zip file aborted: " ++ show r) logger)
+  -}
+
+doGenerateVolumeZip
+  :: Service -> ZIP.ZipArchive () -> String -> IO.Handle -> IO ()
+doGenerateVolumeZip srv zipActs tkn h = do
+  liftIO $ ZIP.createBlindArchive h $ zipActs
   sz <- liftIO $ (IO.hSeek h IO.SeekFromEnd 0 >> IO.hTell h)
   liftIO $ IO.hSeek h IO.AbsoluteSeek 0
-  srv <- peek
-  liftIO $ updateWithCompletedHandle tkn h sz srv
+  liftIO $ updateWithCompletedHandle tkn h sz srv -- also store user id, generated date, vol id
 
 checkAsset :: AssetSlot -> Bool
 checkAsset a = 
@@ -239,12 +261,7 @@ generateVolumeZip =
       token
       (BSC.pack $ "databrary-" ++ show (volumeId $ volumeRow v) ++ if idSetIsFull s then "" else "-partial")
       zipActs
-    -- forkGenerateVolumeZip token vi
     pure (okResponse [] token)
-
--- forkGenerateVolumeZip
---  run generate and update with handle, (+ vol id, generated date)
---  on completion, update entry
 
 downloadGeneratedVolumeZip :: ActionRoute (String)
 downloadGeneratedVolumeZip =
