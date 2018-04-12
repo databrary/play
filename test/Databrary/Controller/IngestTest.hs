@@ -4,11 +4,7 @@ module Databrary.Controller.IngestTest where
 import Data.Aeson
 import Data.Aeson.Types
 import qualified Data.ByteString as BS
--- import qualified Data.Either as E
 import qualified Data.Maybe as MB
-import qualified Data.Map as Map
--- import qualified Data.HashMap.Strict as HMP
--- import qualified Data.Vector as V
 import Test.Tasty
 import Test.Tasty.HUnit
 

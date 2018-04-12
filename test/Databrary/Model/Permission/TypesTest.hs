@@ -1,9 +1,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Model.Permission.TypesTest where
 
-import Data.Text (Text)
 import Test.Tasty
-import Test.Tasty.HUnit
 
 import Databrary.Model.Permission.Types
 

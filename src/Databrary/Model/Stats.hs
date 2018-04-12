@@ -8,8 +8,6 @@ import qualified Data.Array.Unboxed as A
 import qualified Data.Map.Strict as M
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Scientific (toBoundedInteger)
-import Database.PostgreSQL.Typed.Query (pgSQL)
-import Database.PostgreSQL.Typed
 import Database.PostgreSQL.Typed.Types
 import Database.PostgreSQL.Typed.Query
 import Data.ByteString (ByteString)

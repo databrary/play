@@ -24,7 +24,6 @@ import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import Database.PostgreSQL.Typed (pgSQL)
 
-import Databrary.Ops
 import Databrary.Has (peek)
 import qualified Databrary.JSON as JSON
 import Databrary.Service.DB

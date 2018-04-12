@@ -36,7 +36,6 @@ import Databrary.Model.Format
 import Databrary.Model.Asset
 import Databrary.Model.AssetSlot
 import Databrary.Model.AssetSegment
-import Databrary.Model.Excerpt
 import Databrary.Store.Asset
 import Databrary.Store.AssetSegment
 import Databrary.Store.Filename

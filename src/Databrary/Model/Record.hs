@@ -21,7 +21,6 @@ import qualified Data.Csv as CSV
 import Data.Either (isRight)
 import Data.List (find)
 import Data.Monoid ((<>))
-import qualified Data.Vector as V
 import Data.Vector (Vector)
 
 import Data.Csv.Contrib (extractColumnDefaulting)
@@ -89,13 +88,6 @@ recordJSON publicRestricted r@Record{ recordRow = RecordRow{..}, ..} = JSON.Reco
   -- "volume" JSON..= volumeId recordVolume
      "category" JSON..= categoryId recordCategory
   <> "measures" JSON..=. measuresJSON publicRestricted (getRecordMeasures r)
-
-extractParticipantFieldRowsJson :: Int -> [BS.ByteString] -> Vector CSV.NamedRecord -> [JSON.Value]
-extractParticipantFieldRowsJson maxRows participantFieldHeaders records =
-    ( fmap (\(colHdr, vals) -> columnSampleJson colHdr vals)
-    . extractParticipantFieldRows participantFieldHeaders
-    . V.take maxRows)
-    records
 
 extractParticipantFieldRows :: [BS.ByteString] -> Vector CSV.NamedRecord -> [(BS.ByteString, [BS.ByteString])]
 extractParticipantFieldRows participantFieldHeaders records =

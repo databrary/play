@@ -10,12 +10,8 @@ module Databrary.Model.VolumeMetric
 
 import Control.Exception.Lifted (handleJust)
 import Control.Monad (guard)
-import Database.PostgreSQL.Typed.Query (pgSQL)
-import Database.PostgreSQL.Typed
 import Database.PostgreSQL.Typed.Query
 import Database.PostgreSQL.Typed.Types
-import qualified Database.PostgreSQL.Typed.Query
-import qualified Database.PostgreSQL.Typed.Types
 import qualified Data.ByteString
 import Data.ByteString (ByteString)
 import qualified Data.List as L

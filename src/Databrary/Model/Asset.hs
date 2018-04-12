@@ -19,11 +19,8 @@ import Data.Maybe (isNothing, isJust)
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Database.PostgreSQL.Typed (pgSQL)
-import Database.PostgreSQL.Typed
 import Database.PostgreSQL.Typed.Query
 import Database.PostgreSQL.Typed.Types
-import qualified Database.PostgreSQL.Typed.Query
-import qualified Database.PostgreSQL.Typed.Types
 import qualified Data.ByteString
 import Data.ByteString (ByteString)
 import qualified Data.String

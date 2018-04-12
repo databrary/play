@@ -23,8 +23,6 @@ import Databrary.Files
 import Databrary.Store.Types
 import Databrary.Model.Asset.Types
 
-import Control.Monad.IO.Class
-
 maxAssetSize :: Word64
 maxAssetSize = 128*1024*1024*1024
 

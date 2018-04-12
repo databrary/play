@@ -7,7 +7,6 @@ import qualified Data.Vector as V
 import qualified Data.Aeson as Aeson
 import qualified Data.Either as E
 import qualified Data.ByteString as BS
-import qualified Data.Map as Map
 import Data.Monoid ((<>))
 import Test.Tasty
 import Test.Tasty.HUnit

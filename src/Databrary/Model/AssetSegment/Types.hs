@@ -136,9 +136,8 @@ testmakeVolume vid =
       (volumeRow blankVolume) { volumeId = vid }
     }
 
-realVolume, databrarySystem :: Volume
+realVolume :: Volume
 realVolume = testmakeVolume realVolumeId
-databrarySystem = testmakeVolume coreVolumeId
 realVolumeId :: Id Volume
 realVolumeId = Id 100
 
@@ -146,8 +145,12 @@ containerAssetSlot :: Maybe Release -> AssetSlot
 containerAssetSlot mRel =
   testmakeAssetSlot realVolumeId mRel (Just testmakeSlot)
 
-noExcerptContainerAssetNoRelease :: AssetSegment
-excerptNoReleaseContainerAssetNoRelease :: AssetSegment
+noExcerptContainerAssetNoRelease             :: AssetSegment
+excerptNoReleaseContainerAssetNoRelease      :: AssetSegment
+excerptNoReleaseContainerAssetHasRelease     :: AssetSegment
+excerptPublicReleaseContainerAssetNoRelease  :: AssetSegment
+excerptSharedReleaseContainerAssetNoRelease  :: AssetSegment
+excerptPrivateReleaseContainerAssetNoRelease :: AssetSegment
 noExcerptContainerAssetNoRelease = testmakeAssetSegment (containerAssetSlot Nothing) False Nothing
 excerptNoReleaseContainerAssetNoRelease = testmakeAssetSegment (containerAssetSlot Nothing) True Nothing
 excerptNoReleaseContainerAssetHasRelease = testmakeAssetSegment (containerAssetSlot (Just ReleasePUBLIC)) True Nothing
@@ -155,15 +158,16 @@ excerptPublicReleaseContainerAssetNoRelease = testmakeAssetSegment (containerAss
 excerptSharedReleaseContainerAssetNoRelease = testmakeAssetSegment (containerAssetSlot Nothing) True (Just ReleaseSHARED)
 excerptPrivateReleaseContainerAssetNoRelease = testmakeAssetSegment (containerAssetSlot Nothing) True (Just ReleasePRIVATE)
 
-assetReleaseForPartialAndFullShared, privateReleaseIgnoreSharing :: EffectiveRelease
-excerptReleaseForPartialAndFullShared :: EffectiveRelease
-excerptReleaseForFullySharedOnly :: EffectiveRelease
+assetReleaseForPartialAndFullShared     :: EffectiveRelease
+privateReleaseIgnoreSharing             :: EffectiveRelease
+excerptReleaseForPartialAndFullShared   :: EffectiveRelease
+excerptReleaseForPartialAndFullShared'  :: EffectiveRelease
+excerptReleaseForPartialAndFullShared'' :: EffectiveRelease
 assetReleaseForPartialAndFullShared = EffectiveRelease ReleasePUBLIC ReleasePUBLIC
 privateReleaseIgnoreSharing = EffectiveRelease ReleasePRIVATE ReleasePRIVATE
 excerptReleaseForPartialAndFullShared = EffectiveRelease ReleasePUBLIC ReleasePUBLIC
 excerptReleaseForPartialAndFullShared' = EffectiveRelease ReleaseSHARED ReleaseSHARED
 excerptReleaseForPartialAndFullShared'' = EffectiveRelease ReleasePRIVATE ReleasePRIVATE
-excerptReleaseForFullySharedOnly = EffectiveRelease ReleaseSHARED ReleasePRIVATE
 
 {- test cases: (focus on excerpt present or not test to begin with
 -- has excerpt

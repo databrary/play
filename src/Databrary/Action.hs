@@ -26,8 +26,7 @@ module Databrary.Action
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Lazy as BSL
-import Data.Text (Text)
-import Network.HTTP.Types (Status, seeOther303, forbidden403, notFound404, ResponseHeaders, hLocation, ok200)
+import Network.HTTP.Types (Status, seeOther303, forbidden403, notFound404, ResponseHeaders, hLocation)
 import qualified Network.Wai as Wai
 import qualified Web.Route.Invertible.Wai as R
 import qualified Network.Wai.Route as WAR

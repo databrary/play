@@ -97,7 +97,7 @@ recordSlotAge rs@RecordSlot{..} =
     | otherwise = a
 
 recordSlotJSON :: JSON.ToObject o => Bool -> RecordSlot -> JSON.Record (Id Record) o
-recordSlotJSON publicRestricted rs@RecordSlot{..} = JSON.Record (recordId $ recordRow slotRecord) $
+recordSlotJSON _ rs@RecordSlot{..} = JSON.Record (recordId $ recordRow slotRecord) $
      segmentJSON (slotSegment recordSlot)
   <> "age" JSON..=? recordSlotAge rs
 

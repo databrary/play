@@ -9,13 +9,10 @@ module Databrary.Model.Audit
   ) where
 
 import Data.Maybe (fromMaybe)
-import qualified Data.Text as T
-import Database.PostgreSQL.Typed (pgSQL)
 import Database.PostgreSQL.Typed.Inet (PGInet(..), sockAddrPGInet)
 import Network.Wai (remoteHost)
 
 import Databrary.Has
-import qualified Databrary.JSON as JSON
 import Databrary.Service.DB
 import Databrary.HTTP.Request
 import Databrary.Model.Id.Types

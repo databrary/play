@@ -13,20 +13,14 @@ module Databrary.Controller.Ingest
   ) where
 
 import Control.Arrow (right)
-import Control.Monad (unless, void)
+import Control.Monad (unless)
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy as BSL
-import qualified Data.Csv as Csv
-import qualified Data.HashMap.Strict as HMP
-import qualified Data.List as L
-import qualified Data.Map as Map
-import Data.Map (Map)
-import Data.Maybe (fromJust, catMaybes)
+import Data.Maybe (catMaybes)
 import Data.Monoid ((<>))
 import Data.Text (Text)
-import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
@@ -36,7 +30,7 @@ import Network.HTTP.Types (badRequest400)
 import Network.Wai.Parse (FileInfo(..))
 import System.Posix.FilePath (takeExtension)
 
-import Data.Csv.Contrib (parseCsvWithHeader, getHeaders, extractColumnsDistinctSample, removeBomPrefixText)
+import Data.Csv.Contrib (parseCsvWithHeader, getHeaders, removeBomPrefixText)
 import qualified Databrary.JSON as JSON
 import Databrary.Ops
 import Databrary.Has
@@ -121,9 +115,9 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
             liftIO (print ("csv parse error", err))
             pure (response badRequest400 [] err)
         Right (hdrs, records) -> do
-            participantMetrics <- lookupVolumeParticipantMetrics v
+            metrics <- lookupVolumeParticipantMetrics v
             liftIO (print ("before check determine", show hdrs))
-            case checkDetermineMapping participantMetrics ((fmap TE.decodeUtf8 . getHeaders) hdrs) uploadFileContents' of
+            case checkDetermineMapping metrics ((fmap TE.decodeUtf8 . getHeaders) hdrs) uploadFileContents' of
                 Left err -> do
                     liftIO (print ("failed to determine mapping", err))
                     -- if column check failed, then don't save csv file and response is error
@@ -184,12 +178,14 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
                     case attemptParseRows mpngs uploadFileContents of
                         Left err ->   -- invalid value in row
                             pure (response badRequest400 [] err)
-                        Right (hdrs, records) -> do
-                            eRes <- runImport v records
-                            pure
-                                $ okResponse []
-                                    $ JSON.recordEncoding -- TODO: not record encoding
-                                        $ JSON.Record vi $ "succeeded" JSON..= True
+                        Right (_, records) ->
+                            let response' =
+                                    okResponse []
+                                        $ JSON.recordEncoding -- TODO: not record encoding
+                                        $       JSON.Record vi
+                                        $       "succeeded"
+                                        JSON..= True
+                            in  response' <$ runImport v records
 
 mappingParser :: JSON.Value -> JSON.Parser [(Metric, Text)]
 mappingParser val = do
@@ -259,7 +255,7 @@ buildParticipantRecordAction participantRecord updatingRecord =
         case updatingRecord of
             Create ->
                 maybe (NoAction met) (Upsert met) mVal
-            Found record -> do
+            Found _ -> do
                  -- TODO: 
                  -- mOldVal <- getOldVal metric record
                  -- action = maybe (Upsert val) (\o -> if o == val then Unchanged else Upsert val)
@@ -284,8 +280,8 @@ getFieldVal participantRecord extractFieldVal metric =
         
 createOrUpdateRecord :: Volume -> ParticipantRecord -> ActionM () -- TODO: error or record
 createOrUpdateRecord vol participantRecord = do
-    let participantCategory = getCategory' (Id 1) -- TODO: use global variable
-        (mIdVal, idMetric) = maybe (error "id missing") id (getFieldVal' prdId participantMetricId)
+    let category = getCategory' (Id 1) -- TODO: use global variable
+        mIdVal = fst $ maybe (error "id missing") id (getFieldVal' prdId participantMetricId)
         idVal = maybe (error "id empty") id mIdVal
     mOldParticipant <- lookupVolumeParticipant vol idVal
     let recordStatus =
@@ -295,7 +291,7 @@ createOrUpdateRecord vol participantRecord = do
     -- print ("save measure id:", mId)
     case buildParticipantRecordAction participantRecord recordStatus of
         ParticipantRecordAction Create measureActs -> do
-            newParticipantShell <- addRecord (blankRecord participantCategory vol) -- blankParticipantRecord
+            newParticipantShell <- addRecord (blankRecord category vol) -- blankParticipantRecord
             _ <- mapM (runMeasureUpdate newParticipantShell) measureActs
             pure () -- TODO: reload participant
         ParticipantRecordAction (Found oldRecord) measureActs -> do

@@ -43,8 +43,6 @@ import Databrary.Controller.Paths
 import Databrary.Controller.Form
 import Databrary.Controller.Volume
 
-import Control.Monad.IO.Class
-
 fileSizeForm :: DeformActionM f Int64
 fileSizeForm = deformCheck "Invalid file size." (0 <) =<< deform
 

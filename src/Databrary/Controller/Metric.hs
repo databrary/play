@@ -24,10 +24,10 @@ postVolumeMetric = action PUT (pathJSON >/> pathId </> (pathId >|< pathId)) $ \(
   v <- getVolume PermissionEDIT vi
   (addedMetrics :: [Id Metric]) <-
       either
-          (\categoryId -> addVolumeCategory v categoryId)
-          (\metricId -> do
-              metricAdded <- addVolumeMetric v metricId
-              return $ if metricAdded then [metricId] else [])
+          (\catId -> addVolumeCategory v catId)
+          (\metricId' -> do
+              metricAdded <- addVolumeMetric v metricId'
+              return $ if metricAdded then [metricId'] else [])
           cm
   return $ okResponse [] $ JSON.toEncoding addedMetrics
 

@@ -54,7 +54,7 @@ lookupAuthorizedChildren parent perm = do
     perm
 
 -- | Attempt to find an authorization request or grant from the child party to the granting parent party
-lookupAuthorize :: (MonadDB c m, MonadHasIdentity c m) => Party -> Party -> m (Maybe Authorize)
+lookupAuthorize :: MonadDB c m => Party -> Party -> m (Maybe Authorize)
 lookupAuthorize child parent =
   dbQuery1 $
       (\mkAuthorize' -> mkAuthorize' child parent)

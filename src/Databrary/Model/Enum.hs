@@ -9,17 +9,13 @@ module Databrary.Model.Enum
   ) where
 
 import Control.Arrow (left)
-import Control.Monad (liftM2)
 import qualified Data.Aeson.Types as JSON
 import qualified Data.ByteString.Char8 as BSC
 import qualified Data.CaseInsensitive as CI (mk)
 import qualified Data.Text as T
-import Database.PostgreSQL.Typed.Enum (PGEnum, pgEnumValues, makePGEnum)
+import Database.PostgreSQL.Typed.Enum (PGEnum, pgEnumValues)
 import Text.Read (readMaybe)
 
-import qualified Language.Haskell.TH as TH
-
-import Databrary.Service.DB (useTDB)
 import Databrary.Model.Kind
 import Databrary.HTTP.Form (FormDatum(..))
 import Databrary.HTTP.Form.Deform

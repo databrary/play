@@ -40,7 +40,7 @@ generateMerged inputFiles = \fileToGenInfo@(fileToGen, _) -> do
   totalAlloc = 32768
 
 generateAllJS :: WebGenerator
-generateAllJS = \f@(fileToGen, mPriorFileInfo) -> do
+generateAllJS = \f -> do
   let debugOn = True
   deps <- liftIO $ webDeps debugOn
   appMinJs <- liftIO $ makeWebFilePath "app.min.js"

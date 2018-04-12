@@ -148,7 +148,7 @@ lookupParty i = do
   lookupFixedParty i ident `orElseM`
     dbQuery1 $(selectQuery (selectParty 'ident) "$WHERE party.id = ${i}")
 
-getDuplicateParties :: (MonadDB c m, MonadHasIdentity c m) => m [PartyRow]
+getDuplicateParties :: MonadDB c m => m [PartyRow]
 getDuplicateParties = do
   dbQuery
     $(selectQuery (selectPartyRow)

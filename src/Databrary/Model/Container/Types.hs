@@ -9,7 +9,7 @@ module Databrary.Model.Container.Types
 import Data.Foldable (fold)
 import qualified Data.Text as T
 
-import Databrary.Has (makeHasRec, view)
+import Databrary.Has (makeHasRec)
 import Databrary.Model.Time
 import Databrary.Model.Kind
 import Databrary.Model.Release.Types

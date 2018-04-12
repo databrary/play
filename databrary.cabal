@@ -29,7 +29,7 @@ Flag sandbox
 library
   hs-source-dirs: src
   c-sources: src/Databrary/Store/avFrame.c
-  ghc-options: -Wall -Wcompat -Wredundant-constraints
+  ghc-options: -Wall -Wredundant-constraints -Wno-type-defaults
   exposed-modules:
     Paths_databrary
     Blaze.ByteString.Builder.Html.Word
@@ -381,8 +381,6 @@ library
                 
   default-language: Haskell2010
   default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
-
-  ghc-options: -Wall -fwarn-tabs -funbox-strict-fields
 
   if flag(devel)
     cpp-options: -DDEVEL

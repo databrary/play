@@ -12,7 +12,6 @@ import Databrary.Model.Metric
 import Databrary.Solr.Search
 import Databrary.Action.Response
 import Databrary.Action
-import Databrary.HTTP.Path.Parser
 import Databrary.HTTP.Form (FormKey(..))
 import Databrary.HTTP.Form.Deform
 import Databrary.Controller.Form

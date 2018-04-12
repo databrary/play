@@ -60,17 +60,17 @@ instance Monad m => MonadState FormErrors (FormViewT f m) where
   put e = FormViewT $ \_ _ -> return ((), e)
   state f = FormViewT $ \_ -> return . f
 
-runFormView :: Functor m => FormViewT f m a -> FormData f -> FormErrors -> m a
+runFormView :: Monad m => FormViewT f m a -> FormData f -> FormErrors -> m a
 runFormView (FormViewT f) d = fmap fst . f (initForm d)
 
-blankFormView :: Functor m => FormViewT f m a -> m a
+blankFormView :: Monad m => FormViewT f m a -> m a
 blankFormView f = runFormView f mempty mempty
 
-withSubFormView :: Functor m => FormKey -> FormViewT f m a -> FormViewT f m a
+withSubFormView :: Monad m => FormKey -> FormViewT f m a -> FormViewT f m a
 withSubFormView k (FormViewT a) = FormViewT $ \d e ->
   second (setSubFormErrors e k) <$> a (subForm k d) (subFormErrors k e)
 
-withSubFormsViews :: (Functor m, Monad m) => [a] -> (Maybe a -> FormViewT f m ()) -> FormViewT f m ()
+withSubFormsViews :: Monad m => [a] -> (Maybe a -> FormViewT f m ()) -> FormViewT f m ()
 withSubFormsViews l f = msfv 0 l =<< reader subForms where
   msfv _ [] [] = return ()
   msfv i xl sl = withSubFormView (FormIndex i) (f x) >> msfv (succ i) xr sr where
@@ -80,7 +80,7 @@ withSubFormsViews l f = msfv 0 l =<< reader subForms where
   uncons r = (Nothing, r)
 
 infixr 2 .:>
-(.:>) :: Functor m => T.Text -> FormViewT f m a -> FormViewT f m a
+(.:>) :: Monad m => T.Text -> FormViewT f m a -> FormViewT f m a
 (.:>) = withSubFormView . FormField
 
 formViewErrors :: Monad m => FormViewT f m [FormErrorMessage]

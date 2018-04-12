@@ -3,7 +3,6 @@ module Databrary.Model.Metric.TypesTest where
 
 import Data.Text (Text)
 import Test.Tasty
-import Test.Tasty.HUnit
 
 import Databrary.Model.Metric.Types
 import Databrary.Model.Metric

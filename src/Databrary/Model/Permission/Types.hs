@@ -7,7 +7,7 @@ module Databrary.Model.Permission.Types
   , VolumeAccessPolicy(..)
   ) where
 
-import Language.Haskell.TH.Lift (deriveLiftMany)
+import Language.Haskell.TH.Lift (deriveLift, deriveLiftMany)
 import qualified Data.Typeable.Internal
 import qualified GHC.Arr
 import qualified Database.PostgreSQL.Typed.Types
@@ -112,3 +112,5 @@ deriveLiftMany [''Permission, ''Access]
 
 data VolumeAccessPolicy = PublicRestricted | PermLevelDefault
   deriving (Show, Eq)
+
+deriveLift ''VolumeAccessPolicy

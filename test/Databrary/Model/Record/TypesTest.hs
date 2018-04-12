@@ -4,7 +4,6 @@ module Databrary.Model.Record.TypesTest where
 import qualified Data.ByteString as BS
 import Data.Time (fromGregorian)
 import Test.Tasty
-import Test.Tasty.HUnit
 
 import Databrary.Model.Record.Types
 

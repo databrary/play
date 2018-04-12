@@ -15,7 +15,6 @@ module Databrary.Model.Permission
 
 import Data.Monoid ((<>))
 
-import Databrary.Has (Has, view)
 import qualified Databrary.JSON as JSON
 import Databrary.Model.Release.Types
 import Databrary.Model.Permission.Types
