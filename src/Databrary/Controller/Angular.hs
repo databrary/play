@@ -21,6 +21,7 @@ import Databrary.Web.Uglify
 import Databrary.Action
 import Databrary.HTTP (encodePath')
 import Databrary.HTTP.Request
+import Databrary.Service.Types (Service(..))
 import Databrary.View.Angular
 import Databrary.Web
 import Databrary.Web.Service (Web, getWebVersion)
@@ -70,8 +71,8 @@ angularRequest :: Wai.Request -> Maybe BSB.Builder
 angularRequest req = angularEnable js req ?> nojs
   where (js, nojs) = jsURL JSDisabled req
 
-angularResult :: BS.ByteString -> BSB.Builder -> RequestContext -> IO ()
-angularResult version nojs auth = do
+angularResult :: BS.ByteString -> BSB.Builder -> Bool -> RequestContext -> IO ()
+angularResult version nojs transcodingDown auth = do
   debug <-
 #ifdef DEVEL
     boolQueryParameter "debug" (view auth) ?$> liftIO appWebJS
@@ -87,19 +88,20 @@ angularResult version nojs auth = do
       d <- makeWebFilePath "debug.js"
       return $ w ++ (d : debug')
     Nothing -> (:[]) <$> makeWebFilePath "all.min.js"
-  let transcodingDown = False
   result $ okResponse [] (htmlAngular version cssDeps jsDeps nojs transcodingDown auth)
 
 angular :: ActionM ()
 angular = do
   (servWeb :: Web) <- peek
   let version = getWebVersion servWeb
+  (service :: Service) <- peek
+  let transcodingDown = serviceTranscodingDown service
   (b :: Maybe BSB.Builder) <- peeks angularRequest
   mapM_
     (\nojsBldr ->
        let
          angularResultNoJs :: RequestContext -> IO ()
-         angularResultNoJs = angularResult version nojsBldr
+         angularResultNoJs = angularResult version nojsBldr transcodingDown
        in
          focusIO angularResultNoJs)
     b 
