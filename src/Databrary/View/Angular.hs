@@ -37,9 +37,10 @@ htmlAngular
   -> [WebFilePath]
   -> BSB.Builder
   -> Bool
+  -> Bool
   -> RequestContext
   -> H.Html
-htmlAngular assetsVersion cssDeps jsDeps nojs transcodingDown auth = H.docTypeHtml H.! ngAttribute "app" "databraryModule" $ do
+htmlAngular assetsVersion cssDeps jsDeps nojs transcodingDown notificationBar auth = H.docTypeHtml H.! ngAttribute "app" "databraryModule" $ do
   H.head $ do
     htmlHeader Nothing def
     H.noscript $
@@ -95,6 +96,7 @@ htmlAngular assetsVersion cssDeps jsDeps nojs transcodingDown auth = H.docTypeHt
     H.preEscapedString "<toolbar></toolbar>"
     H.preEscapedString $ "<main ng-view id=\"main\" class=\"main"
       <> (if transcodingDown then " transcodingdown" else "")
+      <> (if notificationBar then " notificationbar" else "")
 -- #ifdef SANDBOX
 --       <> " sandbox"
 -- #endif

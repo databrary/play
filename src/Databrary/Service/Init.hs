@@ -70,6 +70,7 @@ initService fg conf = do
         , serviceNotification = notify
         , serviceDown = conf C.! "store.DOWN"
         , serviceTranscodingDown = transcodingDown
+        , serviceNotificationBar = (maybe False id . (conf C.!)) "notificationbar"
         }
   periodic <- fg ?$> forkPeriodic rc
   when fg $ void $ forkNotifier rc

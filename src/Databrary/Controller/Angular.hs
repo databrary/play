@@ -71,8 +71,8 @@ angularRequest :: Wai.Request -> Maybe BSB.Builder
 angularRequest req = angularEnable js req ?> nojs
   where (js, nojs) = jsURL JSDisabled req
 
-angularResult :: BS.ByteString -> BSB.Builder -> Bool -> RequestContext -> IO ()
-angularResult version nojs transcodingDown auth = do
+angularResult :: BS.ByteString -> BSB.Builder -> Bool -> Bool -> RequestContext -> IO ()
+angularResult version nojs transcodingDown notificationBar auth = do
   debug <-
 #ifdef DEVEL
     boolQueryParameter "debug" (view auth) ?$> liftIO appWebJS
@@ -88,7 +88,7 @@ angularResult version nojs transcodingDown auth = do
       d <- makeWebFilePath "debug.js"
       return $ w ++ (d : debug')
     Nothing -> (:[]) <$> makeWebFilePath "all.min.js"
-  result $ okResponse [] (htmlAngular version cssDeps jsDeps nojs transcodingDown auth)
+  result $ okResponse [] (htmlAngular version cssDeps jsDeps nojs transcodingDown notificationBar auth)
 
 angular :: ActionM ()
 angular = do
@@ -96,12 +96,13 @@ angular = do
   let version = getWebVersion servWeb
   (service :: Service) <- peek
   let transcodingDown = serviceTranscodingDown service
+      notificationBar = serviceNotificationBar service
   (b :: Maybe BSB.Builder) <- peeks angularRequest
   mapM_
     (\nojsBldr ->
        let
          angularResultNoJs :: RequestContext -> IO ()
-         angularResultNoJs = angularResult version nojsBldr transcodingDown
+         angularResultNoJs = angularResult version nojsBldr transcodingDown notificationBar
        in
          focusIO angularResultNoJs)
     b 
