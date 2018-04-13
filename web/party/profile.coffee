@@ -198,8 +198,12 @@ app.controller 'party/profile', [
       for ii, il of volumes.inherited
         il.sort(volumeSort)
       $scope.volumeSort = b
+      sessionStorage.setItem 'sort', b
       return
-    $scope.sortVolumes('permission')
+    if sessionStorage.getItem('sort')
+      $scope.sortVolumes sessionStorage.getItem('sort')
+    else
+      $scope.sortVolumes 'permission'
 
     parties.childrensort = []
     for key, value of parties.children
