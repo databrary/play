@@ -43,9 +43,9 @@ constantsJSON =
 #ifdef DEVEL
   <> "devel" JSON..= True
 #endif
-#ifdef SANDBOX
-  <> "sandbox" JSON..= True
-#endif
+-- #ifdef SANDBOX
+--   <> "sandbox" JSON..= True
+-- #endif
   -- TODO: url?
   where
   enumValues :: forall a . DBEnum a => a -> [String]

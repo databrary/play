@@ -5,7 +5,7 @@ module Databrary.Controller.Token
   , postPasswordToken
   ) where
 
-#if !defined(DEVEL) && !defined(SANDBOX)
+#if !defined(DEVEL)
 import Control.Monad (mfilter)
 #endif
 import Control.Monad (when, unless)
@@ -18,7 +18,7 @@ import qualified Databrary.JSON as JSON
 import Databrary.Model.Id
 import Databrary.Model.Token
 import Databrary.Model.Party
-#if !defined(DEVEL) && !defined(SANDBOX)
+#if !defined(DEVEL)
 import Databrary.Model.Permission
 #endif
 import Databrary.Model.Notification.Types
@@ -34,7 +34,7 @@ import Databrary.View.Token
 
 lookupPasswordResetAccount :: BS.ByteString -> ActionM (Maybe SiteAuth)
 lookupPasswordResetAccount email =
-#if !defined(DEVEL) && !defined(SANDBOX)
+#if !defined(DEVEL)
   mfilter ((PermissionADMIN >) . accessMember) <$>
 #endif
   lookupSiteAuthByEmail True email
