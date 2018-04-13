@@ -37,7 +37,8 @@ initService fg conf = do
   passwd <- initPasswd
   messages <- loadMessages
   db <- initDB (conf C.! "db")
-  storage <- initStorage (conf C.! "store")
+  let transcodingDown = (maybe False id . (conf C.!)) "store.TRANSCODINGDOWN"
+  storage <- initStorage (conf C.! "store") transcodingDown
   av <- initAV
   web <- initWeb
   httpc <- initHTTPClient
@@ -68,7 +69,7 @@ initService fg conf = do
         , servicePeriodic = Nothing
         , serviceNotification = notify
         , serviceDown = conf C.! "store.DOWN"
-        , serviceTranscodingDown = (maybe False id . (conf C.!)) "store.TRANSCODINGDOWN"
+        , serviceTranscodingDown = transcodingDown
         }
   periodic <- fg ?$> forkPeriodic rc
   when fg $ void $ forkNotifier rc
