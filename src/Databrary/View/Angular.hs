@@ -31,8 +31,15 @@ webURL p = actionValue webFile (Just $ StaticPath p) ([] :: Query)
 versionedWebURL :: BS.ByteString -> BS.ByteString -> H.AttributeValue
 versionedWebURL version p = actionValue webFile (Just $ StaticPath p) ([(version,Nothing)] :: Query)
 
-htmlAngular :: BS.ByteString -> [WebFilePath] -> [WebFilePath] -> BSB.Builder -> RequestContext -> H.Html
-htmlAngular assetsVersion cssDeps jsDeps nojs auth = H.docTypeHtml H.! ngAttribute "app" "databraryModule" $ do
+htmlAngular
+  :: BS.ByteString
+  -> [WebFilePath]
+  -> [WebFilePath]
+  -> BSB.Builder
+  -> Bool
+  -> RequestContext
+  -> H.Html
+htmlAngular assetsVersion cssDeps jsDeps nojs transcodingDown auth = H.docTypeHtml H.! ngAttribute "app" "databraryModule" $ do
   H.head $ do
     htmlHeader Nothing def
     H.noscript $
@@ -87,6 +94,7 @@ htmlAngular assetsVersion cssDeps jsDeps nojs auth = H.docTypeHtml H.! ngAttribu
       H.preEscapedString " of this page."
     H.preEscapedString "<toolbar></toolbar>"
     H.preEscapedString $ "<main ng-view id=\"main\" class=\"main"
+      <> (if transcodingDown then " transcodingdown" else "")
 -- #ifdef SANDBOX
 --       <> " sandbox"
 -- #endif

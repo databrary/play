@@ -87,7 +87,8 @@ angularResult version nojs auth = do
       d <- makeWebFilePath "debug.js"
       return $ w ++ (d : debug')
     Nothing -> (:[]) <$> makeWebFilePath "all.min.js"
-  result $ okResponse [] (htmlAngular version cssDeps jsDeps nojs auth)
+  let transcodingDown = False
+  result $ okResponse [] (htmlAngular version cssDeps jsDeps nojs transcodingDown auth)
 
 angular :: ActionM ()
 angular = do
