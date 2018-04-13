@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, TemplateHaskell, RecordWildCards #-}
 module Databrary.Service.Init
-  ( withService
+  ( extractApiConfigValues
+  , withService
   ) where
 
 import Control.Exception (bracket)
@@ -29,6 +30,10 @@ import Databrary.Service.Periodic (forkPeriodic)
 import Databrary.Service.Types
 import Databrary.Controller.Notification (forkNotifier)
 
+extractApiConfigValues :: C.Config -> Bool
+extractApiConfigValues conf =
+    (maybe False id . (conf C.!)) "notificationbar"
+
 initService :: Bool -> C.Config -> IO Service
 initService fg conf = do
   time <- getCurrentTime
@@ -37,7 +42,8 @@ initService fg conf = do
   passwd <- initPasswd
   messages <- loadMessages
   db <- initDB (conf C.! "db")
-  storage <- initStorage (conf C.! "store")
+  let transcodingDown = (maybe False id . (conf C.!)) "store.TRANSCODINGDOWN"
+  storage <- initStorage (conf C.! "store") transcodingDown
   av <- initAV
   web <- initWeb
   httpc <- initHTTPClient
@@ -68,6 +74,8 @@ initService fg conf = do
         , servicePeriodic = Nothing
         , serviceNotification = notify
         , serviceDown = conf C.! "store.DOWN"
+        , serviceTranscodingDown = transcodingDown
+        , serviceNotificationBar = (maybe False id . (conf C.!)) "notificationbar"
         }
   periodic <- fg ?$> forkPeriodic rc
   when fg $ void $ forkNotifier rc

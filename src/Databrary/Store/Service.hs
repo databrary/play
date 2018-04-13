@@ -17,8 +17,8 @@ import Databrary.Files
 import Databrary.Store.Types
 import Databrary.Store.Transcoder
 
-initStorage :: C.Config -> IO Storage
-initStorage conf
+initStorage :: C.Config -> Bool -> IO Storage
+initStorage conf transcodingDown
   | Just down <- conf C.! "DOWN" = return $ error $ "Storage unavailable: " ++ down
   | otherwise = do
       fp <- getTemporaryDirectory
@@ -44,7 +44,7 @@ initStorage conf
       unTempPath <- unRawFilePath tempPath
       createDirectoryIfMissing False (getStorageTempParticipantUpload' unTempPath)
 
-      tc <- initTranscoder (conf C.! "transcode")
+      tc <- initTranscoder (conf C.! "transcode") transcodingDown
 
       return $ Storage
         { storageMaster = master

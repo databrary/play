@@ -25,8 +25,8 @@ import Databrary.Model.Notification.Notice
 import Databrary.Web.Types
 import Databrary.Web.Generate
 
-constantsJSON :: JSON.ToNestedObject o u => o
-constantsJSON =
+constantsJSON :: JSON.ToNestedObject o u => Bool -> o
+constantsJSON notificationBar =
      "permission" JSON..= enumValues PermissionPUBLIC
   <> "release" JSON..= enumValues ReleasePUBLIC
   <> "metric" JSON..=. JSON.recordMap (map metricJSON allMetrics)
@@ -43,27 +43,29 @@ constantsJSON =
 #ifdef DEVEL
   <> "devel" JSON..= True
 #endif
-#ifdef SANDBOX
-  <> "sandbox" JSON..= True
-#endif
+  <> "notificationbar" JSON..= notificationBar
+-- #ifdef SANDBOX
+--   <> "sandbox" JSON..= True
+-- #endif
   -- TODO: url?
   where
   enumValues :: forall a . DBEnum a => a -> [String]
   enumValues _ = map show $ enumFromTo minBound (maxBound :: a)
 
-constantsJSONB :: BSB.Builder
-constantsJSONB = JSON.fromEncoding $ JSON.objectEncoding constantsJSON
+constantsJSONB :: Bool -> BSB.Builder
+constantsJSONB notificationBar = JSON.fromEncoding $ JSON.objectEncoding (constantsJSON notificationBar)
 
-constantsJS :: BSB.Builder
-constantsJS = BSB.string8 "app.constant('constantData'," <> constantsJSONB <> BSB.string8 ");"
+constantsJS :: Bool -> BSB.Builder
+constantsJS notificationBar =
+    BSB.string8 "app.constant('constantData'," <> (constantsJSONB notificationBar) <> BSB.string8 ");"
 
 regenerateConstants :: BSB.Builder -> WebGenerator
 regenerateConstants b = staticWebGenerate $ \f ->
   withBinaryFile f WriteMode $ \h ->
     BSB.hPutBuilder h b
 
-generateConstantsJSON :: WebGenerator
-generateConstantsJSON = regenerateConstants constantsJSONB
+generateConstantsJSON :: Bool -> WebGenerator
+generateConstantsJSON notificationBar = regenerateConstants (constantsJSONB notificationBar)
 
-generateConstantsJS :: WebGenerator
-generateConstantsJS = regenerateConstants constantsJS
+generateConstantsJS :: Bool -> WebGenerator
+generateConstantsJS notificationBar = regenerateConstants (constantsJS notificationBar)

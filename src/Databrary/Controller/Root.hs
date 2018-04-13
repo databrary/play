@@ -48,7 +48,9 @@ viewRootHandler api _ = -- TOOD: ensure GET
 
 viewConstantsHandler :: [(BS.ByteString, BS.ByteString)] -> Action
 viewConstantsHandler _ = -- TODO: ensure GET
-  withoutAuth $ return $ okResponse [] $ JSON.objectEncoding constantsJSON
+  withoutAuth $ do
+    (serv :: Service) <- peek
+    return $ okResponse [] $ JSON.objectEncoding (constantsJSON (serviceNotificationBar serv))
 
 viewRobotsTxtHandler :: [(BS.ByteString, BS.ByteString)] -> Action
 viewRobotsTxtHandler _ =  -- TODO: ensure GET

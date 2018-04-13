@@ -21,10 +21,10 @@ Flag devel
   default: False
   manual: True
 
-Flag sandbox
-  description: Enable sandbox/demo mode
-  default: False
-  manual: True
+-- Flag sandbox
+--   description: Enable sandbox/demo mode
+--  default: False
+--  manual: True
 
 library
   hs-source-dirs: src
@@ -384,8 +384,8 @@ library
 
   if flag(devel)
     cpp-options: -DDEVEL
-  if flag(sandbox)
-    cpp-options: -DSANDBOX
+--  if flag(sandbox)
+--    cpp-options: -DSANDBOX
 
   pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
   extra-libraries: crack, crypto
@@ -479,8 +479,8 @@ Executable databrary
     cpp-options: -DDEVEL
   else
     ghc-options: -with-rtsopts -N
-  if flag(sandbox)
-    cpp-options: -DSANDBOX
+--   if flag(sandbox)
+--    cpp-options: -DSANDBOX
 
   pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
   extra-libraries: crack, crypto
@@ -526,8 +526,8 @@ Executable generate
     cpp-options: -DDEVEL
   else
     ghc-options: -with-rtsopts -N
-  if flag(sandbox)
-    cpp-options: -DSANDBOX
+--  if flag(sandbox)
+--    cpp-options: -DSANDBOX
 
 test-suite discovered
   type: exitcode-stdio-1.0

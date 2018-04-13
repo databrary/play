@@ -49,6 +49,8 @@ data Service = Service
   , servicePeriodic :: !(Maybe ThreadId)
   , serviceNotification :: !Notifications
   , serviceDown :: !(Maybe T.Text)
+  , serviceTranscodingDown :: !Bool
+  , serviceNotificationBar :: !Bool
   }
 
 makeHasRec ''Service ['serviceSecret, 'serviceEntropy, 'servicePasswd, 'serviceLogs, 'serviceMessages, 'serviceDB, 'serviceStorage, 'serviceAV, 'serviceWeb, 'serviceHTTPClient, 'serviceStatic, 'serviceIngest, 'serviceSolr, 'serviceNotification]
