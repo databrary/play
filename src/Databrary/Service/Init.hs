@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, TemplateHaskell, RecordWildCards #-}
 module Databrary.Service.Init
-  ( withService
+  ( extractApiConfigValues
+  , withService
   ) where
 
 import Control.Exception (bracket)
@@ -28,6 +29,10 @@ import Databrary.Service.Notification
 import Databrary.Service.Periodic (forkPeriodic)
 import Databrary.Service.Types
 import Databrary.Controller.Notification (forkNotifier)
+
+extractApiConfigValues :: C.Config -> Bool
+extractApiConfigValues conf =
+    (maybe False id . (conf C.!)) "notificationbar"
 
 initService :: Bool -> C.Config -> IO Service
 initService fg conf = do

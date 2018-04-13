@@ -12,7 +12,7 @@ import System.Exit (exitFailure)
 -- import System.IO (stdout)
 
 import qualified Databrary.Store.Config as Conf
-import Databrary.Service.Init (withService)
+import Databrary.Service.Init (withService, extractApiConfigValues)
 import Databrary.Web.Rules (generateWebFiles)
 import Databrary.Action (runActionRoute)
 import Databrary.Routes (routeMap, newRouteMap)
@@ -50,7 +50,7 @@ main = do
   case (flags', args', err) of
     ([FlagWeb], [], []) -> do
       putStrLn "generating files..." 
-      void generateWebFiles
+      void (generateWebFiles (extractApiConfigValues conf))
       putStrLn "finished generating web files..."
     {- seems like a good idea for testing and generally factoring out monolith, add back when used
     ([FlagEZID], [], []) -> do

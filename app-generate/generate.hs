@@ -5,4 +5,4 @@ import Databrary.Web.Rules
 -- compliment the frontend developer's environment. 
 
 main :: IO ()
-main = generateWebFiles >> return ()
+main = generateWebFilesNoStatic

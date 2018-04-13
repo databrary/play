@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings, ViewPatterns, TupleSections, CPP #-}
 module Databrary.Web.Rules
-  ( generateWebFile
+  ( generateWebFileNoStatic
   , generateWebFiles
+  , generateWebFilesNoStatic
   ) where
 
 import Control.Monad (guard, mzero, msum, (<=<))
@@ -32,13 +33,13 @@ import Databrary.Web.Libs
 import Databrary.Web.All
 import Databrary.Web.GZip
 
-staticGenerators :: [(RawFilePath, WebGenerator)]
+staticGenerators :: Bool -> [(RawFilePath, WebGenerator)]
 #ifdef NODB
-staticGenerators = []
+staticGenerators _ = []
 #else
-staticGenerators =
-  [ ("constants.json", generateConstantsJSON)
-  , ("constants.js",   generateConstantsJS)
+staticGenerators notificationBar =
+  [ ("constants.json", (generateConstantsJSON notificationBar))
+  , ("constants.js",   (generateConstantsJS notificationBar))
   , ("routes.js",      generateRoutesJS)
   ]
 #endif
@@ -54,24 +55,27 @@ fixedGenerators =
   , ("all.min.css",    generateAllCSS)
   ]
 
-generateFixed :: Bool -> WebGenerator
-generateFixed includeStatic = \fo@(f, _) -> do
-  case lookup (webFileRel f) $ (if includeStatic then (staticGenerators ++) else id) fixedGenerators of
+generateFixed :: [(RawFilePath, WebGenerator)] -> WebGenerator
+generateFixed staticGeneratorsInUse = \fo@(f, _) -> do
+  case lookup
+         (webFileRel f)
+         $ staticGeneratorsInUse ++ fixedGenerators of
     Just g -> g fo
     _ -> mzero
 
 generateStatic :: WebGenerator
 generateStatic fo@(f, _) = fileNewer (webFileAbs f) fo
 
-generateRules :: Bool -> WebGenerator
-generateRules includeStatic (fileToGen, mPriorFileInfo) = msum $ map (\gen -> gen (fileToGen, mPriorFileInfo))
-  ([ 
-     generateFixed includeStatic
-   , generateCoffeeJS
-   , generateLib
-   , generateGZip
-   , generateStatic
-   ] :: [WebGenerator])
+generateRules :: [(RawFilePath, WebGenerator)] -> WebGenerator
+generateRules staticGeneratorsInUse (fileToGen, mPriorFileInfo) =
+  msum $ map (\gen -> gen (fileToGen, mPriorFileInfo))
+    ([ 
+       generateFixed staticGeneratorsInUse
+     , generateCoffeeJS
+     , generateLib
+     , generateGZip
+     , generateStatic
+     ] :: [WebGenerator])
 
 updateWebInfo :: WebFilePath -> WebGeneratorM WebFileInfo
 updateWebInfo f = do
@@ -79,11 +83,17 @@ updateWebInfo f = do
   modify $ HM.insert f n
   return n
 
-generateWebFile :: Bool -> WebFilePath -> WebGeneratorM WebFileInfo
-generateWebFile includeStatic f =
+generateWebFileNoStatic :: WebFilePath -> WebGeneratorM WebFileInfo
+generateWebFileNoStatic f =
+    let notificationBarIgnored = False
+    in generateWebFile False notificationBarIgnored f
+
+generateWebFile :: Bool -> Bool -> WebFilePath -> WebGeneratorM WebFileInfo
+generateWebFile includeStatic notificationBar f = do
+  let staticGeneratorsInUse = if includeStatic then staticGenerators notificationBar else []
   withExceptT (\val -> label (show (webFileRel f)) val) $ do
       mExistingInfo <- gets $ HM.lookup f
-      r <- generateRules includeStatic (f, mExistingInfo)
+      r <- generateRules staticGeneratorsInUse (f, mExistingInfo)
       fromMaybeM
           (updateWebInfo f)
           (guard (not r) >> mExistingInfo :: Maybe WebFileInfo)
@@ -91,25 +101,34 @@ generateWebFile includeStatic f =
   label n "" = n
   label n s = n ++ ": " ++ s
 
-generateAll :: WebGeneratorM ()
-generateAll = do
+generateAll :: Bool -> WebGeneratorM ()
+generateAll notificationBar = do
   svg <- liftIO $ findWebFiles ".svg"
-  (    mapM_ (\webFilePath -> generateWebFile True webFilePath)
+  (    mapM_ (\webFilePath -> generateWebFile True notificationBar webFilePath)
    <=< mapM (liftIO . makeWebFilePath)
       $ mconcat
-          [ (map fst staticGenerators)
+          [ (map fst (staticGenerators notificationBar))
           , ["constants.json.gz", "all.min.js.gz", "all.min.css.gz"]
           , map ((RF.<.> ".gz") . webFileRel) svg
           ])
 
-generateWebFiles :: IO WebFileMap
-generateWebFiles = do
+generateWebFiles :: Bool -> IO WebFileMap
+generateWebFiles notificationBar = do
   webFileMap <-
       execStateT
           (do
-            eWebFileMap <- runExceptT generateAll
+            eWebFileMap <- runExceptT (generateAll notificationBar)
             either fail return eWebFileMap)
           HM.empty
   -- TODO: variables for filenames
   callCommand "cat web/all.min.js web/all.min.css | md5sum | cut -d ' ' -f 1 > jsCssVersion.txt"
   pure webFileMap
+
+generateWebFilesNoStatic :: IO WebFileMap
+generateWebFilesNoStatic =
+#ifdef NODB
+    let notificationBarIgnored = False
+    in void (generateWebFiles notificationBarIgnored)
+#else
+    error "this should never be called when nodb is not defined"
+#endif

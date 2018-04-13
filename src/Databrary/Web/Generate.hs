@@ -48,8 +48,7 @@ whether g = (g <$) . when g
 
 webRegenerate :: IO () -> [RawFilePath] -> [WebFilePath] -> WebGenerator
 webRegenerate createOrCombineGeneratedIntoOutputFile fs inputFiles (fileToGen, mPriorFileInfo) = do
-  let dontIncludeStatic = False
-  wr <- mapM (generateWebFile dontIncludeStatic) inputFiles
+  wr <- mapM generateWebFileNoStatic inputFiles
   ft <-
     liftIO
         $ maybe (fmap snd <$> fileInfo (webFileAbs fileToGen)) (return . Just . webFileTimestamp) mPriorFileInfo
