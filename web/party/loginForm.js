@@ -28,6 +28,11 @@ app.directive('loginForm', [
       form.validator.client({}, true);
 
       $timeout(function(){angular.element('#loginEmail').focus();},100);
+
+      $(document).on('blur', '#loginEmail', function(){
+        $scope.email = form.data.email;
+      })
+
     }
   }; }
 ]);
