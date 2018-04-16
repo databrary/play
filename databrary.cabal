@@ -563,28 +563,28 @@ test-suite discovered
   default-language: Haskell2010
   other-modules:
 
-      Data.RangeSet.ParseTest
-    , Data.Csv.ContribTest
+      Databrary.Controller.IngestTest
     , Databrary.EZID.ANVLTest
-    , Databrary.Model.Audit.TypesTest
-    , Databrary.Model.IngestTest
-    , Databrary.Model.RecordTest
-    , Databrary.Model.TimeTest
-    , Databrary.Model.Metric.TypesTest
-    , Databrary.Model.Permission.TypesTest
-    , Databrary.Model.AuditTest
-    , Databrary.Model.Party.TypesTest
-    , Databrary.Model.MetricTest
-    , Databrary.Model.Record.TypesTest
-    , Databrary.Model.Stats.TypesTest
-    , Databrary.OpsTest
-    , Databrary.Store.AVTest
-    , Databrary.Store.ConfigTest
-    , Databrary.Service.MailTest
-    , Databrary.Service.PasswdTest
-    , Databrary.StringUtilTest
-    , Databrary.Controller.IngestTest
     , Databrary.HTTP.Form.DeformTest
     , Databrary.HTTP.RequestTest
+    , Databrary.Model.AuditTest
+    , Databrary.Model.Audit.TypesTest
+    , Databrary.Model.IngestTest
+    , Databrary.Model.MetricTest
+    , Databrary.Model.Metric.TypesTest
+    , Databrary.Model.Party.TypesTest
+    , Databrary.Model.Permission.TypesTest
+    , Databrary.Model.RecordTest
+    , Databrary.Model.Record.TypesTest
+    , Databrary.Model.Stats.TypesTest
+    , Databrary.Model.TimeTest
+    , Databrary.OpsTest
+    , Databrary.Service.MailTest
+    , Databrary.Service.PasswdTest
+    , Databrary.Store.AVTest
+    , Databrary.Store.ConfigTest
+    , Databrary.StringUtilTest
+    , Data.Csv.ContribTest
+    , Data.RangeSet.ParseTest
 
 -- vim: shiftwidth=2
