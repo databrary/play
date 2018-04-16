@@ -7,7 +7,9 @@ module Databrary.Service.Types
 import Control.Concurrent (ThreadId)
 import qualified Data.ByteString as BS
 import Data.IORef (IORef)
+import Data.Map (Map)
 import qualified Data.Text as T
+import System.IO (Handle)
 
 import Databrary.Has (makeHasRec)
 import Databrary.Service.DB (DBPool)
@@ -49,6 +51,7 @@ data Service = Service
   , servicePeriodic :: !(Maybe ThreadId)
   , serviceNotification :: !Notifications
   , serviceDown :: !(Maybe T.Text)
+  , serviceZipGenerate :: !(IORef (Map String (Maybe (Handle, Integer))))
   }
 
-makeHasRec ''Service ['serviceSecret, 'serviceEntropy, 'servicePasswd, 'serviceLogs, 'serviceMessages, 'serviceDB, 'serviceStorage, 'serviceAV, 'serviceWeb, 'serviceHTTPClient, 'serviceStatic, 'serviceIngest, 'serviceSolr, 'serviceNotification]
+makeHasRec ''Service ['serviceSecret, 'serviceEntropy, 'servicePasswd, 'serviceLogs, 'serviceMessages, 'serviceDB, 'serviceStorage, 'serviceAV, 'serviceWeb, 'serviceHTTPClient, 'serviceStatic, 'serviceIngest, 'serviceSolr, 'serviceNotification, 'serviceZipGenerate]

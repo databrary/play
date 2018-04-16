@@ -1,10 +1,15 @@
-{-# LANGUAGE OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE OverloadedStrings, ViewPatterns, Rank2Types #-}
 module Databrary.Controller.Zip
   ( zipContainer
   , zipVolume
   , viewVolumeDescription
+  , generateVolumeZip
+  , downloadGeneratedVolumeZip
   ) where
 
+import Control.Concurrent (forkIO)
+-- import Control.Exception (mask)
+import Control.Monad (void)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Char8 as BSC
@@ -16,6 +21,7 @@ import Control.Monad.IO.Class (liftIO)
 import Data.Monoid ((<>))
 import qualified Data.RangeSet.List as RS
 import qualified Data.Text.Encoding as TE
+import Data.Time (getCurrentTime)
 import Network.HTTP.Types (hContentType, hCacheControl, hContentLength)
 import System.Posix.FilePath ((<.>))
 import qualified Text.Blaze.Html5 as Html
@@ -25,10 +31,14 @@ import qualified System.IO as IO
 import qualified System.Directory as DIR
 import qualified Conduit as CND
 import Path (parseRelFile)
+import qualified Web.Route.Invertible as Invertible
 -- import Path.IO (resolveFile')
 
 import Databrary.Ops
 import Databrary.Has (view, peek, peeks)
+import Databrary.Service.Log (Logs, logMsg)
+import Databrary.Service.Periodic (getTokenValue, insertGeneratingToken, updateWithCompletedHandle)
+import Databrary.Service.Types (Service)
 import Databrary.Store.Asset
 import Databrary.Store.Filename
 import Databrary.Store.CSV (buildCSV)
@@ -142,6 +152,41 @@ zipResponse2 n zipAddActions = do
     , (hContentLength, BSC.pack $ show $ sz)
     ] (CND.bracketP (return h) IO.hClose CND.sourceHandle :: CND.Source (CND.ResourceT IO) BS.ByteString)
 
+zipResponse3 :: String -> BS.ByteString -> ZIP.ZipArchive () -> ActionM ()
+zipResponse3 tkn n zipAddActions = do
+  req <- peek
+  u <- peek
+  store <- peek
+  let comment = BSL.toStrict $ BSB.toLazyByteString
+        $ BSB.string8 "Downloaded by " <> TE.encodeUtf8Builder (partyName $ partyRow u) <> BSB.string8 " <" <> actionURL (Just req) viewParty (HTML, TargetParty $ partyId $ partyRow u) [] <> BSB.char8 '>'
+  let temporaryZipName = (BSC.unpack . storageTemp) store <> "placeholder.zip" -- TODO: generate temporary name for extra caution?
+  h <- liftIO $ IO.openFile temporaryZipName IO.ReadWriteMode
+  liftIO $ DIR.removeFile temporaryZipName
+  liftIO $ IO.hSetBinaryMode h True
+  srv <- peek
+  lgr <- peek
+  let fullZipAddActions = do
+        ZIP.setArchiveComment (TE.decodeUtf8 comment)
+        zipAddActions
+  liftIO (forkGenerateVolumeZip (doGenerateVolumeZip srv fullZipAddActions tkn h) lgr)
+
+forkGenerateVolumeZip :: IO () -> Logs -> IO ()
+forkGenerateVolumeZip doGen _ =
+  void (forkIO doGen)
+  {-
+  void (forkFinally (mask $ doGen) $ \r -> do
+    t <- getCurrentTime
+    logMsg t ("generating zip file aborted: " ++ show r) logger)
+  -}
+
+doGenerateVolumeZip
+  :: Service -> ZIP.ZipArchive () -> String -> IO.Handle -> IO ()
+doGenerateVolumeZip srv zipActs tkn h = do
+  liftIO $ ZIP.createBlindArchive h $ zipActs
+  sz <- liftIO $ (IO.hSeek h IO.SeekFromEnd 0 >> IO.hTell h)
+  liftIO $ IO.hSeek h IO.AbsoluteSeek 0
+  liftIO $ updateWithCompletedHandle tkn h sz srv -- also store user id, generated date, vol id
+
 checkAsset :: AssetSlot -> Bool
 checkAsset a = 
   canReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 a && assetBacked (view a)
@@ -198,6 +243,43 @@ zipVolume isOrig =
   zipActs <- volumeZipEntry2 isOrig v top s (buildCSV <$> csv) a
   auditVolumeDownload (not $ null a) v
   zipResponse2 (BSC.pack $ "databrary-" ++ show (volumeId $ volumeRow v) ++ if idSetIsFull s then "" else "-partial") zipActs
+
+generateVolumeZip :: ActionRoute (Id Volume)
+generateVolumeZip =
+  action GET (pathId </< "generateZip" </< "false") $ \vi -> withAuth $ do -- TODO: change to POST
+    let isOrig = False -- TODO: handle isOrig
+    (v, s, a) <- getVolumeInfo vi
+    let token = show vi -- TODO: gen unique token
+    srv <- peek
+    liftIO (insertGeneratingToken token srv)
+    top:cr <- lookupVolumeContainersRecords v
+    let cr' = filter ((`RS.member` s) . containerId . containerRow . fst) cr
+    csv <- null cr' ?!$> volumeCSV v cr'
+    zipActs <- volumeZipEntry2 isOrig v top s (buildCSV <$> csv) a
+    auditVolumeDownload (not $ null a) v
+    zipResponse3
+      token
+      (BSC.pack $ "databrary-" ++ show (volumeId $ volumeRow v) ++ if idSetIsFull s then "" else "-partial")
+      zipActs
+    pure (okResponse [] token)
+
+downloadGeneratedVolumeZip :: ActionRoute (String)
+downloadGeneratedVolumeZip =
+  action GET ("downloadZip" >/> Invertible.parameter) $ \tkn -> withAuth $ do
+    -- ent <- remove entry map
+    srv <- peek
+    mStatus <- liftIO (getTokenValue tkn srv)
+    -- TODO: authorize retrieved against volume id, if not, then entry is discarded
+    case mStatus of
+      Just Nothing -> pure (okResponse [] ("generating" :: String))
+      Just (Just (h, sz)) ->
+        return $ okResponse
+          [ (hContentType, "application/zip")
+          , ("content-disposition", "attachment; filename=" <> quoteHTTP ("a" <.> "zip")) -- TODO, use name
+          , (hCacheControl, "max-age=31556926, private")
+          , (hContentLength, BSC.pack $ show $ sz)
+          ] (CND.bracketP (return h) IO.hClose CND.sourceHandle :: CND.Source (CND.ResourceT IO) BS.ByteString)
+      Nothing -> pure (okResponse [] ("unknown or expired token" :: String)) -- TODO: not found
 
 viewVolumeDescription :: ActionRoute (Id Volume)
 viewVolumeDescription = action GET (pathId </< "description") $ \vi -> withAuth $ do
