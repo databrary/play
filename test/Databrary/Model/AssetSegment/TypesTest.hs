@@ -1,4 +1,4 @@
-module Databrary.Model.AssetSegment.TypesTest where
+module Databrary.Model.AssetSegment.TypesTest (test_all) where
 
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -12,6 +12,68 @@ import Databrary.Model.Release.Types
 import Databrary.Model.Segment (fullSegment)
 import Databrary.Model.Slot.Types
 import Databrary.Model.Volume.Types
+
+test_all :: TestTree
+test_all = testGroup
+    "all"
+    [ testCase "testgetAssetSegmentRelease2"
+      $   testgetAssetSegmentRelease2
+      @?= [ ( EffectiveRelease
+                { effRelPublic  = ReleasePRIVATE
+                , effRelPrivate = ReleasePRIVATE
+                }
+            , EffectiveRelease
+                { effRelPublic  = ReleasePRIVATE
+                , effRelPrivate = ReleasePRIVATE
+                }
+            )
+          , ( EffectiveRelease
+                { effRelPublic  = ReleasePRIVATE
+                , effRelPrivate = ReleasePRIVATE
+                }
+            , EffectiveRelease
+                { effRelPublic  = ReleasePRIVATE
+                , effRelPrivate = ReleasePRIVATE
+                }
+            )
+          , ( EffectiveRelease
+                { effRelPublic  = ReleasePUBLIC
+                , effRelPrivate = ReleasePUBLIC
+                }
+            , EffectiveRelease
+                { effRelPublic  = ReleasePUBLIC
+                , effRelPrivate = ReleasePUBLIC
+                }
+            )
+          , ( EffectiveRelease
+                { effRelPublic  = ReleasePUBLIC
+                , effRelPrivate = ReleasePUBLIC
+                }
+            , EffectiveRelease
+                { effRelPublic  = ReleasePUBLIC
+                , effRelPrivate = ReleasePUBLIC
+                }
+            )
+          , ( EffectiveRelease
+                { effRelPublic  = ReleaseSHARED
+                , effRelPrivate = ReleaseSHARED
+                }
+            , EffectiveRelease
+                { effRelPublic  = ReleaseSHARED
+                , effRelPrivate = ReleaseSHARED
+                }
+            )
+          , ( EffectiveRelease
+                { effRelPublic  = ReleasePRIVATE
+                , effRelPrivate = ReleasePRIVATE
+                }
+            , EffectiveRelease
+                { effRelPublic  = ReleasePRIVATE
+                , effRelPrivate = ReleasePRIVATE
+                }
+            )
+          ]
+    ]
 
 testmakeAssetSegment :: AssetSlot -> Bool -> Maybe Release -> AssetSegment
 testmakeAssetSegment as hasExcerpt mRel = AssetSegment
