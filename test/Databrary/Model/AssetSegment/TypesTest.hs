@@ -30,7 +30,7 @@ testmakeAssetSlot vid mRel ms =
 
 containerAssetSlot :: Maybe Release -> AssetSlot
 containerAssetSlot mRel =
-  testmakeAssetSlot realVolumeId mRel (Just testmakeSlot)
+    testmakeAssetSlot realVolumeId mRel (Just testmakeSlot)
 
 testmakeSlot :: Slot
 testmakeSlot = Slot
@@ -56,29 +56,39 @@ realVolume = testmakeVolume realVolumeId
 realVolumeId :: Id Volume
 realVolumeId = Id 100
 
-noExcerptContainerAssetNoRelease             :: AssetSegment
-excerptNoReleaseContainerAssetNoRelease      :: AssetSegment
-excerptNoReleaseContainerAssetHasRelease     :: AssetSegment
-excerptPublicReleaseContainerAssetNoRelease  :: AssetSegment
-excerptSharedReleaseContainerAssetNoRelease  :: AssetSegment
+noExcerptContainerAssetNoRelease :: AssetSegment
+excerptNoReleaseContainerAssetNoRelease :: AssetSegment
+excerptNoReleaseContainerAssetHasRelease :: AssetSegment
+excerptPublicReleaseContainerAssetNoRelease :: AssetSegment
+excerptSharedReleaseContainerAssetNoRelease :: AssetSegment
 excerptPrivateReleaseContainerAssetNoRelease :: AssetSegment
-noExcerptContainerAssetNoRelease = testmakeAssetSegment (containerAssetSlot Nothing) False Nothing
-excerptNoReleaseContainerAssetNoRelease = testmakeAssetSegment (containerAssetSlot Nothing) True Nothing
-excerptNoReleaseContainerAssetHasRelease = testmakeAssetSegment (containerAssetSlot (Just ReleasePUBLIC)) True Nothing
-excerptPublicReleaseContainerAssetNoRelease = testmakeAssetSegment (containerAssetSlot Nothing) True (Just ReleasePUBLIC)
-excerptSharedReleaseContainerAssetNoRelease = testmakeAssetSegment (containerAssetSlot Nothing) True (Just ReleaseSHARED)
-excerptPrivateReleaseContainerAssetNoRelease = testmakeAssetSegment (containerAssetSlot Nothing) True (Just ReleasePRIVATE)
+noExcerptContainerAssetNoRelease =
+    testmakeAssetSegment (containerAssetSlot Nothing) False Nothing
+excerptNoReleaseContainerAssetNoRelease =
+    testmakeAssetSegment (containerAssetSlot Nothing) True Nothing
+excerptNoReleaseContainerAssetHasRelease =
+    testmakeAssetSegment (containerAssetSlot (Just ReleasePUBLIC)) True Nothing
+excerptPublicReleaseContainerAssetNoRelease =
+    testmakeAssetSegment (containerAssetSlot Nothing) True (Just ReleasePUBLIC)
+excerptSharedReleaseContainerAssetNoRelease =
+    testmakeAssetSegment (containerAssetSlot Nothing) True (Just ReleaseSHARED)
+excerptPrivateReleaseContainerAssetNoRelease =
+    testmakeAssetSegment (containerAssetSlot Nothing) True (Just ReleasePRIVATE)
 
-assetReleaseForPartialAndFullShared     :: EffectiveRelease
-privateReleaseIgnoreSharing             :: EffectiveRelease
-excerptReleaseForPartialAndFullShared   :: EffectiveRelease
-excerptReleaseForPartialAndFullShared'  :: EffectiveRelease
+assetReleaseForPartialAndFullShared :: EffectiveRelease
+privateReleaseIgnoreSharing :: EffectiveRelease
+excerptReleaseForPartialAndFullShared :: EffectiveRelease
+excerptReleaseForPartialAndFullShared' :: EffectiveRelease
 excerptReleaseForPartialAndFullShared'' :: EffectiveRelease
-assetReleaseForPartialAndFullShared = EffectiveRelease ReleasePUBLIC ReleasePUBLIC
+assetReleaseForPartialAndFullShared =
+    EffectiveRelease ReleasePUBLIC ReleasePUBLIC
 privateReleaseIgnoreSharing = EffectiveRelease ReleasePRIVATE ReleasePRIVATE
-excerptReleaseForPartialAndFullShared = EffectiveRelease ReleasePUBLIC ReleasePUBLIC
-excerptReleaseForPartialAndFullShared' = EffectiveRelease ReleaseSHARED ReleaseSHARED
-excerptReleaseForPartialAndFullShared'' = EffectiveRelease ReleasePRIVATE ReleasePRIVATE
+excerptReleaseForPartialAndFullShared =
+    EffectiveRelease ReleasePUBLIC ReleasePUBLIC
+excerptReleaseForPartialAndFullShared' =
+    EffectiveRelease ReleaseSHARED ReleaseSHARED
+excerptReleaseForPartialAndFullShared'' =
+    EffectiveRelease ReleasePRIVATE ReleasePRIVATE
 
 {- test cases: (focus on excerpt present or not test to begin with
 -- has excerpt
