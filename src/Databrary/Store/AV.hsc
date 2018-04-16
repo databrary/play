@@ -370,7 +370,7 @@ data AVMediaType
   | AVMediaTypeData
   | AVMediaTypeSubtitle
   | AVMediaTypeAttachment
-  deriving (Eq, Enum, Bounded)
+  deriving (Eq, Show, Enum, Bounded)
 
 instance Storable AVMediaType where
   sizeOf _ = sizeOf (undefined :: #type enum AVMediaType)

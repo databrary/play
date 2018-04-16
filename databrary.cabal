@@ -12,6 +12,9 @@ Tested-with:         GHC >= 7.10.3 && <= 8.0.2
 Build-type:          Simple
 Cabal-version:       >=1.22
 
+-- Used in tests
+data-files: test/data/small.webm
+
 Source-Repository head
   Type:	git
   Location: https://github.com/databrary/databrary
@@ -304,6 +307,8 @@ library
     Databrary.Ops
     Control.Invert
 
+  autogen-modules: Paths_databrary
+
   build-depends:
     base >= 4.8.2.0,
     bytestring >= 0.10,
@@ -573,6 +578,7 @@ test-suite discovered
     , Databrary.Model.Record.TypesTest
     , Databrary.Model.Stats.TypesTest
     , Databrary.OpsTest
+    , Databrary.Store.AVTest
     , Databrary.Store.ConfigTest
     , Databrary.Service.MailTest
     , Databrary.Service.PasswdTest
