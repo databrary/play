@@ -572,6 +572,7 @@ test-suite discovered
     , Databrary.Model.AuditTest
     , Databrary.Model.Audit.TypesTest
     , Databrary.Model.IngestTest
+    , Databrary.Model.KindTest
     , Databrary.Model.MetricTest
     , Databrary.Model.Metric.TypesTest
     , Databrary.Model.Party.TypesTest
