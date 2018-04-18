@@ -9,10 +9,10 @@ nix-build = nix-build $(NIX_OPTIONS) --drv-link $(PWD)/derivation --cores 4 -A d
 nix-shell = nix-shell $(NIX_OPTIONS)
 
 ifdef BUILDDEV
-nix-build += -K
+nix-build += --keep-failed
 nix-shell += --pure
 else
-NIX_OPTIONS += -Q
+NIX_OPTIONS += --no-build-output
 endif
 
 # Sneaky options used in recursing make. Not for human consumption.
@@ -55,9 +55,10 @@ cabal-build: ; $(nix-shell) --run 'cabal -j new-build --disable-optimization'
 ## Simple report output, long build time.
 hpc-report.txt: result
 	__COVERAGE=1 make nix-build
-	hpc report result/share/hpc/dyn/tix/databrary-1/databrary-1.tix \
-		--hpcdir=result/share/hpc/dyn/mix/databrary-1 \
-		> $@
+	hpc report result/share/hpc/vanilla/tix/databrary-1/databrary-1.tix \
+		--hpcdir=result/share/hpc/vanilla/mix/databrary-1 \
+		--exclude=Paths_databrary
+		| tee $@
 
 haddock-coverage-report.txt: derivation # Also depends on nix-build. Hmmmm
 	__HADDOCK=1 make nix-build
