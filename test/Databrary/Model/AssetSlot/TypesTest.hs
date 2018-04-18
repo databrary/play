@@ -11,6 +11,10 @@ import Databrary.Model.Volume.Types
 import Test.Tasty
 import Test.Tasty.HUnit
 
+-- See
+-- https://projects.databrary.org/confluence/pages/viewpage.action?pageId=18449565
+-- for an explanation of testgetAssetSlotRelease2. Short version: this needs
+-- refactoring.
 test_all :: TestTree
 test_all = testGroup
     "all"

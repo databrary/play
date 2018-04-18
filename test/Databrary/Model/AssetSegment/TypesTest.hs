@@ -13,6 +13,10 @@ import Databrary.Model.Segment (fullSegment)
 import Databrary.Model.Slot.Types
 import Databrary.Model.Volume.Types
 
+-- See
+-- https://projects.databrary.org/confluence/pages/viewpage.action?pageId=18449565
+-- for an explanation of testgetAssetSegmentRelease2. Short version: this needs
+-- refactoring.
 test_all :: TestTree
 test_all = testGroup
     "all"
