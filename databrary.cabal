@@ -3,7 +3,7 @@ Version:             1
 Synopsis:            Databrary
 Description:         Video data sharing library designed for human subjects research (http://databrary.org) in Haskell.
 License:             GPL-3
-License-file:        COPYING
+License-file:        LICENSE
 Author:              Dylan Simon
 Maintainer:          dylan@dylex.net
 Stability:           Provisional
@@ -567,6 +567,7 @@ test-suite discovered
     , Databrary.EZID.ANVLTest
     , Databrary.HTTP.Form.DeformTest
     , Databrary.HTTP.RequestTest
+    , Databrary.Model.AssetSlot.TypesTest
     , Databrary.Model.AssetSegment.TypesTest
     , Databrary.Model.AuditTest
     , Databrary.Model.Audit.TypesTest

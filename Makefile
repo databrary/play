@@ -28,7 +28,7 @@ endif
 #
 
 ## The default action is to run tests
-cabal-test: ; $(nix-shell) --run 'cabal -j new-test'
+cabal-test: ; $(nix-shell) --run 'cabal -j new-test --disable-optimization'
 .PHONY: cabal-test
 
 ## Start the db (needed for cabal.test and cabal.build, but that relationship is
@@ -49,7 +49,7 @@ nix-build: ; $(nix-build)
 .PHONY: nix-build
 
 ## You can also build with Cabal if that suits you
-cabal-build: ; $(nix-shell) --run 'cabal -j new-build'
+cabal-build: ; $(nix-shell) --run 'cabal -j new-build --disable-optimization'
 .PHONY: cabal-build
 
 ## Simple report output, long build time.
