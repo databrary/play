@@ -17,7 +17,9 @@ let
   inherit (nixpkgs) fetchFromGitHub writeScriptBin cpio wget;
   # nixpkgs functions used to regulate Haskell overrides
   inherit (nixpkgs.haskell.lib)
-    dontCheck overrideCabal doJailbreak doCoverage doHaddock dontHaddock;
+    dontCheck overrideCabal doJailbreak doCoverage doHaddock dontHaddock
+    disableSharedLibraries disableSharedExecutables;
+  noSharedObjs = x: disableSharedExecutables (disableSharedLibraries x);
   ghciDatabrary = writeScriptBin "ghci-databrary" ''
     if [ ! -d "solr-6.6.0" ]; then
       if [ ! -d "/tmp/solr-6.6.0" ]; then
@@ -74,14 +76,15 @@ let
       databrary =
         (if haddock then doHaddock else dontHaddock)
           ((if coverage then doCoverage else id)
-            (self.callPackage ./databrary.nix {
-              inherit postgresql nodePackages coreutils;
-              # ffmpeg override with with --enable-libfdk-aac and --enable-nonfree flags set
-              ffmpeg = nixpkgs.ffmpeg-full.override {
-                nonfreeLicensing = true;
-                fdkaacExtlib = true;
-              };
-        }));
+            (noSharedObjs
+              (self.callPackage ./databrary.nix {
+                inherit postgresql nodePackages coreutils;
+                # ffmpeg override with with --enable-libfdk-aac and --enable-nonfree flags set
+                ffmpeg = nixpkgs.ffmpeg-full.override {
+                  nonfreeLicensing = true;
+                  fdkaacExtlib = true;
+                };
+        })));
       # cabal override to enable ghcid (GHCi daemon) development tool
       databrary-dev = overrideCabal databrary (drv: {
         libraryHaskellDepends = (drv.libraryHaskellDepends or []) ++ (with self; [ghcid cabal-install ghciDatabrary]);

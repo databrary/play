@@ -39,9 +39,7 @@ in
           (baseNameOf path)
           [dbName ".git" "result" "node_modules"])
       ./.;
-  doHoogle = false;
   isLibrary = true;
-  enableStaticLibraries = false;
   isExecutable = true;
   libraryHaskellDepends = [
     aeson aeson-better-errors array attoparsec base bcrypt binary
