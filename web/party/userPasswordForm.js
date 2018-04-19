@@ -1,16 +1,24 @@
 'use strict';
 
 app.directive('userPasswordForm', [
-  'messageService', 'constantService', 'modelService',
-  function (messages, constants, models) {
+  'messageService', 'constantService', 'modelService', '$location',
+  function (messages, constants, models, $location) {
     var link = function ($scope) {
       var form = $scope.userPasswordForm;
+
+      form.data = {};
 
       var init = function () {
         form.data = {
           email: undefined,
         };
       };
+
+      if ($location.search().email){
+        $('#loginModal').hide();
+        form.data.email = $location.search().email;
+        form.$setDirty();
+      }
 
       //
 
@@ -40,6 +48,7 @@ app.directive('userPasswordForm', [
           errors: constants.message('login.email.error'),
         },
       }, true);
+
     };
 
     //

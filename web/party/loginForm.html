@@ -10,7 +10,7 @@
     <button id="loginSubmit" type="submit" class="green" ng-click="loginForm.submit()" ng-disabled="loginForm.$pristine || loginForm.$invalid || loginForm.$submitted">Login</button>
   </div>
   <div>
-      <a ng-href="{{::page.router.password()}}">Forgot your password?</a>
+      <a ng-href="{{page.router.password() + '?email=' + email}}">Forgot your password?</a>
       <br>
       <a ng-href="{{::page.router.register()}}">Don't have an account?</a>
   </div>
