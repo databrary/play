@@ -22,7 +22,7 @@
 /npm-debug.log
 
 # application config
-/databrary.conf
+# /databrary.conf - checked this in
 /config/email
 
 # IDE config
