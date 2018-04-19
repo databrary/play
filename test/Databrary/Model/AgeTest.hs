@@ -3,7 +3,7 @@ module Databrary.Model.AgeTest where
 
 import Test.Tasty
 import Test.Tasty.HUnit
-import Data.Time (fromGregorian)
+import Data.Time (fromGregorian, secondsToDiffTime)
 
 import Databrary.Model.Age
 import Databrary.Model.Time
@@ -30,4 +30,13 @@ test_yearsAge :: [TestTree]
 test_yearsAge =
     [ testCase "example" 
           (yearsAge (1 :: Double) @?= Age 366)
+    ]
+
+daySeconds :: Integer
+daySeconds = 60*60*24
+
+test_ageTime :: [TestTree]
+test_ageTime =
+    [ testCase "example"
+          (ageTime (Age 1) @?= secondsToDiffTime daySeconds)
     ]
