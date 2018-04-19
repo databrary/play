@@ -6,8 +6,8 @@ import Test.Tasty.HUnit
 
 import Databrary.HTTP.Form.Deform
 
-test_all :: TestTree
-test_all = testGroup "all"
+test_all :: [TestTree]
+test_all =
     [ testCase "textInteger-1" (textInteger "1" @?= Right (1::Int))
     
     ]

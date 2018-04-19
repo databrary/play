@@ -17,9 +17,8 @@ import Databrary.Model.Volume.Types
 -- https://projects.databrary.org/confluence/pages/viewpage.action?pageId=18449565
 -- for an explanation of testgetAssetSegmentRelease2. Short version: this needs
 -- refactoring.
-test_all :: TestTree
-test_all = testGroup
-    "all"
+test_all :: [TestTree]
+test_all =
     [ testCase "testgetAssetSegmentRelease2"
       $   testgetAssetSegmentRelease2
       @?= [ ( EffectiveRelease

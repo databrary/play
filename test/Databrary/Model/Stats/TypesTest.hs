@@ -29,7 +29,7 @@ siteStats1 =
               ] -- should be list of category to count of records
         }
 
-test_all :: TestTree
-test_all = testGroup "all"
+test_all :: [TestTree]
+test_all =
     [
     ]

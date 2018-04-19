@@ -9,8 +9,8 @@ import Data.ByteString.Builder (toLazyByteString)
 import Data.Attoparsec.ByteString (parseOnly)
 import Databrary.EZID.ANVL
 
-test_all :: TestTree
-test_all = testGroup "all"
+test_all :: [TestTree]
+test_all =
   [ testCase "encode-1"
       (toLazyByteString (encode [("key", "val")]) @?= "key: val\n")
   , testCase "parse-1"

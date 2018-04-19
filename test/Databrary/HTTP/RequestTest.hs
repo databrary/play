@@ -10,8 +10,8 @@ import qualified Network.HTTP.Types.Header as HTTP
 
 import Databrary.HTTP.Request
 
-test_all :: TestTree
-test_all = testGroup "all"
+test_all :: [TestTree]
+test_all =
   [ testCase "boolParameterValue-1"
       (boolParameterValue (Just "0") @?= False)
   , testCase "boolParameterValue-2"

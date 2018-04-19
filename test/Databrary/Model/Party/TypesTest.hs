@@ -38,7 +38,7 @@ party1 =
     in
         p
 
-test_all :: TestTree
-test_all = testGroup "all"
+test_all :: [TestTree]
+test_all =
     [
     ]

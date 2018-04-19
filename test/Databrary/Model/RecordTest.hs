@@ -8,8 +8,8 @@ import Test.Tasty.HUnit
 
 import Databrary.Model.Record
 
-test_all :: TestTree
-test_all = testGroup "all"
+test_all :: [TestTree]
+test_all =
     [ testCase "extractParticipantFieldRows"
         (extractParticipantFieldRows ["c1"] (V.fromList [(HMP.fromList [("c1", "val1")])]) @?= [("c1", ["val1"])])
     ]

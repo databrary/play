@@ -8,8 +8,8 @@ import Test.Tasty.HUnit
 
 import Data.Csv.Contrib
 
-test_all :: TestTree
-test_all = testGroup "all"
+test_all :: [TestTree]
+test_all =
     [ testCase "extractColumnDefaulting"
         (extractColumnDefaulting "c1" (V.fromList [(HMP.fromList [("c1", "val1")])]) @?= ["val1"])
     , testCase "extractColumnsDistinctSample"

@@ -51,7 +51,7 @@ emptyParticipantRecord =
          , prdSetting = Nothing
          }
 
-test_all :: TestTree
-test_all = testGroup "all"
+test_all :: [TestTree]
+test_all =
     [
     ]

@@ -17,7 +17,7 @@ accessPublic = Access { accessSite' = PermissionPUBLIC, accessMember' = Permissi
 accessNone :: Access -- correct?
 accessNone = Access { accessSite' = PermissionNONE, accessMember' = PermissionNONE }
 
-test_all :: TestTree
-test_all = testGroup "all"
+test_all :: [TestTree]
+test_all =
     [
     ]

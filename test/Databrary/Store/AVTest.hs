@@ -9,9 +9,8 @@ import qualified Data.ByteString.Char8 as Char8
 import Paths_databrary (getDataFileName)
 import Databrary.Store.AV
 
-test_all :: TestTree
-test_all = testGroup
-    "all"
+test_all :: [TestTree]
+test_all =
     [ testCase "sanity" $ do
         filename <- Char8.pack <$> getDataFileName "test/data/small.webm"
         prb      <- avProbe filename =<< initAV

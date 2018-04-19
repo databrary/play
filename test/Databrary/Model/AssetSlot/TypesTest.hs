@@ -15,9 +15,8 @@ import Test.Tasty.HUnit
 -- https://projects.databrary.org/confluence/pages/viewpage.action?pageId=18449565
 -- for an explanation of testgetAssetSlotRelease2. Short version: this needs
 -- refactoring.
-test_all :: TestTree
-test_all = testGroup
-    "all"
+test_all :: [TestTree]
+test_all =
     [ testCase
           "testgetAssetSlotRelease2"
           (testgetAssetSlotRelease2

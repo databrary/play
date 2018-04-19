@@ -43,7 +43,7 @@ emptyParticipantFieldMapping :: ParticipantFieldMapping2
 emptyParticipantFieldMapping =
     mkParticipantFieldMapping2' []
 
-test_all :: TestTree
-test_all = testGroup "all"
+test_all :: [TestTree]
+test_all =
     [
     ]

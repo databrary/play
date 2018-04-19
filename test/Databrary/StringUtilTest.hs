@@ -6,8 +6,8 @@ import Test.Tasty.HUnit
 
 import Databrary.StringUtil
 
-test_all :: TestTree
-test_all = testGroup "all"
+test_all :: [TestTree]
+test_all =
   [ testCase "toCamel-1"
       (toCamel "abc" @?= "Abc")
   , testCase "toCamel-2"

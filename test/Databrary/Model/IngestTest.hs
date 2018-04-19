@@ -17,8 +17,8 @@ import Databrary.Model.Ingest
 import Databrary.Model.Metric.TypesTest
 import Databrary.Model.Record.TypesTest
 
-test_all :: TestTree
-test_all = testGroup "all"
+test_all :: [TestTree]
+test_all =
     [ testCase "parseParticipantFieldMapping-1"
         (parseParticipantFieldMapping [] [] @?= Right emptyParticipantFieldMapping)
     , testCase "parseParticipantFieldMapping-2"
