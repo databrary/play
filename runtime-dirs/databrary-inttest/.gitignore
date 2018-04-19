@@ -1,0 +1,70 @@
+# compiler output
+/dist/
+/dist-newstyle/
+
+# runtime working dirs
+/store/
+/stage/
+/cache/
+/tmp/
+/upload/
+
+# dependency cache
+/node_modules
+
+# compiler output
+*.hi
+*.o
+*.dyn_hi
+*.dyn_o
+
+# dependency manager generated 
+/npm-debug.log
+
+# application config
+# /databrary.conf - checked this in
+/config/email
+
+# IDE config
+.idea
+
+# hidden system files
+.DS_Store
+
+# IDE temp files
+*.swp
+*~
+
+# compiler / dependency manager 
+/.cabal-sandbox/
+cabal.sandbox.config
+
+# solr server runtime generated
+logfile
+solr-6.6.0/server/logs
+solr-6.6.0/bin/*.pid
+
+# solr runtime generated
+databrary_logs
+solr/databrary_core/data
+
+# runtime working dirs
+trans
+
+# Nix output
+/result
+/derivation
+
+# postgres data dir
+databrary-nix-db/
+
+# cached downloaded dependency
+/solr-6.6.0/
+/cracklib/
+
+# computed version file
+/jsCssVersion.txt
+
+# Generated reports
+haddock-coverage-report.txt
+hpc-report.txt
