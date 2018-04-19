@@ -18,3 +18,10 @@ test_foldIdentity = testGroup "foldIdentity"
 
 runFoldIdentity :: Identity -> Bool
 runFoldIdentity = foldIdentity True (const False)
+
+test_identitySuperuser :: [TestTree]
+test_identitySuperuser = 
+    [ testCase "typical" (do
+          identitySuperuser (ReIdentified undefined) @?= True)
+          -- why True? is this because transcoding needs higher privileges to update asset?
+    ]
