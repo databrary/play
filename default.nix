@@ -14,7 +14,7 @@ let
   nixpkgs = reflex-platform.nixpkgs;
   inherit (nixpkgs.lib) id;
   nodePackages = import ./node-default.nix { pkgs = nixpkgs; };
-  inherit (nixpkgs) fetchFromGitHub writeScriptBin cpio wget git;
+  inherit (nixpkgs) fetchFromGitHub writeScriptBin cpio wget;
   # nixpkgs functions used to regulate Haskell overrides
   inherit (nixpkgs.haskell.lib)
     dontCheck overrideCabal doJailbreak doCoverage doHaddock dontHaddock
@@ -93,7 +93,7 @@ let
              (with self;
                [ghcid cabal-install ghciDatabrary
                # for ghci-databrary script
-               wget cpio nodePackages.shell.nodeDependencies git]);
+               wget cpio nodePackages.shell.nodeDependencies]);
       });
       gargoyle = self.callPackage "${gargoyleSrc}/gargoyle" {};
       gargoyle-postgresql= self.callPackage "${gargoyleSrc}/gargoyle-postgresql" {};
