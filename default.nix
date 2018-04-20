@@ -88,12 +88,12 @@ let
       # cabal override to enable ghcid (GHCi daemon) development tool
       databrary-dev = overrideCabal databrary (drv: {
         libraryHaskellDepends =
-	  (drv.libraryHaskellDepends or [])
-	   ++
-	     (with self;
-	       [ghcid cabal-install ghciDatabrary
-	       # for ghci-databrary script
-	       wget cpio nodePackages.shell.nodeDependencies git]);
+          (drv.libraryHaskellDepends or [])
+           ++
+             (with self;
+               [ghcid cabal-install ghciDatabrary
+               # for ghci-databrary script
+               wget cpio nodePackages.shell.nodeDependencies git]);
       });
       gargoyle = self.callPackage "${gargoyleSrc}/gargoyle" {};
       gargoyle-postgresql= self.callPackage "${gargoyleSrc}/gargoyle-postgresql" {};
