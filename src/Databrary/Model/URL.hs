@@ -5,6 +5,8 @@ module Databrary.Model.URL
   , validHDL
   , hdlURL
   , parseURL
+  -- for testing
+  , urlLink
   ) where
 
 import Control.Monad ((<=<), guard)

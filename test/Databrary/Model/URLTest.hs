@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Model.URLTest where
 
+import Data.Maybe
 import Network.URI
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -23,3 +24,7 @@ unit_validHDL_corner = do
 unit_parseURL_example :: Assertion
 unit_parseURL_example = do
     parseURL "http://google.com" @?= parseURI "http://google.com"
+
+unit_urlLink_example :: Assertion
+unit_urlLink_example = do
+    (urlLink . fromJust . parseURI) "hdl:rest" @?= (fromJust . parseURI) "http://hdl.handle.net/rest"
