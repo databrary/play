@@ -9,7 +9,7 @@ import Data.Int (Int32)
 
 data Paginate = Paginate
   { paginateOffset, paginateLimit :: !Int32
-  } deriving (Eq, Ord)
+  } deriving (Eq, Ord, Show)
 
 instance Bounded Paginate where
   minBound = Paginate 0 1
