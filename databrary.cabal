@@ -587,6 +587,7 @@ test-suite discovered
     , Databrary.Model.PaginateTest
     , Databrary.Model.PartyTest
     , Databrary.Model.Party.TypesTest
+    , Databrary.Model.PermissionTest
     , Databrary.Model.Permission.TypesTest
     , Databrary.Model.RecordTest
     , Databrary.Model.Record.TypesTest
