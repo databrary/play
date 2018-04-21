@@ -547,6 +547,7 @@ test-suite discovered
     , bytestring
     , containers
     , http-types
+    , network-uri
     , postgresql-typed
     , range-set-list
     , tasty
