@@ -585,6 +585,7 @@ test-suite discovered
     , Databrary.Model.ORCIDTest
     , Databrary.Model.OffsetTest
     , Databrary.Model.PaginateTest
+    , Databrary.Model.PartyTest
     , Databrary.Model.Party.TypesTest
     , Databrary.Model.Permission.TypesTest
     , Databrary.Model.RecordTest
