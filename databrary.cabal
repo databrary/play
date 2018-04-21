@@ -547,6 +547,7 @@ test-suite discovered
     , bytestring
     , containers
     , http-types
+    , network-uri
     , postgresql-typed
     , range-set-list
     , tasty
@@ -572,6 +573,8 @@ test-suite discovered
     , Databrary.Model.AssetSegment.TypesTest
     , Databrary.Model.AuditTest
     , Databrary.Model.Audit.TypesTest
+    , Databrary.Model.FormatTest
+    , Databrary.Model.GeoNamesTest
     , Databrary.Model.Id.TypesTest
     , Databrary.Model.IdentityTest
     , Databrary.Model.Identity.TypesTest
@@ -579,10 +582,16 @@ test-suite discovered
     , Databrary.Model.KindTest
     , Databrary.Model.MetricTest
     , Databrary.Model.Metric.TypesTest
+    , Databrary.Model.ORCIDTest
+    , Databrary.Model.OffsetTest
+    , Databrary.Model.PaginateTest
+    , Databrary.Model.PartyTest
     , Databrary.Model.Party.TypesTest
+    , Databrary.Model.PermissionTest
     , Databrary.Model.Permission.TypesTest
     , Databrary.Model.RecordTest
     , Databrary.Model.Record.TypesTest
+    , Databrary.Model.SegmentTest
     , Databrary.Model.Stats.TypesTest
     , Databrary.Model.TimeTest
     , Databrary.Model.URLTest
