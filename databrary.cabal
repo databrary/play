@@ -573,6 +573,7 @@ test-suite discovered
     , Databrary.Model.AssetSegment.TypesTest
     , Databrary.Model.AuditTest
     , Databrary.Model.Audit.TypesTest
+    , Databrary.Model.FormatTest
     , Databrary.Model.Id.TypesTest
     , Databrary.Model.IdentityTest
     , Databrary.Model.Identity.TypesTest
