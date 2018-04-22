@@ -6,6 +6,7 @@ module Databrary.Model.Asset.SQL
   , updateAsset
   , makeAssetRow
   , setAssetId
+  -- for expanded queries
   ) where
 
 import qualified Data.ByteString as BS
