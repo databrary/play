@@ -7,8 +7,6 @@ module Databrary.Model.Record.Types
   , Measure(..)
   , Measures
   , blankRecord
-  -- for tests
-  , testRecordRow1
   ) where
 
 import Control.Applicative ((<|>))
@@ -30,13 +28,6 @@ data RecordRow = RecordRow
   { recordId :: Id Record
   , recordCategory :: Category
   } deriving (Show, Eq)
-
-testRecordRow1 :: RecordRow
-testRecordRow1 =
-    RecordRow {
-        recordId = Id 100
-      , recordCategory = testCategory1
-    }
 
 data Record = Record
   { recordRow :: !RecordRow

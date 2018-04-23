@@ -4,6 +4,9 @@ module Databrary.Model.Metric.TypesTest where
 import Data.Text (Text)
 import Test.Tasty
 
+import Databrary.Model.Release.Types
+import Databrary.Model.Id.Types
+import Databrary.Model.Category.TypesTest
 import Databrary.Model.Metric.Types
 import Databrary.Model.Metric
 
@@ -42,6 +45,23 @@ participantFieldMappingAll =
 emptyParticipantFieldMapping :: ParticipantFieldMapping2
 emptyParticipantFieldMapping =
     mkParticipantFieldMapping2' []
+
+testMeasureType1 :: MeasureType
+testMeasureType1 = MeasureTypeText
+
+testMetric1 :: Metric
+testMetric1 =
+  Metric {
+      metricId = Id (-900)
+    , metricCategory = testCategory1
+    , metricName = "ID"
+    , metricRelease = Just ReleaseEXCERPTS
+    , metricType = MeasureTypeText
+    , metricOptions = []
+    , metricAssumed = Nothing
+    , metricDescription = Nothing -- where does this come from?
+    , metricRequired = Nothing -- where does this come from?
+  }
 
 test_all :: [TestTree]
 test_all =
