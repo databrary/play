@@ -780,8 +780,218 @@ updateTranscode tc pid logs = do
     }) r
 
 findTranscode :: MonadDB c m => Asset -> Segment -> TranscodeArgs -> m (Maybe Transcode)
-findTranscode orig seg opts =
-  dbQuery1 $ ($ orig) <$> $(selectQuery selectOrigTranscode "WHERE transcode.orig = ${assetId $ assetRow orig} AND transcode.segment = ${seg} AND transcode.options = ${map Just opts} AND asset.volume = ${volumeId $ volumeRow $ assetVolume orig} LIMIT 1")
+findTranscode orig seg opts = do
+  -- dbQuery1 $ ($ orig) <$> $(selectQuery selectOrigTranscode "WHERE transcode.orig = ${assetId $ assetRow orig} AND transcode.segment = ${seg} AND transcode.options = ${map Just opts} AND asset.volume = ${volumeId $ volumeRow $ assetVolume orig} LIMIT 1")
+  let _tenv_a9v93 = unknownPGTypeEnv
+  mRow <- dbQuery1
+    (mapQuery2
+      ((\ _p_a9v94 _p_a9v97 _p_a9v99 _p_a9v9a ->
+                       (BS.concat
+                          [Data.String.fromString
+                             "SELECT transcode.segment,transcode.options,transcode.start,transcode.process,transcode.log,party.id,party.name,party.prename,party.orcid,party.affiliation,party.url,account.email,account.password,authorize_view.site,authorize_view.member,asset.id,asset.format,asset.release,asset.duration,asset.name,asset.sha1,asset.size FROM transcode JOIN party JOIN account USING (id) LEFT JOIN authorize_view ON account.id = authorize_view.child AND authorize_view.parent = 0 ON transcode.owner = party.id JOIN asset ON transcode.asset = asset.id WHERE transcode.orig = ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a9v93
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                             _p_a9v94,
+                           Data.String.fromString " AND transcode.segment = ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a9v93
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "segment")
+                             _p_a9v97,
+                           Data.String.fromString " AND transcode.options = ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a9v93
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "text[]")
+                             _p_a9v99,
+                           Data.String.fromString " AND asset.volume = ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a9v93
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                             _p_a9v9a,
+                           Data.String.fromString " LIMIT 1"]))
+         (assetId $ assetRow orig)
+         seg
+         (map Just opts)
+         (volumeId $ volumeRow $ assetVolume orig))
+               (\ 
+                  [_csegment_a9v9b,
+                   _coptions_a9v9c,
+                   _cstart_a9v9d,
+                   _cprocess_a9v9e,
+                   _clog_a9v9f,
+                   _cid_a9v9g,
+                   _cname_a9v9h,
+                   _cprename_a9v9i,
+                   _corcid_a9v9j,
+                   _caffiliation_a9v9k,
+                   _curl_a9v9l,
+                   _cemail_a9v9m,
+                   _cpassword_a9v9n,
+                   _csite_a9v9o,
+                   _cmember_a9v9p,
+                   _cid_a9v9q,
+                   _cformat_a9v9r,
+                   _crelease_a9v9s,
+                   _cduration_a9v9t,
+                   _cname_a9v9u,
+                   _csha1_a9v9v,
+                   _csize_a9v9w]
+                  -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "segment")
+                        _csegment_a9v9b, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text[]")
+                        _coptions_a9v9c, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
+                        _cstart_a9v9d, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                        _cprocess_a9v9e, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _clog_a9v9f, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                        _cid_a9v9g, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _cname_a9v9h, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _cprename_a9v9i, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                        _corcid_a9v9j, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _caffiliation_a9v9k, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _curl_a9v9l, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
+                        _cemail_a9v9m, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
+                        _cpassword_a9v9n, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "permission")
+                        _csite_a9v9o, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "permission")
+                        _cmember_a9v9p, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                        _cid_a9v9q, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "smallint")
+                        _cformat_a9v9r, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "release")
+                        _crelease_a9v9s, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "interval")
+                        _cduration_a9v9t, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _cname_a9v9u, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "bytea")
+                        _csha1_a9v9v, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a9v93
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
+                        _csize_a9v9w)))
+  pure
+   (fmap (\mk -> mk orig)
+    (fmap
+      (\ (vsegment_a9v8b, voptions_a9v8c, vstart_a9v8d, vprocess_a9v8e,
+          vlog_a9v8f, vid_a9v8g, vname_a9v8h, vprename_a9v8i, vorcid_a9v8j,
+          vaffiliation_a9v8k, vurl_a9v8l, vemail_a9v8m, vpassword_a9v8n,
+          vsite_a9v8o, vmember_a9v8p, vid_a9v8q, vformat_a9v8r,
+          vrelease_a9v8s, vduration_a9v8t, vname_a9v8u, vc_a9v8v,
+          vsize_a9v8w)
+         -> Databrary.Model.Transcode.SQL.makeOrigTranscode
+              (($)
+                 (Databrary.Model.Transcode.SQL.makeTranscodeRow
+                    vsegment_a9v8b
+                    voptions_a9v8c
+                    vstart_a9v8d
+                    vprocess_a9v8e
+                    vlog_a9v8f)
+                 (Databrary.Model.Party.SQL.makeSiteAuth
+                    (Databrary.Model.Party.SQL.makeUserAccount
+                       (Databrary.Model.Party.SQL.makeAccount
+                          (PartyRow
+                             vid_a9v8g
+                             vname_a9v8h
+                             vprename_a9v8i
+                             vorcid_a9v8j
+                             vaffiliation_a9v8k
+                             vurl_a9v8l)
+                          (Account vemail_a9v8m)))
+                    vpassword_a9v8n
+                    (do { cm_a9v8A <- vsite_a9v8o;
+                          cm_a9v8B <- vmember_a9v8p;
+                          Just
+                            (Databrary.Model.Permission.Types.Access cm_a9v8A cm_a9v8B) })))
+              (Databrary.Model.Asset.SQL.makeAssetRow
+                 vid_a9v8q
+                 vformat_a9v8r
+                 vrelease_a9v8s
+                 vduration_a9v8t
+                 vname_a9v8u
+                 vc_a9v8v
+                 vsize_a9v8w))
+      mRow))
 
 findMatchingTranscode :: MonadDB c m => Transcode -> m (Maybe Transcode)
 findMatchingTranscode t@Transcode{..} =
