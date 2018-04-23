@@ -680,7 +680,40 @@ addTranscode orig seg@(Segment rng) opts (ProbeAV _ fmt av) = do
            seg
            (map Just opts))
           (\[] -> ()))
-  _ <- dbExecute1 [pgSQL|UPDATE slot_asset SET asset = ${assetId $ assetRow a}, segment = segment(lower(segment) + ${fromMaybe 0 $ lowerBound rng}, COALESCE(lower(segment) + ${upperBound rng}, upper(segment))) WHERE asset = ${assetId $ assetRow orig}|]
+  let _tenv_a9v7a = unknownPGTypeEnv
+  _ <- dbExecute1 -- [pgSQL|UPDATE slot_asset SET asset = ${assetId $ assetRow a}, segment = segment(lower(segment) + ${fromMaybe 0 $ lowerBound rng}, COALESCE(lower(segment) + ${upperBound rng}, upper(segment))) WHERE asset = ${assetId $ assetRow orig}|]
+    (mapQuery2
+       ((\ _p_a9v7b _p_a9v7c _p_a9v7d _p_a9v7e ->
+                       (BS.concat
+                          [Data.String.fromString "UPDATE slot_asset SET asset = ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a9v7a
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                             _p_a9v7b,
+                           Data.String.fromString ", segment = segment(lower(segment) + ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a9v7a
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "interval")
+                             _p_a9v7c,
+                           Data.String.fromString ", COALESCE(lower(segment) + ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a9v7a
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "interval")
+                             _p_a9v7d,
+                           Data.String.fromString ", upper(segment))) WHERE asset = ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a9v7a
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                             _p_a9v7e]))
+         (assetId $ assetRow a)
+         ((fromMaybe 0) $ lowerBound rng)
+         (upperBound rng)
+         (assetId $ assetRow orig))
+            (\[] -> ()))
   return Transcode
     { transcodeRevision = AssetRevision
       { revisionAsset = a
