@@ -16,7 +16,7 @@ type instance IdType Funder = Int64
 data Funder = Funder
   { funderId :: Id Funder
   , funderName :: T.Text
-  }
+  } deriving (Eq, Show)
 
 makeHasRec ''Funder ['funderId]
 
@@ -26,6 +26,6 @@ instance Kinded Funder where
 data Funding = Funding
   { fundingFunder :: Funder
   , fundingAwards :: [T.Text]
-  }
+  } deriving (Eq, Show)
 
 makeHasRec ''Funding ['fundingFunder]
