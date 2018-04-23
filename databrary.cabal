@@ -569,6 +569,7 @@ test-suite discovered
     , Databrary.HTTP.Form.DeformTest
     , Databrary.HTTP.RequestTest
     , Databrary.Model.AgeTest
+    , Databrary.Model.AssetTest
     , Databrary.Model.AssetSlot.TypesTest
     , Databrary.Model.AssetSegment.TypesTest
     , Databrary.Model.AuditTest
