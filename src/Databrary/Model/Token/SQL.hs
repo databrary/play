@@ -3,6 +3,8 @@ module Databrary.Model.Token.SQL
   ( selectLoginToken
   , selectSession
   , selectUpload
+  -- for expanded queries
+  , makeUpload
   ) where
 
 import qualified Data.ByteString as BS

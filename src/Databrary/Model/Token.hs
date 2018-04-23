@@ -22,8 +22,8 @@ import qualified Data.ByteString as BS
 import Data.Int (Int64)
 import qualified Data.String
 import Database.PostgreSQL.Typed.Types
-import Database.PostgreSQL.Typed (pgSQL)
-import Database.PostgreSQL.Typed.Query (simpleQueryFlags)
+-- import Database.PostgreSQL.Typed (pgSQL)
+-- import Database.PostgreSQL.Typed.Query (simpleQueryFlags)
 
 import Databrary.Ops
 import Databrary.Has
@@ -35,7 +35,7 @@ import Databrary.Service.DB
 import Databrary.Store.Types
 import Databrary.Store.Upload
 import Databrary.Model.SQL (selectQuery)
-import Databrary.Model.SQL.Select (makeQuery, selectOutput)
+-- import Databrary.Model.SQL.Select (makeQuery, selectOutput)
 import Databrary.Model.Offset
 import Databrary.Model.Id.Types
 import Databrary.Model.Identity.Types
@@ -326,12 +326,59 @@ removeUploadFile tok = liftIO . removeFile =<< peeks (uploadFile tok)
 
 removeUpload :: (MonadDB c m, MonadStorage c m) => Upload -> m Bool
 removeUpload tok = do
-  r <- dbExecute1 [pgSQL|DELETE FROM upload WHERE token = ${view tok :: Id Token}|]
+  let _tenv_a7ER0 = unknownPGTypeEnv
+  r <- dbExecute1 --[pgSQL|DELETE FROM upload WHERE token = ${view tok :: Id Token}|]
+    (mapQuery2
+      ((\ _p_a7ER1 ->
+                    (BS.concat
+                       [Data.String.fromString "DELETE FROM upload WHERE token = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7ER0
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                          _p_a7ER1]))
+      (view tok :: Id Token))
+            (\[] -> ()))
   when r $ void $ removeUploadFile tok
   return r
 
 cleanTokens :: (MonadDB c m, MonadStorage c m) => m ()
 cleanTokens = do
-  toks <- dbQuery $ ($ nobodySiteAuth) <$> $(makeQuery simpleQueryFlags ("DELETE FROM upload WHERE expires < CURRENT_TIMESTAMP RETURNING " ++) (selectOutput selectUpload))
+  -- toks <- dbQuery $ ($ nobodySiteAuth) <$> $(makeQuery simpleQueryFlags ("DELETE FROM upload WHERE expires < CURRENT_TIMESTAMP RETURNING " ++) (selectOutput selectUpload))
+  let _tenv_a7EWZ = unknownPGTypeEnv
+  rows <- dbQuery
+    (mapQuery2
+                      (BS.concat
+                         [Data.String.fromString
+                            "DELETE FROM upload WHERE expires < CURRENT_TIMESTAMP RETURNING upload.token,upload.expires,upload.filename,upload.size"])
+              (\
+                 [_ctoken_a7EX0, _cexpires_a7EX1, _cfilename_a7EX2, _csize_a7EX3]
+                 -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                       _tenv_a7EWZ
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                       _ctoken_a7EX0, 
+                     Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                       _tenv_a7EWZ
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
+                       _cexpires_a7EX1, 
+                     Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                       _tenv_a7EWZ
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                       _cfilename_a7EX2, 
+                     Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                       _tenv_a7EWZ
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
+                       _csize_a7EX3)))
+  let toks =
+         fmap (\mkTok -> mkTok nobodySiteAuth)
+          (fmap
+              (\ (vtoken_a7EVR, vexpires_a7EVS, vfilename_a7EVT, vsize_a7EVU)
+                 -> Databrary.Model.Token.SQL.makeUpload
+                      (Token vtoken_a7EVR vexpires_a7EVS) vfilename_a7EVT vsize_a7EVU)
+              rows)
   mapM_ removeUploadFile toks
   dbExecute_ "DELETE FROM token WHERE expires < CURRENT_TIMESTAMP"
