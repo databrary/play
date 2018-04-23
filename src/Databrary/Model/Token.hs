@@ -306,9 +306,21 @@ removeLoginToken tok = do
             (\[] -> ()))
 
 removeSession :: (MonadDB c m) => Session -> m Bool
-removeSession tok =
-  dbExecute1 [pgSQL|DELETE FROM session WHERE token = ${view tok :: Id Token}|]
-
+removeSession tok = do
+  let _tenv_a7EDh = unknownPGTypeEnv
+  dbExecute1 -- [pgSQL|DELETE FROM session WHERE token = ${view tok :: Id Token}|]
+   (mapQuery2
+    ((\ _p_a7EDi ->
+                    (BS.concat
+                       [Data.String.fromString "DELETE FROM session WHERE token = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EDh
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                          _p_a7EDi]))
+      (view tok :: Id Token))
+            (\ [] -> ()))
+    
 removeUploadFile :: (MonadStorage c m) => Upload -> m Bool
 removeUploadFile tok = liftIO . removeFile =<< peeks (uploadFile tok)
 
