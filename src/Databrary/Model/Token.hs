@@ -96,7 +96,20 @@ createToken insert = do
 
 createLoginToken :: (MonadHas Entropy c m, MonadDB c m) => SiteAuth -> Bool -> m LoginToken
 createLoginToken auth passwd = do
-  when passwd $ void $ dbExecute [pgSQL|DELETE FROM login_token WHERE account = ${view auth :: Id Party} AND password|]
+  let _tenv_a7Ey3 = unknownPGTypeEnv
+  when passwd $ void $ dbExecute -- [pgSQL|DELETE FROM login_token WHERE account = ${view auth :: Id Party} AND password|]
+    (mapQuery2
+       ((\ _p_a7Ey4 ->
+                        (BS.concat
+                           [Data.String.fromString "DELETE FROM login_token WHERE account = ",
+                            Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                              _tenv_a7Ey3
+                              (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                 Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                              _p_a7Ey4,
+                            Data.String.fromString " AND password"]))
+          (view auth :: Id Party))
+       (\[] -> ()))
   (tok, ex) <- createToken $ \tok ->
     dbQuery1' [pgSQL|INSERT INTO login_token (token, account, password) VALUES (${tok}, ${view auth :: Id Party}, ${passwd}) RETURNING token, expires|]
   return $ LoginToken
