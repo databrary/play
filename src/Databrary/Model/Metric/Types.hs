@@ -7,9 +7,6 @@ module Databrary.Model.Metric.Types
   , ParticipantFieldMapping2(..)
   , mkParticipantFieldMapping2
   , lookupField
-  -- for tests
-  , testMetric1
-  , testMeasureType1
   ) where
 
 import Control.Monad (when)
@@ -133,19 +130,3 @@ lookupField m (ParticipantFieldMapping2 mp) = Map.lookup m mp
 newtype ParticipantFieldMapping2 = ParticipantFieldMapping2 { pfmGetMapping :: (Map Metric Text) }
     deriving (Eq, Show)
 
-testMeasureType1 :: MeasureType
-testMeasureType1 = MeasureTypeText
-
-testMetric1 :: Metric
-testMetric1 =
-  Metric {
-      metricId = Id (-900)
-    , metricCategory = testCategory1
-    , metricName = "ID"
-    , metricRelease = Just ReleaseEXCERPTS
-    , metricType = MeasureTypeText
-    , metricOptions = []
-    , metricAssumed = Nothing
-    , metricDescription = Nothing -- where does this come from?
-    , metricRequired = Nothing -- where does this come from?
-  }

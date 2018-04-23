@@ -5,6 +5,8 @@ import qualified Data.ByteString as BS
 import Data.Time (fromGregorian)
 import Test.Tasty
 
+import Databrary.Model.Category.TypesTest
+import Databrary.Model.Id.Types
 import Databrary.Model.Record.Types
 
 participantRecordAll :: ParticipantRecord
@@ -50,6 +52,13 @@ emptyParticipantRecord =
          , prdState = Nothing
          , prdSetting = Nothing
          }
+
+testRecordRow1 :: RecordRow
+testRecordRow1 =
+    RecordRow {
+        recordId = Id 100
+      , recordCategory = testCategory1
+    }
 
 test_all :: [TestTree]
 test_all =
