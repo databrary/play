@@ -2,6 +2,10 @@
 module Databrary.Model.Transcode.SQL
   ( selectOrigTranscode
   , selectTranscode
+  -- for expanded queries
+  , makeTranscodeRow
+  , makeTranscode
+  , makeOrigTranscode
   ) where
 
 import qualified Data.ByteString as BS

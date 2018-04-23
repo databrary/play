@@ -5,6 +5,8 @@ module Databrary.Model.Volume.SQL
   , selectVolume
   , updateVolume
   , insertVolume
+  -- for expanded queries
+  , setCreation
   ) where
 
 import Data.Maybe (fromMaybe)

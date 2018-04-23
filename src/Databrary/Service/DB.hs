@@ -24,6 +24,7 @@ module Databrary.Service.DB
   , runDBConnection
   , useTDB
   , runTDB
+  , mapQuery2
   ) where
 
 import Control.Exception (tryJust, bracket)
@@ -40,6 +41,7 @@ import qualified Database.PostgreSQL.Simple as PGSimple
 import Database.PostgreSQL.Typed.Protocol
 import Database.PostgreSQL.Typed.Query
 import Database.PostgreSQL.Typed.TH (withTPGConnection, useTPGDatabase)
+import Database.PostgreSQL.Typed.Types (PGValue)
 import qualified Language.Haskell.TH as TH
 import Network (PortID(..))
 import System.IO.Unsafe (unsafePerformIO)
@@ -196,3 +198,8 @@ runTDB :: DBM a -> TH.Q a
 runTDB f = do
   _ <- useTDB
   TH.runIO $ withTPGConnection $ runReaderT f
+
+-- Temporary helpers while removing postgresql-typed, remove after complete
+mapQuery2 :: BS.ByteString -> ([PGValue] -> a) -> PGSimpleQuery a -- mapQuery is same as mapQuery2, both will be deleted
+mapQuery2 qry mkResult =
+  fmap mkResult (rawPGSimpleQuery qry)

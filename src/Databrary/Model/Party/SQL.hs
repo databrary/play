@@ -13,6 +13,10 @@ module Databrary.Model.Party.SQL
   , insertAccount
   , deleteParty
   , deleteAccount
+  -- for expanded queries
+  , makeSiteAuth
+  , makeUserAccount
+  , makeAccount
   ) where
 
 import qualified Data.ByteString as BS
