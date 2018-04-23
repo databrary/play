@@ -290,8 +290,20 @@ createUpload vol name size = do
     }
 
 removeLoginToken :: MonadDB c m => LoginToken -> m Bool
-removeLoginToken tok =
-  dbExecute1 [pgSQL|DELETE FROM login_token WHERE token = ${view tok :: Id Token}|]
+removeLoginToken tok = do
+  let _tenv_a7EBQ = unknownPGTypeEnv
+  dbExecute1 -- [pgSQL|DELETE FROM login_token WHERE token = ${view tok :: Id Token}|]
+   (mapQuery2
+    ((\ _p_a7EBR ->
+                    (BS.concat
+                       [Data.String.fromString "DELETE FROM login_token WHERE token = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EBQ
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                          _p_a7EBR]))
+      (view tok :: Id Token))
+            (\[] -> ()))
 
 removeSession :: (MonadDB c m) => Session -> m Bool
 removeSession tok =
