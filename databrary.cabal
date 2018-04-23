@@ -575,6 +575,7 @@ test-suite discovered
     , Databrary.Model.AuditTest
     , Databrary.Model.Audit.TypesTest
     , Databrary.Model.AuthorizeTest
+    , Databrary.Model.Category.TypesTest
     , Databrary.Model.FormatTest
     , Databrary.Model.GeoNamesTest
     , Databrary.Model.Id.TypesTest
