@@ -3,7 +3,7 @@ module Databrary.Model.URLTest where
 
 import Data.Maybe
 import Network.URI
-import Test.Tasty
+-- import Test.Tasty
 import Test.Tasty.HUnit
 -- import Data.Time (fromGregorian, secondsToDiffTime)
 
