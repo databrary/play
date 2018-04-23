@@ -637,7 +637,49 @@ addTranscode orig seg@(Segment rng) opts (ProbeAV _ fmt av) = do
       , assetSize = Nothing
       }
     } Nothing
-  dbExecute1' [pgSQL|INSERT INTO transcode (asset, owner, orig, segment, options) VALUES (${assetId $ assetRow a}, ${partyId $ partyRow $ accountParty $ siteAccount own}, ${assetId $ assetRow orig}, ${seg}, ${map Just opts})|]
+  let _tenv_a9v5h = unknownPGTypeEnv
+  dbExecute1' -- [pgSQL|INSERT INTO transcode (asset, owner, orig, segment, options) VALUES (${assetId $ assetRow a}, ${partyId $ partyRow $ accountParty $ siteAccount own}, ${assetId $ assetRow orig}, ${seg}, ${map Just opts})|]
+    (mapQuery2
+        ((\ _p_a9v5i _p_a9v5j _p_a9v5k _p_a9v5l _p_a9v5m ->
+                    (BS.concat
+                       [Data.String.fromString
+                          "INSERT INTO transcode (asset, owner, orig, segment, options) VALUES (",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a9v5h
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a9v5i,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a9v5h
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a9v5j,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a9v5h
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a9v5k,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a9v5h
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "segment")
+                          _p_a9v5l,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a9v5h
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "text[]")
+                          _p_a9v5m,
+                        Data.String.fromString ")"]))
+           (assetId $ assetRow a)
+           (partyId $ partyRow $ accountParty $ siteAccount own)
+           (assetId $ assetRow orig)
+           seg
+           (map Just opts))
+          (\[] -> ()))
   _ <- dbExecute1 [pgSQL|UPDATE slot_asset SET asset = ${assetId $ assetRow a}, segment = segment(lower(segment) + ${fromMaybe 0 $ lowerBound rng}, COALESCE(lower(segment) + ${upperBound rng}, upper(segment))) WHERE asset = ${assetId $ assetRow orig}|]
   return Transcode
     { transcodeRevision = AssetRevision
