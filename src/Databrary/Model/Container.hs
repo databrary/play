@@ -99,7 +99,68 @@ containerIsVolumeTop c = do
 addContainer :: MonadAudit c m => Container -> m Container
 addContainer bc = do
   ident <- getAuditIdentity
-  dbQuery1' $(insertContainer 'ident 'bc)
+  let _tenv_a87ru = unknownPGTypeEnv
+  row <- dbQuery1' -- $(insertContainer 'ident 'bc)
+    (mapQuery2
+      ((\ _p_a87rv _p_a87rw _p_a87rx _p_a87ry _p_a87rz _p_a87rA ->
+                       (Data.ByteString.concat
+                          [Data.String.fromString
+                             "WITH audit_row AS (INSERT INTO container (volume,top,name,date) VALUES (",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a87ru
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                             _p_a87rv,
+                           Data.String.fromString ",",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a87ru
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "boolean")
+                             _p_a87rw,
+                           Data.String.fromString ",",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a87ru
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                             _p_a87rx,
+                           Data.String.fromString ",",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a87ru
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "date")
+                             _p_a87ry,
+                           Data.String.fromString
+                             ") RETURNING *) INSERT INTO audit.container SELECT CURRENT_TIMESTAMP, ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a87ru
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                             _p_a87rz,
+                           Data.String.fromString ", ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a87ru
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                             _p_a87rA,
+                           Data.String.fromString
+                             ", 'add'::audit.action, * FROM audit_row RETURNING container.id"]))
+         (volumeId $ volumeRow $ containerVolume bc)
+         (containerTop $ containerRow bc)
+         (containerName $ containerRow bc)
+         (containerDate $ containerRow bc)
+         (auditWho ident)
+         (auditIp ident))
+        (\[_cid_a87rB]
+                  -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a87ru
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                        _cid_a87rB)))
+  pure
+      ((\ (vid_a87re)
+         -> Databrary.Model.Container.SQL.setContainerId bc vid_a87re)
+      row)
+
 
 changeContainer :: MonadAudit c m => Container -> m ()
 changeContainer c = do
