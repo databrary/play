@@ -230,8 +230,56 @@ createSession auth su = do
 createUpload :: (MonadHas Entropy c m, MonadDB c m, MonadHasIdentity c m) => Volume -> BS.ByteString -> Int64 -> m Upload
 createUpload vol name size = do
   auth <- peek
+  let _tenv_a7EBb = unknownPGTypeEnv
   (tok, ex) <- createToken $ \tok ->
-    dbQuery1' [pgSQL|INSERT INTO upload (token, account, volume, filename, size) VALUES (${tok}, ${view auth :: Id Party}, ${volumeId $ volumeRow vol}, ${name}, ${size}) RETURNING token, expires|]
+    dbQuery1' -- [pgSQL|INSERT INTO upload (token, account, volume, filename, size) VALUES (${tok}, ${view auth :: Id Party}, ${volumeId $ volumeRow vol}, ${name}, ${size}) RETURNING token, expires|]
+      (mapQuery2
+        ((\ _p_a7EBc _p_a7EBd _p_a7EBe _p_a7EBf _p_a7EBg ->
+                    (BS.concat
+                       [Data.String.fromString
+                          "INSERT INTO upload (token, account, volume, filename, size) VALUES (",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EBb
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                          _p_a7EBc,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EBb
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a7EBd,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EBb
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a7EBe,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EBb
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                          _p_a7EBf,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EBb
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
+                          _p_a7EBg,
+                        Data.String.fromString ") RETURNING token, expires"]))
+          tok (view auth :: Id Party) (volumeId $ volumeRow vol) name size)
+            (\ [_ctoken_a7EBh, _cexpires_a7EBi]
+               -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                     _tenv_a7EBb
+                     (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                        Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                     _ctoken_a7EBh, 
+                   Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                     _tenv_a7EBb
+                     (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                        Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
+                     _cexpires_a7EBi)))
   return $ Upload
     { uploadAccountToken = AccountToken
       { accountToken = Token tok ex
