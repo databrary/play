@@ -577,6 +577,7 @@ test-suite discovered
     , Databrary.Model.AuthorizeTest
     , Databrary.Model.Category.TypesTest
     , Databrary.Model.Citation.CrossRefTest
+    , Databrary.Model.Comment.TypesTest
     , Databrary.Model.FormatTest
     , Databrary.Model.GeoNamesTest
     , Databrary.Model.Id.TypesTest
