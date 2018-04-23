@@ -96,7 +96,7 @@ createToken insert = do
 
 createLoginToken :: (MonadHas Entropy c m, MonadDB c m) => SiteAuth -> Bool -> m LoginToken
 createLoginToken auth passwd = do
-  let _tenv_a7Ey3 = unknownPGTypeEnv
+  let (_tenv_a7Ey3, _tenv_a7Ez6) = (unknownPGTypeEnv, unknownPGTypeEnv)
   when passwd $ void $ dbExecute -- [pgSQL|DELETE FROM login_token WHERE account = ${view auth :: Id Party} AND password|]
     (mapQuery2
        ((\ _p_a7Ey4 ->
@@ -111,7 +111,42 @@ createLoginToken auth passwd = do
           (view auth :: Id Party))
        (\[] -> ()))
   (tok, ex) <- createToken $ \tok ->
-    dbQuery1' [pgSQL|INSERT INTO login_token (token, account, password) VALUES (${tok}, ${view auth :: Id Party}, ${passwd}) RETURNING token, expires|]
+    dbQuery1' -- [pgSQL|INSERT INTO login_token (token, account, password) VALUES (${tok}, ${view auth :: Id Party}, ${passwd}) RETURNING token, expires|]
+     (mapQuery2
+      ((\ _p_a7Ez7 _p_a7Ez8 _p_a7Ez9 ->
+                    (BS.concat
+                       [Data.String.fromString
+                          "INSERT INTO login_token (token, account, password) VALUES (",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7Ez6
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                          _p_a7Ez7,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7Ez6
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a7Ez8,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7Ez6
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "boolean")
+                          _p_a7Ez9,
+                        Data.String.fromString ") RETURNING token, expires"]))
+        tok (view auth :: Id Party) passwd)
+            (\[_ctoken_a7Eza, _cexpires_a7Ezb]
+               -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                     _tenv_a7Ez6
+                     (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                        Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                     _ctoken_a7Eza, 
+                   Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                     _tenv_a7Ez6
+                     (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                        Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
+                     _cexpires_a7Ezb)))
   return $ LoginToken
     { loginAccountToken = AccountToken
       { accountToken = Token tok ex
