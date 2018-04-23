@@ -20,6 +20,8 @@ import Data.ByteArray (Bytes)
 import Data.ByteArray.Encoding (convertToBase, Base(Base64URLUnpadded))
 import qualified Data.ByteString as BS
 import Data.Int (Int64)
+import qualified Data.String
+import Database.PostgreSQL.Typed.Types
 import Database.PostgreSQL.Typed (pgSQL)
 import Database.PostgreSQL.Typed.Query (simpleQueryFlags)
 
@@ -67,7 +69,24 @@ createToken insert = do
   e <- peek
   let loop = do
         tok <- liftIO $ Id <$> entropyBase64 24 e
-        r <- dbQuery1 [pgSQL|SELECT token FROM token WHERE token = ${tok}|]
+        let _tenv_a7EwN = unknownPGTypeEnv
+        r <- dbQuery1 -- [pgSQL|SELECT token FROM token WHERE token = ${tok}|]
+          (mapQuery2
+            ((\ _p_a7EwO -> 
+                            (BS.concat
+                               [Data.String.fromString "SELECT token FROM token WHERE token = ",
+                                Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                                  _tenv_a7EwN
+                                  (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                     Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                                  _p_a7EwO]))
+              tok)
+                    (\ [_ctoken_a7EwP]
+                       -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                             _tenv_a7EwN
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                             _ctoken_a7EwP)))
         case r `asTypeOf` Just tok of
           Nothing -> insert tok
           Just _ -> loop
