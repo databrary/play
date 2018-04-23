@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Model.Citation.CrossRef
   ( lookupCitation
+  -- for testing
+  , uriHDL
   ) where
 
 import Control.Applicative (optional)
