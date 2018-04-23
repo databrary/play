@@ -733,7 +733,47 @@ addTranscode _ _ _ _ = fail "addTranscode: invalid probe type"
 
 updateTranscode :: MonadDB c m => Transcode -> Maybe TranscodePID -> Maybe String -> m Transcode
 updateTranscode tc pid logs = do
-  r <- dbQuery1 [pgSQL|UPDATE transcode SET process = ${pid}, log = COALESCE(COALESCE(log || E'\n', '') || ${logs}, log) WHERE asset = ${assetId $ assetRow $ transcodeAsset tc} AND COALESCE(process, 0) = ${fromMaybe 0 $ transcodeProcess tc} RETURNING log|]
+  let _tenv_a9v7W = unknownPGTypeEnv
+  r <- dbQuery1 -- [pgSQL|UPDATE transcode SET process = ${pid}, log = COALESCE(COALESCE(log || E'\n', '') || ${logs}, log) WHERE asset = ${assetId $ assetRow $ transcodeAsset tc} AND COALESCE(process, 0) = ${fromMaybe 0 $ transcodeProcess tc} RETURNING log|]
+    (mapQuery2
+      ((\ _p_a9v7X _p_a9v7Y _p_a9v7Z _p_a9v80 ->
+                    (BS.concat
+                       [Data.String.fromString "UPDATE transcode SET process = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a9v7W
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a9v7X,
+                        Data.String.fromString
+                          ", log = COALESCE(COALESCE(log || E'\\n', '') || ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a9v7W
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                          _p_a9v7Y,
+                        Data.String.fromString ", log) WHERE asset = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a9v7W
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a9v7Z,
+                        Data.String.fromString " AND COALESCE(process, 0) = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a9v7W
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a9v80,
+                        Data.String.fromString " RETURNING log"]))
+        pid
+        logs
+        (assetId $ assetRow $ transcodeAsset tc)
+        ((fromMaybe 0) $ transcodeProcess tc))
+            (\[_clog_a9v81]
+               -> (Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                     _tenv_a9v7W
+                     (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                        Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                     _clog_a9v81)))
   return $ maybe tc (\l -> tc
     { transcodeProcess = pid
     , transcodeLog = l
