@@ -17,9 +17,12 @@ module Databrary.Model.Container
   ) where
 
 import Control.Monad (guard)
+import qualified Data.ByteString
 import Data.Either (isRight)
 import Data.Monoid ((<>))
+import qualified Data.String
 import Data.Time.Format (formatTime, defaultTimeLocale)
+import Database.PostgreSQL.Typed.Types
 import Database.PostgreSQL.Typed.Query (pgSQL)
 
 import Databrary.Ops
@@ -69,8 +72,29 @@ lookupVolumeTopContainer vol =
 
 containerIsVolumeTop :: MonadDB c m => Container -> m Bool
 containerIsVolumeTop Container{ containerRow = ContainerRow{ containerTop = False } } = return False
-containerIsVolumeTop c = not <$>
-  dbExecute1 [pgSQL|SELECT FROM container WHERE volume = ${volumeId $ volumeRow $ containerVolume c} AND id < ${containerId $ containerRow c} LIMIT 1|]
+containerIsVolumeTop c = do
+  let _tenv_a87pL = unknownPGTypeEnv
+  not <$>
+    dbExecute1 -- [pgSQL|SELECT FROM container WHERE volume = ${volumeId $ volumeRow $ containerVolume c} AND id < ${containerId $ containerRow c} LIMIT 1|]
+      (mapQuery2
+            ((\ _p_a87pM _p_a87pN ->
+                    (Data.ByteString.concat
+                       [Data.String.fromString "SELECT FROM container WHERE volume = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a87pL
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a87pM,
+                        Data.String.fromString " AND id < ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a87pL
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a87pN,
+                        Data.String.fromString " LIMIT 1"]))
+             (volumeId $ volumeRow $ containerVolume c)
+             (containerId $ containerRow c))
+            (\[] -> ()))
 
 addContainer :: MonadAudit c m => Container -> m Container
 addContainer bc = do
