@@ -663,10 +663,17 @@ div
       height auto
     span
       position absolute
-      top 58px
       left 110px
       @media screen and (max-width:grid-mobile-width)
         position relative
-        top 0
         left 0
-
+    &:nth-of-type(3)
+      span
+        top 58px
+        @media screen and (max-width:grid-mobile-width)
+          top 0
+    &:nth-of-type(4)
+      span
+        top 48px
+        @media screen and (max-width:grid-mobile-width)
+          top 0

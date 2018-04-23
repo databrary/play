@@ -6,7 +6,8 @@ app.directive 'activity', [
     restrict: 'E'
     templateUrl: 'site/activity.html'
     link: ($scope) ->
-      $scope.activity.reverse()
+      activity = $scope.activity
+      activity.reverse()
 
       $scope.idColor = (i) ->
         hsv = 3733*i
@@ -61,4 +62,16 @@ app.directive 'activity', [
         if act.type == 'container'
           a += ' ' + (if act.top then 'materials' else 'session')
         a
+
+      i = 0
+      $scope.removedArray = []
+      while i < activity.length
+        if activity[i].action == "remove"
+          $scope.removedArray.push(activity[i].id)
+          j = 0
+          while j < activity.length
+            if activity[j].id == activity[i].id and activity[j].transcode
+              $scope.removedArray.push(activity[j].transcode.id)
+            j++
+        i++
 ]

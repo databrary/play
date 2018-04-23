@@ -81,7 +81,8 @@
           <img ng-src="{{::page.router.rawAssetThumb([act.id, 56])}}"/>
           {{::act.id}}
         </span>
-        <a class="icon download button neutral" ng-href="{{::page.router.rawAssetDownload([act.id])}}" target="_self"></a>
+        <a class="icon download button neutral" ng-if="removedArray.indexOf(act.id) === -1" ng-href="{{::page.router.rawAssetDownload([act.id])}}" target="_self"></a>
+        <span class="icon download-disabled button neutral" ng-if="removedArray.indexOf(act.id) > -1"></span>
         <dl>
           <span activity-change="act.name" title-message="asset.name.title" ng-bind="::value"></span>
           <span activity-change="act.classification" title="Release" ng-init="release=page.constants.release[value]">
@@ -99,7 +100,8 @@
               <img ng-src="{{::page.router.rawAssetThumb([act.transcode.id, 56])}}"/>
               {{::act.transcode.name}}
             </span>
-            <a class="icon download button neutral" ng-href="{{::page.router.rawAssetDownload([act.transcode.id])}}" target="_self"></a>
+            <a class="icon download button neutral" ng-if="removedArray.indexOf(act.transcode.id) === -1" ng-href="{{::page.router.rawAssetDownload([act.transcode.id])}}" target="_self"></a>
+            <span class="icon download-disabled button neutral" ng-if="removedArray.indexOf(act.transcode.id) > -1"></span>
           </dd>
           <dt ng-if="::act.replace" class="activity-change-title">
             Replaced
@@ -109,7 +111,8 @@
               <img ng-src="{{::page.router.rawAssetThumb([act.replace.id, 56])}}"/>
               {{::act.replace.id}} {{::act.replace.name}}
             </span>
-            <a class="icon download button neutral" ng-href="{{::page.router.rawAssetDownload([act.replace.id])}}" target="_self"></a>
+            <a class="icon download button neutral" ng-if="removedArray.indexOf(act.replace.id) === -1" ng-href="{{::page.router.rawAssetDownload([act.replace.id])}}" target="_self"></a>
+            <span class="icon download-disabled button neutral" ng-if="removedArray.indexOf(act.replace.id) > -1"></span>
           </dd>
         </dl>
       </span>

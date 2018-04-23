@@ -7,7 +7,10 @@ module Data.Csv.Contrib
   , extractColumn
   , decodeCsvByNameWith
   , parseCsvWithHeader
+  , removeBomPrefixText
   -- for testing only
+  , removeBomPrefix
+  , repairDuplicateLineEndings
   , repairCarriageReturnOnly
   ) where
 
@@ -15,10 +18,13 @@ import qualified Data.Attoparsec.ByteString as ATTO
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString.Search as Search
 import qualified Data.Csv as Csv
 import qualified Data.Csv.Parser as Csv
 import qualified Data.HashMap.Strict as HMP
 import qualified Data.List as L
+import qualified Data.Maybe as MB
+import qualified Data.Text.Lazy as TL
 import qualified Data.Vector as V
 import Data.Vector (Vector)
 
@@ -77,8 +83,36 @@ runCsvParser
     :: (ATTO.Parser (Csv.Header, Vector Csv.NamedRecord) -> BS.ByteString -> Either String (Csv.Header, Vector Csv.NamedRecord))
     -> BS.ByteString
     -> Either String (Csv.Header, Vector Csv.NamedRecord)
-runCsvParser parse contents =
-    parse (Csv.csvWithHeader Csv.defaultDecodeOptions) (repairCarriageReturnOnly contents)
+runCsvParser parse contents = do
+    (hdrs, rows) <- parse
+          (Csv.csvWithHeader Csv.defaultDecodeOptions)
+          ((repairCarriageReturnOnly . repairDuplicateLineEndings . removeBomPrefix) contents)
+    pure (hdrs, scrub rows)
+
+scrub :: Vector Csv.NamedRecord -> Vector Csv.NamedRecord
+scrub rows =
+    fmap scrubRow rows
+  where
+    scrubRow :: Csv.NamedRecord -> Csv.NamedRecord
+    scrubRow row =
+        HMP.map (\v -> if (BSC.all (== ' ') v) then "" else v) row
+
+-- | some programs introduce a byte order mark when generating a CSV, remove this per cassava issue recipe
+removeBomPrefix :: BS.ByteString -> BS.ByteString
+removeBomPrefix contents =
+    MB.fromMaybe contents (BS.stripPrefix "\357\273\277" contents)
+
+-- | some programs introduce a byte order mark when generating a CSV, remove this per cassava issue recipe
+removeBomPrefixText :: TL.Text -> TL.Text
+removeBomPrefixText contents =
+    case TL.uncons contents of
+        Just ('\65279', rs) -> rs
+        _ -> contents
+
+-- | fix duplicate line endings, unclear if SPSS or Excel introduces them
+repairDuplicateLineEndings :: BS.ByteString -> BS.ByteString
+repairDuplicateLineEndings contents =
+    BSL.toStrict (Search.replace "\r\r\n" ("\r\n" :: BS.ByteString) contents)
 
 -- | only fix newlines for bizarre macOS endings that use \r instead of \r\n
 repairCarriageReturnOnly :: BS.ByteString -> BS.ByteString

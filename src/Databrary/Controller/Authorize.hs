@@ -61,11 +61,21 @@ partyDelegates u = do
     . map (authorizeChild . authorization)
     <$> lookupAuthorizedChildren p (Just PermissionADMIN)
 
+removeAuthorizeNotify :: Maybe Authorize -> ActionM ()
+removeAuthorizeNotify priorAuth =
+    let noReplacementAuthorization = Nothing
+    in updateAuthorize priorAuth noReplacementAuthorization
+
+-- | Remove (only first argument provided) or swap in new authorization, triggering notifications
 updateAuthorize :: Maybe Authorize -> Maybe Authorize -> ActionM ()
-updateAuthorize c a | Just auth <- authorization <$> (c <|> a) = do
-  maybe (mapM_ removeAuthorize c) changeAuthorize a
-  when (on (/=) (foldMap $ authorizeAccess . authorization) a c) $ do
-    let perm = accessSite <$> a
+updateAuthorize priorAuth newAuth
+  | Just auth <- authorization <$> (priorAuth <|> newAuth :: Maybe Authorize) = do
+  maybe
+    (mapM_ removeAuthorize priorAuth)
+    changeAuthorize
+    newAuth
+  when (on (/=) (foldMap $ authorizeAccess . authorization) newAuth priorAuth) $ do
+    let perm = accessSite <$> newAuth
     dl <- partyDelegates $ authorizeParent auth
     forM_ dl $ \t ->
       createNotification (blankNotification t NoticeAuthorizeChildGranted)
@@ -77,7 +87,8 @@ updateAuthorize c a | Just auth <- authorization <$> (c <|> a) = do
         { notificationParty = Just $ partyRow $ authorizeParent auth
         , notificationPermission = perm
         }
-  updateAuthorizeNotifications c $ fromMaybe (Authorize auth{ authorizeAccess = mempty } Nothing) a
+  updateAuthorizeNotifications priorAuth
+      $ fromMaybe (Authorize auth{ authorizeAccess = mempty } Nothing) newAuth
 updateAuthorize ~Nothing ~Nothing = return ()
 
 postAuthorize :: ActionRoute (API, PartyTarget, AuthorizeTarget)
@@ -120,12 +131,14 @@ postAuthorize = action POST (pathAPI </>> pathPartyTarget </> pathAuthorizeTarge
     HTML -> peeks $ otherRouteResponse [] viewAuthorize arg
 
 deleteAuthorize :: ActionRoute (API, PartyTarget, AuthorizeTarget)
-deleteAuthorize = action DELETE (pathAPI </>> pathPartyTarget </> pathAuthorizeTarget) $ \arg@(api, i, AuthorizeTarget app oi) -> withAuth $ do
+deleteAuthorize = action DELETE (pathAPI </>> pathPartyTarget </> pathAuthorizeTarget) $ \arg@(api, i, AuthorizeTarget apply oi) -> withAuth $ do
   p <- getParty (Just PermissionADMIN) i
-  o <- maybeAction =<< lookupParty oi
-  let (child, parent) = if app then (p, o) else (o, p)
-  c <- lookupAuthorize child parent
-  updateAuthorize c Nothing
+  (o :: Party) <- do
+      mAuthorizeTargetParty <- lookupParty oi
+      maybeAction mAuthorizeTargetParty
+  let (child, parent) = if apply then (p, o) else (o, p) -- Delete request you sent vs request you recvd?
+  mAuth <- lookupAuthorize child parent
+  removeAuthorizeNotify mAuth
   case api of
     JSON -> return $ okResponse [] $ JSON.objectEncoding $ "party" JSON..=: partyJSON o
     HTML -> peeks $ otherRouteResponse [] viewAuthorize arg
