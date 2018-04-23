@@ -3,6 +3,8 @@ module Databrary.Model.Funding.FundRef
   ( fundRefDOI
   , lookupFunderRef
   , searchFundRef
+  -- for testing
+  , annotateFunder
   ) where
 
 import Control.Monad ((<=<), (>=>), guard, mfilter)
