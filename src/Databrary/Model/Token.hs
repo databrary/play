@@ -163,8 +163,61 @@ createSession :: (MonadHas Entropy c m, MonadDB c m) => SiteAuth -> Bool -> m Se
 createSession auth su = do
   e <- peek
   (tok, ex, verf) <- createToken $ \tok -> do
+    let _tenv_a7EzQ = unknownPGTypeEnv
     verf <- liftIO $ entropyBase64 12 e
-    dbQuery1' [pgSQL|INSERT INTO session (token, expires, account, superuser, verf) VALUES (${tok}, CURRENT_TIMESTAMP + ${sessionDuration su}::interval, ${view auth :: Id Party}, ${su}, ${verf}) RETURNING token, expires, verf|]
+    dbQuery1' -- [pgSQL|INSERT INTO session (token, expires, account, superuser, verf) VALUES (${tok}, CURRENT_TIMESTAMP + ${sessionDuration su}::interval, ${view auth :: Id Party}, ${su}, ${verf}) RETURNING token, expires, verf|]
+      (mapQuery2
+        ((\ _p_a7EzR _p_a7EzS _p_a7EzT _p_a7EzU _p_a7EzV ->
+                    (BS.concat
+                       [Data.String.fromString
+                          "INSERT INTO session (token, expires, account, superuser, verf) VALUES (",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EzQ
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                          _p_a7EzR,
+                        Data.String.fromString ", CURRENT_TIMESTAMP + ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EzQ
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "interval")
+                          _p_a7EzS,
+                        Data.String.fromString "::interval, ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EzQ
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a7EzT,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EzQ
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "boolean")
+                          _p_a7EzU,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EzQ
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                          _p_a7EzV,
+                        Data.String.fromString ") RETURNING token, expires, verf"]))
+          tok (sessionDuration su) (view auth :: Id Party) su verf)
+        (\ [_ctoken_a7EzW, _cexpires_a7EzX, _cverf_a7EzY]
+               -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                     _tenv_a7EzQ
+                     (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                        Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                     _ctoken_a7EzW, 
+                   Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                     _tenv_a7EzQ
+                     (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                        Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
+                     _cexpires_a7EzX, 
+                   Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                     _tenv_a7EzQ
+                     (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                        Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                     _cverf_a7EzY)))
   return $ Session
     { sessionAccountToken = AccountToken
       { accountToken = Token tok ex
