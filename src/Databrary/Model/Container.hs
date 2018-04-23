@@ -23,7 +23,7 @@ import Data.Monoid ((<>))
 import qualified Data.String
 import Data.Time.Format (formatTime, defaultTimeLocale)
 import Database.PostgreSQL.Typed.Types
-import Database.PostgreSQL.Typed.Query (pgSQL)
+-- import Database.PostgreSQL.Typed.Query (pgSQL)
 
 import Databrary.Ops
 import Databrary.Has (view, peek)
@@ -225,14 +225,63 @@ changeContainer c = do
       (auditIp ident))
     (\[] -> ()))
 
-
 removeContainer :: MonadAudit c m => Container -> m Bool
 removeContainer c = do
   ident <- getAuditIdentity
-  top <- dbQuery1' [pgSQL|SELECT id FROM container WHERE volume = ${volumeId $ volumeRow $ containerVolume c} ORDER BY id LIMIT 1|]
+  let (_tenv_a87HO, _tenv_a87LM) = (unknownPGTypeEnv, unknownPGTypeEnv)
+  top <- dbQuery1' -- [pgSQL|SELECT id FROM container WHERE volume = ${volumeId $ volumeRow $ containerVolume c} ORDER BY id LIMIT 1|]
+    (mapQuery2
+       ((\ _p_a87HP ->
+                    (Data.ByteString.concat
+                       [Data.String.fromString "SELECT id FROM container WHERE volume = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a87HO
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a87HP,
+                        Data.String.fromString " ORDER BY id LIMIT 1"]))
+          (volumeId $ volumeRow $ containerVolume c))
+       (\[_cid_a87HR]
+               -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                     _tenv_a87HO
+                     (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                        Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                     _cid_a87HR)))
   if top == containerId (containerRow c)
     then return False
-    else isRight <$> dbTryJust (guard . isForeignKeyViolation) (dbExecute1 $(deleteContainer 'ident 'c))
+    else
+      isRight
+        <$>
+          dbTryJust
+            (guard . isForeignKeyViolation)
+            (dbExecute1 -- $(deleteContainer 'ident 'c))
+              (mapQuery2
+                ((\ _p_a87LN _p_a87LO _p_a87LP ->
+                                (Data.ByteString.concat
+                                   [Data.String.fromString
+                                      "WITH audit_row AS (DELETE FROM container WHERE id=",
+                                    Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                                      _tenv_a87LM
+                                      (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                         Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                                      _p_a87LN,
+                                    Data.String.fromString
+                                      " RETURNING *) INSERT INTO audit.container SELECT CURRENT_TIMESTAMP, ",
+                                    Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                                      _tenv_a87LM
+                                      (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                         Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                                      _p_a87LO,
+                                    Data.String.fromString ", ",
+                                    Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                                      _tenv_a87LM
+                                      (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                         Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                                      _p_a87LP,
+                                    Data.String.fromString
+                                      ", 'remove'::audit.action, * FROM audit_row"]))
+                 (containerId $ containerRow c) (auditWho ident) (auditIp ident))
+                (\ [] -> ())))
 
 getContainerDate :: Container -> Maybe MaskedDate
 getContainerDate c =
