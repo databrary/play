@@ -6,6 +6,8 @@ module Databrary.Model.Container.SQL
   , insertContainer
   , updateContainer
   , deleteContainer
+  -- for expanded query
+  , setContainerId
   ) where
 
 import qualified Language.Haskell.TH as TH
