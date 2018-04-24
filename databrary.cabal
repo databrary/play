@@ -601,6 +601,7 @@ test-suite discovered
     , Databrary.Model.Stats.TypesTest
     , Databrary.Model.TimeTest
     , Databrary.Model.URLTest
+    , Databrary.Model.VolumeState.TypesTest
     , Databrary.OpsTest
     , Databrary.Service.MailTest
     , Databrary.Service.PasswdTest
