@@ -4,6 +4,7 @@ module Databrary.Model.Record.Types
   , Record(..)
   , ParticipantRecord(..)
   , getRecordVolumePermission
+  -- , ParticipantFieldMapping(..)
   , Measure(..)
   , Measures
   , blankRecord
