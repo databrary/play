@@ -608,6 +608,7 @@ test-suite discovered
     , Databrary.Model.Token.TypesTest
     , Databrary.Model.URLTest
     , Databrary.Model.VolumeTest
+    , Databrary.Model.Volume.TypesTest
     , Databrary.Model.VolumeAccessTest
     , Databrary.Model.VolumeState.TypesTest
     , Databrary.OpsTest
