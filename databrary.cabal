@@ -597,6 +597,7 @@ test-suite discovered
     , Databrary.Model.Permission.TypesTest
     , Databrary.Model.RecordTest
     , Databrary.Model.Record.TypesTest
+    , Databrary.Model.Release.TypesTest
     , Databrary.Model.SegmentTest
     , Databrary.Model.Stats.TypesTest
     , Databrary.Model.Tag.TypesTest
