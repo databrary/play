@@ -2,7 +2,7 @@
 , bcrypt, binary, blaze-html, blaze-markup, bytestring
 , case-insensitive, cassava, conduit-combinators, containers, cookie, cracklib
 , cryptonite, data-default-class, directory, fast-logger, ffmpeg
-, filepath, hashable, hjsonschema, http-client, http-client-tls
+, filepath, hashable, hedgehog, hjsonschema, http-client, http-client-tls
 , http-types, invertible
 , lifted-base, memory, mime-mail, mime-types, monad-control, mtl
 , network, network-uri, openssl, parsec, path, path-io, posix-paths
@@ -80,7 +80,7 @@ in
     ffmpeg
   ];
   testHaskellDepends = [
-    attoparsec base range-set-list tasty-discover tasty-expected-failure tasty-hedgehog
+    attoparsec base hedgehog range-set-list tasty-discover tasty-expected-failure tasty-hedgehog
     tasty-hunit http-types
   ];
   executableToolDepends = [

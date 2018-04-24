@@ -546,6 +546,7 @@ test-suite discovered
     , base
     , bytestring
     , containers
+    , hedgehog          
     , http-types
     , network-uri
     , postgresql-typed
