@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Model.Party.TypesTest where
 
+import Data.Maybe (fromJust)
 import Hedgehog
 import Hedgehog.Gen as Gen
 import Hedgehog.Range as Range
@@ -20,6 +21,7 @@ genPartyRowSimple =
         <*> pure Nothing
         <*> (Just <$> Gen.text (Range.constant 0 150) Gen.alpha)
         <*> pure Nothing
+-- TODO: split into institution, group, ai, collaborator, lab manager, lab staff
 
 partyRow1 :: PartyRow
 partyRow1 =
@@ -31,6 +33,17 @@ partyRow1 =
         , partyAffiliation = Just "New York University"
         , partyURL = Nothing
         }
+
+genPartySimple :: Gen Party
+genPartySimple = do
+   let gRow = genPartyRowSimple
+   let gPerm = pure PermissionPUBLIC
+   let gAcc = pure Nothing
+   p <- Party <$> gRow <*> pure Nothing <*> gPerm <*> gAcc
+   a <- Account <$> pure "adam.smith@nyu.edu" <*> pure p
+   (let p2 = p { partyAccount = Just a2 } -- account expected below
+        a2 = a { accountParty = p2 }
+    in pure p2)
 
 party1 :: Party
 party1 =
@@ -51,6 +64,15 @@ party1 =
                 }
     in
         p
+
+genSiteAuthSimple :: Gen SiteAuth
+genSiteAuthSimple = do
+    p <- genPartySimple
+    ac <- Access <$> pure PermissionSHARED <*> pure PermissionSHARED
+    SiteAuth
+        <$> (pure . fromJust . partyAccount) p
+        <*> Just <$> (Gen.utf8 (Range.constant 6 20) Gen.ascii)
+        <*> pure ac 
 
 test_all :: [TestTree]
 test_all =
