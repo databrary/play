@@ -1,11 +1,25 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Model.Party.TypesTest where
 
+import Hedgehog
+import Hedgehog.Gen as Gen
+import Hedgehog.Range as Range
 import Test.Tasty
+-- import Test.Tasty.Hedgehog
 
 import Databrary.Model.Permission.Types
 import Databrary.Model.Party.Types
 import Databrary.Model.Id.Types
+
+genPartyRowSimple :: Gen PartyRow
+genPartyRowSimple =
+    PartyRow
+        <$> (Id <$> Gen.integral (Range.constant 3 5000))
+        <*> Gen.text (Range.constant 0 80) Gen.alpha
+        <*> (Just <$> Gen.text (Range.constant 0 80) Gen.alpha)
+        <*> pure Nothing
+        <*> (Just <$> Gen.text (Range.constant 0 150) Gen.alpha)
+        <*> pure Nothing
 
 partyRow1 :: PartyRow
 partyRow1 =
