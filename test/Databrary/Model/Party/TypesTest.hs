@@ -20,6 +20,7 @@ genPartyRowSimple =
         <*> pure Nothing
         <*> (Just <$> Gen.text (Range.constant 0 150) Gen.alpha)
         <*> pure Nothing
+-- TODO: split into institution, group, ai, collaborator, lab manager, lab staff
 
 partyRow1 :: PartyRow
 partyRow1 =
@@ -31,6 +32,17 @@ partyRow1 =
         , partyAffiliation = Just "New York University"
         , partyURL = Nothing
         }
+
+genPartySimple :: Gen Party
+genPartySimple = do
+   let gRow = genPartyRowSimple
+   let gPerm = pure PermissionPUBLIC
+   let gAcc = pure Nothing
+   p <- Party <$> gRow <*> pure Nothing <*> gPerm <*> gAcc
+   a <- Account <$> pure "adam.smith@nyu.edu" <*> pure p
+   (let p2 = p { partyAccount = Just a2 }
+        a2 = a { accountParty = p2 }
+    in pure p2)
 
 party1 :: Party
 party1 =
