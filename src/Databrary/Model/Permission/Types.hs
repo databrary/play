@@ -90,7 +90,7 @@ instance Monoid Permission where
 data Access = Access
   { accessSite' :: !Permission
   , accessMember' :: !Permission
-  } deriving (Eq)
+  } deriving (Eq, Show)
 
 accessPermission' :: Access -> Permission
 accessPermission' (Access s m) = min s m

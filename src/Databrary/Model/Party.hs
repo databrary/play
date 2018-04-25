@@ -58,6 +58,8 @@ import Databrary.Model.Asset.SQL
 import Databrary.Model.Party.Types
 import Databrary.Model.Party.SQL
 
+useTDB
+
 nobodyParty, rootParty, staffParty :: Party -- TODO: load on startup from service module
 nobodyParty =
    Party
@@ -142,6 +144,8 @@ lookupFixedParty (Id (-1)) _ = Just nobodyParty
 lookupFixedParty (Id 0) i = Just rootParty{ partyPermission = accessPermission i `max` PermissionSHARED, partyAccess = accessMember i > PermissionNONE ?> view i }
 lookupFixedParty i a = view a <? (i == view a)
 
+-- | Given the id for a party, ensure ... and resolve the id to the full party object. The produced party has permissions
+-- for the retrieving viewer baked in.
 lookupParty :: (MonadDB c m, MonadHasIdentity c m) => Id Party -> m (Maybe Party)
 lookupParty i = do
   ident <- peek

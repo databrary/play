@@ -80,7 +80,7 @@ in
     ffmpeg
   ];
   testHaskellDepends = [
-    attoparsec base hedgehog range-set-list tasty-discover tasty-expected-failure tasty-hedgehog
+    attoparsec base hedgehog mtl range-set-list tasty-discover tasty-expected-failure tasty-hedgehog
     tasty-hunit http-types
   ];
   executableToolDepends = [

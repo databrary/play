@@ -548,6 +548,7 @@ test-suite discovered
     , containers
     , hedgehog          
     , http-types
+    , mtl
     , network-uri
     , postgresql-typed
     , range-set-list
