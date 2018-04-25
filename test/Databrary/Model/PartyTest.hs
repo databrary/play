@@ -20,12 +20,12 @@ unit_partyName_example = do
     (partyName . partyRow) nobodyParty @?= "Everybody"
 
 runLookupParty :: Id Party -> Identity -> Maybe Party -> Assertion
-runLookupParty pid ident exp = do
+runLookupParty pid ident expected = do
     cn <- loadPGDatabase >>= pgConnect
     let ctxt = Context cn ident
     -- 
     mParty <- runReaderT (lookupParty pid :: ReaderT Context IO (Maybe Party)) ctxt
-    mParty @?= exp
+    mParty @?= expected
 
 unit_lookupParty :: Assertion
 unit_lookupParty = do
