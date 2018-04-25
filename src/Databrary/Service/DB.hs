@@ -25,6 +25,9 @@ module Databrary.Service.DB
   , useTDB
   , runTDB
   , mapQuery2
+  -- FIXME: added for tests
+  , loadPGDatabase
+  , pgConnect
   ) where
 
 import Control.Exception (tryJust, bracket)

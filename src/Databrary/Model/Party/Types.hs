@@ -30,7 +30,7 @@ data PartyRow = PartyRow
   , partyORCID :: Maybe ORCID
   , partyAffiliation :: Maybe T.Text
   , partyURL :: Maybe URI
-  }
+  } deriving (Eq, Show)
 
 data Party = Party
   { partyRow :: !PartyRow
@@ -38,12 +38,12 @@ data Party = Party
   -- , partySiteAccess :: Access -- site-level access this party is granted under root (currently SiteAuth only)
   , partyPermission :: Permission -- permission current user has over this party
   , partyAccess :: Maybe Access -- direct authorization this party has granted to current user
-  }
+  } deriving (Eq, Show)
 
 data Account = Account
   { accountEmail :: BS.ByteString
   , accountParty :: Party
-  }
+  } deriving (Eq, Show)
 
 makeHasRec ''PartyRow ['partyId]
 makeHasRec ''Party ['partyRow]
