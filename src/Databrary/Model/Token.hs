@@ -20,8 +20,10 @@ import Data.ByteArray (Bytes)
 import Data.ByteArray.Encoding (convertToBase, Base(Base64URLUnpadded))
 import qualified Data.ByteString as BS
 import Data.Int (Int64)
-import Database.PostgreSQL.Typed (pgSQL)
-import Database.PostgreSQL.Typed.Query (simpleQueryFlags)
+import qualified Data.String
+import Database.PostgreSQL.Typed.Types
+-- import Database.PostgreSQL.Typed (pgSQL)
+-- import Database.PostgreSQL.Typed.Query (simpleQueryFlags)
 
 import Databrary.Ops
 import Databrary.Has
@@ -33,7 +35,7 @@ import Databrary.Service.DB
 import Databrary.Store.Types
 import Databrary.Store.Upload
 import Databrary.Model.SQL (selectQuery)
-import Databrary.Model.SQL.Select (makeQuery, selectOutput)
+-- import Databrary.Model.SQL.Select (makeQuery, selectOutput)
 import Databrary.Model.Offset
 import Databrary.Model.Id.Types
 import Databrary.Model.Identity.Types
@@ -67,7 +69,24 @@ createToken insert = do
   e <- peek
   let loop = do
         tok <- liftIO $ Id <$> entropyBase64 24 e
-        r <- dbQuery1 [pgSQL|SELECT token FROM token WHERE token = ${tok}|]
+        let _tenv_a7EwN = unknownPGTypeEnv
+        r <- dbQuery1 -- [pgSQL|SELECT token FROM token WHERE token = ${tok}|]
+          (mapQuery2
+            ((\ _p_a7EwO -> 
+                            (BS.concat
+                               [Data.String.fromString "SELECT token FROM token WHERE token = ",
+                                Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                                  _tenv_a7EwN
+                                  (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                     Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                                  _p_a7EwO]))
+              tok)
+                    (\ [_ctoken_a7EwP]
+                       -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                             _tenv_a7EwN
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                             _ctoken_a7EwP)))
         case r `asTypeOf` Just tok of
           Nothing -> insert tok
           Just _ -> loop
@@ -77,9 +96,57 @@ createToken insert = do
 
 createLoginToken :: (MonadHas Entropy c m, MonadDB c m) => SiteAuth -> Bool -> m LoginToken
 createLoginToken auth passwd = do
-  when passwd $ void $ dbExecute [pgSQL|DELETE FROM login_token WHERE account = ${view auth :: Id Party} AND password|]
+  let (_tenv_a7Ey3, _tenv_a7Ez6) = (unknownPGTypeEnv, unknownPGTypeEnv)
+  when passwd $ void $ dbExecute -- [pgSQL|DELETE FROM login_token WHERE account = ${view auth :: Id Party} AND password|]
+    (mapQuery2
+       ((\ _p_a7Ey4 ->
+                        (BS.concat
+                           [Data.String.fromString "DELETE FROM login_token WHERE account = ",
+                            Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                              _tenv_a7Ey3
+                              (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                 Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                              _p_a7Ey4,
+                            Data.String.fromString " AND password"]))
+          (view auth :: Id Party))
+       (\[] -> ()))
   (tok, ex) <- createToken $ \tok ->
-    dbQuery1' [pgSQL|INSERT INTO login_token (token, account, password) VALUES (${tok}, ${view auth :: Id Party}, ${passwd}) RETURNING token, expires|]
+    dbQuery1' -- [pgSQL|INSERT INTO login_token (token, account, password) VALUES (${tok}, ${view auth :: Id Party}, ${passwd}) RETURNING token, expires|]
+     (mapQuery2
+      ((\ _p_a7Ez7 _p_a7Ez8 _p_a7Ez9 ->
+                    (BS.concat
+                       [Data.String.fromString
+                          "INSERT INTO login_token (token, account, password) VALUES (",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7Ez6
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                          _p_a7Ez7,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7Ez6
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a7Ez8,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7Ez6
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "boolean")
+                          _p_a7Ez9,
+                        Data.String.fromString ") RETURNING token, expires"]))
+        tok (view auth :: Id Party) passwd)
+            (\[_ctoken_a7Eza, _cexpires_a7Ezb]
+               -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                     _tenv_a7Ez6
+                     (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                        Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                     _ctoken_a7Eza, 
+                   Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                     _tenv_a7Ez6
+                     (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                        Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
+                     _cexpires_a7Ezb)))
   return $ LoginToken
     { loginAccountToken = AccountToken
       { accountToken = Token tok ex
@@ -96,8 +163,61 @@ createSession :: (MonadHas Entropy c m, MonadDB c m) => SiteAuth -> Bool -> m Se
 createSession auth su = do
   e <- peek
   (tok, ex, verf) <- createToken $ \tok -> do
+    let _tenv_a7EzQ = unknownPGTypeEnv
     verf <- liftIO $ entropyBase64 12 e
-    dbQuery1' [pgSQL|INSERT INTO session (token, expires, account, superuser, verf) VALUES (${tok}, CURRENT_TIMESTAMP + ${sessionDuration su}::interval, ${view auth :: Id Party}, ${su}, ${verf}) RETURNING token, expires, verf|]
+    dbQuery1' -- [pgSQL|INSERT INTO session (token, expires, account, superuser, verf) VALUES (${tok}, CURRENT_TIMESTAMP + ${sessionDuration su}::interval, ${view auth :: Id Party}, ${su}, ${verf}) RETURNING token, expires, verf|]
+      (mapQuery2
+        ((\ _p_a7EzR _p_a7EzS _p_a7EzT _p_a7EzU _p_a7EzV ->
+                    (BS.concat
+                       [Data.String.fromString
+                          "INSERT INTO session (token, expires, account, superuser, verf) VALUES (",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EzQ
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                          _p_a7EzR,
+                        Data.String.fromString ", CURRENT_TIMESTAMP + ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EzQ
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "interval")
+                          _p_a7EzS,
+                        Data.String.fromString "::interval, ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EzQ
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a7EzT,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EzQ
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "boolean")
+                          _p_a7EzU,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EzQ
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                          _p_a7EzV,
+                        Data.String.fromString ") RETURNING token, expires, verf"]))
+          tok (sessionDuration su) (view auth :: Id Party) su verf)
+        (\ [_ctoken_a7EzW, _cexpires_a7EzX, _cverf_a7EzY]
+               -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                     _tenv_a7EzQ
+                     (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                        Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                     _ctoken_a7EzW, 
+                   Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                     _tenv_a7EzQ
+                     (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                        Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
+                     _cexpires_a7EzX, 
+                   Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                     _tenv_a7EzQ
+                     (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                        Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                     _cverf_a7EzY)))
   return $ Session
     { sessionAccountToken = AccountToken
       { accountToken = Token tok ex
@@ -110,8 +230,56 @@ createSession auth su = do
 createUpload :: (MonadHas Entropy c m, MonadDB c m, MonadHasIdentity c m) => Volume -> BS.ByteString -> Int64 -> m Upload
 createUpload vol name size = do
   auth <- peek
+  let _tenv_a7EBb = unknownPGTypeEnv
   (tok, ex) <- createToken $ \tok ->
-    dbQuery1' [pgSQL|INSERT INTO upload (token, account, volume, filename, size) VALUES (${tok}, ${view auth :: Id Party}, ${volumeId $ volumeRow vol}, ${name}, ${size}) RETURNING token, expires|]
+    dbQuery1' -- [pgSQL|INSERT INTO upload (token, account, volume, filename, size) VALUES (${tok}, ${view auth :: Id Party}, ${volumeId $ volumeRow vol}, ${name}, ${size}) RETURNING token, expires|]
+      (mapQuery2
+        ((\ _p_a7EBc _p_a7EBd _p_a7EBe _p_a7EBf _p_a7EBg ->
+                    (BS.concat
+                       [Data.String.fromString
+                          "INSERT INTO upload (token, account, volume, filename, size) VALUES (",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EBb
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                          _p_a7EBc,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EBb
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a7EBd,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EBb
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a7EBe,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EBb
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                          _p_a7EBf,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EBb
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
+                          _p_a7EBg,
+                        Data.String.fromString ") RETURNING token, expires"]))
+          tok (view auth :: Id Party) (volumeId $ volumeRow vol) name size)
+            (\ [_ctoken_a7EBh, _cexpires_a7EBi]
+               -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                     _tenv_a7EBb
+                     (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                        Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                     _ctoken_a7EBh, 
+                   Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                     _tenv_a7EBb
+                     (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                        Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
+                     _cexpires_a7EBi)))
   return $ Upload
     { uploadAccountToken = AccountToken
       { accountToken = Token tok ex
@@ -122,24 +290,95 @@ createUpload vol name size = do
     }
 
 removeLoginToken :: MonadDB c m => LoginToken -> m Bool
-removeLoginToken tok =
-  dbExecute1 [pgSQL|DELETE FROM login_token WHERE token = ${view tok :: Id Token}|]
+removeLoginToken tok = do
+  let _tenv_a7EBQ = unknownPGTypeEnv
+  dbExecute1 -- [pgSQL|DELETE FROM login_token WHERE token = ${view tok :: Id Token}|]
+   (mapQuery2
+    ((\ _p_a7EBR ->
+                    (BS.concat
+                       [Data.String.fromString "DELETE FROM login_token WHERE token = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EBQ
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                          _p_a7EBR]))
+      (view tok :: Id Token))
+            (\[] -> ()))
 
 removeSession :: (MonadDB c m) => Session -> m Bool
-removeSession tok =
-  dbExecute1 [pgSQL|DELETE FROM session WHERE token = ${view tok :: Id Token}|]
-
+removeSession tok = do
+  let _tenv_a7EDh = unknownPGTypeEnv
+  dbExecute1 -- [pgSQL|DELETE FROM session WHERE token = ${view tok :: Id Token}|]
+   (mapQuery2
+    ((\ _p_a7EDi ->
+                    (BS.concat
+                       [Data.String.fromString "DELETE FROM session WHERE token = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7EDh
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                          _p_a7EDi]))
+      (view tok :: Id Token))
+            (\ [] -> ()))
+    
 removeUploadFile :: (MonadStorage c m) => Upload -> m Bool
 removeUploadFile tok = liftIO . removeFile =<< peeks (uploadFile tok)
 
 removeUpload :: (MonadDB c m, MonadStorage c m) => Upload -> m Bool
 removeUpload tok = do
-  r <- dbExecute1 [pgSQL|DELETE FROM upload WHERE token = ${view tok :: Id Token}|]
+  let _tenv_a7ER0 = unknownPGTypeEnv
+  r <- dbExecute1 --[pgSQL|DELETE FROM upload WHERE token = ${view tok :: Id Token}|]
+    (mapQuery2
+      ((\ _p_a7ER1 ->
+                    (BS.concat
+                       [Data.String.fromString "DELETE FROM upload WHERE token = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a7ER0
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                          _p_a7ER1]))
+      (view tok :: Id Token))
+            (\[] -> ()))
   when r $ void $ removeUploadFile tok
   return r
 
 cleanTokens :: (MonadDB c m, MonadStorage c m) => m ()
 cleanTokens = do
-  toks <- dbQuery $ ($ nobodySiteAuth) <$> $(makeQuery simpleQueryFlags ("DELETE FROM upload WHERE expires < CURRENT_TIMESTAMP RETURNING " ++) (selectOutput selectUpload))
+  -- toks <- dbQuery $ ($ nobodySiteAuth) <$> $(makeQuery simpleQueryFlags ("DELETE FROM upload WHERE expires < CURRENT_TIMESTAMP RETURNING " ++) (selectOutput selectUpload))
+  let _tenv_a7EWZ = unknownPGTypeEnv
+  rows <- dbQuery
+    (mapQuery2
+                      (BS.concat
+                         [Data.String.fromString
+                            "DELETE FROM upload WHERE expires < CURRENT_TIMESTAMP RETURNING upload.token,upload.expires,upload.filename,upload.size"])
+              (\
+                 [_ctoken_a7EX0, _cexpires_a7EX1, _cfilename_a7EX2, _csize_a7EX3]
+                 -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                       _tenv_a7EWZ
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                       _ctoken_a7EX0, 
+                     Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                       _tenv_a7EWZ
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
+                       _cexpires_a7EX1, 
+                     Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                       _tenv_a7EWZ
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                       _cfilename_a7EX2, 
+                     Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                       _tenv_a7EWZ
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
+                       _csize_a7EX3)))
+  let toks =
+         fmap (\mkTok -> mkTok nobodySiteAuth)
+          (fmap
+              (\ (vtoken_a7EVR, vexpires_a7EVS, vfilename_a7EVT, vsize_a7EVU)
+                 -> Databrary.Model.Token.SQL.makeUpload
+                      (Token vtoken_a7EVR vexpires_a7EVS) vfilename_a7EVT vsize_a7EVU)
+              rows)
   mapM_ removeUploadFile toks
   dbExecute_ "DELETE FROM token WHERE expires < CURRENT_TIMESTAMP"
