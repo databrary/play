@@ -22,7 +22,9 @@ import qualified Data.ByteString.Char8 as BSC
 import Data.Int (Int64)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
-import Database.PostgreSQL.Typed (pgSQL)
+import qualified Data.String
+-- import Database.PostgreSQL.Typed (pgSQL)
+import Database.PostgreSQL.Typed.Types
 
 import Databrary.Has (peek)
 import qualified Databrary.JSON as JSON
@@ -41,15 +43,54 @@ lookupTag n =
   dbQuery1 $(selectQuery selectTag "$WHERE tag.name = ${n}::varchar")
 
 lookupTags :: MonadDB c m => m [Tag]
-lookupTags = dbQuery $(selectQuery selectTag "")
+lookupTags = do
+  let _tenv_a6Dq8 = unknownPGTypeEnv
+  rows <- dbQuery -- (selectQuery selectTag "")
+    (mapQuery2
+                      (BSC.concat
+                         [Data.String.fromString "SELECT tag.id,tag.name FROM tag "])
+              (\ [_cid_a6Dq9, _cname_a6Dqa]
+                 -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                       _tenv_a6Dq8
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                       _cid_a6Dq9, 
+                     Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                       _tenv_a6Dq8
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
+                       _cname_a6Dqa)))
+  pure
+    (fmap
+      (\ (vid_a6Dpn, vname_a6Dpo) -> Tag vid_a6Dpn vname_a6Dpo)
+      rows)
 
 findTags :: MonadDB c m => TagName -> Int -> m [Tag]
 findTags (TagName n) lim = -- TagName restrictions obviate pattern escaping
   dbQuery $(selectQuery selectTag "$WHERE tag.name LIKE ${n `BSC.snoc` '%'}::varchar LIMIT ${fromIntegral lim :: Int64}")
 
 addTag :: MonadDB c m => TagName -> m Tag
-addTag n =
-  dbQuery1' $ (`Tag` n) <$> [pgSQL|!SELECT get_tag(${n})|]
+addTag n = do
+  let _tenv_a6GtM = unknownPGTypeEnv
+  row <- dbQuery1' -- [pgSQL|!SELECT get_tag(${n})|]
+    (mapQuery2
+      ((\ _p_a6GtN ->
+                    (BSC.concat
+                       [Data.String.fromString "SELECT get_tag(",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6GtM
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
+                          _p_a6GtN,
+                        Data.String.fromString ")"]))
+      n)
+      (\ [_cget_tag_a6GtO]
+               -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                     _tenv_a6GtM
+                     (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                        Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                     _cget_tag_a6GtO)))
+  pure ((`Tag` n) row)
 
 lookupVolumeTagUseRows :: MonadDB c m => Volume -> m [TagUseRow]
 lookupVolumeTagUseRows v =
