@@ -56,7 +56,8 @@ postPasswordToken :: ActionRoute (API, Id LoginToken)
 postPasswordToken = action POST (pathAPI </> pathId) $ \(api, ti) -> withoutAuth $ do
   tok <- maybeAction =<< lookupLoginToken ti
   unless (loginPasswordToken tok) $ result =<< peeks notFoundResponse
-  let auth = view tok
+  let auth :: SiteAuth
+      auth = view tok
   pw <- runForm (api == HTML ?> htmlPasswordToken ti) $
     passwordForm (siteAccount auth)
   changeAccount auth{ accountPasswd = Just pw } -- or should this be withAuth?
