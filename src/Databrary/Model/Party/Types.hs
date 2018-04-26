@@ -32,12 +32,13 @@ data PartyRow = PartyRow
   , partyURL :: Maybe URI
   } deriving (Eq, Show)
 
+-- | Represents users, institutions, labs, *and* groups.
 data Party = Party
   { partyRow :: !PartyRow
   , partyAccount :: Maybe Account
   -- , partySiteAccess :: Access -- site-level access this party is granted under root (currently SiteAuth only)
-  , partyPermission :: Permission -- permission current user has over this party
-  , partyAccess :: Maybe Access -- direct authorization this party has granted to current user
+  , partyPermission :: Permission -- ^ permission current user has over this party
+  , partyAccess :: Maybe Access -- ^ direct authorization this party has granted to current user
   } deriving (Eq, Show)
 
 data Account = Account
