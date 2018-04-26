@@ -15,15 +15,15 @@ import Data.Time (Day(..), UTCTime(..), DiffTime, toGregorian, fromGregorian)
 import Data.Time.Format (FormatTime(..), formatTime, dateFmt)
 import Language.Haskell.TH.Lift (deriveLiftMany)
 
-import Databrary.Has (Has(..))
+-- import Databrary.Has (Has(..))
 
 type Date = Day
 type Timestamp = UTCTime
 
 deriveLiftMany [''Fixed, ''DiffTime, ''Day, ''UTCTime]
 
-instance Has Day Timestamp where
-  view = utctDay
+-- instance Has Day Timestamp where
+--   view = utctDay
 
 data MaskedDate
   = MaskedDate !Int

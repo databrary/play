@@ -12,6 +12,7 @@ module Databrary.Model.Record.Types
 
 import Control.Applicative ((<|>))
 import Data.ByteString (ByteString)
+import Data.Foldable (fold)
 import Data.Time (Day)
 
 import Databrary.Has (makeHasRec, Has(..))
@@ -81,30 +82,30 @@ getRecordVolumePermission = volumePermissionPolicy . recordVolume
 
 instance Has Record Measure where
   view = measureRecord
-instance Has (Id Record) Measure where
-  view = view . measureRecord
-instance Has Volume Measure where
-  view = view . measureRecord
-instance Has (Id Volume) Measure where
-  view = view . measureRecord
-instance Has Category Measure where
-  view = view . measureRecord
-instance Has (Id Category) Measure where
-  view = view . measureRecord
-instance Has Permission Measure where
-  view = view . measureRecord
+-- instance Has (Id Record) Measure where
+--   view = recordId . recordRow . measureRecord
+-- instance Has Volume Measure where
+--   view = view . measureRecord
+-- instance Has (Id Volume) Measure where
+--   view = view . measureRecord
+-- instance Has Category Measure where
+--   view = view . measureRecord
+-- instance Has (Id Category) Measure where
+---  view = view . measureRecord
+-- instance Has Permission Measure where
+--   view = view . measureRecord
 
-instance Has Metric Measure where
-  view = measureMetric
-instance Has (Id Metric) Measure where
-  view = view . measureMetric
-instance Has MeasureType Measure where
-  view = view . measureMetric
+-- instance Has Metric Measure where
+--   view = measureMetric
+-- instance Has (Id Metric) Measure where
+--   view = view . measureMetric
+-- instance Has MeasureType Measure where
+--   view = view . measureMetric
 
 instance Has (Maybe Release) Measure where
   view m = metricRelease (measureMetric m) <|> recordRelease (measureRecord m)
 instance Has Release Measure where
-  view = view . (view :: Measure -> Maybe Release)
+  view = fold . (view :: Measure -> Maybe Release)
 
 blankRecord :: Category -> Volume -> Record
 blankRecord cat vol = Record
