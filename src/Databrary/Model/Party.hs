@@ -34,10 +34,12 @@ import Data.Int (Int64)
 import Data.List (intercalate)
 import Data.Maybe (isNothing, fromMaybe)
 import Data.Monoid ((<>))
+import qualified Data.String
 import qualified Data.Text as T
 import Database.PostgreSQL.Typed (pgSQL)
 import Database.PostgreSQL.Typed.Query (unsafeModifyQuery)
 import Database.PostgreSQL.Typed.Dynamic (pgLiteralRep, pgLiteralString, pgSafeLiteral)
+import Database.PostgreSQL.Typed.Types
 
 import Databrary.Ops
 import Databrary.Has (Has(..), peek)
@@ -111,7 +113,65 @@ partyJSON p@Party{..} = partyRowJSON partyRow JSON..<>
 changeParty :: MonadAudit c m => Party -> m ()
 changeParty p = do
   ident <- getAuditIdentity
-  dbExecute1' $(updateParty 'ident 'p)
+  let _tenv_a6PEM = unknownPGTypeEnv
+  dbExecute1' -- (updateParty 'ident 'p)
+   (mapQuery2
+    ((\ _p_a6PEN _p_a6PEO _p_a6PEP _p_a6PEQ _p_a6PER _p_a6PES _p_a6PET ->
+                    (BS.concat
+                       [Data.String.fromString
+                          "WITH audit_row AS (UPDATE party SET name=",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PEM
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                          _p_a6PEN,
+                        Data.String.fromString ",prename=",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PEM
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                          _p_a6PEO,
+                        Data.String.fromString ",affiliation=",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PEM
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                          _p_a6PEP,
+                        Data.String.fromString ",url=",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PEM
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                          _p_a6PEQ,
+                        Data.String.fromString " WHERE id=",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PEM
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6PER,
+                        Data.String.fromString
+                          " RETURNING *) INSERT INTO audit.party SELECT CURRENT_TIMESTAMP, ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PEM
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6PES,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PEM
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                          _p_a6PET,
+                        Data.String.fromString
+                          ", 'change'::audit.action, * FROM audit_row"]))
+      (partySortName $ partyRow p)
+      (partyPreName $ partyRow p)
+      (partyAffiliation $ partyRow p)
+      (partyURL $ partyRow p)
+      (partyId $ partyRow p)
+      (auditWho ident)
+      (auditIp ident))
+    (\ [] -> ()))
 
 changeAccount :: MonadAudit c m => SiteAuth -> m ()
 changeAccount a = do
