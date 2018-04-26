@@ -27,9 +27,8 @@ getSignedCookie c = flatMapM unSign . lookup c =<< peeks getCookies
 
 -- | sign the value, generate cookie, and provide set cookie response header
 setSignedCookie
-    :: (MonadSign c m), MonadHasRequest c m)
-    => Bool          -- ^ is https
-    -> BS.ByteString -- ^ cookie name
+    :: (MonadSign c m, MonadHasRequest c m)
+    => BS.ByteString -- ^ cookie name
     -> BS.ByteString -- ^ cookie value (unsigned)
     -> Timestamp     -- ^ expiration for this cookie value
     -> m Header
