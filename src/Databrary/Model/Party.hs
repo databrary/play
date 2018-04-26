@@ -176,7 +176,51 @@ changeParty p = do
 changeAccount :: MonadAudit c m => SiteAuth -> m ()
 changeAccount a = do
   ident <- getAuditIdentity
-  dbExecute1' $(updateAccount 'ident 'a)
+  let _tenv_a6PFv = unknownPGTypeEnv
+  dbExecute1' -- (updateAccount 'ident 'a)
+   (mapQuery2
+    ((\ _p_a6PFw _p_a6PFx _p_a6PFy _p_a6PFz _p_a6PFA ->
+                    (BS.concat
+                       [Data.String.fromString
+                          "WITH audit_row AS (UPDATE account SET email=",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PFv
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
+                          _p_a6PFw,
+                        Data.String.fromString ",password=",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PFv
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
+                          _p_a6PFx,
+                        Data.String.fromString " WHERE id=",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PFv
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6PFy,
+                        Data.String.fromString
+                          " RETURNING *) INSERT INTO audit.account SELECT CURRENT_TIMESTAMP, ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PFv
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6PFz,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PFv
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                          _p_a6PFA,
+                        Data.String.fromString
+                          ", 'change'::audit.action, * FROM audit_row"]))
+      (accountEmail (siteAccount a))
+      (accountPasswd a)
+      (partyId $ partyRow (accountParty (siteAccount a)))
+      (auditWho ident)
+      (auditIp ident))
+    (\[] -> ()))
 
 addParty :: MonadAudit c m => Party -> m Party
 addParty bp = do
