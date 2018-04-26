@@ -565,6 +565,10 @@ test-suite discovered
     , wai
   ghc-options: -Wall -Wcompat -Wredundant-constraints
   default-language: Haskell2010
+  default-extensions:
+    OverloadedStrings,
+    MultiParamTypeClasses,
+    FlexibleInstances
   other-modules:
 
       Databrary.Controller.IngestTest
@@ -614,6 +618,7 @@ test-suite discovered
     , Databrary.Model.VolumeAccessTest
     , Databrary.Model.VolumeState.TypesTest
     , Databrary.OpsTest
+    , Databrary.Service.CryptoTest
     , Databrary.Service.MailTest
     , Databrary.Service.PasswdTest
     , Databrary.Store.AVTest
