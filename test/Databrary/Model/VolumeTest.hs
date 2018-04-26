@@ -26,7 +26,7 @@ unit_findVolumes = do
     cn <- loadPGDatabase >>= pgConnect
     let ctxt = Context cn ident
     vs <- runReaderT (findVolumes volumeFilter1 :: ReaderT Context IO [Volume]) ctxt  
-    length vs @?= 3
+    length vs @?= 2
 
 volumeFilter1 :: VolumeFilter
 volumeFilter1 =

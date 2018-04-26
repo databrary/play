@@ -28,7 +28,7 @@ endif
 #
 
 ## The default action is to run tests
-cabal-test: ; $(nix-shell) --run 'cabal -j new-test --disable-optimization'
+cabal-test: ; $(nix-shell) --run 'cabal -j test --test-options="--color always --hide-successes --timeout 1s" --ghc-option=-O0'
 .PHONY: cabal-test
 
 ## Start the db (needed for cabal.test and cabal.build, but that relationship is
@@ -37,8 +37,8 @@ db: ; $(nix-shell) --run ./init-db-pql.sh
 .PHONY: db
 
 ## Start the dev repl
-devel: ; $(nix-shell) --run ghci-databrary
-.PHONY: devel
+repl: ; $(nix-shell) --run ghci-databrary.sh
+.PHONY: repl
 
 ## Start tests in the repl
 repl-test: ; $(nix-shell) --run 'cabal repl test:discovered'
