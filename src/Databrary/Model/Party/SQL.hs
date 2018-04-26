@@ -17,6 +17,9 @@ module Databrary.Model.Party.SQL
   , makeSiteAuth
   , makeUserAccount
   , makeAccount
+  , makePartyAuthorization
+  , permissionParty
+  , makeParty
   ) where
 
 import qualified Data.ByteString as BS

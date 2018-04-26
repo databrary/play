@@ -268,7 +268,90 @@ getDuplicateParties = do
 lookupPartyAuthorizations :: (MonadDB c m, MonadHasIdentity c m) => m [(Party, Maybe Permission)]
 lookupPartyAuthorizations = do
   ident <- peek
-  dbQuery $(selectQuery (selectPartyAuthorization 'ident) "WHERE party.id > 0")
+  let _tenv_a6Qkm = unknownPGTypeEnv
+  rows <- dbQuery -- (selectQuery (selectPartyAuthorization 'ident) "WHERE party.id > 0")
+   (mapQuery2
+                      (BS.concat
+                         [Data.String.fromString
+                            "SELECT party.id,party.name,party.prename,party.orcid,party.affiliation,party.url,account.email,authorize_view.site,authorize_view.member FROM party LEFT JOIN account USING (id) LEFT JOIN authorize_view ON party.id = authorize_view.child AND authorize_view.parent = 0 WHERE party.id > 0"])
+              (\
+                 [_cid_a6Qkn,
+                  _cname_a6Qko,
+                  _cprename_a6Qkp,
+                  _corcid_a6Qkq,
+                  _caffiliation_a6Qkr,
+                  _curl_a6Qks,
+                  _cemail_a6Qkt,
+                  _csite_a6Qku,
+                  _cmember_a6Qkv]
+                 -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                       _tenv_a6Qkm
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                       _cid_a6Qkn, 
+                     Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                       _tenv_a6Qkm
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                       _cname_a6Qko, 
+                     Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                       _tenv_a6Qkm
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                       _cprename_a6Qkp, 
+                     Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                       _tenv_a6Qkm
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                       _corcid_a6Qkq, 
+                     Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                       _tenv_a6Qkm
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                       _caffiliation_a6Qkr, 
+                     Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                       _tenv_a6Qkm
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                       _curl_a6Qks, 
+                     Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                       _tenv_a6Qkm
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
+                       _cemail_a6Qkt, 
+                     Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                       _tenv_a6Qkm
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "permission")
+                       _csite_a6Qku, 
+                     Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                       _tenv_a6Qkm
+                       (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                          Database.PostgreSQL.Typed.Types.PGTypeName "permission")
+                       _cmember_a6Qkv)))
+  pure 
+     (fmap
+      (\ (vid_a6Qir, vname_a6Qis, vprename_a6Qit, vorcid_a6Qiu,
+          vaffiliation_a6Qiv, vurl_a6Qiw, vemail_a6Qix, vsite_a6Qiz,
+          vmember_a6QiA)
+         -> Databrary.Model.Party.SQL.makePartyAuthorization
+              (Databrary.Model.Party.SQL.permissionParty
+                 (Databrary.Model.Party.SQL.makeParty
+                    (PartyRow
+                       vid_a6Qir
+                       vname_a6Qis
+                       vprename_a6Qit
+                       vorcid_a6Qiu
+                       vaffiliation_a6Qiv
+                       vurl_a6Qiw)
+                    (do { cm_a6QiP <- vemail_a6Qix;
+                          Just (Account cm_a6QiP) }))
+                 Nothing
+                 ident)
+              (do { cm_a6QiV <- vsite_a6Qiz;
+                    cm_a6QiW <- vmember_a6QiA;
+                    Just (Access cm_a6QiV cm_a6QiW) }))
+      rows)
 
 lookupAuthParty :: (MonadDB c m, MonadHasIdentity c m) => Id Party -> m (Maybe Party)
 lookupAuthParty i = do
