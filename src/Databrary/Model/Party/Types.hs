@@ -63,7 +63,7 @@ data SiteAuth = SiteAuth
   { siteAccount :: Account -- maybe should be Party (for nobody)
   , accountPasswd :: Maybe BS.ByteString
   , siteAccess :: Access
-  }
+  } deriving (Eq, Show)
 
 makeHasRec ''SiteAuth ['siteAccount, 'siteAccess]
 

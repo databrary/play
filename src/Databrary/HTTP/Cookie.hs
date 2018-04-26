@@ -25,8 +25,15 @@ getCookies = maybe [] Cook.parseCookies . lookupRequestHeader hCookie
 getSignedCookie :: (MonadHas Secret c m, MonadHasRequest c m) => BS.ByteString -> m (Maybe BS.ByteString)
 getSignedCookie c = flatMapM unSign . lookup c =<< peeks getCookies
 
-setSignedCookie :: (MonadSign c m, MonadHasRequest c m) => BS.ByteString -> BS.ByteString -> Timestamp -> m Header
-setSignedCookie c val ex = do
+-- | sign the value, generate cookie, and provide set cookie response header
+setSignedCookie
+    :: (MonadSign c m), MonadHasRequest c m)
+    => Bool          -- ^ is https
+    -> BS.ByteString -- ^ cookie name
+    -> BS.ByteString -- ^ cookie value (unsigned)
+    -> Timestamp     -- ^ expiration for this cookie value
+    -> m Header
+setSignedCookie c val ex  = do
   val' <- sign val
   sec <- peeks Wai.isSecure
   return ("set-cookie", BSL.toStrict $ BSB.toLazyByteString $ Cook.renderSetCookie $ Cook.def

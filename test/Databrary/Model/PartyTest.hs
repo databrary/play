@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wno-missing-fields #-}
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, GeneralizedNewtypeDeriving
-   , TypeSynonymInstances, MultiParamTypeClasses, FlexibleInstances #-}
+   , TypeSynonymInstances, MultiParamTypeClasses, FlexibleInstances, RecordWildCards #-}
 module Databrary.Model.PartyTest where
 
 -- import Control.Monad.IO.Class
@@ -43,6 +43,11 @@ unit_lookupSiteAuthByEmail = do
     let ctxt = Context { ctxConn = cn }
     mAuth <- runReaderT (lookupSiteAuthByEmail False "test@databrary.org") ctxt
     isJust mAuth @? "should find the well known test user's site auth by email"
+    mAuth' <- runReaderT (lookupSiteAuthByEmail False "doesntexist@databrary.org") ctxt
+    mAuth' @?= Nothing
+    mAuth'' <- runReaderT (lookupSiteAuthByEmail True "TEST@DATABRARY.ORG") ctxt
+    isJust mAuth'' @? "should find the well known test user's site auth by email, case insensitive"
+    
 
 instance Has DBConn Context where
     view = ctxConn
