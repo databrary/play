@@ -53,16 +53,14 @@ cabal-build: ; $(nix-shell) --run 'cabal -j new-build --disable-optimization'
 .PHONY: cabal-build
 
 ## Simple report output, long build time.
-hpc-report.txt: result
-	__COVERAGE=1 make nix-build
+reports:
+	__HADDOCK=1 __COVERAGE=1 make nix-build
 	hpc report result/share/hpc/vanilla/tix/databrary-1/databrary-1.tix \
 		--hpcdir=result/share/hpc/vanilla/mix/databrary-1 \
 		--exclude=Paths_databrary
-		| tee $@
-
-haddock-coverage-report.txt: derivation # Also depends on nix-build. Hmmmm
-	__HADDOCK=1 make nix-build
-	nix-store -l $< | grep ") in '" > $@
+		| tee hpc_report.txt
+	nix-store -l $< | grep ") in '" > haddock_coverage_report.txt
+.PHONY: reports
 
 #
 # Experimental tasks
@@ -90,8 +88,6 @@ tests_module_list.cabalsnip: tests_module_list.yaml
 package.yaml: module_list.yaml
 
 databrary.cabal: package.yaml ; hpack .
-replTest: ; nix-shell --run 'cabal configure -freplTest --datadir=. --enable-tests; cabal repl test:databrary-test'
-.PHONY: replTest
 
 ##
 ## This is the beginning of packaging up node deps
