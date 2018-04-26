@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-missing-fields #-}
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, GeneralizedNewtypeDeriving
    , TypeSynonymInstances, MultiParamTypeClasses, FlexibleInstances #-}
 module Databrary.Model.PartyTest where
@@ -5,6 +6,7 @@ module Databrary.Model.PartyTest where
 -- import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
 -- import Control.Monad.Reader
+import Data.Maybe
 -- import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -34,6 +36,13 @@ unit_lookupParty = do
     -- TODO: Fix these with real data parameters
     -- runLookupParty (Id 2) (Identified undefined) (Just staffParty)
     -- runLookupParty (Id 2) (ReIdentified undefined) (Just staffParty)
+
+unit_lookupSiteAuthByEmail :: Assertion
+unit_lookupSiteAuthByEmail = do
+    cn <- loadPGDatabase >>= pgConnect
+    let ctxt = Context { ctxConn = cn }
+    mAuth <- runReaderT (lookupSiteAuthByEmail False "test@databrary.org") ctxt
+    isJust mAuth @? "should find the well known test user's site auth by email"
 
 instance Has DBConn Context where
     view = ctxConn
