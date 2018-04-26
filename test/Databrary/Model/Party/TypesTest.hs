@@ -72,7 +72,7 @@ genSiteAuthSimple = do
     SiteAuth
         <$> (pure . fromJust . partyAccount) p
         <*> Just <$> (Gen.utf8 (Range.constant 6 20) Gen.ascii)
-        <*> pure ac 
+        <*> pure ac
 
 test_all :: [TestTree]
 test_all =

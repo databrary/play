@@ -172,10 +172,15 @@ lookupAuthParty i = do
   lookupFixedParty i ident `orElseM`
     dbQuery1 $(selectQuery (selectAuthParty 'ident) "$WHERE party.id = ${i}")
 
-lookupSiteAuthByEmail :: MonadDB c m => Bool -> BS.ByteString -> m (Maybe SiteAuth)
-lookupSiteAuthByEmail ic e = do
+-- | resolve email to its party and enclosing account and site authenticated identity, possibly case insensitive
+lookupSiteAuthByEmail
+    :: MonadDB c m
+    => Bool -- ^ be case-insensitive?
+    -> BS.ByteString
+    -> m (Maybe SiteAuth)
+lookupSiteAuthByEmail caseInsensitive e = do
   r <- dbQuery1 $(selectQuery selectSiteAuth "WHERE account.email = ${e}")
-  if ic && isNothing r
+  if caseInsensitive && isNothing r
     then do
       a <- dbQuery $(selectQuery selectSiteAuth "WHERE lower(account.email) = lower(${e}) LIMIT 2")
       return $ case a of
