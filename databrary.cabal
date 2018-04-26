@@ -559,6 +559,8 @@ test-suite discovered
     , tasty-expected-failure
     , tasty-hedgehog
     , tasty-hunit
+    , tasty-quickcheck
+    , QuickCheck
     , transformers
     , text
     , time

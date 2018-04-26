@@ -9,7 +9,7 @@
 , postgresql-simple, postgresql-typed, process, range-set-list
 , regex-posix, resource-pool, resourcet, scientific, servant, servant-server, smtp-mail
 , stdenv, streaming-commons, stringsearch, tasty, tasty-expected-failure
-, tasty-discover, tasty-hedgehog, tasty-hunit, template-haskell, text, th-lift, th-lift-instances
+, tasty-discover, tasty-hedgehog, tasty-quickcheck, tasty-hunit, QuickCheck, template-haskell, text, th-lift, th-lift-instances
 , time, transformers, transformers-base, unix, unordered-containers
 , utf8-string, vector, wai, wai-extra, wai-route, warp, warp-tls
 , web-inv-route, xml, zip, zlib
@@ -80,7 +80,7 @@ in
     ffmpeg
   ];
   testHaskellDepends = [
-    attoparsec base hedgehog mtl range-set-list tasty-discover tasty-expected-failure tasty-hedgehog
+    attoparsec base hedgehog mtl range-set-list tasty-discover tasty-expected-failure tasty-hedgehog tasty-quickcheck QuickCheck
     tasty-hunit http-types
   ];
   executableToolDepends = [

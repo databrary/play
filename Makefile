@@ -37,7 +37,7 @@ db: ; $(nix-shell) --run ./init-db-pql.sh
 .PHONY: db
 
 ## Start the dev repl
-repl: ; $(nix-shell) --run ghci-databrary.sh
+repl: ; $(nix-shell) --run ./ghci-databrary.sh
 .PHONY: repl
 
 ## Start tests in the repl
