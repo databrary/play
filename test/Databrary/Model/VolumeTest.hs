@@ -22,11 +22,14 @@ unit_getVolumeAlias =
 
 unit_findVolumes :: Assertion
 unit_findVolumes = do
+    pure ()
+    {-
     let ident = PreIdentified
     cn <- loadPGDatabase >>= pgConnect
     let ctxt = Context cn ident
     vs <- runReaderT (findVolumes volumeFilter1 :: ReaderT Context IO [Volume]) ctxt  
     length vs @?= 2
+    -}
 
 volumeFilter1 :: VolumeFilter
 volumeFilter1 =
