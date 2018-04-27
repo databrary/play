@@ -41,9 +41,9 @@ runAction :: Service -> Action -> Wai.Application
 runAction rc (Action auth act) req send = do
   ts <- getCurrentTime
   (i, r) <- runContextM (do
-    i <- if auth then withActionM req PreIdentified determineIdentity else return PreIdentified
-    r <- ReaderT $ \ctx -> runResult $ runActionM (act) (RequestContext ctx req i)
-    return (i, r))
+    (identity :: Identity) <- if auth then withActionM req PreIdentified determineIdentity else return PreIdentified
+    r <- ReaderT $ \ctx -> runResult $ runActionM (act) (RequestContext ctx req identity)
+    return (identity, r))
     rc
   logAccess ts req (foldIdentity Nothing (Just . (show :: Id Party -> String) . view) i) r (serviceLogs rc)
   let isdb = isDatabraryClient req

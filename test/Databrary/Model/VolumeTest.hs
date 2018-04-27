@@ -3,7 +3,9 @@
 module Databrary.Model.VolumeTest where
 
 import Control.Monad.Trans.Reader
+import Test.Tasty
 import Test.Tasty.HUnit
+import Test.Tasty.ExpectedFailure
 
 import Databrary.Has
 import Databrary.Model.Id
@@ -20,16 +22,17 @@ unit_getVolumeAlias =
     -- typical
     -- edge cases
 
-unit_findVolumes :: Assertion
-unit_findVolumes = do
-    pure ()
-    {-
+test_findVolumes :: TestTree
+test_findVolumes = ignoreTest -- Because "??"
+    (testCase "" _unit_findVolumes)
+
+_unit_findVolumes :: Assertion
+_unit_findVolumes = do
     let ident = PreIdentified
     cn <- loadPGDatabase >>= pgConnect
     let ctxt = Context cn ident
     vs <- runReaderT (findVolumes volumeFilter1 :: ReaderT Context IO [Volume]) ctxt  
     length vs @?= 2
-    -}
 
 volumeFilter1 :: VolumeFilter
 volumeFilter1 =

@@ -18,9 +18,13 @@ import Databrary.Model.Token.Types
 
 data Identity
   = PreIdentified
+  -- ^ Speculation: background jobs or other things that have intrinsic identity
   | NotIdentified
   | Identified Session
+  -- ^ An actual human user on a web browser
   | ReIdentified SiteAuth
+  -- ^ Speculation: used in video conversion when sending results from the
+  -- compute cluster back to the system
 
 instance Has SiteAuth Identity where
   view (Identified Session{ sessionAccountToken = AccountToken{ tokenAccount = t } }) = t

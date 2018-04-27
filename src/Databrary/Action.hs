@@ -73,7 +73,10 @@ api1App newRouteMap =
     serve api1 (serverApi1 newRouteMap)
 
 runActionRoute
-  :: R.RouteMap Action -> (Service -> [(BS.ByteString, WAR.Handler IO)]) -> Service -> Wai.Application
+    :: R.RouteMap Action
+    -> (Service -> [(BS.ByteString, WAR.Handler IO)])
+    -> Service
+    -> Wai.Application
 runActionRoute routeMap mkNewRouteMap routeContext req =
     let eMatchedAction :: Either (Status, ResponseHeaders) Action
         eMatchedAction = R.routeWai req routeMap
