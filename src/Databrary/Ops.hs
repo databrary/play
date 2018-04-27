@@ -15,6 +15,7 @@ module Databrary.Ops
   ) where
 
 import Control.Applicative
+import qualified Data.Either.Combinators as EC
 
 infixl 1 <?
 infixr 1 ?>, ?!>
@@ -57,8 +58,8 @@ False ?!$> f = pure <$> f
 {-# SPECIALIZE (?!$>) :: Applicative m => Bool -> m a -> m (Maybe a) #-}
 
 rightJust :: Either a b -> Maybe b
-rightJust (Right a) = Just a
-rightJust _ = Nothing
+rightJust = EC.rightToMaybe -- (Right a) = Just a
+-- rightJust _ = Nothing
 
 fromMaybeM :: Monad m => m a -> Maybe a -> m a
 fromMaybeM _ (Just a) = return a
