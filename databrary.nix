@@ -1,7 +1,7 @@
 { mkDerivation, aeson, aeson-better-errors, array, attoparsec, base
 , bcrypt, binary, blaze-html, blaze-markup, bytestring
 , case-insensitive, casing, cassava, conduit-combinators, containers, cookie, cracklib
-, cryptonite, data-default-class, directory, fast-logger, ffmpeg
+, cryptonite, data-default-class, directory, either, fast-logger, ffmpeg
 , filepath, hashable, hedgehog, hjsonschema, http-client, http-client-tls
 , http-types, invertible
 , lifted-base, memory, mime-mail, mime-types, monad-control, mtl
@@ -45,7 +45,7 @@ in
     aeson aeson-better-errors array attoparsec base bcrypt binary
     blaze-html blaze-markup bytestring case-insensitive casing cassava
     conduit-combinators containers cookie cryptonite data-default-class
-    directory fast-logger filepath hashable hjsonschema http-client
+    directory either fast-logger filepath hashable hjsonschema http-client
     http-client-tls http-types invertible lifted-base memory mime-mail
     mime-types monad-control mtl network network-uri parsec path
     path-io posix-paths postgresql-simple postgresql-typed process
@@ -64,7 +64,7 @@ in
     aeson aeson-better-errors array attoparsec base bcrypt binary
     blaze-html blaze-markup bytestring case-insensitive casing cassava
     conduit-combinators containers cookie cryptonite data-default-class
-    directory fast-logger filepath hashable hjsonschema http-client
+    directory either fast-logger filepath hashable hjsonschema http-client
     http-client-tls http-types invertible lifted-base memory mime-mail
     mime-types monad-control mtl network network-uri parsec path
     path-io posix-paths postgresql-simple postgresql-typed process
