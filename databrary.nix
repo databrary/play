@@ -80,8 +80,19 @@ in
     ffmpeg
   ];
   testHaskellDepends = [
-    attoparsec base hedgehog mtl range-set-list tasty-discover tasty-expected-failure tasty-hedgehog tasty-quickcheck QuickCheck
-    tasty-hunit http-types
+    QuickCheck
+    attoparsec
+    base
+    cookie
+    hedgehog
+    http-types
+    mtl
+    range-set-list
+    tasty-discover
+    tasty-expected-failure
+    tasty-hedgehog
+    tasty-hunit
+    tasty-quickcheck
   ];
   executableToolDepends = [
     postgresql
