@@ -41,6 +41,8 @@ import Databrary.Model.Id.Types
 import Databrary.Model.Identity.Types
 import Databrary.Model.Volume.Types
 import Databrary.Model.Party
+import Databrary.Model.Party.SQL
+import Databrary.Model.Permission.Types
 import Databrary.Model.Token.Types
 import Databrary.Model.Token.SQL
 
@@ -53,8 +55,133 @@ lookupLoginToken =
     <=< unSign . unId
 
 lookupSession :: MonadDB c m => BS.ByteString -> m (Maybe Session)
-lookupSession tok =
-  dbQuery1 $(selectQuery selectSession "$!WHERE session.token = ${tok} AND expires > CURRENT_TIMESTAMP")
+lookupSession tok = do
+  let _tenv_a7Etn = unknownPGTypeEnv
+  mRow <-
+    dbQuery1
+      (mapPrepQuery
+        ((\ _p_a7Eto ->
+                       ((Data.String.fromString
+                          "SELECT session.token,session.expires,party.id,party.name,party.prename,party.orcid,party.affiliation,party.url,account.email,account.password,authorize_view.site,authorize_view.member,session.verf,session.superuser FROM session JOIN party JOIN account USING (id) LEFT JOIN authorize_view ON account.id = authorize_view.child AND authorize_view.parent = 0 ON session.account = account.id WHERE session.token = $1 AND expires > CURRENT_TIMESTAMP"),
+                       [Database.PostgreSQL.Typed.Types.pgEncodeParameter
+                          _tenv_a7Etn
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                          _p_a7Eto]))
+         tok)
+               (\ 
+                  [_ctoken_a7Etp,
+                   _cexpires_a7Etq,
+                   _cid_a7Etr,
+                   _cname_a7Ets,
+                   _cprename_a7Ett,
+                   _corcid_a7Etu,
+                   _caffiliation_a7Etv,
+                   _curl_a7Etw,
+                   _cemail_a7Etx,
+                   _cpassword_a7Ety,
+                   _csite_a7Etz,
+                   _cmember_a7EtA,
+                   _cverf_a7EtB,
+                   _csuperuser_a7EtC]
+                  -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a7Etn
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                        _ctoken_a7Etp, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a7Etn
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
+                        _cexpires_a7Etq, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a7Etn
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                        _cid_a7Etr, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a7Etn
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _cname_a7Ets, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a7Etn
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _cprename_a7Ett, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a7Etn
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                        _corcid_a7Etu, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a7Etn
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _caffiliation_a7Etv, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a7Etn
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _curl_a7Etw, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a7Etn
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
+                        _cemail_a7Etx, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a7Etn
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
+                        _cpassword_a7Ety, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a7Etn
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "permission")
+                        _csite_a7Etz, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a7Etn
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "permission")
+                        _cmember_a7EtA, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a7Etn
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                        _cverf_a7EtB, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a7Etn
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "boolean")
+                        _csuperuser_a7EtC)))
+  pure
+    (fmap
+      (\ (vtoken_a7Esb, vexpires_a7Esc, vid_a7Esd, vname_a7Ese,
+          vprename_a7Esf, vorcid_a7Esg, vaffiliation_a7Esh, vurl_a7Esi,
+          vemail_a7Esj, vpassword_a7Esk, vsite_a7Esl, vmember_a7Esm,
+          vverf_a7Esn, vsuperuser_a7Eso)
+         -> Session
+              (AccountToken
+                 (Token vtoken_a7Esb vexpires_a7Esc)
+                 (Databrary.Model.Party.SQL.makeSiteAuth
+                    (Databrary.Model.Party.SQL.makeUserAccount
+                       (Databrary.Model.Party.SQL.makeAccount
+                          (PartyRow
+                             vid_a7Esd
+                             vname_a7Ese
+                             vprename_a7Esf
+                             vorcid_a7Esg
+                             vaffiliation_a7Esh
+                             vurl_a7Esi)
+                          (Account vemail_a7Esj)))
+                    vpassword_a7Esk
+                    (do { cm_a7EsD <- vsite_a7Esl;
+                          cm_a7EsE <- vmember_a7Esm;
+                          Just
+                            (Databrary.Model.Permission.Types.Access cm_a7EsD cm_a7EsE) })))
+              vverf_a7Esn
+              vsuperuser_a7Eso)
+      mRow)
 
 lookupUpload :: (MonadDB c m, MonadHasIdentity c m) => BS.ByteString -> m (Maybe Upload)
 lookupUpload tok = do

@@ -25,6 +25,7 @@ module Databrary.Service.DB
   , useTDB
   , runTDB
   , mapQuery2
+  , mapPrepQuery
   -- FIXME: added for tests
   , loadPGDatabase
   , pgConnect
@@ -206,3 +207,7 @@ runTDB f = do
 mapQuery2 :: BS.ByteString -> ([PGValue] -> a) -> PGSimpleQuery a -- mapQuery is same as mapQuery2, both will be deleted
 mapQuery2 qry mkResult =
   fmap mkResult (rawPGSimpleQuery qry)
+
+mapPrepQuery :: (BS.ByteString, [PGValue]) -> ([PGValue] -> a) -> PGPreparedQuery a
+mapPrepQuery (qry, params) mkResult =
+  fmap mkResult (rawPGPreparedQuery qry params)
