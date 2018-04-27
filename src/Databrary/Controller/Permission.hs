@@ -47,9 +47,10 @@ authAccount = do
     Identified s -> return $ view s
     ReIdentified u -> return $ view u
 
+-- | (Maybe) tests whether someone is a superadmin?
 checkMemberADMIN :: ActionM ()
 checkMemberADMIN = do
-  admin <- peeks accessMember'
+  admin <- peeks accessMember' -- coming out of SiteAuth, part of Identity
   void $ checkPermission PermissionADMIN admin
 
 checkVerfHeader :: ActionM Bool
