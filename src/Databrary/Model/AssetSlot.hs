@@ -22,11 +22,14 @@ module Databrary.Model.AssetSlot
   ) where
 
 import Control.Monad (when, guard)
+import qualified Data.ByteString
 import Data.Maybe (fromMaybe, isNothing)
 import Data.Monoid ((<>))
 import Data.Maybe (fromJust, catMaybes)
+import Data.String
 import qualified Data.Text as T
 import Database.PostgreSQL.Typed (pgSQL)
+import Database.PostgreSQL.Typed.Types
 
 import Databrary.Ops
 import Databrary.Has (peek, view)
@@ -125,8 +128,38 @@ lookupOrigVolumeAssetSlotIds v =
 changeAssetSlot :: (MonadAudit c m) => AssetSlot -> m Bool
 changeAssetSlot as = do
   ident <- getAuditIdentity
+  let _tenv_a8II3 = unknownPGTypeEnv
   if isNothing (assetSlot as)
-    then dbExecute1 $(deleteSlotAsset 'ident 'as)
+    then dbExecute1 -- (deleteSlotAsset 'ident 'as)
+      (mapQuery2
+          ((\ _p_a8II4 _p_a8II5 _p_a8II6 ->
+                          (Data.ByteString.concat
+                             [Data.String.fromString
+                                "WITH audit_row AS (DELETE FROM slot_asset WHERE asset=",
+                              Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                                _tenv_a8II3
+                                (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                   Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                                _p_a8II4,
+                              Data.String.fromString
+                                " RETURNING *) INSERT INTO audit.slot_asset SELECT CURRENT_TIMESTAMP, ",
+                              Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                                _tenv_a8II3
+                                (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                   Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                                _p_a8II5,
+                              Data.String.fromString ", ",
+                              Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                                _tenv_a8II3
+                                (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                   Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                                _p_a8II6,
+                              Data.String.fromString
+                                ", 'remove'::audit.action, * FROM audit_row"]))
+              (assetId $ assetRow $ slotAsset as)
+              (auditWho ident)
+              (auditIp ident))
+          (\ [] -> ()))
     else do
       (r, _) <- updateOrInsert
         $(updateSlotAsset 'ident 'as)
