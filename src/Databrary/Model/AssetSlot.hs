@@ -162,6 +162,7 @@ changeAssetSlot as = do
           (\ [] -> ()))
     else do
       let _tenv_a8IMD = unknownPGTypeEnv
+          _tenv_a8IPn = unknownPGTypeEnv
       (r, _) <- updateOrInsert
         -- (updateSlotAsset 'ident 'as)
         (mapQuery2
@@ -207,7 +208,49 @@ changeAssetSlot as = do
              (auditWho ident)
              (auditIp ident))
             (\[] -> ()))
-        $(insertSlotAsset 'ident 'as)
+        -- (insertSlotAsset 'ident 'as)
+        (mapQuery2
+          ((\ _p_a8IPo _p_a8IPp _p_a8IPq _p_a8IPr _p_a8IPs ->
+                          (Data.ByteString.concat
+                             [Data.String.fromString
+                                "WITH audit_row AS (INSERT INTO slot_asset (asset,container,segment) VALUES (",
+                              Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                                _tenv_a8IPn
+                                (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                   Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                                _p_a8IPo,
+                              Data.String.fromString ",",
+                              Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                                _tenv_a8IPn
+                                (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                   Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                                _p_a8IPp,
+                              Data.String.fromString ",",
+                              Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                                _tenv_a8IPn
+                                (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                   Database.PostgreSQL.Typed.Types.PGTypeName "segment")
+                                _p_a8IPq,
+                              Data.String.fromString
+                                ") RETURNING *) INSERT INTO audit.slot_asset SELECT CURRENT_TIMESTAMP, ",
+                              Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                                _tenv_a8IPn
+                                (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                   Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                                _p_a8IPr,
+                              Data.String.fromString ", ",
+                              Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                                _tenv_a8IPn
+                                (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                   Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                                _p_a8IPs,
+                              Data.String.fromString ", 'add'::audit.action, * FROM audit_row"]))
+                (assetId $ assetRow $ slotAsset as)
+                (containerId . containerRow . slotContainer <$> assetSlot as)
+                (slotSegment <$> assetSlot as)
+                (auditWho ident)
+                (auditIp ident))
+            (\[] -> ()))
       when (r /= 1) $ fail $ "changeAssetSlot: " ++ show r ++ " rows"
       return True
 
