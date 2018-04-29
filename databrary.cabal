@@ -402,8 +402,8 @@ Executable databrary
   main-is: Main.hs
 
   build-depends:
-    databrary
-    -- base >= 4.8.2.0,
+    databrary,
+    base >= 4.8.2.0
     -- bytestring >= 0.10,
     -- casing >= 0.1.2.0,
     -- cassava >= 0.4.5.1,
