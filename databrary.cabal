@@ -417,8 +417,8 @@ Executable databrary
   if flag(sandbox)
     cpp-options: -DSANDBOX
 
-  pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
-  extra-libraries: crack, crypto
+  -- pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
+  -- extra-libraries: crack, crypto
 
 Executable generate
   hs-source-dirs: app-generate, src
