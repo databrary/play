@@ -25,7 +25,7 @@ data Authorize = Authorize
   }
 
 -- makeHasRec ''Authorize ['authorization]
-instance Has Authorization Authorize where
-  view = authorization
+-- instance Has Authorization Authorize where
+--   view = authorization
 instance Has Access Authorize where
   view = (view . authorization)

@@ -14,7 +14,7 @@ import Data.Maybe (fromJust, fromMaybe, listToMaybe)
 import qualified Data.Text as T
 import qualified Network.HTTP.Client as HC
 
-import Databrary.Has (Has(..)) --makeHasRec)
+-- import Databrary.Has (Has(..)) --makeHasRec)
 import qualified Databrary.JSON as JSON
 import Databrary.HTTP.Client
 import Databrary.Model.Id.Types

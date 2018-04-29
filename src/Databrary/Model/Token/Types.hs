@@ -44,10 +44,10 @@ instance Has Access AccountToken where
   view = (view . tokenAccount)
 instance Has (Id Party) AccountToken where
   view = (view . tokenAccount)
-instance Has PartyRow AccountToken where
-  view = (view . tokenAccount)
-instance Has Party AccountToken where
-  view = (view . tokenAccount)
+-- instance Has PartyRow AccountToken where
+--   view = (view . tokenAccount)
+-- instance Has Party AccountToken where
+--   view = (view . tokenAccount)
 instance Has Account AccountToken where
   view = (view . tokenAccount)
 
@@ -63,24 +63,24 @@ instance Kinded LoginToken where
   kindOf _ = "token"
 
 -- makeHasRec ''LoginToken ['loginAccountToken]
-instance Has AccountToken LoginToken where
-  view = loginAccountToken
-instance Has Token LoginToken where
-  view = (view . loginAccountToken)
+-- instance Has AccountToken LoginToken where
+--   view = loginAccountToken
+-- instance Has Token LoginToken where
+--   view = (view . loginAccountToken)
 instance Has (Id Token) LoginToken where
   view = (view . loginAccountToken)
 instance Has SiteAuth LoginToken where
   view = (view . loginAccountToken)
-instance Has Access LoginToken where
-  view = (view . loginAccountToken)
-instance Has (Id Party) LoginToken where
-  view = (view . loginAccountToken)
-instance Has PartyRow LoginToken where
-  view = (view . loginAccountToken)
-instance Has Party LoginToken where
-  view = (view . loginAccountToken)
-instance Has Account LoginToken where
-  view = (view . loginAccountToken)
+-- instance Has Access LoginToken where
+--   view = (view . loginAccountToken)
+-- instance Has (Id Party) LoginToken where
+--   view = (view . loginAccountToken)
+-- instance Has PartyRow LoginToken where
+--   view = (view . loginAccountToken)
+-- instance Has Party LoginToken where
+--   view = (view . loginAccountToken)
+-- instance Has Account LoginToken where
+--   view = (view . loginAccountToken)
 
 data Session = Session
   { sessionAccountToken :: !AccountToken
@@ -89,22 +89,22 @@ data Session = Session
   }
 
 -- makeHasRec ''Session ['sessionAccountToken]
-instance Has AccountToken Session where
-  view = sessionAccountToken
+-- instance Has AccountToken Session where
+--   view = sessionAccountToken
 instance Has Token Session where
   view = (view . sessionAccountToken)
 instance Has (Id Token) Session where
   view = (view . sessionAccountToken)
-instance Has SiteAuth Session where
-  view = (view . sessionAccountToken)
+-- instance Has SiteAuth Session where
+--   view = (view . sessionAccountToken)
 instance Has Access Session where
   view = (view . sessionAccountToken)
 instance Has (Id Party) Session where
   view = (view . sessionAccountToken)
-instance Has PartyRow Session where
-  view = (view . sessionAccountToken)
-instance Has Party Session where
-  view = (view . sessionAccountToken)
+-- instance Has PartyRow Session where
+--   view = (view . sessionAccountToken)
+-- instance Has Party Session where
+--   view = (view . sessionAccountToken)
 instance Has Account Session where
   view = (view . sessionAccountToken)
 
@@ -115,21 +115,21 @@ data Upload = Upload
   }
 
 -- makeHasRec ''Upload ['uploadAccountToken]
-instance Has AccountToken Upload where
-  view = uploadAccountToken
-instance Has Token Upload where
-  view = (view . uploadAccountToken)
+-- instance Has AccountToken Upload where
+--   view = uploadAccountToken
+-- instance Has Token Upload where
+--   view = (view . uploadAccountToken)
 instance Has (Id Token) Upload where
   view = (view . uploadAccountToken)
-instance Has SiteAuth Upload where
-  view = (view . uploadAccountToken)
-instance Has Access Upload where
-  view = (view . uploadAccountToken)
-instance Has (Id Party) Upload where
-  view = (view . uploadAccountToken)
-instance Has PartyRow Upload where
-  view = (view . uploadAccountToken)
-instance Has Party Upload where
-  view = (view . uploadAccountToken)
-instance Has Account Upload where
-  view = (view . uploadAccountToken)
+-- instance Has SiteAuth Upload where
+--   view = (view . uploadAccountToken)
+-- instance Has Access Upload where
+--   view = (view . uploadAccountToken)
+-- instance Has (Id Party) Upload where
+--   view = (view . uploadAccountToken)
+-- instance Has PartyRow Upload where
+--   view = (view . uploadAccountToken)
+-- instance Has Party Upload where
+--   view = (view . uploadAccountToken)
+-- instance Has Account Upload where
+--   view = (view . uploadAccountToken)

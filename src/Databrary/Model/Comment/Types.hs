@@ -4,7 +4,7 @@ module Databrary.Model.Comment.Types
   , CommentRow(..)
   ) where
 
-import qualified Data.Time as Time
+-- import qualified Data.Time as Time
 import qualified Data.Text as T
 
 import Databrary.Has (Has(..))
@@ -13,8 +13,8 @@ import Databrary.Model.Kind
 import Databrary.Model.Time
 import Databrary.Model.Id.Types
 import Databrary.Model.Party.Types
-import Databrary.Model.Permission.Types
-import Databrary.Model.Release.Types
+-- import Databrary.Model.Permission.Types
+-- import Databrary.Model.Release.Types
 import Databrary.Model.Segment
 import Databrary.Model.Slot.Types
 import Databrary.Model.Volume.Types
@@ -36,40 +36,40 @@ instance Kinded Comment where
 -- makeHasRec ''Comment ['commentId, 'commentWho, 'commentSlot, 'commentTime]
 instance Has (Id Comment) Comment where
   view = commentId
-instance Has Account Comment where
-  view = commentWho
-instance Has (Id Party) Comment where
-  view = (view . commentWho)
-instance Has PartyRow Comment where
-  view = (view . commentWho)
-instance Has Party Comment where
-  view = (view . commentWho)
-instance Has Slot Comment where
-  view = commentSlot
+-- instance Has Account Comment where
+--   view = commentWho
+-- instance Has (Id Party) Comment where
+--   view = (view . commentWho)
+-- instance Has PartyRow Comment where
+--   view = (view . commentWho)
+-- instance Has Party Comment where
+--   view = (view . commentWho)
+-- instance Has Slot Comment where
+--   view = commentSlot
 instance Has Databrary.Model.Segment.Segment Comment where
   view = (view . commentSlot)
-instance Has Databrary.Model.Container.Types.ContainerRow Comment where
-  view = (view . commentSlot)
+-- instance Has Databrary.Model.Container.Types.ContainerRow Comment where
+--   view = (view . commentSlot)
 instance Has (Id Databrary.Model.Container.Types.Container) Comment where
   view = (view . commentSlot)
-instance Has (Maybe Databrary.Model.Release.Types.Release) Comment where
-  view = (view . commentSlot)
-instance Has Databrary.Model.Release.Types.Release Comment where
-  view = (view . commentSlot)
+-- instance Has (Maybe Databrary.Model.Release.Types.Release) Comment where
+--   view = (view . commentSlot)
+-- instance Has Databrary.Model.Release.Types.Release Comment where
+--   view = (view . commentSlot)
 instance Has Databrary.Model.Volume.Types.Volume Comment where
   view = (view . commentSlot)
-instance Has Databrary.Model.Permission.Types.Permission Comment where
-  view = (view . commentSlot)
+-- instance Has Databrary.Model.Permission.Types.Permission Comment where
+--   view = (view . commentSlot)
 instance Has (Id Databrary.Model.Volume.Types.Volume) Comment where
   view = (view . commentSlot)
-instance Has Databrary.Model.Volume.Types.VolumeRow Comment where
-  view = (view . commentSlot)
-instance Has Databrary.Model.Container.Types.Container Comment where
-  view = (view . commentSlot)
-instance Has Timestamp Comment where
-  view = commentTime
-instance Has Time.Day Comment where
-  view = (Time.utctDay . commentTime)
+-- instance Has Databrary.Model.Volume.Types.VolumeRow Comment where
+--   view = (view . commentSlot)
+-- instance Has Databrary.Model.Container.Types.Container Comment where
+--   view = (view . commentSlot)
+-- instance Has Timestamp Comment where
+--   view = commentTime
+-- instance Has Time.Day Comment where
+--   view = (Time.utctDay . commentTime)
 
 data CommentRow = CommentRow
   { commentRowId :: Id Comment

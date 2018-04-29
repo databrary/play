@@ -51,8 +51,8 @@ instance Kinded Volume where
 instance Has (Id Volume) VolumeRow where
   view = volumeId
 -- makeHasRec ''Volume ['volumeRow, 'volumePermission]
-instance Has VolumeRow Volume where
-  view = volumeRow
+-- instance Has VolumeRow Volume where
+--   view = volumeRow
 instance Has (Id Volume) Volume where
   view = (view . volumeRow)
 instance Has Permission Volume where

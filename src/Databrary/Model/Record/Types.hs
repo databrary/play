@@ -84,8 +84,8 @@ instance Has Category RecordRow where
 instance Has (Id Category) RecordRow where
   view = (view . recordCategory)
 
-instance Has RecordRow Record where
-  view = recordRow
+-- instance Has RecordRow Record where
+--   view = recordRow
 instance Has (Id Record) Record where
   view = (view . recordRow)
 instance Has Category Record where
@@ -98,8 +98,8 @@ instance Has Permission Record where
   view = (view . recordVolume)
 instance Has (Id Volume) Record where
   view = (view . recordVolume)
-instance Has VolumeRow Record where
-  view = (view . recordVolume)
+-- instance Has VolumeRow Record where
+--   view = (view . recordVolume)
 instance Has (Maybe Release) Record where
   view = recordRelease
 instance Has Release Record where
@@ -121,7 +121,7 @@ instance Has Record Measure where
 -- instance Has (Id Category) Measure where
 ---  view = view . measureRecord
 -- instance Has Permission Measure where
---   view = view . measureRecord
+--    view = view . measureRecord
 
 -- instance Has Metric Measure where
 --   view = measureMetric

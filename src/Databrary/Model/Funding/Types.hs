@@ -7,7 +7,7 @@ module Databrary.Model.Funding.Types
 import Data.Int (Int64)
 import qualified Data.Text as T
 
-import Databrary.Has (Has(..))
+-- import Databrary.Has (Has(..))
 import Databrary.Model.Kind
 import Databrary.Model.Id.Types
 
@@ -19,8 +19,8 @@ data Funder = Funder
   } deriving (Eq, Show)
 
 -- makeHasRec ''Funder ['funderId]
-instance Has (Id Funder) Funder where
-  view = funderId
+-- instance Has (Id Funder) Funder where
+--   view = funderId
 
 instance Kinded Funder where
   kindOf _ = "funder"
@@ -31,7 +31,7 @@ data Funding = Funding
   } deriving (Eq, Show)
 
 -- makeHasRec ''Funding ['fundingFunder]
-instance Has Funder Funding where
-  view = fundingFunder
-instance Has (Id Funder) Funding where
-  view = (view . fundingFunder)
+-- instance Has Funder Funding where
+--   view = fundingFunder
+-- instance Has (Id Funder) Funding where
+--   view = (view . fundingFunder)

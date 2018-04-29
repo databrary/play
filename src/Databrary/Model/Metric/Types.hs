@@ -28,7 +28,7 @@ import qualified Database.PostgreSQL.Typed.Enum
 import qualified Data.Aeson.Types
 import qualified Data.ByteString.Char8
 
-import Databrary.Has (Has(..))
+-- import Databrary.Has (Has(..))
 import Databrary.Model.Enum
 import Databrary.Model.Kind
 import Databrary.Model.Release.Types
@@ -114,18 +114,18 @@ instance Ord Metric where
   compare = comparing metricId
 
 -- makeHasRec ''Metric ['metricId, 'metricCategory, 'metricRelease, 'metricType]
-instance Has (Id Metric) Metric where
-  view = metricId
-instance Has Category Metric where
-  view = metricCategory
-instance Has (Id Category) Metric where
-  view = (view . metricCategory)
-instance Has (Maybe Release) Metric where
-  view = metricRelease
-instance Has Release Metric where
-  view = (view . metricRelease)
-instance Has MeasureType Metric where
-  view = metricType
+-- instance Has (Id Metric) Metric where
+--   view = metricId
+-- instance Has Category Metric where
+--   view = metricCategory
+-- instance Has (Id Category) Metric where
+--   view = (view . metricCategory)
+-- instance Has (Maybe Release) Metric where
+--   view = metricRelease
+-- instance Has Release Metric where
+--   view = (view . metricRelease)
+-- instance Has MeasureType Metric where
+--   view = metricType
 
 deriveLiftMany [''MeasureType, ''Metric]
 
