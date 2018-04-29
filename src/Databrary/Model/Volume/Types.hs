@@ -15,7 +15,7 @@ import qualified Data.Text as T
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import Language.Haskell.TH.Lift (deriveLiftMany)
 
-import Databrary.Has (makeHasRec)
+import Databrary.Has (Has(..)) -- makeHasRec)
 import Databrary.Model.Time
 import Databrary.Model.Kind
 import Databrary.Model.Permission.Types
@@ -47,8 +47,16 @@ data Volume = Volume
 instance Kinded Volume where
   kindOf _ = "volume"
 
-makeHasRec ''VolumeRow ['volumeId]
-makeHasRec ''Volume ['volumeRow, 'volumePermission]
+-- makeHasRec ''VolumeRow ['volumeId]
+instance Has (Id Volume) VolumeRow where
+  view = volumeId
+-- makeHasRec ''Volume ['volumeRow, 'volumePermission]
+instance Has VolumeRow Volume where
+  view = volumeRow
+instance Has (Id Volume) Volume where
+  view = (view . volumeRow)
+instance Has Permission Volume where
+  view = volumePermission
 deriveLiftMany [''VolumeRow, ''Volume]
 
 volumePermissionPolicy :: Volume -> (Permission, VolumeAccessPolicy)

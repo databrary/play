@@ -9,7 +9,7 @@ module Databrary.Has
   , focusLift
   , focusBase
   , focusIO
-  , makeHasRec
+  -- , makeHasRec
   ) where
 
 import Control.Monad (unless, liftM, liftM2)

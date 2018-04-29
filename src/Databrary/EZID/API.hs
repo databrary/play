@@ -29,6 +29,11 @@ import qualified Text.XML.Light as XML
 
 import Databrary.Ops
 import Databrary.Has
+import Databrary.Model.Id.Types
+import Databrary.Model.Identity.Types
+import Databrary.Model.Party.Types
+import Databrary.Model.Permission.Types
+import Databrary.Service.DB
 import Databrary.Service.Types
 import Databrary.Service.Log
 import Databrary.Context
@@ -42,7 +47,61 @@ data EZIDContext = EZIDContext
   , contextEZID :: !EZID
   }
 
-makeHasRec ''EZIDContext ['ezidContext, 'contextEZID]
+-- makeHasRec ''EZIDContext ['ezidContext, 'contextEZID]
+-- instance Has BackgroundContext EZIDContext where
+--   view = ezidContext
+instance Has Databrary.Model.Permission.Types.Access EZIDContext where
+  view = (view . ezidContext)
+instance Has (Databrary.Model.Id.Types.Id Databrary.Model.Party.Types.Party) EZIDContext where
+  view = (view . ezidContext)
+instance Has Databrary.Model.Party.Types.Party EZIDContext where
+   view = (view . ezidContext)
+instance Has Databrary.Model.Party.Types.SiteAuth EZIDContext where
+  view = (view . ezidContext)
+instance Has Databrary.Model.Identity.Types.Identity EZIDContext where
+  view = (view . ezidContext)
+instance Has Databrary.Service.DB.DBConn EZIDContext where
+  view = (view . ezidContext)
+-- instance Has Control.Monad.Trans.Resource.InternalState EZIDContext where
+--   view = (view . ezidContext)
+-- instance Has time-1.6.0.1:Data.Time.Calendar.Days.Day EZIDContext where
+--   view = (view . ezidContext)
+-- instance Has Databrary.Model.Time.Timestamp EZIDContext where
+--   view = (view . ezidContext)
+-- instance Has Secret EZIDContext where
+--   view = (view . ezidContext)
+-- instance Has Databrary.Service.Entropy.Entropy EZIDContext where
+--   view = (view . ezidContext)
+-- instance Has Databrary.Service.Passwd.Passwd EZIDContext where
+--   view = (view . ezidContext)
+instance Has Logs EZIDContext where
+  view = (view . ezidContext)
+-- instance Has Databrary.Service.Messages.Messages EZIDContext where
+--   view = (view . ezidContext)
+-- instance Has Databrary.Service.DB.DBPool EZIDContext where
+--   view = (view . ezidContext)
+-- instance Has Databrary.Store.Types.Storage EZIDContext where
+--   view = (view . ezidContext)
+-- instance Has Databrary.Store.AV.AV EZIDContext where
+--   view = (view . ezidContext)
+-- instance Has Databrary.Web.Types.Web EZIDContext where
+--   view = (view . ezidContext)
+instance Has HTTPClient EZIDContext where
+  view = (view . ezidContext)
+-- instance Has Databrary.Static.Service.Static EZIDContext where
+--   view = (view . ezidContext)
+-- instance Has Databrary.Ingest.Service.Ingest EZIDContext where
+--   view = (view . ezidContext)
+-- instance Has Databrary.Solr.Service.Solr EZIDContext where
+--   view = (view . ezidContext)
+-- instance Has Databrary.Service.Notification.Notifications EZIDContext where
+--   view = (view . ezidContext)
+-- instance Has Service EZIDContext where
+--   view = (view . ezidContext)
+-- instance Has Context EZIDContext where
+--   view = (view . ezidContext)
+instance Has EZID EZIDContext where
+  view = contextEZID
 
 type EZIDM a = CookiesT (ReaderT EZIDContext IO) a
 

@@ -15,7 +15,7 @@ import Data.ByteString (ByteString)
 import Data.Foldable (fold)
 import Data.Time (Day)
 
-import Databrary.Has (makeHasRec, Has(..))
+import Databrary.Has (Has(..))
 import Databrary.Model.Kind
 import Databrary.Model.Id.Types
 import Databrary.Model.Permission.Types
@@ -75,8 +75,36 @@ instance Kinded Measure where
 
 type Measures = [Measure]
 
-makeHasRec ''RecordRow ['recordId, 'recordCategory]
-makeHasRec ''Record ['recordRow, 'recordVolume, 'recordRelease]
+-- makeHasRec ''RecordRow ['recordId, 'recordCategory]
+-- makeHasRec ''Record ['recordRow, 'recordVolume, 'recordRelease]
+instance Has (Id Record) RecordRow where
+  view = recordId
+instance Has Category RecordRow where
+  view = recordCategory
+instance Has (Id Category) RecordRow where
+  view = (view . recordCategory)
+
+instance Has RecordRow Record where
+  view = recordRow
+instance Has (Id Record) Record where
+  view = (view . recordRow)
+instance Has Category Record where
+  view = (view . recordRow)
+instance Has (Id Category) Record where
+  view = (view . recordRow)
+instance Has Volume Record where
+  view = recordVolume
+instance Has Permission Record where
+  view = (view . recordVolume)
+instance Has (Id Volume) Record where
+  view = (view . recordVolume)
+instance Has VolumeRow Record where
+  view = (view . recordVolume)
+instance Has (Maybe Release) Record where
+  view = recordRelease
+instance Has Release Record where
+  view = (view . recordRelease)
+
 getRecordVolumePermission :: Record -> (Permission, VolumeAccessPolicy)
 getRecordVolumePermission = volumePermissionPolicy . recordVolume
 
