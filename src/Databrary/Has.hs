@@ -9,7 +9,6 @@ module Databrary.Has
   , focusLift
   , focusBase
   , focusIO
-  , makeHasFor
   , makeHasRec
   ) where
 
@@ -66,6 +65,7 @@ getFieldType tn fn = do
   unless (tn' == tn) $ fail $ show tn ++ "." ++ show fn ++ ": field from wrong type: " ++ show tn'
   return ft
 
+-- TODO: delete
 makeHasFor :: TH.Name -> [(TH.Name, TH.Type, [TH.Type])] -> TH.DecsQ
 makeHasFor tn fs = concat <$> mapM
   (\(fn, ft, ts) -> concatM
