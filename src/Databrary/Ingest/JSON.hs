@@ -59,8 +59,10 @@ loadSchema = do
   schema <- lift $ getDataFileName "volume.json"
   r <- lift $ withBinaryFile schema ReadMode (\h ->
     P.parseWith (BS.hGetSome h defaultChunkSize) J.json' BS.empty)
-  js <- ExceptT . return . left (return . T.pack) $ J.eitherJSON =<< P.eitherResult r
+  js <- ExceptT . return . left (return . T.pack) $ eitherJSON =<< P.eitherResult r
   ExceptT $ return $ left (map (T.pack . show)) $ JS.checkSchema (JS.SchemaCache js mempty) (JS.SchemaContext Nothing js)
+  where
+    eitherJSON = J.parseEither J.parseJSON
 
 throwPE :: T.Text -> IngestM a
 throwPE = JE.throwCustomError

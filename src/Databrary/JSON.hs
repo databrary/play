@@ -18,7 +18,7 @@ module Databrary.JSON
   , mapRecords
   , (.=:)
   , recordMap
-  , eitherJSON
+  -- , eitherJSON
   , Query
   , jsonQuery
   -- , escapeByteString
@@ -122,8 +122,8 @@ a .!? i = mapM parseJSON $ a V.!? i
 -- resultToEither (Error e) = Left e
 -- resultToEither (Success a) = Right a
 
-eitherJSON :: FromJSON a => Value -> Either String a
-eitherJSON = parseEither parseJSON  -- resultToEither . fromJSON
+-- eitherJSON :: FromJSON a => Value -> Either String a
+-- eitherJSON = parseEither parseJSON  -- resultToEither . fromJSON
 
 instance ToJSON BS.ByteString where
   toJSON = String . TE.decodeUtf8 -- questionable
