@@ -104,7 +104,7 @@ assetJSONField a "excerpts" _ =
 assetJSONField _ _ _ = return Nothing
 
 assetJSONQuery :: AssetSlot -> JSON.Query -> ActionM (JSON.Record (Id Asset) JSON.Series)
-assetJSONQuery o q = (assetSlotJSON False o JSON..<>) <$> JSON.jsonQuery (assetJSONField o) q 
+assetJSONQuery o q = (assetSlotJSON False o `JSON.foldObjectIntoRec`) <$> JSON.jsonQuery (assetJSONField o) q 
 -- public restricted should consult volume
 
 assetDownloadName :: Bool -> Bool -> AssetRow -> [T.Text]

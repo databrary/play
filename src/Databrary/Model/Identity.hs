@@ -30,7 +30,7 @@ maybeIdentity :: (MonadHasIdentity c m) => m a -> (Session -> m a) -> m a
 maybeIdentity u i = foldIdentity u i =<< peek
 
 identityJSON :: JSON.ToObject o => Identity -> JSON.Record (Id Party) o
-identityJSON i = partyJSON (view i) JSON..<>
-     "authorization" JSON..= accessSite i
+identityJSON i = partyJSON (view i) `JSON.foldObjectIntoRec`
+ (   "authorization" JSON..= accessSite i
   <> "csverf" `JSON.kvObjectOrEmpty` identityVerf i
-  <> "superuser" `JSON.kvObjectOrEmpty` (True <? identityAdmin i)
+  <> "superuser" `JSON.kvObjectOrEmpty` (True <? identityAdmin i))

@@ -136,7 +136,7 @@ tagWeightJSON TagWeight{..} = JSON.Record (tagName tagWeightTag) $
   "weight" JSON..= tagWeightWeight
 
 tagCoverageJSON :: JSON.ToObject o => TagCoverage -> JSON.Record TagName o
-tagCoverageJSON TagCoverage{..} = tagWeightJSON tagCoverageWeight JSON..<>
-     "coverage" JSON..= tagCoverageSegments
+tagCoverageJSON TagCoverage{..} = tagWeightJSON tagCoverageWeight `JSON.foldObjectIntoRec`
+ (   "coverage" JSON..= tagCoverageSegments
   <> "keyword" `JSON.kvObjectOrEmpty` (if null tagCoverageKeywords then empty else pure tagCoverageKeywords)
-  <> "vote"    `JSON.kvObjectOrEmpty` (if null tagCoverageVotes then empty else pure tagCoverageVotes)
+  <> "vote"    `JSON.kvObjectOrEmpty` (if null tagCoverageVotes then empty else pure tagCoverageVotes))

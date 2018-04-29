@@ -189,15 +189,15 @@ activityTargetJSON (ActivityAuthorize a) =
     authorizeJSON a)
 activityTargetJSON (ActivityVolume v) =
   ("volume", mempty, JSON.recordObject $
-    volumeRowJSON v JSON..<>
-      "alias" `JSON.kvObjectOrEmpty` volumeAlias v)
+    volumeRowJSON v `JSON.foldObjectIntoRec`
+      ("alias" `JSON.kvObjectOrEmpty` volumeAlias v))
 activityTargetJSON (ActivityAccess a) =
   ("access", "party" JSON..=: partyJSON (volumeAccessParty a),
     volumeAccessJSON a)
 activityTargetJSON (ActivityContainer c) =
   ("container", mempty, JSON.recordObject $
-    containerRowJSON False c JSON..<> -- False assumes edit level on volume for activity route
-      "date" `JSON.kvObjectOrEmpty` containerDate c)
+    containerRowJSON False c `JSON.foldObjectIntoRec` -- False assumes edit level on volume for activity route
+      ("date" `JSON.kvObjectOrEmpty` containerDate c))
 activityTargetJSON ActivityRelease{..} =
   ("release", segmentJSON $ slotSegmentId activitySlotId,
     "release" JSON..= activityRelease)
@@ -214,7 +214,9 @@ activityTargetJSON ActivityExcerpt{..} =
     "excerpt" `JSON.kvObjectOrEmpty` activityExcerptRelease)
 
 activityAssetJSON :: Asset -> JSON.Object
-activityAssetJSON a = JSON.recordObject $ assetJSON False a JSON..<> "name" `JSON.kvObjectOrEmpty` assetName (assetRow a) -- False assumes edit
+activityAssetJSON a =
+  JSON.recordObject $ assetJSON False a
+      `JSON.foldObjectIntoRec` ("name" `JSON.kvObjectOrEmpty` assetName (assetRow a)) -- False assumes edit
 
 activityJSON :: Activity -> Maybe JSON.Object
 activityJSON Activity{ activityAudit = Audit{..}, ..} = auditAction == AuditActionChange && HM.null new && HM.null old ?!>

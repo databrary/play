@@ -297,6 +297,6 @@ containerRowJSON publicRestricted ContainerRow{..} = JSON.Record containerId $
   <> "name" `JSON.kvObjectOrEmpty` if publicRestricted then (fmap maskRestrictedString containerName) else containerName
 
 containerJSON :: JSON.ToObject o => Bool -> Container -> JSON.Record (Id Container) o
-containerJSON publicRestricted c@Container{..} = containerRowJSON publicRestricted containerRow JSON..<>
-     "date" `JSON.kvObjectOrEmpty` formatContainerDate c
-  <> "release" `JSON.kvObjectOrEmpty` containerRelease
+containerJSON publicRestricted c@Container{..} = containerRowJSON publicRestricted containerRow `JSON.foldObjectIntoRec`
+ (   "date" `JSON.kvObjectOrEmpty` formatContainerDate c
+  <> "release" `JSON.kvObjectOrEmpty` containerRelease)

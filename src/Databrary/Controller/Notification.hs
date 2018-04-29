@@ -90,7 +90,10 @@ viewNotifications = action GET (pathJSON </< "notification") $ \() -> withAuth $
   nl <- lookupUserNotifications
   _ <- changeNotificationsDelivery (filter ((DeliverySite >) . notificationDelivered) nl) DeliverySite -- would be nice if it could be done as part of lookupNotifications
   msg <- peek
-  return $ okResponse [] $ JSON.mapRecords (\n -> notificationJSON n JSON..<> "html" JSON..= htmlNotification msg n) nl
+  return $ okResponse [] $
+    JSON.mapRecords
+      (\n -> notificationJSON n `JSON.foldObjectIntoRec` ("html" JSON..= htmlNotification msg n))
+      nl
 
 deleteNotification :: ActionRoute (Id Notification)
 deleteNotification = action DELETE (pathJSON >/> pathId) $ \i -> withAuth $ do

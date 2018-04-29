@@ -157,12 +157,12 @@ assetSlotName a =
   >> assetName (assetRow $ slotAsset a)
 
 assetSlotJSON :: JSON.ToObject o => Bool -> AssetSlot -> JSON.Record (Id Asset) o
-assetSlotJSON publicRestricted as@AssetSlot{..} = assetJSON publicRestricted slotAsset JSON..<>
-  foldMap (segmentJSON . slotSegment) assetSlot
+assetSlotJSON publicRestricted as@AssetSlot{..} = assetJSON publicRestricted slotAsset `JSON.foldObjectIntoRec`
+ (foldMap (segmentJSON . slotSegment) assetSlot
   --  "release" `JSON.kvObjectOrEmpty` (view as :: Maybe Release)
   <> "name" `JSON.kvObjectOrEmpty` (if publicRestricted then fmap maskRestrictedString (assetSlotName as) else assetSlotName as)
   <> "permission" JSON..= p
-  <> "size" `JSON.kvObjectOrEmpty` (z <? p > PermissionNONE && any (0 <=) z)
+  <> "size" `JSON.kvObjectOrEmpty` (z <? p > PermissionNONE && any (0 <=) z))
   where
   p = dataPermission3 getAssetSlotRelease2 getAssetSlotVolumePermission2 as
   z = assetSize $ assetRow slotAsset

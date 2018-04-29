@@ -51,7 +51,9 @@ slotJSONField getOrig o "assets" _ =
        True -> Just . JSON.mapRecords (assetSlotJSON False) <$> lookupOrigSlotAssets o -- public restricted consult volume soon
        False -> Just . JSON.mapRecords (assetSlotJSON False) <$> lookupSlotAssets o
 slotJSONField _ o "records" _ =  -- recordJSON should decide public restricted based on volume 
-  Just . JSON.mapRecords (\r -> recordSlotJSON False r JSON..<> "record" JSON..=: recordJSON False (slotRecord r)) <$> lookupSlotRecords o
+  Just . JSON.mapRecords
+    (\r ->
+       recordSlotJSON False r `JSON.foldObjectIntoRec` ("record" JSON..=: recordJSON False (slotRecord r))) <$> lookupSlotRecords o
 slotJSONField _ o "tags" n = do
   tc <- lookupSlotTagCoverage o (maybe 64 fst $ BSC.readInt =<< n)
   return $ Just $ JSON.pairs $ JSON.recordMap $ map tagCoverageJSON tc
@@ -65,7 +67,7 @@ slotJSONField _ o "filename" _ =
 slotJSONField _ _ _ _ = return Nothing
 
 slotJSONQuery :: Bool -> Slot -> JSON.Query -> ActionM (JSON.Record (Id Container) JSON.Series)
-slotJSONQuery origQ o q = (slotJSON o JSON..<>) <$> JSON.jsonQuery (slotJSONField origQ o) q
+slotJSONQuery origQ o q = (slotJSON o `JSON.foldObjectIntoRec`) <$> JSON.jsonQuery (slotJSONField origQ o) q
 
 slotDownloadName :: Slot -> [T.Text]
 slotDownloadName s = containerDownloadName (slotContainer s)

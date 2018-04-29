@@ -9,10 +9,10 @@ module Databrary.JSON
   , ToNestedObject(..)
   , (.=.)
   , kvObjectOrEmpty-- , (.=?)
-  , (.!)
+  , lookupAtParse-- , (.!)
   -- , (.!?)
   , Record(..)
-  , (.<>)
+  , foldObjectIntoRec -- , (.<>)
   , recordObject
   , recordEncoding
   , mapRecords
@@ -91,9 +91,9 @@ data Record k o = Record
   }
 
 -- fold object into key + object
-infixl 5 .<>
-(.<>) :: Monoid o => Record k o -> o -> Record k o
-Record key obj .<> obj2 = Record key $ obj <> obj2
+-- infixl 5 .<>
+foldObjectIntoRec :: Monoid o => Record k o -> o -> Record k o
+Record key obj `foldObjectIntoRec` obj2 = Record key $ obj <> obj2
 
 recordObject :: (ToJSON k, ToObject o) => Record k o -> o
 recordObject (Record k o) = ("id" .= k) <> o
@@ -113,8 +113,8 @@ recordMap = foldMap (\r -> tt (toJSON $ recordKey r) .=. recordObject r) where
   tt (String t) = t
   tt v = TL.toStrict $ TLB.toLazyText $ encodeToTextBuilder v
 
-(.!) :: FromJSON a => Array -> Int -> Parser a
-a .! i = maybe (fail $ "index " ++ show i ++ " out of range") parseJSON $ a V.!? i
+lookupAtParse :: FromJSON a => Array -> Int -> Parser a
+a `lookupAtParse` i = maybe (fail $ "index " ++ show i ++ " out of range") parseJSON $ a V.!? i
 
 -- (.!?) :: FromJSON a => Array -> Int -> Parser (Maybe a)
 -- a .!? i = mapM parseJSON $ a V.!? i

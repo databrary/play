@@ -105,10 +105,10 @@ partyRowJSON PartyRow{..} = JSON.Record partyId $
   <> "url" `JSON.kvObjectOrEmpty` partyURL
 
 partyJSON :: JSON.ToObject o => Party -> JSON.Record (Id Party) o
-partyJSON p@Party{..} = partyRowJSON partyRow JSON..<>
-     "institution" `JSON.kvObjectOrEmpty` (True <? isNothing partyAccount)
+partyJSON p@Party{..} = partyRowJSON partyRow `JSON.foldObjectIntoRec`
+ (   "institution" `JSON.kvObjectOrEmpty` (True <? isNothing partyAccount)
   <> "email" `JSON.kvObjectOrEmpty` partyEmail p
-  <> "permission" `JSON.kvObjectOrEmpty` (partyPermission <? partyPermission > PermissionREAD)
+  <> "permission" `JSON.kvObjectOrEmpty` (partyPermission <? partyPermission > PermissionREAD))
 
 changeParty :: MonadAudit c m => Party -> m ()
 changeParty p = do
