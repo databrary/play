@@ -192,5 +192,5 @@ commentJSON Comment{ commentSlot = Slot{..}, ..} = JSON.Record commentId $
   <> "who" JSON..=: partyJSON (accountParty commentWho)
   <> "time" JSON..= commentTime
   <> "text" JSON..= commentText
-  <> "parents" JSON..=? (if null commentParents then empty else pure commentParents)
+  <> "parents" `JSON.kvObjectOrEmpty` (if null commentParents then empty else pure commentParents)
    

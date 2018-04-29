@@ -99,16 +99,16 @@ partyEmail p =
 partyRowJSON :: JSON.ToObject o => PartyRow -> JSON.Record (Id Party) o
 partyRowJSON PartyRow{..} = JSON.Record partyId $
      "sortname" JSON..= partySortName
-  <> "prename" JSON..=? partyPreName
-  <> "orcid" JSON..=? (show <$> partyORCID)
-  <> "affiliation" JSON..=? partyAffiliation
-  <> "url" JSON..=? partyURL
+  <> "prename" `JSON.kvObjectOrEmpty` partyPreName
+  <> "orcid" `JSON.kvObjectOrEmpty` (show <$> partyORCID)
+  <> "affiliation" `JSON.kvObjectOrEmpty` partyAffiliation
+  <> "url" `JSON.kvObjectOrEmpty` partyURL
 
 partyJSON :: JSON.ToObject o => Party -> JSON.Record (Id Party) o
-partyJSON p@Party{..} = partyRowJSON partyRow JSON..<>
-     "institution" JSON..=? (True <? isNothing partyAccount)
-  <> "email" JSON..=? partyEmail p
-  <> "permission" JSON..=? (partyPermission <? partyPermission > PermissionREAD)
+partyJSON p@Party{..} = partyRowJSON partyRow `JSON.foldObjectIntoRec`
+ (   "institution" `JSON.kvObjectOrEmpty` (True <? isNothing partyAccount)
+  <> "email" `JSON.kvObjectOrEmpty` partyEmail p
+  <> "permission" `JSON.kvObjectOrEmpty` (partyPermission <? partyPermission > PermissionREAD))
 
 changeParty :: MonadAudit c m => Party -> m ()
 changeParty p = do

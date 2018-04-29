@@ -124,7 +124,7 @@ viewUserAction :: ActionM Response
 viewUserAction = do
   i <- peeks identityJSON
   q <- JSON.jsonQuery userJSONField =<< peeks Wai.queryString
-  return $ okResponse [] (i JSON..<> q)
+  return $ okResponse [] (i `JSON.foldObjectIntoRec` q)
 
 postUser :: ActionRoute API -- TODO: remove when 
 postUser = action POST (pathAPI </< "user") $ \api -> withAuth $ postUserAction api

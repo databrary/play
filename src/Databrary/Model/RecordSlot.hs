@@ -99,11 +99,11 @@ recordSlotAge rs@RecordSlot{..} =
 recordSlotJSON :: JSON.ToObject o => Bool -> RecordSlot -> JSON.Record (Id Record) o
 recordSlotJSON _ rs@RecordSlot{..} = JSON.Record (recordId $ recordRow slotRecord) $
      segmentJSON (slotSegment recordSlot)
-  <> "age" JSON..=? recordSlotAge rs
+  <> "age" `JSON.kvObjectOrEmpty` recordSlotAge rs
 
 {-
 recordSlotJSONRestricted :: JSON.ToObject o => RecordSlot -> JSON.Record (Id Record) o
 recordSlotJSONRestricted rs@RecordSlot{..} = JSON.Record (recordId $ recordRow slotRecord) $
      segmentJSON (slotSegment recordSlot)
-  <> "age" JSON..=? recordSlotAge rs -- allow age to pass through so that summary can be computed
+  <> "age" `JSON.kvObjectOrEmpty` recordSlotAge rs -- allow age to pass through so that summary can be computed
 -}

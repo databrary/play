@@ -87,5 +87,5 @@ postVolumeAccess = action POST (pathAPI </> pathId </> pathVolumeAccessTarget) $
           , notificationPermission = Just $ volumeAccessIndividual a'
           }
   case api of
-    JSON -> return $ okResponse [] $ JSON.objectEncoding $ volumeAccessPartyJSON (if r then a' else a)
+    JSON -> return $ okResponse [] $ JSON.pairs $ volumeAccessPartyJSON (if r then a' else a)
     HTML -> peeks $ otherRouteResponse [] viewVolumeAccess arg

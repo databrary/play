@@ -41,7 +41,7 @@ parseCitation = JSON.withObject "citation" $ \o ->
   Citation
     <$> o JSON..:? "head" JSON..!= ""
     <*> (Just <$> (o JSON..: "DOI" >>= parseDOI))
-    <*> optional (o JSON..: "issued" >>= (JSON..: "date-parts") >>= (JSON..! 0) >>= (JSON..! 0))
+    <*> optional (o JSON..: "issued" >>= (JSON..: "date-parts") >>= (`JSON.lookupAtParse` 0) >>= (`JSON.lookupAtParse` 0))
     <*> o JSON..:? "title"
   where
   parseDOI d = hdlURL d <? validHDL d

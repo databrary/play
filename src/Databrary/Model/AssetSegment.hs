@@ -152,10 +152,10 @@ auditAssetSegmentDownload success AssetSegment{ segmentAsset = AssetSlot{ slotAs
 assetSegmentJSON :: JSON.ToObject o => AssetSegment -> o
 assetSegmentJSON as@AssetSegment{..} =
      "segment" JSON..= assetSegment
-  <> "format" JSON..=? (if view segmentAsset == fmt then empty else pure (formatId fmt))
-  -- "release" JSON..=? (view as :: Maybe Release)
+  <> "format" `JSON.kvObjectOrEmpty` (if view segmentAsset == fmt then empty else pure (formatId fmt))
+  -- "release" `JSON.kvObjectOrEmpty` (view as :: Maybe Release)
   <> "permission" JSON..= dataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as
-  <> "excerpt" JSON..=? (excerptRelease <$> assetExcerpt)
+  <> "excerpt" `JSON.kvObjectOrEmpty` (excerptRelease <$> assetExcerpt)
   where fmt = view as
 
 assetSegmentInterp :: Float -> AssetSegment -> AssetSegment

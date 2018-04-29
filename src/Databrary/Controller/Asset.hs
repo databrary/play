@@ -96,15 +96,15 @@ assetJSONField a "container" _ =
   return $ JSON.recordEncoding . containerJSON False . slotContainer <$> assetSlot a -- containerJSON should consult volume
 assetJSONField a "creation" _ | ((fst . getAssetSlotVolumePermission2) a) >= PermissionEDIT = do
   (t, n) <- assetCreation $ slotAsset a
-  return $ Just $ JSON.objectEncoding $
-       "date" JSON..=? t
-    <> "name" JSON..=? n
+  return $ Just $ JSON.pairs $
+       "date" `JSON.kvObjectOrEmpty` t
+    <> "name" `JSON.kvObjectOrEmpty` n
 assetJSONField a "excerpts" _ =
   Just . JSON.mapObjects excerptJSON <$> lookupAssetExcerpts a
 assetJSONField _ _ _ = return Nothing
 
 assetJSONQuery :: AssetSlot -> JSON.Query -> ActionM (JSON.Record (Id Asset) JSON.Series)
-assetJSONQuery o q = (assetSlotJSON False o JSON..<>) <$> JSON.jsonQuery (assetJSONField o) q 
+assetJSONQuery o q = (assetSlotJSON False o `JSON.foldObjectIntoRec`) <$> JSON.jsonQuery (assetJSONField o) q 
 -- public restricted should consult volume
 
 assetDownloadName :: Bool -> Bool -> AssetRow -> [T.Text]

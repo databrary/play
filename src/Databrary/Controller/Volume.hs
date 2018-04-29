@@ -167,8 +167,9 @@ volumeJSONField vol "containers" mContainersVal = do
       ajs c (a, SlotId _ s) = JSON.recordObject $ (assetSlotJSON publicRestricted) $ AssetSlot a (Just (Slot c s))
   return $ Just $ JSON.mapRecords (\((c, rl), al) ->
       containerJSON publicRestricted c
-      JSON..<> (if records then JSON.nestObject "records" (\u -> map (u . rjs c) rl) else mempty)
-            <> (if assets  then JSON.nestObject "assets"  (\u -> map (u . ajs c) al) else mempty))
+      `JSON.foldObjectIntoRec`
+            (   (if records then JSON.nestObject "records" (\u -> map (u . rjs c) rl) else mempty)
+             <> (if assets  then JSON.nestObject "assets"  (\u -> map (u . ajs c) al) else mempty)))
     cl'
   where
   full = mContainersVal == Just "all"
@@ -189,7 +190,7 @@ volumeJSONField vol "metrics" _ =
 volumeJSONField vol "excerpts" _ = do
   Just . JSON.mapObjects (\e -> excerptJSON e
     <> "asset" JSON..=: (assetSlotJSON False (view e) -- should publicRestricted be set based on volume?
-      JSON..<> "container" JSON..= (view e :: Id Container)))
+      `JSON.foldObjectIntoRec` ("container" JSON..= (view e :: Id Container))))
     <$> lookupVolumeExcerpts vol
 volumeJSONField vol "tags" n = do
   t <- cacheVolumeTopContainer vol
@@ -210,7 +211,7 @@ volumeJSONQuery vol mAccesses q =
   let seriesCaching :: StateT VolumeCache ActionM JSON.Series
       seriesCaching = JSON.jsonQuery (volumeJSONField vol) q
       expandedVolJSONcaching :: StateT VolumeCache ActionM (JSON.Record (Id Volume) JSON.Series)
-      expandedVolJSONcaching = (\series -> volumeJSON vol mAccesses JSON..<> series) <$> seriesCaching
+      expandedVolJSONcaching = (\series -> volumeJSON vol mAccesses `JSON.foldObjectIntoRec` series) <$> seriesCaching
   in
     runVolumeCache $ expandedVolJSONcaching
 
@@ -290,7 +291,9 @@ postVolume = action POST (pathAPI </> pathId) $ \arg@(api, vi) -> withAuth $ do
   changeVolume v'
   r <- changeVolumeCitation v' cite'
   case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v' JSON..<> "citation" JSON..= if r then cite' else cite
+    JSON ->
+      return $ okResponse [] $
+        JSON.recordEncoding $ volumeJSONSimple v' `JSON.foldObjectIntoRec` ("citation" JSON..= if r then cite' else cite)
     HTML -> peeks $ otherRouteResponse [] viewVolume arg
 
 createVolume :: ActionRoute API
@@ -346,7 +349,8 @@ postVolumeLinks = action POST (pathAPI </> pathId </< "link") $ \arg@(api, vi) -
       <*> pure Nothing
   changeVolumeLinks v links'
   case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v JSON..<> "links" JSON..= links'
+    JSON ->
+      return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v `JSON.foldObjectIntoRec` ("links" JSON..= links')
     HTML -> peeks $ otherRouteResponse [] viewVolume arg
 
 postVolumeAssist :: ActionRoute (Id Volume)

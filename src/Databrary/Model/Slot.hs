@@ -31,4 +31,4 @@ auditSlotDownload success Slot{ slotContainer = c, slotSegment = seg } = do
 
 slotJSON :: JSON.ToObject o => Slot -> JSON.Record (Id Container) o
 slotJSON Slot{..} = containerJSON False slotContainer -- probably add bool to slotJSON
-  JSON..<> segmentJSON slotSegment
+  `JSON.foldObjectIntoRec` (segmentJSON slotSegment)

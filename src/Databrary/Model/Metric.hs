@@ -889,13 +889,13 @@ metricJSON :: JSON.ToObject o => Metric -> JSON.Record (Id Metric) o
 metricJSON m@Metric{..} = JSON.Record metricId $
      "category" JSON..= categoryId metricCategory
   <> "name" JSON..= metricName
-  <> "release" JSON..=? metricRelease
+  <> "release" `JSON.kvObjectOrEmpty` metricRelease
   <> "type" JSON..= show metricType
-  <> "options" JSON..=? (if null metricOptions then empty else pure metricOptions)
-  <> "assumed" JSON..=? metricAssumed
-  <> "long" JSON..=? (True <? metricLong m)
-  <> "description" JSON..=? metricDescription
-  <> "required" JSON..=? metricRequired
+  <> "options" `JSON.kvObjectOrEmpty` (if null metricOptions then empty else pure metricOptions)
+  <> "assumed" `JSON.kvObjectOrEmpty` metricAssumed
+  <> "long" `JSON.kvObjectOrEmpty` (True <? metricLong m)
+  <> "description" `JSON.kvObjectOrEmpty` metricDescription
+  <> "required" `JSON.kvObjectOrEmpty` metricRequired
 
 {- schema synchronization:
 20160201-nih_race

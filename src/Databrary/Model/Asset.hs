@@ -332,9 +332,9 @@ assetCreation a = maybe (Nothing, Nothing) (first Just) <$>
 assetRowJSON :: JSON.ToObject o => AssetRow -> JSON.Record (Id Asset) o
 assetRowJSON AssetRow{..} = JSON.Record assetId $
      "format" JSON..= formatId assetFormat
-  <> "classification" JSON..=? assetRelease
-  <> "duration" JSON..=? assetDuration
-  <> "pending" JSON..=? (isNothing assetSize <? isNothing assetSHA1)
+  <> "classification" `JSON.kvObjectOrEmpty` assetRelease
+  <> "duration" `JSON.kvObjectOrEmpty` assetDuration
+  <> "pending" `JSON.kvObjectOrEmpty` (isNothing assetSize <? isNothing assetSHA1)
 
 assetJSON :: JSON.ToObject o => Bool -> Asset -> JSON.Record (Id Asset) o
 assetJSON _ Asset{..} = assetRowJSON assetRow -- first parameter is publicRestricted

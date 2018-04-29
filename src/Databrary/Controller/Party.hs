@@ -78,8 +78,8 @@ partyJSONField p "parents" o = do
     let ap = authorizeParent (authorization a)
     acc <- if auth && authorizeActive a now then Just . accessSite <$> lookupAuthorization ap rootParty else return Nothing
     return $ (if admin then authorizeJSON a else mempty)
-      <> "party" JSON..=: (partyJSON ap JSON..<> "authorization" JSON..=? acc)
-      <> "expired" JSON..=? (True <? admin && authorizeExpired a now))
+      <> "party" JSON..=: (partyJSON ap `JSON.foldObjectIntoRec` ("authorization" `JSON.kvObjectOrEmpty` acc))
+      <> "expired" `JSON.kvObjectOrEmpty` (True <? admin && authorizeExpired a now))
     =<< lookupAuthorizedParents p (admin ?!> PermissionNONE)
   where
   admin = view p >= PermissionADMIN
@@ -98,7 +98,9 @@ partyJSONField p "volumes" o = (?$>) (view p >= PermissionADMIN) $ do
     | o == Just "access" = do
       a <- lookupVolumeAccess v (succ PermissionNONE)
       accesses <- lookupVolumeAccess v PermissionNONE  -- TODO: why different perm level
-      return $ volumeJSON v (Just accesses) JSON..<> JSON.nestObject "access" (\u -> map (u . volumeAccessPartyJSON) a)
+      return $
+        volumeJSON v (Just accesses) `JSON.foldObjectIntoRec`
+          (JSON.nestObject "access" (\u -> map (u . volumeAccessPartyJSON) a))
     | otherwise = return $ volumeJSONSimple v
 partyJSONField p "access" ma = do
   Just . JSON.mapObjects volumeAccessVolumeJSON
@@ -108,7 +110,7 @@ partyJSONField p "authorization" _ = do
 partyJSONField _ _ _ = return Nothing
 
 partyJSONQuery :: Party -> JSON.Query -> ActionM (JSON.Record (Id Party) JSON.Series)
-partyJSONQuery p q = (partyJSON p JSON..<>) <$> JSON.jsonQuery (partyJSONField p) q
+partyJSONQuery p q = (partyJSON p `JSON.foldObjectIntoRec`) <$> JSON.jsonQuery (partyJSONField p) q
 
 viewParty :: ActionRoute (API, PartyTarget)
 viewParty = action GET (pathAPI </> pathPartyTarget) $ \(api, i) -> withAuth $ do
