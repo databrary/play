@@ -95,7 +95,7 @@ infixl 5 .<>
 Record key obj .<> obj2 = Record key $ obj <> obj2
 
 recordObject :: (ToJSON k, ToObject o) => Record k o -> o
-recordObject (Record k o) = "id" .= k <> o
+recordObject (Record k o) = ("id" .= k) <> o
 
 recordEncoding :: ToJSON k => Record k Series -> Encoding
 recordEncoding = pairs . recordObject
