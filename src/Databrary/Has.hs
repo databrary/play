@@ -4,19 +4,19 @@ module Databrary.Has
   , MonadHas
   , peek
   , peeks
-  , focusReaderT
-  , focusReader
-  , focusLift
-  , focusBase
+--  , focusReaderT
+--  , focusReader
+--  , focusLift
+--  , focusBase
   , focusIO
   -- , makeHasRec
   ) where
 
 -- import Control.Monad (unless, liftM, liftM2)
-import Control.Monad.Base (MonadBase(..))
+-- import Control.Monad.Base (MonadBase(..))
 import Control.Monad.IO.Class (MonadIO(..))
-import Control.Monad.Reader (MonadReader, ReaderT(..), reader, withReaderT)
-import Control.Monad.Trans.Class (MonadTrans(..))
+import Control.Monad.Reader (MonadReader, ReaderT(..), reader) --, withReaderT)
+-- import Control.Monad.Trans.Class (MonadTrans(..))
 -- import qualified Language.Haskell.TH as TH
 
 class Has a c where
@@ -35,14 +35,17 @@ peek = reader view
 peeks :: (MonadReader c m, Has a c) => (a -> b) -> m b
 peeks f = reader (f . view)
 
+{-
 {-# INLINE focusReaderT #-}
 focusReaderT :: Has a c => ReaderT a m r -> ReaderT c m r
 focusReaderT = withReaderT view
+-}
 
 {-# INLINE focusReader #-}
 focusReader :: Has a c => (a -> m b) -> ReaderT c m b
 focusReader f = ReaderT (f . view)
 
+{-
 {-# INLINE[2] focusLift #-}
 focusLift :: (MonadTrans t, Monad m, MonadHas a c (t m)) => (a -> m b) -> t m b
 focusLift f = lift . f =<< peek
@@ -50,13 +53,14 @@ focusLift f = lift . f =<< peek
 {-# INLINE[2] focusBase #-}
 focusBase :: (MonadBase t m, MonadHas a c m) => (a -> t b) -> m b
 focusBase f = liftBase . f =<< peek
+-}
 
 {-# INLINE[2] focusIO #-}
 focusIO :: (MonadIO m, MonadHas a c m) => (a -> IO b) -> m b
 focusIO f = liftIO . f =<< peek
 
-{-# RULES "focusLift/ReaderT" focusLift = focusReader #-}
-{-# RULES "focusBase/ReaderT" focusBase = focusReader #-}
+-- {-# RULES "focusLift/ReaderT" focusLift = focusReader #-}
+-- {-# RULES "focusBase/ReaderT" focusBase = focusReader #-}
 {-# RULES "focusIO/ReaderT" focusIO = focusReader #-}
 
 {-
