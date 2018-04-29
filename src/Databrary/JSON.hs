@@ -4,13 +4,13 @@ module Databrary.JSON
   ( module Data.Aeson
   , module Data.Aeson.Types
   , ToObject
-  -- , objectEncoding
+  -- -- , objectEncoding
   , mapObjects
   , ToNestedObject(..)
   , (.=.)
   , (.=?)
   , (.!)
-  , (.!?)
+  -- , (.!?)
   , Record(..)
   , (.<>)
   , recordObject
@@ -18,10 +18,10 @@ module Databrary.JSON
   , mapRecords
   , (.=:)
   , recordMap
-  -- , eitherJSON
+  -- -- , eitherJSON
   , Query
   , jsonQuery
-  -- , escapeByteString
+  -- -- , escapeByteString
   ) where
 
 import Data.Aeson
@@ -115,8 +115,8 @@ recordMap = foldMap (\r -> tt (toJSON $ recordKey r) .=. recordObject r) where
 (.!) :: FromJSON a => Array -> Int -> Parser a
 a .! i = maybe (fail $ "index " ++ show i ++ " out of range") parseJSON $ a V.!? i
 
-(.!?) :: FromJSON a => Array -> Int -> Parser (Maybe a)
-a .!? i = mapM parseJSON $ a V.!? i
+-- (.!?) :: FromJSON a => Array -> Int -> Parser (Maybe a)
+-- a .!? i = mapM parseJSON $ a V.!? i
 
 -- resultToEither :: Result a -> Either String a
 -- resultToEither (Error e) = Left e
