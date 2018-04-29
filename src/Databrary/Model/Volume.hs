@@ -83,13 +83,13 @@ volumeRowJSON VolumeRow{..} = JSON.Record volumeId $
 volumeJSON :: JSON.ToObject o => Volume -> Maybe [VolumeAccess] -> JSON.Record (Id Volume) o
 volumeJSON v@Volume{..} mAccesses =
     volumeRowJSON volumeRow JSON..<>
-       "doi" JSON..=? volumeDOI volumeRow
-    <> "alias" JSON..=? getVolumeAlias v
+       "doi" `JSON.kvObjectOrEmpty` volumeDOI volumeRow
+    <> "alias" `JSON.kvObjectOrEmpty` getVolumeAlias v
     <> "creation" JSON..= volumeCreation
     <> "owners" JSON..= map (\(i, n) -> JSON.Object $ "id" JSON..= i <> "name" JSON..= n) volumeOwners
     <> "permission" JSON..= volumePermission
     <> "publicsharefull" JSON..= volumeAccessPolicyJSON v
-    <> "publicaccess" JSON..=? fmap (show . volumePublicAccessSummary) mAccesses
+    <> "publicaccess" `JSON.kvObjectOrEmpty` fmap (show . volumePublicAccessSummary) mAccesses
 
 volumeJSONSimple :: JSON.ToObject o => Volume -> JSON.Record (Id Volume) o
 volumeJSONSimple v = volumeJSON v Nothing

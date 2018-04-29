@@ -97,8 +97,8 @@ assetJSONField a "container" _ =
 assetJSONField a "creation" _ | ((fst . getAssetSlotVolumePermission2) a) >= PermissionEDIT = do
   (t, n) <- assetCreation $ slotAsset a
   return $ Just $ JSON.pairs $
-       "date" JSON..=? t
-    <> "name" JSON..=? n
+       "date" `JSON.kvObjectOrEmpty` t
+    <> "name" `JSON.kvObjectOrEmpty` n
 assetJSONField a "excerpts" _ =
   Just . JSON.mapObjects excerptJSON <$> lookupAssetExcerpts a
 assetJSONField _ _ _ = return Nothing

@@ -190,20 +190,20 @@ activityTargetJSON (ActivityAuthorize a) =
 activityTargetJSON (ActivityVolume v) =
   ("volume", mempty, JSON.recordObject $
     volumeRowJSON v JSON..<>
-      "alias" JSON..=? volumeAlias v)
+      "alias" `JSON.kvObjectOrEmpty` volumeAlias v)
 activityTargetJSON (ActivityAccess a) =
   ("access", "party" JSON..=: partyJSON (volumeAccessParty a),
     volumeAccessJSON a)
 activityTargetJSON (ActivityContainer c) =
   ("container", mempty, JSON.recordObject $
     containerRowJSON False c JSON..<> -- False assumes edit level on volume for activity route
-      "date" JSON..=? containerDate c)
+      "date" `JSON.kvObjectOrEmpty` containerDate c)
 activityTargetJSON ActivityRelease{..} =
   ("release", segmentJSON $ slotSegmentId activitySlotId,
     "release" JSON..= activityRelease)
 activityTargetJSON (ActivityAsset a) =
   ("asset", "id" JSON..= assetId a,
-    "classification" JSON..=? assetRelease a <> "name" JSON..=? assetName a)
+    "classification" `JSON.kvObjectOrEmpty` assetRelease a <> "name" `JSON.kvObjectOrEmpty` assetName a)
 activityTargetJSON (ActivityAssetSlot a s) =
   ("asset", "id" JSON..= a,
     segmentJSON $ slotSegmentId s)
@@ -211,10 +211,10 @@ activityTargetJSON (ActivityAssetAndSlot a s) = (n, i, o <> segmentJSON (slotSeg
   (n, i, o) = activityTargetJSON (ActivityAsset a)
 activityTargetJSON ActivityExcerpt{..} =
   ("excerpt", "id" JSON..= activityAssetId <> segmentJSON activitySegment,
-    "excerpt" JSON..=? activityExcerptRelease)
+    "excerpt" `JSON.kvObjectOrEmpty` activityExcerptRelease)
 
 activityAssetJSON :: Asset -> JSON.Object
-activityAssetJSON a = JSON.recordObject $ assetJSON False a JSON..<> "name" JSON..=? assetName (assetRow a) -- False assumes edit
+activityAssetJSON a = JSON.recordObject $ assetJSON False a JSON..<> "name" `JSON.kvObjectOrEmpty` assetName (assetRow a) -- False assumes edit
 
 activityJSON :: Activity -> Maybe JSON.Object
 activityJSON Activity{ activityAudit = Audit{..}, ..} = auditAction == AuditActionChange && HM.null new && HM.null old ?!>
@@ -224,9 +224,9 @@ activityJSON Activity{ activityAudit = Audit{..}, ..} = auditAction == AuditActi
     <> "ip" JSON..= show (auditIp auditIdentity)
     <> "user" JSON..= auditWho auditIdentity
     <> "type" JSON..= typ
-    <> "old" JSON..=? (if HM.null old then empty else pure old)
-    <> "replace" JSON..=? (activityAssetJSON <$> activityReplace)
-    <> "transcode" JSON..=? (activityAssetJSON <$> activityTranscode)
+    <> "old" `JSON.kvObjectOrEmpty` (if HM.null old then empty else pure old)
+    <> "replace" `JSON.kvObjectOrEmpty` (activityAssetJSON <$> activityReplace)
+    <> "transcode" `JSON.kvObjectOrEmpty` (activityAssetJSON <$> activityTranscode)
   where
   (new, old)
     | auditAction == AuditActionRemove

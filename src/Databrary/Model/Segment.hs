@@ -140,7 +140,7 @@ segmentInterp f (Segment r)
   where l = fromMaybe 0 $ lowerBound r
 
 segmentJSON :: JSON.ToObject o => Segment -> o
-segmentJSON s = "segment" JSON..=? (if segmentFull s then empty else pure s)
+segmentJSON s = "segment" `JSON.kvObjectOrEmpty` (if segmentFull s then empty else pure s)
 
 segmentSetDuration :: Offset -> Segment -> Segment
 segmentSetDuration o (Segment (Range.Range lb@(Range.Lower (Range.Bounded _ l)) (Range.Upper ub))) =

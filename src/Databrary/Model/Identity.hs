@@ -32,5 +32,5 @@ maybeIdentity u i = foldIdentity u i =<< peek
 identityJSON :: JSON.ToObject o => Identity -> JSON.Record (Id Party) o
 identityJSON i = partyJSON (view i) JSON..<>
      "authorization" JSON..= accessSite i
-  <> "csverf" JSON..=? identityVerf i
-  <> "superuser" JSON..=? (True <? identityAdmin i)
+  <> "csverf" `JSON.kvObjectOrEmpty` identityVerf i
+  <> "superuser" `JSON.kvObjectOrEmpty` (True <? identityAdmin i)

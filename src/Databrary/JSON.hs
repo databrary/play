@@ -8,7 +8,7 @@ module Databrary.JSON
   , mapObjects
   , ToNestedObject(..)
   , (.=.)
-  , (.=?)
+  , kvObjectOrEmpty-- , (.=?)
   , (.!)
   -- , (.!?)
   , Record(..)
@@ -79,10 +79,11 @@ infixr 8 .=.
 (.=.) :: ToNestedObject o u => T.Text -> o -> o
 k .=. v = nestObject k (\f -> f v)
 
-infixr 8 .=?
-(.=?) :: (ToObject o, ToJSON v) => T.Text -> Maybe v -> o
-_ .=? Nothing = mempty
-k .=? (Just v) = k .= v
+-- infixr 8 .=?
+-- (.=?) :: (ToObject o, ToJSON v) => T.Text -> Maybe v -> o
+kvObjectOrEmpty :: (ToObject o, ToJSON v) => T.Text -> Maybe v -> o
+_ `kvObjectOrEmpty` Nothing = mempty
+k `kvObjectOrEmpty` (Just v) = k .= v
 
 data Record k o = Record
   { recordKey :: !k

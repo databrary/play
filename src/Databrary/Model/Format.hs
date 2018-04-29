@@ -205,7 +205,7 @@ formatSample f
 formatJSON :: JSON.ToObject o => Format -> JSON.Record (Id Format) o
 formatJSON f = JSON.Record (formatId f) $
      "mimetype" JSON..= formatMimeType f
-  <> "extension" JSON..=? listToMaybe (formatExtension f)
+  <> "extension" `JSON.kvObjectOrEmpty` listToMaybe (formatExtension f)
   <> "name" JSON..= formatName f
-  <> "transcodable" JSON..=? (formatId <$> formatTranscodable f)
+  <> "transcodable" `JSON.kvObjectOrEmpty` (formatId <$> formatTranscodable f)
   -- TODO: description

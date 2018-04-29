@@ -107,11 +107,11 @@ notificationJSON Notification{..} = JSON.Record notificationId $
   <> "time" JSON..= notificationTime
   <> "delivered" JSON..= notificationDelivered
   <> "agent" JSON..=. JSON.recordObject ({-on (==) partyId notificationAgent (partyRow (accountParty notificationTarget)) ?!>-} partyRowJSON notificationAgent)
-  <> "party" JSON..=? (partyId <$> notificationParty)
-  <> "permission" JSON..=? notificationPermission
-  <> "volume" JSON..=? (volumeId <$> notificationVolume)
-  <> "container" JSON..=? notificationContainerId
-  <> "segment" JSON..=? notificationSegment
-  <> "asset" JSON..=? notificationAssetId
-  <> "comment" JSON..=? notificationCommentId
-  <> "tag" JSON..=? (tagName <$> notificationTag)
+  <> "party" `JSON.kvObjectOrEmpty` (partyId <$> notificationParty)
+  <> "permission" `JSON.kvObjectOrEmpty` notificationPermission
+  <> "volume" `JSON.kvObjectOrEmpty` (volumeId <$> notificationVolume)
+  <> "container" `JSON.kvObjectOrEmpty` notificationContainerId
+  <> "segment" `JSON.kvObjectOrEmpty` notificationSegment
+  <> "asset" `JSON.kvObjectOrEmpty` notificationAssetId
+  <> "comment" `JSON.kvObjectOrEmpty` notificationCommentId
+  <> "tag" `JSON.kvObjectOrEmpty` (tagName <$> notificationTag)

@@ -78,8 +78,8 @@ partyJSONField p "parents" o = do
     let ap = authorizeParent (authorization a)
     acc <- if auth && authorizeActive a now then Just . accessSite <$> lookupAuthorization ap rootParty else return Nothing
     return $ (if admin then authorizeJSON a else mempty)
-      <> "party" JSON..=: (partyJSON ap JSON..<> "authorization" JSON..=? acc)
-      <> "expired" JSON..=? (True <? admin && authorizeExpired a now))
+      <> "party" JSON..=: (partyJSON ap JSON..<> "authorization" `JSON.kvObjectOrEmpty` acc)
+      <> "expired" `JSON.kvObjectOrEmpty` (True <? admin && authorizeExpired a now))
     =<< lookupAuthorizedParents p (admin ?!> PermissionNONE)
   where
   admin = view p >= PermissionADMIN
