@@ -94,7 +94,7 @@ instance ResponseData JSON.Encoding where
 
 instance ResponseData JSON.Series where
   response s h =
-    response s h . JSON.objectEncoding
+    response s h . JSON.pairs
 
 instance (JSON.ToJSON k, JSON.ToObject o, ResponseData o) => ResponseData (JSON.Record k o) where
   response s h =

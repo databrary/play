@@ -15,7 +15,7 @@ import Data.Text (Text)
 import Network.HTTP.Types (notFound404)
 
 import Databrary.Has
-import qualified Databrary.JSON as JSON
+-- import qualified Databrary.JSON as JSON
 import Databrary.Service.Types
 import Databrary.Action
 import Databrary.Controller.Angular
@@ -48,7 +48,7 @@ viewRootHandler api _ = -- TOOD: ensure GET
 
 viewConstantsHandler :: [(BS.ByteString, BS.ByteString)] -> Action
 viewConstantsHandler _ = -- TODO: ensure GET
-  withoutAuth $ return $ okResponse [] $ JSON.objectEncoding constantsJSON
+  withoutAuth $ return $ okResponse [] $ JSON.pairs constantsJSON
 
 viewRobotsTxtHandler :: [(BS.ByteString, BS.ByteString)] -> Action
 viewRobotsTxtHandler _ =  -- TODO: ensure GET

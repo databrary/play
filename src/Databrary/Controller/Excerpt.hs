@@ -50,11 +50,11 @@ postExcerpt = action POST pathExcerpt $ \(si, ai) -> withAuth $ do
     notice NoticeExcerptVolume
   when (any ((effRelPublic . getAssetSegmentRelease2) as <) $ excerptRelease e) $
     notice NoticeReleaseExcerpt
-  return $ okResponse [] $ JSON.objectEncoding $ assetSegmentJSON (if r then as{ assetExcerpt = Just e } else as)
+  return $ okResponse [] $ JSON.pairs $ assetSegmentJSON (if r then as{ assetExcerpt = Just e } else as)
 
 deleteExcerpt :: ActionRoute (Id Slot, Id Asset)
 deleteExcerpt = action DELETE pathExcerpt $ \(si, ai) -> withAuth $ do
   guardVerfHeader
   as <- getAssetSegment False PermissionEDIT False Nothing si ai
   r <- removeExcerpt as
-  return $ okResponse [] $ JSON.objectEncoding $ assetSegmentJSON (if r then as{ assetExcerpt = Nothing } else as)
+  return $ okResponse [] $ JSON.pairs $ assetSegmentJSON (if r then as{ assetExcerpt = Nothing } else as)

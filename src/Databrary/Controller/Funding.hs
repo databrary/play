@@ -43,7 +43,7 @@ postVolumeFunding = action POST (pathJSON >/> pathId </> pathId) $ \(vi, fi) -> 
     "awards" .:> filter (not . T.null) <$> withSubDeforms (\_ -> deform)
   let fa = Funding f a
   _ <- changeVolumeFunding v fa
-  return $ okResponse [] $ JSON.objectEncoding $ fundingJSON fa
+  return $ okResponse [] $ JSON.pairs $ fundingJSON fa
 
 deleteVolumeFunder :: ActionRoute (Id Volume, Id Funder)
 deleteVolumeFunder = action DELETE (pathJSON >/> pathId </> pathId) $ \(vi, fi) -> withAuth $ do

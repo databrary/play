@@ -54,7 +54,7 @@ slotJSONField _ o "records" _ =  -- recordJSON should decide public restricted b
   Just . JSON.mapRecords (\r -> recordSlotJSON False r JSON..<> "record" JSON..=: recordJSON False (slotRecord r)) <$> lookupSlotRecords o
 slotJSONField _ o "tags" n = do
   tc <- lookupSlotTagCoverage o (maybe 64 fst $ BSC.readInt =<< n)
-  return $ Just $ JSON.objectEncoding $ JSON.recordMap $ map tagCoverageJSON tc
+  return $ Just $ JSON.pairs $ JSON.recordMap $ map tagCoverageJSON tc
 slotJSONField _ o "comments" n = do
   c <- lookupSlotComments o (maybe 64 fst $ BSC.readInt =<< n)
   return $ Just $ JSON.mapRecords commentJSON c

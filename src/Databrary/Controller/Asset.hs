@@ -96,7 +96,7 @@ assetJSONField a "container" _ =
   return $ JSON.recordEncoding . containerJSON False . slotContainer <$> assetSlot a -- containerJSON should consult volume
 assetJSONField a "creation" _ | ((fst . getAssetSlotVolumePermission2) a) >= PermissionEDIT = do
   (t, n) <- assetCreation $ slotAsset a
-  return $ Just $ JSON.objectEncoding $
+  return $ Just $ JSON.pairs $
        "date" JSON..=? t
     <> "name" JSON..=? n
 assetJSONField a "excerpts" _ =

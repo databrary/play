@@ -46,7 +46,7 @@ viewSiteActivityHandler = \api -> withAuth $ do
   vl <- map (second $ ("volume" JSON..=:) . (\v -> volumeJSONSimple v)) . nubBy ((==) `on` volumeId . volumeRow . snd) <$> lookupVolumeShareActivity 8
   al <- map (second $ ("party"  JSON..=:) . partyJSON)  . nubBy ((==) `on` partyId  . partyRow  . snd) <$> lookupAuthorizeActivity 8
   case api of
-    JSON -> return $ okResponse [] $ JSON.objectEncoding $
+    JSON -> return $ okResponse [] $ JSON.pairs $
          "stats" JSON..= ss
       <> JSON.nestObject "activity" (\u -> map (u . ent) (take 12 $ mergeBy ((fo .) . comparing fst) vl al))
     HTML -> peeks $ okResponse [] . htmlSiteActivity ss

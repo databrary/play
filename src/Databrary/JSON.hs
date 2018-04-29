@@ -4,7 +4,7 @@ module Databrary.JSON
   ( module Data.Aeson
   , module Data.Aeson.Types
   , ToObject
-  , objectEncoding
+  -- , objectEncoding
   , mapObjects
   , ToNestedObject(..)
   , (.=.)
@@ -53,8 +53,8 @@ instance ToObject Series
 instance ToObject [Pair]
 instance ToObject Object
 
-objectEncoding :: Series -> Encoding
-objectEncoding = pairs
+-- objectEncoding :: Series -> Encoding
+-- objectEncoding = pairs
 
 mapObjects :: (Functor t, Foldable t) => (a -> Series) -> t a -> Encoding
 mapObjects f = foldable . fmap (UnsafeEncoding . pairs . f)
@@ -98,7 +98,7 @@ recordObject :: (ToJSON k, ToObject o) => Record k o -> o
 recordObject (Record k o) = "id" .= k <> o
 
 recordEncoding :: ToJSON k => Record k Series -> Encoding
-recordEncoding = objectEncoding . recordObject
+recordEncoding = pairs . recordObject
 
 mapRecords :: (Functor t, Foldable t, ToJSON k) => (a -> Record k Series) -> t a -> Encoding
 mapRecords toRecord objs = mapObjects (\obj -> (recordObject . toRecord) obj) objs
