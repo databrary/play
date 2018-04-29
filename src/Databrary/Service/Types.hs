@@ -9,7 +9,7 @@ import qualified Data.ByteString as BS
 import Data.IORef (IORef)
 import qualified Data.Text as T
 
-import Databrary.Has (makeHasRec)
+import Databrary.Has (Has(..))
 import Databrary.Service.DB (DBPool)
 import Databrary.Service.Entropy (Entropy)
 import Databrary.HTTP.Client (HTTPClient)
@@ -51,4 +51,32 @@ data Service = Service
   , serviceDown :: !(Maybe T.Text)
   }
 
-makeHasRec ''Service ['serviceSecret, 'serviceEntropy, 'servicePasswd, 'serviceLogs, 'serviceMessages, 'serviceDB, 'serviceStorage, 'serviceAV, 'serviceWeb, 'serviceHTTPClient, 'serviceStatic, 'serviceIngest, 'serviceSolr, 'serviceNotification]
+-- makeHasRec ''Service ['serviceSecret, 'serviceEntropy, 'servicePasswd, 'serviceLogs, 'serviceMessages, 'serviceDB, 'serviceStorage, 'serviceAV, 'serviceWeb, 'serviceHTTPClient, 'serviceStatic, 'serviceIngest, 'serviceSolr, 'serviceNotification]
+instance Has Secret Service where
+  view = serviceSecret
+instance Has Entropy Service where
+  view = serviceEntropy
+instance Has Passwd Service where
+  view = servicePasswd
+instance Has Logs Service where
+  view = serviceLogs
+instance Has Messages Service where
+  view = serviceMessages
+-- instance Has DBPool Service where
+--    view = serviceDB
+instance Has Storage Service where
+  view = serviceStorage
+instance Has AV Service where
+  view = serviceAV
+instance Has Web Service where
+  view = serviceWeb
+instance Has HTTPClient Service where
+  view = serviceHTTPClient
+instance Has Static Service where
+  view = serviceStatic
+instance Has Ingest Service where
+  view = serviceIngest
+instance Has Solr Service where
+  view = serviceSolr
+instance Has Notifications Service where
+  view = serviceNotification

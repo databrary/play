@@ -23,7 +23,7 @@ type Timestamp = UTCTime
 deriveLiftMany [''Fixed, ''DiffTime, ''Day, ''UTCTime]
 
 -- instance Has Day Timestamp where
---   view = utctDay
+--    view = utctDay
 
 data MaskedDate
   = MaskedDate !Int

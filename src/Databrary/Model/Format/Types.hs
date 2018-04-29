@@ -12,7 +12,7 @@ import qualified Data.Text as T
 import Instances.TH.Lift ()
 import Language.Haskell.TH.Lift (deriveLift)
 
-import Databrary.Has (makeHasRec)
+import Databrary.Has (Has(..))
 import Databrary.Model.Kind
 import Databrary.Model.Id.Types
 
@@ -36,7 +36,10 @@ instance Eq Format where
 instance Ord Format where
   compare = comparing formatId
 
-makeHasRec ''Format ['formatId]
+-- makeHasRec ''Format ['formatId]
+instance Has (Id Format) Format where
+  view = formatId
+
 deriveLift ''Format
 
 unknownFormat :: Format

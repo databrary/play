@@ -19,7 +19,7 @@ import qualified Text.Regex.Posix as Regex
 import qualified Web.Route.Invertible as R
 
 import Databrary.Ops
-import Databrary.Has (makeHasRec)
+import Databrary.Has (Has(..))
 import qualified Databrary.JSON as JSON
 import Databrary.Model.Kind
 import Databrary.Model.Id.Types
@@ -27,6 +27,7 @@ import Databrary.Model.Party.Types
 import Databrary.Model.Container.Types
 import Databrary.Model.Segment
 import Databrary.Model.Slot.Types
+import Databrary.Model.Volume.Types
 
 newtype TagName = TagName { tagNameBS :: BS.ByteString } deriving (JSON.ToJSON, JSON.FromJSON, Typeable, Show, Eq)
 
@@ -57,7 +58,11 @@ data Tag = Tag
   , tagName :: TagName
   }
 
-makeHasRec ''Tag ['tagId, 'tagName]
+-- makeHasRec ''Tag ['tagId, 'tagName]
+-- instance Has (Id Tag) Tag where
+--   view = tagId
+-- instance Has TagName Tag where
+--   view = tagName
 
 instance Kinded Tag where
   kindOf _ = "tag"
@@ -69,7 +74,43 @@ data TagUse = TagUse
   , tagSlot :: Slot
   }
 
-makeHasRec ''TagUse ['useTag, 'tagWho, 'tagSlot]
+-- makeHasRec ''TagUse ['useTag, 'tagWho, 'tagSlot]
+instance Has Tag TagUse where
+  view = useTag
+-- instance Has (Id Tag) TagUse where
+--   view = (view . useTag)
+-- instance Has TagName TagUse where
+--   view = (view . useTag)
+-- instance Has Account TagUse where
+--   view = tagWho
+-- instance Has (Id Party) TagUse where
+--   view = (view . tagWho)
+-- instance Has PartyRow TagUse where
+--   view = (view . tagWho)
+-- instance Has Party TagUse where
+--   view = (view . tagWho)
+-- instance Has Slot TagUse where
+--   view = tagSlot
+instance Has Segment TagUse where
+  view = (view . tagSlot)
+-- instance Has ContainerRow TagUse where
+--   view = (view . tagSlot)
+instance Has (Id Container) TagUse where
+  view = (view . tagSlot)
+-- instance Has (Maybe Databrary.Model.Release.Types.Release) TagUse where
+--   view = (view . tagSlot)
+-- instance Has Databrary.Model.Release.Types.Release TagUse where
+--   view = (view . tagSlot)
+instance Has Databrary.Model.Volume.Types.Volume TagUse where
+  view = (view . tagSlot)
+-- instance Has Databrary.Model.Permission.Types.Permission TagUse where
+--   view = (view . tagSlot)
+instance Has (Id Databrary.Model.Volume.Types.Volume) TagUse where
+  view = (view . tagSlot)
+-- instance Has Databrary.Model.Volume.Types.VolumeRow TagUse where
+--   view = (view . tagSlot)
+-- instance Has Container TagUse where
+--   view = (view . tagSlot)
 
 data TagUseRow = TagUseRow
   { useTagRow :: Tag
@@ -83,7 +124,13 @@ data TagWeight = TagWeight
   , tagWeightWeight :: Int32
   }
 
-makeHasRec ''TagWeight ['tagWeightTag]
+-- makeHasRec ''TagWeight ['tagWeightTag]
+-- instance Has Tag TagWeight where
+--   view = tagWeightTag
+-- instance Has (Id Tag) TagWeight where
+--   view = (view . tagWeightTag)
+-- instance Has TagName TagWeight where
+--   view = (view . tagWeightTag)
 
 data TagCoverage = TagCoverage
   { tagCoverageWeight :: !TagWeight
@@ -93,4 +140,30 @@ data TagCoverage = TagCoverage
   , tagCoverageVotes :: [Segment]
   }
 
-makeHasRec ''TagCoverage ['tagCoverageWeight, 'tagCoverageContainer]
+-- makeHasRec ''TagCoverage ['tagCoverageWeight, 'tagCoverageContainer]
+-- instance Has TagWeight TagCoverage where
+--   view = tagCoverageWeight
+-- instance Has Tag TagCoverage where
+--   view = (view . tagCoverageWeight)
+-- instance Has (Id Tag) TagCoverage where
+--   view = (view . tagCoverageWeight)
+-- instance Has TagName TagCoverage where
+--   view = (view . tagCoverageWeight)
+-- instance Has Container TagCoverage where
+--   view = tagCoverageContainer
+-- instance Has Databrary.Model.Volume.Types.VolumeRow TagCoverage where
+--   view = (view . tagCoverageContainer)
+-- instance Has (Id Databrary.Model.Volume.Types.Volume) TagCoverage where
+--   view = (view . tagCoverageContainer)
+-- instance Has Databrary.Model.Permission.Types.Permission TagCoverage where
+--   view = (view . tagCoverageContainer)
+-- instance Has Databrary.Model.Volume.Types.Volume TagCoverage where
+--   view = (view . tagCoverageContainer)
+-- instance Has Databrary.Model.Release.Types.Release TagCoverage where
+--   view = (view . tagCoverageContainer)
+-- instance Has (Maybe Databrary.Model.Release.Types.Release) TagCoverage where
+--   view = (view . tagCoverageContainer)
+-- instance Has (Id Container) TagCoverage where
+--   view = (view . tagCoverageContainer)
+-- instance Has ContainerRow TagCoverage where
+--   view = (view . tagCoverageContainer)

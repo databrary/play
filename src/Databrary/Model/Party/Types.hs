@@ -14,7 +14,7 @@ import qualified Data.Text as T
 import Instances.TH.Lift ()
 import Language.Haskell.TH.Lift (deriveLiftMany)
 
-import Databrary.Has (makeHasRec, Has(..))
+import Databrary.Has (Has(..))
 import Databrary.Model.URL (URI)
 import Databrary.Model.Kind
 import Databrary.Model.Id.Types
@@ -46,9 +46,21 @@ data Account = Account
   , accountParty :: Party
   } deriving (Eq, Show)
 
-makeHasRec ''PartyRow ['partyId]
-makeHasRec ''Party ['partyRow]
-makeHasRec ''Account ['accountParty]
+-- makeHasRec ''PartyRow ['partyId]
+instance Has (Id Party) PartyRow where
+  view = partyId
+-- makeHasRec ''Party ['partyRow]
+instance Has PartyRow Party where
+  view = partyRow
+instance Has (Id Party) Party where
+  view = (view . partyRow)
+-- makeHasRec ''Account ['accountParty]
+instance Has Party Account where
+  view = accountParty
+instance Has PartyRow Account where
+  view = (view . accountParty)
+instance Has (Id Party) Account where
+  view = (view . accountParty)
 
 instance Has Access Party where
   view Party{ partyAccess = Just a } = a
@@ -66,7 +78,17 @@ data SiteAuth = SiteAuth
   , siteAccess :: Access
   } deriving (Eq, Show)
 
-makeHasRec ''SiteAuth ['siteAccount, 'siteAccess]
+-- makeHasRec ''SiteAuth ['siteAccount, 'siteAccess]
+instance Has Account SiteAuth where
+  view = siteAccount
+instance Has Party SiteAuth where
+  view = (view . siteAccount)
+instance Has PartyRow SiteAuth where
+  view = (view . siteAccount)
+instance Has (Id Party) SiteAuth where
+  view = (view . siteAccount)
+instance Has Access SiteAuth where
+  view = siteAccess
 
 deriveLiftMany [''PartyRow, ''Party, ''Account]
 

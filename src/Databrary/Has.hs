@@ -9,15 +9,15 @@ module Databrary.Has
   , focusLift
   , focusBase
   , focusIO
-  , makeHasRec
+  -- , makeHasRec
   ) where
 
-import Control.Monad (unless, liftM, liftM2)
+-- import Control.Monad (unless, liftM, liftM2)
 import Control.Monad.Base (MonadBase(..))
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad.Reader (MonadReader, ReaderT(..), reader, withReaderT)
 import Control.Monad.Trans.Class (MonadTrans(..))
-import qualified Language.Haskell.TH as TH
+-- import qualified Language.Haskell.TH as TH
 
 class Has a c where
   view :: c -> a
@@ -59,13 +59,13 @@ focusIO f = liftIO . f =<< peek
 {-# RULES "focusBase/ReaderT" focusBase = focusReader #-}
 {-# RULES "focusIO/ReaderT" focusIO = focusReader #-}
 
+{-
 getFieldType :: TH.Name -> TH.Name -> TH.TypeQ
 getFieldType tn fn = do
   TH.VarI _ (TH.ArrowT `TH.AppT` TH.ConT tn' `TH.AppT` ft) _ <- TH.reify fn
   unless (tn' == tn) $ fail $ show tn ++ "." ++ show fn ++ ": field from wrong type: " ++ show tn'
   return ft
 
--- TODO: delete
 makeHasFor :: TH.Name -> [(TH.Name, TH.Type, [TH.Type])] -> TH.DecsQ
 makeHasFor tn fs = concat <$> mapM
   (\(fn, ft, ts) -> concatM
@@ -91,3 +91,4 @@ makeHasRec tn fs = do
       , ft' == ft
       ]))
     fs
+-}
