@@ -52,7 +52,7 @@ instance Has Control.Monad.Trans.Resource.InternalState RequestContext where
 -- instance Has time-1.6.0.1:Data.Time.Calendar.Days.Day RequestContext where
 --   view = (view . requestContext)
 instance Has Databrary.Model.Time.Timestamp RequestContext where
-  view = (view . requestContext)
+  view = (contextTimestamp . requestContext)
 instance Has Databrary.Service.Types.Secret RequestContext where
   view = (view . requestContext)
 instance Has Databrary.Service.Entropy.Entropy RequestContext where
