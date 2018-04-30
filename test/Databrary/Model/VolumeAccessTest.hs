@@ -26,7 +26,7 @@ unit_volumeAccessProvidesADMIN =
   -- typical
   -- edge cases
 
---  accesses <- lookupVolumeAccess v PermissionNONE
+--  access for this identity <- lookupVolumeAccess v PermissionNONE
 unit_lookupVolumeAccess_example :: Assertion
 unit_lookupVolumeAccess_example = do
     -- lookup volume 1

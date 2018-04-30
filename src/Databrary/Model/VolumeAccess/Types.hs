@@ -18,7 +18,7 @@ data VolumeAccess = VolumeAccess
   , volumeAccessShareFull :: Maybe Bool
   , volumeAccessParty :: Party
   , volumeAccessVolume :: Volume
-  } -- derving (Eq, Show)
+  } deriving (Eq, Show)
 
 getShareFullDefault :: Party -> Permission -> Maybe Bool
 getShareFullDefault targetParty individualAccessLevel =
