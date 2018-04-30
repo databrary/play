@@ -5,7 +5,16 @@ import Test.Tasty.HUnit
 
 import Databrary.Ops
 
+unit_thenUse :: Assertion
+unit_thenUse = do
+    -- example
+    True `thenUse` ("abc" :: String) @?= Just "abc"
+    False `thenUse` ("abc" :: String) @?= Nothing
 
+unit_useWhen :: Assertion
+unit_useWhen = do
+    -- example
+    ("abc" :: String) `useWhen` True @?= Just "abc"
 
 test_all :: [TestTree]
 test_all =
