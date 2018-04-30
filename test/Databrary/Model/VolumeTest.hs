@@ -133,4 +133,3 @@ withinTestTransaction act =
               pure cn)
          pgRollback
          act
-  
