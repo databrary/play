@@ -25,3 +25,12 @@ unit_volumeAccessProvidesADMIN =
   (not . volumeAccessProvidesADMIN) volumeAccess1 @? "child or self access must be admin"
   -- typical
   -- edge cases
+
+--  accesses <- lookupVolumeAccess v PermissionNONE
+unit_lookupVolumeAccess_example :: Assertion
+unit_lookupVolumeAccess_example = do
+    -- lookup volume 1
+    -- vol1 <- undefined
+    -- partiesAccessing <- runReaderT (lookupVolumeAccess vol1 PermissionNONE) (undefined)
+    -- partiesAccessing @?= []
+    pure ()

@@ -2,6 +2,7 @@
    , TypeSynonymInstances, MultiParamTypeClasses, FlexibleInstances #-}
 module Databrary.Model.VolumeTest where
 
+import Control.Exception (bracket)
 import Control.Monad.Trans.Reader
 import Data.Time
 import qualified Data.Vector as V
@@ -155,19 +156,33 @@ instance Has Request Context2 where
     view = ctxRequest
 
 test_addVolume_example :: TestTree
-test_addVolume_example = expectFail (testCase "addVolume" _unit_addVolume_example)
+test_addVolume_example =
+    -- mismatch on three aspects:
+    --    id - generated from db insert instead of provided, as expected
+    --    creation date - the time is appearing to come from volume 1 instead of the created volume
+    --    permission - defaults to ADMIN, as expected
+    expectFail (testCase "addVolume" _unit_addVolume_example)
 
 _unit_addVolume_example :: Assertion
 _unit_addVolume_example = do
-    cn <- loadPGDatabase >>= pgConnect
-    pgBegin cn
-    let ident = PreIdentified
-        pid :: Id Party
-        pid = Id 300
-        req = defaultRequest
-    v <- runReaderT (addVolume volumeExample) (Context2 cn ident pid req)
-    v @?= volumeExample
-    pgRollback cn
+    withinTestTransaction
+        (\cn -> do
+             let ident = PreIdentified
+                 pid :: Id Party
+                 pid = Id 300
+                 req = defaultRequest
+             v <- runReaderT (addVolume volumeExample) (Context2 cn ident pid req)
+             v @?= volumeExample)
+
+withinTestTransaction :: (PGConnection -> IO a) -> IO a
+withinTestTransaction act =
+    bracket
+        (do
+            cn <- pgConnect =<< loadPGDatabase
+            pgBegin cn
+            pure cn)
+        pgRollback
+        act
 
 {- Volume {volumeRow = VolumeRow {volumeId = 6, volumeName = "Test Vol One: A Survey", volumeBody = Just "Here is a description for a volume", volumeAlias = Just "Test Vol 1", volumeDOI = Nothing}, volumeCreation = 2013-01-11 10:26:40 UTC, volumeOwners = [], volumePermission = ADMIN, volumeAccessPolicy = PermLevelDefault}
 -}
