@@ -5,6 +5,8 @@ module Databrary.Model.VolumeTest where
 import Control.Monad.Trans.Reader
 import Data.Time
 import qualified Data.Vector as V
+import Database.PostgreSQL.Typed.Protocol
+import Network.Wai
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.ExpectedFailure
@@ -123,3 +125,49 @@ unit_lookupVolume_example = do
                  , volumeAccessPolicy = PermLevelDefault
                  }
         )
+
+data Context2 = Context2
+    { ctxConn2 :: DBConn
+    , ctxIdentity2 :: Identity
+    , ctxPartyId :: Id Party
+    , ctxRequest :: Request
+    }
+
+instance Has DBConn Context2 where
+    view = ctxConn2
+
+instance Has Identity Context2 where
+    view = ctxIdentity2
+
+instance Has SiteAuth Context2 where
+    view = undefined
+
+instance Has Party Context2 where
+    view = undefined
+
+instance Has (Id Party) Context2 where
+    view = ctxPartyId
+
+instance Has Access Context2 where
+    view = undefined
+
+instance Has Request Context2 where
+    view = ctxRequest
+
+test_addVolume_example :: TestTree
+test_addVolume_example = expectFail (testCase "addVolume" _unit_addVolume_example)
+
+_unit_addVolume_example :: Assertion
+_unit_addVolume_example = do
+    cn <- loadPGDatabase >>= pgConnect
+    pgBegin cn
+    let ident = PreIdentified
+        pid :: Id Party
+        pid = Id 300
+        req = defaultRequest
+    v <- runReaderT (addVolume volumeExample) (Context2 cn ident pid req)
+    v @?= volumeExample
+    pgRollback cn
+
+{- Volume {volumeRow = VolumeRow {volumeId = 6, volumeName = "Test Vol One: A Survey", volumeBody = Just "Here is a description for a volume", volumeAlias = Just "Test Vol 1", volumeDOI = Nothing}, volumeCreation = 2013-01-11 10:26:40 UTC, volumeOwners = [], volumePermission = ADMIN, volumeAccessPolicy = PermLevelDefault}
+-}
