@@ -57,7 +57,7 @@ viewRecord = action GET (pathAPI </> pathId) $ \(api, i) -> withAuth $ do
 createRecord :: ActionRoute (API, Id Volume)
 createRecord = action POST (pathAPI </> pathId </< "record") $ \(api, vi) -> withAuth $ do
   vol <- getVolume PermissionEDIT vi
-  br <- runForm (api == HTML ?> htmlRecordForm vol) $ do
+  br <- runForm ((api == HTML) `thenUse` (htmlRecordForm vol)) $ do
     csrfForm
     cat <- "category" .:> (deformMaybe' "No such category" . getCategory =<< deform)
     return $ blankRecord cat vol
@@ -71,7 +71,7 @@ postRecordMeasure = action POST (pathAPI </>> pathId </> pathId) $ \(api, ri, mi
   record <- getRecord PermissionEDIT ri
   met <- maybeAction $ getMetric mi
   let mkMeasure datum = Measure record met datum
-  rec' <- runForm (api == HTML ?> htmlRecordMeasureForm record met) $ do
+  rec' <- runForm ((api == HTML) `thenUse` (htmlRecordMeasureForm record met)) $ do
     csrfForm
     mDatum <- deformSync' ("datum" .:> deformNonEmpty deform)
     maybe

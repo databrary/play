@@ -41,7 +41,7 @@ postVolumeAccess = action POST (pathAPI </> pathId </> pathVolumeAccessTarget) $
   u <- peek
   let su = identityAdmin u
       ru = unId ap > 0
-  a' <- runForm (api == HTML ?> htmlVolumeAccessForm a) $ do
+  a' <- runForm ((api == HTML) `thenUse` (htmlVolumeAccessForm a)) $ do
     csrfForm
     delete <- "delete" .:> deform
     let del

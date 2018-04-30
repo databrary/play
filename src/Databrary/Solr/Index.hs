@@ -145,7 +145,7 @@ solrTagUse vi TagUseRow{ useTagRow = Tag{..}, tagRowSlotId = SlotId{..}, ..} = S
   , solrSegmentDuration = segmentLength slotSegmentId
   , solrTagId = tagId
   , solrTagName = tagName
-  , solrKeyword = tagRowKeyword ?> tagName
+  , solrKeyword = tagRowKeyword `thenUse` tagName
   , solrPartyId = tagRowWhoId
   }
 

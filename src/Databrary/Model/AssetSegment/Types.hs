@@ -132,7 +132,7 @@ excerptInSegment :: Excerpt -> Segment -> AssetSegment
 excerptInSegment e@Excerpt{ excerptAsset = AssetSegment{ segmentAsset = a, assetSegment = es } } s
   | segmentOverlaps es s = as
   | otherwise = error "excerptInSegment: non-overlapping"
-  where as = newAssetSegment a s (es `segmentContains` assetSegment as ?> e)
+  where as = newAssetSegment a s ((es `segmentContains` assetSegment as) `thenUse` e)
 
 excerptFullSegment :: Excerpt -> AssetSegment
 excerptFullSegment e = excerptInSegment e fullSegment

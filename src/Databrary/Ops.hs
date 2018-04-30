@@ -2,7 +2,7 @@
 -- |
 -- FIXME: There is a lot of duplication of standard library tools in here.
 module Databrary.Ops
-  ( (<?) ,   (?>)
+  ( (<?) , thenUse --   (?>)
   , (?!>)
   ,  (?$>)
   , (?!$>)
@@ -18,12 +18,12 @@ import Control.Applicative
 import qualified Data.Either.Combinators as EC
 
 infixl 1 <?
-infixr 1 ?>, ?!>
+infixr 1 ?!>
 
 -- |@'($>)' . guard@
-(?>) :: Alternative f => Bool -> a -> f a
-False ?> _ = empty
-True ?> a = pure a
+thenUse :: Alternative f => Bool -> a -> f a
+False `thenUse` _ = empty
+True `thenUse` a = pure a
 -- replace with: if bl then pure a else empty
 
 -- |@flip '(?>)'@
@@ -38,7 +38,7 @@ True ?!> _ = empty
 False ?!> a = pure a
 -- replace with: if bl then empty else pure a
 
-{-# SPECIALIZE (?>) :: Bool -> a -> Maybe a #-}
+{-# SPECIALIZE thenUse :: Bool -> a -> Maybe a #-}
 {-# SPECIALIZE (<?) :: a -> Bool -> Maybe a #-}
 {-# SPECIALIZE (?!>) :: Bool -> a -> Maybe a #-}
 

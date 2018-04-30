@@ -207,7 +207,7 @@ instance {-# OVERLAPPING #-} Configurable String where
 
 configBoundedInt :: forall a . (Integral a, Bounded a) => Value -> Maybe a
 configBoundedInt = f <=< config where
-  f i = i >= toInteger (minBound :: a) && i <= toInteger (maxBound :: a) ?> fromInteger i
+  f i = (i >= toInteger (minBound :: a) && i <= toInteger (maxBound :: a)) `thenUse` (fromInteger i)
 
 instance Configurable Int where
   config = configBoundedInt

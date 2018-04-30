@@ -115,7 +115,7 @@ postAuthorize = action POST (pathAPI </>> pathPartyTarget </> pathAuthorizeTarge
       now <- peek
       let maxexp = addGregorianYearsRollOver 2 $ utctDay now
           minexp = fromGregorian 2000 1 1
-      a <- runForm (api == HTML ?> htmlAuthorizeForm c') $ do
+      a <- runForm ((api == HTML) `thenUse` (htmlAuthorizeForm c')) $ do
         csrfForm
         delete <- "delete" .:> deform
         delete ?!$> do

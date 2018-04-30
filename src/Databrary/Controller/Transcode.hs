@@ -39,7 +39,7 @@ unHex (h:l:r) = do
   hb <- unhex h
   lb <- unhex l
   ((shiftL hb 4 .|. lb) :) <$> unHex r
-  where unhex x = isHexDigit x ?> fromIntegral (digitToInt x)
+  where unhex x = (isHexDigit x) `thenUse` (fromIntegral (digitToInt x))
 
 sha1Form :: DeformActionM f BS.ByteString
 sha1Form = do

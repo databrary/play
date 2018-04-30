@@ -23,7 +23,7 @@ take' 0 _ = ([], True)
 take' n (x:l) = first (x:) $ take' (pred n) l
 
 paginateContent :: Paginate -> [a] -> (Maybe Paginate, [a], Maybe Paginate)
-paginateContent (Paginate o l) x = (o > 0 ?> Paginate (o-l' `max` 0) l, x', m ?> Paginate (o+l') l)
+paginateContent (Paginate o l) x = ((o > 0) `thenUse` (Paginate (o-l' `max` 0) l), x', m `thenUse` (Paginate (o+l') l))
   where
   l' = pred l
   (x', m) = take' l' x

@@ -86,7 +86,7 @@ viewContainerEdit = action GET (pathHTML >/> pathMaybe pathId </> pathSlotId </<
 createContainer :: ActionRoute (API, Id Volume)
 createContainer = action POST (pathAPI </> pathId </< "slot") $ \(api, vi) -> withAuth $ do
   vol <- getVolume PermissionEDIT vi
-  bc <- runForm (api == HTML ?> htmlContainerEdit (Left vol)) $ containerForm (blankContainer vol)
+  bc <- runForm ((api == HTML) `thenUse` (htmlContainerEdit (Left vol))) $ containerForm (blankContainer vol)
   c <- addContainer bc
   -- TODO: NoticeReleaseSlot?
   case api of
@@ -96,7 +96,7 @@ createContainer = action POST (pathAPI </> pathId </< "slot") $ \(api, vi) -> wi
 postContainer :: ActionRoute (API, Id Slot)
 postContainer = action POST (pathAPI </> pathSlotId) $ \(api, ci) -> withAuth $ do
   c <- getContainer PermissionEDIT Nothing ci False
-  c' <- runForm (api == HTML ?> htmlContainerEdit (Right c)) $ containerForm c
+  c' <- runForm ((api == HTML) `thenUse` (htmlContainerEdit (Right c))) $ containerForm c
   changeContainer c'
   when (containerRelease c' /= containerRelease c) $ do
     r <- changeRelease (containerSlot c') (containerRelease c')

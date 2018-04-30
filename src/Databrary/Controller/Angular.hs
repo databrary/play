@@ -67,7 +67,7 @@ angularEnable JSDefault = not . any (Regex.matchTest browserBlacklist) . lookupR
 angularEnable JSEnabled = const True
 
 angularRequest :: Wai.Request -> Maybe BSB.Builder
-angularRequest req = angularEnable js req ?> nojs
+angularRequest req = (angularEnable js req) `thenUse` nojs
   where (js, nojs) = jsURL JSDisabled req
 
 angularResult :: BS.ByteString -> BSB.Builder -> RequestContext -> IO ()

@@ -78,7 +78,7 @@ postLogin = action POST (pathAPI </< "user" </< "login") $ postLoginAction
 
 postLoginAction :: API -> Action
 postLoginAction = \api -> withoutAuth $ do
-  (Just auth, su) <- runForm (api == HTML ?> htmlLogin) $ do
+  (Just auth, su) <- runForm ((api == HTML) `thenUse` htmlLogin) $ do
     email <- "email" .:> emailTextForm
     password <- "password" .:> deform
     superuser <- "superuser" .:> deform
@@ -133,7 +133,7 @@ postUserAction :: API -> ActionM Response
 postUserAction api = do
   auth <- peek
   let acct = siteAccount auth
-  auth' <- runForm (api == HTML ?> htmlUserForm acct) $ do
+  auth' <- runForm ((api == HTML) `thenUse` (htmlUserForm acct)) $ do
     csrfForm
     "auth" .:> (deformGuard "Incorrect password" . (`checkPassword` auth) =<< deform)
     email <- "email" .:> deformNonEmpty emailTextForm
