@@ -34,7 +34,7 @@ import Databrary.Store.AV
 import Databrary.Action.Types
 
 assetSegmentTag :: AssetSegment -> Maybe Word16 -> String
-assetSegmentTag as sz = m ':' (assetSegmentFull as ?!> s) ++ m '@' (show <$> sz) where
+assetSegmentTag as sz = m ':' ((assetSegmentFull as) `unlessUse` s) ++ m '@' (show <$> sz) where
   m = maybe "" . (:)
   c = assetSegmentRange as
   s = maybe (b (Range.lowerBound c) ++ '-' : b (Range.upperBound c)) (show . offsetMillis) (Range.getPoint c)
@@ -96,7 +96,7 @@ getAssetSegmentStore as sz
   rs <- peek
   let cache = storageCache store
       cf = liftM2 (</>) cache $ assetSegmentFile as sz
-      gen = genVideoClip av af (aimg ?!> clip) sz
+      gen = genVideoClip av af (aimg `unlessUse` clip) sz
   liftIO $ maybe
     (return $ Left $ gen . Left) -- cache disabled or segment file missing(how could it be missing?)
     (\f -> do -- cache enabled

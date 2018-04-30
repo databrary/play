@@ -162,7 +162,7 @@ assetSlotJSON publicRestricted as@AssetSlot{..} = assetJSON publicRestricted slo
   --  "release" `JSON.kvObjectOrEmpty` (view as :: Maybe Release)
   <> "name" `JSON.kvObjectOrEmpty` (if publicRestricted then fmap maskRestrictedString (assetSlotName as) else assetSlotName as)
   <> "permission" JSON..= p
-  <> "size" `JSON.kvObjectOrEmpty` (z <? p > PermissionNONE && any (0 <=) z))
+  <> "size" `JSON.kvObjectOrEmpty` (z `useWhen` (p > PermissionNONE && any (0 <=) z)))
   where
   p = dataPermission3 getAssetSlotRelease2 getAssetSlotVolumePermission2 as
   z = assetSize $ assetRow slotAsset

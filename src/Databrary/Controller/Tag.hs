@@ -53,7 +53,7 @@ postTag = action POST (pathAPI </>> pathSlotId </> pathTagId) $ \(api, si, TagId
     response conflict409 [] ("The requested tag overlaps your existing tag." :: T.Text)
   top <- containerIsVolumeTop (slotContainer s)
   createVolumeNotification (view tu) $ \n -> (n NoticeTagVolume)
-    { notificationContainerId = top ?!> view tu
+    { notificationContainerId = top `unlessUse` (view tu)
     , notificationSegment = Just $ view tu
     , notificationTag = Just $ view tu
     }

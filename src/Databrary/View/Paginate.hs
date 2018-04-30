@@ -31,8 +31,8 @@ paginateContent (Paginate o l) x = ((o > 0) `thenUse` (Paginate (o-l' `max` 0) l
 paginateLink :: Paginate -> Wai.Request -> H.Attribute
 paginateLink (Paginate o l) q = HA.href $ builderValue $ encodePath' (Wai.pathInfo q) $
   filter ((`notElem` ["offset", "limit"]) . fst) (Wai.queryString q) ++ catMaybes
-    [ o == paginateOffset def ?!> ("offset", Just $ BSC.pack $ show o)
-    , l == paginateLimit  def ?!> ("limit", Just $ BSC.pack $ show l)
+    [ (o == paginateOffset def) `unlessUse` ("offset", Just $ BSC.pack $ show o)
+    , (l == paginateLimit  def) `unlessUse` ("limit", Just $ BSC.pack $ show l)
     ]
 
 htmlPaginate :: ([a] -> H.Html) -> Paginate -> [a] -> Wai.Request -> H.Html

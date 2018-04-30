@@ -75,7 +75,7 @@ postIngest = multipartAction $ action POST (pathId </< "ingest") $ \vi -> withAu
   a <- runFormFiles [("json", 16*1024*1024)] (Just $ htmlIngestForm v s) $ do
     csrfForm
     abort <- "abort" .:> deform
-    abort ?!$> (,,)
+    abort `unlessReturn` ((,,)
       <$> ("run" .:> deform)
       <*> ("overwrite" .:> deform)
       <*> ("json" .:> do
@@ -83,7 +83,7 @@ postIngest = multipartAction $ action POST (pathId </< "ingest") $ \vi -> withAu
               (deformCheck
                    "Must be JSON."
                    (\f -> fileContentType f `elem` ["text/json", "application/json"] || takeExtension (fileName f) == ".json")
-                   fileInfo))
+                   fileInfo)))
   r <- maybe
     (True <$ focusIO abortIngest)
     (\(r,o,j) -> runIngest $ right (map (unId . containerId . containerRow)) <$> ingestJSON v (fileContent j) r o)

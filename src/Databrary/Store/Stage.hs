@@ -10,5 +10,5 @@ import System.Posix.Files.ByteString (fileExist)
 
 stageFile :: RawFilePath -> Storage -> IO (Maybe RawFilePath)
 stageFile f Storage{ storageStage = Just s } =
-  (sf <?) <$> fileExist sf where sf = s </> f
+  (sf `useWhen`) <$> fileExist sf where sf = s </> f
 stageFile _ _ = return Nothing

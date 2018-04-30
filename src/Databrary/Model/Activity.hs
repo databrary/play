@@ -219,8 +219,8 @@ activityAssetJSON a =
       `JSON.foldObjectIntoRec` ("name" `JSON.kvObjectOrEmpty` assetName (assetRow a)) -- False assumes edit
 
 activityJSON :: Activity -> Maybe JSON.Object
-activityJSON Activity{ activityAudit = Audit{..}, ..} = auditAction == AuditActionChange && HM.null new && HM.null old ?!>
-  new <> key
+activityJSON Activity{ activityAudit = Audit{..}, ..} = (auditAction == AuditActionChange && HM.null new && HM.null old) `unlessUse`
+  (new <> key
     <> "when" JSON..= auditWhen
     <> "action" JSON..= show (auditAction)
     <> "ip" JSON..= show (auditIp auditIdentity)
@@ -228,7 +228,7 @@ activityJSON Activity{ activityAudit = Audit{..}, ..} = auditAction == AuditActi
     <> "type" JSON..= typ
     <> "old" `JSON.kvObjectOrEmpty` (if HM.null old then empty else pure old)
     <> "replace" `JSON.kvObjectOrEmpty` (activityAssetJSON <$> activityReplace)
-    <> "transcode" `JSON.kvObjectOrEmpty` (activityAssetJSON <$> activityTranscode)
+    <> "transcode" `JSON.kvObjectOrEmpty` (activityAssetJSON <$> activityTranscode))
   where
   (new, old)
     | auditAction == AuditActionRemove

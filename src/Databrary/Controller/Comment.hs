@@ -43,12 +43,12 @@ postComment = action POST (pathAPI </> pathSlotId </< "comment") $ \(api, si) ->
   top <- containerIsVolumeTop (slotContainer s)
   forM_ p $ \r -> when (on (/=) (partyId . partyRow . accountParty) (commentWho r) u) $
     createNotification (blankNotification (commentWho r) NoticeCommentReply)
-      { notificationContainerId = top ?!> view c'
+      { notificationContainerId = top `unlessUse` (view c')
       , notificationSegment = Just $ view c'
       , notificationCommentId = Just $ view c'
       }
   createVolumeNotification (view c') $ \n -> (n NoticeCommentVolume)
-    { notificationContainerId = top ?!> view c'
+    { notificationContainerId = top `unlessUse` (view c')
     , notificationSegment = Just $ view c'
     , notificationCommentId = Just $ view c'
     }
