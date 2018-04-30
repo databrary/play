@@ -100,7 +100,7 @@ addContainer :: MonadAudit c m => Container -> m Container
 addContainer bc = do
   ident <- getAuditIdentity
   let _tenv_a87ru = unknownPGTypeEnv
-  row <- dbQuery1' -- $(insertContainer 'ident 'bc)
+  row <- dbQuery1' -- .(insertContainer 'ident 'bc)
     (mapQuery2
       ((\ _p_a87rv _p_a87rw _p_a87rx _p_a87ry _p_a87rz _p_a87rA ->
                        (Data.ByteString.concat
