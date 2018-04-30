@@ -511,6 +511,7 @@ test-suite discovered
       Databrary.Controller.IngestTest
     , Databrary.Controller.LoginTest
     , Databrary.EZID.ANVLTest
+    , Databrary.FilesTest
     , Databrary.HasTest
     , Databrary.JSONTest
     , Databrary.HTTP.CookieTest
