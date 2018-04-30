@@ -71,8 +71,8 @@ instance Has Databrary.Service.Entropy.Entropy Context where
   view = (view . contextService)
 instance Has Secret Context where
   view = (view . contextService)
-instance Has Timestamp Context where
-  view = contextTimestamp
+-- instance Has Timestamp Context where
+--   view = contextTimestamp
 -- instance Has time-1.6.0.1:Data.Time.Calendar.Days.Day Context where
 --   view = (view . contextTimestamp)
 instance Has InternalState Context where
@@ -125,7 +125,7 @@ instance Has Databrary.Service.Log.Logs BackgroundContext where
 -- instance Has Secret BackgroundContext where
 --   view = (view . backgroundContext)
 instance Has Timestamp BackgroundContext where
-  view = (view . backgroundContext)
+  view = (contextTimestamp . backgroundContext)
 -- instance Has time-1.6.0.1:Data.Time.Calendar.Days.Day BackgroundContext where
 --   view = (view . backgroundContext)
 -- instance Has InternalState BackgroundContext where
