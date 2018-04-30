@@ -510,6 +510,7 @@ test-suite discovered
     , Databrary.Controller.LoginTest
     , Databrary.EZID.ANVLTest
     , Databrary.HasTest
+    , Databrary.JSONTest
     , Databrary.HTTP.CookieTest
     , Databrary.HTTP.Form.DeformTest
     , Databrary.HTTP.RequestTest
