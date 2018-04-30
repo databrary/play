@@ -118,12 +118,12 @@ postAuthorize = action POST (pathAPI </>> pathPartyTarget </> pathAuthorizeTarge
       a <- runForm ((api == HTML) `thenUse` (htmlAuthorizeForm c')) $ do
         csrfForm
         delete <- "delete" .:> deform
-        delete ?!$> do
+        delete `unlessReturn` (do
           site <- "site" .:> deform
           member <- "member" .:> deform
           expires <- "expires" .:> (deformCheck "Expiration must be within two years." (all (\e -> su || e > minexp && e <= maxexp))
             =<< (<|> (su ?!> maxexp)) <$> deformNonEmpty deform)
-          return $ Authorize (Authorization (Access site member) child parent) $ fmap (`UTCTime` 43210) expires
+          return $ Authorize (Authorization (Access site member) child parent) $ fmap (`UTCTime` 43210) expires)
       updateAuthorize c a
       return a
   case api of

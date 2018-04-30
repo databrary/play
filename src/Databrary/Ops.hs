@@ -6,7 +6,7 @@ module Databrary.Ops
   , (?!>)
   -- , (?$>)
   , thenReturn
-  , (?!$>)
+  , unlessReturn -- , (?!$>)
   , rightJust
   , fromMaybeM
   , orElseM
@@ -43,7 +43,7 @@ False ?!> a = pure a
 {-# SPECIALIZE (?!>) :: Bool -> a -> Maybe a #-}
 
 -- infixr 1 ?$>
-infixr 1 ?!$>
+-- infixr 1 ?!$>
 
 -- |@liftM . (?>)@
 thenReturn :: (Applicative m, Alternative f) => Bool -> m a -> m (f a)
@@ -52,12 +52,12 @@ True `thenReturn` f = pure <$> f
 -- TODO: get rid of this
 
 -- |@'(?$>)' . not@
-(?!$>) :: (Applicative m, Alternative f) => Bool -> m a -> m (f a)
-True ?!$> _ = pure empty
-False ?!$> f = pure <$> f
+unlessReturn :: (Applicative m, Alternative f) => Bool -> m a -> m (f a)
+True `unlessReturn` _ = pure empty
+False `unlessReturn` f = pure <$> f
 
 {-# SPECIALIZE thenReturn :: Applicative m => Bool -> m a -> m (Maybe a) #-}
-{-# SPECIALIZE (?!$>) :: Applicative m => Bool -> m a -> m (Maybe a) #-}
+{-# SPECIALIZE unlessReturn :: Applicative m => Bool -> m a -> m (Maybe a) #-}
 
 rightJust :: Either a b -> Maybe b
 rightJust = EC.rightToMaybe

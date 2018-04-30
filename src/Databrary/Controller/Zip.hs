@@ -194,7 +194,7 @@ zipVolume isOrig =
   (v, s, a) <- getVolumeInfo vi
   top:cr <- lookupVolumeContainersRecords v
   let cr' = filter ((`RS.member` s) . containerId . containerRow . fst) cr
-  csv <- null cr' ?!$> volumeCSV v cr'
+  csv <- (null cr') `unlessReturn` (volumeCSV v cr')
   zipActs <- volumeZipEntry2 isOrig v top s (buildCSV <$> csv) a
   auditVolumeDownload (not $ null a) v
   zipResponse2 (BSC.pack $ "databrary-" ++ show (volumeId $ volumeRow v) ++ if idSetIsFull s then "" else "-partial") zipActs
