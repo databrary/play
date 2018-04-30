@@ -269,7 +269,7 @@ volumeCitationForm v = do
   _ <- "name" .:> deformRequired name
   when (not empty) $ void $
     "citation" .:> "head" .:> deformRequired (citationHead fill)
-  return (vol{ volumeRow = (volumeRow vol){ volumeName = name } }, empty ?!> fill)
+  return (vol{ volumeRow = (volumeRow vol){ volumeName = name } }, empty `unlessUse` fill)
 
 viewVolumeEdit :: ActionRoute (Id Volume)
 viewVolumeEdit = action GET (pathHTML >/> pathId </< "edit") $ \vi -> withAuth $ do

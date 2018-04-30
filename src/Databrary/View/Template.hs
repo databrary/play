@@ -177,4 +177,4 @@ htmlTemplate req title body = H.docTypeHtml $ do
               return r
   where
   (hasjs, nojs) = jsURL JSDefault (view req)
-  canon = Wai.requestMethod (view req) == methodGet && hasjs == JSDefault ?!> nojs
+  canon = (Wai.requestMethod (view req) == methodGet && hasjs == JSDefault) `unlessUse` nojs

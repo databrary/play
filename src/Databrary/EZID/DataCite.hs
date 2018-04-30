@@ -69,10 +69,10 @@ dataCiteXML DataCite{..} =
         ] $ fundRefDOI ++ show funderId
       ]
     , "subjects" <?> dataCiteSubjects $ ("subject" <.>) . BSC.unpack
-    , isNothing dataCitePublication || null dataCiteReferences ?!>
-      "relatedIdentifiers" <.>
+    , (isNothing dataCitePublication || null dataCiteReferences) `unlessUse`
+      ("relatedIdentifiers" <.>
         (maybe id ((:) . ur "IsSupplementTo") dataCitePublication
-        $ map (ur "References") dataCiteReferences)
+        $ map (ur "References") dataCiteReferences))
     ]
   where
   infixr 5 <.>, <=>

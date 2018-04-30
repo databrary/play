@@ -122,7 +122,7 @@ postAuthorize = action POST (pathAPI </>> pathPartyTarget </> pathAuthorizeTarge
           site <- "site" .:> deform
           member <- "member" .:> deform
           expires <- "expires" .:> (deformCheck "Expiration must be within two years." (all (\e -> su || e > minexp && e <= maxexp))
-            =<< (<|> (su ?!> maxexp)) <$> deformNonEmpty deform)
+            =<< (<|> (su `unlessUse` maxexp)) <$> deformNonEmpty deform)
           return $ Authorize (Authorization (Access site member) child parent) $ fmap (`UTCTime` 43210) expires)
       updateAuthorize c a
       return a

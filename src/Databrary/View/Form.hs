@@ -56,7 +56,7 @@ value = do
   return $ case val of
     FormDatumNone -> Nothing
     FormDatumJSON _ -> Nothing -- that's weird
-    FormDatumBS b -> BS.null b ?!> b
+    FormDatumBS b -> (BS.null b) `unlessUse` b
     FormDatumFlag -> Nothing
 
 errorList :: [FormErrorMessage] -> H.Html

@@ -80,7 +80,7 @@ partyJSONField p "parents" o = do
     return $ (if admin then authorizeJSON a else mempty)
       <> "party" JSON..=: (partyJSON ap `JSON.foldObjectIntoRec` ("authorization" `JSON.kvObjectOrEmpty` acc))
       <> "expired" `JSON.kvObjectOrEmpty` (True <? admin && authorizeExpired a now))
-    =<< lookupAuthorizedParents p (admin ?!> PermissionNONE)
+    =<< lookupAuthorizedParents p (admin `unlessUse` PermissionNONE)
   where
   admin = view p >= PermissionADMIN
   auth = admin && o == Just "authorization"
@@ -88,7 +88,7 @@ partyJSONField p "children" _ =
   Just . JSON.mapObjects (\a ->
     let ap = authorizeChild (authorization a) in
     (if admin then authorizeJSON a else mempty) <> "party" JSON..=: partyJSON ap)
-    <$> lookupAuthorizedChildren p (admin ?!> PermissionNONE)
+    <$> lookupAuthorizedChildren p (admin `unlessUse` PermissionNONE)
   where admin = view p >= PermissionADMIN
 partyJSONField p "volumes" o = thenReturn (view p >= PermissionADMIN) $ do
     vols <- lookupPartyVolumes p PermissionREAD

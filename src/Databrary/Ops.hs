@@ -3,7 +3,7 @@
 -- FIXME: There is a lot of duplication of standard library tools in here.
 module Databrary.Ops
   ( (<?) , thenUse --   (?>)
-  , (?!>)
+  , unlessUse -- , (?!>)
   -- , (?$>)
   , thenReturn
   , unlessReturn -- , (?!$>)
@@ -19,7 +19,7 @@ import Control.Applicative
 import qualified Data.Either.Combinators as EC
 
 infixl 1 <?
-infixr 1 ?!>
+-- infixr 1 ?!>
 
 -- |@'($>)' . guard@
 thenUse :: Alternative f => Bool -> a -> f a
@@ -33,14 +33,14 @@ a <? True = pure a
 -- replace with: useWhen
 
 -- |@'(?>)' . not@
-(?!>) :: Alternative f => Bool -> a -> f a
-True ?!> _ = empty
-False ?!> a = pure a
+unlessUse :: Alternative f => Bool -> a -> f a
+True `unlessUse` _ = empty
+False `unlessUse` a = pure a
 -- replace with: unlessUse
 
 {-# SPECIALIZE thenUse :: Bool -> a -> Maybe a #-}
 {-# SPECIALIZE (<?) :: a -> Bool -> Maybe a #-}
-{-# SPECIALIZE (?!>) :: Bool -> a -> Maybe a #-}
+{-# SPECIALIZE unlessUse :: Bool -> a -> Maybe a #-}
 
 -- infixr 1 ?$>
 -- infixr 1 ?!$>
