@@ -2,7 +2,6 @@
 module Databrary.Action.RequestTest where
 
 import Network.Wai
-import Network.Wai.Internal
 import Test.Tasty.HUnit
 
 import Databrary.Action.Request

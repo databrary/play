@@ -567,6 +567,7 @@ test-suite discovered
     , Databrary.Service.PasswdTest
     , Databrary.Store.AVTest
     , Databrary.Store.ConfigTest
+    , Databrary.Store.FilenameTest
     , Databrary.StringUtilTest
     , Data.Csv.ContribTest
     , Data.RangeSet.ParseTest
