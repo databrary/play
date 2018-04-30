@@ -1,12 +1,19 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Model.VolumeAccessTest where
 
+import Database.PostgreSQL.Typed.Protocol
+import Test.Tasty
 import Test.Tasty.HUnit
+import Test.Tasty.ExpectedFailure
 
-import Databrary.Model.VolumeAccess
+import Databrary.Model.Id
+import Databrary.Model.Identity
 import Databrary.Model.Party
 import Databrary.Model.Permission
-import Databrary.Model.Volume.Types
+import Databrary.Model.Volume
+import Databrary.Model.VolumeAccess
+import Databrary.Service.DB
+import TestHarness
 
 volumeAccess1 :: VolumeAccess
 volumeAccess1 =
@@ -26,11 +33,16 @@ unit_volumeAccessProvidesADMIN =
   -- typical
   -- edge cases
 
---  access for this identity <- lookupVolumeAccess v PermissionNONE
-unit_lookupVolumeAccess_example :: Assertion
-unit_lookupVolumeAccess_example = do
-    -- lookup volume 1
-    -- vol1 <- undefined
-    -- partiesAccessing <- runReaderT (lookupVolumeAccess vol1 PermissionNONE) (undefined)
-    -- partiesAccessing @?= []
-    pure ()
+test_lookupVolumeAccess_example :: TestTree
+test_lookupVolumeAccess_example =
+     -- the test doesn't provide any details on why it fails; investigate further
+     ignoreTest (testCase "lookupVolumeAccess" _unit_lookupVolumeAccess_example)
+
+_unit_lookupVolumeAccess_example :: Assertion
+_unit_lookupVolumeAccess_example = do
+    cn <- loadPGDatabase >>= pgConnect
+    let ident = PreIdentified
+        ctxt = TestContext { ctxConn = cn, ctxIdentity = ident }
+    Just vol1 <- runReaderT (lookupVolume (Id 1)) ctxt
+    partiesAccessing <- runReaderT (lookupVolumeAccess vol1 PermissionNONE) ctxt
+    (take 2 partiesAccessing) @?= []

@@ -19,6 +19,7 @@ module Databrary.Controller.Volume
 import Control.Applicative ((<|>), optional)
 import Control.Arrow ((&&&), (***))
 import Control.Monad (mfilter, guard, void, when, forM_)
+-- import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.State.Lazy (StateT(..), evalStateT, get, put)
 import qualified Data.ByteString as BS
@@ -226,6 +227,7 @@ viewVolume = action GET (pathAPI </> pathId) $ \(api, vi) -> withAuth $ do
   when (api == HTML) angular
   v <- getVolume PermissionPUBLIC vi
   accesses <- lookupVolumeAccess v PermissionNONE
+  -- (liftIO . print) ("num accesses", length accesses)
   case api of
     JSON ->
       let idSeriesRecAct :: ActionM (JSON.Record (Id Volume) JSON.Series)
