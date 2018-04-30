@@ -479,7 +479,8 @@ test-suite discovered
     , containers
     , cookie
     , cryptonite
-    , hedgehog          
+    , hedgehog
+    , http-client
     , http-types
     , mtl
     , network-uri
@@ -516,6 +517,7 @@ test-suite discovered
     , Databrary.HasTest
     , Databrary.JSONTest
     , Databrary.HTTP.CookieTest
+    , Databrary.HTTP.ClientTest
     , Databrary.HTTP.Form.DeformTest
     , Databrary.HTTP.RequestTest
     , Databrary.Model.AgeTest
