@@ -334,7 +334,7 @@ assetRowJSON AssetRow{..} = JSON.Record assetId $
      "format" JSON..= formatId assetFormat
   <> "classification" `JSON.kvObjectOrEmpty` assetRelease
   <> "duration" `JSON.kvObjectOrEmpty` assetDuration
-  <> "pending" `JSON.kvObjectOrEmpty` (isNothing assetSize <? isNothing assetSHA1)
+  <> "pending" `JSON.kvObjectOrEmpty` ((isNothing assetSize) `useWhen` (isNothing assetSHA1))
 
 assetJSON :: JSON.ToObject o => Bool -> Asset -> JSON.Record (Id Asset) o
 assetJSON _ Asset{..} = assetRowJSON assetRow -- first parameter is publicRestricted

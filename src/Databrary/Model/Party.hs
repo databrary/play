@@ -106,9 +106,9 @@ partyRowJSON PartyRow{..} = JSON.Record partyId $
 
 partyJSON :: JSON.ToObject o => Party -> JSON.Record (Id Party) o
 partyJSON p@Party{..} = partyRowJSON partyRow `JSON.foldObjectIntoRec`
- (   "institution" `JSON.kvObjectOrEmpty` (True <? isNothing partyAccount)
+ (   "institution" `JSON.kvObjectOrEmpty` (True `useWhen` (isNothing partyAccount))
   <> "email" `JSON.kvObjectOrEmpty` partyEmail p
-  <> "permission" `JSON.kvObjectOrEmpty` (partyPermission <? partyPermission > PermissionREAD))
+  <> "permission" `JSON.kvObjectOrEmpty` (partyPermission `useWhen` (partyPermission > PermissionREAD)))
 
 changeParty :: MonadAudit c m => Party -> m ()
 changeParty p = do
@@ -249,7 +249,7 @@ lookupFixedParty (Id 0) i =
   Just rootParty{
     partyPermission = accessPermission i `max` PermissionSHARED
   , partyAccess = (accessMember i > PermissionNONE) `thenUse` (view i) }
-lookupFixedParty i a = view a <? (i == view a)
+lookupFixedParty i a = (view a) `useWhen` (i == view a)
 
 -- | Given the id for a party, ensure ... and resolve the id to the full party object. The produced party has permissions
 -- for the retrieving viewer baked in.

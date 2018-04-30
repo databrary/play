@@ -293,7 +293,7 @@ formatContainerDate c = formatTime defaultTimeLocale "%Y-%m-%d" <$> getContainer
 
 containerRowJSON :: JSON.ToObject o => Bool -> ContainerRow -> JSON.Record (Id Container) o
 containerRowJSON publicRestricted ContainerRow{..} = JSON.Record containerId $
-     "top" `JSON.kvObjectOrEmpty` (True <? containerTop)
+     "top" `JSON.kvObjectOrEmpty` (True `useWhen` containerTop)
   <> "name" `JSON.kvObjectOrEmpty` if publicRestricted then (fmap maskRestrictedString containerName) else containerName
 
 containerJSON :: JSON.ToObject o => Bool -> Container -> JSON.Record (Id Container) o

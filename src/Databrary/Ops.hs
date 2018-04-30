@@ -2,7 +2,8 @@
 -- |
 -- FIXME: There is a lot of duplication of standard library tools in here.
 module Databrary.Ops
-  ( (<?) , thenUse --   (?>)
+  ( useWhen -- (<?)
+  , thenUse --   (?>)
   , unlessUse -- , (?!>)
   -- , (?$>)
   , thenReturn
@@ -18,7 +19,7 @@ module Databrary.Ops
 import Control.Applicative
 import qualified Data.Either.Combinators as EC
 
-infixl 1 <?
+-- infixl 1 <?
 -- infixr 1 ?!>
 
 -- |@'($>)' . guard@
@@ -27,19 +28,17 @@ False `thenUse` _ = empty
 True `thenUse` a = pure a
 
 -- |@flip '(?>)'@
-(<?) :: Alternative f => a -> Bool -> f a
-_ <? False = empty
-a <? True = pure a
--- replace with: useWhen
+useWhen :: Alternative f => a -> Bool -> f a
+_ `useWhen` False = empty
+a `useWhen` True = pure a
 
 -- |@'(?>)' . not@
 unlessUse :: Alternative f => Bool -> a -> f a
 True `unlessUse` _ = empty
 False `unlessUse` a = pure a
--- replace with: unlessUse
 
 {-# SPECIALIZE thenUse :: Bool -> a -> Maybe a #-}
-{-# SPECIALIZE (<?) :: a -> Bool -> Maybe a #-}
+{-# SPECIALIZE useWhen :: a -> Bool -> Maybe a #-}
 {-# SPECIALIZE unlessUse :: Bool -> a -> Maybe a #-}
 
 -- infixr 1 ?$>
@@ -55,6 +54,7 @@ True `thenReturn` f = pure <$> f
 unlessReturn :: (Applicative m, Alternative f) => Bool -> m a -> m (f a)
 True `unlessReturn` _ = pure empty
 False `unlessReturn` f = pure <$> f
+-- TODO: get rid of this
 
 {-# SPECIALIZE thenReturn :: Applicative m => Bool -> m a -> m (Maybe a) #-}
 {-# SPECIALIZE unlessReturn :: Applicative m => Bool -> m a -> m (Maybe a) #-}

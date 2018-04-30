@@ -69,8 +69,8 @@ volumeAccessProvidesADMIN _ = False
 
 volumeAccessJSON :: JSON.ToObject o => VolumeAccess -> o
 volumeAccessJSON VolumeAccess{..} =
-     "individual" `JSON.kvObjectOrEmpty` (volumeAccessIndividual <? volumeAccessIndividual >= PermissionNONE)
-  <> "children"   `JSON.kvObjectOrEmpty` (volumeAccessChildren   <? volumeAccessChildren   >= PermissionNONE)
+     "individual" `JSON.kvObjectOrEmpty` (volumeAccessIndividual `useWhen` (volumeAccessIndividual >= PermissionNONE))
+  <> "children"   `JSON.kvObjectOrEmpty` (volumeAccessChildren   `useWhen` (volumeAccessChildren   >= PermissionNONE))
   <> "sort" `JSON.kvObjectOrEmpty` volumeAccessSort
   <> "share_full" `JSON.kvObjectOrEmpty` volumeAccessShareFull
 

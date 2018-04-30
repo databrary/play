@@ -893,7 +893,7 @@ metricJSON m@Metric{..} = JSON.Record metricId $
   <> "type" JSON..= show metricType
   <> "options" `JSON.kvObjectOrEmpty` (if null metricOptions then empty else pure metricOptions)
   <> "assumed" `JSON.kvObjectOrEmpty` metricAssumed
-  <> "long" `JSON.kvObjectOrEmpty` (True <? metricLong m)
+  <> "long" `JSON.kvObjectOrEmpty` (True `useWhen` (metricLong m))
   <> "description" `JSON.kvObjectOrEmpty` metricDescription
   <> "required" `JSON.kvObjectOrEmpty` metricRequired
 
