@@ -17,6 +17,12 @@ unit_peek = do
   field1Val <- runReaderT (peek) (Rec1 { recField1 = True })
   field1Val @?= True
 
+unit_peeks :: Assertion
+unit_peeks = do
+  -- example
+  notField1Val <- runReaderT (peeks not) (Rec1 { recField1 = True })
+  notField1Val @?= False
+
 data Rec1 =
     Rec1 {
           recField1 :: Bool
