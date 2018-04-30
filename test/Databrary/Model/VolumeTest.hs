@@ -66,15 +66,15 @@ data Context = Context
     , ctxIdentity :: Identity
     }
 
-unit_volumeJSON :: Assertion
-unit_volumeJSON = do
+unit_volumeJSONSimple_example :: Assertion
+unit_volumeJSONSimple_example = do
     (recordObject . volumeJSONSimple) volumeExample
         @?=
        ([("id",Number 1.0)
         ,("name",String "Test Vol One: A Survey")
         ,("body",String "Here is a description for a volume")
         ,("creation",String "2018-01-02T00:00:00Z")
-        ,("owners",Array (V.fromList []))
+        ,("owners",Array (V.fromList []))-- (V.fromList [("name",String "Smith, John"),("id",Number 2.0)]))
         ,("permission",Number 1.0)
         ,("publicsharefull",Bool True)] :: [Pair])
 
@@ -93,7 +93,33 @@ volumeExample =
         Volume {
               volumeRow = row
             , volumeCreation = UTCTime (fromGregorian 2018 1 2) (secondsToDiffTime 0)
-            , volumeOwners = []
+            , volumeOwners = [] -- [(Id 2, "Smith, John")]
             , volumePermission = PermissionPUBLIC
             , volumeAccessPolicy = PermLevelDefault
             }
+
+unit_lookupVolume_example :: Assertion
+unit_lookupVolume_example = do
+    cn <- loadPGDatabase >>= pgConnect
+    let ident = PreIdentified
+    mVol <- runReaderT (lookupVolume (Id 1)) (Context cn ident)
+    mVol @?=
+       Just
+        (Volume
+                 { volumeRow = VolumeRow
+                               { volumeId = Id 1
+                               , volumeName = "Databrary"
+                               , volumeBody = Just
+                                                 "Databrary is an open data library for developmental science. Share video, audio, and related metadata. Discover more, faster.\nMost developmental scientists rely on video recordings to capture the complexity and richness of behavior. However, researchers rarely share video data, and this has impeded scientific progress. By creating the cyber-infrastructure and community to enable open video sharing, the Databrary project aims to facilitate deeper, richer, and broader understanding of behavior.\nThe Databrary project is dedicated to transforming the culture of developmental science by building a community of researchers committed to open video data sharing, training a new generation of developmental scientists and empowering them with an unprecedented set of tools for discovery, and raising the profile of behavioral science by bolstering interest in and support for scientific research among the general public."
+                               , volumeAlias = Nothing
+                               , volumeDOI = Just "10.17910/B7159Q"
+                               }
+                 , volumeCreation = UTCTime (fromGregorian 2013 1 11) (secondsToDiffTime 37600)
+                 , volumeOwners = [ (Id 1, "Admin, Admin")
+                                  , (Id 3, "Steiger, Lisa")
+                                  , (Id 7, "Tesla, Testarosa")
+                                  ]
+                 , volumePermission = PermissionPUBLIC
+                 , volumeAccessPolicy = PermLevelDefault
+                 }
+        )
