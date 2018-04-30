@@ -508,7 +508,8 @@ test-suite discovered
     FlexibleInstances
   other-modules:
 
-      Databrary.Controller.IngestTest
+      Databrary.Action.RequestTest
+    , Databrary.Controller.IngestTest
     , Databrary.Controller.LoginTest
     , Databrary.EZID.ANVLTest
     , Databrary.FilesTest
