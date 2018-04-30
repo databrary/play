@@ -217,7 +217,7 @@ errorFile :: ErrorFile -> IO (Maybe RawFilePath)
 errorFile NoFile = return Nothing
 errorFile (FileName f) = return $ Just f
 errorFile (FileContext a) =
-  n /= nullPtr ?$> BS.packCString n
+  (n /= nullPtr) `thenReturn` (BS.packCString n)
   where n = #{ptr AVFormatContext, filename} a
 
 throwAVError :: CInt -> String -> ErrorFile -> IO a

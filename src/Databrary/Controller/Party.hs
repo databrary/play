@@ -90,7 +90,7 @@ partyJSONField p "children" _ =
     (if admin then authorizeJSON a else mempty) <> "party" JSON..=: partyJSON ap)
     <$> lookupAuthorizedChildren p (admin ?!> PermissionNONE)
   where admin = view p >= PermissionADMIN
-partyJSONField p "volumes" o = (?$>) (view p >= PermissionADMIN) $ do
+partyJSONField p "volumes" o = thenReturn (view p >= PermissionADMIN) $ do
     vols <- lookupPartyVolumes p PermissionREAD
     (fmap (JSON.mapRecords id) . mapM vf) vols
   where

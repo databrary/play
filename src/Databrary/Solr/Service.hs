@@ -61,7 +61,7 @@ initSolr fg conf = do
   let run = conf C.! "run"
   print $ "RUN" ++ show run
   print $ "HOME" ++ show home
-  p <- fromMaybe fg run ?$>
+  p <- (fromMaybe fg run) `thenReturn`
        Proc.createProcess (Proc.proc (fromMaybe "solr" $ conf C.! "bin")
                             ["start", "-Djetty.host=" ++ host, "-p", show port, "-f", "-s", home])
     { Proc.std_out = out
