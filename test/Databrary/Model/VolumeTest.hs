@@ -3,7 +3,6 @@
 module Databrary.Model.VolumeTest where
 
 import Control.Exception (bracket)
-import Control.Monad.Trans.Reader
 import Data.Time
 import qualified Data.Vector as V
 import Database.PostgreSQL.Typed.Protocol
@@ -12,12 +11,12 @@ import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.ExpectedFailure
 
-import Databrary.Has
+import TestHarness
 import Databrary.JSON
 import Databrary.Model.Id
 import Databrary.Model.Identity
 import Databrary.Model.Party
-import Databrary.Model.Permission
+import Databrary.Model.Permission.Types
 import Databrary.Model.Volume
 import Databrary.Service.DB
 
@@ -36,38 +35,13 @@ _unit_findVolumes :: Assertion
 _unit_findVolumes = do
     let ident = PreIdentified
     cn <- loadPGDatabase >>= pgConnect
-    let ctxt = Context cn ident
-    vs <- runReaderT (findVolumes volumeFilter1 :: ReaderT Context IO [Volume]) ctxt  
+    let ctxt = TestContext { ctxConn = cn, ctxIdentity = ident }
+    vs <- runReaderT (findVolumes volumeFilter1) ctxt
     length vs @?= 2
 
 volumeFilter1 :: VolumeFilter
 volumeFilter1 =
     mempty
-
--- TODO: copied from Party, generalize
-
-instance Has DBConn Context where
-    view = ctxConn
-
-instance Has Identity Context where
-    view = ctxIdentity
-
-instance Has SiteAuth Context where
-    view = undefined
-
-instance Has Party Context where
-    view = undefined
-
-instance Has (Id Party) Context where
-    view = undefined
-
-instance Has Access Context where
-    view = undefined
-
-data Context = Context
-    { ctxConn :: DBConn
-    , ctxIdentity :: Identity
-    }
 
 unit_volumeJSONSimple_example :: Assertion
 unit_volumeJSONSimple_example = do
@@ -105,7 +79,8 @@ unit_lookupVolume_example :: Assertion
 unit_lookupVolume_example = do
     cn <- loadPGDatabase >>= pgConnect
     let ident = PreIdentified
-    mVol <- runReaderT (lookupVolume (Id 1)) (Context cn ident)
+    let ctxt = TestContext { ctxConn = cn, ctxIdentity = ident }
+    mVol <- runReaderT (lookupVolume (Id 1)) ctxt
     mVol @?=
        Just
         (Volume
@@ -127,34 +102,6 @@ unit_lookupVolume_example = do
                  }
         )
 
-data Context2 = Context2
-    { ctxConn2 :: DBConn
-    , ctxIdentity2 :: Identity
-    , ctxPartyId :: Id Party
-    , ctxRequest :: Request
-    }
-
-instance Has DBConn Context2 where
-    view = ctxConn2
-
-instance Has Identity Context2 where
-    view = ctxIdentity2
-
-instance Has SiteAuth Context2 where
-    view = undefined
-
-instance Has Party Context2 where
-    view = undefined
-
-instance Has (Id Party) Context2 where
-    view = ctxPartyId
-
-instance Has Access Context2 where
-    view = undefined
-
-instance Has Request Context2 where
-    view = ctxRequest
-
 test_addVolume_example :: TestTree
 test_addVolume_example =
     -- mismatch on three aspects:
@@ -170,19 +117,20 @@ _unit_addVolume_example = do
              let ident = PreIdentified
                  pid :: Id Party
                  pid = Id 300
-                 req = defaultRequest
-             v <- runReaderT (addVolume volumeExample) (Context2 cn ident pid req)
+             let ctxt = TestContext { ctxConn = cn, ctxIdentity = ident, ctxPartyId = pid, ctxRequest = defaultRequest }
+             v <- runReaderT (addVolume volumeExample) ctxt
              v @?= volumeExample)
-
-withinTestTransaction :: (PGConnection -> IO a) -> IO a
-withinTestTransaction act =
-    bracket
-        (do
-            cn <- pgConnect =<< loadPGDatabase
-            pgBegin cn
-            pure cn)
-        pgRollback
-        act
 
 {- Volume {volumeRow = VolumeRow {volumeId = 6, volumeName = "Test Vol One: A Survey", volumeBody = Just "Here is a description for a volume", volumeAlias = Just "Test Vol 1", volumeDOI = Nothing}, volumeCreation = 2013-01-11 10:26:40 UTC, volumeOwners = [], volumePermission = ADMIN, volumeAccessPolicy = PermLevelDefault}
 -}
+
+withinTestTransaction :: (PGConnection -> IO a) -> IO a
+withinTestTransaction act =
+     bracket
+         (do
+              cn <- pgConnect =<< loadPGDatabase
+              pgBegin cn
+              pure cn)
+         pgRollback
+         act
+  

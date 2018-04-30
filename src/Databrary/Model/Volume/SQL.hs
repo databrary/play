@@ -108,9 +108,10 @@ updateVolume ident v = auditUpdate ident "volume"
   Nothing
   where vs = nameRef v
 
-insertVolume :: TH.Name -- ^ @'AuditIdentity'
-  -> TH.Name -- ^ @'Volume'@
-  -> TH.ExpQ -- ^ @'Permission' -> 'Volume'@
+insertVolume
+    :: TH.Name -- ^ @'AuditIdentity'
+    -> TH.Name -- ^ @'Volume'@
+    -> TH.ExpQ -- ^ @'Permission' -> 'Volume'@
 insertVolume ident v = auditInsert ident "!volume"
   (volumeSets vs)
   (Just $ selectOutput selectPermissionVolume)
