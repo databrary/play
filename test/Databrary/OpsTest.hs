@@ -5,6 +5,8 @@ import Test.Tasty.HUnit
 
 import Databrary.Ops
 
+
+
 test_all :: [TestTree]
 test_all =
     [ testCase "rightJust-1" (rightJust (Right 10) @?= (Just 10 :: Maybe Int))
