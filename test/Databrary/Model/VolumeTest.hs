@@ -29,7 +29,7 @@ unit_getVolumeAlias =
 
 test_findVolumes :: TestTree
 test_findVolumes = ignoreTest -- Because "??"
-    (testCase "" _unit_findVolumes)
+    (testCase "findVolumes" _unit_findVolumes)
 
 _unit_findVolumes :: Assertion
 _unit_findVolumes = do
