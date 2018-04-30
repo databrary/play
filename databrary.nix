@@ -37,7 +37,7 @@ in
     builtins.filterSource
       (path: _type: ! builtins.elem
           (baseNameOf path)
-          [dbName ".git" "result" "node_modules"])
+          [dbName ".git" "result" "node_modules" "dist"])
       ./.;
   isLibrary = true;
   isExecutable = true;

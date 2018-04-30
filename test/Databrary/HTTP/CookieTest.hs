@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
-{-# OPTIONS_GHC -Wno-missing-fields #-}
 
 module Databrary.HTTP.CookieTest where
 

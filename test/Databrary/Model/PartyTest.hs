@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-missing-fields #-}
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, GeneralizedNewtypeDeriving
    , TypeSynonymInstances, MultiParamTypeClasses, FlexibleInstances, RecordWildCards #-}
 module Databrary.Model.PartyTest where

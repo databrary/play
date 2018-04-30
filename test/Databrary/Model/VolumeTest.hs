@@ -2,19 +2,21 @@
    , TypeSynonymInstances, MultiParamTypeClasses, FlexibleInstances #-}
 module Databrary.Model.VolumeTest where
 
-import Control.Monad.Trans.Reader
+import Control.Exception (bracket)
 import Data.Time
 import qualified Data.Vector as V
+import Database.PostgreSQL.Typed.Protocol
+import Network.Wai
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.ExpectedFailure
 
-import Databrary.Has
+import TestHarness
 import Databrary.JSON
 import Databrary.Model.Id
 import Databrary.Model.Identity
 import Databrary.Model.Party
-import Databrary.Model.Permission
+import Databrary.Model.Permission.Types
 import Databrary.Model.Volume
 import Databrary.Service.DB
 
@@ -33,38 +35,13 @@ _unit_findVolumes :: Assertion
 _unit_findVolumes = do
     let ident = PreIdentified
     cn <- loadPGDatabase >>= pgConnect
-    let ctxt = Context cn ident
-    vs <- runReaderT (findVolumes volumeFilter1 :: ReaderT Context IO [Volume]) ctxt  
+    let ctxt = TestContext { ctxConn = cn, ctxIdentity = ident }
+    vs <- runReaderT (findVolumes volumeFilter1) ctxt
     length vs @?= 2
 
 volumeFilter1 :: VolumeFilter
 volumeFilter1 =
     mempty
-
--- TODO: copied from Party, generalize
-
-instance Has DBConn Context where
-    view = ctxConn
-
-instance Has Identity Context where
-    view = ctxIdentity
-
-instance Has SiteAuth Context where
-    view = undefined
-
-instance Has Party Context where
-    view = undefined
-
-instance Has (Id Party) Context where
-    view = undefined
-
-instance Has Access Context where
-    view = undefined
-
-data Context = Context
-    { ctxConn :: DBConn
-    , ctxIdentity :: Identity
-    }
 
 unit_volumeJSONSimple_example :: Assertion
 unit_volumeJSONSimple_example = do
@@ -102,7 +79,8 @@ unit_lookupVolume_example :: Assertion
 unit_lookupVolume_example = do
     cn <- loadPGDatabase >>= pgConnect
     let ident = PreIdentified
-    mVol <- runReaderT (lookupVolume (Id 1)) (Context cn ident)
+    let ctxt = TestContext { ctxConn = cn, ctxIdentity = ident }
+    mVol <- runReaderT (lookupVolume (Id 1)) ctxt
     mVol @?=
        Just
         (Volume
@@ -123,3 +101,35 @@ unit_lookupVolume_example = do
                  , volumeAccessPolicy = PermLevelDefault
                  }
         )
+
+test_addVolume_example :: TestTree
+test_addVolume_example =
+    -- mismatch on three aspects:
+    --    id - generated from db insert instead of provided, as expected
+    --    creation date - the time is appearing to come from volume 1 instead of the created volume
+    --    permission - defaults to ADMIN, as expected
+    expectFail (testCase "addVolume" _unit_addVolume_example)
+
+_unit_addVolume_example :: Assertion
+_unit_addVolume_example = do
+    withinTestTransaction
+        (\cn -> do
+             let ident = PreIdentified
+                 pid :: Id Party
+                 pid = Id 300
+             let ctxt = TestContext { ctxConn = cn, ctxIdentity = ident, ctxPartyId = pid, ctxRequest = defaultRequest }
+             v <- runReaderT (addVolume volumeExample) ctxt
+             v @?= volumeExample)
+
+{- Volume {volumeRow = VolumeRow {volumeId = 6, volumeName = "Test Vol One: A Survey", volumeBody = Just "Here is a description for a volume", volumeAlias = Just "Test Vol 1", volumeDOI = Nothing}, volumeCreation = 2013-01-11 10:26:40 UTC, volumeOwners = [], volumePermission = ADMIN, volumeAccessPolicy = PermLevelDefault}
+-}
+
+withinTestTransaction :: (PGConnection -> IO a) -> IO a
+withinTestTransaction act =
+     bracket
+         (do
+              cn <- pgConnect =<< loadPGDatabase
+              pgBegin cn
+              pure cn)
+         pgRollback
+         act
