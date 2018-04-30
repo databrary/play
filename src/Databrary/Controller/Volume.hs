@@ -249,6 +249,7 @@ volumeForm v = do
       }
     }
 
+-- FIXME: Too impure, and needs test: What elements of the input are modified?
 volumeCitationForm :: Volume -> DeformActionM f (Volume, Maybe Citation)
 volumeCitationForm v = do
   csrfForm

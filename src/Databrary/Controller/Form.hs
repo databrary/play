@@ -45,6 +45,8 @@ import Databrary.Action.Form (getFormData)
 import Databrary.Controller.Permission (checkVerfHeader)
 import Databrary.View.Form (FormHtml)
 
+-- FIXME: This is too impure: each value of this type should be decomposed separately
+-- into a DeformT and an ActionM e.g. deformT ... >>= \x -> actionM ...
 type DeformActionM f a = DeformT f ActionM a
 
 jsonFormErrors :: FormErrors -> Response
