@@ -176,7 +176,7 @@ processAsset api target = do
         AssetTargetVolume t -> assetNoSlot $ blankAsset t
         AssetTargetSlot t -> AssetSlot (blankAsset (view t)) (Just t)
         AssetTargetAsset t -> t
-  (as', up') <- runFormFiles [("file", maxAssetSize)] (api == HTML ?> htmlAssetEdit target) $ do
+  (as', up') <- runFormFiles [("file", maxAssetSize)] ((api == HTML) `thenUse` (htmlAssetEdit target)) $ do
     liftIO $ putStrLn "runFormFiles..."--DEBUG
     csrfForm
     (file :: Maybe (FileInfo TempFile)) <- "file" .:> deform

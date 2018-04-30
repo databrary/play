@@ -31,7 +31,7 @@ postComment :: ActionRoute (API, Id Slot)
 postComment = action POST (pathAPI </> pathSlotId </< "comment") $ \(api, si) -> withAuth $ do
   u <- authAccount
   s <- getSlot PermissionSHARED Nothing si
-  (c, p) <- runForm (api == HTML ?> htmlCommentForm s) $ do
+  (c, p) <- runForm ((api == HTML) `thenUse` (htmlCommentForm s)) $ do
     csrfForm
     text <- "text" .:> (deformRequired =<< deform)
     parent <- "parent" .:> deformNonEmpty (deformMaybe' "comment not found" =<< lift . lookupComment =<< deform)

@@ -287,7 +287,7 @@ postVolume :: ActionRoute (API, Id Volume)
 postVolume = action POST (pathAPI </> pathId) $ \arg@(api, vi) -> withAuth $ do
   v <- getVolume PermissionEDIT vi
   cite <- lookupVolumeCitation v
-  (v', cite') <- runForm (api == HTML ?> htmlVolumeEdit (Just (v, cite))) $ volumeCitationForm v
+  (v', cite') <- runForm ((api == HTML) `thenUse` (htmlVolumeEdit (Just (v, cite)))) $ volumeCitationForm v
   changeVolume v'
   r <- changeVolumeCitation v' cite'
   case api of
@@ -299,7 +299,7 @@ postVolume = action POST (pathAPI </> pathId) $ \arg@(api, vi) -> withAuth $ do
 createVolume :: ActionRoute API
 createVolume = action POST (pathAPI </< "volume") $ \api -> withAuth $ do
   u <- peek
-  (bv, cite, owner) <- runForm (api == HTML ?> htmlVolumeEdit Nothing) $ do
+  (bv, cite, owner) <- runForm ((api == HTML) `thenUse` (htmlVolumeEdit Nothing)) $ do
     csrfForm
     (bv, cite) <- volumeCitationForm blankVolume
     own <- "owner" .:> do
@@ -340,7 +340,7 @@ postVolumeLinks :: ActionRoute (API, Id Volume)
 postVolumeLinks = action POST (pathAPI </> pathId </< "link") $ \arg@(api, vi) -> withAuth $ do
   v <- getVolume PermissionEDIT vi
   links <- lookupVolumeLinks v
-  links' <- runForm (api == HTML ?> htmlVolumeLinksEdit v links) $ do
+  links' <- runForm ((api == HTML) `thenUse` (htmlVolumeLinksEdit v links)) $ do
     csrfForm
     withSubDeforms $ \_ -> Citation
       <$> ("head" .:> deform)
@@ -376,7 +376,7 @@ volumeSearchForm = VolumeFilter
 queryVolumes :: ActionRoute API
 queryVolumes = action GET (pathAPI </< "volume") $ \api -> withAuth $ do
   when (api == HTML) angular
-  vf <- runForm (api == HTML ?> htmlVolumeSearch mempty []) volumeSearchForm
+  vf <- runForm ((api == HTML) `thenUse` (htmlVolumeSearch mempty [])) volumeSearchForm
   p <- findVolumes vf
   case api of
     JSON -> return $ okResponse [] $ JSON.mapRecords (\v -> volumeJSONSimple v) p 

@@ -61,7 +61,7 @@ modificationTimestamp = posixSecondsToUTCTime . P.modificationTimeHiRes
 
 fileInfo :: RawFilePath -> IO (Maybe (FileOffset, Timestamp))
 fileInfo f =
-  (=<<) (liftM2 (?>) P.isRegularFile $ P.fileSize &&& modificationTimestamp)
+  (=<<) (liftM2 thenUse P.isRegularFile $ P.fileSize &&& modificationTimestamp)
   <$> catchDoesNotExist (RP.getFileStatus f)
 
 setFileTimestamps :: RawFilePath -> Timestamp -> Timestamp -> IO ()

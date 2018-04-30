@@ -36,7 +36,7 @@ validTag = Regex.makeRegex
   ("^[a-z][-a-z ]+[a-z]$" :: BS.ByteString)
 
 validateTag :: BS.ByteString -> Maybe TagName
-validateTag t = Regex.matchTest validTag tt ?> TagName tt where
+validateTag t = (Regex.matchTest validTag tt) `thenUse` (TagName tt) where
   tt = BSC.map toLower $ BSC.unwords $ BSC.words t
 
 instance R.Parameter R.PathString TagName where

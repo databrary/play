@@ -130,7 +130,7 @@ mergeAssetCreation = joinActivitiesWith f1 where
 
 mergeActivityAssetAndSlot :: ActivityTarget -> ActivityTarget -> Maybe ActivityTarget
 mergeActivityAssetAndSlot (ActivityAsset ar) (ActivityAssetSlot ai si) =
-  assetId ar == ai ?> ActivityAssetAndSlot ar si
+  (assetId ar == ai) `thenUse` (ActivityAssetAndSlot ar si)
 mergeActivityAssetAndSlot _ _ = Nothing
 
 mergeAssetAndSlot :: [Activity] -> [Activity]

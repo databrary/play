@@ -142,7 +142,7 @@ mailNotification msg Notification{..} = case notificationNotice of
     "A new Databrary newsletter has been posted. Te see it, go to: http://databrary.org/news.html"
   where
   target = partyRow (accountParty notificationTarget)
-  person p = on (/=) partyId p target ?> TL.fromStrict (partyName p)
+  person p = (on (/=) partyId p target) `thenUse` (TL.fromStrict (partyName p))
   agent = fromMaybe "You" $ person notificationAgent
   partyp = person =<< notificationParty
   party = fromMaybe "you" partyp
@@ -236,9 +236,9 @@ htmlNotification msg Notification{..} = case notificationNotice of
     "A new " >> (H.a H.! HA.href "//databrary.org/news.html") "Databrary newsletter" >> " has been posted."
   where
   target = partyRow (accountParty notificationTarget)
-  person p = on (/=) partyId p target ?> htmlPartyViewLink p ([] :: Query)
+  person p = (on (/=) partyId p target) `thenUse` (htmlPartyViewLink p ([] :: Query))
   agent = fromMaybe "You" $ person notificationAgent
-  partyp = fmap (any (on (/=) partyId notificationAgent) notificationParty ?>) $ person =<< notificationParty
+  partyp = fmap ((any (on (/=) partyId notificationAgent) notificationParty) `thenUse`) $ person =<< notificationParty
   party = maybe "you" (fromMaybe "themselves") partyp
   party'sOr your their = maybe your (maybe their (>> "'s")) partyp
   party's = party'sOr "your" "their own"

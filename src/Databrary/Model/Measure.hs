@@ -227,7 +227,7 @@ getRecordMeasures r = maybe [] filt $ readRelease (view r) where
 
 decodeMeasure :: PGColumn t d => PGTypeName t -> Measure -> Maybe d
 decodeMeasure t Measure{ measureMetric = Metric{ metricType = m }, measureDatum = d } =
-  pgTypeName t == show m ?> pgDecode t d
+  (pgTypeName t == show m) `thenUse` (pgDecode t d)
 
 measureJSONPair :: JSON.KeyValue kv => Bool -> Measure -> kv
 measureJSONPair publicRestricted m =

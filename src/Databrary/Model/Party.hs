@@ -245,7 +245,10 @@ removeParty p = do
 
 lookupFixedParty :: Id Party -> Identity -> Maybe Party
 lookupFixedParty (Id (-1)) _ = Just nobodyParty
-lookupFixedParty (Id 0) i = Just rootParty{ partyPermission = accessPermission i `max` PermissionSHARED, partyAccess = accessMember i > PermissionNONE ?> view i }
+lookupFixedParty (Id 0) i =
+  Just rootParty{
+    partyPermission = accessPermission i `max` PermissionSHARED
+  , partyAccess = (accessMember i > PermissionNONE) `thenUse` (view i) }
 lookupFixedParty i a = view a <? (i == view a)
 
 -- | Given the id for a party, ensure ... and resolve the id to the full party object. The produced party has permissions

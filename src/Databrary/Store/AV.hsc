@@ -403,7 +403,7 @@ avProbeHas :: AVMediaType -> AVProbe -> Bool
 avProbeHas t = any ((t ==) . fst) . avProbeStreams
 
 avProbeLength :: AVProbe -> Maybe Offset
-avProbeLength AVProbe{ avProbeDuration = o } = o > 0 ?> diffTimeOffset o
+avProbeLength AVProbe{ avProbeDuration = o } = (o > 0) `thenUse` (diffTimeOffset o)
 
 avTime :: Int64 -> DiffTime
 avTime t = realToFrac $ t % #{const AV_TIME_BASE}
@@ -463,7 +463,7 @@ foreign import ccall "av.h avFrame_rescale"
 
 avFrame :: RawFilePath -> Maybe DiffTime -> Maybe Word16 -> Maybe Word16 -> Maybe RawFilePath -> AV -> IO (Maybe BS.ByteString)
 avFrame infile offset width height outfile AV =
-  withAVInput infile (isimg ?> "image2") $ \inctx ->
+  withAVInput infile (isimg `thenUse` "image2") $ \inctx ->
   with nullPtr $ \icodecp ->
   withAVDictionary $ \opts -> do
   when isimg $

@@ -122,7 +122,7 @@ viewParty = action GET (pathAPI </> pathPartyTarget) $ \(api, i) -> withAuth $ d
 
 processParty :: API -> Maybe Party -> ActionM (Party, Maybe (Maybe Asset))
 processParty api p = do
-  (p', a) <- runFormFiles [("avatar", maxAvatarSize)] (api == HTML ?> htmlPartyEdit p) $ do
+  (p', a) <- runFormFiles [("avatar", maxAvatarSize)] ((api == HTML) `thenUse` (htmlPartyEdit p)) $ do
     csrfForm
     name <- "sortname" .:> (deformRequired =<< deform)
     prename <- "prename" .:> deformNonEmpty deform
@@ -228,7 +228,7 @@ partySearchForm = PartyFilter
 queryParties :: ActionRoute API
 queryParties = action GET (pathAPI </< "party") $ \api -> withAuth $ do
   when (api == HTML) angular
-  pf <- runForm (api == HTML ?> htmlPartySearch mempty []) partySearchForm
+  pf <- runForm ((api == HTML) `thenUse` (htmlPartySearch mempty [])) partySearchForm
   p <- findParties pf
   case api of
     JSON -> return $ okResponse [] $ JSON.mapRecords partyJSON p

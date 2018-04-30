@@ -73,7 +73,7 @@ postRegister = action POST (pathAPI </< "user" </< "register") $ postRegisterAct
 
 postRegisterAction :: API -> Action
 postRegisterAction = \api -> withoutAuth $ do
-  reg <- runForm (api == HTML ?> htmlRegister) $ do
+  reg <- runForm ((api == HTML) `thenUse` htmlRegister) $ do
     name <- "sortname" .:> (deformRequired =<< deform)
     prename <- "prename" .:> deformNonEmpty deform
     email <- "email" .:> emailTextForm
@@ -135,7 +135,7 @@ postPasswordReset = action POST (pathAPI </< "user" </< "password") $ postPasswo
 
 postPasswordResetAction :: API -> Action
 postPasswordResetAction = \api -> withoutAuth $ do
-  email <- runForm (api == HTML ?> htmlPasswordReset) $ do
+  email <- runForm ((api == HTML) `thenUse` htmlPasswordReset) $ do
     "email" .:> emailTextForm
   auth <- lookupPasswordResetAccount email
   resetPasswordMail (maybe (Left email) Right auth)

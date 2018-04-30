@@ -102,7 +102,7 @@ serveAssetSegment dl as = do
     fileResponse
       store
       (view as :: Format)
-      (dl ?> makeFilename (assetSegmentDownloadName as) :: Maybe BS.ByteString) -- download file name
+      (dl `thenUse` (makeFilename (assetSegmentDownloadName as)) :: Maybe BS.ByteString) -- download file name
       (BSL.toStrict $ BSB.toLazyByteString $  -- etag for http serve
         BSB.byteStringHex (fromJust $ assetSHA1 $ assetRow a) <> BSB.string8 (assetSegmentTag as sz)
         :: BS.ByteString)
