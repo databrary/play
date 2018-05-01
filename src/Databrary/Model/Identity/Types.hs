@@ -16,15 +16,20 @@ import Databrary.Model.Permission.Types
 import Databrary.Model.Party.Types
 import Databrary.Model.Token.Types
 
+-- | ????
 data Identity
   = PreIdentified
   -- ^ Speculation: background jobs or other things that have intrinsic identity
   | NotIdentified
+  -- ^ Used mainly for BackgroundContext, but also as return from
+  -- 'determineIdentity' in (presumably) a failure case
   | Identified Session
-  -- ^ An actual human user on a web browser
+  -- ^ An actual human user on a web browser. One of the other two return values
+  -- for 'determineIdentity'.
   | ReIdentified SiteAuth
   -- ^ Speculation: used in video conversion when sending results from the
-  -- compute cluster back to the system
+  -- compute cluster back to the system. Used as a 'su' to run actions as a
+  -- different account?
 
 instance Has SiteAuth Identity where
   view (Identified Session{ sessionAccountToken = AccountToken{ tokenAccount = t } }) = t

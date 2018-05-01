@@ -87,9 +87,10 @@ instance Monoid Permission where
   mempty = PermissionNONE
   mappend = max
 
+-- | TODO: Figure out what this thing represents
 data Access = Access
-  { accessSite' :: !Permission
-  , accessMember' :: !Permission
+  { accessSite' :: !Permission -- ^ ??
+  , accessMember' :: !Permission -- ^ ??
   } deriving (Eq, Show)
 
 accessPermission' :: Access -> Permission

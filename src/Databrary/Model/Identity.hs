@@ -22,6 +22,7 @@ import Databrary.Model.Permission
 import Databrary.Model.Identity.Types
 
 -- | Extract session token from cookie, use it to find an active session
+-- FIXME: This is part of the critical path, need to understand it
 determineIdentity :: (MonadHas Secret c m, MonadHasRequest c m, MonadDB c m) => m Identity
 determineIdentity =
   maybe NotIdentified Identified <$> (flatMapM lookupSession =<< getSignedCookie "session")

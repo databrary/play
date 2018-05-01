@@ -71,11 +71,13 @@ instance Has Permission Party where
 instance Kinded Party where
   kindOf _ = "party"
 
--- Access to the site by a (current) account
+-- | TODO: clarify. This is not necessarily a session, but... some user (human
+-- being) who has been granted access to the site. There is a corner case
+-- indirection because sometimes a job runs a human being.
 data SiteAuth = SiteAuth
-  { siteAccount :: Account -- maybe should be Party (for nobody)
+  { siteAccount :: Account -- ^ maybe should be Party (for nobody)
   , accountPasswd :: Maybe BS.ByteString
-  , siteAccess :: Access
+  , siteAccess :: Access -- ^ Still figuring out what an 'Access' is.
   } deriving (Eq, Show)
 
 -- makeHasRec ''SiteAuth ['siteAccount, 'siteAccess]

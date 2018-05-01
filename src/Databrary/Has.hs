@@ -16,7 +16,7 @@ class Has a c where
 instance Has a a where
   view = id
 
-type MonadHas a c m = (Functor m, Applicative m, MonadReader c m, Has a c)
+type MonadHas a s m = (Functor m, Applicative m, MonadReader s m, Has a s)
 
 {-# INLINE peek #-}
 peek :: (MonadReader c m, Has a c) => m a
