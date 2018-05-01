@@ -9,8 +9,9 @@ import Databrary.Model.Identity.Types
 test_foldIdentity :: TestTree
 test_foldIdentity = testGroup "foldIdentity"
     [ testCase "example" 
-          (runFoldIdentity NotIdentified @?= Default)
+          (runFoldIdentity NotLoggedIn @?= Default)
     , testCase "typical" (do
+          runFoldIdentity IdentityNotNeeded @?= Default
           runFoldIdentity (ReIdentified undefined) @?= Default
           runFoldIdentity (Identified undefined) @?= Extracted)
     ]

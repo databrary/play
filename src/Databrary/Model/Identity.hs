@@ -29,7 +29,7 @@ import Databrary.Model.Identity.Types
 -- cookies) as regular arguments.
 determineIdentity :: (MonadHas Secret c m, MonadHasRequest c m, MonadDB c m) => m Identity
 determineIdentity =
-  maybe NotIdentified Identified <$> (flatMapM lookupSession =<< getSignedCookie "session")
+  maybe NotLoggedIn Identified <$> (flatMapM lookupSession =<< getSignedCookie "session")
 
 maybeIdentity :: (MonadHasIdentity c m) => m a -> (Session -> m a) -> m a
 maybeIdentity u i = foldIdentity u i =<< peek

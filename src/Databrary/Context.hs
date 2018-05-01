@@ -106,15 +106,15 @@ newtype BackgroundContext = BackgroundContext { backgroundContext :: ActionConte
 instance Has Timestamp BackgroundContext where
   view = (contextTimestamp . backgroundContext)
 instance Has Identity BackgroundContext where
-  view _ = NotIdentified
+  view _ = IdentityNotNeeded
 instance Has SiteAuth BackgroundContext where
-  view _ = view NotIdentified
+  view _ = view IdentityNotNeeded
 instance Has Party BackgroundContext where
-  view _ = view NotIdentified
+  view _ = view IdentityNotNeeded
 instance Has (Id Party) BackgroundContext where
-  view _ = view NotIdentified
+  view _ = view IdentityNotNeeded
 instance Has Access BackgroundContext where
-  view _ = view NotIdentified
+  view _ = view IdentityNotNeeded
 
 type BackgroundContextM a = ReaderT BackgroundContext IO a
 

@@ -33,7 +33,7 @@ test_findVolumes = ignoreTest -- Because "??"
 
 _unit_findVolumes :: Assertion
 _unit_findVolumes = do
-    let ident = NotIdentified
+    let ident = NotLoggedIn
     cn <- loadPGDatabase >>= pgConnect
     let ctxt = TestContext { ctxConn = cn, ctxIdentity = ident }
     vs <- runReaderT (findVolumes volumeFilter1) ctxt
@@ -78,7 +78,7 @@ volumeExample =
 unit_lookupVolume_example :: Assertion
 unit_lookupVolume_example = do
     cn <- loadPGDatabase >>= pgConnect
-    let ident = NotIdentified
+    let ident = NotLoggedIn
     let ctxt = TestContext { ctxConn = cn, ctxIdentity = ident }
     mVol <- runReaderT (lookupVolume (Id 1)) ctxt
     mVol @?=
@@ -114,7 +114,7 @@ _unit_addVolume_example :: Assertion
 _unit_addVolume_example = do
     withinTestTransaction
         (\cn -> do
-             let ident = NotIdentified
+             let ident = NotLoggedIn
                  pid :: Id Party
                  pid = Id 300
              let ctxt = TestContext { ctxConn = cn, ctxIdentity = ident, ctxPartyId = pid, ctxRequest = defaultRequest }

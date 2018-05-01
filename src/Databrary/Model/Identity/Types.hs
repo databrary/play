@@ -18,10 +18,12 @@ import Databrary.Model.Token.Types
 
 -- | Who is making the request that we are handling?
 data Identity
-  = NotIdentified
+  = NotLoggedIn
+  -- ^ User may have an identity, but they have established it yet
+  | IdentityNotNeeded
   -- ^ We don't care what the user's identity is.
-  -- Used mainly for BackgroundContext, but also as return from
-  -- 'determineIdentity' in (presumably) a failure case
+  -- Used mainly for BackgroundContext, but also used when
+  -- running unprotected routes
   | Identified Session
   -- ^ An actual human user on a web browser. One of the other two return values
   -- for 'determineIdentity'.
@@ -33,7 +35,8 @@ data Identity
 instance Has SiteAuth Identity where
   view (Identified Session{ sessionAccountToken = AccountToken{ tokenAccount = t } }) = t
   view (ReIdentified a) = a
-  view NotIdentified = nobodySiteAuth
+  view IdentityNotNeeded = nobodySiteAuth
+  view NotLoggedIn = nobodySiteAuth
  
 instance Has Party Identity where
   view = view . (view :: Identity -> SiteAuth)

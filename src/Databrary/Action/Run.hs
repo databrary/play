@@ -76,7 +76,7 @@ runAction service (Action needsAuth act) waiReq waiSend
           ident' :: Secret -> DBConn -> ReaderT ActionContext IO Identity
           ident' sec con = case needsAuth of
               NeedsAuth -> runReaderT determineIdentity (IdContext waiReq sec con)
-              DoesntNeedAuth -> return NotIdentified
+              DoesntNeedAuth -> return IdentityNotNeeded
           (fdaasdf :: ContextM (Identity, Response)) = do
               sec <- peek
               conn <- peek
