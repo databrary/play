@@ -30,7 +30,6 @@ runLookupParty pid ident expected = do
 
 unit_lookupParty :: Assertion
 unit_lookupParty = do
-    runLookupParty (Id 2) SkippedIdentityCheck (Just staffParty)
     runLookupParty (Id 2) NotIdentified (Just staffParty)
     -- TODO: Fix these with real data parameters
     -- runLookupParty (Id 2) (Identified undefined) (Just staffParty)

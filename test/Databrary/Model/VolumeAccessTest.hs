@@ -41,7 +41,7 @@ test_lookupVolumeAccess_example =
 _unit_lookupVolumeAccess_example :: Assertion
 _unit_lookupVolumeAccess_example = do
     cn <- loadPGDatabase >>= pgConnect
-    let ident = SkippedIdentityCheck
+    let ident = NotIdentified
         ctxt = TestContext { ctxConn = cn, ctxIdentity = ident }
     Just vol1 <- runReaderT (lookupVolume (Id 1)) ctxt
     partiesAccessing <- runReaderT (lookupVolumeAccess vol1 PermissionNONE) ctxt

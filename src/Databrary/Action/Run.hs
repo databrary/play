@@ -73,10 +73,10 @@ instance Has DBConn IdContext where view = ctxConn
 runAction :: Service -> Action -> Wai.Application
 runAction service (Action needsAuth act) waiReq waiSend
     = let
+          ident' :: Secret -> DBConn -> ReaderT ActionContext IO Identity
           ident' sec con = case needsAuth of
               NeedsAuth -> runReaderT determineIdentity (IdContext waiReq sec con)
-              -- FIXME: Should this be NotIdentified?
-              DoesntNeedAuth -> return SkippedIdentityCheck
+              DoesntNeedAuth -> return NotIdentified
           (fdaasdf :: ContextM (Identity, Response)) = do
               sec <- peek
               conn <- peek
@@ -90,14 +90,14 @@ runAction service (Action needsAuth act) waiReq waiSend
               return (identity, waiResponse)
       in do
           ts <- getCurrentTime
-          (ident, waiResponse) <- runContextM fdaasdf service
+          (identityUsed, waiResponse) <- runContextM fdaasdf service
           logAccess
               ts
               waiReq
               (foldIdentity
                   Nothing
                   (Just . (show :: Id Party -> String) . view)
-                  ident
+                  identityUsed
               )
               waiResponse
               (serviceLogs service)
