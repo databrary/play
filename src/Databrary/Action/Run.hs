@@ -67,9 +67,8 @@ instance Has Wai.Request IdContext where view = ctxReq
 instance Has Secret IdContext where view = ctxSec
 instance Has DBConn IdContext where view = ctxConn
 
--- | FIXME: What does this function mean to us?
---
--- NB: This is the only place PreIdentified is used.
+-- | Run the requested action with some resolved identity, 
+-- send response, with some header decorations.
 runAction :: Service -> Action -> Wai.Application
 runAction service (Action needsAuth act) waiReq waiSend
     = let
@@ -77,7 +76,8 @@ runAction service (Action needsAuth act) waiReq waiSend
           ident' sec con = case needsAuth of
               NeedsAuth -> runReaderT determineIdentity (IdContext waiReq sec con)
               DoesntNeedAuth -> return IdentityNotNeeded
-          (fdaasdf :: ContextM (Identity, Response)) = do
+          authenticatedAct :: ContextM (Identity, Response)
+          authenticatedAct = do
               sec <- peek
               conn <- peek
               identity <- ident' sec conn
@@ -90,7 +90,7 @@ runAction service (Action needsAuth act) waiReq waiSend
               return (identity, waiResponse)
       in do
           ts <- getCurrentTime
-          (identityUsed, waiResponse) <- runContextM fdaasdf service
+          (identityUsed, waiResponse) <- runContextM authenticatedAct service
           logAccess
               ts
               waiReq
