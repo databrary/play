@@ -64,4 +64,4 @@ instance Has (Id Party) TestContext where
     view = ctxPartyId
 
 instance Has Access TestContext where
-    view = undefined
+    view = view . ctxIdentity
