@@ -59,7 +59,7 @@ import Databrary.Controller.IdSet
 import Databrary.View.Zip
 
 -- isOrig flags have been added to toggle the ability to access the pre-transcoded asset
-assetZipEntry2 :: Bool -> BS.ByteString -> AssetSlot -> ActionM (ZIP.ZipArchive ())
+assetZipEntry2 :: Bool -> BS.ByteString -> AssetSlot -> Handler (ZIP.ZipArchive ())
 assetZipEntry2 isOrig containerDir AssetSlot{ slotAsset = a@Asset{ assetRow = ar@AssetRow{ assetId = aid}}} = do
   origAsset <- lookupOrigAsset aid   
   Just f <- case isOrig of 
@@ -80,13 +80,13 @@ assetZipEntry2 isOrig containerDir AssetSlot{ slotAsset = a@Asset{ assetRow = ar
        ZIP.sinkEntry ZIP.Store (CND.sourceFileBS (BSC.unpack f)) entrySelector
        ZIP.setEntryComment (TE.decodeUtf8 $ BSL.toStrict $ BSB.toLazyByteString $ actionURL (Just req) viewAsset (HTML, assetId ar) []) entrySelector)
 
-containerZipEntry2 :: Bool -> BS.ByteString -> Container -> [AssetSlot] -> ActionM (ZIP.ZipArchive ())
+containerZipEntry2 :: Bool -> BS.ByteString -> Container -> [AssetSlot] -> Handler (ZIP.ZipArchive ())
 containerZipEntry2 isOrig prefix c l = do
   let containerDir = prefix <> makeFilename (containerDownloadName c) <> "/"
   zipActs <- mapM (assetZipEntry2 isOrig containerDir) l
   return (sequence_ zipActs)
 
-volumeDescription :: Bool -> Volume -> (Container, [RecordSlot]) -> IdSet Container -> [AssetSlot] -> ActionM (Html.Html, [[AssetSlot]], [[AssetSlot]])
+volumeDescription :: Bool -> Volume -> (Container, [RecordSlot]) -> IdSet Container -> [AssetSlot] -> Handler (Html.Html, [[AssetSlot]], [[AssetSlot]])
 volumeDescription inzip v (_, glob) cs al = do
   cite <- lookupVolumeCitation v
   links <- lookupVolumeLinks v
@@ -98,7 +98,7 @@ volumeDescription inzip v (_, glob) cs al = do
   me (Just x) (Just y) = x == y
   me _ _ = False
 
-volumeZipEntry2 :: Bool -> Volume -> (Container, [RecordSlot]) -> IdSet Container -> Maybe BSB.Builder -> [AssetSlot] -> ActionM (ZIP.ZipArchive ())
+volumeZipEntry2 :: Bool -> Volume -> (Container, [RecordSlot]) -> IdSet Container -> Maybe BSB.Builder -> [AssetSlot] -> Handler (ZIP.ZipArchive ())
 volumeZipEntry2 isOrig v top cs csv al = do
   (desc, at, ab) <- volumeDescription True v top cs al -- the actual asset slot's assets arent' used any more for containers, now container zip entry does that
   let zipDir = (makeFilename $ volumeDownloadName v ++ if idSetIsFull cs then [] else ["PARTIAL"]) <> "/"
@@ -119,7 +119,7 @@ volumeZipEntry2 isOrig v top cs csv al = do
     pure acts
   ent _ _ = fail "volumeZipEntry"
 
-zipResponse2 :: BS.ByteString -> ZIP.ZipArchive () -> ActionM Response
+zipResponse2 :: BS.ByteString -> ZIP.ZipArchive () -> Handler Response
 zipResponse2 n zipAddActions = do
   req <- peek
   u <- peek
@@ -146,7 +146,7 @@ checkAsset :: AssetSlot -> Bool
 checkAsset a = 
   canReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 a && assetBacked (view a)
 
-containerZipEntryCorrectAssetSlots2 :: Bool -> BS.ByteString -> Container -> ActionM (ZIP.ZipArchive (), Bool)
+containerZipEntryCorrectAssetSlots2 :: Bool -> BS.ByteString -> Container -> Handler (ZIP.ZipArchive (), Bool)
 containerZipEntryCorrectAssetSlots2 isOrig prefix c = do
   c'<- lookupContainerAssets c
   assetSlots <- case isOrig of 
@@ -172,7 +172,7 @@ zipContainer isOrig =
     auditSlotDownload (not $ isEmpty) (containerSlot c)
     zipResponse2 ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) zipActs
 
-getVolumeInfo :: Id Volume -> ActionM (Volume, IdSet Container, [AssetSlot])
+getVolumeInfo :: Id Volume -> Handler (Volume, IdSet Container, [AssetSlot])
 getVolumeInfo vi = do
   v <- getVolume PermissionPUBLIC vi
   _ <- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted

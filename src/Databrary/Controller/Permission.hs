@@ -20,25 +20,25 @@ import Databrary.HTTP.Request
 import Databrary.Action
 
 -- logic inside of checkPermission and checkDataPermission should be inside of model layer
-checkPermission :: Has Permission a => Permission -> a -> ActionM a  -- TODO: delete this
+checkPermission :: Has Permission a => Permission -> a -> Handler a  -- TODO: delete this
 checkPermission requiredPermissionLevel objectWithCurrentUserPermLevel =
   checkPermission2 view requiredPermissionLevel objectWithCurrentUserPermLevel
 
-checkPermission2 :: (a -> Permission) -> Permission -> a -> ActionM a
+checkPermission2 :: (a -> Permission) -> Permission -> a -> Handler a
 checkPermission2 getCurrentUserPermLevel requestingAccessAtPermLevel obj = do
   unless (getCurrentUserPermLevel obj >= requestingAccessAtPermLevel) $ do
     resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)
     result resp
   return obj
 
-userCanReadData :: (a -> EffectiveRelease) -> (a -> (Permission, VolumeAccessPolicy)) -> a -> ActionM a
+userCanReadData :: (a -> EffectiveRelease) -> (a -> (Permission, VolumeAccessPolicy)) -> a -> Handler a
 userCanReadData getObjEffectiveRelease getCurrentUserPermLevel obj = do
   unless (canReadData getObjEffectiveRelease getCurrentUserPermLevel obj) $ do
     resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)
     result resp
   return obj
 
-authAccount :: ActionM Account
+authAccount :: Handler Account
 authAccount = do
   ident <- peek
   case ident of
@@ -47,11 +47,11 @@ authAccount = do
     Identified s -> return $ view s
     ReIdentified u -> return $ view u
 
--- newtype ActionM a = ActionM { unActionM :: ReaderT RequestContext IO a }
+-- newtype Handler a = Handler { unHandler :: ReaderT RequestContext IO a }
 -- deriving (Functor, Applicative, Alternative, Monad, MonadPlus, MonadIO,
 -- MonadBase IO, MonadThrow, MonadReader RequestContext)
 
--- A: ActionM satisfies a (MonadHas Access) constraint because...
+-- A: Handler satisfies a (MonadHas Access) constraint because...
 -- 1. it has a MonadReader RequestContext
 -- 2. RequestContext satisfies (Has Access)
 --
@@ -71,18 +71,18 @@ authAccount = do
 -- D: SiteAuth satisfies (Has Access) because it has a concrete Access field.
 
 -- | (Maybe) tests whether someone is a superadmin?
-checkMemberADMIN :: ActionM ()
+checkMemberADMIN :: Handler ()
 checkMemberADMIN = do
   a :: Access <- peek
   let admin = accessMember' a
   void $ checkPermission PermissionADMIN admin
 
-checkVerfHeader :: ActionM Bool
+checkVerfHeader :: Handler Bool
 checkVerfHeader = do
   header <- peeks $ lookupRequestHeader "x-csverf"
   peeks $ or . liftM2 (==) header . identityVerf
 
-guardVerfHeader :: ActionM ()
+guardVerfHeader :: Handler ()
 guardVerfHeader = do
   c <- checkVerfHeader
   unless c $ result =<< peeks forbiddenResponse

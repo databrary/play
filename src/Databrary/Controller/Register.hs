@@ -43,7 +43,7 @@ import Databrary.Controller.Token
 import Databrary.Controller.Angular
 import Databrary.View.Register
 
-resetPasswordMail :: Either BS.ByteString SiteAuth -> T.Text -> (Maybe TL.Text -> TL.Text) -> ActionM ()
+resetPasswordMail :: Either BS.ByteString SiteAuth -> T.Text -> (Maybe TL.Text -> TL.Text) -> Handler ()
 resetPasswordMail (Left email) subj body =
   sendMail [Left email] [] subj (body Nothing)
 resetPasswordMail (Right auth) subj body = do

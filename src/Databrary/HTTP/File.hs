@@ -19,7 +19,7 @@ import Databrary.HTTP
 import Databrary.Action
 import Databrary.Model.Format
 
-fileResponse :: RawFilePath -> Format -> Maybe BS.ByteString -> BS.ByteString -> ActionM (ResponseHeaders, Maybe FileOffset)
+fileResponse :: RawFilePath -> Format -> Maybe BS.ByteString -> BS.ByteString -> Handler (ResponseHeaders, Maybe FileOffset)
 fileResponse file fmt save etag = do
   (sz, mt) <- maybeAction =<< liftIO (fileInfo file)
   let fh =
@@ -40,7 +40,7 @@ fileResponse file fmt save etag = do
     -- allow range detection or force full file:
     (any ((etag /=) . unquoteHTTP) (lookupRequestHeader hIfRange req)) `thenUse` sz)
 
-serveFile :: RawFilePath -> Format -> Maybe BS.ByteString -> BS.ByteString -> ActionM Response
+serveFile :: RawFilePath -> Format -> Maybe BS.ByteString -> BS.ByteString -> Handler Response
 serveFile file fmt save etag = do
   (h, part) <- fileResponse file fmt save etag
   fp <- liftIO $ unRawFilePath file

@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
 module Databrary.Action.Run
   ( Action
   , runAction
@@ -27,14 +28,31 @@ import Databrary.Context
 import Databrary.Action.Types
 import Databrary.Action.Request
 import Databrary.Action.Response
--- import Databrary.Controller.Analytics
 
-withActionM :: Request -> Identity -> ActionM a -> ContextM a
-withActionM r i = withReaderT (\c -> RequestContext c r i) . unActionM
+-- newtype Handler a = Handler { unHandler :: ReaderT RequestContext IO a }
+-- withReaderT :: (r' -> r)-> ReaderT r m a-> ReaderT r' m a 
+
+-- |
+-- Given an action that runs in a Handler, build the necessary context for the
+-- action, and run in it in the base-level Context
+--
+-- Handler has a richer context: Handler has all of Context, plus Identity and
+-- the Wai Request.
+withHandler
+    :: forall a
+     . Request -- ^ The wai request to handle
+    -> Identity -- ^ The identity to use for this action
+    -> Handler a -- ^ The action to perform
+    -> ContextM a -- ^ The base-level control access to the system
+withHandler waiReq identity h =
+    let (handler :: ReaderT RequestContext IO a) = unHandler h
+    in withReaderT (\(c :: Context) -> RequestContext c waiReq identity) handler
+
+data NeedsAuth = NeedsAuth | DoesntNeedAuth
 
 data Action = Action
-  { _actionAuth :: !Bool
-  , _actionM :: !(ActionM Response)
+  { _actionAuth :: !NeedsAuth
+  , _actionM :: !(Handler Response)
   }
 
 -- | FIXME: What does this function mean to us?
@@ -43,65 +61,62 @@ data Action = Action
 runAction :: Service -> Action -> Wai.Application
 runAction service (Action needsAuth act) waiReq waiSend
     = let
-          ident' =
-              if needsAuth
-                  then withActionM waiReq PreIdentified determineIdentity
-                  else return PreIdentified
+          ident' = case needsAuth of
+              NeedsAuth -> withHandler waiReq PreIdentified determineIdentity
+              -- FIXME: Should this be NotIdentified?
+              DoesntNeedAuth -> return PreIdentified
           fdaasdf = do
               identity <- ident'
-              r <-
+              waiResponse <-
                   ReaderT
-                      $ \ctx -> runResult $ runActionM
+                      -- runResult is IO Response -> IO Response
+                      $ \ctx -> runResult $ runHandler
                             act
                             (RequestContext ctx waiReq identity)
-              return (identity, r)
-      in
-          do
-              ts <- getCurrentTime
-              (ident, r) <- runContextM fdaasdf service
-              logAccess
-                  ts
-                  waiReq
-                  (foldIdentity
-                      Nothing
-                      (Just . (show :: Id Party -> String) . view)
-                      ident
+              return (identity, waiResponse)
+      in do
+          ts <- getCurrentTime
+          (ident, waiResponse) <- runContextM fdaasdf service
+          logAccess
+              ts
+              waiReq
+              (foldIdentity
+                  Nothing
+                  (Just . (show :: Id Party -> String) . view)
+                  ident
+              )
+              waiResponse
+              (serviceLogs service)
+          let
+              isdb = isDatabraryClient waiReq
+              waiResponse' = Wai.mapResponseHeaders
+                  (((hDate, formatHTTPTimestamp ts) :)
+                  . (if isdb then ((hCacheControl, "no-cache") :) else id)
                   )
-                  r
-                  (serviceLogs service)
-              let
-                  isdb = isDatabraryClient waiReq
-                  r' = Wai.mapResponseHeaders
-                      (((hDate, formatHTTPTimestamp ts) :)
-                      . (if isdb
-                            then ((hCacheControl, "no-cache") :)
-                            else id
-                        )
-                      )
-                      r
-              waiSend $ if Wai.requestMethod waiReq == methodHead
-                  then emptyResponse
-                      (Wai.responseStatus r')
-                      (Wai.responseHeaders r')
-                  else r'
+                  waiResponse
+          waiSend $ if Wai.requestMethod waiReq == methodHead
+              then emptyResponse
+                  (Wai.responseStatus waiResponse')
+                  (Wai.responseHeaders waiResponse')
+              else waiResponse'
 
-forkAction :: ActionM a -> RequestContext -> (Either SomeException a -> IO ()) -> IO ThreadId
+forkAction :: Handler a -> RequestContext -> (Either SomeException a -> IO ()) -> IO ThreadId
 forkAction f (RequestContext c r i) = forkFinally $
-  runContextM (withActionM r i f) (contextService c)
+  runContextM (withHandler r i f) (contextService c)
 
-withAuth :: ActionM Response -> Action
-withAuth = Action True
+withAuth :: Handler Response -> Action
+withAuth = Action NeedsAuth
 
-withoutAuth :: ActionM Response -> Action
-withoutAuth = Action False
+withoutAuth :: Handler Response -> Action
+withoutAuth = Action DoesntNeedAuth
 
 -- | This may be like a 'su' that allows running an action as a different
 -- SiteAuth.
 --
 -- FIXME: It is a little annoying that Identified carries a session, while
 -- ReIdentified carries a SiteAuth.
-withReAuth :: SiteAuth -> ActionM a -> ActionM a
+withReAuth :: SiteAuth -> Handler a -> Handler a
 withReAuth u =
-    ActionM
+    Handler
         . withReaderT (\a -> a { requestIdentity = ReIdentified u })
-        . unActionM
+        . unHandler

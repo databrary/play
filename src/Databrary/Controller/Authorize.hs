@@ -50,7 +50,7 @@ viewAuthorize = action GET (pathAPI </>> pathPartyTarget </> pathAuthorizeTarget
       | app -> return $ okResponse [] ("" :: T.Text) -- TODO
       | otherwise -> peeks $ blankForm . htmlAuthorizeForm c'
 
-partyDelegates :: Party -> ActionM [Account]
+partyDelegates :: Party -> Handler [Account]
 partyDelegates u = do
   l <- deleg u
   if null l
@@ -61,13 +61,13 @@ partyDelegates u = do
     . map (authorizeChild . authorization)
     <$> lookupAuthorizedChildren p (Just PermissionADMIN)
 
-removeAuthorizeNotify :: Maybe Authorize -> ActionM ()
+removeAuthorizeNotify :: Maybe Authorize -> Handler ()
 removeAuthorizeNotify priorAuth =
     let noReplacementAuthorization = Nothing
     in updateAuthorize priorAuth noReplacementAuthorization
 
 -- | Remove (only first argument provided) or swap in new authorization, triggering notifications
-updateAuthorize :: Maybe Authorize -> Maybe Authorize -> ActionM ()
+updateAuthorize :: Maybe Authorize -> Maybe Authorize -> Handler ()
 updateAuthorize priorAuth newAuth
   | Just auth <- authorization <$> (priorAuth <|> newAuth :: Maybe Authorize) = do
   maybe

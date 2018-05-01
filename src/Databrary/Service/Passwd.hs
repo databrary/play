@@ -30,6 +30,7 @@ newtype Passwd = Passwd { _passwdLock :: MVar () }
 initPasswd :: IO Passwd
 initPasswd = Passwd <$> newMVar ()
 
+-- | FIXME: bottleneck? Also, does GHC handle locking ccalls for us?
 passwdCheck :: BS.ByteString -> BS.ByteString -> BS.ByteString -> Passwd -> IO (Maybe BS.ByteString)
 passwdCheck passwd _ _ (Passwd lock) =
   withMVar lock $ \() ->

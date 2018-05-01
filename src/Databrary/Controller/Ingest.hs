@@ -194,7 +194,7 @@ mappingParser val = do
 
 -- TODO: move all below to Model.Ingest
  -- TODO: error or count
-runImport :: Volume -> Vector ParticipantRecord -> ActionM (Vector ())
+runImport :: Volume -> Vector ParticipantRecord -> Handler (Vector ())
 runImport vol records =
     mapM (createOrUpdateRecord vol) records
 
@@ -278,7 +278,7 @@ getFieldVal participantRecord extractFieldVal metric =
         Nothing ->
             Nothing -- field isn't used by this volume, so don't need to save the measure
         
-createOrUpdateRecord :: Volume -> ParticipantRecord -> ActionM () -- TODO: error or record
+createOrUpdateRecord :: Volume -> ParticipantRecord -> Handler () -- TODO: error or record
 createOrUpdateRecord vol participantRecord = do
     let category = getCategory' (Id 1) -- TODO: use global variable
         mIdVal = fst $ maybe (error "id missing") id (getFieldVal' prdId participantMetricId)
@@ -298,7 +298,7 @@ createOrUpdateRecord vol participantRecord = do
             _ <- mapM (runMeasureUpdate oldRecord) measureActs
             pure ()
   where
-    runMeasureUpdate :: Record -> MeasureUpdateAction -> ActionM (Maybe Record)
+    runMeasureUpdate :: Record -> MeasureUpdateAction -> Handler (Maybe Record)
     runMeasureUpdate record act =
         case act of
             Upsert met val -> changeRecordMeasure (Measure record met val)

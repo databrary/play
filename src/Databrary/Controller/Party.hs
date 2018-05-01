@@ -61,7 +61,7 @@ import Databrary.Controller.Web
 import Databrary.Controller.CSV
 import Databrary.View.Party
 
-getParty :: Maybe Permission -> PartyTarget -> ActionM Party
+getParty :: Maybe Permission -> PartyTarget -> Handler Party
 getParty (Just p) (TargetParty i) =
   checkPermission p =<< maybeAction =<< lookupAuthParty i
 getParty _ mi = do
@@ -71,7 +71,7 @@ getParty _ mi = do
   unless (isme mi) $ result =<< peeks forbiddenResponse
   return u
 
-partyJSONField :: Party -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
+partyJSONField :: Party -> BS.ByteString -> Maybe BS.ByteString -> Handler (Maybe JSON.Encoding)
 partyJSONField p "parents" o = do
   now <- peek
   fmap (Just . JSON.mapObjects id) . mapM (\a -> do
@@ -109,7 +109,7 @@ partyJSONField p "authorization" _ = do
   Just . JSON.toEncoding . accessSite <$> lookupAuthorization p rootParty
 partyJSONField _ _ _ = return Nothing
 
-partyJSONQuery :: Party -> JSON.Query -> ActionM (JSON.Record (Id Party) JSON.Series)
+partyJSONQuery :: Party -> JSON.Query -> Handler (JSON.Record (Id Party) JSON.Series)
 partyJSONQuery p q = (partyJSON p `JSON.foldObjectIntoRec`) <$> JSON.jsonQuery (partyJSONField p) q
 
 viewParty :: ActionRoute (API, PartyTarget)
@@ -120,7 +120,7 @@ viewParty = action GET (pathAPI </> pathPartyTarget) $ \(api, i) -> withAuth $ d
     JSON -> okResponse [] <$> (partyJSONQuery p =<< peeks Wai.queryString)
     HTML -> peeks $ okResponse [] . htmlPartyView p
 
-processParty :: API -> Maybe Party -> ActionM (Party, Maybe (Maybe Asset))
+processParty :: API -> Maybe Party -> Handler (Party, Maybe (Maybe Asset))
 processParty api p = do
   (p', a) <- runFormFiles [("avatar", maxAvatarSize)] ((api == HTML) `thenUse` (htmlPartyEdit p)) $ do
     csrfForm
@@ -218,7 +218,7 @@ viewAvatar = action GET (pathId </< "avatar") $ \i -> withoutAuth $
     (serveAssetSegment False . assetSlotSegment . assetNoSlot)
     =<< lookupAvatar i
 
-partySearchForm :: DeformActionM f PartyFilter
+partySearchForm :: DeformHandler f PartyFilter
 partySearchForm = PartyFilter
   <$> ("query" .:> deformNonEmpty deform)
   <*> ("authorization" .:> optional deform)

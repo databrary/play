@@ -19,7 +19,7 @@ import Databrary.Model.Token.Types
 -- | ????
 data Identity
   = PreIdentified
-  -- ^ Speculation: background jobs or other things that have intrinsic identity
+  -- ^ ????
   | NotIdentified
   -- ^ Used mainly for BackgroundContext, but also as return from
   -- 'determineIdentity' in (presumably) a failure case
