@@ -54,4 +54,3 @@ extractFlatParts va =
   , volumeAccessShareFull va
   , (volumeId . volumeRow . volumeAccessVolume) va
   )
-  
