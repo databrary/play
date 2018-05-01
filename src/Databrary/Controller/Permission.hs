@@ -38,11 +38,13 @@ userCanReadData getObjEffectiveRelease getCurrentUserPermLevel obj = do
     result resp
   return obj
 
+-- |
+-- Pulls the Account out of the Handler context
 authAccount :: Handler Account
 authAccount = do
   ident <- peek
   case ident of
-    PreIdentified -> fail "authAccount: PreIdentified"
+    SkippedIdentityCheck -> fail "authAccount: SkippedIdentityCheck"
     NotIdentified -> result =<< peeks forbiddenResponse
     Identified s -> return $ view s
     ReIdentified u -> return $ view u

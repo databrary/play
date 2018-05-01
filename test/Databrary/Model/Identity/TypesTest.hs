@@ -11,7 +11,7 @@ test_foldIdentity = testGroup "foldIdentity"
     [ testCase "example" 
           (runFoldIdentity NotIdentified @?= Default)
     , testCase "typical" (do
-          runFoldIdentity PreIdentified @?= Default
+          runFoldIdentity SkippedIdentityCheck @?= Default
           runFoldIdentity (ReIdentified undefined) @?= Default
           runFoldIdentity (Identified undefined) @?= Extracted)
     ]

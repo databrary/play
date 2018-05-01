@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Databrary.Context
-  ( Context(..)
+  ( ActionContext(..)
   , ContextM
   , runContextM
   , BackgroundContext(..)
@@ -43,40 +43,41 @@ data ActionContext = ActionContext
   , contextDB :: !DBConn -- ^ The specific connection chosen for the running action?
   }
 
-instance Has Service Context where
+instance Has Service ActionContext where
   view = contextService
-instance Has Databrary.Service.Notification.Notifications Context where
+instance Has Databrary.Service.Notification.Notifications ActionContext where
    view = (view . contextService)
-instance Has Databrary.Solr.Service.Solr Context where
+instance Has Databrary.Solr.Service.Solr ActionContext where
   view = (view . contextService)
-instance Has Databrary.Ingest.Service.Ingest Context where
+instance Has Databrary.Ingest.Service.Ingest ActionContext where
   view = (view . contextService)
-instance Has Databrary.Static.Service.Static Context where
+instance Has Databrary.Static.Service.Static ActionContext where
   view = (view . contextService)
-instance Has Databrary.HTTP.Client.HTTPClient Context where
+instance Has Databrary.HTTP.Client.HTTPClient ActionContext where
   view = (view . contextService)
-instance Has Databrary.Web.Types.Web Context where
+instance Has Databrary.Web.Types.Web ActionContext where
   view = (view . contextService)
-instance Has Databrary.Store.AV.AV Context where
+instance Has Databrary.Store.AV.AV ActionContext where
   view = (view . contextService)
-instance Has Databrary.Store.Types.Storage Context where
+instance Has Databrary.Store.Types.Storage ActionContext where
   view = (view . contextService)
-instance Has Databrary.Service.Messages.Messages Context where
+instance Has Databrary.Service.Messages.Messages ActionContext where
   view = (view . contextService)
-instance Has Databrary.Service.Log.Logs Context where
+instance Has Databrary.Service.Log.Logs ActionContext where
   view = (view . contextService)
-instance Has Databrary.Service.Passwd.Passwd Context where
+instance Has Databrary.Service.Passwd.Passwd ActionContext where
   view = (view . contextService)
-instance Has Databrary.Service.Entropy.Entropy Context where
+instance Has Databrary.Service.Entropy.Entropy ActionContext where
   view = (view . contextService)
-instance Has Secret Context where
+instance Has Secret ActionContext where
   view = (view . contextService)
-instance Has InternalState Context where
+instance Has InternalState ActionContext where
   view = contextResourceState
-instance Has DBConn Context where
+instance Has DBConn ActionContext where
   view = contextDB
 
-type DatabraryAction a = ReaderT ActionContext IO a
+-- | FIXME: New name?
+type ContextM a = ReaderT ActionContext IO a
 
 -- | Perform an atomic action without an identity with a guaranteed database
 -- connection and a fixed version of 'now'.
@@ -87,10 +88,10 @@ runContextM
 runContextM action rc = do
     t <- getCurrentTime
     runResourceT $ withInternalState $ \is ->
-        withDB (serviceDB rc) $ runReaderT action . Context rc t is
+        withDB (serviceDB rc) $ runReaderT action . ActionContext rc t is
 
--- | A Context with no Identity.
-newtype BackgroundContext = BackgroundContext { backgroundContext :: Context }
+-- | A ActionContext with no Identity.
+newtype BackgroundContext = BackgroundContext { backgroundContext :: ActionContext }
     deriving
         ( Has Service
         , Has Notifications

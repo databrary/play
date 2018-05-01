@@ -11,13 +11,14 @@ module Databrary.Action.Run
 
 import Control.Concurrent (ThreadId, forkFinally)
 import Control.Exception (SomeException)
-import Control.Monad.Reader (ReaderT(..), withReaderT)
+import Control.Monad.Reader (ReaderT(..), withReaderT, local)
 import Data.Time (getCurrentTime)
 import Network.HTTP.Types (hDate, hCacheControl, methodHead)
 import qualified Network.Wai as Wai
 
 import Databrary.Has
 import Databrary.HTTP
+import Databrary.Service.DB
 import Databrary.Service.Types
 import Databrary.Service.Log
 import Databrary.Model.Identity
@@ -29,14 +30,13 @@ import Databrary.Action.Types
 import Databrary.Action.Request
 import Databrary.Action.Response
 
--- newtype Handler a = Handler { unHandler :: ReaderT RequestContext IO a }
--- withReaderT :: (r' -> r)-> ReaderT r m a-> ReaderT r' m a 
-
 -- |
--- Given an action that runs in a Handler, build the necessary context for the
--- action, and run in it in the base-level Context
+-- Transform a web request to a lower-level action.
 --
--- Handler has a richer context: Handler has all of Context, plus Identity and
+-- Given an action that runs in a top-level Handler, build the necessary context
+-- for that action, and run in it in the base-level ContextM
+--
+-- Handler has a richer context: it has all of ActionContext, plus Identity and
 -- the Wai Request.
 withHandler
     :: forall a
@@ -46,7 +46,7 @@ withHandler
     -> ContextM a -- ^ The base-level control access to the system
 withHandler waiReq identity h =
     let (handler :: ReaderT RequestContext IO a) = unHandler h
-    in withReaderT (\(c :: Context) -> RequestContext c waiReq identity) handler
+    in withReaderT (\(c :: ActionContext) -> RequestContext c waiReq identity) handler
 
 data NeedsAuth = NeedsAuth | DoesntNeedAuth
 
@@ -55,18 +55,32 @@ data Action = Action
   , _actionM :: !(Handler Response)
   }
 
+-- | Special-purpose context for determing the user's identity. We don't need
+-- the full Handler for that, and since this is sensitive work, we don't want to
+-- just cheat and use it anyway.
+data IdContext = IdContext
+    { ctxReq :: Wai.Request
+    , ctxSec :: Secret
+    , ctxConn :: DBConn }
+
+instance Has Wai.Request IdContext where view = ctxReq
+instance Has Secret IdContext where view = ctxSec
+instance Has DBConn IdContext where view = ctxConn
+
 -- | FIXME: What does this function mean to us?
 --
 -- NB: This is the only place PreIdentified is used.
 runAction :: Service -> Action -> Wai.Application
 runAction service (Action needsAuth act) waiReq waiSend
     = let
-          ident' = case needsAuth of
-              NeedsAuth -> withHandler waiReq PreIdentified determineIdentity
+          ident' sec con = case needsAuth of
+              NeedsAuth -> runReaderT determineIdentity (IdContext waiReq sec con)
               -- FIXME: Should this be NotIdentified?
-              DoesntNeedAuth -> return PreIdentified
-          fdaasdf = do
-              identity <- ident'
+              DoesntNeedAuth -> return SkippedIdentityCheck
+          (fdaasdf :: ContextM (Identity, Response)) = do
+              sec <- peek
+              conn <- peek
+              identity <- ident' sec conn
               waiResponse <-
                   ReaderT
                       -- runResult is IO Response -> IO Response
@@ -118,5 +132,5 @@ withoutAuth = Action DoesntNeedAuth
 withReAuth :: SiteAuth -> Handler a -> Handler a
 withReAuth u =
     Handler
-        . withReaderT (\a -> a { requestIdentity = ReIdentified u })
+        . local (\a -> a { requestIdentity = ReIdentified u })
         . unHandler

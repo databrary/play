@@ -16,10 +16,10 @@ import Databrary.Model.Permission.Types
 import Databrary.Model.Party.Types
 import Databrary.Model.Token.Types
 
--- | ????
+-- | Who is making the request that we are handling?
 data Identity
-  = PreIdentified
-  -- ^ ????
+  = SkippedIdentityCheck
+  -- ^ We don't care what the user's identity is
   | NotIdentified
   -- ^ Used mainly for BackgroundContext, but also as return from
   -- 'determineIdentity' in (presumably) a failure case
@@ -34,7 +34,8 @@ data Identity
 instance Has SiteAuth Identity where
   view (Identified Session{ sessionAccountToken = AccountToken{ tokenAccount = t } }) = t
   view (ReIdentified a) = a
-  view _ = nobodySiteAuth
+  view NotIdentified = nobodySiteAuth
+  view SkippedIdentityCheck = nobodySiteAuth
 
 instance Has Party Identity where
   view = view . (view :: Identity -> SiteAuth)

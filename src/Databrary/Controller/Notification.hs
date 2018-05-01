@@ -163,7 +163,7 @@ updateStateNotifications =
            FROM notification_authorize_expire WHERE id IS NULL;
   |]
 
-updateAuthorizeNotifications :: (MonadHas Context c m, MonadDB c m) => Maybe Authorize -> Authorize -> m ()
+updateAuthorizeNotifications :: (MonadHas ActionContext c m, MonadDB c m) => Maybe Authorize -> Authorize -> m ()
 updateAuthorizeNotifications Nothing _ = return ()
 updateAuthorizeNotifications (Just Authorize{ authorizeExpires = o }) Authorize{ authorization = Authorization{ authorizeChild = Party{ partyRow = PartyRow{ partyId = c } }, authorizeParent = Party{ partyRow = PartyRow{ partyId = p } } }, authorizeExpires = e } = do
   t <- peeks contextTimestamp
