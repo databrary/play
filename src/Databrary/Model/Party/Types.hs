@@ -39,12 +39,12 @@ data Party = Party
   -- , partySiteAccess :: Access -- site-level access this party is granted under root (currently SiteAuth only)
   , partyPermission :: Permission -- ^ permission current user has over this party
   , partyAccess :: Maybe Access -- ^ direct authorization this party has granted to current user
-  } deriving (Eq, Show)
+  } -- deriving (Eq, Show)
 
 data Account = Account
   { accountEmail :: BS.ByteString
   , accountParty :: Party
-  } deriving (Eq, Show)
+  } -- deriving (Eq, Show)
 
 -- makeHasRec ''PartyRow ['partyId]
 instance Has (Id Party) PartyRow where
@@ -78,7 +78,7 @@ data SiteAuth = SiteAuth
   { siteAccount :: Account -- ^ maybe should be Party (for nobody)
   , accountPasswd :: Maybe BS.ByteString
   , siteAccess :: Access -- ^ Still figuring out what an 'Access' is.
-  } deriving (Eq, Show)
+  } -- deriving (Eq, Show)
 
 -- makeHasRec ''SiteAuth ['siteAccount, 'siteAccess]
 instance Has Account SiteAuth where

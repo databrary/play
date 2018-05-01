@@ -2,7 +2,7 @@
    , TypeSynonymInstances, MultiParamTypeClasses, FlexibleInstances #-}
 module Databrary.Model.VolumeTest where
 
-import Control.Exception (bracket)
+-- import Control.Exception (bracket)
 import Data.Time
 import qualified Data.Vector as V
 import Database.PostgreSQL.Typed.Protocol
@@ -123,13 +123,3 @@ _unit_addVolume_example = do
 
 {- Volume {volumeRow = VolumeRow {volumeId = 6, volumeName = "Test Vol One: A Survey", volumeBody = Just "Here is a description for a volume", volumeAlias = Just "Test Vol 1", volumeDOI = Nothing}, volumeCreation = 2013-01-11 10:26:40 UTC, volumeOwners = [], volumePermission = ADMIN, volumeAccessPolicy = PermLevelDefault}
 -}
-
-withinTestTransaction :: (PGConnection -> IO a) -> IO a
-withinTestTransaction act =
-     bracket
-         (do
-              cn <- pgConnect =<< loadPGDatabase
-              pgBegin cn
-              pure cn)
-         pgRollback
-         act
