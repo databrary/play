@@ -58,7 +58,7 @@ loginHandler :: API -> HTM.Method -> [(BS.ByteString, BS.ByteString)] -> Action
 loginHandler api method _
     | method == methodGet && api == HTML = viewLoginAction
     | method == methodPost = postLoginAction api
-    | otherwise = error "unhandled api/method combo" -- TODO: better error 
+    | otherwise = error "unhandled api/method combo" -- TODO: better error
 
 viewLogin :: ActionRoute ()
 viewLogin = action GET ("user" >/> "login") $ \() -> viewLoginAction
@@ -126,7 +126,7 @@ viewUserAction = do
   q <- JSON.jsonQuery userJSONField =<< peeks Wai.queryString
   return $ okResponse [] (i `JSON.foldObjectIntoRec` q)
 
-postUser :: ActionRoute API -- TODO: remove when 
+postUser :: ActionRoute API -- TODO: remove when
 postUser = action POST (pathAPI </< "user") $ \api -> withAuth $ postUserAction api
 
 postUserAction :: API -> ActionM Response

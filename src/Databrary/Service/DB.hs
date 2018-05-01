@@ -184,8 +184,8 @@ runDBConnection f = bracket
   (runReaderT f)
 
 loadTDB :: TH.DecsQ
-loadTDB = do 
-  database <- TH.runIO loadPGDatabase 
+loadTDB = do
+  database <- TH.runIO loadPGDatabase
   useTPGDatabase database
 
 {-# NOINLINE usedTDB #-}

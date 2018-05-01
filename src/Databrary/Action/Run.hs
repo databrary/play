@@ -41,19 +41,49 @@ data Action = Action
 --
 -- NB: This is the only place PreIdentified is used.
 runAction :: Service -> Action -> Wai.Application
-runAction rc (Action needsAuth act) req send = do
-  ts <- getCurrentTime
-  (i, r) <- runContextM (do
-    (identity :: Identity) <- if needsAuth then withActionM req PreIdentified determineIdentity else return PreIdentified
-    r <- ReaderT $ \ctx -> runResult $ runActionM (act) (RequestContext ctx req identity)
-    return (identity, r))
-    rc
-  logAccess ts req (foldIdentity Nothing (Just . (show :: Id Party -> String) . view) i) r (serviceLogs rc)
-  let isdb = isDatabraryClient req
-      r' = Wai.mapResponseHeaders (((hDate, formatHTTPTimestamp ts) :) . (if isdb then ((hCacheControl, "no-cache") :) else id)) r
-  send $ if Wai.requestMethod req == methodHead
-    then emptyResponse (Wai.responseStatus r') (Wai.responseHeaders r')
-    else r'
+runAction service (Action needsAuth act) waiReq waiSend
+    = let
+          ident' =
+              if needsAuth
+                  then withActionM waiReq PreIdentified determineIdentity
+                  else return PreIdentified
+          fdaasdf = do
+              identity <- ident'
+              r <-
+                  ReaderT
+                      $ \ctx -> runResult $ runActionM
+                            act
+                            (RequestContext ctx waiReq identity)
+              return (identity, r)
+      in
+          do
+              ts <- getCurrentTime
+              (ident, r) <- runContextM fdaasdf service
+              logAccess
+                  ts
+                  waiReq
+                  (foldIdentity
+                      Nothing
+                      (Just . (show :: Id Party -> String) . view)
+                      ident
+                  )
+                  r
+                  (serviceLogs service)
+              let
+                  isdb = isDatabraryClient waiReq
+                  r' = Wai.mapResponseHeaders
+                      (((hDate, formatHTTPTimestamp ts) :)
+                      . (if isdb
+                            then ((hCacheControl, "no-cache") :)
+                            else id
+                        )
+                      )
+                      r
+              waiSend $ if Wai.requestMethod waiReq == methodHead
+                  then emptyResponse
+                      (Wai.responseStatus r')
+                      (Wai.responseHeaders r')
+                  else r'
 
 forkAction :: ActionM a -> RequestContext -> (Either SomeException a -> IO ()) -> IO ThreadId
 forkAction f (RequestContext c r i) = forkFinally $

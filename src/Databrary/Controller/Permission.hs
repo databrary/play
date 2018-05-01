@@ -53,7 +53,7 @@ authAccount = do
 
 -- A: ActionM satisfies a (MonadHas Access) constraint because...
 -- 1. it has a MonadReader RequestContext
--- 2. RequestContext satisfies (Has Access) 
+-- 2. RequestContext satisfies (Has Access)
 --
 -- B: (A.2) is true because...
 -- 1. RequestContext satisfies (Has Identity) by concretely carrying an Identity
@@ -73,7 +73,7 @@ authAccount = do
 -- | (Maybe) tests whether someone is a superadmin?
 checkMemberADMIN :: ActionM ()
 checkMemberADMIN = do
-  a :: Access <- peek 
+  a :: Access <- peek
   let admin = accessMember' a
   void $ checkPermission PermissionADMIN admin
 
