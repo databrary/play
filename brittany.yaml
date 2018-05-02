@@ -14,10 +14,5 @@ conf_forward:
   - -XBangPatterns
 conf_layout:
   lconfig_indentAmount: 4
-  #lconfig_columnAlignMode: { tag: ColumnAlignModeDisabled }
-  lconfig_alignmentLimit: 2
-  lconfig_columnAlignMode:
-    tag: ColumnAlignModeMajority
-    contents: 0.9
-
-  lconfig_indentPolicy: IndentPolicyLeft
+  lconfig_columnAlignMode: { tag: ColumnAlignModeDisabled }
+  lconfig_indentPolicy: IndentPolicyMultiple
