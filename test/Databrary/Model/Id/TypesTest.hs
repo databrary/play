@@ -45,4 +45,5 @@ person =
 
 unit_toJSON_ID :: Assertion
 unit_toJSON_ID =
+    -- example
     encode (Id 3 :: Id Person) @?= "3"
