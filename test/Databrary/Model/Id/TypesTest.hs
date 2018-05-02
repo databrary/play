@@ -1,12 +1,13 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, TypeFamilies #-}
 module Databrary.Model.Id.TypesTest where
 
--- import Test.Tasty.HUnit
+import Data.Aeson
+import Test.Tasty.HUnit
 -- import Test.Tasty
 
 import Databrary.Model.Id.Types
 
-
+-- Example using just IdType
 data PersonRaw = PersonRaw
     { prId :: IdType PersonRaw
     , prName :: String
@@ -24,8 +25,7 @@ rawPerson =
         , prName = "Sam"
         }
 
-
-
+-- Example using Id and IdType together
 data Person = Person
     { prsId :: Id Person
     , prsName :: String
@@ -42,3 +42,7 @@ person =
         { prsId = Id 2
         , prsName = "Elias"
         }
+
+unit_toJSON_ID :: Assertion
+unit_toJSON_ID =
+    encode (Id 3 :: Id Person) @?= "3"
