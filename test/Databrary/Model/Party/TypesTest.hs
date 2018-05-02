@@ -86,7 +86,7 @@ genInstitutionParty = do
 party1 :: Party
 party1 =
     let
-        p = 
+        p =
             Party {
                   partyRow = partyRow1
                 , partyAccount = Just a

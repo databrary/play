@@ -39,12 +39,12 @@ data Party = Party
   -- , partySiteAccess :: Access -- site-level access this party is granted under root (currently SiteAuth only)
   , partyPermission :: Permission -- ^ permission current user has over this party
   , partyAccess :: Maybe Access -- ^ direct authorization this party has granted to current user
-  } deriving (Eq, Show)
+  }
 
 data Account = Account
   { accountEmail :: BS.ByteString
   , accountParty :: Party
-  } deriving (Eq, Show)
+  }
 
 -- makeHasRec ''PartyRow ['partyId]
 instance Has (Id Party) PartyRow where
@@ -71,12 +71,14 @@ instance Has Permission Party where
 instance Kinded Party where
   kindOf _ = "party"
 
--- Access to the site by a (current) account
+-- | TODO: clarify. This is not necessarily a session, but... some user (human
+-- being) who has been granted access to the site. There is a corner case
+-- indirection because sometimes a job runs a human being.
 data SiteAuth = SiteAuth
-  { siteAccount :: Account -- maybe should be Party (for nobody)
+  { siteAccount :: Account -- ^ maybe should be Party (for nobody)
   , accountPasswd :: Maybe BS.ByteString
-  , siteAccess :: Access
-  } deriving (Eq, Show)
+  , siteAccess :: Access -- ^ Still figuring out what an 'Access' is.
+  }
 
 -- makeHasRec ''SiteAuth ['siteAccount, 'siteAccess]
 instance Has Account SiteAuth where

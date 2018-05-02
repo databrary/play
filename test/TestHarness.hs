@@ -1,6 +1,7 @@
 module TestHarness
     (
       TestContext ( .. )
+    , withinTestTransaction
     -- * re-export for convenience
     , runReaderT
     , Wai.defaultRequest
