@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, GeneralizedNewtypeDeriving
    , TypeSynonymInstances, MultiParamTypeClasses, FlexibleInstances, RecordWildCards #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Databrary.Model.PartyTest where
 
 -- import Control.Monad.IO.Class
