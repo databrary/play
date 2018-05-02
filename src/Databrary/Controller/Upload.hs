@@ -43,7 +43,7 @@ import Databrary.Controller.Paths
 import Databrary.Controller.Form
 import Databrary.Controller.Volume
 
-fileSizeForm :: DeformActionM f Int64
+fileSizeForm :: DeformHandler f Int64
 fileSizeForm = deformCheck "Invalid file size." (0 <) =<< deform
 
 uploadStart :: ActionRoute (Id Volume)
@@ -64,7 +64,7 @@ uploadStart = action POST (pathJSON >/> pathId </< "upload") $ \vi -> withAuth $
     (`setFdSize` COff size)
   return $ okResponse [] $ unId (view tok :: Id Token)
 
-chunkForm :: DeformActionM f (Upload, Int64, Word64)
+chunkForm :: DeformHandler f (Upload, Int64, Word64)
 chunkForm = do
   csrfForm
   up <- "flowIdentifier" .:> (lift . (maybeAction <=< lookupUpload) =<< deform)

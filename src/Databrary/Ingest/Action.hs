@@ -21,7 +21,7 @@ import Databrary.Ingest.Service
 getIngestStatus :: Ingest -> IO IngestStatus
 getIngestStatus = readMVar . ingestStatus
 
-runIngest :: ActionM (Either [T.Text] [Int32]) -> ActionM Bool
+runIngest :: Handler (Either [T.Text] [Int32]) -> Handler Bool
 runIngest r = focusIO $ \c -> let v = ingestStatus (view c) in
   modifyMVar v $ \s ->
     case s of

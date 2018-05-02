@@ -52,7 +52,7 @@ import Databrary.Controller.Asset
 import Databrary.Controller.Format
 
 -- Boolean flag to toggle the choice of downloading the original asset file. 
-getAssetSegment :: Bool -> Permission -> Bool -> Maybe (Id Volume) -> Id Slot -> Id Asset -> ActionM AssetSegment
+getAssetSegment :: Bool -> Permission -> Bool -> Maybe (Id Volume) -> Id Slot -> Id Asset -> Handler AssetSegment
 getAssetSegment getOrig p checkDataPerm mv s a = do
   mAssetSeg <- (if getOrig then lookupOrigSlotAssetSegment else lookupSlotAssetSegment) s a
   assetSeg <- maybeAction ((maybe id (\v -> mfilter $ (v ==) . view) mv) mAssetSeg)
@@ -66,12 +66,12 @@ getAssetSegment getOrig p checkDataPerm mv s a = do
     void (userCanReadData getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
   pure assetSeg
 
-assetSegmentJSONField :: AssetSegment -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
+assetSegmentJSONField :: AssetSegment -> BS.ByteString -> Maybe BS.ByteString -> Handler (Maybe JSON.Encoding)
 assetSegmentJSONField a "asset" _ = return $ Just $ JSON.recordEncoding $ assetSlotJSON False (segmentAsset a) 
 assetSegmentJSONField a v o = assetJSONField (segmentAsset a) v o
 -- publicRestricted should consult volume
 
-assetSegmentJSONQuery :: AssetSegment -> JSON.Query -> ActionM JSON.Series
+assetSegmentJSONQuery :: AssetSegment -> JSON.Query -> Handler JSON.Series
 assetSegmentJSONQuery o q = (assetSegmentJSON o <>) <$> JSON.jsonQuery (assetSegmentJSONField o) q
 
 assetSegmentDownloadName :: AssetSegment -> [T.Text]
@@ -90,7 +90,7 @@ viewAssetSegment getOrig = action GET (pathAPI </>>> pathMaybe pathId </>> pathS
       | isJust vi -> return $ okResponse [] $ T.pack $ show $ assetId $ assetRow $ slotAsset $ segmentAsset as 
       | otherwise -> peeks $ redirectRouteResponse movedPermanently301 [] (viewAssetSegment getOrig) (api, Just (view as), slotId $ view as, view as)
 
-serveAssetSegment :: Bool -> AssetSegment -> ActionM Response
+serveAssetSegment :: Bool -> AssetSegment -> Handler Response
 serveAssetSegment dl as = do
   liftIO $ print ("download?", dl)
   liftIO $ print ("asset seg?", as)

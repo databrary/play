@@ -52,7 +52,7 @@ import Databrary.Model.Transcode
 import Databrary.Model.Ingest
 import Databrary.Action.Types
 
-type IngestM a = JE.ParseT T.Text ActionM a
+type IngestM a = JE.ParseT T.Text Handler a
 
 loadSchema :: ExceptT [T.Text] IO (J.Value -> [JS.Failure])
 loadSchema = do
@@ -105,7 +105,7 @@ asStageFile b = do
     mapM unRawFilePath stageFileRaw
   return $ StageFile r a
 
-ingestJSON :: Volume -> J.Value -> Bool -> Bool -> ActionM (Either [T.Text] [Container])
+ingestJSON :: Volume -> J.Value -> Bool -> Bool -> Handler (Either [T.Text] [Container])
 ingestJSON vol jdata run overwrite = runExceptT $ do
   schema <- mapExceptT liftIO loadSchema
   let errs = schema jdata

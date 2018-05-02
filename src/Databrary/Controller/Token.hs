@@ -32,7 +32,7 @@ import Databrary.Controller.Angular
 import Databrary.Controller.Notification
 import Databrary.View.Token
 
-lookupPasswordResetAccount :: BS.ByteString -> ActionM (Maybe SiteAuth)
+lookupPasswordResetAccount :: BS.ByteString -> Handler (Maybe SiteAuth)
 lookupPasswordResetAccount email =
 #if !defined(DEVEL) && !defined(SANDBOX)
   mfilter ((PermissionADMIN >) . accessMember) <$>

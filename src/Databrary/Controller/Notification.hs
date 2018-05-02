@@ -64,7 +64,7 @@ postNotify = action POST (pathJSON </< "notify") $ \() -> withAuth $ do
   mapM_ (maybe (void . removeNotify u) (\d n -> changeNotify u n d) md) nl
   return $ emptyResponse noContent204 []
 
-createNotification :: Notification -> ActionM ()
+createNotification :: Notification -> Handler ()
 createNotification n' = do
   d <- lookupNotify (notificationTarget n') (notificationNotice n')
   when (d > DeliveryNone) $ do
@@ -73,11 +73,11 @@ createNotification n' = do
       then sendTargetNotifications [n]
       else when (d >= DeliveryAsync) $ focusIO $ triggerNotifications Nothing
 
-broadcastNotification :: Bool -> ((Notice -> Notification) -> Notification) -> ActionM ()
+broadcastNotification :: Bool -> ((Notice -> Notification) -> Notification) -> Handler ()
 broadcastNotification add f =
   void $ (if add then addBroadcastNotification else removeMatchingNotifications) $ f $ blankNotification $ siteAccount nobodySiteAuth
 
-createVolumeNotification :: Volume -> ((Notice -> Notification) -> Notification) -> ActionM ()
+createVolumeNotification :: Volume -> ((Notice -> Notification) -> Notification) -> Handler ()
 createVolumeNotification v f = do
   u <- peek
   forM_ (volumeOwners v) $ \(p, _) -> when (u /= p) $
@@ -163,7 +163,7 @@ updateStateNotifications =
            FROM notification_authorize_expire WHERE id IS NULL;
   |]
 
-updateAuthorizeNotifications :: (MonadHas Context c m, MonadDB c m) => Maybe Authorize -> Authorize -> m ()
+updateAuthorizeNotifications :: (MonadHas ActionContext c m, MonadDB c m) => Maybe Authorize -> Authorize -> m ()
 updateAuthorizeNotifications Nothing _ = return ()
 updateAuthorizeNotifications (Just Authorize{ authorizeExpires = o }) Authorize{ authorization = Authorization{ authorizeChild = Party{ partyRow = PartyRow{ partyId = c } }, authorizeParent = Party{ partyRow = PartyRow{ partyId = p } } }, authorizeExpires = e } = do
   t <- peeks contextTimestamp

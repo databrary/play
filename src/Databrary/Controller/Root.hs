@@ -29,7 +29,7 @@ viewRoot = action GET pathAPI $ \api -> viewRootHandler api []
 
 -- NEW HANDLERS
 {-
-getApiOrFail :: [(BS.ByteString, BS.ByteString)] -> ActionM API
+getApiOrFail :: [(BS.ByteString, BS.ByteString)] -> Handler API
 getApiOrFail params =
   case params of
     [] -> pure HTML

@@ -45,7 +45,7 @@ import Databrary.View.Login
 import {-# SOURCE #-} Databrary.Controller.Root
 import {-# SOURCE #-} Databrary.Controller.Party
 
-loginAccount :: API -> SiteAuth -> Bool -> ActionM Response
+loginAccount :: API -> SiteAuth -> Bool -> Handler Response
 loginAccount api auth su = do
   sess <- createSession auth su
   let Token (Id tok) ex = view sess
@@ -58,7 +58,7 @@ loginHandler :: API -> HTM.Method -> [(BS.ByteString, BS.ByteString)] -> Action
 loginHandler api method _
     | method == methodGet && api == HTML = viewLoginAction
     | method == methodPost = postLoginAction api
-    | otherwise = error "unhandled api/method combo" -- TODO: better error 
+    | otherwise = error "unhandled api/method combo" -- TODO: better error
 
 viewLogin :: ActionRoute ()
 viewLogin = action GET ("user" >/> "login") $ \() -> viewLoginAction
@@ -101,11 +101,11 @@ postLogoutHandler :: API -> [(BS.ByteString, BS.ByteString)] -> Action  -- TODO:
 postLogoutHandler = \api _ -> withAuth $ do
   _ <- maybeIdentity (return False) removeSession
   case api of
-    JSON -> return $ okResponse [cook] $ JSON.recordEncoding $ identityJSON NotIdentified
+    JSON -> return $ okResponse [cook] $ JSON.recordEncoding $ identityJSON NotLoggedIn
     HTML -> peeks $ otherRouteResponse [cook] viewRoot HTML
   where cook = clearCookie "session"
 
-userJSONField :: BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
+userJSONField :: BS.ByteString -> Maybe BS.ByteString -> Handler (Maybe JSON.Encoding)
 userJSONField "notifications" _ = Just . JSON.toEncoding <$> countUserNotifications
 userJSONField _ _ = return Nothing
 
@@ -120,16 +120,16 @@ userHandler api _ =
 -- viewUser :: ActionRoute ()
 -- viewUser = action GET (pathJSON </< "user") $ \() -> withAuth $ viewUserAction
 
-viewUserAction :: ActionM Response
+viewUserAction :: Handler Response
 viewUserAction = do
   i <- peeks identityJSON
   q <- JSON.jsonQuery userJSONField =<< peeks Wai.queryString
   return $ okResponse [] (i `JSON.foldObjectIntoRec` q)
 
-postUser :: ActionRoute API -- TODO: remove when 
+postUser :: ActionRoute API -- TODO: remove when
 postUser = action POST (pathAPI </< "user") $ \api -> withAuth $ postUserAction api
 
-postUserAction :: API -> ActionM Response
+postUserAction :: API -> Handler Response
 postUserAction api = do
   auth <- peek
   let acct = siteAccount auth

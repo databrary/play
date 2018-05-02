@@ -2,7 +2,7 @@
    , TypeSynonymInstances, MultiParamTypeClasses, FlexibleInstances #-}
 module Databrary.Model.VolumeTest where
 
-import Control.Exception (bracket)
+-- import Control.Exception (bracket)
 import Data.Time
 import qualified Data.Vector as V
 import Database.PostgreSQL.Typed.Protocol
@@ -33,7 +33,7 @@ test_findVolumes = ignoreTest -- Because "??"
 
 _unit_findVolumes :: Assertion
 _unit_findVolumes = do
-    let ident = PreIdentified
+    let ident = NotLoggedIn
     cn <- loadPGDatabase >>= pgConnect
     let ctxt = TestContext { ctxConn = cn, ctxIdentity = ident }
     vs <- runReaderT (findVolumes volumeFilter1) ctxt
@@ -78,7 +78,7 @@ volumeExample =
 unit_lookupVolume_example :: Assertion
 unit_lookupVolume_example = do
     cn <- loadPGDatabase >>= pgConnect
-    let ident = PreIdentified
+    let ident = NotLoggedIn
     let ctxt = TestContext { ctxConn = cn, ctxIdentity = ident }
     mVol <- runReaderT (lookupVolume (Id 1)) ctxt
     mVol @?=
@@ -114,7 +114,7 @@ _unit_addVolume_example :: Assertion
 _unit_addVolume_example = do
     withinTestTransaction
         (\cn -> do
-             let ident = PreIdentified
+             let ident = NotLoggedIn
                  pid :: Id Party
                  pid = Id 300
              let ctxt = TestContext { ctxConn = cn, ctxIdentity = ident, ctxPartyId = pid, ctxRequest = defaultRequest }
@@ -123,13 +123,3 @@ _unit_addVolume_example = do
 
 {- Volume {volumeRow = VolumeRow {volumeId = 6, volumeName = "Test Vol One: A Survey", volumeBody = Just "Here is a description for a volume", volumeAlias = Just "Test Vol 1", volumeDOI = Nothing}, volumeCreation = 2013-01-11 10:26:40 UTC, volumeOwners = [], volumePermission = ADMIN, volumeAccessPolicy = PermLevelDefault}
 -}
-
-withinTestTransaction :: (PGConnection -> IO a) -> IO a
-withinTestTransaction act =
-     bracket
-         (do
-              cn <- pgConnect =<< loadPGDatabase
-              pgBegin cn
-              pure cn)
-         pgRollback
-         act

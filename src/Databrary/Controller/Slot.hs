@@ -41,11 +41,11 @@ import Databrary.Controller.Volume (volumeIsPublicRestricted)
 import Databrary.Controller.Web
 import {-# SOURCE #-} Databrary.Controller.AssetSegment
 
-getSlot :: Permission -> Maybe (Id Volume) -> Id Slot -> ActionM Slot
+getSlot :: Permission -> Maybe (Id Volume) -> Id Slot -> Handler Slot
 getSlot p mv i =
   checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupSlot i
 
-slotJSONField :: Bool -> Slot -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
+slotJSONField :: Bool -> Slot -> BS.ByteString -> Maybe BS.ByteString -> Handler (Maybe JSON.Encoding)
 slotJSONField getOrig o "assets" _ =
   case getOrig of 
        True -> Just . JSON.mapRecords (assetSlotJSON False) <$> lookupOrigSlotAssets o -- public restricted consult volume soon
@@ -66,7 +66,7 @@ slotJSONField _ o "filename" _ =
   return $ Just $ JSON.toEncoding $ makeFilename $ slotDownloadName o
 slotJSONField _ _ _ _ = return Nothing
 
-slotJSONQuery :: Bool -> Slot -> JSON.Query -> ActionM (JSON.Record (Id Container) JSON.Series)
+slotJSONQuery :: Bool -> Slot -> JSON.Query -> Handler (JSON.Record (Id Container) JSON.Series)
 slotJSONQuery origQ o q = (slotJSON o `JSON.foldObjectIntoRec`) <$> JSON.jsonQuery (slotJSONField origQ o) q
 
 slotDownloadName :: Slot -> [T.Text]

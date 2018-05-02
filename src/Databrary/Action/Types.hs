@@ -1,8 +1,8 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, TypeFamilies, TemplateHaskell #-}
 module Databrary.Action.Types
   ( RequestContext(..)
-  , ActionM(..)
-  , runActionM
+  , Handler(..)
+  , runHandler
   ) where
 
 import Control.Applicative (Alternative)
@@ -37,13 +37,13 @@ import Databrary.Service.Types
 import Databrary.Web.Types
 
 data RequestContext = RequestContext
-  { requestContext :: !Context
+  { requestContext :: !ActionContext
   , contextRequest :: !Request
   , requestIdentity :: !Identity
   }
 
 -- makeHasRec ''RequestContext ['requestContext, 'contextRequest, 'requestIdentity]
-instance Has Context RequestContext where
+instance Has ActionContext RequestContext where
   view = requestContext
 instance Has Databrary.Service.DB.DBConn RequestContext where
   view = (view . requestContext)
@@ -98,17 +98,17 @@ instance Has Databrary.Model.Party.Types.Party RequestContext where
 instance Has Databrary.Model.Party.Types.SiteAuth RequestContext where
   view = (view . requestIdentity)
 
-newtype ActionM a = ActionM { unActionM :: ReaderT RequestContext IO a }
+newtype Handler a = Handler { unHandler :: ReaderT RequestContext IO a }
   deriving (Functor, Applicative, Alternative, Monad, MonadPlus, MonadIO, MonadBase IO, MonadThrow, MonadReader RequestContext)
 
-{-# INLINE runActionM #-}
-runActionM :: ActionM a -> RequestContext -> IO a
-runActionM (ActionM (ReaderT f)) = f
+{-# INLINE runHandler #-}
+runHandler :: Handler a -> RequestContext -> IO a
+runHandler (Handler (ReaderT f)) = f
 
-instance MonadResource ActionM where
+instance MonadResource Handler where
   liftResourceT = focusIO . runInternalState
 
-instance MonadBaseControl IO ActionM where
-  type StM ActionM a = a
-  liftBaseWith f = ActionM $ liftBaseWith $ \r -> f (r . unActionM)
-  restoreM = ActionM . restoreM
+instance MonadBaseControl IO Handler where
+  type StM Handler a = a
+  liftBaseWith f = Handler $ liftBaseWith $ \r -> f (r . unHandler)
+  restoreM = Handler . restoreM

@@ -21,10 +21,15 @@ import Databrary.Model.Party
 import Databrary.Model.Permission
 import Databrary.Model.Identity.Types
 
--- | Extract session token from cookie, use it to find an active session
+-- | Extract session token from cookie, and use it to find an active session.
+--
+-- This is web framework code, and should NOT be used within application logic.
+--
+-- TODO: Make this more plain, taking the Secret and Request (or just the
+-- cookies) as regular arguments.
 determineIdentity :: (MonadHas Secret c m, MonadHasRequest c m, MonadDB c m) => m Identity
 determineIdentity =
-  maybe NotIdentified Identified <$> (flatMapM lookupSession =<< getSignedCookie "session")
+  maybe NotLoggedIn Identified <$> (flatMapM lookupSession =<< getSignedCookie "session")
 
 maybeIdentity :: (MonadHasIdentity c m) => m a -> (Session -> m a) -> m a
 maybeIdentity u i = foldIdentity u i =<< peek

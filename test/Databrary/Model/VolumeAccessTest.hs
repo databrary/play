@@ -1,10 +1,9 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Model.VolumeAccessTest where
 
+import Data.Int (Int16)
 import Database.PostgreSQL.Typed.Protocol
-import Test.Tasty
 import Test.Tasty.HUnit
-import Test.Tasty.ExpectedFailure
 
 import Databrary.Model.Id
 import Databrary.Model.Identity
@@ -33,16 +32,25 @@ unit_volumeAccessProvidesADMIN =
   -- typical
   -- edge cases
 
-test_lookupVolumeAccess_example :: TestTree
-test_lookupVolumeAccess_example =
-     -- the test doesn't provide any details on why it fails; investigate further
-     ignoreTest (testCase "lookupVolumeAccess" _unit_lookupVolumeAccess_example)
-
-_unit_lookupVolumeAccess_example :: Assertion
-_unit_lookupVolumeAccess_example = do
+unit_lookupVolumeAccess_example :: Assertion
+unit_lookupVolumeAccess_example = do
     cn <- loadPGDatabase >>= pgConnect
-    let ident = PreIdentified
+    let ident = NotLoggedIn
         ctxt = TestContext { ctxConn = cn, ctxIdentity = ident }
     Just vol1 <- runReaderT (lookupVolume (Id 1)) ctxt
     partiesAccessing <- runReaderT (lookupVolumeAccess vol1 PermissionNONE) ctxt
-    (take 2 partiesAccessing) @?= []
+    (map extractFlatParts partiesAccessing) @?=
+       [(PermissionADMIN,PermissionNONE,Nothing,Nothing,Id 1)
+       ,(PermissionADMIN,PermissionNONE,Nothing,Nothing,Id 1)
+       ,(PermissionADMIN,PermissionNONE,Nothing,Nothing,Id 1)
+       ,(PermissionPUBLIC,PermissionPUBLIC,Nothing,Just True,Id 1)]
+       
+
+extractFlatParts :: VolumeAccess -> (Permission, Permission, Maybe Int16, Maybe Bool, Id Volume)
+extractFlatParts va =
+  ( volumeAccessIndividual va
+  , volumeAccessChildren va
+  , volumeAccessSort va
+  , volumeAccessShareFull va
+  , (volumeId . volumeRow . volumeAccessVolume) va
+  )

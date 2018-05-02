@@ -2,7 +2,7 @@
 module Databrary.Action
   ( Request
   , RequestContext
-  , ActionM
+  , Databrary.Handler
   , Action
 
   , Response
@@ -35,7 +35,7 @@ import Servant
 
 import Databrary.Has (peeks)
 import Databrary.HTTP.Request
-import Databrary.Action.Types
+import Databrary.Action.Types as Databrary
 import Databrary.Action.Run
 import Databrary.Action.Response
 import Databrary.Action.Route
@@ -55,7 +55,7 @@ forbiddenResponse = response forbidden403 [] . htmlForbidden
 notFoundResponse :: RequestContext -> Response
 notFoundResponse = response notFound404 [] . htmlNotFound
 
-maybeAction :: Maybe a -> ActionM a
+maybeAction :: Maybe a -> Databrary.Handler a
 maybeAction (Just a) = return a
 maybeAction Nothing = result =<< peeks notFoundResponse
 
@@ -110,8 +110,8 @@ type ActionRoute a = R.RouteAction a Action
 
 data Action = Action
   { _actionAuth :: !Bool
-  , _actionM :: !(ActionM Response)
+  , _actionM :: !(Handler Response)
   }
-newtype ActionM a = ActionM { unActionM :: ReaderT RequestContext IO a }
+newtype Handler a = Handler { unHandler :: ReaderT RequestContext IO a }
   deriving (Functor, Applicative, Alternative, Monad, MonadPlus, MonadIO, MonadBase IO, MonadThrow, MonadReader RequestContext)
 -}

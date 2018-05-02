@@ -30,7 +30,7 @@ makeTempFileAs d g rs = bracket
   (hClose . snd . snd)
   (\(k, (f, h)) -> TempFile k f <$ g h)
 
-makeTempFile :: (Handle -> IO ()) -> ActionM TempFile
+makeTempFile :: (Handle -> IO ()) -> Handler TempFile
 makeTempFile f = do
   tmp <- peeks storageTemp
   focusIO $ makeTempFileAs tmp f

@@ -86,7 +86,7 @@ genVideoClip av src frame sz dst =
     >>= mapM_ (\b -> send b >> send BS.empty)
   where send = either id (const $ const $ return ()) dst
 
-getAssetSegmentStore :: AssetSegment -> Maybe Word16 -> ActionM (Either (Stream -> IO ()) RawFilePath)
+getAssetSegmentStore :: AssetSegment -> Maybe Word16 -> Handler (Either (Stream -> IO ()) RawFilePath)
 getAssetSegmentStore as sz
   | aimg && isJust sz || not (assetSegmentFull as) && isJust (assetDuration $ assetRow a) && isJust (formatSample afmt) = do
   liftIO $ print "need to slice off a segment"
