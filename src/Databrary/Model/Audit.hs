@@ -4,8 +4,6 @@ module Databrary.Model.Audit
   , MonadAudit
   , getRemoteIp
   , getAuditIdentity
-  -- , Analytic(..)
-  -- , auditAnalytic
   ) where
 
 import Data.Maybe (fromMaybe)
@@ -19,26 +17,16 @@ import Databrary.Model.Id.Types
 import Databrary.Model.Party.Types
 import Databrary.Model.Audit.Types
 
--- useTDB
-
+-- | A context which carries enough information to enter audit data along with
+-- viewing or data modification actions. The request allows us to get the web requests
+-- IP. The party id provides us with the party who is performing auditable actions.
+-- The DB gives us a connection to create data in the audit tables.
 type MonadAudit c m = (MonadHasRequest c m, MonadHas (Id Party) c m, MonadDB c m)
 
+-- | Retrieve the IP from the web request, if any is present
 getRemoteIp :: MonadHasRequest c m => m PGInet
 getRemoteIp = peeks (fromMaybe (PGInet 0 32) . sockAddrPGInet . remoteHost)
 
+-- | Build up an identity summarizing the party and IP during a given action
 getAuditIdentity :: (MonadHasRequest c m, MonadHas (Id Party) c m) => m AuditIdentity
 getAuditIdentity = AuditIdentity <$> peek <*> getRemoteIp
-
-{-
-data Analytic = Analytic
-  { analyticAction :: AuditAction
-  , analyticRoute :: T.Text
-  , analyticData :: Maybe JSON.Value
-  }
-
-auditAnalytic :: (MonadAudit c m) => Analytic -> m ()
-auditAnalytic Analytic{..} = do
-  ai <- getAuditIdentity
-  dbExecute1' [pgSQL|INSERT INTO audit.analytic (audit_action, audit_user, audit_ip, route, data) VALUES
-    (${analyticAction}, ${auditWho ai}, ${auditIp ai}, ${analyticRoute}, ${analyticData})|]
--}
