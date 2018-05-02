@@ -52,7 +52,7 @@ import Databrary.Model.Transcode
 import Databrary.Model.Ingest
 import Databrary.Action.Types
 
-type IngestM a = JE.ParseT T.Text ActionM a
+type IngestM a = JE.ParseT T.Text Handler a
 
 loadSchema :: ExceptT [T.Text] IO (J.Value -> [JS.Failure])
 loadSchema = do
@@ -105,7 +105,7 @@ asStageFile b = do
     mapM unRawFilePath stageFileRaw
   return $ StageFile r a
 
-ingestJSON :: Volume -> J.Value -> Bool -> Bool -> ActionM (Either [T.Text] [Container])
+ingestJSON :: Volume -> J.Value -> Bool -> Bool -> Handler (Either [T.Text] [Container])
 ingestJSON vol jdata run overwrite = runExceptT $ do
   schema <- mapExceptT liftIO loadSchema
   let errs = schema jdata
@@ -217,7 +217,7 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
         (r :: Record) <- maybe
           (do -- if no existing record, then add a new record
             (category :: Category) <- JE.key "category" asCategory
-            lift $ addRecord $ blankRecord category vol)  
+            lift $ addRecord $ blankRecord category vol)
           (\i -> do  -- else find the existing record by vol + record id
             (mRecord :: Maybe Record) <- lift (lookupVolumeRecord vol i)
             fromMaybeM (throwPE $ "record " <> T.pack (show i) <> "/" <> key <> " not found") mRecord)
@@ -251,7 +251,7 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
           (newMeasureVal :: T.Text) <- JE.asText
           let newMeasureValBS :: BS.ByteString
               newMeasureValBS = TE.encodeUtf8 newMeasureVal
-          maybe 
+          maybe
             (return (Just newMeasureValBS))  -- always update
             (\existingMeasure -> check (measureDatum existingMeasure) newMeasureValBS) -- only update if changed and allowed
             (getMeasure metric (recordMeasures r)) -- look for existing measure for this metric on the record

@@ -64,7 +64,7 @@ postNotify = action POST (pathJSON </< "notify") $ \() -> withAuth $ do
   mapM_ (maybe (void . removeNotify u) (\d n -> changeNotify u n d) md) nl
   return $ emptyResponse noContent204 []
 
-createNotification :: Notification -> ActionM ()
+createNotification :: Notification -> Handler ()
 createNotification n' = do
   d <- lookupNotify (notificationTarget n') (notificationNotice n')
   when (d > DeliveryNone) $ do
@@ -73,11 +73,11 @@ createNotification n' = do
       then sendTargetNotifications [n]
       else when (d >= DeliveryAsync) $ focusIO $ triggerNotifications Nothing
 
-broadcastNotification :: Bool -> ((Notice -> Notification) -> Notification) -> ActionM ()
+broadcastNotification :: Bool -> ((Notice -> Notification) -> Notification) -> Handler ()
 broadcastNotification add f =
   void $ (if add then addBroadcastNotification else removeMatchingNotifications) $ f $ blankNotification $ siteAccount nobodySiteAuth
 
-createVolumeNotification :: Volume -> ((Notice -> Notification) -> Notification) -> ActionM ()
+createVolumeNotification :: Volume -> ((Notice -> Notification) -> Notification) -> Handler ()
 createVolumeNotification v f = do
   u <- peek
   forM_ (volumeOwners v) $ \(p, _) -> when (u /= p) $
@@ -125,7 +125,7 @@ emitNotifications d = do
   mapM_ sendTargetNotifications $ groupBy ((==) `on` partyId . partyRow . accountParty . notificationTarget) unl
   _ <- changeNotificationsDelivery unl d
   return ()
-  
+
 runNotifier :: Service -> IO ()
 runNotifier rc = loop where
   t = notificationsTrigger $ serviceNotification rc

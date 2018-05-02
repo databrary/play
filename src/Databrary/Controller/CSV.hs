@@ -97,7 +97,7 @@ dataRow hl@((c,m):hl') rll@(~rl@(r:_):rll') = case compare c rc of
   where rc = recordCategory $ recordRow r
 dataRow _ _ = []
 
-volumeCSV :: Volume -> [(Container, [RecordSlot])] -> ActionM [[BS.ByteString]]
+volumeCSV :: Volume -> [(Container, [RecordSlot])] -> Handler [[BS.ByteString]]
 volumeCSV vol crsl = do
   mets <- map getMetric' <$> lookupVolumeMetrics vol
   -- FIXME if volume metrics can be reordered

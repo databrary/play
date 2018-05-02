@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
 module Databrary.Action.Run
   ( Action
   , runAction
@@ -27,14 +28,30 @@ import Databrary.Context
 import Databrary.Action.Types
 import Databrary.Action.Request
 import Databrary.Action.Response
--- import Databrary.Controller.Analytics
 
-withActionM :: Request -> Identity -> ActionM a -> ContextM a
-withActionM r i = withReaderT (\c -> RequestContext c r i) . unActionM
+-- |
+-- Transform a web request to a lower-level action.
+--
+-- Given an action that runs in a top-level Handler, build the necessary context
+-- for that action, and run in it in the base-level ContextM
+--
+-- Handler has a richer context: it has all of ActionContext, plus Identity and
+-- the Wai Request.
+withHandler
+    :: forall a
+     . Request -- ^ The wai request to handle
+    -> Identity -- ^ The identity to use for this action
+    -> Handler a -- ^ The action to perform
+    -> ContextM a -- ^ The base-level control access to the system
+withHandler waiReq identity h =
+    let (handler :: ReaderT RequestContext IO a) = unHandler h
+    in withReaderT (\(c :: ActionContext) -> RequestContext c waiReq identity) handler
+
+data NeedsAuth = NeedsAuth | DoesntNeedAuth
 
 data Action = Action
-  { _actionAuth :: !Bool
-  , _actionM :: !(ActionM Response)
+  { _actionAuth :: !NeedsAuth
+  , _actionM :: !(Handler Response)
   }
 
 runAction :: Service -> Action -> Wai.Application
@@ -52,15 +69,23 @@ runAction rc (Action auth act) req send = do
     then emptyResponse (Wai.responseStatus r') (Wai.responseHeaders r')
     else r'
 
-forkAction :: ActionM a -> RequestContext -> (Either SomeException a -> IO ()) -> IO ThreadId
+forkAction :: Handler a -> RequestContext -> (Either SomeException a -> IO ()) -> IO ThreadId
 forkAction f (RequestContext c r i) = forkFinally $
-  runContextM (withActionM r i f) (contextService c)
+  runContextM (withHandler r i f) (contextService c)
 
-withAuth :: ActionM Response -> Action
-withAuth = Action True
+withAuth :: Handler Response -> Action
+withAuth = Action NeedsAuth
 
-withoutAuth :: ActionM Response -> Action
-withoutAuth = Action False
+withoutAuth :: Handler Response -> Action
+withoutAuth = Action DoesntNeedAuth
 
-withReAuth :: SiteAuth -> ActionM a -> ActionM a
-withReAuth u = ActionM . withReaderT (\a -> a{ requestIdentity = ReIdentified u }) . unActionM
+-- | This may be like a 'su' that allows running an action as a different
+-- SiteAuth.
+--
+-- FIXME: It is a little annoying that Identified carries a session, while
+-- ReIdentified carries a SiteAuth.
+withReAuth :: SiteAuth -> Handler a -> Handler a
+withReAuth u =
+    Handler
+        . local (\a -> a { requestIdentity = ReIdentified u })
+        . unHandler

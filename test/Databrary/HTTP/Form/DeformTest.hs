@@ -9,7 +9,7 @@ import Databrary.HTTP.Form.Deform
 test_all :: [TestTree]
 test_all =
     [ testCase "textInteger-1" (textInteger "1" @?= Right (1::Int))
-    
+
     ]
 
 -- usages:
@@ -63,7 +63,7 @@ test_all =
 -- users of this module:
 --  Databrary.Controller.Form
 --     runFormFiles
---       params: FileContent f, RequestContext, FormHtml f, DeformActionM f a
+--       params: FileContent f, RequestContext, FormHtml f, DeformHandler f a
 --       uses: Action.Form.getFormData, runFormWith
 --     csrfForm
 --     runFormWith

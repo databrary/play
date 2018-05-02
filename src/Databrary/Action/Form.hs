@@ -15,7 +15,7 @@ import Databrary.HTTP.Parse
 import Databrary.Action.Types
 import qualified Databrary.JSON as JSON
 
-getFormData :: FileContent a => [(BS.ByteString, Word64)] -> ActionM (FormData a)
+getFormData :: FileContent a => [(BS.ByteString, Word64)] -> Handler (FormData a)
 getFormData fileLimits = do
   (mkFormData
    :: Map.Map BS.ByteString BS.ByteString -> Maybe JSON.Value -> Map.Map BS.ByteString (FileInfo a) -> FormData a)
@@ -26,6 +26,6 @@ getFormData fileLimits = do
     ContentJSON val ->                  mkFormData Map.empty                 (Just val) Map.empty
     -- text or unknown
     _ ->                                mkFormData Map.empty                 Nothing    Map.empty
-  where  
+  where
     getFileMaxSizeByFieldName :: BS.ByteString -> Word64
     getFileMaxSizeByFieldName fieldName = (fromMaybe 0 . (`lookup` fileLimits)) fieldName

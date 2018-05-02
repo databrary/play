@@ -43,7 +43,7 @@ import Databrary.Controller.Paths
 import Databrary.Controller.Form
 import Databrary.Controller.Volume
 
-fileSizeForm :: DeformActionM f Int64
+fileSizeForm :: DeformHandler f Int64
 fileSizeForm = deformCheck "Invalid file size." (0 <) =<< deform
 
 uploadStart :: ActionRoute (Id Volume)
@@ -64,7 +64,7 @@ uploadStart = action POST (pathJSON >/> pathId </< "upload") $ \vi -> withAuth $
     (`setFdSize` COff size)
   return $ okResponse [] $ unId (view tok :: Id Token)
 
-chunkForm :: DeformActionM f (Upload, Int64, Word64)
+chunkForm :: DeformHandler f (Upload, Int64, Word64)
 chunkForm = do
   csrfForm
   up <- "flowIdentifier" .:> (lift . (maybeAction <=< lookupUpload) =<< deform)
@@ -104,13 +104,13 @@ uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
     (\f -> putStrLn "closeFd..." >> closeFd f) $ \h -> do
       _ <- fdSeek h AbsoluteSeek (COff off)
       liftIO $ print "uploadChunk:  fdSeek..." --DEBUG
-      liftIO $ print h --DEBUG 
-      liftIO $ print off --DEBUG 
+      liftIO $ print h --DEBUG
+      liftIO $ print off --DEBUG
       let block n = do
             liftIO $ putStrLn $ "block:" ++ show n --DEBUG
             b <- rb
             if BS.null b
-              then do 
+              then do
                 liftIO $ putStrLn "b is null" --DEBUG
                 return n
               else do
@@ -121,17 +121,17 @@ uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
                       w <- BSU.unsafeUseAsCStringLen b' $ \(buf, siz) -> fdWriteBuf h (castPtr buf) (fromIntegral siz)
                       liftIO $ print "uploadChunk: w assigned  unsafeUseAsCStringLen..." --DEBUG
                       if w < fromIntegral (BS.length b')
-                        then do 
+                        then do
                           liftIO $ print "uploadChunk: w < length b'..." --DEBUG
                           write $! BS.drop (fromIntegral w) b'
-                        else do 
+                        else do
                           liftIO $ print "uploadChunk: !(w < length b')..." --DEBUG
                           block n'
                 if n' > len
-                  then do 
+                  then do
                     liftIO $ putStrLn $ "n' > len" ++ show (n',len)   --DEBUG
                     return n'
-                  else do 
+                  else do
                     liftIO $ putStrLn $ "n' > len" ++ show (n',len)   --DEBUG
                     write b
       block 0

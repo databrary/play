@@ -89,7 +89,7 @@ angularResult version nojs auth = do
     Nothing -> (:[]) <$> makeWebFilePath "all.min.js"
   result $ okResponse [] (htmlAngular version cssDeps jsDeps nojs auth)
 
-angular :: ActionM ()
+angular :: Handler ()
 angular = do
   (servWeb :: Web) <- peek
   let version = getWebVersion servWeb
@@ -101,4 +101,4 @@ angular = do
          angularResultNoJs = angularResult version nojsBldr
        in
          focusIO angularResultNoJs)
-    b 
+    b

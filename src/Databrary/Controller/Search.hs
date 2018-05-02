@@ -17,7 +17,7 @@ import Databrary.HTTP.Form.Deform
 import Databrary.Controller.Form
 import Databrary.Controller.Angular
 
-searchForm :: DeformActionM f SearchQuery
+searchForm :: DeformHandler f SearchQuery
 searchForm = SearchQuery
   <$> ("q" .:> deformNonEmpty deform)
   <*> ("f" .:> withSubDeforms (\k -> (view k, ) <$> deform))

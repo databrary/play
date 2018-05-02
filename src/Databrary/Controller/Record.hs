@@ -41,7 +41,7 @@ import Databrary.Controller.Slot
 import Databrary.Controller.Permission
 import Databrary.View.Record
 
-getRecord :: Permission -> Id Record -> ActionM Record
+getRecord :: Permission -> Id Record -> Handler Record
 getRecord p i =
   checkPermission p =<< maybeAction =<< lookupRecord i
 

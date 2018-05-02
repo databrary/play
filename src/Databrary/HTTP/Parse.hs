@@ -91,10 +91,10 @@ rejectBackEnd :: BackEnd a
 rejectBackEnd _ _ _ = result requestTooLarge
 
 
-_parseRequestChunks :: ChunkParser a -> ActionM a
+_parseRequestChunks :: ChunkParser a -> Handler a
 _parseRequestChunks p = liftIO . p =<< peeks requestBody
 
-limitRequestChunks :: Word64 -> ChunkParser a -> ActionM a
+limitRequestChunks :: Word64 -> ChunkParser a -> Handler a
 limitRequestChunks lim p = do
   rq <- peek
   case requestBodyLength rq of
@@ -114,7 +114,7 @@ maxTextSize :: Word64
 maxTextSize = 1024*1024
 
 class FileContent a where
-  parseFileContent :: IO BS.ByteString -> ActionM a
+  parseFileContent :: IO BS.ByteString -> Handler a
 
 instance FileContent () where
   parseFileContent _ = result requestTooLarge
@@ -128,29 +128,29 @@ instance FileContent JSON.Value where
 instance FileContent TL.Text where
   parseFileContent = liftIO . textChunks'
 
-parseFormContent :: RequestBodyType -> ActionM (Content a)
+parseFormContent :: RequestBodyType -> Handler (Content a)
 parseFormContent t = uncurry ContentForm
   <$> limitRequestChunks maxTextSize (liftIO . sinkRequestBody rejectBackEnd t)
 
-parseFormFileContent :: FileContent a => (FileInfo BS.ByteString -> Word64) -> RequestBodyType -> ActionM (Content a)
+parseFormFileContent :: FileContent a => (FileInfo BS.ByteString -> Word64) -> RequestBodyType -> Handler (Content a)
 parseFormFileContent ff rt = do
   app <- peek
   (p, f) <- liftIO $ do
     let be fn fi fb = case ff fi{ fileContent = fn } of
           0 -> result requestTooLarge
-          m -> limitChunks m (\b -> runActionM (parseFileContent b) app) fb
+          m -> limitChunks m (\b -> runHandler (parseFileContent b) app) fb
     sinkRequestBody be rt (requestBody $ contextRequest app)
   return $ ContentForm p f
 
-parseJSONContent :: ActionM (Content a)
+parseJSONContent :: Handler (Content a)
 parseJSONContent = maybe ContentUnknown ContentJSON . AP.maybeResult
   <$> limitRequestChunks maxTextSize (parserChunks JSON.json)
 
-parseTextContent :: ActionM (Content a)
+parseTextContent :: Handler (Content a)
 parseTextContent = ContentText <$> limitRequestChunks maxTextSize textChunks'
   -- really would be better to catch the error and return ContentUnknown
 
-parseRequestContent :: FileContent a => (BS.ByteString -> Word64) -> ActionM (Content a)
+parseRequestContent :: FileContent a => (BS.ByteString -> Word64) -> Handler (Content a)
 parseRequestContent fileLimits = do
   ct <- peeks $ lookupRequestHeader hContentType
   case fmap parseContentType ct of

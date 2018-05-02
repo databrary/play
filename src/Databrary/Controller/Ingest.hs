@@ -4,7 +4,7 @@ module Databrary.Controller.Ingest
   , postIngest
   , detectParticipantCSV
   , runParticipantUpload
-  -- for tests  
+  -- for tests
   , mappingParser
   , buildParticipantRecordAction
   , ParticipantStatus(..)
@@ -194,7 +194,7 @@ mappingParser val = do
 
 -- TODO: move all below to Model.Ingest
  -- TODO: error or count
-runImport :: Volume -> Vector ParticipantRecord -> ActionM (Vector ())
+runImport :: Volume -> Vector ParticipantRecord -> Handler (Vector ())
 runImport vol records =
     mapM (createOrUpdateRecord vol) records
 
@@ -256,7 +256,7 @@ buildParticipantRecordAction participantRecord updatingRecord =
             Create ->
                 maybe (NoAction met) (Upsert met) mVal
             Found _ -> do
-                 -- TODO: 
+                 -- TODO:
                  -- mOldVal <- getOldVal metric record
                  -- action = maybe (Upsert val) (\o -> if o == val then Unchanged else Upsert val)
                  let measureAction = maybe (Delete met) (Upsert met) mVal
@@ -265,7 +265,7 @@ buildParticipantRecordAction participantRecord updatingRecord =
     getFieldVal' = getFieldVal participantRecord
 
 getFieldVal
-    :: ParticipantRecord 
+    :: ParticipantRecord
     -> (ParticipantRecord -> Maybe (Maybe (a, MeasureDatum)))
     -> Metric
     -> Maybe (Maybe MeasureDatum, Metric)
@@ -277,8 +277,8 @@ getFieldVal participantRecord extractFieldVal metric =
             pure (Nothing, metric)
         Nothing ->
             Nothing -- field isn't used by this volume, so don't need to save the measure
-        
-createOrUpdateRecord :: Volume -> ParticipantRecord -> ActionM () -- TODO: error or record
+
+createOrUpdateRecord :: Volume -> ParticipantRecord -> Handler () -- TODO: error or record
 createOrUpdateRecord vol participantRecord = do
     let category = getCategory' (Id 1) -- TODO: use global variable
         mIdVal = fst $ maybe (error "id missing") id (getFieldVal' prdId participantMetricId)
@@ -298,7 +298,7 @@ createOrUpdateRecord vol participantRecord = do
             _ <- mapM (runMeasureUpdate oldRecord) measureActs
             pure ()
   where
-    runMeasureUpdate :: Record -> MeasureUpdateAction -> ActionM (Maybe Record)
+    runMeasureUpdate :: Record -> MeasureUpdateAction -> Handler (Maybe Record)
     runMeasureUpdate record act =
         case act of
             Upsert met val -> changeRecordMeasure (Measure record met val)

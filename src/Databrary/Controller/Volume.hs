@@ -77,7 +77,7 @@ import {-# SOURCE #-} Databrary.Controller.AssetSegment
 import Databrary.Controller.Notification
 import Databrary.View.Volume
 
-getVolume :: Permission -> Id Volume -> ActionM Volume
+getVolume :: Permission -> Id Volume -> Handler Volume
 getVolume p i = do
   mVol <- lookupVolume i
   vol <- maybeAction mVol
@@ -89,16 +89,16 @@ data VolumeCache = VolumeCache
   , volumeCacheRecords :: Maybe (HML.HashMap (Id Record) Record)
   }
 
--- type VolumeCacheActionM a = StateT VolumeCache ActionM a
+-- type VolumeCacheHandler a = StateT VolumeCache Handler a
 
 instance Monoid VolumeCache where
   mempty = VolumeCache Nothing Nothing Nothing
   mappend (VolumeCache a1 t1 r1) (VolumeCache a2 t2 r2) = VolumeCache (a1 <|> a2) (t1 <|> t2) (r1 <> r2)
 
-runVolumeCache :: StateT VolumeCache ActionM a -> ActionM a
+runVolumeCache :: StateT VolumeCache Handler a -> Handler a
 runVolumeCache f = evalStateT f mempty
 
-cacheVolumeAccess :: Volume -> Permission -> StateT VolumeCache ActionM [VolumeAccess]
+cacheVolumeAccess :: Volume -> Permission -> StateT VolumeCache Handler [VolumeAccess]
 cacheVolumeAccess vol perm = do
   vc <- get
   takeWhile ((perm <=) . volumeAccessIndividual) <$>
@@ -108,7 +108,7 @@ cacheVolumeAccess vol perm = do
       return a)
       (volumeCacheAccess vc)
 
-cacheVolumeRecords :: Volume -> StateT VolumeCache ActionM ([Record], HML.HashMap (Id Record) Record)
+cacheVolumeRecords :: Volume -> StateT VolumeCache Handler ([Record], HML.HashMap (Id Record) Record)
 cacheVolumeRecords vol = do
   vc <- get
   maybe (do
@@ -119,7 +119,7 @@ cacheVolumeRecords vol = do
     (return . (HML.elems &&& id))
     (volumeCacheRecords vc)
 
-cacheVolumeTopContainer :: Volume -> StateT VolumeCache ActionM Container
+cacheVolumeTopContainer :: Volume -> StateT VolumeCache Handler Container
 cacheVolumeTopContainer vol = do
   vc <- get
   fromMaybeM (do
@@ -139,7 +139,7 @@ volumeIsPublicRestricted v =
     (PermissionPUBLIC, PublicRestricted) -> True
     _ -> False
 
-volumeJSONField :: Volume -> BS.ByteString -> Maybe BS.ByteString -> StateT VolumeCache ActionM (Maybe JSON.Encoding)
+volumeJSONField :: Volume -> BS.ByteString -> Maybe BS.ByteString -> StateT VolumeCache Handler (Maybe JSON.Encoding)
 volumeJSONField vol "access" ma = do
   Just . JSON.mapObjects volumeAccessPartyJSON
     <$> cacheVolumeAccess vol (fromMaybe PermissionNONE $ readDBEnum . BSC.unpack =<< ma)
@@ -207,11 +207,11 @@ volumeJSONField o "filename" _ =
   return $ Just $ JSON.toEncoding $ makeFilename $ volumeDownloadName o
 volumeJSONField _ _ _ = return Nothing
 
-volumeJSONQuery :: Volume -> Maybe [VolumeAccess] -> JSON.Query -> ActionM (JSON.Record (Id Volume) JSON.Series)
+volumeJSONQuery :: Volume -> Maybe [VolumeAccess] -> JSON.Query -> Handler (JSON.Record (Id Volume) JSON.Series)
 volumeJSONQuery vol mAccesses q =
-  let seriesCaching :: StateT VolumeCache ActionM JSON.Series
+  let seriesCaching :: StateT VolumeCache Handler JSON.Series
       seriesCaching = JSON.jsonQuery (volumeJSONField vol) q
-      expandedVolJSONcaching :: StateT VolumeCache ActionM (JSON.Record (Id Volume) JSON.Series)
+      expandedVolJSONcaching :: StateT VolumeCache Handler (JSON.Record (Id Volume) JSON.Series)
       expandedVolJSONcaching = (\series -> volumeJSON vol mAccesses `JSON.foldObjectIntoRec` series) <$> seriesCaching
   in
     runVolumeCache $ expandedVolJSONcaching
@@ -230,7 +230,7 @@ viewVolume = action GET (pathAPI </> pathId) $ \(api, vi) -> withAuth $ do
   -- (liftIO . print) ("num accesses", length accesses)
   case api of
     JSON ->
-      let idSeriesRecAct :: ActionM (JSON.Record (Id Volume) JSON.Series)
+      let idSeriesRecAct :: Handler (JSON.Record (Id Volume) JSON.Series)
           idSeriesRecAct = volumeJSONQuery v (Just accesses) =<< peeks Wai.queryString
       in okResponse [] . JSON.recordEncoding <$> idSeriesRecAct
     HTML -> do
@@ -238,7 +238,7 @@ viewVolume = action GET (pathAPI </> pathId) $ \(api, vi) -> withAuth $ do
       t <- lookupSlotKeywords $ containerSlot top
       peeks $ okResponse [] . htmlVolumeView v t
 
-volumeForm :: Volume -> DeformActionM f Volume
+volumeForm :: Volume -> DeformHandler f Volume
 volumeForm v = do
   name <- "name" .:> deform
   alias <- "alias" .:> deformNonEmpty deform
@@ -252,7 +252,7 @@ volumeForm v = do
     }
 
 -- FIXME: Too impure, and needs test: What elements of the input are modified?
-volumeCitationForm :: Volume -> DeformActionM f (Volume, Maybe Citation)
+volumeCitationForm :: Volume -> DeformHandler f (Volume, Maybe Citation)
 volumeCitationForm v = do
   csrfForm
   vol <- volumeForm v
@@ -370,7 +370,7 @@ postVolumeAssist = action POST (pathJSON >/> pathId </< "assist") $ \vi -> withA
   createVolumeNotification v ($ NoticeVolumeAssist)
   return $ emptyResponse noContent204 []
 
-volumeSearchForm :: DeformActionM f VolumeFilter
+volumeSearchForm :: DeformHandler f VolumeFilter
 volumeSearchForm = VolumeFilter
   <$> ("query" .:> deformNonEmpty deform)
   <*> ("party" .:> optional deform)
@@ -382,7 +382,7 @@ queryVolumes = action GET (pathAPI </< "volume") $ \api -> withAuth $ do
   vf <- runForm ((api == HTML) `thenUse` (htmlVolumeSearch mempty [])) volumeSearchForm
   p <- findVolumes vf
   case api of
-    JSON -> return $ okResponse [] $ JSON.mapRecords (\v -> volumeJSONSimple v) p 
+    JSON -> return $ okResponse [] $ JSON.mapRecords (\v -> volumeJSONSimple v) p
     HTML -> peeks $ blankForm . htmlVolumeSearch vf p
 
 thumbVolume :: ActionRoute (Id Volume)

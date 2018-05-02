@@ -41,7 +41,7 @@ import Databrary.Controller.Notification
 import {-# SOURCE #-} Databrary.Controller.Slot
 import Databrary.View.Container
 
-getContainer :: Permission -> Maybe (Id Volume) -> Id Slot -> Bool -> ActionM Container
+getContainer :: Permission -> Maybe (Id Volume) -> Id Slot -> Bool -> Handler Container
 getContainer p mv (Id (SlotId i s)) top
   | segmentFull s = do
     c <- checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupContainer i
@@ -59,7 +59,7 @@ containerDownloadName Container{ containerRow = ContainerRow{..} } =
 viewContainer :: ActionRoute (API, (Maybe (Id Volume), Id Container))
 viewContainer = second (second $ slotContainerId . unId I.:<->: containerSlotId) `R.mapActionRoute` (viewSlot False)
 
-containerForm :: Container -> DeformActionM () Container
+containerForm :: Container -> DeformHandler () Container
 containerForm c = do
   csrfForm
   name <- "name" .:> deformOptional (deformNonEmpty deform)

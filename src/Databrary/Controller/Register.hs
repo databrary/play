@@ -43,7 +43,7 @@ import Databrary.Controller.Token
 import Databrary.Controller.Angular
 import Databrary.View.Register
 
-resetPasswordMail :: Either BS.ByteString SiteAuth -> T.Text -> (Maybe TL.Text -> TL.Text) -> ActionM ()
+resetPasswordMail :: Either BS.ByteString SiteAuth -> T.Text -> (Maybe TL.Text -> TL.Text) -> Handler ()
 resetPasswordMail (Left email) subj body =
   sendMail [Left email] [] subj (body Nothing)
 resetPasswordMail (Right auth) subj body = do
@@ -56,7 +56,7 @@ registerHandler :: API -> HTM.Method -> [(BS.ByteString, BS.ByteString)] -> Acti
 registerHandler api method _
     | method == methodGet && api == HTML = viewRegisterAction
     | method == methodPost = postRegisterAction api
-    | otherwise = error "unhandled api/method combo" -- TODO: better error 
+    | otherwise = error "unhandled api/method combo" -- TODO: better error
 
 viewRegister :: ActionRoute ()
 viewRegister = action GET (pathHTML </< "user" </< "register") $ \() -> viewRegisterAction
@@ -120,7 +120,7 @@ passwordResetHandler :: API -> HTM.Method -> [(BS.ByteString, BS.ByteString)] ->
 passwordResetHandler api method _
     | method == methodGet && api == HTML = viewPasswordResetAction
     | method == methodPost = postPasswordResetAction api
-    | otherwise = error "unhandled api/method combo" -- TODO: better error 
+    | otherwise = error "unhandled api/method combo" -- TODO: better error
 
 viewPasswordReset :: ActionRoute ()
 viewPasswordReset = action GET (pathHTML </< "user" </< "password") $ \() -> viewPasswordResetAction

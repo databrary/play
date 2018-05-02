@@ -77,7 +77,7 @@ import Databrary.View.Asset
 
 import Control.Monad.IO.Class
 
-getAsset :: Bool -> Permission -> Bool -> Id Asset -> ActionM AssetSlot
+getAsset :: Bool -> Permission -> Bool -> Id Asset -> Handler AssetSlot
 getAsset getOrig p checkDataPerm i = do
   mAssetSlot <- (if getOrig then lookupOrigAssetSlot else lookupAssetSlot) i
   slot <- maybeAction mAssetSlot
@@ -91,7 +91,7 @@ getAsset getOrig p checkDataPerm i = do
     void (userCanReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 slot)
   pure slot
 
-assetJSONField :: AssetSlot -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Encoding)
+assetJSONField :: AssetSlot -> BS.ByteString -> Maybe BS.ByteString -> Handler (Maybe JSON.Encoding)
 assetJSONField a "container" _ =
   return $ JSON.recordEncoding . containerJSON False . slotContainer <$> assetSlot a -- containerJSON should consult volume
 assetJSONField a "creation" _ | ((fst . getAssetSlotVolumePermission2) a) >= PermissionEDIT = do
@@ -103,8 +103,8 @@ assetJSONField a "excerpts" _ =
   Just . JSON.mapObjects excerptJSON <$> lookupAssetExcerpts a
 assetJSONField _ _ _ = return Nothing
 
-assetJSONQuery :: AssetSlot -> JSON.Query -> ActionM (JSON.Record (Id Asset) JSON.Series)
-assetJSONQuery o q = (assetSlotJSON False o `JSON.foldObjectIntoRec`) <$> JSON.jsonQuery (assetJSONField o) q 
+assetJSONQuery :: AssetSlot -> JSON.Query -> Handler (JSON.Record (Id Asset) JSON.Series)
+assetJSONQuery o q = (assetSlotJSON False o `JSON.foldObjectIntoRec`) <$> JSON.jsonQuery (assetJSONField o) q
 -- public restricted should consult volume
 
 assetDownloadName :: Bool -> Bool -> AssetRow -> [T.Text]
@@ -152,7 +152,7 @@ fileUploadPath :: FileUploadFile -> Storage -> RawFilePath
 fileUploadPath (FileUploadForm f) _ = tempFilePath $ fileContent f
 fileUploadPath (FileUploadToken u) s = uploadFile u s
 
-fileUploadRemove :: FileUploadFile -> ActionM ()
+fileUploadRemove :: FileUploadFile -> Handler ()
 fileUploadRemove (FileUploadForm f) = focusIO $ releaseTempFile $ fileContent f
 fileUploadRemove (FileUploadToken u) = void $ removeUpload u
 
@@ -164,13 +164,13 @@ data FileUpload = FileUpload
 deformLookup :: (Monad m, Deform f a) => FormErrorMessage -> (a -> m (Maybe b)) -> DeformT f m (Maybe b)
 deformLookup e l = mapM (deformMaybe' e <=< lift . l) =<< deformNonEmpty deform
 
-detectUpload :: FileUploadFile -> DeformActionM TempFile FileUpload
+detectUpload :: FileUploadFile -> DeformHandler TempFile FileUpload
 detectUpload u = do
   liftIO $ print "detectUpload..."
   either deformError' (return . FileUpload u)
     =<< lift (probeFile (fileUploadName u) =<< peeks (fileUploadPath u))
 
-processAsset :: API -> AssetTarget -> ActionM Response
+processAsset :: API -> AssetTarget -> Handler Response
 processAsset api target = do
   let as@AssetSlot{ slotAsset = a, assetSlot = s } = case target of
         AssetTargetVolume t -> assetNoSlot $ blankAsset t
@@ -267,7 +267,7 @@ processAsset api target = do
     JSON -> do
       liftIO $ putStrLn "JSON ok response..." --DEBUG
       return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON False as'' -- publicrestrict false because EDIT
-    HTML -> do 
+    HTML -> do
       liftIO $ putStrLn "returning HTML other route reponse..." --DEBUG
       peeks $ otherRouteResponse [] viewAsset (api, assetId $ assetRow $ slotAsset as'')
 

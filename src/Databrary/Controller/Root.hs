@@ -29,15 +29,15 @@ viewRoot = action GET pathAPI $ \api -> viewRootHandler api []
 
 -- NEW HANDLERS
 {-
-getApiOrFail :: [(BS.ByteString, BS.ByteString)] -> ActionM API
+getApiOrFail :: [(BS.ByteString, BS.ByteString)] -> Handler API
 getApiOrFail params =
   case params of
     [] -> pure HTML
     ("api", "api"):_ -> pure JSON
     _ -> undefined -- TODO: action m error
--}      
+-}
 
-viewRootHandler :: API -> [(BS.ByteString, BS.ByteString)] -> Action 
+viewRootHandler :: API -> [(BS.ByteString, BS.ByteString)] -> Action
 viewRootHandler api _ = -- TOOD: ensure GET
   withAuth $ do
     down <- peeks serviceDown

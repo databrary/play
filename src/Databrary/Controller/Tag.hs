@@ -30,14 +30,14 @@ import Databrary.Controller.Permission
 import Databrary.Controller.Slot
 import Databrary.Controller.Notification
 
-_tagNameForm :: DeformActionM f TagName
+_tagNameForm :: DeformHandler f TagName
 _tagNameForm = deformMaybe' "Invalid tag name." . validateTag =<< deform
 
 queryTags :: ActionRoute (Maybe TagName)
 queryTags = action GET (pathJSON >/> "tags" >/> pathMaybe R.parameter) $ \t -> withoutAuth $
   okResponse [] . JSON.toEncoding <$> termTags t 16
 
-tagResponse :: API -> TagUse -> ActionM Response
+tagResponse :: API -> TagUse -> Handler Response
 tagResponse JSON t = okResponse [] . JSON.recordEncoding . tagCoverageJSON <$> lookupTagCoverage (useTag t) (containerSlot $ slotContainer $ tagSlot t)
 tagResponse HTML t = peeks $ otherRouteResponse [] (viewSlot False) (HTML, (Just (view t), slotId (tagSlot t)))
 
