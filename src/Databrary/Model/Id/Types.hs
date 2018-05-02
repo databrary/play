@@ -17,7 +17,12 @@ import Text.Read (Read(..))
 
 import Databrary.HTTP.Form.Deform (Deform(..))
 
+-- | This defines a way to make a ID type specific to a specific record type.
+-- IdType takes a containing type as a parameter (e.g. Asset, Volume), and
+-- defines an alias for the containing types actual ID type. IdType Volume = String
+-- would mean Volume's use String for their identifiers
 type family IdType a
+-- | This builds a new type around the container specific type. See tests for examples.
 newtype Id a = Id { unId :: IdType a }
 
 deriving instance Eq (IdType a) => Eq (Id a)
