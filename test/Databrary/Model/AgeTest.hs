@@ -1,44 +1,45 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Model.AgeTest where
 
-import Test.Tasty
+import Data.Aeson
+import Data.Time
+import Hedgehog
+import Hedgehog.Gen as Gen
+import Hedgehog.Range as Range
 import Test.Tasty.HUnit
-import Data.Time (fromGregorian, secondsToDiffTime)
 
 import Databrary.Model.Age
-import Databrary.Model.Time
 
-test_age :: [TestTree]
-test_age = 
-    [ testCase "example" (do
-          runAge 1 3 @?= 2)
-    , testCase "typical" (do
-          runAge 10 3 @?= (-7))
-    ]
+unit_age_toJSON :: Assertion
+unit_age_toJSON =
+    encode (Age 10) @?= "10"
 
-type Days = Int
+-- possible property:
+  -- d + ageTime(age d (d2)) = d2
+
+unit_age :: Assertion
+unit_age = do
+    -- example
+    age (jan2000day 1) (jan2000day 3) @?= Age 2
+    -- edge cases
+    age (jan2000day 10) (jan2000day 3) @?= Age (-7) -- should return nothing instead
+    age (jan2000day 1) (jan2000day 1) @?= Age 0
 
 type DayOfMonth = Int
 
-runAge :: DayOfMonth -> DayOfMonth -> Days
-runAge d1 d2 = ageDays (age (mkDate d1) (mkDate d2))
-  where
-    mkDate :: DayOfMonth -> Date
-    mkDate = fromGregorian 2000 1
+jan2000day :: DayOfMonth -> Day
+jan2000day = fromGregorian 2000 1
 
-test_yearsAge :: [TestTree]
-test_yearsAge =
-    [ testCase "example" 
-          (yearsAge (1 :: Double) @?= Age 366)
-    ]
+unit_yearsAge :: Assertion
+unit_yearsAge =
+    -- example
+    yearsAge (1 :: Double) @?= Age 366
 
-daySeconds :: Integer
-daySeconds = 60*60*24
+unit_ageTime :: Assertion
+unit_ageTime =
+    ageTime (Age 1) @?= 60*60*24
 
-test_ageTime :: [TestTree]
-test_ageTime =
-    [ testCase "example"
-          (ageTime (Age 1) @?= secondsToDiffTime daySeconds)
-    ]
-
--- genAge :: Gen.
+genAge :: Gen Age
+genAge =
+  let maxAgeTypicallyStudied = 14
+  in Age <$> Gen.integral (Range.constant 0 (maxAgeTypicallyStudied*365))
