@@ -3,10 +3,13 @@ module TestHarness
       TestContext ( .. )
     -- * re-export for convenience
     , runReaderT
+    , Wai.defaultRequest
     )
     where
 
+import Control.Exception (bracket)
 import Control.Monad.Trans.Reader
+import Database.PostgreSQL.Typed.Protocol
 import qualified Network.Wai as Wai
 
 import Databrary.Has
@@ -64,4 +67,14 @@ instance Has (Id Party) TestContext where
     view = ctxPartyId
 
 instance Has Access TestContext where
-    view = undefined
+    view = view . ctxIdentity
+
+withinTestTransaction :: (PGConnection -> IO a) -> IO a
+withinTestTransaction act =
+     bracket
+         (do
+              cn <- pgConnect =<< loadPGDatabase
+              pgBegin cn
+              pure cn)
+         (\cn -> pgRollback cn >> pgDisconnect cn)
+         act
