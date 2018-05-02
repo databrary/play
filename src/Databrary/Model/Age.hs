@@ -12,11 +12,15 @@ import Data.Time (diffDays, DiffTime, secondsToDiffTime)
 import qualified Databrary.JSON as JSON
 import Databrary.Model.Time
 
-newtype Age = Age { ageDays :: Int } deriving (Eq, Ord, Num, Show)
+newtype Age =
+  Age {
+      ageDays :: Int -- ^ Totals days constituting age. E.g. 1.5 years old = 548 days
+    } deriving (Eq, Ord, Num, Show)
 
 instance JSON.ToJSON Age where
   toJSON (Age days) = JSON.Number $ fromIntegral days
 
+-- | subtract second date (usually current date) from first date (birthdate), convert difference into age
 age :: Date -> Date -> Age
 age b d = Age $ fromInteger $ diffDays d b
 

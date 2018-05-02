@@ -40,3 +40,5 @@ test_ageTime =
     [ testCase "example"
           (ageTime (Age 1) @?= secondsToDiffTime daySeconds)
     ]
+
+-- genAge :: Gen.
