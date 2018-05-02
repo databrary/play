@@ -1,6 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Databrary.Context
-  ( Context(..)
+  ( ActionContext(..)
   , ContextM
   , runContextM
   , BackgroundContext(..)
@@ -33,116 +34,87 @@ import Databrary.Store.AV
 import Databrary.Store.Types
 import Databrary.Web.Types
 
-data Context = Context
-  { contextService :: !Service
-  , contextTimestamp :: !Timestamp
-  , contextResourceState :: !InternalState
-  , contextDB :: !DBConn
+-- | This is the context for when you don't have an identity, but you have a
+-- fully initialized, "command line" access to the system.
+data ActionContext = ActionContext
+  { contextService :: !Service -- ^ All initialized services; "the imperative shell"
+  , contextTimestamp :: !Timestamp -- ^ When the ContextM action is running (i.e., NOW)
+  , contextResourceState :: !InternalState -- ^ Optimization for MonadResource
+  , contextDB :: !DBConn -- ^ The specific connection chosen for the running action?
   }
 
--- makeHasRec ''Context ['contextService, 'contextTimestamp, 'contextResourceState, 'contextDB]
-instance Has Service Context where
+instance Has Service ActionContext where
   view = contextService
-instance Has Databrary.Service.Notification.Notifications Context where
+instance Has Databrary.Service.Notification.Notifications ActionContext where
    view = (view . contextService)
-instance Has Databrary.Solr.Service.Solr Context where
+instance Has Databrary.Solr.Service.Solr ActionContext where
   view = (view . contextService)
-instance Has Databrary.Ingest.Service.Ingest Context where
+instance Has Databrary.Ingest.Service.Ingest ActionContext where
   view = (view . contextService)
-instance Has Databrary.Static.Service.Static Context where
+instance Has Databrary.Static.Service.Static ActionContext where
   view = (view . contextService)
-instance Has Databrary.HTTP.Client.HTTPClient Context where
+instance Has Databrary.HTTP.Client.HTTPClient ActionContext where
   view = (view . contextService)
-instance Has Databrary.Web.Types.Web Context where
+instance Has Databrary.Web.Types.Web ActionContext where
   view = (view . contextService)
-instance Has Databrary.Store.AV.AV Context where
+instance Has Databrary.Store.AV.AV ActionContext where
   view = (view . contextService)
-instance Has Databrary.Store.Types.Storage Context where
+instance Has Databrary.Store.Types.Storage ActionContext where
   view = (view . contextService)
--- instance Has DBPool Context where
---   view = (view . contextService)
-instance Has Databrary.Service.Messages.Messages Context where
+instance Has Databrary.Service.Messages.Messages ActionContext where
   view = (view . contextService)
-instance Has Databrary.Service.Log.Logs Context where
+instance Has Databrary.Service.Log.Logs ActionContext where
   view = (view . contextService)
-instance Has Databrary.Service.Passwd.Passwd Context where
+instance Has Databrary.Service.Passwd.Passwd ActionContext where
   view = (view . contextService)
-instance Has Databrary.Service.Entropy.Entropy Context where
+instance Has Databrary.Service.Entropy.Entropy ActionContext where
   view = (view . contextService)
-instance Has Secret Context where
+instance Has Secret ActionContext where
   view = (view . contextService)
--- instance Has Timestamp Context where
---   view = contextTimestamp
--- instance Has time-1.6.0.1:Data.Time.Calendar.Days.Day Context where
---   view = (view . contextTimestamp)
-instance Has InternalState Context where
+instance Has InternalState ActionContext where
   view = contextResourceState
-instance Has DBConn Context where
+instance Has DBConn ActionContext where
   view = contextDB
 
-type ContextM a = ReaderT Context IO a
+-- | FIXME: New name?
+type ContextM a = ReaderT ActionContext IO a
 
-runContextM :: ContextM a -> Service -> IO a
-runContextM f rc = do
-  t <- getCurrentTime
-  runResourceT $ withInternalState $ \is ->
-    withDB (serviceDB rc) $
-      runReaderT f . Context rc t is
+-- | Perform an atomic action without an identity with a guaranteed database
+-- connection and a fixed version of 'now'.
+runContextM
+    :: ContextM a
+    -> Service
+    -> IO a
+runContextM action rc = do
+    t <- getCurrentTime
+    runResourceT $ withInternalState $ \is ->
+        withDB (serviceDB rc) $ runReaderT action . ActionContext rc t is
 
-newtype BackgroundContext = BackgroundContext { backgroundContext :: Context }
+-- | A ActionContext with no Identity.
+newtype BackgroundContext = BackgroundContext { backgroundContext :: ActionContext }
+    deriving
+        ( Has Service
+        , Has Notifications
+        , Has Solr
+        , Has Ingest
+        , Has HTTPClient
+        , Has Storage
+        , Has Logs
+        , Has DBConn
+        )
 
--- makeHasRec ''BackgroundContext ['backgroundContext]
--- instance Has Context BackgroundContext where
---   view = backgroundContext
-instance Has Service BackgroundContext where
-  view = (view . backgroundContext)
-instance Has Databrary.Service.Notification.Notifications BackgroundContext where
-  view = (view . backgroundContext)
-instance Has Databrary.Solr.Service.Solr BackgroundContext where
-  view = (view . backgroundContext)
-instance Has Databrary.Ingest.Service.Ingest BackgroundContext where
-  view = (view . backgroundContext)
--- instance Has Databrary.Static.Service.Static BackgroundContext where
---   view = (view . backgroundContext)
-instance Has Databrary.HTTP.Client.HTTPClient BackgroundContext where
-  view = (view . backgroundContext)
--- instance Has Databrary.Web.Types.Web BackgroundContext where
---   view = (view . backgroundContext)
--- instance Has Databrary.Store.AV.AV BackgroundContext where
---   view = (view . backgroundContext)
-instance Has Databrary.Store.Types.Storage BackgroundContext where
-  view = (view . backgroundContext)
--- instance Has DBPool BackgroundContext where
---   view = (view . backgroundContext)
--- instance Has Databrary.Service.Messages.Messages BackgroundContext where
---   view = (view . backgroundContext)
-instance Has Databrary.Service.Log.Logs BackgroundContext where
-  view = (view . backgroundContext)
--- instance Has Databrary.Service.Passwd.Passwd BackgroundContext where
---   view = (view . backgroundContext)
--- instance Has Databrary.Service.Entropy.Entropy BackgroundContext where
---   view = (view . backgroundContext)
--- instance Has Secret BackgroundContext where
---   view = (view . backgroundContext)
 instance Has Timestamp BackgroundContext where
   view = (contextTimestamp . backgroundContext)
--- instance Has time-1.6.0.1:Data.Time.Calendar.Days.Day BackgroundContext where
---   view = (view . backgroundContext)
--- instance Has InternalState BackgroundContext where
---   view = (view . backgroundContext)
-instance Has DBConn BackgroundContext where
-  view = (view . backgroundContext)
-
 instance Has Identity BackgroundContext where
-  view _ = NotIdentified
+  view _ = IdentityNotNeeded
 instance Has SiteAuth BackgroundContext where
-  view _ = view NotIdentified
+  view _ = view IdentityNotNeeded
 instance Has Party BackgroundContext where
-  view _ = view NotIdentified
+  view _ = view IdentityNotNeeded
 instance Has (Id Party) BackgroundContext where
-  view _ = view NotIdentified
+  view _ = view IdentityNotNeeded
 instance Has Access BackgroundContext where
-  view _ = view NotIdentified
+  view _ = view IdentityNotNeeded
 
 type BackgroundContextM a = ReaderT BackgroundContext IO a
 

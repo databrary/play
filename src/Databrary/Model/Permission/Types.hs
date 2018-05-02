@@ -60,7 +60,7 @@ instance Database.PostgreSQL.Typed.Types.PGParameter "permission" Permission whe
     = Data.ByteString.pack [65, 68, 77, 73, 78]
 instance Database.PostgreSQL.Typed.Types.PGColumn "permission" Permission where
   pgDecode _ x_a42l2
-    = case Data.ByteString.unpack x_a42l2 of 
+    = case Data.ByteString.unpack x_a42l2 of
         [78, 79, 78, 69] -> PermissionNONE
         [80, 85, 66, 76, 73, 67] -> PermissionPUBLIC
         [83, 72, 65, 82, 69, 68] -> PermissionSHARED
@@ -69,7 +69,7 @@ instance Database.PostgreSQL.Typed.Types.PGColumn "permission" Permission where
         [65, 68, 77, 73, 78] -> PermissionADMIN
         _ -> error
                ("pgDecode permission: "
-                ++ (Data.ByteString.Char8.unpack x_a42l2)) 
+                ++ (Data.ByteString.Char8.unpack x_a42l2))
 instance Database.PostgreSQL.Typed.Dynamic.PGRep "permission" Permission
 instance Database.PostgreSQL.Typed.Enum.PGEnum Permission
 instance Databrary.Model.Kind.Kinded Permission where

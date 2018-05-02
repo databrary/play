@@ -19,8 +19,8 @@ import Databrary.Context
 import Databrary.Model.Party
 import Databrary.Static.Service
 
-staticSendInvestigator :: Party -> Context -> IO ()
-staticSendInvestigator p Context{ contextTimestamp = t, contextService = rc@Service{ serviceStatic = Static{ staticAuthorizeAddr = a, staticInvestigator = Just req, staticKey = key } } } = void $ forkIO $ do
+staticSendInvestigator :: Party -> ActionContext -> IO ()
+staticSendInvestigator p ActionContext{ contextTimestamp = t, contextService = rc@Service{ serviceStatic = Static{ staticAuthorizeAddr = a, staticInvestigator = Just req, staticKey = key } } } = void $ forkIO $ do
   handle
     (\(e :: HC.HttpException) -> logMsg t ("staticSendInvestigator: " ++ show e) (serviceLogs rc))
     $ void $ HC.httpNoBody req

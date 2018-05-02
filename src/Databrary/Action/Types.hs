@@ -37,13 +37,13 @@ import Databrary.Service.Types
 import Databrary.Web.Types
 
 data RequestContext = RequestContext
-  { requestContext :: !Context
+  { requestContext :: !ActionContext
   , contextRequest :: !Request
   , requestIdentity :: !Identity
   }
 
 -- makeHasRec ''RequestContext ['requestContext, 'contextRequest, 'requestIdentity]
-instance Has Context RequestContext where
+instance Has ActionContext RequestContext where
   view = requestContext
 instance Has Databrary.Service.DB.DBConn RequestContext where
   view = (view . requestContext)
