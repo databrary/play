@@ -101,7 +101,7 @@ postLogoutHandler :: API -> [(BS.ByteString, BS.ByteString)] -> Action  -- TODO:
 postLogoutHandler = \api _ -> withAuth $ do
   _ <- maybeIdentity (return False) removeSession
   case api of
-    JSON -> return $ okResponse [cook] $ JSON.recordEncoding $ identityJSON NotIdentified
+    JSON -> return $ okResponse [cook] $ JSON.recordEncoding $ identityJSON NotLoggedIn
     HTML -> peeks $ otherRouteResponse [cook] viewRoot HTML
   where cook = clearCookie "session"
 

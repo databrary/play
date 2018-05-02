@@ -44,8 +44,8 @@ authAccount :: Handler Account
 authAccount = do
   ident <- peek
   case ident of
-    PreIdentified -> fail "authAccount: PreIdentified"
-    NotIdentified -> result =<< peeks forbiddenResponse
+    NotLoggedIn -> result =<< peeks forbiddenResponse
+    IdentityNotNeeded -> result =<< peeks forbiddenResponse
     Identified s -> return $ view s
     ReIdentified u -> return $ view u
 

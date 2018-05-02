@@ -16,20 +16,27 @@ import Databrary.Model.Permission.Types
 import Databrary.Model.Party.Types
 import Databrary.Model.Token.Types
 
+-- | Who is making the request that we are handling?
 data Identity
-  = PreIdentified
-  -- ^ Speculation: background jobs or other things that have intrinsic identity
-  | NotIdentified
+  = NotLoggedIn
+  -- ^ User may have an identity, but they have established it yet
+  | IdentityNotNeeded
+  -- ^ We don't care what the user's identity is.
+  -- Used mainly for BackgroundContext, but also used when
+  -- running unprotected routes
   | Identified Session
-  -- ^ An actual human user on a web browser
+  -- ^ An actual human user on a web browser. One of the other two return values
+  -- for 'determineIdentity'.
   | ReIdentified SiteAuth
   -- ^ Speculation: used in video conversion when sending results from the
-  -- compute cluster back to the system
+  -- compute cluster back to the system. Used as a 'su' to run actions as a
+  -- different account?
 
 instance Has SiteAuth Identity where
   view (Identified Session{ sessionAccountToken = AccountToken{ tokenAccount = t } }) = t
   view (ReIdentified a) = a
-  view _ = nobodySiteAuth
+  view IdentityNotNeeded = nobodySiteAuth
+  view NotLoggedIn = nobodySiteAuth
 
 instance Has Party Identity where
   view = view . (view :: Identity -> SiteAuth)
