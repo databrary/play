@@ -53,13 +53,29 @@ selectPermissionParty = selectJoin 'makeParty
   ]
 
 permissionParty :: Has (Id Party) a => (Permission -> Maybe Access -> a) -> Maybe Access -> Identity -> a
-permissionParty pf a' ident = p where
-  p = pf
-    (maybe id (max . accessPermission') a $ max PermissionPUBLIC $ min PermissionREAD $ accessSite ident)
-    a
-  a | foldIdentity False (((view p :: Id Party) ==) . view) ident = Just maxBound
-    | identityAdmin ident = Just $ maybe id (<>) a' $ view ident
-    | otherwise = a'
+permissionParty mkParty access1 ident =
+    p
+  where
+    p =
+      mkParty
+        (combineWithAccessPermissions mAccessDeduced boundedPermFromActor)
+        mAccessDeduced
+    combineWithAccessPermissions :: Maybe Access -> (Permission -> Permission)
+    combineWithAccessPermissions mAccess =
+        maybe
+          id  -- if there is no Identity associated Access, then use the viewing actors bounded permission
+          (max . accessPermission') -- if there is an Identity Access, then max with identity's lowest access perm
+          mAccess
+    boundedPermFromActor :: Permission
+    boundedPermFromActor = -- ends up between public ... read
+        max PermissionPUBLIC  -- lower bound with public
+          $ min PermissionREAD  -- upper bound with read
+            $ accessSite ident
+    mAccessDeduced :: Maybe Access
+    mAccessDeduced
+      | foldIdentity False (((view p :: Id Party) ==) . view) ident = Just maxBound
+      | identityAdmin ident = Just $ maybe id (<>) access1 $ view ident
+      | otherwise = access1
 
 selectParty :: TH.Name -- ^ 'Identity'
   -> Selector -- ^ @'Party'@

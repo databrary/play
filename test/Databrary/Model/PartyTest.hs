@@ -17,7 +17,7 @@ import Databrary.Model.Id
 import Databrary.Model.Identity
 import Databrary.Model.Party
 import Databrary.Model.Party.TypesTest
--- import Databrary.Model.Permission
+import Databrary.Model.Permission
 import Databrary.Service.DB
 import TestHarness
 
@@ -26,12 +26,16 @@ unit_partyName_example = do
     (partyName . partyRow) nobodyParty @?= "Everybody"
 
 runLookupParty :: Id Party -> Identity -> Maybe Party -> Assertion
-runLookupParty pid ident expected = do
+runLookupParty pid ident expected =
+    runLookupParty' pid ident id expected
+
+runLookupParty' :: (Show a, Eq a) => Id Party -> Identity -> (Party -> a) -> Maybe a -> Assertion
+runLookupParty' pid ident f expected = do
     cn <- loadPGDatabase >>= pgConnect
     let ctxt = TestContext { ctxConn = cn, ctxIdentity = ident }
     --
     mParty <- runReaderT (lookupParty pid :: ReaderT TestContext IO (Maybe Party)) ctxt
-    mParty @?= expected
+    fmap f mParty @?= expected
 
 unit_lookupParty :: Assertion
 unit_lookupParty = do
@@ -39,6 +43,11 @@ unit_lookupParty = do
     -- TODO: Fix these with real data parameters
     -- runLookupParty (Id 2) (Identified undefined) (Just staffParty)
     -- runLookupParty (Id 2) (ReIdentified undefined) (Just staffParty)
+
+    runLookupParty' (Id 7) NotLoggedIn (\p -> (partyPermission p, partyAccess p)) (Just (PermissionPUBLIC, Nothing))
+    runLookupParty' (Id 7) IdentityNotNeeded (\p -> (partyPermission p, partyAccess p)) (Just (PermissionPUBLIC, Nothing))
+    -- runLookupParty' (Id 7) Identified undefined (\p -> (partyPermission p, partyAccess p)) (Just (PermissionPublic, Nothing))
+    -- runLookupParty' (Id 7) ReIdentitified undefind (\p -> (partyPermission p, partyAccess p)) (Just (PermissionPublic, Nothing))
 
 unit_lookupSiteAuthByEmail :: Assertion
 unit_lookupSiteAuthByEmail = do
