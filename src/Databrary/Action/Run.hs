@@ -11,13 +11,14 @@ module Databrary.Action.Run
 
 import Control.Concurrent (ThreadId, forkFinally)
 import Control.Exception (SomeException)
-import Control.Monad.Reader (ReaderT(..), withReaderT)
+import Control.Monad.Reader (ReaderT(..), withReaderT, local)
 import Data.Time (getCurrentTime)
 import Network.HTTP.Types (hDate, hCacheControl, methodHead)
 import qualified Network.Wai as Wai
 
 import Databrary.Has
 import Databrary.HTTP
+import Databrary.Service.DB
 import Databrary.Service.Types
 import Databrary.Service.Log
 import Databrary.Model.Identity
@@ -54,20 +55,64 @@ data Action = Action
   , _actionM :: !(Handler Response)
   }
 
+-- | Special-purpose context for determing the user's identity. We don't need
+-- the full Handler for that, and since this is sensitive work, we don't want to
+-- just cheat and use it anyway.
+data IdContext = IdContext
+    { ctxReq :: Wai.Request
+    , ctxSec :: Secret
+    , ctxConn :: DBConn }
+
+instance Has Wai.Request IdContext where view = ctxReq
+instance Has Secret IdContext where view = ctxSec
+instance Has DBConn IdContext where view = ctxConn
+
+-- | Run the requested action with some resolved identity,
+-- send response, with some header decorations.
 runAction :: Service -> Action -> Wai.Application
-runAction rc (Action auth act) req send = do
-  ts <- getCurrentTime
-  (i, r) <- runContextM (do
-    (identity :: Identity) <- if auth then withActionM req PreIdentified determineIdentity else return PreIdentified
-    r <- ReaderT $ \ctx -> runResult $ runActionM (act) (RequestContext ctx req identity)
-    return (identity, r))
-    rc
-  logAccess ts req (foldIdentity Nothing (Just . (show :: Id Party -> String) . view) i) r (serviceLogs rc)
-  let isdb = isDatabraryClient req
-      r' = Wai.mapResponseHeaders (((hDate, formatHTTPTimestamp ts) :) . (if isdb then ((hCacheControl, "no-cache") :) else id)) r
-  send $ if Wai.requestMethod req == methodHead
-    then emptyResponse (Wai.responseStatus r') (Wai.responseHeaders r')
-    else r'
+runAction service (Action needsAuth act) waiReq waiSend
+    = let
+          ident' :: Secret -> DBConn -> ReaderT ActionContext IO Identity
+          ident' sec con = case needsAuth of
+              NeedsAuth -> runReaderT determineIdentity (IdContext waiReq sec con)
+              DoesntNeedAuth -> return IdentityNotNeeded
+          authenticatedAct :: ContextM (Identity, Response)
+          authenticatedAct = do
+              sec <- peek
+              conn <- peek
+              identity <- ident' sec conn
+              waiResponse <-
+                  ReaderT
+                      -- runResult is IO Response -> IO Response
+                      $ \ctx -> runResult $ runHandler
+                            act
+                            (RequestContext ctx waiReq identity)
+              return (identity, waiResponse)
+      in do
+          ts <- getCurrentTime
+          (identityUsed, waiResponse) <- runContextM authenticatedAct service
+          logAccess
+              ts
+              waiReq
+              (foldIdentity
+                  Nothing
+                  (Just . (show :: Id Party -> String) . view)
+                  identityUsed
+              )
+              waiResponse
+              (serviceLogs service)
+          let
+              isdb = isDatabraryClient waiReq
+              waiResponse' = Wai.mapResponseHeaders
+                  (((hDate, formatHTTPTimestamp ts) :)
+                  . (if isdb then ((hCacheControl, "no-cache") :) else id)
+                  )
+                  waiResponse
+          waiSend $ if Wai.requestMethod waiReq == methodHead
+              then emptyResponse
+                  (Wai.responseStatus waiResponse')
+                  (Wai.responseHeaders waiResponse')
+              else waiResponse'
 
 forkAction :: Handler a -> RequestContext -> (Either SomeException a -> IO ()) -> IO ThreadId
 forkAction f (RequestContext c r i) = forkFinally $
