@@ -101,6 +101,7 @@ selectAuthParty ident = selectMap (`TH.AppE` TH.VarE ident) $ selectJoin 'permis
     $ accessRow "authorize_valid" -- optimization, should be authorize_view if we used site
   ]
 
+-- | Used by 'makeUserAccount' and 'selectPermissionAccount'
 makeAccount :: PartyRow -> (Party -> Account) -> Permission -> Maybe Access -> Account
 makeAccount pr ac perm ma = a where
   a = ac $ Party pr (Just a) perm ma
@@ -117,7 +118,7 @@ selectAccount ident = selectMap ((`TH.AppE` TH.VarE ident) . (`TH.AppE` (TH.ConE
   selectPermissionAccount
 
 makeUserAccount :: (Permission -> Maybe Access -> Account) -> Account
-makeUserAccount a = a maxBound (Just maxBound)
+makeUserAccount mkAcc = mkAcc maxBound (Just maxBound)
 
 selectUserAccount :: Selector -- @'Account'
 selectUserAccount = selectMap (TH.VarE 'makeUserAccount `TH.AppE`) selectPermissionAccount

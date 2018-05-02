@@ -55,6 +55,7 @@ forbiddenResponse = response forbidden403 [] . htmlForbidden
 notFoundResponse :: RequestContext -> Response
 notFoundResponse = response notFound404 [] . htmlNotFound
 
+-- | Fail with 404 if not 'Just'
 maybeAction :: Maybe a -> Databrary.Handler a
 maybeAction (Just a) = return a
 maybeAction Nothing = result =<< peeks notFoundResponse

@@ -40,9 +40,10 @@ pathIdWith p = fromString (kindOf (undefined :: a)) >/> idIso >$< p
 pathId :: forall a . (PathParameter (IdType a), Kinded a) => PathParser (Id a)
 pathId = pathIdWith R.parameter
 
+-- | The target party for some action?
 data PartyTarget
-  = TargetProfile
-  | TargetParty (Id Party)
+  = TargetProfile -- ^ Actor's own party
+  | TargetParty (Id Party) -- ^ Someone else's party
 
 
 pathPartyTarget :: R.Path PartyTarget
