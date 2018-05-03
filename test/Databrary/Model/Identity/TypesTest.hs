@@ -1,29 +1,40 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Model.Identity.TypesTest where
 
-import Test.Tasty
+import Hedgehog
+import qualified Hedgehog.Gen as Gen
+-- import qualified Hedgehog.Range as Range
 import Test.Tasty.HUnit
 
 import Databrary.Model.Identity.Types
+import Databrary.Model.Party.TypesTest
+-- import Databrary.Model.Token.TypesTest
 
-test_foldIdentity :: TestTree
-test_foldIdentity = testGroup "foldIdentity"
-    [ testCase "example"
-          (runFoldIdentity NotLoggedIn @?= Default)
-    , testCase "typical" (do
-          runFoldIdentity IdentityNotNeeded @?= Default
-          runFoldIdentity (ReIdentified undefined) @?= Default
-          runFoldIdentity (Identified undefined) @?= Extracted)
-    ]
+unit_foldIdentity :: Assertion
+unit_foldIdentity = do
+    -- example
+    runFoldIdentity NotLoggedIn @?= Default
+    -- typical
+    runFoldIdentity IdentityNotNeeded @?= Default
+    runFoldIdentity (ReIdentified undefined) @?= Default
+    runFoldIdentity (Identified undefined) @?= Extracted
 
 runFoldIdentity :: Identity -> Result
 runFoldIdentity = foldIdentity Default (const Extracted)
 
 data Result = Default | Extracted deriving (Eq, Show)
 
-test_identitySuperuser :: [TestTree]
-test_identitySuperuser =
-    [ testCase "typical" (do
-          identitySuperuser (ReIdentified undefined) @? "reidentified is superuser")
-          -- why True? is this because transcoding needs higher privileges to update asset?
-    ]
+unit_identitySuperuser :: Assertion
+unit_identitySuperuser = do
+    -- typical
+    identitySuperuser (ReIdentified undefined) @? "reidentified is superuser"
+    -- why True? is this because transcoding needs higher privileges to update asset?
+
+genIdentity :: Gen Identity
+genIdentity =
+    Gen.choice
+        [ pure NotLoggedIn
+        , pure IdentityNotNeeded
+        , Identified <$> undefined -- TODO: finish gen session in Token types
+        , ReIdentified <$> genSiteAuthSimple -- TODO: come up with a better site auth generator
+        ]
