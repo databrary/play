@@ -36,13 +36,19 @@ import qualified Databrary.JSON as JSON
 import Databrary.Model.Id
 import Databrary.Model.Format.Types
 
+-- | Parse a mimetype string into its type (category) and subtype (specific type)
 mimeTypes :: BS.ByteString -> (BS.ByteString, BS.ByteString)
 mimeTypes s = maybe (s, "") (\i -> (BS.take i s, BS.drop (succ i) s)) $ BSC.elemIndex '/' s
 
-mimeTypeTop, mimeTypeSub :: BS.ByteString -> BS.ByteString
+-- | Parse a full mimetype value into just its category or type
+mimeTypeTop :: BS.ByteString -> BS.ByteString
 mimeTypeTop = fst . mimeTypes
+
+-- | Parse a full mimetype value into just its subtype
+mimeTypeSub :: BS.ByteString -> BS.ByteString
 mimeTypeSub = snd . mimeTypes
 
+-- | Establish a relative order between to specific mimetype values ...
 mimeTypeTopCompare :: BS.ByteString -> BS.ByteString -> Ordering
 mimeTypeTopCompare a b = mttc (BSC.unpack a) (BSC.unpack b) where
   mttc []      []      = EQ
@@ -55,6 +61,7 @@ mimeTypeTopCompare a b = mttc (BSC.unpack a) (BSC.unpack b) where
   mttc _       []      = GT
   mttc (ac:as) (bc:bs) = compare ac bc <> mttc as bs
 
+-- | Harcoded list of all formats recognized by Databrary for uploading
 -- TODO: db coherence
 allFormats :: [Format]
 allFormats
@@ -167,41 +174,52 @@ dropFormatExtension fmt n
   , BSC.map toLower e `elem` formatExtension fmt = f
   | otherwise = n
 
+-- | Blessed video format, used as output from transcoding, as well as understood by front end for playback
 videoFormat :: Format
 videoFormat = getFormat' (Id (-800))
 
 imageFormat :: Format
 imageFormat = getFormat' (Id (-700))
 
+-- | Blessed audio format, used as output from transcoding, as well as understood by front end for playback
 audioFormat :: Format
 audioFormat = getFormat' (Id (-600))
 
+-- | Is this a video format
 formatIsVideo :: Format -> Bool
 formatIsVideo Format{ formatMimeType = t } = "video/" `BS.isPrefixOf` t
 
+-- | Is this an image format
 formatIsImage :: Format -> Bool
 formatIsImage Format{ formatMimeType = t } = "image/" `BS.isPrefixOf` t
 
+-- | Is this an audio format
 formatIsAudio :: Format -> Bool
 formatIsAudio Format{ formatMimeType = t } = "audio/" `BS.isPrefixOf` t
 
+-- | Is this an Audio or Video format
 formatIsAV :: Format -> Bool
 formatIsAV fmat = formatIsVideo fmat || formatIsAudio fmat
 
 formatNotAV :: Format -> Bool
 formatNotAV fmat = not (formatIsVideo fmat || formatIsAudio fmat)
 
+-- | If the format can (or should be) transcoded into the blessed internal format,
+-- then provide the format it will be transcoded into
 formatTranscodable :: Format -> Maybe Format
 formatTranscodable f
   | formatIsVideo f = Just videoFormat
   | formatIsAudio f = Just audioFormat
   | otherwise = Nothing
 
+-- | For formats where we can produce samples, determine the type for sample output
 formatSample :: Format -> Maybe Format
 formatSample f
   | f == videoFormat = Just imageFormat
   | otherwise = Nothing
 
+-- | Convert a Format value into the shape of JSON to be produced.
+-- Arbitrarily only show the first extension if multiple extensions are present
 formatJSON :: JSON.ToObject o => Format -> JSON.Record (Id Format) o
 formatJSON f = JSON.Record (formatId f) $
      "mimetype" JSON..= formatMimeType f
