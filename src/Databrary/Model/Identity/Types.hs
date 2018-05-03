@@ -2,7 +2,7 @@
 module Databrary.Model.Identity.Types
   ( Identity(..)
   , MonadHasIdentity
-  , foldIdentity
+  , extractFromIdentifiedSessOrDefault
   , identityVerf
   , identityAdmin
   , identitySuperuser
@@ -55,13 +55,13 @@ instance Has Access Identity where
 type MonadHasIdentity c m = (MonadHas Identity c m, Has SiteAuth c, Has Party c, Has (Id Party) c, Has Access c)
 
 -- | Extract a value from part of a session for Identified, otherwise use the default value
-foldIdentity :: a -> (Session -> a) -> Identity -> a
-foldIdentity _ extractor (Identified sess) = extractor sess
-foldIdentity defaultVal _ _ = defaultVal
+extractFromIdentifiedSessOrDefault :: a -> (Session -> a) -> Identity -> a
+extractFromIdentifiedSessOrDefault _ extractor (Identified sess) = extractor sess
+extractFromIdentifiedSessOrDefault defaultVal _ _ = defaultVal
 
 -- | Extract the secure token for state changing action, only available for logged in session identity
 identityVerf :: Identity -> Maybe BS.ByteString
-identityVerf = foldIdentity Nothing (Just . sessionVerf)
+identityVerf = extractFromIdentifiedSessOrDefault Nothing (Just . sessionVerf)
 
 identitySuperuserFor :: (Access -> Permission) -> Identity -> Bool
 identitySuperuserFor f (Identified t) = sessionSuperuser t && f (view t) == PermissionADMIN

@@ -32,7 +32,7 @@ determineIdentity =
   maybe NotLoggedIn Identified <$> (flatMapM lookupSession =<< getSignedCookie "session")
 
 maybeIdentity :: (MonadHasIdentity c m) => m a -> (Session -> m a) -> m a
-maybeIdentity u i = foldIdentity u i =<< peek
+maybeIdentity u i = extractFromIdentifiedSessOrDefault u i =<< peek
 
 identityJSON :: JSON.ToObject o => Identity -> JSON.Record (Id Party) o
 identityJSON i = partyJSON (view i) `JSON.foldObjectIntoRec`

@@ -56,6 +56,7 @@ selectPermissionParty = selectJoin 'makeParty
   ]
 
 -- | Build an account or party, based on calling context.
+-- Compute permission and access by coalescing authorization granted directly and generally
 permissionParty
   :: Has (Id Party) a
   => (Permission -> Maybe Access -> a) -- ^ Partially applied makeParty, ready to build full account or party
@@ -64,29 +65,49 @@ permissionParty
                   -- context of retreiving a party for editing/viewing in isolation by the party controller actions
   -> Identity -- ^ The viewing identity / user which is trying to view or edit the party being retrieved.
   -> a -- ^ account or party
-permissionParty mkPartyOrAcct access1 viewingIdent =
+permissionParty mkPartyOrAcct mGrantedAccessFromPartyToViewer viewingIdent =
     p
   where
-    p =
-      mkPartyOrAcct
-        (combineWithAccessPermissions mAccessDeduced boundedPermFromActor)
-        mAccessDeduced
-    combineWithAccessPermissions :: Maybe Access -> (Permission -> Permission)
-    combineWithAccessPermissions mAccess =
-        maybe
-          id  -- if there is no Identity associated Access, then use the viewing actors bounded permission
-          (max . accessPermission') -- if there is an Identity Access, then max with identity's lowest access perm
-          mAccess
-    boundedPermFromActor :: Permission
-    boundedPermFromActor = -- ends up between public ... read
-        max PermissionPUBLIC  -- lower bound with public
-          $ min PermissionREAD  -- upper bound with read
-            $ accessSite viewingIdent
+    p = mkPartyOrAcct maxPermission mAccessDeduced
+    maxPermission :: Permission
+    maxPermission =
+        case mAccessDeduced of
+            -- if there is no Identity associated Access, then use the viewing actors bounded permission
+            Nothing -> maxDefaultDerivedFromActor
+            -- if there is an Identity Access, then max with identity's lowest access perm
+            Just accessDeduced -> max (accessPermission' accessDeduced) maxDefaultDerivedFromActor
+    -- | Push the viewingIdent's site access permission to the highest value within Public ... Read
+    -- This default value is derived from the viewingIdent's granted databrary wide site access.
+    maxDefaultDerivedFromActor :: Permission
+    maxDefaultDerivedFromActor =
+        max PermissionPUBLIC  -- then, lower bound with public
+          $ min PermissionREAD  -- upper bound with read (just because you have higher privileges on site doesn't mean
+                                -- you can edit any party's data)
+            -- accessSite means extract Access from the identity, then extract site field of that Access record
+            -- for NotLoggedIn and IdentityNotNeeded, the access is (None,None) via nobodySiteAuth
+            -- for Identified, the access is the levels granted to the user on the databrary site via it's parent
+            $ accessSite' generalSiteAccessForViewer
     mAccessDeduced :: Maybe Access
     mAccessDeduced
-      | foldIdentity False (((view p :: Id Party) ==) . view) viewingIdent = Just maxBound
-      | identityAdmin viewingIdent = Just $ maybe id (<>) access1 $ view viewingIdent
-      | otherwise = access1
+      -- if the viewing identity is Identified, and the viewer is the same as the party being retrieved,
+      --  then allow unbounded permission on the retrieved party (self)
+      | extractFromIdentifiedSessOrDefault
+              False
+              (\viewingSess -> (view p :: Id Party) == (view viewingSess :: Id Party))
+              viewingIdent =
+            Just maxBound
+      -- if the viewing user is a sitewide admin
+      | identityAdmin viewingIdent =
+            Just
+                (case mGrantedAccessFromPartyToViewer of
+                    Nothing -> generalSiteAccessForViewer -- get access via siteauth
+                     -- max elements between granted access and access via siteauth
+                    Just granted -> granted <> generalSiteAccessForViewer)
+      -- the viewing user is normal and someone isn't trying to edit/view themselves
+      | otherwise =
+            mGrantedAccessFromPartyToViewer
+    generalSiteAccessForViewer :: Access
+    generalSiteAccessForViewer = view viewingIdent
 
 selectParty :: TH.Name -- ^ 'Identity'
   -> Selector -- ^ @'Party'@

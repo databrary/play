@@ -10,17 +10,17 @@ import Databrary.Model.Identity.Types
 import Databrary.Model.Party.TypesTest
 -- import Databrary.Model.Token.TypesTest
 
-unit_foldIdentity :: Assertion
-unit_foldIdentity = do
+unit_extractFromIdentifiedSessOrDefault :: Assertion
+unit_extractFromIdentifiedSessOrDefault = do
     -- example
-    runFoldIdentity NotLoggedIn @?= Default
+    runExtractFromIdentifiedSessOrDefault NotLoggedIn @?= Default
     -- typical
-    runFoldIdentity IdentityNotNeeded @?= Default
-    runFoldIdentity (ReIdentified undefined) @?= Default
-    runFoldIdentity (Identified undefined) @?= Extracted
+    runExtractFromIdentifiedSessOrDefault IdentityNotNeeded @?= Default
+    runExtractFromIdentifiedSessOrDefault (ReIdentified undefined) @?= Default
+    runExtractFromIdentifiedSessOrDefault (Identified undefined) @?= Extracted
 
-runFoldIdentity :: Identity -> Result
-runFoldIdentity = foldIdentity Default (const Extracted)
+runExtractFromIdentifiedSessOrDefault :: Identity -> Result
+runExtractFromIdentifiedSessOrDefault = extractFromIdentifiedSessOrDefault Default (const Extracted)
 
 data Result = Default | Extracted deriving (Eq, Show)
 

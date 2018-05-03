@@ -22,7 +22,7 @@ import Databrary.View.Html
 htmlRoot :: RequestContext -> H.Html
 htmlRoot req = htmlTemplate req Nothing $ \js -> do
   H.ul $ do
-    H.li $ foldIdentity
+    H.li $ extractFromIdentifiedSessOrDefault
       (H.a H.! actionLink viewLogin () js $ "login")
       (\_ -> H.a H.! actionLink viewParty (HTML, TargetProfile) js $ "profile")
       (view req)

@@ -146,7 +146,7 @@ htmlTemplate req title body = H.docTypeHtml $ do
                       H.string l
               H.ul
                 H.! HA.class_ "toolbar-user inline-block flat cf"
-                $ foldIdentity
+                $ extractFromIdentifiedSessOrDefault
                   (H.li $ H.a H.! actionLink viewLogin () hasjs $ "Login")
                   (\_ -> do
                     H.li $ H.a H.! actionLink viewParty (HTML, TargetProfile) hasjs $ "Your Dashboard"
