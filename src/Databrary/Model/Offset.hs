@@ -87,9 +87,11 @@ instance Read Offset where
         [d, h, m, s] -> return (60*(60*(24*d + h) + m) + s)
         _ -> RP.pfail
 
+-- | Format offset value for inclusion in a JSON object. Use the millisecond integer representation
 instance JSON.ToJSON Offset where
   toJSON = JSON.Number . fromInteger . offsetMillis
 
+-- | Extract from JSON value. Accept integer milliseconds, time colon formatted string, or false (0)
 instance JSON.FromJSON Offset where
   parseJSON (JSON.Number ms) | Sci.base10Exponent ms < 10 = return $ Offset $ MkFixed $ floor ms
   parseJSON (JSON.String s) = maybe (fail "Invalid offset string") return $ readMaybe $ T.unpack s
