@@ -94,7 +94,7 @@ runAction service (Action needsAuth act) waiReq waiSend
           logAccess
               ts
               waiReq
-              (foldIdentity
+              (extractFromIdentifiedSessOrDefault
                   Nothing
                   (Just . (show :: Id Party -> String) . view)
                   identityUsed
