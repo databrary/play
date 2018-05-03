@@ -37,6 +37,7 @@ diffTimeOffset = Offset . fixedToFixed . (realToFrac :: DiffTime -> Pico)
 offsetDiffTime :: Offset -> DiffTime
 offsetDiffTime = (realToFrac :: Pico -> DiffTime) . fixedToFixed . offsetMilli
 
+-- | Get the underlying fixed integer, before scaling to the appropriate decimal
 offsetMillis :: Offset -> Integer
 offsetMillis (Offset (MkFixed t)) = t
 
@@ -48,6 +49,7 @@ instance PGColumn "interval" Offset where
   pgDecode t = diffTimeOffset . pgDecode t
   pgDecodeValue e t = diffTimeOffset . pgDecodeValue e t
 
+-- | Display Offset using colon delimited time format
 instance Show Offset where
   -- showsPrec p = showsPrec p . offsetMillis
   showsPrec p (Offset t) = showSigned ss p t where
@@ -63,6 +65,7 @@ instance Show Offset where
         | x < 10 = ('0' :)
         | otherwise = id
 
+-- | Read Offset from a colon delimited time string
 instance Read Offset where
   readPrec = RP.lift $ rm RP.<++ rc where
     -- parse milliseconds:
