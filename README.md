@@ -1,8 +1,13 @@
 # Databrary
 
-Guide for setting up a development environment for Databrary. 
+Want to help out? Feel free to start right here with this underwhelming README!
 
-Contact build@databrary.org for directions. Internal link: https://projects.databrary.org/confluence/pages/viewpage.action?pageId=10423767
+We have [preliminary library
+documentation](http://databrary.github.io/databrary/) on our GitHub Pages site.
+Haddocks coverage would be another excellent place to start contributing...
+
+A simple [code coverage report](http://databrary.github.io/databrary/) is also
+available on our GitHub pages site.
 
 ## License
 
