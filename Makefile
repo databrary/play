@@ -5,20 +5,23 @@
 NIX_OPTIONS := --option binary-caches "https://cache.nixos.org http://devdatabrary2.home.nyu.edu:5000"
 
 # These below intentionally use '='to pick up following changes to NIX_OPTIONS
-nix-build = nix-build $(NIX_OPTIONS) --drv-link $(PWD)/derivation --cores 4 -A databrary
-nix-shell = nix-shell $(NIX_OPTIONS) --pure
+nix-build-args = $(NIX_OPTIONS) --drv-link $(PWD)/derivation --cores 4 -A databrary
+nix-shell-args = $(NIX_OPTIONS) --pure
 
 ifdef BUILDDEV
-nix-build += --keep-failed
+nix-build-args += --keep-failed
 endif
 
 # Sneaky options used in recursing make. Not for human consumption.
 ifdef __COVERAGE
-nix-build += --arg coverage true
+nix-build-args += --arg coverage true
 endif
 ifdef __HADDOCK
-nix-build += --arg haddock true
+nix-build-args += --arg haddock true
 endif
+
+nix-shell = nix-shell $(nix-shell-args)
+nix-build = nix-build $(nix-build-args)
 
 #
 # COMMON TASKS
@@ -48,16 +51,6 @@ nix-build: ; $(nix-build)
 ## You can also build with Cabal if that suits you
 cabal-build: ; $(nix-shell) --run 'cabal -j new-build --disable-optimization'
 .PHONY: cabal-build
-
-## Simple report output, long build time.
-reports:
-	__HADDOCK=1 __COVERAGE=1 make nix-build
-	hpc report result/share/hpc/vanilla/tix/databrary-1/databrary-1.tix \
-		--hpcdir=result/share/hpc/vanilla/mix/databrary-1 \
-		--exclude=Paths_databrary
-		| tee hpc_report.txt
-	nix-store -l $< | grep ") in '" > haddock_coverage_report.txt
-.PHONY: reports
 
 #
 # Experimental tasks
