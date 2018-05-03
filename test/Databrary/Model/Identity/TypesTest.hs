@@ -30,11 +30,17 @@ unit_identitySuperuser = do
     identitySuperuser (ReIdentified undefined) @? "reidentified is superuser"
     -- why True? is this because transcoding needs higher privileges to update asset?
 
-genIdentity :: Gen Identity
-genIdentity =
+genInitialIdentNeedAuthRoutes :: Gen Identity
+genInitialIdentNeedAuthRoutes =
     Gen.choice
         [ pure NotLoggedIn
-        , pure IdentityNotNeeded
         , Identified <$> undefined -- TODO: finish gen session in Token types
-        , ReIdentified <$> genSiteAuthSimple -- TODO: come up with a better site auth generator
         ]
+
+genInitialIdentOpenRoutes :: Gen Identity
+genInitialIdentOpenRoutes =
+    pure IdentityNotNeeded
+
+genReIdentified :: Gen Identity
+genReIdentified =
+    ReIdentified <$> genSiteAuthSimple -- TODO: come up with a better site auth generator
