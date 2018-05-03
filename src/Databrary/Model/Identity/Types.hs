@@ -29,9 +29,11 @@ data Identity
   -- for 'determineIdentity'.
   | ReIdentified SiteAuth
   -- ^ Speculation: used in video conversion when sending results from the
-  -- compute cluster back to the system. Used as a 'su' to run actions as a
-  -- different account?
+  -- compute cluster back to the system. Used as a 'su' to run actions as the
+  -- account who created the upload asset, instead of the anonymous account submitting the result?
 
+-- | Get the SiteAuth for the Identity, which corresponds to what privileges the Identity has
+-- within the site as well which Party/Account the Identity is
 instance Has SiteAuth Identity where
   view (Identified Session{ sessionAccountToken = AccountToken{ tokenAccount = t } }) = t
   view (ReIdentified a) = a
@@ -47,12 +49,17 @@ instance Has (Id Party) Identity where
 instance Has Access Identity where
   view = view . (view :: Identity -> SiteAuth)
 
+-- | Used by an action that will reference the actor's identity in order to authorize the action being performed.
+-- In some cases, this identity simply hasn't been established or was not resolved because the
+-- context indicated that an identity wasn't needed.
 type MonadHasIdentity c m = (MonadHas Identity c m, Has SiteAuth c, Has Party c, Has (Id Party) c, Has Access c)
 
+-- | Extract a value from part of a session for Identified, otherwise use the default value
 foldIdentity :: a -> (Session -> a) -> Identity -> a
-foldIdentity _ i (Identified s) = i s
-foldIdentity u _ _ = u
+foldIdentity _ extractor (Identified sess) = extractor sess
+foldIdentity defaultVal _ _ = defaultVal
 
+-- | Extract the secure token for state changing action, only available for logged in session identity
 identityVerf :: Identity -> Maybe BS.ByteString
 identityVerf = foldIdentity Nothing (Just . sessionVerf)
 
@@ -61,6 +68,8 @@ identitySuperuserFor f (Identified t) = sessionSuperuser t && f (view t) == Perm
 identitySuperuserFor _ (ReIdentified _) = True
 identitySuperuserFor _ _ = False
 
-identityAdmin, identitySuperuser :: Identity -> Bool
+identityAdmin :: Identity -> Bool
 identityAdmin = identitySuperuserFor accessMember
+
+identitySuperuser :: Identity -> Bool
 identitySuperuser = identitySuperuserFor accessPermission
