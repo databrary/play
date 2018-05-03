@@ -166,7 +166,7 @@ changeContainer :: MonadAudit c m => Container -> m ()
 changeContainer c = do
   ident <- getAuditIdentity
   let _tenv_a87BH = unknownPGTypeEnv
-  dbExecute1' -- $(updateContainer 'ident 'c)
+  dbExecute1' -- .(updateContainer 'ident 'c)
     (mapQuery2
       ((\ _p_a87BI _p_a87BJ _p_a87BK _p_a87BL _p_a87BM _p_a87BN _p_a87BO ->
                     (Data.ByteString.concat
@@ -254,7 +254,7 @@ removeContainer c = do
         <$>
           dbTryJust
             (guard . isForeignKeyViolation)
-            (dbExecute1 -- $(deleteContainer 'ident 'c))
+            (dbExecute1 -- .(deleteContainer 'ident 'c))
               (mapQuery2
                 ((\ _p_a87LN _p_a87LO _p_a87LP ->
                                 (Data.ByteString.concat

@@ -996,7 +996,7 @@ findTranscode orig seg opts = do
 findMatchingTranscode :: MonadDB c m => Transcode -> m (Maybe Transcode)
 findMatchingTranscode t@Transcode{..} = do
   let _tenv_a9vgl = unknownPGTypeEnv
-  mRow <- dbQuery1 -- $(selectQuery selectTranscode "WHERE orig.sha1 = ${assetSHA1 $ assetRow $ transcodeOrig t} AND transcode.segment = ${transcodeSegment} AND transcode.options = ${map Just transcodeOptions} AND asset.id < ${assetId $ assetRow $ transcodeAsset t} ORDER BY asset.id LIMIT 1")
+  mRow <- dbQuery1 -- .(selectQuery selectTranscode "WHERE orig.sha1 = ${assetSHA1 $ assetRow $ transcodeOrig t} AND transcode.segment = ${transcodeSegment} AND transcode.options = ${map Just transcodeOptions} AND asset.id < ${assetId $ assetRow $ transcodeAsset t} ORDER BY asset.id LIMIT 1")
     (mapQuery2
       ((\ _p_a9vgm _p_a9vgn _p_a9vgo _p_a9vgp ->
                        (BS.concat
