@@ -42,9 +42,12 @@ selectPartyRow = selectColumns 'PartyRow "party" ["id", "name", "prename", "orci
 accountRow :: Selector -- ^ @'Party' -> 'Account'@
 accountRow = selectColumns 'Account "account" ["email"]
 
+-- | Build party, with a circular connection to an account if an account creation function is provided
 makeParty :: PartyRow -> Maybe (Party -> Account) -> Permission -> Maybe Access -> Party
-makeParty pr ac perm a = p where
-  p = Party pr (fmap ($ p) ac) perm a
+makeParty pr mMkAcct perm mAccess =
+    p
+  where
+    p = Party pr (fmap (\mkAcct -> mkAcct p) mMkAcct) perm mAccess
 
 selectPermissionParty :: Selector -- ^ @'Permission' -> Maybe 'Access' -> 'Party'@
 selectPermissionParty = selectJoin 'makeParty
@@ -52,12 +55,20 @@ selectPermissionParty = selectJoin 'makeParty
   , maybeJoinUsing ["id"] accountRow
   ]
 
-permissionParty :: Has (Id Party) a => (Permission -> Maybe Access -> a) -> Maybe Access -> Identity -> a
-permissionParty mkParty access1 ident =
+-- | Build an account or party, based on calling context.
+permissionParty
+  :: Has (Id Party) a
+  => (Permission -> Maybe Access -> a) -- ^ Partially applied makeParty, ready to build full account or party
+  -> Maybe Access -- ^ The direct authorization that the party/account being built may have authorized to the
+                  -- viewing identity/user. This is only used by lookupAuthParty, which is only used in the
+                  -- context of retreiving a party for editing/viewing in isolation by the party controller actions
+  -> Identity -- ^ The viewing identity / user which is trying to view or edit the party being retrieved.
+  -> a -- ^ account or party
+permissionParty mkPartyOrAcct access1 viewingIdent =
     p
   where
     p =
-      mkParty
+      mkPartyOrAcct
         (combineWithAccessPermissions mAccessDeduced boundedPermFromActor)
         mAccessDeduced
     combineWithAccessPermissions :: Maybe Access -> (Permission -> Permission)
@@ -70,11 +81,11 @@ permissionParty mkParty access1 ident =
     boundedPermFromActor = -- ends up between public ... read
         max PermissionPUBLIC  -- lower bound with public
           $ min PermissionREAD  -- upper bound with read
-            $ accessSite ident
+            $ accessSite viewingIdent
     mAccessDeduced :: Maybe Access
     mAccessDeduced
-      | foldIdentity False (((view p :: Id Party) ==) . view) ident = Just maxBound
-      | identityAdmin ident = Just $ maybe id (<>) access1 $ view ident
+      | foldIdentity False (((view p :: Id Party) ==) . view) viewingIdent = Just maxBound
+      | identityAdmin viewingIdent = Just $ maybe id (<>) access1 $ view viewingIdent
       | otherwise = access1
 
 selectParty :: TH.Name -- ^ 'Identity'
