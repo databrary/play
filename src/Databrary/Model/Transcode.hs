@@ -45,7 +45,6 @@ import Databrary.Model.Asset
 import Databrary.Model.Asset.SQL
 import Databrary.Model.AssetRevision.Types
 import Databrary.Model.Transcode.Types
-import Databrary.Model.Transcode.SQL
 import Databrary.Model.Volume.SQL
 
 defaultTranscodeOptions :: TranscodeArgs
@@ -294,10 +293,10 @@ lookupTranscode a = do
           vsize_a9uZC, vid_a9uZD, vformat_a9uZE, vrelease_a9uZF,
           vduration_a9uZG, vname_a9uZH, vc_a9uZI, vsize_a9uZJ, vid_a9uZK,
           vname_a9uZL, vbody_a9uZM, valias_a9uZN, vdoi_a9uZO, vc_a9uZP)
-         -> Databrary.Model.Transcode.SQL.makeTranscode
-              (Databrary.Model.Transcode.SQL.makeOrigTranscode
+         -> makeTranscode
+              (makeOrigTranscode
                  (($)
-                    (Databrary.Model.Transcode.SQL.makeTranscodeRow
+                    (makeTranscodeRow
                        vsegment_a9uZh
                        voptions_a9uZi
                        vstart_a9uZj
@@ -573,10 +572,10 @@ lookupActiveTranscodes = do
           vsize_a9v26, vid_a9v27, vformat_a9v28, vrelease_a9v29,
           vduration_a9v2a, vname_a9v2b, vc_a9v2c, vsize_a9v2d, vid_a9v2e,
           vname_a9v2f, vbody_a9v2g, valias_a9v2h, vdoi_a9v2i, vc_a9v2j)
-         -> Databrary.Model.Transcode.SQL.makeTranscode
-              (Databrary.Model.Transcode.SQL.makeOrigTranscode
+         -> makeTranscode
+              (makeOrigTranscode
                  (($)
-                    (Databrary.Model.Transcode.SQL.makeTranscodeRow
+                    (makeTranscodeRow
                        vsegment_a9v1L
                        voptions_a9v1M
                        vstart_a9v1N
@@ -959,9 +958,9 @@ findTranscode orig seg opts = do
           vsite_a9v8o, vmember_a9v8p, vid_a9v8q, vformat_a9v8r,
           vrelease_a9v8s, vduration_a9v8t, vname_a9v8u, vc_a9v8v,
           vsize_a9v8w)
-         -> Databrary.Model.Transcode.SQL.makeOrigTranscode
+         -> makeOrigTranscode
               (($)
-                 (Databrary.Model.Transcode.SQL.makeTranscodeRow
+                 (makeTranscodeRow
                     vsegment_a9v8b
                     voptions_a9v8c
                     vstart_a9v8d
@@ -1251,10 +1250,10 @@ findMatchingTranscode t@Transcode{..} = do
           vsize_a9vaL, vid_a9vaM, vformat_a9vaN, vrelease_a9vaO,
           vduration_a9vaP, vname_a9vaQ, vc_a9vaR, vsize_a9vaS, vid_a9vaT,
           vname_a9vaU, vbody_a9vaV, valias_a9vaW, vdoi_a9vaX, vc_a9vaY)
-         -> Databrary.Model.Transcode.SQL.makeTranscode
-              (Databrary.Model.Transcode.SQL.makeOrigTranscode
+         -> makeTranscode
+              (makeOrigTranscode
                  (($)
-                    (Databrary.Model.Transcode.SQL.makeTranscodeRow
+                    (makeTranscodeRow
                        vsegment_a9vaq
                        voptions_a9var
                        vstart_a9vas
