@@ -8,13 +8,25 @@
   <a href="" ng-click="showConsents=true" ng-hide="showConsents">
     Show legend of session release levels
   </a>
-  <ul class="release-legend flat" ng-show="showConsents">
+  <ul class="release-legend flat margin-vertical" ng-show="showConsents">
     <li ng-repeat="c in ::page.constants.releases">
       <span class="icon release" ng-class="::page.constants.release[c]"></span>
       <span message="release.{{::page.constants.release[c]}}.title"></span>: 
       <span message="release.{{::page.constants.release[c]}}.description"></span>
     </li>
   </ul>
+</div>
+
+<div class="spreadsheet-dynamic-info" ng-if="::editing">
+  <a href="" ng-click="showConsents=false" ng-show="showConsents">
+    Hide the video to help me with the new interface
+  </a>
+  <a href="" ng-click="showConsents=true" ng-hide="showConsents">
+    Show the video to help me with the new interface
+  </a>
+  <video controls="" preload="metadata" seek="clip" height="480" ng-show="showConsents" class="margin-vertical">
+    <source ng-src="https://nyu.databrary.org/slot/27587/0,183810/asset/122478/download?inline=true" type="video/mp4" src="https://nyu.databrary.org/slot/27587/0,183810/asset/122478/download?inline=true">
+  </video>
 </div>
 
 <div ng-if="::!editing" class="spreadsheet-report-manage">
