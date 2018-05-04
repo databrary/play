@@ -579,14 +579,6 @@ app.directive 'spreadsheet', [
                 generateAdd(info, td)
               else if !info.n
                 td.appendChild(document.createTextNode(info.category.not))
-                if Editing && info.c == 'slot' && Key.id != 'slot'
-                  td.classList.add('spreadsheet-global-record-cell')
-                  add = td.appendChild(document.createElement('a'))
-                  add.className = 'button mini white global-record icon-text'
-                  addicon = add.appendChild(document.createElement('span'))
-                  addicon.className = 'add icon'
-                  add.appendChild(document.createTextNode('Apply to whole volume'))
-                  $(add).on 'click', $scope.$lift(clickGlobal)
                 td.id = ID + '-no_' + info.i + '_' + info.c
           else
             td.className = 'more'
