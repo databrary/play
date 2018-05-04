@@ -149,14 +149,21 @@ selectAccount :: TH.Name -- ^ 'Identity'
 selectAccount ident = selectMap ((`TH.AppE` TH.VarE ident) . (`TH.AppE` (TH.ConE 'Nothing)) . (TH.VarE 'permissionParty `TH.AppE`)) $
   selectPermissionAccount
 
+-- | Build an account, using ADMIN permission and (ADMIN,ADMIN) access object.
+-- Essentially a user has full permissions over themselves and the access object
+-- nested within the account party has max privileges.
+-- I suspect that the access object within a Party, when nested inside of a SiteAuth
+-- is almost never used, as the Has instances all retrieve siteAccess, not (partyAccess . accountParty . siteAccount)
 makeUserAccount :: (Permission -> Maybe Access -> Account) -> Account
 makeUserAccount mkAcc = mkAcc maxBound (Just maxBound)
 
 selectUserAccount :: Selector -- @'Account'
 selectUserAccount = selectMap (TH.VarE 'makeUserAccount `TH.AppE`) selectPermissionAccount
 
+-- | Build a SiteAuth object using the provided Account, possible password, and possible access object.
+-- If no access object is provided, then use (None, None) for the access object.
 makeSiteAuth :: Account -> Maybe BS.ByteString -> Maybe Access -> SiteAuth
-makeSiteAuth p w a = SiteAuth p w (fold a)
+makeSiteAuth account mPassword mAccess = SiteAuth account mPassword (fold mAccess)
 
 selectSiteAuth :: Selector -- @'SiteAuth'@
 selectSiteAuth = selectJoin 'makeSiteAuth

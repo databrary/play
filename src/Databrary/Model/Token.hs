@@ -54,6 +54,14 @@ lookupLoginToken =
   flatMapM (\t -> dbQuery1 $(selectQuery selectLoginToken "$!WHERE login_token.token = ${t} AND expires > CURRENT_TIMESTAMP"))
     <=< unSign . unId
 
+-- | Guts of loading a user and its authorizations during each request, when receiving a logged in session token.
+-- Find the active session in the sessions table.
+-- Join the session account with its party and account information.
+-- Join the party with the authorization it has been granted on the databrary site (party 0), if any.
+-- Ultimately, a Session object will be created with an access object built up from the user's
+-- effective, inherited permissions on the databrary site (party 0).
+-- Note that whenever lookupSession is called, we will be in a bootstrap phase of request handling, where
+-- the application hasn't attach an identity (MonadHasIdentity) to the context of actions yet.
 lookupSession :: MonadDB c m => BS.ByteString -> m (Maybe Session)
 lookupSession tok = do
   let _tenv_a7Etn = unknownPGTypeEnv
@@ -62,7 +70,19 @@ lookupSession tok = do
       (mapPrepQuery
         ((\ _p_a7Eto ->
                        ((Data.String.fromString
-                          "SELECT session.token,session.expires,party.id,party.name,party.prename,party.orcid,party.affiliation,party.url,account.email,account.password,authorize_view.site,authorize_view.member,session.verf,session.superuser FROM session JOIN party JOIN account USING (id) LEFT JOIN authorize_view ON account.id = authorize_view.child AND authorize_view.parent = 0 ON session.account = account.id WHERE session.token = $1 AND expires > CURRENT_TIMESTAMP"),
+                          " SELECT \
+                          \   session.token,session.expires \
+                          \  ,party.id,party.name,party.prename,party.orcid,party.affiliation,party.url\
+                          \  ,account.email,account.password\
+                          \  ,authorize_view.site,authorize_view.member\
+                          \  ,session.verf,session.superuser\
+                          \ FROM session\
+                          \  JOIN party\
+                          \      JOIN account USING (id)\
+                          \      LEFT JOIN authorize_view ON account.id = authorize_view.child AND authorize_view.parent = 0\
+                          \    ON session.account = account.id\
+                          \ WHERE session.token = $1\
+                          \ AND expires > CURRENT_TIMESTAMP"),
                        [Database.PostgreSQL.Typed.Types.pgEncodeParameter
                           _tenv_a7Etn
                           (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -165,6 +185,7 @@ lookupSession tok = do
                  (Token vtoken_a7Esb vexpires_a7Esc)
                  (Databrary.Model.Party.SQL.makeSiteAuth
                     (Databrary.Model.Party.SQL.makeUserAccount
+                       -- partially apply makeAccount with party row and account, then feed into makeUserAccount
                        (Databrary.Model.Party.SQL.makeAccount
                           (PartyRow
                              vid_a7Esd
@@ -175,6 +196,8 @@ lookupSession tok = do
                              vurl_a7Esi)
                           (Account vemail_a7Esj)))
                     vpassword_a7Esk
+                    -- most likely there will be some authorization inherited from a parent user/group to this user
+                    -- leading to the databrary site (party 0), use that inherited authorization's access values
                     (do { cm_a7EsD <- vsite_a7Esl;
                           cm_a7EsE <- vmember_a7Esm;
                           Just
