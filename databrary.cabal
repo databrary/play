@@ -90,7 +90,6 @@ library
     Databrary.Model.Citation
     Databrary.Model.Container
     Databrary.Model.Transcode.Types
-    Databrary.Model.Transcode.SQL
     Databrary.Model.Paginate.SQL
     Databrary.Model.AssetSlot
     Databrary.Model.Segment
