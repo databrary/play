@@ -1,0 +1,168 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell, TypeFamilies, OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Model.Record.Types
+<span class="lineno">    3 </span>  ( RecordRow(..)
+<span class="lineno">    4 </span>  , Record(..)
+<span class="lineno">    5 </span>  , ParticipantRecord(..)
+<span class="lineno">    6 </span>  , getRecordVolumePermission
+<span class="lineno">    7 </span>  -- , ParticipantFieldMapping(..)
+<span class="lineno">    8 </span>  , Measure(..)
+<span class="lineno">    9 </span>  , Measures
+<span class="lineno">   10 </span>  , blankRecord
+<span class="lineno">   11 </span>  ) where
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>import Control.Applicative ((&lt;|&gt;))
+<span class="lineno">   14 </span>import Data.ByteString (ByteString)
+<span class="lineno">   15 </span>import Data.Foldable (fold)
+<span class="lineno">   16 </span>import Data.Time (Day)
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import Databrary.Has (Has(..))
+<span class="lineno">   19 </span>import Databrary.Model.Kind
+<span class="lineno">   20 </span>import Databrary.Model.Id.Types
+<span class="lineno">   21 </span>import Databrary.Model.Permission.Types
+<span class="lineno">   22 </span>import Databrary.Model.Release.Types
+<span class="lineno">   23 </span>import Databrary.Model.Volume.Types
+<span class="lineno">   24 </span>import Databrary.Model.Metric.Types
+<span class="lineno">   25 </span>import Databrary.Model.Category.Types
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>type instance IdType Record = Int32
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>data RecordRow = RecordRow
+<span class="lineno">   30 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">recordId</span></span></span> :: Id Record
+<span class="lineno">   31 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">recordCategory</span></span></span> :: Category
+<span class="lineno">   32 </span>  } deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>data Record = Record
+<span class="lineno">   35 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">recordRow</span></span></span> :: !RecordRow
+<span class="lineno">   36 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">recordMeasures</span></span></span> :: Measures
+<span class="lineno">   37 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">recordRelease</span></span></span> :: Maybe Release
+<span class="lineno">   38 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">recordVolume</span></span></span> :: Volume
+<span class="lineno">   39 </span>  }
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>instance Kinded Record where
+<span class="lineno">   42 </span>  <span class="decl"><span class="nottickedoff">kindOf _ = &quot;record&quot;</span></span>
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>-- keep value as a pair of parsed and raw value until we come up with a clever way to dispatch on type
+<span class="lineno">   45 </span>data ParticipantRecord = -- each field can be nothing (not used) or just value, where value can be empty
+<span class="lineno">   46 </span>    ParticipantRecord -- are some of these required?
+<span class="lineno">   47 </span>        { <span class="istickedoff"><span class="decl"><span class="istickedoff">prdId</span></span></span> :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+<span class="lineno">   48 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">prdInfo</span></span></span> :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+<span class="lineno">   49 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">prdDescription</span></span></span> :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+<span class="lineno">   50 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">prdBirthdate</span></span></span> :: !(Maybe (Maybe (Day, MeasureDatum)))
+<span class="lineno">   51 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">prdGender</span></span></span> :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+<span class="lineno">   52 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">prdRace</span></span></span> :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+<span class="lineno">   53 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">prdEthnicity</span></span></span> :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+<span class="lineno">   54 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">prdGestationalAge</span></span></span> :: !(Maybe (Maybe (Double, MeasureDatum)))
+<span class="lineno">   55 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">prdPregnancyTerm</span></span></span> :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+<span class="lineno">   56 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">prdBirthWeight</span></span></span> :: !(Maybe (Maybe (Double, MeasureDatum)))
+<span class="lineno">   57 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">prdDisability</span></span></span> :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+<span class="lineno">   58 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">prdLanguage</span></span></span> :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+<span class="lineno">   59 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">prdCountry</span></span></span> :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+<span class="lineno">   60 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">prdState</span></span></span> :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+<span class="lineno">   61 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">prdSetting</span></span></span> :: !(Maybe (Maybe (ByteString, MeasureDatum)))
+<span class="lineno">   62 </span>        } 
+<span class="lineno">   63 </span>    deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span>)
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>data Measure = Measure
+<span class="lineno">   66 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">measureRecord</span></span></span> :: Record
+<span class="lineno">   67 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">measureMetric</span></span></span> :: Metric
+<span class="lineno">   68 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">measureDatum</span></span></span> :: !MeasureDatum
+<span class="lineno">   69 </span>  }
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>instance Kinded Measure where
+<span class="lineno">   72 </span>  <span class="decl"><span class="nottickedoff">kindOf _ = &quot;measure&quot;</span></span>
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>-- TODO: example building circular Record + Measure
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>type Measures = [Measure]
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>-- makeHasRec ''RecordRow ['recordId, 'recordCategory]
+<span class="lineno">   79 </span>-- makeHasRec ''Record ['recordRow, 'recordVolume, 'recordRelease]
+<span class="lineno">   80 </span>instance Has (Id Record) RecordRow where
+<span class="lineno">   81 </span>  <span class="decl"><span class="nottickedoff">view = recordId</span></span>
+<span class="lineno">   82 </span>instance Has Category RecordRow where
+<span class="lineno">   83 </span>  <span class="decl"><span class="nottickedoff">view = recordCategory</span></span>
+<span class="lineno">   84 </span>instance Has (Id Category) RecordRow where
+<span class="lineno">   85 </span>  <span class="decl"><span class="nottickedoff">view = (view . recordCategory)</span></span>
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>-- instance Has RecordRow Record where
+<span class="lineno">   88 </span>--   view = recordRow
+<span class="lineno">   89 </span>instance Has (Id Record) Record where
+<span class="lineno">   90 </span>  <span class="decl"><span class="nottickedoff">view = (view . recordRow)</span></span>
+<span class="lineno">   91 </span>instance Has Category Record where
+<span class="lineno">   92 </span>  <span class="decl"><span class="nottickedoff">view = (view . recordRow)</span></span>
+<span class="lineno">   93 </span>instance Has (Id Category) Record where
+<span class="lineno">   94 </span>  <span class="decl"><span class="nottickedoff">view = (view . recordRow)</span></span>
+<span class="lineno">   95 </span>instance Has Volume Record where
+<span class="lineno">   96 </span>  <span class="decl"><span class="nottickedoff">view = recordVolume</span></span>
+<span class="lineno">   97 </span>instance Has Permission Record where
+<span class="lineno">   98 </span>  <span class="decl"><span class="nottickedoff">view = (view . recordVolume)</span></span>
+<span class="lineno">   99 </span>instance Has (Id Volume) Record where
+<span class="lineno">  100 </span>  <span class="decl"><span class="nottickedoff">view = (view . recordVolume)</span></span>
+<span class="lineno">  101 </span>-- instance Has VolumeRow Record where
+<span class="lineno">  102 </span>--   view = (view . recordVolume)
+<span class="lineno">  103 </span>instance Has (Maybe Release) Record where
+<span class="lineno">  104 </span>  <span class="decl"><span class="nottickedoff">view = recordRelease</span></span>
+<span class="lineno">  105 </span>instance Has Release Record where
+<span class="lineno">  106 </span>  <span class="decl"><span class="nottickedoff">view = (view . recordRelease)</span></span>
+<span class="lineno">  107 </span>
+<span class="lineno">  108 </span>getRecordVolumePermission :: Record -&gt; (Permission, VolumeAccessPolicy)
+<span class="lineno">  109 </span><span class="decl"><span class="nottickedoff">getRecordVolumePermission = volumePermissionPolicy . recordVolume</span></span>
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>instance Has Record Measure where
+<span class="lineno">  112 </span>  <span class="decl"><span class="nottickedoff">view = measureRecord</span></span>
+<span class="lineno">  113 </span>-- instance Has (Id Record) Measure where
+<span class="lineno">  114 </span>--   view = recordId . recordRow . measureRecord
+<span class="lineno">  115 </span>-- instance Has Volume Measure where
+<span class="lineno">  116 </span>--   view = view . measureRecord
+<span class="lineno">  117 </span>-- instance Has (Id Volume) Measure where
+<span class="lineno">  118 </span>--   view = view . measureRecord
+<span class="lineno">  119 </span>-- instance Has Category Measure where
+<span class="lineno">  120 </span>--   view = view . measureRecord
+<span class="lineno">  121 </span>-- instance Has (Id Category) Measure where
+<span class="lineno">  122 </span>---  view = view . measureRecord
+<span class="lineno">  123 </span>-- instance Has Permission Measure where
+<span class="lineno">  124 </span>--    view = view . measureRecord
+<span class="lineno">  125 </span>
+<span class="lineno">  126 </span>-- instance Has Metric Measure where
+<span class="lineno">  127 </span>--   view = measureMetric
+<span class="lineno">  128 </span>-- instance Has (Id Metric) Measure where
+<span class="lineno">  129 </span>--   view = view . measureMetric
+<span class="lineno">  130 </span>-- instance Has MeasureType Measure where
+<span class="lineno">  131 </span>--   view = view . measureMetric
+<span class="lineno">  132 </span>
+<span class="lineno">  133 </span>instance Has (Maybe Release) Measure where
+<span class="lineno">  134 </span>  <span class="decl"><span class="nottickedoff">view m = metricRelease (measureMetric m) &lt;|&gt; recordRelease (measureRecord m)</span></span>
+<span class="lineno">  135 </span>instance Has Release Measure where
+<span class="lineno">  136 </span>  <span class="decl"><span class="nottickedoff">view = fold . (view :: Measure -&gt; Maybe Release)</span></span>
+<span class="lineno">  137 </span>
+<span class="lineno">  138 </span>blankRecord :: Category -&gt; Volume -&gt; Record
+<span class="lineno">  139 </span><span class="decl"><span class="nottickedoff">blankRecord cat vol = Record</span>
+<span class="lineno">  140 </span><span class="spaces">  </span><span class="nottickedoff">{ recordRow = RecordRow</span>
+<span class="lineno">  141 </span><span class="spaces">    </span><span class="nottickedoff">{ recordId = error &quot;blankRecord&quot;</span>
+<span class="lineno">  142 </span><span class="spaces">    </span><span class="nottickedoff">, recordCategory = cat</span>
+<span class="lineno">  143 </span><span class="spaces">    </span><span class="nottickedoff">}</span>
+<span class="lineno">  144 </span><span class="spaces">  </span><span class="nottickedoff">, recordVolume = vol</span>
+<span class="lineno">  145 </span><span class="spaces">  </span><span class="nottickedoff">, recordRelease = Nothing</span>
+<span class="lineno">  146 </span><span class="spaces">  </span><span class="nottickedoff">, recordMeasures = []</span>
+<span class="lineno">  147 </span><span class="spaces">  </span><span class="nottickedoff">}</span></span>
+<span class="lineno">  148 </span>
+
+</pre>
+</body>
+</html>

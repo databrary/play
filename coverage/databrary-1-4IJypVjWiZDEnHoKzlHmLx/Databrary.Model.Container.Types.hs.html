@@ -1,0 +1,88 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies #-}
+<span class="lineno">    2 </span>module Databrary.Model.Container.Types
+<span class="lineno">    3 </span>  ( ContainerRow(..)
+<span class="lineno">    4 </span>  , Container(..)
+<span class="lineno">    5 </span>  , getContainerVolumePermission
+<span class="lineno">    6 </span>  , getContainerRelease
+<span class="lineno">    7 </span>  ) where
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import Data.Foldable (fold)
+<span class="lineno">   10 </span>import qualified Data.Text as T
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import Databrary.Has (Has(..))
+<span class="lineno">   13 </span>import Databrary.Model.Time
+<span class="lineno">   14 </span>import Databrary.Model.Kind
+<span class="lineno">   15 </span>import Databrary.Model.Release.Types
+<span class="lineno">   16 </span>import Databrary.Model.Id.Types
+<span class="lineno">   17 </span>import Databrary.Model.Volume.Types
+<span class="lineno">   18 </span>import Databrary.Model.Permission.Types
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>type instance IdType Container = Int32
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>data ContainerRow = ContainerRow
+<span class="lineno">   23 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">containerId</span></span></span> :: Id Container
+<span class="lineno">   24 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">containerTop</span></span></span> :: Bool
+<span class="lineno">   25 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">containerName</span></span></span> :: Maybe T.Text
+<span class="lineno">   26 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">containerDate</span></span></span> :: Maybe Date
+<span class="lineno">   27 </span>  }
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>data Container = Container
+<span class="lineno">   30 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">containerRow</span></span></span> :: !ContainerRow
+<span class="lineno">   31 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">containerRelease</span></span></span> :: Maybe Release
+<span class="lineno">   32 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">containerVolume</span></span></span> :: Volume
+<span class="lineno">   33 </span>  }
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>getContainerVolumePermission :: Container -&gt; (Permission, VolumeAccessPolicy)
+<span class="lineno">   36 </span><span class="decl"><span class="nottickedoff">getContainerVolumePermission = volumePermissionPolicy . containerVolume</span></span>
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>getContainerRelease :: Container -&gt; EffectiveRelease
+<span class="lineno">   39 </span><span class="decl"><span class="istickedoff">getContainerRelease c =  </span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="istickedoff">EffectiveRelease {</span>
+<span class="lineno">   41 </span><span class="spaces">      </span><span class="istickedoff">effRelPublic = (fold . containerRelease) c</span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="istickedoff">, effRelPrivate = ReleasePRIVATE -- TODO: name hardcoded default level for Private release centrally</span>
+<span class="lineno">   43 </span><span class="spaces">    </span><span class="istickedoff">}</span></span>
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>instance Kinded Container where
+<span class="lineno">   46 </span>  <span class="decl"><span class="nottickedoff">kindOf _ = &quot;container&quot;</span></span>
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>-- makeHasRec ''ContainerRow ['containerId]
+<span class="lineno">   49 </span>-- makeHasRec ''Container ['containerRow, 'containerRelease, 'containerVolume]
+<span class="lineno">   50 </span>instance Has (Id Container) ContainerRow where
+<span class="lineno">   51 </span>  <span class="decl"><span class="nottickedoff">view = containerId</span></span>
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>-- instance Has ContainerRow Container where
+<span class="lineno">   54 </span>--   view = containerRow
+<span class="lineno">   55 </span>instance Has (Id Container) Container where
+<span class="lineno">   56 </span>  <span class="decl"><span class="nottickedoff">view = (view . containerRow)</span></span>
+<span class="lineno">   57 </span>instance Has (Maybe Release) Container where
+<span class="lineno">   58 </span>  <span class="decl"><span class="nottickedoff">view = containerRelease</span></span>
+<span class="lineno">   59 </span>-- instance Has Release Container where
+<span class="lineno">   60 </span>--   view = (view . containerRelease)
+<span class="lineno">   61 </span>instance Has Volume Container where
+<span class="lineno">   62 </span>  <span class="decl"><span class="nottickedoff">view = containerVolume</span></span>
+<span class="lineno">   63 </span>instance Has Permission Container where
+<span class="lineno">   64 </span>  <span class="decl"><span class="nottickedoff">view = (view . containerVolume)</span></span>
+<span class="lineno">   65 </span>instance Has (Id Volume) Container where
+<span class="lineno">   66 </span>  <span class="decl"><span class="nottickedoff">view = (view . containerVolume)</span></span>
+<span class="lineno">   67 </span>-- instance Has VolumeRow Container where
+<span class="lineno">   68 </span>--   view = (view . containerVolume)
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell, RecordWildCards, OverloadedStrings, ScopedTypeVariables, DataKinds #-}
+<span class="lineno">    2 </span>module Databrary.Model.Authorize
+<span class="lineno">    3 </span>  ( module Databrary.Model.Authorize.Types
+<span class="lineno">    4 </span>  , selfAuthorize
+<span class="lineno">    5 </span>  , lookupAuthorizedChildren
+<span class="lineno">    6 </span>  , lookupAuthorizedParents
+<span class="lineno">    7 </span>  , lookupAuthorize
+<span class="lineno">    8 </span>  , lookupAuthorizeParent
+<span class="lineno">    9 </span>  , lookupAuthorization
+<span class="lineno">   10 </span>  , changeAuthorize
+<span class="lineno">   11 </span>  , removeAuthorize
+<span class="lineno">   12 </span>  , authorizeExpired
+<span class="lineno">   13 </span>  , authorizeActive
+<span class="lineno">   14 </span>  , authorizeJSON
+<span class="lineno">   15 </span>  , lookupAuthorizeActivity
+<span class="lineno">   16 </span>  ) where
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import Control.Monad (when)
+<span class="lineno">   19 </span>import Data.Int (Int64)
+<span class="lineno">   20 </span>import Data.Maybe (fromMaybe)
+<span class="lineno">   21 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>import Databrary.Has (peek, view)
+<span class="lineno">   24 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   25 </span>import Databrary.Service.DB
+<span class="lineno">   26 </span>import Databrary.Model.SQL
+<span class="lineno">   27 </span>import Databrary.Model.Time
+<span class="lineno">   28 </span>import Databrary.Model.Id
+<span class="lineno">   29 </span>import Databrary.Model.Audit
+<span class="lineno">   30 </span>import Databrary.Model.Permission
+<span class="lineno">   31 </span>import Databrary.Model.Party
+<span class="lineno">   32 </span>import Databrary.Model.Identity.Types
+<span class="lineno">   33 </span>import Databrary.Model.Authorize.Types
+<span class="lineno">   34 </span>import Databrary.Model.Authorize.SQL
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>selfAuthorize :: Party -&gt; Authorize
+<span class="lineno">   37 </span><span class="decl"><span class="istickedoff">selfAuthorize p =</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="istickedoff">Authorize <span class="nottickedoff">(Authorization (if partyId (partyRow p) == partyId (partyRow nobodyParty) then minBound else maxBound) p p)</span> Nothing</span></span>
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>lookupAuthorizedParents :: (MonadDB c m, MonadHasIdentity c m) =&gt; Party -&gt; Maybe Permission -&gt; m [Authorize]
+<span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">lookupAuthorizedParents child perm = do</span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ maybe</span>
+<span class="lineno">   44 </span><span class="spaces">    </span><span class="nottickedoff">$(selectQuery (selectAuthorizeParent 'child 'ident) &quot;$&quot;)</span>
+<span class="lineno">   45 </span><span class="spaces">    </span><span class="nottickedoff">(\p -&gt; $(selectQuery (selectAuthorizeParent 'child 'ident) &quot;$WHERE (expires IS NULL OR expires &gt; CURRENT_TIMESTAMP) AND site &gt;= ${p} AND member &gt;= ${p} AND (site &lt;&gt; 'NONE' OR member &lt;&gt; 'NONE')&quot;))</span>
+<span class="lineno">   46 </span><span class="spaces">    </span><span class="nottickedoff">perm</span></span>
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>lookupAuthorizedChildren :: (MonadDB c m, MonadHasIdentity c m) =&gt; Party -&gt; Maybe Permission -&gt; m [Authorize]
+<span class="lineno">   49 </span><span class="decl"><span class="nottickedoff">lookupAuthorizedChildren parent perm = do</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ maybe</span>
+<span class="lineno">   52 </span><span class="spaces">    </span><span class="nottickedoff">$(selectQuery (selectAuthorizeChild 'parent 'ident) &quot;$&quot;)</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="nottickedoff">(\p -&gt; $(selectQuery (selectAuthorizeChild 'parent 'ident) &quot;$WHERE (expires IS NULL OR expires &gt; CURRENT_TIMESTAMP) AND site &gt;= ${p} AND member &gt;= ${p} AND (site &lt;&gt; 'NONE' OR member &lt;&gt; 'NONE')&quot;))</span>
+<span class="lineno">   54 </span><span class="spaces">    </span><span class="nottickedoff">perm</span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>-- | Attempt to find an authorization request or grant from the child party to the granting parent party
+<span class="lineno">   57 </span>lookupAuthorize :: MonadDB c m =&gt; Party -&gt; Party -&gt; m (Maybe Authorize)
+<span class="lineno">   58 </span><span class="decl"><span class="nottickedoff">lookupAuthorize child parent =</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 $</span>
+<span class="lineno">   60 </span><span class="spaces">      </span><span class="nottickedoff">(\mkAuthorize' -&gt; mkAuthorize' child parent)</span>
+<span class="lineno">   61 </span><span class="spaces">          </span><span class="nottickedoff">&lt;$&gt; $(selectQuery</span>
+<span class="lineno">   62 </span><span class="spaces">                    </span><span class="nottickedoff">authorizeRow</span>
+<span class="lineno">   63 </span><span class="spaces">                    </span><span class="nottickedoff">-- only include authorizations that either have no expiration or have not expired yet</span>
+<span class="lineno">   64 </span><span class="spaces">                    </span><span class="nottickedoff">&quot;$WHERE authorize.child = ${partyId $ partyRow child} AND authorize.parent = ${partyId $ partyRow parent} AND (expires IS NULL OR expires &gt; CURRENT_TIMESTAMP)&quot;)</span></span>
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>lookupAuthorizeParent :: (MonadDB c m, MonadHasIdentity c m) =&gt; Party -&gt; Id Party -&gt; m (Maybe Authorize)
+<span class="lineno">   67 </span><span class="decl"><span class="nottickedoff">lookupAuthorizeParent child parent = do</span>
+<span class="lineno">   68 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 $ $(selectQuery (selectAuthorizeParent 'child 'ident) &quot;$WHERE authorize.parent = ${parent} AND (expires IS NULL OR expires &gt; CURRENT_TIMESTAMP)&quot;)</span></span>
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>lookupAuthorization :: (MonadDB c m, MonadHasIdentity c m) =&gt; Party -&gt; Party -&gt; m Authorization
+<span class="lineno">   72 </span><span class="decl"><span class="nottickedoff">lookupAuthorization child parent</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">| partyId (partyRow child) == partyId (partyRow parent) = return $ authorization $ selfAuthorize child</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = do</span>
+<span class="lineno">   75 </span><span class="spaces">    </span><span class="nottickedoff">auth &lt;- peek</span>
+<span class="lineno">   76 </span><span class="spaces">    </span><span class="nottickedoff">if partyId (view auth) == partyId (partyRow child) &amp;&amp; partyId (partyRow parent) == partyId (partyRow rootParty)</span>
+<span class="lineno">   77 </span><span class="spaces">      </span><span class="nottickedoff">then return $ Authorization (siteAccess auth) child parent</span>
+<span class="lineno">   78 </span><span class="spaces">      </span><span class="nottickedoff">else fromMaybe (Authorization mempty child parent) &lt;$&gt;</span>
+<span class="lineno">   79 </span><span class="spaces">        </span><span class="nottickedoff">dbQuery1 ((\a -&gt; a child parent) &lt;$&gt; $(selectQuery authorizationRow &quot;!$WHERE authorize_view.child = ${partyId $ partyRow child} AND authorize_view.parent = ${partyId $ partyRow parent}&quot;))</span></span>
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>changeAuthorize :: (MonadAudit c m) =&gt; Authorize -&gt; m ()
+<span class="lineno">   82 </span><span class="decl"><span class="nottickedoff">changeAuthorize auth = do</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">(r, _) &lt;- updateOrInsert</span>
+<span class="lineno">   85 </span><span class="spaces">    </span><span class="nottickedoff">$(updateAuthorize 'ident 'auth)</span>
+<span class="lineno">   86 </span><span class="spaces">    </span><span class="nottickedoff">$(insertAuthorize 'ident 'auth)</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="nottickedoff">when (r /= 1) $ fail $ &quot;changeAuthorize: &quot; ++ show r ++ &quot; rows&quot;</span></span>
+<span class="lineno">   88 </span>
+<span class="lineno">   89 </span>removeAuthorize :: (MonadAudit c m) =&gt; Authorize -&gt; m Bool
+<span class="lineno">   90 </span><span class="decl"><span class="nottickedoff">removeAuthorize auth = do</span>
+<span class="lineno">   91 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute1 $(deleteAuthorize 'ident 'auth)</span></span>
+<span class="lineno">   93 </span>
+<span class="lineno">   94 </span>authorizationActive :: Authorization -&gt; Bool
+<span class="lineno">   95 </span><span class="decl"><span class="nottickedoff">authorizationActive Authorization{ authorizeAccess = a } = a /= mempty</span></span>
+<span class="lineno">   96 </span>
+<span class="lineno">   97 </span>authorizeExpired :: Authorize -&gt; Timestamp -&gt; Bool
+<span class="lineno">   98 </span><span class="decl"><span class="nottickedoff">authorizeExpired Authorize{ authorizeExpires = Just e } = (e &lt;)</span>
+<span class="lineno">   99 </span><span class="spaces"></span><span class="nottickedoff">authorizeExpired _ = const False</span></span>
+<span class="lineno">  100 </span>
+<span class="lineno">  101 </span>authorizeActive :: Authorize -&gt; Timestamp -&gt; Bool
+<span class="lineno">  102 </span><span class="decl"><span class="nottickedoff">authorizeActive a t = authorizationActive (authorization a) &amp;&amp; not (authorizeExpired a t)</span></span>
+<span class="lineno">  103 </span>
+<span class="lineno">  104 </span>authorizeJSON :: JSON.ToObject o =&gt; Authorize -&gt; o
+<span class="lineno">  105 </span><span class="decl"><span class="nottickedoff">authorizeJSON Authorize{..} = accessJSON (authorizeAccess authorization)</span>
+<span class="lineno">  106 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;expires&quot; `JSON.kvObjectOrEmpty` authorizeExpires</span></span>
+<span class="lineno">  107 </span>
+<span class="lineno">  108 </span>lookupAuthorizeActivity :: (MonadDB c m, MonadHasIdentity c m) =&gt; Int -&gt; m [(Timestamp, Party)]
+<span class="lineno">  109 </span><span class="decl"><span class="nottickedoff">lookupAuthorizeActivity limit = do</span>
+<span class="lineno">  110 </span><span class="spaces">  </span><span class="nottickedoff">ident :: Identity &lt;- peek</span>
+<span class="lineno">  111 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $(selectQuery (selectAuthorizeActivity 'ident) &quot;$JOIN authorize_view ON audit.parent = authorize_view.child AND authorize_view.parent = 0 WHERE audit.audit_action IN ('add','change') AND audit.site &gt;= 'EDIT' AND authorize_view.site &gt; 'EDIT' ORDER BY audit.audit_time DESC LIMIT ${fromIntegral limit :: Int64}&quot;)</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Web.Uglify
+<span class="lineno">    3 </span>  ( appWebJS
+<span class="lineno">    4 </span>  , generateUglifyJS
+<span class="lineno">    5 </span>  ) where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import Control.Monad (guard)
+<span class="lineno">    8 </span>import Control.Monad.IO.Class (liftIO)
+<span class="lineno">    9 </span>import Data.ByteString (isPrefixOf)
+<span class="lineno">   10 </span>import Data.List (union)
+<span class="lineno">   11 </span>import qualified System.Posix.FilePath as RF
+<span class="lineno">   12 </span>import System.Process (callProcess)
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import Databrary.Files
+<span class="lineno">   15 </span>import Databrary.Web
+<span class="lineno">   16 </span>import Databrary.Web.Types
+<span class="lineno">   17 </span>import Databrary.Web.Files
+<span class="lineno">   18 </span>import Databrary.Web.Generate
+<span class="lineno">   19 </span>import Databrary.Web.Libs
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>appWebJS :: IO [WebFilePath]
+<span class="lineno">   22 </span><span class="decl"><span class="nottickedoff">appWebJS = do</span>
+<span class="lineno">   23 </span><span class="spaces">  </span><span class="nottickedoff">includes &lt;- webIncludes</span>
+<span class="lineno">   24 </span><span class="spaces">  </span><span class="nottickedoff">pre &lt;- mapM makeWebFilePath pre'</span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="nottickedoff">filteredJS &lt;- filter (\f -&gt; not (isPrefixOf &quot;lib/&quot; (webFileRel f)) &amp;&amp; f `notElem` pre) &lt;$&gt; findWebFiles &quot;.js&quot;</span>
+<span class="lineno">   26 </span><span class="spaces">  </span><span class="nottickedoff">let webjs = mconcat [includes, tail pre, filteredJS]</span>
+<span class="lineno">   27 </span><span class="spaces">  </span><span class="nottickedoff">coffee &lt;- map (replaceWebExtension &quot;.js&quot;) &lt;$&gt; findWebFiles &quot;.coffee&quot;</span>
+<span class="lineno">   28 </span><span class="spaces">  </span><span class="nottickedoff">return $ union webjs coffee</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   30 </span><span class="spaces">    </span><span class="nottickedoff">pre' = [&quot;debug.js&quot;, &quot;app.js&quot;, &quot;constants.js&quot;, &quot;routes.js&quot;, &quot;messages.js&quot;, &quot;templates.js&quot;]</span></span>
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>generateUglifyJS :: WebGenerator
+<span class="lineno">   33 </span><span class="decl"><span class="nottickedoff">generateUglifyJS = \fileToGenInfo@(fileToGen, _) -&gt; do</span>
+<span class="lineno">   34 </span><span class="spaces">  </span><span class="nottickedoff">inputFiles &lt;- liftIO appWebJS</span>
+<span class="lineno">   35 </span><span class="spaces">  </span><span class="nottickedoff">guard (not $ null inputFiles)</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="nottickedoff">inputFilesAbs &lt;- mapM ((liftIO . unRawFilePath) . webFileAbs) inputFiles</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="nottickedoff">fileToGenAbs &lt;- liftIO $ unRawFilePath $ webFileAbs fileToGen</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="nottickedoff">let fileToGenMap = (webFileAbs fileToGen) RF.&lt;.&gt; &quot;.map&quot;</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="nottickedoff">fileToGenMapAbs &lt;- liftIO $ unRawFilePath fileToGenMap</span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="nottickedoff">webRegenerate (do</span>
+<span class="lineno">   41 </span><span class="spaces">    </span><span class="nottickedoff">print &quot;making minified with command...&quot;</span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="nottickedoff">print </span>
+<span class="lineno">   43 </span><span class="spaces">      </span><span class="nottickedoff">(&quot;uglifyjs&quot;, </span>
+<span class="lineno">   44 </span><span class="spaces">      </span><span class="nottickedoff">[&quot;--output&quot;, fileToGenAbs</span>
+<span class="lineno">   45 </span><span class="spaces">      </span><span class="nottickedoff">, &quot;--source-map&quot;, fileToGenMapAbs</span>
+<span class="lineno">   46 </span><span class="spaces">      </span><span class="nottickedoff">, &quot;--prefix&quot;, &quot;relative&quot;</span>
+<span class="lineno">   47 </span><span class="spaces">      </span><span class="nottickedoff">, &quot;--screw-ie8&quot;, &quot;--mangle&quot;, &quot;--compress&quot;</span>
+<span class="lineno">   48 </span><span class="spaces">      </span><span class="nottickedoff">, &quot;--define&quot;, &quot;DEBUG=false&quot;</span>
+<span class="lineno">   49 </span><span class="spaces">      </span><span class="nottickedoff">, &quot;--wrap&quot;, &quot;app&quot;</span>
+<span class="lineno">   50 </span><span class="spaces">      </span><span class="nottickedoff">]</span>
+<span class="lineno">   51 </span><span class="spaces">      </span><span class="nottickedoff">++ inputFilesAbs)</span>
+<span class="lineno">   52 </span><span class="spaces">    </span><span class="nottickedoff">callProcess &quot;uglifyjs&quot; $</span>
+<span class="lineno">   53 </span><span class="spaces">      </span><span class="nottickedoff">[&quot;--output&quot;, fileToGenAbs</span>
+<span class="lineno">   54 </span><span class="spaces">      </span><span class="nottickedoff">, &quot;--source-map&quot;, fileToGenMapAbs</span>
+<span class="lineno">   55 </span><span class="spaces">      </span><span class="nottickedoff">, &quot;--prefix&quot;, &quot;relative&quot;</span>
+<span class="lineno">   56 </span><span class="spaces">      </span><span class="nottickedoff">, &quot;--screw-ie8&quot;, &quot;--mangle&quot;, &quot;--compress&quot;</span>
+<span class="lineno">   57 </span><span class="spaces">      </span><span class="nottickedoff">, &quot;--define&quot;, &quot;DEBUG=false&quot;</span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="nottickedoff">, &quot;--wrap&quot;, &quot;app&quot;</span>
+<span class="lineno">   59 </span><span class="spaces">      </span><span class="nottickedoff">]</span>
+<span class="lineno">   60 </span><span class="spaces">      </span><span class="nottickedoff">++ inputFilesAbs)</span>
+<span class="lineno">   61 </span><span class="spaces">    </span><span class="nottickedoff">[]</span>
+<span class="lineno">   62 </span><span class="spaces">    </span><span class="nottickedoff">inputFiles</span>
+<span class="lineno">   63 </span><span class="spaces">    </span><span class="nottickedoff">fileToGenInfo</span></span>
+
+</pre>
+</body>
+</html>

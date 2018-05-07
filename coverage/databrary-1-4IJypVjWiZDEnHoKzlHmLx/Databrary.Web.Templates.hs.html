@@ -1,0 +1,93 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Web.Templates
+<span class="lineno">    3 </span>  ( generateTemplatesJS
+<span class="lineno">    4 </span>  ) where
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>import Control.Monad (guard, unless, forM_)
+<span class="lineno">    7 </span>import Control.Monad.IO.Class (liftIO)
+<span class="lineno">    8 </span>import qualified Data.ByteString as BS
+<span class="lineno">    9 </span>import qualified Data.ByteString.Builder as BSB
+<span class="lineno">   10 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">   11 </span>import Data.Char (isSpace)
+<span class="lineno">   12 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   13 </span>import System.IO (withFile, withBinaryFile, IOMode(ReadMode, WriteMode), hPutStrLn, hIsEOF, hFlush)
+<span class="lineno">   14 </span>import qualified Data.ByteString.Builder as B
+<span class="lineno">   15 </span>import qualified Data.ByteString.Builder.Prim as BP
+<span class="lineno">   16 </span>import Data.Word (Word8)
+<span class="lineno">   17 </span>import Data.ByteString.Internal (c2w)
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import Databrary.Files
+<span class="lineno">   20 </span>import Databrary.Web
+<span class="lineno">   21 </span>import Databrary.Web.Types
+<span class="lineno">   22 </span>import Databrary.Web.Files
+<span class="lineno">   23 </span>import Databrary.Web.Generate
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>wordEscaped :: Char -&gt; BP.BoundedPrim Word8
+<span class="lineno">   26 </span><span class="decl"><span class="nottickedoff">wordEscaped q =</span>
+<span class="lineno">   27 </span><span class="spaces">  </span><span class="nottickedoff">BP.condB (== c2w q) (backslash q) $</span>
+<span class="lineno">   28 </span><span class="spaces">  </span><span class="nottickedoff">BP.condB (== c2w '\\') (backslash '\\') $</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="nottickedoff">BP.condB (&gt;= c2w ' ') (BP.liftFixedToBounded BP.word8) $</span>
+<span class="lineno">   30 </span><span class="spaces">  </span><span class="nottickedoff">BP.condB (== c2w '\n') (backslash 'n') $</span>
+<span class="lineno">   31 </span><span class="spaces">  </span><span class="nottickedoff">BP.condB (== c2w '\r') (backslash 'r') $</span>
+<span class="lineno">   32 </span><span class="spaces">  </span><span class="nottickedoff">BP.condB (== c2w '\t') (backslash 't') $</span>
+<span class="lineno">   33 </span><span class="spaces">    </span><span class="nottickedoff">BP.liftFixedToBounded $ (\c -&gt; ('\\', ('u', fromIntegral c))) BP.&gt;$&lt; BP.char8 BP.&gt;*&lt; BP.char8 BP.&gt;*&lt; BP.word16HexFixed</span>
+<span class="lineno">   34 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   35 </span><span class="spaces">  </span><span class="nottickedoff">backslash c = BP.liftFixedToBounded $ const ('\\', c) BP.&gt;$&lt; BP.char8 BP.&gt;*&lt; BP.char8</span></span>
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>-- | Escape (but do not quote) a ByteString
+<span class="lineno">   38 </span>escapeByteString :: Char -&gt; BS.ByteString -&gt; B.Builder
+<span class="lineno">   39 </span><span class="decl"><span class="nottickedoff">escapeByteString = BP.primMapByteStringBounded . wordEscaped</span></span>
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>quoteByteString :: Char -&gt; BS.ByteString -&gt; B.Builder
+<span class="lineno">   42 </span><span class="decl"><span class="nottickedoff">quoteByteString q s = B.char8 q &lt;&gt; escapeByteString q s &lt;&gt; B.char8 q</span></span>
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>processTemplate :: RawFilePath -&gt; (BS.ByteString -&gt; IO ()) -&gt; IO ()
+<span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">processTemplate f g = do</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">fp &lt;- liftIO $ unRawFilePath f</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="nottickedoff">withFile fp ReadMode go</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   49 </span><span class="spaces">    </span><span class="nottickedoff">go h = do</span>
+<span class="lineno">   50 </span><span class="spaces">      </span><span class="nottickedoff">e &lt;- hIsEOF h</span>
+<span class="lineno">   51 </span><span class="spaces">      </span><span class="nottickedoff">unless e $ do</span>
+<span class="lineno">   52 </span><span class="spaces">        </span><span class="nottickedoff">l &lt;- BS.hGetLine h</span>
+<span class="lineno">   53 </span><span class="spaces">        </span><span class="nottickedoff">g $ BSC.dropWhile isSpace l</span>
+<span class="lineno">   54 </span><span class="spaces">        </span><span class="nottickedoff">go h</span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>generateTemplatesJS :: WebGenerator
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">generateTemplatesJS fo@(f, _) = do</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">tl &lt;- liftIO $ findWebFiles &quot;.html&quot;</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">guard (not $ null tl)</span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="nottickedoff">fp &lt;- liftIO $ unRawFilePath $ webFileAbs f</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">webRegenerate</span>
+<span class="lineno">   62 </span><span class="spaces">    </span><span class="nottickedoff">(withBinaryFile fp WriteMode $ \h -&gt; do</span>
+<span class="lineno">   63 </span><span class="spaces">      </span><span class="nottickedoff">hPutStrLn h &quot;app.run(['$templateCache',function(t){&quot;</span>
+<span class="lineno">   64 </span><span class="spaces">      </span><span class="nottickedoff">forM_ tl $ \tf -&gt; do</span>
+<span class="lineno">   65 </span><span class="spaces">        </span><span class="nottickedoff">BSB.hPutBuilder h $ BSB.string8 &quot;t.put(&quot; &lt;&gt; quoteByteString q (webFileRel tf) &lt;&gt; BSB.char8 ',' &lt;&gt; BSB.char8 q</span>
+<span class="lineno">   66 </span><span class="spaces">        </span><span class="nottickedoff">processTemplate (webFileAbs tf) $ \s -&gt; do</span>
+<span class="lineno">   67 </span><span class="spaces">          </span><span class="nottickedoff">let j = escapeByteString q s</span>
+<span class="lineno">   68 </span><span class="spaces">          </span><span class="nottickedoff">BSB.hPutBuilder h j -- this is hanging</span>
+<span class="lineno">   69 </span><span class="spaces">          </span><span class="nottickedoff">hFlush h            -- without this!!!</span>
+<span class="lineno">   70 </span><span class="spaces">        </span><span class="nottickedoff">hPutStrLn h $ q : &quot;);&quot;</span>
+<span class="lineno">   71 </span><span class="spaces">      </span><span class="nottickedoff">hPutStrLn h &quot;}]);&quot;)</span>
+<span class="lineno">   72 </span><span class="spaces">    </span><span class="nottickedoff">[] tl fo</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">where q = '\''</span></span>
+
+</pre>
+</body>
+</html>

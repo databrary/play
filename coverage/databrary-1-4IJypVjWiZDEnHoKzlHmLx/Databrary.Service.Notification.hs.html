@@ -1,0 +1,58 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Service.Notification
+<span class="lineno">    3 </span>  ( Notifications(..)
+<span class="lineno">    4 </span>  , initNotifications
+<span class="lineno">    5 </span>  , triggerNotifications
+<span class="lineno">    6 </span>  ) where
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>import Control.Concurrent.MVar (MVar, newMVar, tryPutMVar, tryTakeMVar)
+<span class="lineno">    9 </span>import Control.Monad (unless)
+<span class="lineno">   10 </span>import qualified Data.ByteString as BS
+<span class="lineno">   11 </span>import qualified Text.Regex.Posix as Regex
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>import Databrary.Model.Periodic (Period)
+<span class="lineno">   14 </span>import qualified Databrary.Store.Config as C
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>data Notifications = Notifications
+<span class="lineno">   17 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">notificationsTrigger</span></span></span> :: !(MVar (Maybe Period))
+<span class="lineno">   18 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">notificationsFilter</span></span></span> :: !Regex.Regex
+<span class="lineno">   19 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">notificationsCopy</span></span></span> :: !(Maybe BS.ByteString)
+<span class="lineno">   20 </span>  }
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>initNotifications :: C.Config -&gt; IO Notifications
+<span class="lineno">   23 </span><span class="decl"><span class="nottickedoff">initNotifications conf = do</span>
+<span class="lineno">   24 </span><span class="spaces">  </span><span class="nottickedoff">t &lt;- newMVar Nothing -- run async notification pass at boot</span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="nottickedoff">return Notifications</span>
+<span class="lineno">   26 </span><span class="spaces">    </span><span class="nottickedoff">{ notificationsTrigger = t</span>
+<span class="lineno">   27 </span><span class="spaces">    </span><span class="nottickedoff">, notificationsFilter = Regex.makeRegexOpts Regex.compIgnoreCase Regex.blankExecOpt (conf C.! &quot;filter&quot; :: BS.ByteString)</span>
+<span class="lineno">   28 </span><span class="spaces">    </span><span class="nottickedoff">, notificationsCopy = conf C.! &quot;copy&quot;</span>
+<span class="lineno">   29 </span><span class="spaces">    </span><span class="nottickedoff">}</span></span>
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>triggerNotifications :: Maybe Period -&gt; Notifications -&gt; IO ()
+<span class="lineno">   32 </span><span class="decl"><span class="nottickedoff">triggerNotifications p Notifications{ notificationsTrigger = t } = write p where</span>
+<span class="lineno">   33 </span><span class="spaces">  </span><span class="nottickedoff">-- poor man's LVar: would be much simpler with a nested MVar, but then the reader is harder (and ours is dumb anyway)</span>
+<span class="lineno">   34 </span><span class="spaces">  </span><span class="nottickedoff">write x = do</span>
+<span class="lineno">   35 </span><span class="spaces">    </span><span class="nottickedoff">r &lt;- tryPutMVar t x</span>
+<span class="lineno">   36 </span><span class="spaces">    </span><span class="nottickedoff">unless r $ do</span>
+<span class="lineno">   37 </span><span class="spaces">      </span><span class="nottickedoff">y &lt;- tryTakeMVar t</span>
+<span class="lineno">   38 </span><span class="spaces">      </span><span class="nottickedoff">write $ maybe id max y x</span></span>
+
+</pre>
+</body>
+</html>

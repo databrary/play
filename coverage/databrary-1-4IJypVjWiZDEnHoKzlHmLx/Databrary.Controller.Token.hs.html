@@ -1,0 +1,88 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE CPP, OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Controller.Token
+<span class="lineno">    3 </span>  ( lookupPasswordResetAccount
+<span class="lineno">    4 </span>  , viewLoginToken
+<span class="lineno">    5 </span>  , postPasswordToken
+<span class="lineno">    6 </span>  ) where
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>#if !defined(DEVEL) &amp;&amp; !defined(SANDBOX)
+<span class="lineno">    9 </span>import Control.Monad (mfilter)
+<span class="lineno">   10 </span>#endif
+<span class="lineno">   11 </span>import Control.Monad (when, unless)
+<span class="lineno">   12 </span>import qualified Data.ByteString as BS
+<span class="lineno">   13 </span>import Data.Maybe (isNothing, isJust)
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Databrary.Ops
+<span class="lineno">   16 </span>import Databrary.Has
+<span class="lineno">   17 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   18 </span>import Databrary.Model.Id
+<span class="lineno">   19 </span>import Databrary.Model.Token
+<span class="lineno">   20 </span>import Databrary.Model.Party
+<span class="lineno">   21 </span>#if !defined(DEVEL) &amp;&amp; !defined(SANDBOX)
+<span class="lineno">   22 </span>import Databrary.Model.Permission
+<span class="lineno">   23 </span>#endif
+<span class="lineno">   24 </span>import Databrary.Model.Notification.Types
+<span class="lineno">   25 </span>import Databrary.HTTP.Path.Parser
+<span class="lineno">   26 </span>import Databrary.Action.Run
+<span class="lineno">   27 </span>import Databrary.Action
+<span class="lineno">   28 </span>import Databrary.Controller.Paths
+<span class="lineno">   29 </span>import Databrary.Controller.Form
+<span class="lineno">   30 </span>import Databrary.Controller.Login
+<span class="lineno">   31 </span>import Databrary.Controller.Angular
+<span class="lineno">   32 </span>import Databrary.Controller.Notification
+<span class="lineno">   33 </span>import Databrary.View.Token
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>lookupPasswordResetAccount :: BS.ByteString -&gt; Handler (Maybe SiteAuth)
+<span class="lineno">   36 </span><span class="decl"><span class="nottickedoff">lookupPasswordResetAccount email =</span>
+<span class="lineno">   37 </span><span class="spaces"></span><span class="nottickedoff">#if !defined(DEVEL) &amp;&amp; !defined(SANDBOX)</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="nottickedoff">mfilter ((PermissionADMIN &gt;) . accessMember) &lt;$&gt;</span>
+<span class="lineno">   39 </span><span class="spaces"></span><span class="nottickedoff">#endif</span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="nottickedoff">lookupSiteAuthByEmail True email</span></span>
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>viewLoginToken :: ActionRoute (API, Id LoginToken)
+<span class="lineno">   43 </span><span class="decl"><span class="nottickedoff">viewLoginToken = action GET (pathAPI &lt;/&gt; pathId) $ \(api, ti) -&gt; withoutAuth $ do</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="nottickedoff">when (api == HTML) angular</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">tok &lt;- maybeAction =&lt;&lt; lookupLoginToken ti</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">if loginPasswordToken tok</span>
+<span class="lineno">   47 </span><span class="spaces">    </span><span class="nottickedoff">then case api of</span>
+<span class="lineno">   48 </span><span class="spaces">      </span><span class="nottickedoff">JSON -&gt; return $ okResponse [] $ JSON.recordEncoding $ JSON.Record ti $</span>
+<span class="lineno">   49 </span><span class="spaces">        </span><span class="nottickedoff">&quot;reset&quot; JSON..= isJust (accountPasswd (view tok))</span>
+<span class="lineno">   50 </span><span class="spaces">      </span><span class="nottickedoff">HTML -&gt; peeks $ blankForm . htmlPasswordToken ti</span>
+<span class="lineno">   51 </span><span class="spaces">    </span><span class="nottickedoff">else do</span>
+<span class="lineno">   52 </span><span class="spaces">      </span><span class="nottickedoff">_ &lt;- removeLoginToken tok</span>
+<span class="lineno">   53 </span><span class="spaces">      </span><span class="nottickedoff">loginAccount api (view tok) False</span></span>
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>postPasswordToken :: ActionRoute (API, Id LoginToken)
+<span class="lineno">   56 </span><span class="decl"><span class="nottickedoff">postPasswordToken = action POST (pathAPI &lt;/&gt; pathId) $ \(api, ti) -&gt; withoutAuth $ do</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="nottickedoff">tok &lt;- maybeAction =&lt;&lt; lookupLoginToken ti</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">unless (loginPasswordToken tok) $ result =&lt;&lt; peeks notFoundResponse</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">let auth :: SiteAuth</span>
+<span class="lineno">   60 </span><span class="spaces">      </span><span class="nottickedoff">auth = view tok</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">pw &lt;- runForm ((api == HTML) `thenUse` (htmlPasswordToken ti)) $</span>
+<span class="lineno">   62 </span><span class="spaces">    </span><span class="nottickedoff">passwordForm (siteAccount auth)</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">changeAccount auth{ accountPasswd = Just pw } -- or should this be withAuth?</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- removeLoginToken tok</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">unless (isNothing $ accountPasswd auth) $</span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="nottickedoff">createNotification (blankNotification (siteAccount auth) NoticeAccountChange)</span>
+<span class="lineno">   67 </span><span class="spaces">      </span><span class="nottickedoff">{ notificationParty = Just $ partyRow $ accountParty $ siteAccount auth }</span>
+<span class="lineno">   68 </span><span class="spaces">  </span><span class="nottickedoff">loginAccount api (view tok) False</span></span>
+
+</pre>
+</body>
+</html>
