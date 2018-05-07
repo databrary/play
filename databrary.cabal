@@ -531,6 +531,7 @@ test-suite discovered
     , Databrary.Model.Comment.TypesTest
     , Databrary.Model.Container.TypesTest
     , Databrary.Model.FormatTest
+    , Databrary.Model.Funding.FundRefTest
     , Databrary.Model.GeoNamesTest
     , Databrary.Model.Id.TypesTest
     , Databrary.Model.IdentityTest
@@ -561,7 +562,7 @@ test-suite discovered
     , Databrary.Model.VolumeAccessTest
     , Databrary.Model.VolumeState.TypesTest
     , Databrary.OpsTest
-    -- , Databrary.Service.CryptoTest
+    , Databrary.Service.CryptoTest
     , Databrary.Service.MailTest
     , Databrary.Service.PasswdTest
     , Databrary.Store.AVTest
