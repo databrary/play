@@ -53,7 +53,7 @@ loginTokenId tok = Id <$> sign (unId (view tok :: Id Token))
 -- so that the user can view the password entry form as well as perform the password update.
 -- Retrieve the site auth with access deduced from inherited authorizations.
 -- Wrap the site auth in an AccountToken with the corresponding public token value and expiration.
--- Wrap the AccountToken in a LoginToken with a boolean indicating ???
+-- Wrap the AccountToken in a LoginToken with a boolean indicating ???? . Seems to be always true.
 lookupLoginToken :: (MonadDB c m, MonadHas Secret c m) => Id LoginToken -> m (Maybe LoginToken)
 lookupLoginToken =
   flatMapM (\t -> dbQuery1 $(selectQuery selectLoginToken "$!WHERE login_token.token = ${t} AND expires > CURRENT_TIMESTAMP"))
@@ -249,6 +249,8 @@ createToken insert = do
     _ <- dbExecuteSimple "LOCK TABLE token IN SHARE ROW EXCLUSIVE MODE"
     loop
 
+-- | Delete any prior login token that was generated for this account, then generate a new login token.
+-- Used when generating the login token for reset password email. paswd will always be True.
 createLoginToken :: (MonadHas Entropy c m, MonadDB c m) => SiteAuth -> Bool -> m LoginToken
 createLoginToken auth passwd = do
   let (_tenv_a7Ey3, _tenv_a7Ez6) = (unknownPGTypeEnv, unknownPGTypeEnv)
