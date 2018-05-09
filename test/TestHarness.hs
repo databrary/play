@@ -2,6 +2,7 @@ module TestHarness
     (
       TestContext ( .. )
     , withinTestTransaction
+    , connectTestDb
     -- * re-export for convenience
     , runReaderT
     , Wai.defaultRequest
@@ -79,3 +80,7 @@ withinTestTransaction act =
               pure cn)
          (\cn -> pgRollback cn >> pgDisconnect cn)
          act
+
+connectTestDb :: IO PGConnection
+connectTestDb =
+    loadPGDatabase >>= pgConnect
