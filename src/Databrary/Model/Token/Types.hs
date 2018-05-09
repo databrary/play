@@ -34,8 +34,8 @@ data AccountToken = AccountToken
   }
 
 -- makeHasRec ''AccountToken ['accountToken, 'tokenAccount]
-instance Has Token AccountToken where
-  view = accountToken
+-- instance Has Token AccountToken where
+--   view = accountToken
 instance Has (Id Token) AccountToken where
   view = (view . accountToken)
 instance Has SiteAuth AccountToken where
@@ -91,8 +91,8 @@ data Session = Session
 -- makeHasRec ''Session ['sessionAccountToken]
 -- instance Has AccountToken Session where
 --   view = sessionAccountToken
-instance Has Token Session where
-  view = (view . sessionAccountToken)
+-- instance Has Token Session where
+--   view = (view . sessionAccountToken)
 instance Has (Id Token) Session where
   view = (view . sessionAccountToken)
 -- instance Has SiteAuth Session where
