@@ -47,8 +47,8 @@ import {-# SOURCE #-} Databrary.Controller.Party
 
 loginAccount :: API -> SiteAuth -> Bool -> Handler Response
 loginAccount api auth su = do
-  sess <- createSession auth su
-  let Token (Id tok) ex = view sess
+  (sess :: Session) <- createSession auth su
+  let Token (Id tok) ex = (accountToken . sessionAccountToken) sess
   cook <- setSignedCookie "session" tok ex
   case api of
     JSON -> return $ okResponse [cook] $ JSON.recordEncoding $ identityJSON (Identified sess)
@@ -82,7 +82,7 @@ postLoginAction = \api -> withoutAuth $ do
     email <- "email" .:> emailTextForm
     password <- "password" .:> deform
     superuser <- "superuser" .:> deform
-    auth <- lift $ lookupSiteAuthByEmail True email
+    (auth :: Maybe SiteAuth) <- lift $ lookupSiteAuthByEmail True email
     let p :: Maybe Party
         p = view <$> auth
         su = superuser && any ((PermissionADMIN ==) . accessMember) auth
