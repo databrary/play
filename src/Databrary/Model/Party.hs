@@ -222,9 +222,12 @@ changeAccount a = do
       (auditIp ident))
     (\[] -> ()))
 
+-- | Create a new party without an account, intended for creating institution parties.
 addParty :: MonadAudit c m => Party -> m Party
 addParty bp = do
   ident <- getAuditIdentity
+  -- Similar to add account, load resulting party with default values for party permission and
+  -- access. 
   dbQuery1' $ fmap (\p -> Party p Nothing PermissionREAD Nothing) $(insertParty 'ident 'bp)
 
 -- | Create a new account without any authorizations, during registration, using the nobodySiteAuth.
