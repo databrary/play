@@ -49,6 +49,11 @@ import Databrary.Model.Token.SQL
 loginTokenId :: (MonadHas Entropy c m, MonadHas Secret c m, MonadIO m) => LoginToken -> m (Id LoginToken)
 loginTokenId tok = Id <$> sign (unId (view tok :: Id Token))
 
+-- | Attempt to find the matching one time login token for newly registered accounts,
+-- so that the user can view the password entry form as well as perform the password update.
+-- Retrieve the site auth with access deduced from inherited authorizations.
+-- Wrap the site auth in an AccountToken with the corresponding public token value and expiration.
+-- Wrap the AccountToken in a LoginToken with a boolean indicating ???
 lookupLoginToken :: (MonadDB c m, MonadHas Secret c m) => Id LoginToken -> m (Maybe LoginToken)
 lookupLoginToken =
   flatMapM (\t -> dbQuery1 $(selectQuery selectLoginToken "$!WHERE login_token.token = ${t} AND expires > CURRENT_TIMESTAMP"))

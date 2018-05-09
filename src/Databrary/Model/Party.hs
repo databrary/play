@@ -227,12 +227,17 @@ addParty bp = do
   ident <- getAuditIdentity
   dbQuery1' $ fmap (\p -> Party p Nothing PermissionREAD Nothing) $(insertParty 'ident 'bp)
 
+-- | Create a new account without any authorizations, during registration, using the nobodySiteAuth.
+-- The account password will be blank. The party will not have any authorizations yet.
 addAccount :: MonadAudit c m => Account -> m Account
 addAccount ba@Account{ accountParty = bp } = do
   ident <- getAuditIdentity
+  -- Create a party. The account will be created below, so start with no account.
+  -- Load resulting party with default values for party permission and access for now.
   p <- dbQuery1' $ fmap (\p -> Party p Nothing PermissionREAD Nothing) $(insertParty 'ident 'bp)
   let pa = p{ partyAccount = Just a }
       a = ba{ accountParty = pa }
+  -- Create an account with no password, and the email provided
   dbExecute1' $(insertAccount 'ident 'a)
   return a
 
