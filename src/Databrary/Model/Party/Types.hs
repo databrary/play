@@ -117,7 +117,7 @@ nobodySiteAuth = SiteAuth
   , siteAccess = mempty
   }
 
--- | Unitialized Party object to be used in creating new parties (and accounts)
+-- | Uninitialized Party object to be used in creating new parties (and accounts)
 blankParty :: Party
 blankParty = Party
   { partyRow = PartyRow
@@ -133,7 +133,7 @@ blankParty = Party
   , partyAccess = Nothing
   }
 
--- | Unitialized Account object to be used in creating new accounts
+-- | Uninitialized Account object to be used in creating new accounts
 blankAccount :: Account
 blankAccount = Account
   { accountParty = blankParty{ partyAccount = Just blankAccount }
