@@ -351,7 +351,11 @@ createSession auth su = do
                              Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
                           _p_a7EzV,
                         Data.String.fromString ") RETURNING token, expires, verf"]))
-          tok (sessionDuration su) (view auth :: Id Party) su verf)
+          tok
+          (sessionDuration su)
+          (view auth :: Id Party)
+          su
+          verf)
         (\ [_ctoken_a7EzW, _cexpires_a7EzX, _cverf_a7EzY]
                -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                      _tenv_a7EzQ
