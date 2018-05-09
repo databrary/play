@@ -85,6 +85,11 @@ postLoginAction = \api -> withoutAuth $ do
     (auth :: Maybe SiteAuth) <- lift $ lookupSiteAuthByEmail True email
     let p :: Maybe Party
         p = view <$> auth
+        -- The site auth will contain a member value, indicating the
+        --  user's right to edit group 0 (databrary site). There is no
+        --  inheritance for this value, so this is essentially looking
+        --  at the member value for the direct authorization between the user and
+        --  group 0. See examples of typical superadmins like party 1, party 7 in 0.sql.
         su = superuser && any ((PermissionADMIN ==) . accessMember) auth
     attempts <- lift $ maybe (return 0) recentAccountLogins p
     let pass = checkPassword password `any` auth
@@ -123,7 +128,8 @@ userHandler api _ =
 
 viewUserAction :: Handler Response
 viewUserAction = do
-  i <- peeks identityJSON
+  ident <- peek
+  let i = identityJSON ident
   q <- JSON.jsonQuery userJSONField =<< peeks Wai.queryString
   return $ okResponse [] (i `JSON.foldObjectIntoRec` q)
 

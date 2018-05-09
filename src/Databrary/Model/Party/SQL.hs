@@ -133,7 +133,7 @@ selectAuthParty ident = selectMap (`TH.AppE` TH.VarE ident) $ selectJoin 'permis
     $ accessRow "authorize_valid" -- optimization, should be authorize_view if we used site
   ]
 
--- | Used by 'makeUserAccount' and 'selectPermissionAccount'
+-- | Used by 'makeUserAccount' and 'selectPermissionAccount'. This finishes building the circular Party and Account structure.
 makeAccount :: PartyRow -> (Party -> Account) -> Permission -> Maybe Access -> Account
 makeAccount pr ac perm ma = a where
   a = ac $ Party pr (Just a) perm ma
