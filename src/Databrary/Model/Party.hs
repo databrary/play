@@ -364,6 +364,9 @@ lookupPartyAuthorizations = do
                     Just (Access cm_a6QiV cm_a6QiW) }))
       rows)
 
+-- | Find a party by id, populating the party's permission based on
+-- a complicated set of cascading rules that determines the current viewer's
+-- permissions over the party.
 lookupAuthParty :: (MonadDB c m, MonadHasIdentity c m) => Id Party -> m (Maybe Party)
 lookupAuthParty i = do
   ident <- peek
