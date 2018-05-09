@@ -78,6 +78,8 @@ lookupAuthorization child parent
       else fromMaybe (Authorization mempty child parent) <$>
         dbQuery1 ((\a -> a child parent) <$> $(selectQuery authorizationRow "!$WHERE authorize_view.child = ${partyId $ partyRow child} AND authorize_view.parent = ${partyId $ partyRow parent}"))
 
+-- | Update or insert the authorization object. Use the request and identity context to log the change in the
+-- corresponding audit table as well.
 changeAuthorize :: (MonadAudit c m) => Authorize -> m ()
 changeAuthorize auth = do
   ident <- getAuditIdentity
