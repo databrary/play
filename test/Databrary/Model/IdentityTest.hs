@@ -9,7 +9,7 @@ import Databrary.Model.Party
 import Databrary.Model.Permission
 import TestHarness
 
--- | A session driving functions exposed from Identity
+-- A session driving functions exposed from Identity
 unit_Identity_examples :: Assertion
 unit_Identity_examples = do
     -- guts of retrieving a site auth, used for creating a session upon login
@@ -27,6 +27,7 @@ unit_Identity_examples = do
     (accountEmail . siteAccount) auth @?= "test@databrary.org"
     accountPasswd auth @?= Just "$2b$12$SRKLVEaeWeLZB50Ow4CleuL1NYTKOM7P0S5CIpttNXPzN8rgcMgDW"
     siteAccess auth @?= Access { accessSite' = PermissionADMIN, accessMember' = PermissionADMIN }
+    -- TODO: explain the values below
     partyPermission p @?= PermissionADMIN
     partyAccess p @?= Just (Access { accessSite' = PermissionADMIN, accessMember' = PermissionADMIN })
 
