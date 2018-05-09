@@ -61,7 +61,11 @@ import Databrary.Controller.Web
 import Databrary.Controller.CSV
 import Databrary.View.Party
 
-getParty :: Maybe Permission -> PartyTarget -> Handler Party
+-- | Ensure the current user has the requested permission for the given party.
+getParty
+  :: Maybe Permission
+  -> PartyTarget
+  -> Handler Party
 getParty (Just p) (TargetParty i) =
   checkPermission p =<< maybeAction =<< lookupAuthParty i
 getParty _ mi = do
@@ -120,7 +124,16 @@ viewParty = action GET (pathAPI </> pathPartyTarget) $ \(api, i) -> withAuth $ d
     JSON -> okResponse [] <$> (partyJSONQuery p =<< peeks Wai.queryString)
     HTML -> peeks $ okResponse [] . htmlPartyView p
 
-processParty :: API -> Maybe Party -> Handler (Party, Maybe (Maybe Asset))
+-- | Extract values to build up the fields of a Party from an incoming form/json request.
+-- One part of the extraction is reading and saving any avater image provided.
+-- If an image is provided, also generate an asset, that is attached to the core volume.
+-- Primarily extracting values that correspond to a PartyRow, all other values (account, permissions) are
+-- taken from blankParty or the existing party.
+-- This is used by createParty with no party provided, and postParty with existing party provided.
+processParty
+  :: API -- ^ Whether this request is being handled as part of a server side form handler, or a client side API request
+  -> Maybe Party -- ^ The existing version of the party, before any updates
+  -> Handler (Party, Maybe (Maybe Asset)) -- ^ A party object populated with the request input and a possible avatar asset.
 processParty api p = do
   (p', a) <- runFormFiles [("avatar", maxAvatarSize)] ((api == HTML) `thenUse` (htmlPartyEdit p)) $ do
     csrfForm
@@ -186,6 +199,9 @@ postParty = multipartAction $ action POST (pathAPI </> pathPartyTarget) $ \(api,
     JSON -> return $ okResponse [] $ JSON.recordEncoding $ partyJSON p'
     HTML -> peeks $ otherRouteResponse [] viewParty (api, i)
 
+-- | Create a new party, starting from blankParty, then overlaying data extracted from request.
+-- Since this overlaps with how registration creates an account/party combo, this is only used when creating
+-- parties manually by a superadmin, such as creating institution parties which don't have an account.
 createParty :: ActionRoute API
 createParty = multipartAction $ action POST (pathAPI </< "party") $ \api -> withAuth $ do
   checkMemberADMIN
