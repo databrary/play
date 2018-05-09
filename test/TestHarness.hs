@@ -59,6 +59,7 @@ instance Has Entropy TestContext where
 
 -- Needed for types, but unused so far
 
+-- prefer using SiteAuth instead of Identity for test contexts
 instance Has SiteAuth TestContext where
     view = undefined
 

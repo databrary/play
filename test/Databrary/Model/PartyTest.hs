@@ -6,7 +6,10 @@ module Databrary.Model.PartyTest where
 -- import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
 -- import Control.Monad.Reader
+import qualified Data.ByteString as BS
 import Data.Maybe
+import qualified Data.Text as T
+import Data.Time
 -- import Hedgehog
 import Hedgehog.Gen as Gen
 -- import Test.Tasty
@@ -18,22 +21,78 @@ import Databrary.Model.Identity
 import Databrary.Model.Party
 import Databrary.Model.Party.TypesTest
 import Databrary.Model.Permission
+import Databrary.Model.Token
 import Databrary.Service.DB
 import TestHarness
 
--- session driving a variety of functions in party module
--- unit_Party_examples :: Assertion
--- unit_Party_examples = do
-    -- use identity not needed ident
-    -- add account w/ident
-    -- change account
-    -- lookup site auth as ...
-  
-    -- lookup site auth (test)
-    -- build fake identity + session w/auth
-    -- add an instituion account with that identity
-    -- lookupParty with created party
+mkAccount :: T.Text -> T.Text -> BS.ByteString -> Account
+mkAccount sortName preName email = 
+    let pr = (partyRow blankParty) { partySortName = sortName , partyPreName = Just preName }
+        p = blankParty { partyRow = pr, partyAccount = Just a }
+        a = blankAccount { accountParty = p, accountEmail = email }
+    in a
 
+fakeIdentSessFromAuth :: SiteAuth -> Bool -> Identity
+fakeIdentSessFromAuth a su =
+    Identified
+      (Session
+         (AccountToken (Token (Id "id") (UTCTime (fromGregorian 2017 1 2) (secondsToDiffTime 0))) a)
+         "verf"
+         su)
+
+mkInstitution :: T.Text -> Party
+mkInstitution instName =
+    blankParty {
+          partyRow = (partyRow blankParty) { partySortName = instName }
+        }
+
+-- session driving a variety of functions in party module
+unit_Party_examples :: Assertion
+unit_Party_examples = do
+    -- example of core logic within register + set password + login.
+    -- most likely same logic for creating AI or Affiliate.
+    withinTestTransaction (\cn -> do
+        let a = mkAccount "smith" "john" "john@smith.com"
+        let ident = IdentityNotNeeded
+            pid = Id (-1)
+            ctxt = TestContext { ctxConn = cn, ctxIdentity = ident, ctxPartyId = pid, ctxRequest = defaultRequest }
+        Just auth2 <-
+            runReaderT
+              (do
+                  _ <- addAccount a
+                  Just auth <- lookupSiteAuthByEmail False "john@smith.com"
+                  changeAccount auth { accountPasswd = Just "somehashedvalue" }
+                  lookupSiteAuthByEmail False "john@smith.com")
+              ctxt
+        let p = (accountParty . siteAccount) auth2
+        (accountEmail . siteAccount) auth2 @?= "john@smith.com"
+        accountPasswd auth2 @?= Just "somehashedvalue"
+        siteAccess auth2 @?= Access { accessSite' = PermissionNONE, accessMember' = PermissionNONE }
+        -- TODO: explain the values below
+        partyPermission p @?= PermissionADMIN
+        partyAccess p @?= Just (Access { accessSite' = PermissionADMIN, accessMember' = PermissionADMIN }))
+
+    -- example of core logic within login as superadmin + create instituion party + view created party
+    withinTestTransaction (\cn -> do
+        ctxt <-
+            runReaderT
+                (do
+                     Just auth <- lookupSiteAuthByEmail False "test@databrary.org"
+                     let pid = Id 7
+                         ident = fakeIdentSessFromAuth auth True
+                     pure (TestContext { ctxConn = cn, ctxIdentity = ident, ctxPartyId = pid, ctxRequest = defaultRequest }))
+                TestContext { ctxConn = cn }
+        let p = mkInstitution "New York University"
+        Just p' <-
+            runReaderT
+              (do
+                  created <- addParty p
+                  lookupParty ((partyId . partyRow) created))
+              ctxt
+        (partySortName . partyRow) p' @?= "New York University"
+        -- TODO: explain the values below
+        partyPermission p' @?= PermissionADMIN
+        partyAccess p' @?= Just (Access { accessSite' = PermissionADMIN, accessMember' = PermissionADMIN }))
 
 unit_partyName_example :: Assertion
 unit_partyName_example = do
