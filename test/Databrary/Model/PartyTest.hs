@@ -21,6 +21,20 @@ import Databrary.Model.Permission
 import Databrary.Service.DB
 import TestHarness
 
+-- session driving a variety of functions in party module
+-- unit_Party_examples :: Assertion
+-- unit_Party_examples = do
+    -- use identity not needed ident
+    -- add account w/ident
+    -- change account
+    -- lookup site auth as ...
+  
+    -- lookup site auth (test)
+    -- build fake identity + session w/auth
+    -- add an instituion account with that identity
+    -- lookupParty with created party
+
+
 unit_partyName_example :: Assertion
 unit_partyName_example = do
     (partyName . partyRow) nobodyParty @?= "Everybody"
