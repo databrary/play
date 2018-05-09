@@ -83,7 +83,8 @@ postLoginAction = \api -> withoutAuth $ do
     password <- "password" .:> deform
     superuser <- "superuser" .:> deform
     auth <- lift $ lookupSiteAuthByEmail True email
-    let p = view <$> auth
+    let p :: Maybe Party
+        p = view <$> auth
         su = superuser && any ((PermissionADMIN ==) . accessMember) auth
     attempts <- lift $ maybe (return 0) recentAccountLogins p
     let pass = checkPassword password `any` auth
