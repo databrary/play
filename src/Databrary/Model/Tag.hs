@@ -235,10 +235,37 @@ addTagUse t = either (const False) id <$> do
           (\[] -> ())))
 
 removeTagUse :: MonadDB c m => TagUse -> m Int
-removeTagUse t =
+removeTagUse t = do
+  let _tenv_a6PFr = unknownPGTypeEnv
   dbExecute
     (if tagKeyword t
-      then $(deleteTagUse True 't)
+      then -- $(deleteTagUse True 't)
+       (mapQuery2
+          ((\ _p_a6PFs _p_a6PFt _p_a6PFu ->
+                    (BSC.concat
+                       [Data.String.fromString
+                          "DELETE FROM ONLY keyword_use WHERE tag = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PFr
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6PFs,
+                        Data.String.fromString " AND container = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PFr
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6PFt,
+                        Data.String.fromString " AND segment <@ ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PFr
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "segment")
+                          _p_a6PFu]))
+            (tagId $ useTag t)
+            (containerId $ containerRow $ slotContainer $ tagSlot t)
+            (slotSegment $ tagSlot t))
+          (\[] -> ()))
       else $(deleteTagUse False 't))
 
 lookupTopTagWeight :: MonadDB c m => Int -> m [TagWeight]
