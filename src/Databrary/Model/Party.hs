@@ -340,7 +340,43 @@ addAccount ba@Account{ accountParty = bp } = do
   let pa = p{ partyAccount = Just a }
       a = ba{ accountParty = pa }
   -- Create an account with no password, and the email provided
-  dbExecute1' $(insertAccount 'ident 'a)
+  let _tenv_a6PRz = unknownPGTypeEnv
+  dbExecute1' -- (insertAccount 'ident 'a)
+   (mapQuery2
+    ((\ _p_a6PRA _p_a6PRB _p_a6PRC _p_a6PRD ->
+                    (BS.concat
+                       [Data.String.fromString
+                          "WITH audit_row AS (INSERT INTO account (id,email) VALUES (",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PRz
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6PRA,
+                        Data.String.fromString ",",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PRz
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
+                          _p_a6PRB,
+                        Data.String.fromString
+                          ") RETURNING *) INSERT INTO audit.account SELECT CURRENT_TIMESTAMP, ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PRz
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6PRC,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PRz
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                          _p_a6PRD,
+                        Data.String.fromString ", 'add'::audit.action, * FROM audit_row"]))
+      (partyId $ partyRow (accountParty a))
+      (accountEmail a)
+      (auditWho ident)
+      (auditIp ident))
+     (\ [] -> ()))
   return a
 
 removeParty :: MonadAudit c m => Party -> m Bool
