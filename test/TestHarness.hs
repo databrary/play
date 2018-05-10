@@ -6,6 +6,7 @@ module TestHarness
     -- * re-export for convenience
     , runReaderT
     , Wai.defaultRequest
+    , Id(..)
     )
     where
 
