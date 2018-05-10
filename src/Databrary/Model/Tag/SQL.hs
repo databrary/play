@@ -7,6 +7,8 @@ module Databrary.Model.Tag.SQL
   , selectTagWeight
   , selectTagCoverage
   , selectSlotTagCoverage
+  -- for expanded queries
+  , makeTagUseRow
   ) where
 
 import Data.List (intercalate)
