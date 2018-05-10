@@ -42,3 +42,11 @@ test_all =
          WAI.defaultRequest { WAI.queryString = [("param1",Nothing)] }
          @?= [Nothing])
   ]
+
+-- session of using various functions
+unit_Request_examples :: Assertion
+unit_Request_examples = do
+    not (boolQueryParameter "missingparamname" WAI.defaultRequest) @? "should be bool query param when no param isn't present"
+    requestHost (WAI.defaultRequest { WAI.isSecure = True }) @?= "https://databrary.org"
+    show (requestURI WAI.defaultRequest) @?= "http://databrary.org"
+    
