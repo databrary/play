@@ -333,10 +333,109 @@ addParty bp = do
 -- The account password will be blank. The party will not have any authorizations yet.
 addAccount :: MonadAudit c m => Account -> m Account
 addAccount ba@Account{ accountParty = bp } = do
+  let _tenv_a6PKN = unknownPGTypeEnv
   ident <- getAuditIdentity
   -- Create a party. The account will be created below, so start with no account.
   -- Load resulting party with default values for party permission and access for now.
-  p <- dbQuery1' $ fmap (\p -> Party p Nothing PermissionREAD Nothing) $(insertParty 'ident 'bp)
+  row <- dbQuery1' --  fmap (\p -> Party p Nothing PermissionREAD Nothing) -- (insertParty 'ident 'bp)
+   (mapQuery2
+      ((\ _p_a6PKO _p_a6PKP _p_a6PKQ _p_a6PKR _p_a6PKS _p_a6PKT ->
+                       (BS.concat
+                          [Data.String.fromString
+                             "WITH audit_row AS (INSERT INTO party (name,prename,affiliation,url) VALUES (",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a6PKN
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                             _p_a6PKO,
+                           Data.String.fromString ",",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a6PKN
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                             _p_a6PKP,
+                           Data.String.fromString ",",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a6PKN
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                             _p_a6PKQ,
+                           Data.String.fromString ",",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a6PKN
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                             _p_a6PKR,
+                           Data.String.fromString
+                             ") RETURNING *) INSERT INTO audit.party SELECT CURRENT_TIMESTAMP, ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a6PKN
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                             _p_a6PKS,
+                           Data.String.fromString ", ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a6PKN
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                             _p_a6PKT,
+                           Data.String.fromString
+                             ", 'add'::audit.action, * FROM audit_row RETURNING party.id,party.name,party.prename,party.orcid,party.affiliation,party.url"]))
+         (partySortName $ partyRow bp)
+         (partyPreName $ partyRow bp)
+         (partyAffiliation $ partyRow bp)
+         (partyURL $ partyRow bp)
+         (auditWho ident)
+         (auditIp ident))
+               (\ 
+                  [_cid_a6PKU,
+                   _cname_a6PKV,
+                   _cprename_a6PKX,
+                   _corcid_a6PKY,
+                   _caffiliation_a6PKZ,
+                   _curl_a6PL0]
+                  -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a6PKN
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                        _cid_a6PKU, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a6PKN
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _cname_a6PKV, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a6PKN
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _cprename_a6PKX, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a6PKN
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                        _corcid_a6PKY, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a6PKN
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _caffiliation_a6PKZ, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a6PKN
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _curl_a6PL0)))
+  let pRow =
+           (\ (vid_a6PKd, vname_a6PKe, vprename_a6PKf, vorcid_a6PKh,
+               vaffiliation_a6PKi, vurl_a6PKj)
+              -> PartyRow
+                   vid_a6PKd
+                   vname_a6PKe
+                   vprename_a6PKf
+                   vorcid_a6PKh
+                   vaffiliation_a6PKi
+                   vurl_a6PKj)
+           row
+      p = ((\pr -> Party pr Nothing PermissionREAD Nothing) pRow)
   let pa = p{ partyAccount = Just a }
       a = ba{ accountParty = pa }
   -- Create an account with no password, and the email provided
