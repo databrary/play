@@ -973,7 +973,44 @@ changeAvatar p Nothing = do
       (partyId $ partyRow p) (auditWho ident) (auditIp ident))
             (\[] -> ()))
 changeAvatar p (Just a) = do
+  let _tenv_a76iP = unknownPGTypeEnv
   ident <- getAuditIdentity
   (0 <) . fst <$> updateOrInsert
-    $(auditUpdate 'ident "avatar" [("asset", "${assetId $ assetRow a}")] "party = ${partyId $ partyRow p}" Nothing)
+    -- (auditUpdate 'ident "avatar" [("asset", "${assetId $ assetRow a}")] "party = ${partyId $ partyRow p}" Nothing)
+    (mapQuery2
+      ((\ _p_a76iQ _p_a76iR _p_a76iS _p_a76iT ->
+                    (BS.concat
+                       [Data.String.fromString
+                          "WITH audit_row AS (UPDATE avatar SET asset=",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a76iP
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a76iQ,
+                        Data.String.fromString " WHERE party = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a76iP
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a76iR,
+                        Data.String.fromString
+                          " RETURNING *) INSERT INTO audit.avatar SELECT CURRENT_TIMESTAMP, ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a76iP
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a76iS,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a76iP
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                          _p_a76iT,
+                        Data.String.fromString
+                          ", 'change'::audit.action, * FROM audit_row"]))
+        (assetId $ assetRow a)
+        (partyId $ partyRow p)
+        (auditWho ident)
+        (auditIp ident))
+            (\ [] -> ()))
     $(auditInsert 'ident "avatar" [("asset", "${assetId $ assetRow a}"), ("party", "${partyId $ partyRow p}")] Nothing)
