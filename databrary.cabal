@@ -565,6 +565,7 @@ test-suite discovered
     , Databrary.Service.CryptoTest
     , Databrary.Service.MailTest
     , Databrary.Service.PasswdTest
+    , Databrary.Solr.DocumentTest
     , Databrary.Store.AVTest
     , Databrary.Store.ConfigTest
     , Databrary.Store.FilenameTest
