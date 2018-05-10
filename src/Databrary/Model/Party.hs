@@ -52,7 +52,7 @@ import Databrary.Model.Paginate
 import Databrary.Model.Paginate.SQL
 import Databrary.Model.Permission
 import Databrary.Model.Audit
-import Databrary.Model.Audit.SQL
+-- import Databrary.Model.Audit.SQL
 import Databrary.Model.Identity.Types
 import Databrary.Model.Volume
 import Databrary.Model.Asset.Types
@@ -973,7 +973,7 @@ changeAvatar p Nothing = do
       (partyId $ partyRow p) (auditWho ident) (auditIp ident))
             (\[] -> ()))
 changeAvatar p (Just a) = do
-  let _tenv_a76iP = unknownPGTypeEnv
+  let (_tenv_a76iP, _tenv_a76jh) = (unknownPGTypeEnv, unknownPGTypeEnv)
   ident <- getAuditIdentity
   (0 <) . fst <$> updateOrInsert
     -- (auditUpdate 'ident "avatar" [("asset", "${assetId $ assetRow a}")] "party = ${partyId $ partyRow p}" Nothing)
@@ -1013,4 +1013,40 @@ changeAvatar p (Just a) = do
         (auditWho ident)
         (auditIp ident))
             (\ [] -> ()))
-    $(auditInsert 'ident "avatar" [("asset", "${assetId $ assetRow a}"), ("party", "${partyId $ partyRow p}")] Nothing)
+    -- (auditInsert 'ident "avatar" [("asset", "${assetId $ assetRow a}"), ("party", "${partyId $ partyRow p}")] Nothing)
+    (mapQuery2
+     ((\ _p_a76ji _p_a76jj _p_a76jk _p_a76jl ->
+                    (BS.concat
+                       [Data.String.fromString
+                          "WITH audit_row AS (INSERT INTO avatar (asset,party) VALUES (",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a76jh
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a76ji,
+                        Data.String.fromString ",",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a76jh
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a76jj,
+                        Data.String.fromString
+                          ") RETURNING *) INSERT INTO audit.avatar SELECT CURRENT_TIMESTAMP, ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a76jh
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a76jk,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a76jh
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                          _p_a76jl,
+                        Data.String.fromString ", 'add'::audit.action, * FROM audit_row"]))
+          (assetId $ assetRow a)
+          (partyId $ partyRow p)
+          (auditWho ident)
+          (auditIp ident))
+       (\ [] -> ()))
+    
