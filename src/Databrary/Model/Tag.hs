@@ -93,8 +93,70 @@ addTag n = do
   pure ((`Tag` n) row)
 
 lookupVolumeTagUseRows :: MonadDB c m => Volume -> m [TagUseRow]
-lookupVolumeTagUseRows v =
-  dbQuery $(selectQuery selectTagUseRow "JOIN container ON tag_use.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container.id")
+lookupVolumeTagUseRows v = do
+  let _tenv_a6PCr = unknownPGTypeEnv
+  rows <- dbQuery -- (selectQuery selectTagUseRow "JOIN container ON tag_use.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container.id")
+   (mapQuery2
+      ((\ _p_a6PCs ->
+                       (BSC.concat
+                          [Data.String.fromString
+                             "SELECT tag_use.who,tag_use.container,tag_use.segment,tag_use.tableoid = 'keyword_use'::regclass,tag.id,tag.name FROM tag_use JOIN tag ON tag_use.tag = tag.id JOIN container ON tag_use.container = container.id WHERE container.volume = ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a6PCr
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                             _p_a6PCs,
+                           Data.String.fromString " ORDER BY container.id"]))
+         (volumeId $ volumeRow v))
+               (\ 
+                  [_cwho_a6PCt,
+                   _ccontainer_a6PCu,
+                   _csegment_a6PCv,
+                   _ccolumn_a6PCw,
+                   _cid_a6PCx,
+                   _cname_a6PCy]
+                  -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a6PCr
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                        _cwho_a6PCt, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a6PCr
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                        _ccontainer_a6PCu, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a6PCr
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "segment")
+                        _csegment_a6PCv, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a6PCr
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "boolean")
+                        _ccolumn_a6PCw, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a6PCr
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                        _cid_a6PCx, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a6PCr
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
+                        _cname_a6PCy)))
+  pure
+    (fmap
+      (\ (vwho_a6PC1, vcontainer_a6PC2, vsegment_a6PC3, vregclass_a6PC4,
+          vid_a6PC5, vname_a6PC6)
+         -> ($)
+              (($)
+                 (Databrary.Model.Tag.SQL.makeTagUseRow
+                    vwho_a6PC1 vcontainer_a6PC2 vsegment_a6PC3)
+                 vregclass_a6PC4)
+              (Tag vid_a6PC5 vname_a6PC6))
+      rows)
+     
 
 addTagUse :: MonadDB c m => TagUse -> m Bool
 addTagUse t = either (const False) id <$> do
