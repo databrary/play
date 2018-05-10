@@ -36,7 +36,7 @@ import Data.Maybe (isNothing, fromMaybe)
 import Data.Monoid ((<>))
 import qualified Data.String
 import qualified Data.Text as T
-import Database.PostgreSQL.Typed (pgSQL)
+-- import Database.PostgreSQL.Typed (pgSQL)
 import Database.PostgreSQL.Typed.Query (unsafeModifyQuery)
 import Database.PostgreSQL.Typed.Dynamic (pgLiteralRep, pgLiteralString, pgSafeLiteral)
 import Database.PostgreSQL.Typed.Types
@@ -770,13 +770,70 @@ lookupSiteAuthByEmail caseInsensitive e = do
 
 auditAccountLogin :: (MonadHasRequest c m, MonadDB c m) => Bool -> Party -> BS.ByteString -> m ()
 auditAccountLogin success who email = do
+  let _tenv_a6QTK = unknownPGTypeEnv
   ip <- getRemoteIp
-  dbExecute1' [pgSQL|INSERT INTO audit.account (audit_action, audit_user, audit_ip, id, email) VALUES
-    (${if success then AuditActionOpen else AuditActionAttempt}, -1, ${ip}, ${partyId $ partyRow who}, ${email})|]
+  dbExecute1' -- [pgSQL|INSERT INTO audit.account (audit_action, audit_user, audit_ip, id, email) VALUES
+    -- (${if success then AuditActionOpen else AuditActionAttempt}, -1, ${ip}, ${partyId $ partyRow who}, ${email})|]
+   (mapQuery2
+    ((\ _p_a6QTP _p_a6QTQ _p_a6QTR _p_a6QTS ->
+                    (BS.concat
+                       [Data.String.fromString
+                          "INSERT INTO audit.account (audit_action, audit_user, audit_ip, id, email) VALUES\n\
+                          \    (",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6QTK
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "audit.action")
+                          _p_a6QTP,
+                        Data.String.fromString ", -1, ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6QTK
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                          _p_a6QTQ,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6QTK
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6QTR,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6QTK
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
+                          _p_a6QTS,
+                        Data.String.fromString ")"]))
+      (if success then AuditActionOpen else AuditActionAttempt)
+      ip
+      (partyId $ partyRow who)
+      email)
+     (\[] -> ()))
 
 recentAccountLogins :: MonadDB c m => Party -> m Int64
 recentAccountLogins who = fromMaybe 0 <$>
-  dbQuery1 [pgSQL|!SELECT count(*) FROM audit.account WHERE audit_action = 'attempt' AND id = ${partyId $ partyRow who} AND audit_time > CURRENT_TIMESTAMP - interval '1 hour'|]
+  dbQuery1 -- [pgSQL|!SELECT count(*) FROM audit.account WHERE audit_action = 'attempt' AND id = ${partyId $ partyRow who} AND audit_time > CURRENT_TIMESTAMP - interval '1 hour'|]
+    (let _tenv_a6QXO = unknownPGTypeEnv
+     in 
+       (mapQuery2
+        ((\ _p_a6QXP ->
+                    (BS.concat
+                       [Data.String.fromString
+                          "SELECT count(*) FROM audit.account WHERE audit_action = 'attempt' AND id = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6QXO
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6QXP,
+                        Data.String.fromString
+                          " AND audit_time > CURRENT_TIMESTAMP - interval '1 hour'"]))
+         (partyId $ partyRow who))
+            (\ [_ccount_a6QXQ]
+               -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                     _tenv_a6QXO
+                     (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                        Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
+                     _ccount_a6QXQ))))
 
 data PartyFilter = PartyFilter
   { partyFilterQuery :: Maybe String
