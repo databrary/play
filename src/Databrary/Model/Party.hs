@@ -383,7 +383,36 @@ removeParty :: MonadAudit c m => Party -> m Bool
 removeParty p = do
   ident <- getAuditIdentity
   dbTransaction $ handleJust (guard . isForeignKeyViolation) (\_ -> return False) $ do
-    _ <- dbExecute1 $(deleteAccount 'ident 'p)
+    let _tenv_a6PXO = unknownPGTypeEnv
+    _ <- dbExecute1 -- (deleteAccount 'ident 'p)
+     (mapQuery2
+      ((\ _p_a6PXP _p_a6PXQ _p_a6PXR ->
+                    (BS.concat
+                       [Data.String.fromString
+                          "WITH audit_row AS (DELETE FROM account WHERE id=",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PXO
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6PXP,
+                        Data.String.fromString
+                          " RETURNING *) INSERT INTO audit.account SELECT CURRENT_TIMESTAMP, ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PXO
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6PXQ,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PXO
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                          _p_a6PXR,
+                        Data.String.fromString
+                          ", 'remove'::audit.action, * FROM audit_row"]))
+       (partyId $ partyRow p) (auditWho ident) (auditIp ident))
+      (\[] -> ()))
+
     dbExecute1 $(deleteParty 'ident 'p)
 
 lookupFixedParty :: Id Party -> Identity -> Maybe Party
