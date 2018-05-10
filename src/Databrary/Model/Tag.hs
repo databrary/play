@@ -318,8 +318,41 @@ lookupSlotTagCoverage slot lim = do
   dbQuery $(selectQuery (selectSlotTagCoverage 'ident 'slot) "$!ORDER BY weight DESC LIMIT ${fromIntegral lim :: Int64}")
 
 lookupSlotKeywords :: (MonadDB c m) => Slot -> m [Tag]
-lookupSlotKeywords Slot{..} =
-  dbQuery $(selectQuery selectTag "JOIN keyword_use ON id = tag WHERE container = ${containerId $ containerRow slotContainer} AND segment = ${slotSegment}")
+lookupSlotKeywords Slot{..} = do
+  let _tenv_a6Q2M = unknownPGTypeEnv
+  rows <- dbQuery -- (selectQuery selectTag "JOIN keyword_use ON id = tag WHERE container = ${containerId $ containerRow slotContainer} AND segment = ${slotSegment}")
+    (mapQuery2
+      ((\ _p_a6Q2N _p_a6Q2O ->
+                       (BSC.concat
+                          [Data.String.fromString
+                             "SELECT tag.id,tag.name FROM tag JOIN keyword_use ON id = tag WHERE container = ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a6Q2M
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                             _p_a6Q2N,
+                           Data.String.fromString " AND segment = ",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a6Q2M
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "segment")
+                             _p_a6Q2O]))
+         (containerId $ containerRow slotContainer) slotSegment)
+               (\ [_cid_a6Q2P, _cname_a6Q2Q]
+                  -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a6Q2M
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                        _cid_a6Q2P, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a6Q2M
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
+                        _cname_a6Q2Q)))
+  pure
+    (fmap
+      (\ (vid_a6Q1R, vname_a6Q1S) -> Tag vid_a6Q1R vname_a6Q1S)
+      rows)
 
 tagWeightJSON :: JSON.ToObject o => TagWeight -> JSON.Record TagName o
 tagWeightJSON TagWeight{..} = JSON.Record (tagName tagWeightTag) $
