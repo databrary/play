@@ -51,7 +51,7 @@ span.spaces    { background: white }
 <span class="lineno">   35 </span>-- | Get the SiteAuth for the Identity, which corresponds to what privileges the Identity has
 <span class="lineno">   36 </span>-- within the site as well which Party/Account the Identity is
 <span class="lineno">   37 </span>instance Has SiteAuth Identity where
-<span class="lineno">   38 </span>  <span class="decl"><span class="istickedoff">view (Identified Session{ sessionAccountToken = AccountToken{ tokenAccount = t } }) = <span class="nottickedoff">t</span></span>
+<span class="lineno">   38 </span>  <span class="decl"><span class="istickedoff">view (Identified Session{ sessionAccountToken = AccountToken{ tokenAccount = t } }) = t</span>
 <span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">view (ReIdentified a) = <span class="nottickedoff">a</span></span>
 <span class="lineno">   40 </span><span class="spaces">  </span><span class="istickedoff">view IdentityNotNeeded = nobodySiteAuth</span>
 <span class="lineno">   41 </span><span class="spaces">  </span><span class="istickedoff">view NotLoggedIn = nobodySiteAuth</span></span>
@@ -72,7 +72,7 @@ span.spaces    { background: white }
 <span class="lineno">   56 </span>
 <span class="lineno">   57 </span>-- | Extract a value from part of a session for Identified, otherwise use the default value
 <span class="lineno">   58 </span>extractFromIdentifiedSessOrDefault :: a -&gt; (Session -&gt; a) -&gt; Identity -&gt; a
-<span class="lineno">   59 </span><span class="decl"><span class="istickedoff">extractFromIdentifiedSessOrDefault _ extractor (Identified sess) = extractor <span class="nottickedoff">sess</span></span>
+<span class="lineno">   59 </span><span class="decl"><span class="istickedoff">extractFromIdentifiedSessOrDefault _ extractor (Identified sess) = extractor sess</span>
 <span class="lineno">   60 </span><span class="spaces"></span><span class="istickedoff">extractFromIdentifiedSessOrDefault defaultVal _ _ = defaultVal</span></span>
 <span class="lineno">   61 </span>
 <span class="lineno">   62 </span>-- | Extract the secure token for state changing action, only available for logged in session identity
@@ -80,12 +80,12 @@ span.spaces    { background: white }
 <span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">identityVerf = extractFromIdentifiedSessOrDefault Nothing (Just . sessionVerf)</span></span>
 <span class="lineno">   65 </span>
 <span class="lineno">   66 </span>identitySuperuserFor :: (Access -&gt; Permission) -&gt; Identity -&gt; Bool
-<span class="lineno">   67 </span><span class="decl"><span class="istickedoff">identitySuperuserFor f (Identified t) = <span class="nottickedoff">sessionSuperuser t &amp;&amp; f (view t) == PermissionADMIN</span></span>
+<span class="lineno">   67 </span><span class="decl"><span class="istickedoff">identitySuperuserFor f (Identified t) = sessionSuperuser t &amp;&amp; f (view t) == PermissionADMIN</span>
 <span class="lineno">   68 </span><span class="spaces"></span><span class="istickedoff">identitySuperuserFor _ (ReIdentified _) = True</span>
 <span class="lineno">   69 </span><span class="spaces"></span><span class="istickedoff">identitySuperuserFor _ _ = False</span></span>
 <span class="lineno">   70 </span>
 <span class="lineno">   71 </span>identityAdmin :: Identity -&gt; Bool
-<span class="lineno">   72 </span><span class="decl"><span class="istickedoff">identityAdmin = identitySuperuserFor <span class="nottickedoff">accessMember</span></span></span>
+<span class="lineno">   72 </span><span class="decl"><span class="istickedoff">identityAdmin = identitySuperuserFor accessMember</span></span>
 <span class="lineno">   73 </span>
 <span class="lineno">   74 </span>identitySuperuser :: Identity -&gt; Bool
 <span class="lineno">   75 </span><span class="decl"><span class="istickedoff">identitySuperuser = identitySuperuserFor <span class="nottickedoff">accessPermission</span></span></span>

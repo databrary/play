@@ -91,7 +91,7 @@ span.spaces    { background: white }
 <span class="lineno">   75 </span><span class="spaces">            </span><span class="istickedoff">-- if there is no Identity associated Access, then use the viewing actors bounded permission</span>
 <span class="lineno">   76 </span><span class="spaces">            </span><span class="istickedoff">Nothing -&gt; maxDefaultDerivedFromActor</span>
 <span class="lineno">   77 </span><span class="spaces">            </span><span class="istickedoff">-- if there is an Identity Access, then max with identity's lowest access perm</span>
-<span class="lineno">   78 </span><span class="spaces">            </span><span class="istickedoff">Just accessDeduced -&gt; <span class="nottickedoff">max (accessPermission' accessDeduced) maxDefaultDerivedFromActor</span></span>
+<span class="lineno">   78 </span><span class="spaces">            </span><span class="istickedoff">Just accessDeduced -&gt; max (accessPermission' accessDeduced) maxDefaultDerivedFromActor</span>
 <span class="lineno">   79 </span><span class="spaces">    </span><span class="istickedoff">-- | Push the viewingIdent's site access permission to the highest value within Public ... Read</span>
 <span class="lineno">   80 </span><span class="spaces">    </span><span class="istickedoff">-- This default value is derived from the viewingIdent's granted databrary wide site access.</span>
 <span class="lineno">   81 </span><span class="spaces">    </span><span class="istickedoff">maxDefaultDerivedFromActor :: Permission</span>
@@ -109,16 +109,16 @@ span.spaces    { background: white }
 <span class="lineno">   93 </span><span class="spaces">      </span><span class="istickedoff">--  then allow unbounded permission on the retrieved party (self)</span>
 <span class="lineno">   94 </span><span class="spaces">      </span><span class="istickedoff">| <span class="tickonlyfalse">extractFromIdentifiedSessOrDefault</span></span>
 <span class="lineno">   95 </span><span class="spaces">              </span><span class="istickedoff"><span class="tickonlyfalse">False</span></span>
-<span class="lineno">   96 </span><span class="spaces">              </span><span class="istickedoff"><span class="tickonlyfalse"><span class="nottickedoff">(\viewingSess -&gt; (view p :: Id Party) == (view viewingSess :: Id Party))</span></span></span>
+<span class="lineno">   96 </span><span class="spaces">              </span><span class="istickedoff"><span class="tickonlyfalse">(\viewingSess -&gt; (view p :: Id Party) == (view viewingSess :: Id Party))</span></span>
 <span class="lineno">   97 </span><span class="spaces">              </span><span class="istickedoff"><span class="tickonlyfalse">viewingIdent</span> =</span>
 <span class="lineno">   98 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">Just maxBound</span></span>
 <span class="lineno">   99 </span><span class="spaces">      </span><span class="istickedoff">-- if the viewing user is a sitewide admin</span>
-<span class="lineno">  100 </span><span class="spaces">      </span><span class="istickedoff">| <span class="tickonlyfalse">identityAdmin viewingIdent</span> =</span>
-<span class="lineno">  101 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">Just</span></span>
-<span class="lineno">  102 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">(case mGrantedAccessFromPartyToViewer of</span></span>
-<span class="lineno">  103 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">Nothing -&gt; generalSiteAccessForViewer -- get access via siteauth</span></span>
-<span class="lineno">  104 </span><span class="spaces">                     </span><span class="istickedoff"><span class="nottickedoff">-- max elements between granted access and access via siteauth</span></span>
-<span class="lineno">  105 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">Just granted -&gt; granted &lt;&gt; generalSiteAccessForViewer)</span></span>
+<span class="lineno">  100 </span><span class="spaces">      </span><span class="istickedoff">| identityAdmin viewingIdent =</span>
+<span class="lineno">  101 </span><span class="spaces">            </span><span class="istickedoff">Just</span>
+<span class="lineno">  102 </span><span class="spaces">                </span><span class="istickedoff">(case mGrantedAccessFromPartyToViewer of</span>
+<span class="lineno">  103 </span><span class="spaces">                    </span><span class="istickedoff">Nothing -&gt; generalSiteAccessForViewer -- get access via siteauth</span>
+<span class="lineno">  104 </span><span class="spaces">                     </span><span class="istickedoff">-- max elements between granted access and access via siteauth</span>
+<span class="lineno">  105 </span><span class="spaces">                    </span><span class="istickedoff">Just granted -&gt; <span class="nottickedoff">granted &lt;&gt; generalSiteAccessForViewer</span>)</span>
 <span class="lineno">  106 </span><span class="spaces">      </span><span class="istickedoff">-- the viewing user is normal and someone isn't trying to edit/view themselves</span>
 <span class="lineno">  107 </span><span class="spaces">      </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> =</span>
 <span class="lineno">  108 </span><span class="spaces">            </span><span class="istickedoff">mGrantedAccessFromPartyToViewer</span>
@@ -149,10 +149,10 @@ span.spaces    { background: white }
 <span class="lineno">  133 </span><span class="spaces">    </span><span class="nottickedoff">$ accessRow &quot;authorize_valid&quot; -- optimization, should be authorize_view if we used site</span>
 <span class="lineno">  134 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
 <span class="lineno">  135 </span>
-<span class="lineno">  136 </span>-- | Used by 'makeUserAccount' and 'selectPermissionAccount'
+<span class="lineno">  136 </span>-- | Used by 'makeUserAccount' and 'selectPermissionAccount'. This finishes building the circular Party and Account structure.
 <span class="lineno">  137 </span>makeAccount :: PartyRow -&gt; (Party -&gt; Account) -&gt; Permission -&gt; Maybe Access -&gt; Account
-<span class="lineno">  138 </span><span class="decl"><span class="nottickedoff">makeAccount pr ac perm ma = a where</span>
-<span class="lineno">  139 </span><span class="spaces">  </span><span class="nottickedoff">a = ac $ Party pr (Just a) perm ma</span></span>
+<span class="lineno">  138 </span><span class="decl"><span class="istickedoff">makeAccount pr ac perm ma = a where</span>
+<span class="lineno">  139 </span><span class="spaces">  </span><span class="istickedoff">a = ac $ Party pr <span class="nottickedoff">(Just a)</span> perm ma</span></span>
 <span class="lineno">  140 </span>
 <span class="lineno">  141 </span>selectPermissionAccount :: Selector -- ^ @'Permission' -&gt; Maybe 'Access' -&gt; 'Account'@
 <span class="lineno">  142 </span><span class="decl"><span class="nottickedoff">selectPermissionAccount = selectJoin 'makeAccount</span>
@@ -171,7 +171,7 @@ span.spaces    { background: white }
 <span class="lineno">  155 </span>-- I suspect that the access object within a Party, when nested inside of a SiteAuth
 <span class="lineno">  156 </span>-- is almost never used, as the Has instances all retrieve siteAccess, not (partyAccess . accountParty . siteAccount)
 <span class="lineno">  157 </span>makeUserAccount :: (Permission -&gt; Maybe Access -&gt; Account) -&gt; Account
-<span class="lineno">  158 </span><span class="decl"><span class="nottickedoff">makeUserAccount mkAcc = mkAcc maxBound (Just maxBound)</span></span>
+<span class="lineno">  158 </span><span class="decl"><span class="istickedoff">makeUserAccount mkAcc = mkAcc maxBound (Just maxBound)</span></span>
 <span class="lineno">  159 </span>
 <span class="lineno">  160 </span>selectUserAccount :: Selector -- @'Account'
 <span class="lineno">  161 </span><span class="decl"><span class="nottickedoff">selectUserAccount = selectMap (TH.VarE 'makeUserAccount `TH.AppE`) selectPermissionAccount</span></span>
@@ -179,7 +179,7 @@ span.spaces    { background: white }
 <span class="lineno">  163 </span>-- | Build a SiteAuth object using the provided Account, possible password, and possible access object.
 <span class="lineno">  164 </span>-- If no access object is provided, then use (None, None) for the access object.
 <span class="lineno">  165 </span>makeSiteAuth :: Account -&gt; Maybe BS.ByteString -&gt; Maybe Access -&gt; SiteAuth
-<span class="lineno">  166 </span><span class="decl"><span class="nottickedoff">makeSiteAuth account mPassword mAccess = SiteAuth account mPassword (fold mAccess)</span></span>
+<span class="lineno">  166 </span><span class="decl"><span class="istickedoff">makeSiteAuth account mPassword mAccess = SiteAuth account mPassword (fold mAccess)</span></span>
 <span class="lineno">  167 </span>
 <span class="lineno">  168 </span>selectSiteAuth :: Selector -- @'SiteAuth'@
 <span class="lineno">  169 </span><span class="decl"><span class="nottickedoff">selectSiteAuth = selectJoin 'makeSiteAuth</span>

@@ -42,9 +42,9 @@
 <a name="line-33"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>tokenAccount</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SiteAuth</span>
 <a name="line-34"></a>  <span class='hs-layout'>}</span>
 <a name="line-35"></a>
-<a name="line-36"></a><a name="instance%20Has%20Token%20AccountToken"></a><span class='hs-comment'>-- makeHasRec ''AccountToken ['accountToken, 'tokenAccount]</span>
-<a name="line-37"></a><a name="instance%20Has%20Token%20AccountToken"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Token</span> <span class='hs-conid'>AccountToken</span> <span class='hs-keyword'>where</span>
-<a name="line-38"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>accountToken</span>
+<a name="line-36"></a><a name="instance%20Has%20(Id%20Token)%20AccountToken"></a><span class='hs-comment'>-- makeHasRec ''AccountToken ['accountToken, 'tokenAccount]</span>
+<a name="line-37"></a><a name="instance%20Has%20(Id%20Token)%20AccountToken"></a><span class='hs-comment'>-- instance Has Token AccountToken where</span>
+<a name="line-38"></a><a name="instance%20Has%20(Id%20Token)%20AccountToken"></a><span class='hs-comment'>--   view = accountToken</span>
 <a name="line-39"></a><a name="instance%20Has%20(Id%20Token)%20AccountToken"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Token</span><span class='hs-layout'>)</span> <span class='hs-conid'>AccountToken</span> <span class='hs-keyword'>where</span>
 <a name="line-40"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>accountToken</span><span class='hs-layout'>)</span>
 <a name="line-41"></a><a name="instance%20Has%20SiteAuth%20AccountToken"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>SiteAuth</span> <span class='hs-conid'>AccountToken</span> <span class='hs-keyword'>where</span>
@@ -97,11 +97,11 @@
 <a name="line-88"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>sessionSuperuser</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Bool</span>
 <a name="line-89"></a>  <span class='hs-layout'>}</span>
 <a name="line-90"></a>
-<a name="line-91"></a><a name="instance%20Has%20Token%20Session"></a><span class='hs-comment'>-- makeHasRec ''Session ['sessionAccountToken]</span>
-<a name="line-92"></a><a name="instance%20Has%20Token%20Session"></a><span class='hs-comment'>-- instance Has AccountToken Session where</span>
-<a name="line-93"></a><a name="instance%20Has%20Token%20Session"></a><span class='hs-comment'>--   view = sessionAccountToken</span>
-<a name="line-94"></a><a name="instance%20Has%20Token%20Session"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Token</span> <span class='hs-conid'>Session</span> <span class='hs-keyword'>where</span>
-<a name="line-95"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>sessionAccountToken</span><span class='hs-layout'>)</span>
+<a name="line-91"></a><a name="instance%20Has%20(Id%20Token)%20Session"></a><span class='hs-comment'>-- makeHasRec ''Session ['sessionAccountToken]</span>
+<a name="line-92"></a><a name="instance%20Has%20(Id%20Token)%20Session"></a><span class='hs-comment'>-- instance Has AccountToken Session where</span>
+<a name="line-93"></a><a name="instance%20Has%20(Id%20Token)%20Session"></a><span class='hs-comment'>--   view = sessionAccountToken</span>
+<a name="line-94"></a><a name="instance%20Has%20(Id%20Token)%20Session"></a><span class='hs-comment'>-- instance Has Token Session where</span>
+<a name="line-95"></a><a name="instance%20Has%20(Id%20Token)%20Session"></a><span class='hs-comment'>--   view = (view . sessionAccountToken)</span>
 <a name="line-96"></a><a name="instance%20Has%20(Id%20Token)%20Session"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Token</span><span class='hs-layout'>)</span> <span class='hs-conid'>Session</span> <span class='hs-keyword'>where</span>
 <a name="line-97"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>sessionAccountToken</span><span class='hs-layout'>)</span>
 <a name="line-98"></a><a name="instance%20Has%20Access%20Session"></a><span class='hs-comment'>-- instance Has SiteAuth Session where</span>

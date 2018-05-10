@@ -126,25 +126,27 @@
 <a name="line-117"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>siteAccess</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mempty</span>
 <a name="line-118"></a>  <span class='hs-layout'>}</span>
 <a name="line-119"></a>
-<a name="line-120"></a><a name="blankParty"></a><span class='hs-definition'>blankParty</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Party</span>
-<a name="line-121"></a><span class='hs-definition'>blankParty</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Party</span>
-<a name="line-122"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>partyRow</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>PartyRow</span>
-<a name="line-123"></a>    <span class='hs-layout'>{</span> <span class='hs-varid'>partyId</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>error</span> <span class='hs-str'>"blankParty"</span>
-<a name="line-124"></a>    <span class='hs-layout'>,</span> <span class='hs-varid'>partySortName</span> <span class='hs-keyglyph'>=</span> <span class='hs-str'>""</span>
-<a name="line-125"></a>    <span class='hs-layout'>,</span> <span class='hs-varid'>partyPreName</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
-<a name="line-126"></a>    <span class='hs-layout'>,</span> <span class='hs-varid'>partyORCID</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
-<a name="line-127"></a>    <span class='hs-layout'>,</span> <span class='hs-varid'>partyAffiliation</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
-<a name="line-128"></a>    <span class='hs-layout'>,</span> <span class='hs-varid'>partyURL</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
-<a name="line-129"></a>    <span class='hs-layout'>}</span>
-<a name="line-130"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>partyAccount</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
-<a name="line-131"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>partyPermission</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>PermissionNONE</span>
-<a name="line-132"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>partyAccess</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
-<a name="line-133"></a>  <span class='hs-layout'>}</span>
-<a name="line-134"></a>
-<a name="line-135"></a><a name="blankAccount"></a><span class='hs-definition'>blankAccount</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Account</span>
-<a name="line-136"></a><span class='hs-definition'>blankAccount</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Account</span>
-<a name="line-137"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>accountParty</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>blankParty</span><span class='hs-layout'>{</span> <span class='hs-varid'>partyAccount</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Just</span> <span class='hs-varid'>blankAccount</span> <span class='hs-layout'>}</span>
-<a name="line-138"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>accountEmail</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>error</span> <span class='hs-str'>"blankAccount"</span>
-<a name="line-139"></a>  <span class='hs-layout'>}</span>
+<a name="line-120"></a><a name="blankParty"></a><span class='hs-comment'>-- | Uninitialized Party object to be used in creating new parties (and accounts)</span>
+<a name="line-121"></a><span class='hs-definition'>blankParty</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Party</span>
+<a name="line-122"></a><span class='hs-definition'>blankParty</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Party</span>
+<a name="line-123"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>partyRow</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>PartyRow</span>
+<a name="line-124"></a>    <span class='hs-layout'>{</span> <span class='hs-varid'>partyId</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>error</span> <span class='hs-str'>"blankParty"</span>
+<a name="line-125"></a>    <span class='hs-layout'>,</span> <span class='hs-varid'>partySortName</span> <span class='hs-keyglyph'>=</span> <span class='hs-str'>""</span>
+<a name="line-126"></a>    <span class='hs-layout'>,</span> <span class='hs-varid'>partyPreName</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
+<a name="line-127"></a>    <span class='hs-layout'>,</span> <span class='hs-varid'>partyORCID</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
+<a name="line-128"></a>    <span class='hs-layout'>,</span> <span class='hs-varid'>partyAffiliation</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
+<a name="line-129"></a>    <span class='hs-layout'>,</span> <span class='hs-varid'>partyURL</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
+<a name="line-130"></a>    <span class='hs-layout'>}</span>
+<a name="line-131"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>partyAccount</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
+<a name="line-132"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>partyPermission</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>PermissionNONE</span>
+<a name="line-133"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>partyAccess</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
+<a name="line-134"></a>  <span class='hs-layout'>}</span>
+<a name="line-135"></a>
+<a name="line-136"></a><a name="blankAccount"></a><span class='hs-comment'>-- | Uninitialized Account object to be used in creating new accounts</span>
+<a name="line-137"></a><span class='hs-definition'>blankAccount</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Account</span>
+<a name="line-138"></a><span class='hs-definition'>blankAccount</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Account</span>
+<a name="line-139"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>accountParty</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>blankParty</span><span class='hs-layout'>{</span> <span class='hs-varid'>partyAccount</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Just</span> <span class='hs-varid'>blankAccount</span> <span class='hs-layout'>}</span>
+<a name="line-140"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>accountEmail</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>error</span> <span class='hs-str'>"blankAccount"</span>
+<a name="line-141"></a>  <span class='hs-layout'>}</span>
 </pre></body>
 </html>

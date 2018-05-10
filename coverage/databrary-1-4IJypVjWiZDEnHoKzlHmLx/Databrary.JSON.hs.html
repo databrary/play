@@ -61,7 +61,7 @@ span.spaces    { background: white }
 <span class="lineno">   45 </span>  <span class="decl"><span class="istickedoff">k .= v = [k .= v]</span></span>
 <span class="lineno">   46 </span>
 <span class="lineno">   47 </span>instance KeyValue Object where
-<span class="lineno">   48 </span>  <span class="decl"><span class="nottickedoff">k .= v = HM.singleton k $ toJSON v</span></span>
+<span class="lineno">   48 </span>  <span class="decl"><span class="istickedoff">k .= v = HM.singleton k $ toJSON v</span></span>
 <span class="lineno">   49 </span>
 <span class="lineno">   50 </span>class (Monoid o, KeyValue o) =&gt; ToObject o
 <span class="lineno">   51 </span>
@@ -86,14 +86,14 @@ span.spaces    { background: white }
 <span class="lineno">   70 </span>  <span class="decl"><span class="nottickedoff">nestObject k f = k .= f (UnsafeEncoding . pairs)</span></span>
 <span class="lineno">   71 </span>
 <span class="lineno">   72 </span>instance ToNestedObject [Pair] Value where
-<span class="lineno">   73 </span>  <span class="decl"><span class="nottickedoff">nestObject k f = k .= f object</span></span>
+<span class="lineno">   73 </span>  <span class="decl"><span class="istickedoff">nestObject k f = k .= f object</span></span>
 <span class="lineno">   74 </span>
 <span class="lineno">   75 </span>instance ToNestedObject Object Value where
 <span class="lineno">   76 </span>  <span class="decl"><span class="nottickedoff">nestObject k f = k .= f Object</span></span>
 <span class="lineno">   77 </span>
 <span class="lineno">   78 </span>infixr 8 .=.
 <span class="lineno">   79 </span>(.=.) :: ToNestedObject o u =&gt; T.Text -&gt; o -&gt; o
-<span class="lineno">   80 </span><span class="decl"><span class="nottickedoff">k .=. v = nestObject k (\f -&gt; f v)</span></span>
+<span class="lineno">   80 </span><span class="decl"><span class="istickedoff">k .=. v = nestObject k (\f -&gt; f v)</span></span>
 <span class="lineno">   81 </span>
 <span class="lineno">   82 </span>-- infixr 8 .=?
 <span class="lineno">   83 </span>-- (.=?) :: (ToObject o, ToJSON v) =&gt; T.Text -&gt; Maybe v -&gt; o
@@ -102,7 +102,7 @@ span.spaces    { background: white }
 <span class="lineno">   86 </span><span class="spaces"></span><span class="istickedoff">k `kvObjectOrEmpty` (Just v) = k .= v</span></span>
 <span class="lineno">   87 </span>
 <span class="lineno">   88 </span>data Record k o = Record
-<span class="lineno">   89 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">recordKey</span></span></span> :: !k
+<span class="lineno">   89 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">recordKey</span></span></span> :: !k
 <span class="lineno">   90 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_recordObject</span></span></span> :: o
 <span class="lineno">   91 </span>  }
 <span class="lineno">   92 </span>
@@ -115,7 +115,7 @@ span.spaces    { background: white }
 <span class="lineno">   99 </span><span class="decl"><span class="istickedoff">recordObject (Record k o) = (&quot;id&quot; .= k) &lt;&gt; o</span></span>
 <span class="lineno">  100 </span>
 <span class="lineno">  101 </span>recordEncoding :: ToJSON k =&gt; Record k Series -&gt; Encoding
-<span class="lineno">  102 </span><span class="decl"><span class="nottickedoff">recordEncoding = pairs . recordObject</span></span>
+<span class="lineno">  102 </span><span class="decl"><span class="istickedoff">recordEncoding = pairs . recordObject</span></span>
 <span class="lineno">  103 </span>
 <span class="lineno">  104 </span>mapRecords :: (Functor t, Foldable t, ToJSON k) =&gt; (a -&gt; Record k Series) -&gt; t a -&gt; Encoding
 <span class="lineno">  105 </span><span class="decl"><span class="nottickedoff">mapRecords toRecord objs = mapObjects (\obj -&gt; (recordObject . toRecord) obj) objs</span></span>
@@ -125,12 +125,12 @@ span.spaces    { background: white }
 <span class="lineno">  109 </span><span class="decl"><span class="nottickedoff">(.=:) k = (.=.) k . recordObject</span></span>
 <span class="lineno">  110 </span>
 <span class="lineno">  111 </span>recordMap :: (ToJSON k, ToNestedObject o u) =&gt; [Record k o] -&gt; o
-<span class="lineno">  112 </span><span class="decl"><span class="nottickedoff">recordMap = foldMap (\r -&gt; tt (toJSON $ recordKey r) .=. recordObject r) where</span>
-<span class="lineno">  113 </span><span class="spaces">  </span><span class="nottickedoff">tt (String t) = t</span>
-<span class="lineno">  114 </span><span class="spaces">  </span><span class="nottickedoff">tt v = TL.toStrict $ TLB.toLazyText $ encodeToTextBuilder v</span></span>
+<span class="lineno">  112 </span><span class="decl"><span class="istickedoff">recordMap = foldMap (\r -&gt; tt (toJSON $ recordKey r) .=. recordObject r) where</span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="istickedoff">tt (String t) = <span class="nottickedoff">t</span></span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="istickedoff">tt v = TL.toStrict $ TLB.toLazyText $ encodeToTextBuilder v</span></span>
 <span class="lineno">  115 </span>
 <span class="lineno">  116 </span>lookupAtParse :: FromJSON a =&gt; Array -&gt; Int -&gt; Parser a
-<span class="lineno">  117 </span><span class="decl"><span class="nottickedoff">a `lookupAtParse` i = maybe (fail $ &quot;index &quot; ++ show i ++ &quot; out of range&quot;) parseJSON $ a V.!? i</span></span>
+<span class="lineno">  117 </span><span class="decl"><span class="istickedoff">a `lookupAtParse` i = maybe (fail $ <span class="nottickedoff">&quot;index &quot; ++ show i ++ &quot; out of range&quot;</span>) <span class="nottickedoff">parseJSON</span> $ a V.!? i</span></span>
 <span class="lineno">  118 </span>
 <span class="lineno">  119 </span>-- (.!?) :: FromJSON a =&gt; Array -&gt; Int -&gt; Parser (Maybe a)
 <span class="lineno">  120 </span>-- a .!? i = mapM parseJSON $ a V.!? i

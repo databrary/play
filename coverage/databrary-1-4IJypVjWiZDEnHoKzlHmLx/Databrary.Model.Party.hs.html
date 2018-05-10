@@ -190,269 +190,280 @@ span.spaces    { background: white }
 <span class="lineno">  174 </span><span class="spaces">    </span><span class="nottickedoff">(\ [] -&gt; ()))</span></span>
 <span class="lineno">  175 </span>
 <span class="lineno">  176 </span>changeAccount :: MonadAudit c m =&gt; SiteAuth -&gt; m ()
-<span class="lineno">  177 </span><span class="decl"><span class="nottickedoff">changeAccount a = do</span>
-<span class="lineno">  178 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
-<span class="lineno">  179 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a6PFv = unknownPGTypeEnv</span>
-<span class="lineno">  180 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute1' -- (updateAccount 'ident 'a)</span>
-<span class="lineno">  181 </span><span class="spaces">   </span><span class="nottickedoff">(mapQuery2</span>
-<span class="lineno">  182 </span><span class="spaces">    </span><span class="nottickedoff">((\ _p_a6PFw _p_a6PFx _p_a6PFy _p_a6PFz _p_a6PFA -&gt;</span>
-<span class="lineno">  183 </span><span class="spaces">                    </span><span class="nottickedoff">(BS.concat</span>
-<span class="lineno">  184 </span><span class="spaces">                       </span><span class="nottickedoff">[Data.String.fromString</span>
-<span class="lineno">  185 </span><span class="spaces">                          </span><span class="nottickedoff">&quot;WITH audit_row AS (UPDATE account SET email=&quot;,</span>
-<span class="lineno">  186 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
-<span class="lineno">  187 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a6PFv</span>
-<span class="lineno">  188 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  189 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;character varying&quot;)</span>
-<span class="lineno">  190 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a6PFw,</span>
-<span class="lineno">  191 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot;,password=&quot;,</span>
-<span class="lineno">  192 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
-<span class="lineno">  193 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a6PFv</span>
-<span class="lineno">  194 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  195 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;character varying&quot;)</span>
-<span class="lineno">  196 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a6PFx,</span>
-<span class="lineno">  197 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot; WHERE id=&quot;,</span>
-<span class="lineno">  198 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
-<span class="lineno">  199 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a6PFv</span>
-<span class="lineno">  200 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  201 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
-<span class="lineno">  202 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a6PFy,</span>
-<span class="lineno">  203 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString</span>
-<span class="lineno">  204 </span><span class="spaces">                          </span><span class="nottickedoff">&quot; RETURNING *) INSERT INTO audit.account SELECT CURRENT_TIMESTAMP, &quot;,</span>
-<span class="lineno">  205 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
-<span class="lineno">  206 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a6PFv</span>
-<span class="lineno">  207 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  208 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
-<span class="lineno">  209 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a6PFz,</span>
-<span class="lineno">  210 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot;, &quot;,</span>
-<span class="lineno">  211 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
-<span class="lineno">  212 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a6PFv</span>
-<span class="lineno">  213 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  214 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;inet&quot;)</span>
-<span class="lineno">  215 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a6PFA,</span>
-<span class="lineno">  216 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString</span>
-<span class="lineno">  217 </span><span class="spaces">                          </span><span class="nottickedoff">&quot;, 'change'::audit.action, * FROM audit_row&quot;]))</span>
-<span class="lineno">  218 </span><span class="spaces">      </span><span class="nottickedoff">(accountEmail (siteAccount a))</span>
-<span class="lineno">  219 </span><span class="spaces">      </span><span class="nottickedoff">(accountPasswd a)</span>
-<span class="lineno">  220 </span><span class="spaces">      </span><span class="nottickedoff">(partyId $ partyRow (accountParty (siteAccount a)))</span>
-<span class="lineno">  221 </span><span class="spaces">      </span><span class="nottickedoff">(auditWho ident)</span>
-<span class="lineno">  222 </span><span class="spaces">      </span><span class="nottickedoff">(auditIp ident))</span>
-<span class="lineno">  223 </span><span class="spaces">    </span><span class="nottickedoff">(\[] -&gt; ()))</span></span>
+<span class="lineno">  177 </span><span class="decl"><span class="istickedoff">changeAccount a = do</span>
+<span class="lineno">  178 </span><span class="spaces">  </span><span class="istickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">  179 </span><span class="spaces">  </span><span class="istickedoff">let <span class="nottickedoff">_tenv_a6PFv = unknownPGTypeEnv</span></span>
+<span class="lineno">  180 </span><span class="spaces">  </span><span class="istickedoff">dbExecute1' -- (updateAccount 'ident 'a)</span>
+<span class="lineno">  181 </span><span class="spaces">   </span><span class="istickedoff">(mapQuery2</span>
+<span class="lineno">  182 </span><span class="spaces">    </span><span class="istickedoff">((\ _p_a6PFw _p_a6PFx _p_a6PFy _p_a6PFz _p_a6PFA -&gt;</span>
+<span class="lineno">  183 </span><span class="spaces">                    </span><span class="istickedoff">(BS.concat</span>
+<span class="lineno">  184 </span><span class="spaces">                       </span><span class="istickedoff">[Data.String.fromString</span>
+<span class="lineno">  185 </span><span class="spaces">                          </span><span class="istickedoff">&quot;WITH audit_row AS (UPDATE account SET email=&quot;,</span>
+<span class="lineno">  186 </span><span class="spaces">                        </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  187 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6PFv</span></span>
+<span class="lineno">  188 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  189 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;character varying&quot;)</span></span>
+<span class="lineno">  190 </span><span class="spaces">                          </span><span class="istickedoff">_p_a6PFw,</span>
+<span class="lineno">  191 </span><span class="spaces">                        </span><span class="istickedoff">Data.String.fromString &quot;,password=&quot;,</span>
+<span class="lineno">  192 </span><span class="spaces">                        </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  193 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6PFv</span></span>
+<span class="lineno">  194 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  195 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;character varying&quot;)</span></span>
+<span class="lineno">  196 </span><span class="spaces">                          </span><span class="istickedoff">_p_a6PFx,</span>
+<span class="lineno">  197 </span><span class="spaces">                        </span><span class="istickedoff">Data.String.fromString &quot; WHERE id=&quot;,</span>
+<span class="lineno">  198 </span><span class="spaces">                        </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  199 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6PFv</span></span>
+<span class="lineno">  200 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  201 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span></span>
+<span class="lineno">  202 </span><span class="spaces">                          </span><span class="istickedoff">_p_a6PFy,</span>
+<span class="lineno">  203 </span><span class="spaces">                        </span><span class="istickedoff">Data.String.fromString</span>
+<span class="lineno">  204 </span><span class="spaces">                          </span><span class="istickedoff">&quot; RETURNING *) INSERT INTO audit.account SELECT CURRENT_TIMESTAMP, &quot;,</span>
+<span class="lineno">  205 </span><span class="spaces">                        </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  206 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6PFv</span></span>
+<span class="lineno">  207 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  208 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span></span>
+<span class="lineno">  209 </span><span class="spaces">                          </span><span class="istickedoff">_p_a6PFz,</span>
+<span class="lineno">  210 </span><span class="spaces">                        </span><span class="istickedoff">Data.String.fromString &quot;, &quot;,</span>
+<span class="lineno">  211 </span><span class="spaces">                        </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  212 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6PFv</span></span>
+<span class="lineno">  213 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  214 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;inet&quot;)</span></span>
+<span class="lineno">  215 </span><span class="spaces">                          </span><span class="istickedoff">_p_a6PFA,</span>
+<span class="lineno">  216 </span><span class="spaces">                        </span><span class="istickedoff">Data.String.fromString</span>
+<span class="lineno">  217 </span><span class="spaces">                          </span><span class="istickedoff">&quot;, 'change'::audit.action, * FROM audit_row&quot;]))</span>
+<span class="lineno">  218 </span><span class="spaces">      </span><span class="istickedoff">(accountEmail (siteAccount a))</span>
+<span class="lineno">  219 </span><span class="spaces">      </span><span class="istickedoff">(accountPasswd a)</span>
+<span class="lineno">  220 </span><span class="spaces">      </span><span class="istickedoff">(partyId $ partyRow (accountParty (siteAccount a)))</span>
+<span class="lineno">  221 </span><span class="spaces">      </span><span class="istickedoff">(auditWho ident)</span>
+<span class="lineno">  222 </span><span class="spaces">      </span><span class="istickedoff">(auditIp ident))</span>
+<span class="lineno">  223 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(\[] -&gt; ())</span>)</span></span>
 <span class="lineno">  224 </span>
-<span class="lineno">  225 </span>addParty :: MonadAudit c m =&gt; Party -&gt; m Party
-<span class="lineno">  226 </span><span class="decl"><span class="nottickedoff">addParty bp = do</span>
-<span class="lineno">  227 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
-<span class="lineno">  228 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1' $ fmap (\p -&gt; Party p Nothing PermissionREAD Nothing) $(insertParty 'ident 'bp)</span></span>
-<span class="lineno">  229 </span>
-<span class="lineno">  230 </span>addAccount :: MonadAudit c m =&gt; Account -&gt; m Account
-<span class="lineno">  231 </span><span class="decl"><span class="istickedoff">addAccount ba@Account{ accountParty = bp } = do</span>
-<span class="lineno">  232 </span><span class="spaces">  </span><span class="istickedoff">ident &lt;- getAuditIdentity</span>
-<span class="lineno">  233 </span><span class="spaces">  </span><span class="istickedoff">p &lt;- dbQuery1' $ fmap (\p -&gt; Party p <span class="nottickedoff">Nothing</span> <span class="nottickedoff">PermissionREAD</span> <span class="nottickedoff">Nothing</span>) $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">insertParty 'ident 'bp</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)</span>
-<span class="lineno">  234 </span><span class="spaces">  </span><span class="istickedoff">let pa = p{ partyAccount = <span class="nottickedoff">Just a</span> }</span>
-<span class="lineno">  235 </span><span class="spaces">      </span><span class="istickedoff">a = ba{ accountParty = pa }</span>
-<span class="lineno">  236 </span><span class="spaces">  </span><span class="istickedoff">dbExecute1' $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">insertAccount 'ident 'a</span></span></span></span></span></span></span></span></span></span>)</span>
-<span class="lineno">  237 </span><span class="spaces">  </span><span class="istickedoff">return a</span></span>
-<span class="lineno">  238 </span>
-<span class="lineno">  239 </span>removeParty :: MonadAudit c m =&gt; Party -&gt; m Bool
-<span class="lineno">  240 </span><span class="decl"><span class="nottickedoff">removeParty p = do</span>
-<span class="lineno">  241 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
-<span class="lineno">  242 </span><span class="spaces">  </span><span class="nottickedoff">dbTransaction $ handleJust (guard . isForeignKeyViolation) (\_ -&gt; return False) $ do</span>
-<span class="lineno">  243 </span><span class="spaces">    </span><span class="nottickedoff">_ &lt;- dbExecute1 $(deleteAccount 'ident 'p)</span>
-<span class="lineno">  244 </span><span class="spaces">    </span><span class="nottickedoff">dbExecute1 $(deleteParty 'ident 'p)</span></span>
-<span class="lineno">  245 </span>
-<span class="lineno">  246 </span>lookupFixedParty :: Id Party -&gt; Identity -&gt; Maybe Party
-<span class="lineno">  247 </span><span class="decl"><span class="istickedoff">lookupFixedParty (Id (-1)) _ = <span class="nottickedoff">Just nobodyParty</span></span>
-<span class="lineno">  248 </span><span class="spaces"></span><span class="istickedoff">lookupFixedParty (Id 0) i =</span>
-<span class="lineno">  249 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">Just rootParty{</span></span>
-<span class="lineno">  250 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">partyPermission = accessPermission i `max` PermissionSHARED</span></span>
-<span class="lineno">  251 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">, partyAccess = (accessMember i &gt; PermissionNONE) `thenUse` (view i) }</span></span>
-<span class="lineno">  252 </span><span class="spaces"></span><span class="istickedoff">lookupFixedParty i a = <span class="nottickedoff">(view a)</span> `useWhen` (i == view a)</span></span>
+<span class="lineno">  225 </span>-- | Create a new party without an account, intended for creating institution parties.
+<span class="lineno">  226 </span>addParty :: MonadAudit c m =&gt; Party -&gt; m Party
+<span class="lineno">  227 </span><span class="decl"><span class="istickedoff">addParty bp = do</span>
+<span class="lineno">  228 </span><span class="spaces">  </span><span class="istickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">  229 </span><span class="spaces">  </span><span class="istickedoff">-- Similar to add account, load resulting party with default values for party permission and</span>
+<span class="lineno">  230 </span><span class="spaces">  </span><span class="istickedoff">-- access. </span>
+<span class="lineno">  231 </span><span class="spaces">  </span><span class="istickedoff">dbQuery1' $ fmap (\p -&gt; Party p <span class="nottickedoff">Nothing</span> <span class="nottickedoff">PermissionREAD</span> <span class="nottickedoff">Nothing</span>) $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">insertParty 'ident 'bp</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)</span></span>
+<span class="lineno">  232 </span>
+<span class="lineno">  233 </span>-- | Create a new account without any authorizations, during registration, using the nobodySiteAuth.
+<span class="lineno">  234 </span>-- The account password will be blank. The party will not have any authorizations yet.
+<span class="lineno">  235 </span>addAccount :: MonadAudit c m =&gt; Account -&gt; m Account
+<span class="lineno">  236 </span><span class="decl"><span class="istickedoff">addAccount ba@Account{ accountParty = bp } = do</span>
+<span class="lineno">  237 </span><span class="spaces">  </span><span class="istickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">  238 </span><span class="spaces">  </span><span class="istickedoff">-- Create a party. The account will be created below, so start with no account.</span>
+<span class="lineno">  239 </span><span class="spaces">  </span><span class="istickedoff">-- Load resulting party with default values for party permission and access for now.</span>
+<span class="lineno">  240 </span><span class="spaces">  </span><span class="istickedoff">p &lt;- dbQuery1' $ fmap (\p -&gt; Party p <span class="nottickedoff">Nothing</span> <span class="nottickedoff">PermissionREAD</span> <span class="nottickedoff">Nothing</span>) $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">insertParty 'ident 'bp</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)</span>
+<span class="lineno">  241 </span><span class="spaces">  </span><span class="istickedoff">let pa = p{ partyAccount = <span class="nottickedoff">Just a</span> }</span>
+<span class="lineno">  242 </span><span class="spaces">      </span><span class="istickedoff">a = ba{ accountParty = pa }</span>
+<span class="lineno">  243 </span><span class="spaces">  </span><span class="istickedoff">-- Create an account with no password, and the email provided</span>
+<span class="lineno">  244 </span><span class="spaces">  </span><span class="istickedoff">dbExecute1' $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">insertAccount 'ident 'a</span></span></span></span></span></span></span></span></span></span>)</span>
+<span class="lineno">  245 </span><span class="spaces">  </span><span class="istickedoff">return a</span></span>
+<span class="lineno">  246 </span>
+<span class="lineno">  247 </span>removeParty :: MonadAudit c m =&gt; Party -&gt; m Bool
+<span class="lineno">  248 </span><span class="decl"><span class="nottickedoff">removeParty p = do</span>
+<span class="lineno">  249 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">  250 </span><span class="spaces">  </span><span class="nottickedoff">dbTransaction $ handleJust (guard . isForeignKeyViolation) (\_ -&gt; return False) $ do</span>
+<span class="lineno">  251 </span><span class="spaces">    </span><span class="nottickedoff">_ &lt;- dbExecute1 $(deleteAccount 'ident 'p)</span>
+<span class="lineno">  252 </span><span class="spaces">    </span><span class="nottickedoff">dbExecute1 $(deleteParty 'ident 'p)</span></span>
 <span class="lineno">  253 </span>
-<span class="lineno">  254 </span>-- | Given the id for a party, ensure ... and resolve the id to the full party object. The produced party has permissions
-<span class="lineno">  255 </span>-- for the retrieving viewer baked in.
-<span class="lineno">  256 </span>lookupParty :: (MonadDB c m, MonadHasIdentity c m) =&gt; Id Party -&gt; m (Maybe Party)
-<span class="lineno">  257 </span><span class="decl"><span class="istickedoff">lookupParty i = do</span>
-<span class="lineno">  258 </span><span class="spaces">  </span><span class="istickedoff">ident &lt;- peek</span>
-<span class="lineno">  259 </span><span class="spaces">  </span><span class="istickedoff">lookupFixedParty i ident `orElseM`</span>
-<span class="lineno">  260 </span><span class="spaces">    </span><span class="istickedoff">dbQuery1 $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery (selectParty 'ident) &quot;$WHERE party.id = ${i}&quot;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)</span></span>
+<span class="lineno">  254 </span>lookupFixedParty :: Id Party -&gt; Identity -&gt; Maybe Party
+<span class="lineno">  255 </span><span class="decl"><span class="istickedoff">lookupFixedParty (Id (-1)) _ = <span class="nottickedoff">Just nobodyParty</span></span>
+<span class="lineno">  256 </span><span class="spaces"></span><span class="istickedoff">lookupFixedParty (Id 0) i =</span>
+<span class="lineno">  257 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">Just rootParty{</span></span>
+<span class="lineno">  258 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">partyPermission = accessPermission i `max` PermissionSHARED</span></span>
+<span class="lineno">  259 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">, partyAccess = (accessMember i &gt; PermissionNONE) `thenUse` (view i) }</span></span>
+<span class="lineno">  260 </span><span class="spaces"></span><span class="istickedoff">lookupFixedParty i a = <span class="nottickedoff">(view a)</span> `useWhen` (i == view a)</span></span>
 <span class="lineno">  261 </span>
-<span class="lineno">  262 </span>getDuplicateParties :: MonadDB c m =&gt; m [PartyRow]
-<span class="lineno">  263 </span><span class="decl"><span class="nottickedoff">getDuplicateParties = do</span>
-<span class="lineno">  264 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery</span>
-<span class="lineno">  265 </span><span class="spaces">    </span><span class="nottickedoff">$(selectQuery (selectPartyRow)</span>
-<span class="lineno">  266 </span><span class="spaces">        </span><span class="nottickedoff">&quot;$WHERE exists \</span>
-<span class="lineno">  267 </span><span class="spaces">        </span><span class="nottickedoff">\ (select * \</span>
-<span class="lineno">  268 </span><span class="spaces">        </span><span class="nottickedoff">\  from party p2 \</span>
-<span class="lineno">  269 </span><span class="spaces">        </span><span class="nottickedoff">\  where p2.prename = party.prename and p2.name = party.name and party.id &lt; p2.id) &quot;)</span></span>
-<span class="lineno">  270 </span>
-<span class="lineno">  271 </span>lookupPartyAuthorizations :: (MonadDB c m, MonadHasIdentity c m) =&gt; m [(Party, Maybe Permission)]
-<span class="lineno">  272 </span><span class="decl"><span class="nottickedoff">lookupPartyAuthorizations = do</span>
-<span class="lineno">  273 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
-<span class="lineno">  274 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a6Qkm = unknownPGTypeEnv</span>
-<span class="lineno">  275 </span><span class="spaces">  </span><span class="nottickedoff">rows &lt;- dbQuery -- (selectQuery (selectPartyAuthorization 'ident) &quot;WHERE party.id &gt; 0&quot;)</span>
-<span class="lineno">  276 </span><span class="spaces">   </span><span class="nottickedoff">(mapQuery2</span>
-<span class="lineno">  277 </span><span class="spaces">                      </span><span class="nottickedoff">(BS.concat</span>
-<span class="lineno">  278 </span><span class="spaces">                         </span><span class="nottickedoff">[Data.String.fromString</span>
-<span class="lineno">  279 </span><span class="spaces">                            </span><span class="nottickedoff">&quot;SELECT party.id,party.name,party.prename,party.orcid,party.affiliation,party.url,account.email,authorize_view.site,authorize_view.member FROM party LEFT JOIN account USING (id) LEFT JOIN authorize_view ON party.id = authorize_view.child AND authorize_view.parent = 0 WHERE party.id &gt; 0&quot;])</span>
-<span class="lineno">  280 </span><span class="spaces">              </span><span class="nottickedoff">(\</span>
-<span class="lineno">  281 </span><span class="spaces">                 </span><span class="nottickedoff">[_cid_a6Qkn,</span>
-<span class="lineno">  282 </span><span class="spaces">                  </span><span class="nottickedoff">_cname_a6Qko,</span>
-<span class="lineno">  283 </span><span class="spaces">                  </span><span class="nottickedoff">_cprename_a6Qkp,</span>
-<span class="lineno">  284 </span><span class="spaces">                  </span><span class="nottickedoff">_corcid_a6Qkq,</span>
-<span class="lineno">  285 </span><span class="spaces">                  </span><span class="nottickedoff">_caffiliation_a6Qkr,</span>
-<span class="lineno">  286 </span><span class="spaces">                  </span><span class="nottickedoff">_curl_a6Qks,</span>
-<span class="lineno">  287 </span><span class="spaces">                  </span><span class="nottickedoff">_cemail_a6Qkt,</span>
-<span class="lineno">  288 </span><span class="spaces">                  </span><span class="nottickedoff">_csite_a6Qku,</span>
-<span class="lineno">  289 </span><span class="spaces">                  </span><span class="nottickedoff">_cmember_a6Qkv]</span>
-<span class="lineno">  290 </span><span class="spaces">                 </span><span class="nottickedoff">-&gt; (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
-<span class="lineno">  291 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
-<span class="lineno">  292 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  293 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
-<span class="lineno">  294 </span><span class="spaces">                       </span><span class="nottickedoff">_cid_a6Qkn, </span>
-<span class="lineno">  295 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
-<span class="lineno">  296 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
-<span class="lineno">  297 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  298 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
-<span class="lineno">  299 </span><span class="spaces">                       </span><span class="nottickedoff">_cname_a6Qko, </span>
-<span class="lineno">  300 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
-<span class="lineno">  301 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
-<span class="lineno">  302 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  303 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
-<span class="lineno">  304 </span><span class="spaces">                       </span><span class="nottickedoff">_cprename_a6Qkp, </span>
-<span class="lineno">  305 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
-<span class="lineno">  306 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
-<span class="lineno">  307 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  308 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;bpchar&quot;)</span>
-<span class="lineno">  309 </span><span class="spaces">                       </span><span class="nottickedoff">_corcid_a6Qkq, </span>
-<span class="lineno">  310 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
-<span class="lineno">  311 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
-<span class="lineno">  312 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  313 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
-<span class="lineno">  314 </span><span class="spaces">                       </span><span class="nottickedoff">_caffiliation_a6Qkr, </span>
-<span class="lineno">  315 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
-<span class="lineno">  316 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
-<span class="lineno">  317 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  318 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
-<span class="lineno">  319 </span><span class="spaces">                       </span><span class="nottickedoff">_curl_a6Qks, </span>
-<span class="lineno">  320 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
-<span class="lineno">  321 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
-<span class="lineno">  322 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  323 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;character varying&quot;)</span>
-<span class="lineno">  324 </span><span class="spaces">                       </span><span class="nottickedoff">_cemail_a6Qkt, </span>
-<span class="lineno">  325 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
-<span class="lineno">  326 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
-<span class="lineno">  327 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  328 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;permission&quot;)</span>
-<span class="lineno">  329 </span><span class="spaces">                       </span><span class="nottickedoff">_csite_a6Qku, </span>
-<span class="lineno">  330 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
-<span class="lineno">  331 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
-<span class="lineno">  332 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  333 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;permission&quot;)</span>
-<span class="lineno">  334 </span><span class="spaces">                       </span><span class="nottickedoff">_cmember_a6Qkv)))</span>
-<span class="lineno">  335 </span><span class="spaces">  </span><span class="nottickedoff">pure </span>
-<span class="lineno">  336 </span><span class="spaces">     </span><span class="nottickedoff">(fmap</span>
-<span class="lineno">  337 </span><span class="spaces">      </span><span class="nottickedoff">(\ (vid_a6Qir, vname_a6Qis, vprename_a6Qit, vorcid_a6Qiu,</span>
-<span class="lineno">  338 </span><span class="spaces">          </span><span class="nottickedoff">vaffiliation_a6Qiv, vurl_a6Qiw, vemail_a6Qix, vsite_a6Qiz,</span>
-<span class="lineno">  339 </span><span class="spaces">          </span><span class="nottickedoff">vmember_a6QiA)</span>
-<span class="lineno">  340 </span><span class="spaces">         </span><span class="nottickedoff">-&gt; Databrary.Model.Party.SQL.makePartyAuthorization</span>
-<span class="lineno">  341 </span><span class="spaces">              </span><span class="nottickedoff">(Databrary.Model.Party.SQL.permissionParty</span>
-<span class="lineno">  342 </span><span class="spaces">                 </span><span class="nottickedoff">(Databrary.Model.Party.SQL.makeParty</span>
-<span class="lineno">  343 </span><span class="spaces">                    </span><span class="nottickedoff">(PartyRow</span>
-<span class="lineno">  344 </span><span class="spaces">                       </span><span class="nottickedoff">vid_a6Qir</span>
-<span class="lineno">  345 </span><span class="spaces">                       </span><span class="nottickedoff">vname_a6Qis</span>
-<span class="lineno">  346 </span><span class="spaces">                       </span><span class="nottickedoff">vprename_a6Qit</span>
-<span class="lineno">  347 </span><span class="spaces">                       </span><span class="nottickedoff">vorcid_a6Qiu</span>
-<span class="lineno">  348 </span><span class="spaces">                       </span><span class="nottickedoff">vaffiliation_a6Qiv</span>
-<span class="lineno">  349 </span><span class="spaces">                       </span><span class="nottickedoff">vurl_a6Qiw)</span>
-<span class="lineno">  350 </span><span class="spaces">                    </span><span class="nottickedoff">(do { cm_a6QiP &lt;- vemail_a6Qix;</span>
-<span class="lineno">  351 </span><span class="spaces">                          </span><span class="nottickedoff">Just (Account cm_a6QiP) }))</span>
-<span class="lineno">  352 </span><span class="spaces">                 </span><span class="nottickedoff">Nothing</span>
-<span class="lineno">  353 </span><span class="spaces">                 </span><span class="nottickedoff">ident)</span>
-<span class="lineno">  354 </span><span class="spaces">              </span><span class="nottickedoff">(do { cm_a6QiV &lt;- vsite_a6Qiz;</span>
-<span class="lineno">  355 </span><span class="spaces">                    </span><span class="nottickedoff">cm_a6QiW &lt;- vmember_a6QiA;</span>
-<span class="lineno">  356 </span><span class="spaces">                    </span><span class="nottickedoff">Just (Access cm_a6QiV cm_a6QiW) }))</span>
-<span class="lineno">  357 </span><span class="spaces">      </span><span class="nottickedoff">rows)</span></span>
-<span class="lineno">  358 </span>
-<span class="lineno">  359 </span>lookupAuthParty :: (MonadDB c m, MonadHasIdentity c m) =&gt; Id Party -&gt; m (Maybe Party)
-<span class="lineno">  360 </span><span class="decl"><span class="nottickedoff">lookupAuthParty i = do</span>
-<span class="lineno">  361 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
-<span class="lineno">  362 </span><span class="spaces">  </span><span class="nottickedoff">lookupFixedParty i ident `orElseM`</span>
-<span class="lineno">  363 </span><span class="spaces">    </span><span class="nottickedoff">dbQuery1 $(selectQuery (selectAuthParty 'ident) &quot;$WHERE party.id = ${i}&quot;)</span></span>
-<span class="lineno">  364 </span>
-<span class="lineno">  365 </span>-- | resolve email to its party and enclosing account and site authenticated identity, possibly case insensitive
-<span class="lineno">  366 </span>lookupSiteAuthByEmail
-<span class="lineno">  367 </span>    :: MonadDB c m
-<span class="lineno">  368 </span>    =&gt; Bool -- ^ be case-insensitive?
-<span class="lineno">  369 </span>    -&gt; BS.ByteString
-<span class="lineno">  370 </span>    -&gt; m (Maybe SiteAuth)
-<span class="lineno">  371 </span><span class="decl"><span class="istickedoff">lookupSiteAuthByEmail caseInsensitive e = do</span>
-<span class="lineno">  372 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- dbQuery1 $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery selectSiteAuth &quot;WHERE account.email = ${e}&quot;</span></span></span></span></span></span>)</span>
-<span class="lineno">  373 </span><span class="spaces">  </span><span class="istickedoff">if caseInsensitive &amp;&amp; isNothing r</span>
-<span class="lineno">  374 </span><span class="spaces">    </span><span class="istickedoff">then do</span>
-<span class="lineno">  375 </span><span class="spaces">      </span><span class="istickedoff">a &lt;- dbQuery $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery selectSiteAuth &quot;WHERE lower(account.email) = lower(${e}) LIMIT 2&quot;</span></span></span></span></span></span>)</span>
-<span class="lineno">  376 </span><span class="spaces">      </span><span class="istickedoff">return $ case a of</span>
-<span class="lineno">  377 </span><span class="spaces">        </span><span class="istickedoff">[x] -&gt; Just <span class="nottickedoff">x</span></span>
-<span class="lineno">  378 </span><span class="spaces">        </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">Nothing</span></span>
-<span class="lineno">  379 </span><span class="spaces">    </span><span class="istickedoff">else</span>
-<span class="lineno">  380 </span><span class="spaces">      </span><span class="istickedoff">return r</span></span>
-<span class="lineno">  381 </span>
-<span class="lineno">  382 </span>auditAccountLogin :: (MonadHasRequest c m, MonadDB c m) =&gt; Bool -&gt; Party -&gt; BS.ByteString -&gt; m ()
-<span class="lineno">  383 </span><span class="decl"><span class="nottickedoff">auditAccountLogin success who email = do</span>
-<span class="lineno">  384 </span><span class="spaces">  </span><span class="nottickedoff">ip &lt;- getRemoteIp</span>
-<span class="lineno">  385 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute1' [pgSQL|INSERT INTO audit.account (audit_action, audit_user, audit_ip, id, email) VALUES</span>
-<span class="lineno">  386 </span><span class="spaces">    </span><span class="nottickedoff">(${if success then AuditActionOpen else AuditActionAttempt}, -1, ${ip}, ${partyId $ partyRow who}, ${email})|]</span></span>
-<span class="lineno">  387 </span>
-<span class="lineno">  388 </span>recentAccountLogins :: MonadDB c m =&gt; Party -&gt; m Int64
-<span class="lineno">  389 </span><span class="decl"><span class="nottickedoff">recentAccountLogins who = fromMaybe 0 &lt;$&gt;</span>
-<span class="lineno">  390 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 [pgSQL|!SELECT count(*) FROM audit.account WHERE audit_action = 'attempt' AND id = ${partyId $ partyRow who} AND audit_time &gt; CURRENT_TIMESTAMP - interval '1 hour'|]</span></span>
-<span class="lineno">  391 </span>
-<span class="lineno">  392 </span>data PartyFilter = PartyFilter
-<span class="lineno">  393 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">partyFilterQuery</span></span></span> :: Maybe String
-<span class="lineno">  394 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">partyFilterAuthorization</span></span></span> :: Maybe Permission
-<span class="lineno">  395 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">partyFilterInstitution</span></span></span> :: Maybe Bool
-<span class="lineno">  396 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">partyFilterPaginate</span></span></span> :: Paginate
-<span class="lineno">  397 </span>  }
+<span class="lineno">  262 </span>-- | Given the id for a party, ensure ... and resolve the id to the full party object. The produced party has permissions
+<span class="lineno">  263 </span>-- for the retrieving viewer baked in.
+<span class="lineno">  264 </span>lookupParty :: (MonadDB c m, MonadHasIdentity c m) =&gt; Id Party -&gt; m (Maybe Party)
+<span class="lineno">  265 </span><span class="decl"><span class="istickedoff">lookupParty i = do</span>
+<span class="lineno">  266 </span><span class="spaces">  </span><span class="istickedoff">ident &lt;- peek</span>
+<span class="lineno">  267 </span><span class="spaces">  </span><span class="istickedoff">lookupFixedParty i ident `orElseM`</span>
+<span class="lineno">  268 </span><span class="spaces">    </span><span class="istickedoff">dbQuery1 $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery (selectParty 'ident) &quot;$WHERE party.id = ${i}&quot;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)</span></span>
+<span class="lineno">  269 </span>
+<span class="lineno">  270 </span>getDuplicateParties :: MonadDB c m =&gt; m [PartyRow]
+<span class="lineno">  271 </span><span class="decl"><span class="nottickedoff">getDuplicateParties = do</span>
+<span class="lineno">  272 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery</span>
+<span class="lineno">  273 </span><span class="spaces">    </span><span class="nottickedoff">$(selectQuery (selectPartyRow)</span>
+<span class="lineno">  274 </span><span class="spaces">        </span><span class="nottickedoff">&quot;$WHERE exists \</span>
+<span class="lineno">  275 </span><span class="spaces">        </span><span class="nottickedoff">\ (select * \</span>
+<span class="lineno">  276 </span><span class="spaces">        </span><span class="nottickedoff">\  from party p2 \</span>
+<span class="lineno">  277 </span><span class="spaces">        </span><span class="nottickedoff">\  where p2.prename = party.prename and p2.name = party.name and party.id &lt; p2.id) &quot;)</span></span>
+<span class="lineno">  278 </span>
+<span class="lineno">  279 </span>lookupPartyAuthorizations :: (MonadDB c m, MonadHasIdentity c m) =&gt; m [(Party, Maybe Permission)]
+<span class="lineno">  280 </span><span class="decl"><span class="nottickedoff">lookupPartyAuthorizations = do</span>
+<span class="lineno">  281 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
+<span class="lineno">  282 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a6Qkm = unknownPGTypeEnv</span>
+<span class="lineno">  283 </span><span class="spaces">  </span><span class="nottickedoff">rows &lt;- dbQuery -- (selectQuery (selectPartyAuthorization 'ident) &quot;WHERE party.id &gt; 0&quot;)</span>
+<span class="lineno">  284 </span><span class="spaces">   </span><span class="nottickedoff">(mapQuery2</span>
+<span class="lineno">  285 </span><span class="spaces">                      </span><span class="nottickedoff">(BS.concat</span>
+<span class="lineno">  286 </span><span class="spaces">                         </span><span class="nottickedoff">[Data.String.fromString</span>
+<span class="lineno">  287 </span><span class="spaces">                            </span><span class="nottickedoff">&quot;SELECT party.id,party.name,party.prename,party.orcid,party.affiliation,party.url,account.email,authorize_view.site,authorize_view.member FROM party LEFT JOIN account USING (id) LEFT JOIN authorize_view ON party.id = authorize_view.child AND authorize_view.parent = 0 WHERE party.id &gt; 0&quot;])</span>
+<span class="lineno">  288 </span><span class="spaces">              </span><span class="nottickedoff">(\</span>
+<span class="lineno">  289 </span><span class="spaces">                 </span><span class="nottickedoff">[_cid_a6Qkn,</span>
+<span class="lineno">  290 </span><span class="spaces">                  </span><span class="nottickedoff">_cname_a6Qko,</span>
+<span class="lineno">  291 </span><span class="spaces">                  </span><span class="nottickedoff">_cprename_a6Qkp,</span>
+<span class="lineno">  292 </span><span class="spaces">                  </span><span class="nottickedoff">_corcid_a6Qkq,</span>
+<span class="lineno">  293 </span><span class="spaces">                  </span><span class="nottickedoff">_caffiliation_a6Qkr,</span>
+<span class="lineno">  294 </span><span class="spaces">                  </span><span class="nottickedoff">_curl_a6Qks,</span>
+<span class="lineno">  295 </span><span class="spaces">                  </span><span class="nottickedoff">_cemail_a6Qkt,</span>
+<span class="lineno">  296 </span><span class="spaces">                  </span><span class="nottickedoff">_csite_a6Qku,</span>
+<span class="lineno">  297 </span><span class="spaces">                  </span><span class="nottickedoff">_cmember_a6Qkv]</span>
+<span class="lineno">  298 </span><span class="spaces">                 </span><span class="nottickedoff">-&gt; (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  299 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
+<span class="lineno">  300 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  301 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  302 </span><span class="spaces">                       </span><span class="nottickedoff">_cid_a6Qkn, </span>
+<span class="lineno">  303 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  304 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
+<span class="lineno">  305 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  306 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
+<span class="lineno">  307 </span><span class="spaces">                       </span><span class="nottickedoff">_cname_a6Qko, </span>
+<span class="lineno">  308 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  309 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
+<span class="lineno">  310 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  311 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
+<span class="lineno">  312 </span><span class="spaces">                       </span><span class="nottickedoff">_cprename_a6Qkp, </span>
+<span class="lineno">  313 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  314 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
+<span class="lineno">  315 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  316 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;bpchar&quot;)</span>
+<span class="lineno">  317 </span><span class="spaces">                       </span><span class="nottickedoff">_corcid_a6Qkq, </span>
+<span class="lineno">  318 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  319 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
+<span class="lineno">  320 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  321 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
+<span class="lineno">  322 </span><span class="spaces">                       </span><span class="nottickedoff">_caffiliation_a6Qkr, </span>
+<span class="lineno">  323 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  324 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
+<span class="lineno">  325 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  326 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
+<span class="lineno">  327 </span><span class="spaces">                       </span><span class="nottickedoff">_curl_a6Qks, </span>
+<span class="lineno">  328 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  329 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
+<span class="lineno">  330 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  331 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;character varying&quot;)</span>
+<span class="lineno">  332 </span><span class="spaces">                       </span><span class="nottickedoff">_cemail_a6Qkt, </span>
+<span class="lineno">  333 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  334 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
+<span class="lineno">  335 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  336 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;permission&quot;)</span>
+<span class="lineno">  337 </span><span class="spaces">                       </span><span class="nottickedoff">_csite_a6Qku, </span>
+<span class="lineno">  338 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  339 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
+<span class="lineno">  340 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  341 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;permission&quot;)</span>
+<span class="lineno">  342 </span><span class="spaces">                       </span><span class="nottickedoff">_cmember_a6Qkv)))</span>
+<span class="lineno">  343 </span><span class="spaces">  </span><span class="nottickedoff">pure </span>
+<span class="lineno">  344 </span><span class="spaces">     </span><span class="nottickedoff">(fmap</span>
+<span class="lineno">  345 </span><span class="spaces">      </span><span class="nottickedoff">(\ (vid_a6Qir, vname_a6Qis, vprename_a6Qit, vorcid_a6Qiu,</span>
+<span class="lineno">  346 </span><span class="spaces">          </span><span class="nottickedoff">vaffiliation_a6Qiv, vurl_a6Qiw, vemail_a6Qix, vsite_a6Qiz,</span>
+<span class="lineno">  347 </span><span class="spaces">          </span><span class="nottickedoff">vmember_a6QiA)</span>
+<span class="lineno">  348 </span><span class="spaces">         </span><span class="nottickedoff">-&gt; Databrary.Model.Party.SQL.makePartyAuthorization</span>
+<span class="lineno">  349 </span><span class="spaces">              </span><span class="nottickedoff">(Databrary.Model.Party.SQL.permissionParty</span>
+<span class="lineno">  350 </span><span class="spaces">                 </span><span class="nottickedoff">(Databrary.Model.Party.SQL.makeParty</span>
+<span class="lineno">  351 </span><span class="spaces">                    </span><span class="nottickedoff">(PartyRow</span>
+<span class="lineno">  352 </span><span class="spaces">                       </span><span class="nottickedoff">vid_a6Qir</span>
+<span class="lineno">  353 </span><span class="spaces">                       </span><span class="nottickedoff">vname_a6Qis</span>
+<span class="lineno">  354 </span><span class="spaces">                       </span><span class="nottickedoff">vprename_a6Qit</span>
+<span class="lineno">  355 </span><span class="spaces">                       </span><span class="nottickedoff">vorcid_a6Qiu</span>
+<span class="lineno">  356 </span><span class="spaces">                       </span><span class="nottickedoff">vaffiliation_a6Qiv</span>
+<span class="lineno">  357 </span><span class="spaces">                       </span><span class="nottickedoff">vurl_a6Qiw)</span>
+<span class="lineno">  358 </span><span class="spaces">                    </span><span class="nottickedoff">(do { cm_a6QiP &lt;- vemail_a6Qix;</span>
+<span class="lineno">  359 </span><span class="spaces">                          </span><span class="nottickedoff">Just (Account cm_a6QiP) }))</span>
+<span class="lineno">  360 </span><span class="spaces">                 </span><span class="nottickedoff">Nothing</span>
+<span class="lineno">  361 </span><span class="spaces">                 </span><span class="nottickedoff">ident)</span>
+<span class="lineno">  362 </span><span class="spaces">              </span><span class="nottickedoff">(do { cm_a6QiV &lt;- vsite_a6Qiz;</span>
+<span class="lineno">  363 </span><span class="spaces">                    </span><span class="nottickedoff">cm_a6QiW &lt;- vmember_a6QiA;</span>
+<span class="lineno">  364 </span><span class="spaces">                    </span><span class="nottickedoff">Just (Access cm_a6QiV cm_a6QiW) }))</span>
+<span class="lineno">  365 </span><span class="spaces">      </span><span class="nottickedoff">rows)</span></span>
+<span class="lineno">  366 </span>
+<span class="lineno">  367 </span>-- | Find a party by id, populating the party's permission based on
+<span class="lineno">  368 </span>-- a complicated set of cascading rules that determines the current viewer's
+<span class="lineno">  369 </span>-- permissions over the party.
+<span class="lineno">  370 </span>lookupAuthParty :: (MonadDB c m, MonadHasIdentity c m) =&gt; Id Party -&gt; m (Maybe Party)
+<span class="lineno">  371 </span><span class="decl"><span class="nottickedoff">lookupAuthParty i = do</span>
+<span class="lineno">  372 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
+<span class="lineno">  373 </span><span class="spaces">  </span><span class="nottickedoff">lookupFixedParty i ident `orElseM`</span>
+<span class="lineno">  374 </span><span class="spaces">    </span><span class="nottickedoff">dbQuery1 $(selectQuery (selectAuthParty 'ident) &quot;$WHERE party.id = ${i}&quot;)</span></span>
+<span class="lineno">  375 </span>
+<span class="lineno">  376 </span>-- | resolve email to its party and enclosing account and site authenticated identity, possibly case insensitive
+<span class="lineno">  377 </span>lookupSiteAuthByEmail
+<span class="lineno">  378 </span>    :: MonadDB c m
+<span class="lineno">  379 </span>    =&gt; Bool -- ^ be case-insensitive?
+<span class="lineno">  380 </span>    -&gt; BS.ByteString
+<span class="lineno">  381 </span>    -&gt; m (Maybe SiteAuth)
+<span class="lineno">  382 </span><span class="decl"><span class="istickedoff">lookupSiteAuthByEmail caseInsensitive e = do</span>
+<span class="lineno">  383 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- dbQuery1 $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery selectSiteAuth &quot;WHERE account.email = ${e}&quot;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)</span>
+<span class="lineno">  384 </span><span class="spaces">  </span><span class="istickedoff">if caseInsensitive &amp;&amp; isNothing r</span>
+<span class="lineno">  385 </span><span class="spaces">    </span><span class="istickedoff">then do</span>
+<span class="lineno">  386 </span><span class="spaces">      </span><span class="istickedoff">a &lt;- dbQuery $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery selectSiteAuth &quot;WHERE lower(account.email) = lower(${e}) LIMIT 2&quot;</span></span></span></span></span></span>)</span>
+<span class="lineno">  387 </span><span class="spaces">      </span><span class="istickedoff">return $ case a of</span>
+<span class="lineno">  388 </span><span class="spaces">        </span><span class="istickedoff">[x] -&gt; Just <span class="nottickedoff">x</span></span>
+<span class="lineno">  389 </span><span class="spaces">        </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">Nothing</span></span>
+<span class="lineno">  390 </span><span class="spaces">    </span><span class="istickedoff">else</span>
+<span class="lineno">  391 </span><span class="spaces">      </span><span class="istickedoff">return r</span></span>
+<span class="lineno">  392 </span>
+<span class="lineno">  393 </span>auditAccountLogin :: (MonadHasRequest c m, MonadDB c m) =&gt; Bool -&gt; Party -&gt; BS.ByteString -&gt; m ()
+<span class="lineno">  394 </span><span class="decl"><span class="nottickedoff">auditAccountLogin success who email = do</span>
+<span class="lineno">  395 </span><span class="spaces">  </span><span class="nottickedoff">ip &lt;- getRemoteIp</span>
+<span class="lineno">  396 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute1' [pgSQL|INSERT INTO audit.account (audit_action, audit_user, audit_ip, id, email) VALUES</span>
+<span class="lineno">  397 </span><span class="spaces">    </span><span class="nottickedoff">(${if success then AuditActionOpen else AuditActionAttempt}, -1, ${ip}, ${partyId $ partyRow who}, ${email})|]</span></span>
 <span class="lineno">  398 </span>
-<span class="lineno">  399 </span>instance Monoid PartyFilter where
-<span class="lineno">  400 </span>  <span class="decl"><span class="nottickedoff">mempty = PartyFilter Nothing Nothing Nothing def</span></span>
-<span class="lineno">  401 </span>  <span class="decl"><span class="nottickedoff">mappend (PartyFilter q1 a1 i1 p) (PartyFilter q2 a2 i2 _) =</span>
-<span class="lineno">  402 </span><span class="spaces">    </span><span class="nottickedoff">PartyFilter (q1 &lt;&gt; q2) (a1 &lt;|&gt; a2) (i1 &lt;|&gt; i2) p</span></span>
-<span class="lineno">  403 </span>
-<span class="lineno">  404 </span>partyFilter :: PartyFilter -&gt; Identity -&gt; BS.ByteString
-<span class="lineno">  405 </span><span class="decl"><span class="nottickedoff">partyFilter PartyFilter{..} ident = BS.concat</span>
-<span class="lineno">  406 </span><span class="spaces">  </span><span class="nottickedoff">[ withq partyFilterAuthorization (const &quot; JOIN authorize_view ON party.id = child AND parent = 0&quot;)</span>
-<span class="lineno">  407 </span><span class="spaces">  </span><span class="nottickedoff">, &quot; WHERE id &gt; 0 AND id != &quot;, pgLiteralRep (partyId $ partyRow $ staffParty)</span>
-<span class="lineno">  408 </span><span class="spaces">  </span><span class="nottickedoff">, withq partyFilterQuery (\n -&gt; &quot; AND &quot; &lt;&gt; queryVal &lt;&gt; &quot; ILIKE &quot; &lt;&gt; pgLiteralRep (wordPat n))</span>
-<span class="lineno">  409 </span><span class="spaces">  </span><span class="nottickedoff">, withq partyFilterAuthorization (\a -&gt; &quot; AND site = &quot; &lt;&gt; pgSafeLiteral a)</span>
-<span class="lineno">  410 </span><span class="spaces">  </span><span class="nottickedoff">, withq partyFilterInstitution (\i -&gt; if i then &quot; AND account.id IS NULL&quot; else &quot; AND account.password IS NOT NULL&quot;)</span>
-<span class="lineno">  411 </span><span class="spaces">  </span><span class="nottickedoff">, &quot; ORDER BY name, prename &quot;</span>
-<span class="lineno">  412 </span><span class="spaces">  </span><span class="nottickedoff">, paginateSQL partyFilterPaginate</span>
-<span class="lineno">  413 </span><span class="spaces">  </span><span class="nottickedoff">]</span>
-<span class="lineno">  414 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
-<span class="lineno">  415 </span><span class="spaces">  </span><span class="nottickedoff">withq v f = maybe &quot;&quot; f v</span>
-<span class="lineno">  416 </span><span class="spaces">  </span><span class="nottickedoff">wordPat = intercalate &quot;%&quot; . (&quot;&quot;:) . (++[&quot;&quot;]) . words</span>
-<span class="lineno">  417 </span><span class="spaces">  </span><span class="nottickedoff">queryVal</span>
-<span class="lineno">  418 </span><span class="spaces">    </span><span class="nottickedoff">| showEmail ident = &quot;(COALESCE(prename || ' ', '') || name || COALESCE(' ' || email, ''))&quot;</span>
-<span class="lineno">  419 </span><span class="spaces">    </span><span class="nottickedoff">| otherwise = &quot;(COALESCE(prename || ' ', '') || name)&quot;</span></span>
-<span class="lineno">  420 </span>
-<span class="lineno">  421 </span>findParties :: (MonadHasIdentity c m, MonadDB c m) =&gt; PartyFilter -&gt; m [Party]
-<span class="lineno">  422 </span><span class="decl"><span class="nottickedoff">findParties pf = do</span>
-<span class="lineno">  423 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
-<span class="lineno">  424 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ unsafeModifyQuery $(selectQuery (selectParty 'ident) &quot;&quot;)</span>
-<span class="lineno">  425 </span><span class="spaces">    </span><span class="nottickedoff">(&lt;&gt; partyFilter pf ident)</span></span>
-<span class="lineno">  426 </span>
-<span class="lineno">  427 </span>lookupAvatar :: MonadDB c m =&gt; Id Party -&gt; m (Maybe Asset)
-<span class="lineno">  428 </span><span class="decl"><span class="nottickedoff">lookupAvatar p =</span>
-<span class="lineno">  429 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 $ (`Asset` coreVolume) &lt;$&gt; $(selectQuery selectAssetRow $ &quot;$JOIN avatar ON asset.id = avatar.asset WHERE avatar.party = ${p} AND asset.volume = &quot; ++ pgLiteralString (volumeId $ volumeRow coreVolume))</span></span>
-<span class="lineno">  430 </span>
-<span class="lineno">  431 </span>changeAvatar :: MonadAudit c m =&gt; Party -&gt; Maybe Asset -&gt; m Bool
-<span class="lineno">  432 </span><span class="decl"><span class="nottickedoff">changeAvatar p Nothing = do</span>
-<span class="lineno">  433 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
-<span class="lineno">  434 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute1 $(auditDelete 'ident &quot;avatar&quot; &quot;party = ${partyId $ partyRow p}&quot; Nothing)</span>
-<span class="lineno">  435 </span><span class="spaces"></span><span class="nottickedoff">changeAvatar p (Just a) = do</span>
-<span class="lineno">  436 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
-<span class="lineno">  437 </span><span class="spaces">  </span><span class="nottickedoff">(0 &lt;) . fst &lt;$&gt; updateOrInsert</span>
-<span class="lineno">  438 </span><span class="spaces">    </span><span class="nottickedoff">$(auditUpdate 'ident &quot;avatar&quot; [(&quot;asset&quot;, &quot;${assetId $ assetRow a}&quot;)] &quot;party = ${partyId $ partyRow p}&quot; Nothing)</span>
-<span class="lineno">  439 </span><span class="spaces">    </span><span class="nottickedoff">$(auditInsert 'ident &quot;avatar&quot; [(&quot;asset&quot;, &quot;${assetId $ assetRow a}&quot;), (&quot;party&quot;, &quot;${partyId $ partyRow p}&quot;)] Nothing)</span></span>
+<span class="lineno">  399 </span>recentAccountLogins :: MonadDB c m =&gt; Party -&gt; m Int64
+<span class="lineno">  400 </span><span class="decl"><span class="nottickedoff">recentAccountLogins who = fromMaybe 0 &lt;$&gt;</span>
+<span class="lineno">  401 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 [pgSQL|!SELECT count(*) FROM audit.account WHERE audit_action = 'attempt' AND id = ${partyId $ partyRow who} AND audit_time &gt; CURRENT_TIMESTAMP - interval '1 hour'|]</span></span>
+<span class="lineno">  402 </span>
+<span class="lineno">  403 </span>data PartyFilter = PartyFilter
+<span class="lineno">  404 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">partyFilterQuery</span></span></span> :: Maybe String
+<span class="lineno">  405 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">partyFilterAuthorization</span></span></span> :: Maybe Permission
+<span class="lineno">  406 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">partyFilterInstitution</span></span></span> :: Maybe Bool
+<span class="lineno">  407 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">partyFilterPaginate</span></span></span> :: Paginate
+<span class="lineno">  408 </span>  }
+<span class="lineno">  409 </span>
+<span class="lineno">  410 </span>instance Monoid PartyFilter where
+<span class="lineno">  411 </span>  <span class="decl"><span class="nottickedoff">mempty = PartyFilter Nothing Nothing Nothing def</span></span>
+<span class="lineno">  412 </span>  <span class="decl"><span class="nottickedoff">mappend (PartyFilter q1 a1 i1 p) (PartyFilter q2 a2 i2 _) =</span>
+<span class="lineno">  413 </span><span class="spaces">    </span><span class="nottickedoff">PartyFilter (q1 &lt;&gt; q2) (a1 &lt;|&gt; a2) (i1 &lt;|&gt; i2) p</span></span>
+<span class="lineno">  414 </span>
+<span class="lineno">  415 </span>partyFilter :: PartyFilter -&gt; Identity -&gt; BS.ByteString
+<span class="lineno">  416 </span><span class="decl"><span class="nottickedoff">partyFilter PartyFilter{..} ident = BS.concat</span>
+<span class="lineno">  417 </span><span class="spaces">  </span><span class="nottickedoff">[ withq partyFilterAuthorization (const &quot; JOIN authorize_view ON party.id = child AND parent = 0&quot;)</span>
+<span class="lineno">  418 </span><span class="spaces">  </span><span class="nottickedoff">, &quot; WHERE id &gt; 0 AND id != &quot;, pgLiteralRep (partyId $ partyRow $ staffParty)</span>
+<span class="lineno">  419 </span><span class="spaces">  </span><span class="nottickedoff">, withq partyFilterQuery (\n -&gt; &quot; AND &quot; &lt;&gt; queryVal &lt;&gt; &quot; ILIKE &quot; &lt;&gt; pgLiteralRep (wordPat n))</span>
+<span class="lineno">  420 </span><span class="spaces">  </span><span class="nottickedoff">, withq partyFilterAuthorization (\a -&gt; &quot; AND site = &quot; &lt;&gt; pgSafeLiteral a)</span>
+<span class="lineno">  421 </span><span class="spaces">  </span><span class="nottickedoff">, withq partyFilterInstitution (\i -&gt; if i then &quot; AND account.id IS NULL&quot; else &quot; AND account.password IS NOT NULL&quot;)</span>
+<span class="lineno">  422 </span><span class="spaces">  </span><span class="nottickedoff">, &quot; ORDER BY name, prename &quot;</span>
+<span class="lineno">  423 </span><span class="spaces">  </span><span class="nottickedoff">, paginateSQL partyFilterPaginate</span>
+<span class="lineno">  424 </span><span class="spaces">  </span><span class="nottickedoff">]</span>
+<span class="lineno">  425 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  426 </span><span class="spaces">  </span><span class="nottickedoff">withq v f = maybe &quot;&quot; f v</span>
+<span class="lineno">  427 </span><span class="spaces">  </span><span class="nottickedoff">wordPat = intercalate &quot;%&quot; . (&quot;&quot;:) . (++[&quot;&quot;]) . words</span>
+<span class="lineno">  428 </span><span class="spaces">  </span><span class="nottickedoff">queryVal</span>
+<span class="lineno">  429 </span><span class="spaces">    </span><span class="nottickedoff">| showEmail ident = &quot;(COALESCE(prename || ' ', '') || name || COALESCE(' ' || email, ''))&quot;</span>
+<span class="lineno">  430 </span><span class="spaces">    </span><span class="nottickedoff">| otherwise = &quot;(COALESCE(prename || ' ', '') || name)&quot;</span></span>
+<span class="lineno">  431 </span>
+<span class="lineno">  432 </span>findParties :: (MonadHasIdentity c m, MonadDB c m) =&gt; PartyFilter -&gt; m [Party]
+<span class="lineno">  433 </span><span class="decl"><span class="nottickedoff">findParties pf = do</span>
+<span class="lineno">  434 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
+<span class="lineno">  435 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ unsafeModifyQuery $(selectQuery (selectParty 'ident) &quot;&quot;)</span>
+<span class="lineno">  436 </span><span class="spaces">    </span><span class="nottickedoff">(&lt;&gt; partyFilter pf ident)</span></span>
+<span class="lineno">  437 </span>
+<span class="lineno">  438 </span>lookupAvatar :: MonadDB c m =&gt; Id Party -&gt; m (Maybe Asset)
+<span class="lineno">  439 </span><span class="decl"><span class="nottickedoff">lookupAvatar p =</span>
+<span class="lineno">  440 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 $ (`Asset` coreVolume) &lt;$&gt; $(selectQuery selectAssetRow $ &quot;$JOIN avatar ON asset.id = avatar.asset WHERE avatar.party = ${p} AND asset.volume = &quot; ++ pgLiteralString (volumeId $ volumeRow coreVolume))</span></span>
+<span class="lineno">  441 </span>
+<span class="lineno">  442 </span>changeAvatar :: MonadAudit c m =&gt; Party -&gt; Maybe Asset -&gt; m Bool
+<span class="lineno">  443 </span><span class="decl"><span class="nottickedoff">changeAvatar p Nothing = do</span>
+<span class="lineno">  444 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">  445 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute1 $(auditDelete 'ident &quot;avatar&quot; &quot;party = ${partyId $ partyRow p}&quot; Nothing)</span>
+<span class="lineno">  446 </span><span class="spaces"></span><span class="nottickedoff">changeAvatar p (Just a) = do</span>
+<span class="lineno">  447 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">  448 </span><span class="spaces">  </span><span class="nottickedoff">(0 &lt;) . fst &lt;$&gt; updateOrInsert</span>
+<span class="lineno">  449 </span><span class="spaces">    </span><span class="nottickedoff">$(auditUpdate 'ident &quot;avatar&quot; [(&quot;asset&quot;, &quot;${assetId $ assetRow a}&quot;)] &quot;party = ${partyId $ partyRow p}&quot; Nothing)</span>
+<span class="lineno">  450 </span><span class="spaces">    </span><span class="nottickedoff">$(auditInsert 'ident &quot;avatar&quot; [(&quot;asset&quot;, &quot;${assetId $ assetRow a}&quot;), (&quot;party&quot;, &quot;${partyId $ partyRow p}&quot;)] Nothing)</span></span>
 
 </pre>
 </body>
