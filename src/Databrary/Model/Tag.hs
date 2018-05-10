@@ -160,9 +160,44 @@ lookupVolumeTagUseRows v = do
 
 addTagUse :: MonadDB c m => TagUse -> m Bool
 addTagUse t = either (const False) id <$> do
+  let _tenv_a6PDJ = unknownPGTypeEnv
   dbTryJust (guard . isExclusionViolation)
     $ dbExecute1 (if tagKeyword t
-      then $(insertTagUse True 't)
+      then -- (insertTagUse True 't)
+       (mapQuery2
+         ((\ _p_a6PDK _p_a6PDL _p_a6PDM _p_a6PDN ->
+                         (BSC.concat
+                            [Data.String.fromString
+                               "INSERT INTO keyword_use (tag, container, segment, who) VALUES (",
+                             Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                               _tenv_a6PDJ
+                               (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                  Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                               _p_a6PDK,
+                             Data.String.fromString ", ",
+                             Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                               _tenv_a6PDJ
+                               (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                  Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                               _p_a6PDL,
+                             Data.String.fromString ", ",
+                             Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                               _tenv_a6PDJ
+                               (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                  Database.PostgreSQL.Typed.Types.PGTypeName "segment")
+                               _p_a6PDM,
+                             Data.String.fromString ", ",
+                             Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                               _tenv_a6PDJ
+                               (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                  Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                               _p_a6PDN,
+                             Data.String.fromString ")"]))
+           (tagId $ useTag t)
+           (containerId $ containerRow $ slotContainer $ tagSlot t)
+           (slotSegment $ tagSlot t)
+           (partyId $ partyRow $ accountParty $ tagWho t))
+         (\[] -> ()))
       else $(insertTagUse False 't))
 
 removeTagUse :: MonadDB c m => TagUse -> m Int
