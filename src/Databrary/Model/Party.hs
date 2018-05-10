@@ -866,10 +866,76 @@ partyFilter PartyFilter{..} ident = BS.concat
 
 findParties :: (MonadHasIdentity c m, MonadDB c m) => PartyFilter -> m [Party]
 findParties pf = do
+  let _tenv_a6R7j = unknownPGTypeEnv
   ident <- peek
-  dbQuery $ unsafeModifyQuery $(selectQuery (selectParty 'ident) "")
+  rows <- dbQuery $ unsafeModifyQuery -- (selectQuery (selectParty 'ident) "")
+    (mapQuery2
+       (BS.concat
+            [Data.String.fromString
+                "SELECT party.id,party.name,party.prename,party.orcid,party.affiliation,party.url,account.email FROM party LEFT JOIN account USING (id) "])
+        (\ 
+           [_cid_a6R7m,
+            _cname_a6R7o,
+            _cprename_a6R7p,
+            _corcid_a6R7q,
+            _caffiliation_a6R7r,
+            _curl_a6R7s,
+            _cemail_a6R7t]
+           -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                 _tenv_a6R7j
+                 (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                    Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                 _cid_a6R7m, 
+               Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                 _tenv_a6R7j
+                 (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                    Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                 _cname_a6R7o, 
+               Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                 _tenv_a6R7j
+                 (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                    Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                 _cprename_a6R7p, 
+               Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                 _tenv_a6R7j
+                 (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                    Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                 _corcid_a6R7q, 
+               Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                 _tenv_a6R7j
+                 (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                    Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                 _caffiliation_a6R7r, 
+               Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                 _tenv_a6R7j
+                 (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                    Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                 _curl_a6R7s, 
+               Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                 _tenv_a6R7j
+                 (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                    Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
+                 _cemail_a6R7t)))
     (<> partyFilter pf ident)
-
+  pure
+    (fmap
+      (\ (vid_a6R3R, vname_a6R3S, vprename_a6R3T, vorcid_a6R3U,
+          vaffiliation_a6R3V, vurl_a6R3W, vemail_a6R3X)
+         -> Databrary.Model.Party.SQL.permissionParty
+              (Databrary.Model.Party.SQL.makeParty
+                 (PartyRow
+                    vid_a6R3R
+                    vname_a6R3S
+                    vprename_a6R3T
+                    vorcid_a6R3U
+                    vaffiliation_a6R3V
+                    vurl_a6R3W)
+                 (do { cm_a6R44 <- vemail_a6R3X;
+                       Just (Account cm_a6R44) }))
+              Nothing
+              ident)
+      rows)
+    
 lookupAvatar :: MonadDB c m => Id Party -> m (Maybe Asset)
 lookupAvatar p =
   dbQuery1 $ (`Asset` coreVolume) <$> $(selectQuery selectAssetRow $ "$JOIN avatar ON asset.id = avatar.asset WHERE avatar.party = ${p} AND asset.volume = " ++ pgLiteralString (volumeId $ volumeRow coreVolume))
