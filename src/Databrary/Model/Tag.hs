@@ -160,7 +160,7 @@ lookupVolumeTagUseRows v = do
 
 addTagUse :: MonadDB c m => TagUse -> m Bool
 addTagUse t = either (const False) id <$> do
-  let _tenv_a6PDJ = unknownPGTypeEnv
+  let (_tenv_a6PDJ, _tenv_a6PEH) = (unknownPGTypeEnv, unknownPGTypeEnv)
   dbTryJust (guard . isExclusionViolation)
     $ dbExecute1 (if tagKeyword t
       then -- (insertTagUse True 't)
@@ -198,7 +198,41 @@ addTagUse t = either (const False) id <$> do
            (slotSegment $ tagSlot t)
            (partyId $ partyRow $ accountParty $ tagWho t))
          (\[] -> ()))
-      else $(insertTagUse False 't))
+      else -- (insertTagUse False 't))
+       (mapQuery2
+         ((\ _p_a6PEI _p_a6PEJ _p_a6PEK _p_a6PEL ->
+                    (BSC.concat
+                       [Data.String.fromString
+                          "INSERT INTO tag_use (tag, container, segment, who) VALUES (",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PEH
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6PEI,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PEH
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6PEJ,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PEH
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "segment")
+                          _p_a6PEK,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a6PEH
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a6PEL,
+                        Data.String.fromString ")"]))
+           (tagId $ useTag t)
+           (containerId $ containerRow $ slotContainer $ tagSlot t)
+           (slotSegment $ tagSlot t)
+           (partyId $ partyRow $ accountParty $ tagWho t))
+          (\[] -> ())))
 
 removeTagUse :: MonadDB c m => TagUse -> m Int
 removeTagUse t =
