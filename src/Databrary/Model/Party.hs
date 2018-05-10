@@ -942,8 +942,36 @@ lookupAvatar p =
 
 changeAvatar :: MonadAudit c m => Party -> Maybe Asset -> m Bool
 changeAvatar p Nothing = do
+  let _tenv_a76io = unknownPGTypeEnv
   ident <- getAuditIdentity
-  dbExecute1 $(auditDelete 'ident "avatar" "party = ${partyId $ partyRow p}" Nothing)
+  dbExecute1 -- (auditDelete 'ident "avatar" "party = ${partyId $ partyRow p}" Nothing)
+   (mapQuery2
+    ((\ _p_a76ip _p_a76iq _p_a76ir ->
+                    (BS.concat
+                       [Data.String.fromString
+                          "WITH audit_row AS (DELETE FROM avatar WHERE party = ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a76io
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a76ip,
+                        Data.String.fromString
+                          " RETURNING *) INSERT INTO audit.avatar SELECT CURRENT_TIMESTAMP, ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a76io
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a76iq,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a76io
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                          _p_a76ir,
+                        Data.String.fromString
+                          ", 'remove'::audit.action, * FROM audit_row"]))
+      (partyId $ partyRow p) (auditWho ident) (auditIp ident))
+            (\[] -> ()))
 changeAvatar p (Just a) = do
   ident <- getAuditIdentity
   (0 <) . fst <$> updateOrInsert
