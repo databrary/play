@@ -667,7 +667,101 @@ lookupSiteAuthByEmail caseInsensitive e = do
             mRow
   if caseInsensitive && isNothing r
     then do
-      a <- dbQuery $(selectQuery selectSiteAuth "WHERE lower(account.email) = lower(${e}) LIMIT 2")
+      let _tenv_a6QN9 = unknownPGTypeEnv
+      rows <- dbQuery -- (selectQuery selectSiteAuth "WHERE lower(account.email) = lower(${e}) LIMIT 2")
+         (mapQuery2
+           ((\ _p_a6QNa ->
+                       (BS.concat
+                          [Data.String.fromString
+                             "SELECT party.id,party.name,party.prename,party.orcid,party.affiliation,party.url,account.email,account.password,authorize_view.site,authorize_view.member FROM party JOIN account USING (id) LEFT JOIN authorize_view ON account.id = authorize_view.child AND authorize_view.parent = 0 WHERE lower(account.email) = lower(",
+                           Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                             _tenv_a6QN9
+                             (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                             _p_a6QNa,
+                           Data.String.fromString ") LIMIT 2"]))
+            e)
+               (\ 
+                  [_cid_a6QNb,
+                   _cname_a6QNc,
+                   _cprename_a6QNd,
+                   _corcid_a6QNf,
+                   _caffiliation_a6QNg,
+                   _curl_a6QNh,
+                   _cemail_a6QNi,
+                   _cpassword_a6QNj,
+                   _csite_a6QNk,
+                   _cmember_a6QNl]
+                  -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a6QN9
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                        _cid_a6QNb, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a6QN9
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _cname_a6QNc, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a6QN9
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _cprename_a6QNd, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a6QN9
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
+                        _corcid_a6QNf, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a6QN9
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _caffiliation_a6QNg, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a6QN9
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _curl_a6QNh, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a6QN9
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
+                        _cemail_a6QNi, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a6QN9
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
+                        _cpassword_a6QNj, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a6QN9
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "permission")
+                        _csite_a6QNk, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
+                        _tenv_a6QN9
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "permission")
+                        _cmember_a6QNl)))
+      let a = fmap
+                   (\ (vid_a6QLV, vname_a6QLW, vprename_a6QLX, vorcid_a6QLZ,
+                       vaffiliation_a6QM0, vurl_a6QM1, vemail_a6QM2, vpassword_a6QM3,
+                       vsite_a6QM4, vmember_a6QM5)
+                    -> Databrary.Model.Party.SQL.makeSiteAuth
+                         (Databrary.Model.Party.SQL.makeUserAccount
+                            (Databrary.Model.Party.SQL.makeAccount
+                               (PartyRow
+                                  vid_a6QLV
+                                  vname_a6QLW
+                                  vprename_a6QLX
+                                  vorcid_a6QLZ
+                                  vaffiliation_a6QM0
+                                  vurl_a6QM1)
+                               (Account vemail_a6QM2)))
+                         vpassword_a6QM3
+                         (do { cm_a6QMz <- vsite_a6QM4;
+                               cm_a6QMA <- vmember_a6QM5;
+                               Just (Access cm_a6QMz cm_a6QMA) }))
+                     rows
       return $ case a of
         [x] -> Just x
         _ -> Nothing
