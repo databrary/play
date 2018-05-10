@@ -17,18 +17,6 @@
   </ul>
 </div>
 
-<div class="spreadsheet-dynamic-info" ng-if="::editing">
-  <a href="" ng-click="showConsents=false" ng-show="showConsents">
-    Hide the video to help me with the new interface
-  </a>
-  <a href="" ng-click="showConsents=true" ng-hide="showConsents">
-    Show the video to help me with the new interface
-  </a>
-  <video controls="" preload="metadata" seek="clip" height="480" ng-show="showConsents" class="margin-vertical">
-    <source ng-src="https://nyu.databrary.org/slot/27587/0,183810/asset/122478/download?inline=true" type="video/mp4" src="https://nyu.databrary.org/slot/27587/0,183810/asset/122478/download?inline=true">
-  </video>
-</div>
-
 <div ng-if="::!editing" class="spreadsheet-report-manage">
   <select ng-options="k as k for (k,s) in volume.state" ng-model="state.name" ng-change="state.restore()" class="width-auto spreadsheet-pivot-part">
     <option value=''>Show saved display mode...</option>
@@ -50,6 +38,17 @@
 </div>
 
 <div class="spreadsheet-dynamic-section" ng-if="::editing && views.length > 1">
+  <div class="spreadsheet-dynamic-info">
+    <a href="" ng-click="showConsents=false" ng-show="showConsents">
+      <span class="icon question-mark spreadsheet-help"></span>
+    </a>
+    <a href="" ng-click="showConsents=true" ng-hide="showConsents">
+      <span class="icon question-mark spreadsheet-help"></span>
+    </a>
+    <video controls="" preload="metadata" seek="clip" height="480" ng-show="showConsents" class="margin-vertical">
+      <source ng-src="https://nyu.databrary.org/slot/27587/0,183810/asset/122478/download?inline=true" type="video/mp4" src="https://nyu.databrary.org/slot/27587/0,183810/asset/122478/download?inline=true">
+    </video>
+  </div>
   <div class="inline-block spreadsheet-switch-view">
     Summarize by: &nbsp;
     <ul class="flat spreadsheet-tab-options">
