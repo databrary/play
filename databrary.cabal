@@ -531,6 +531,7 @@ test-suite discovered
     , Databrary.Model.Comment.TypesTest
     , Databrary.Model.Container.TypesTest
     , Databrary.Model.FormatTest
+    , Databrary.Model.FundingTest
     , Databrary.Model.Funding.FundRefTest
     , Databrary.Model.GeoNamesTest
     , Databrary.Model.Id.TypesTest

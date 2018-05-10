@@ -10,7 +10,7 @@ import Databrary.Model.Segment
 import Databrary.Model.Tag
 import Databrary.Solr.Document
 
--- Session demonstrating how to use Document functions
+-- Session demonstrating how to use Document's functions
 unit_Document_examples :: Assertion
 unit_Document_examples = do
     metricField participantMetricBirthWeight @?= "record_numeric_birth_weight"
