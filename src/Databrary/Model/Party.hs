@@ -511,7 +511,7 @@ removeParty p = do
                           ", 'remove'::audit.action, * FROM audit_row"]))
        (partyId $ partyRow p) (auditWho ident) (auditIp ident))
       (\[] -> ()))
-    dbExecute1 -- $(deleteParty 'ident 'p)
+    dbExecute1 -- .(deleteParty 'ident 'p)
      (mapQuery2
        ((\ _p_a6PZU _p_a6PZV _p_a6PZW ->
                     (BS.concat

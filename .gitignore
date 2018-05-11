@@ -1,6 +1,7 @@
 # compiler output
-/dist/
-/dist-newstyle/
+dist
+dist-newstyle
+dist-reports
 
 # runtime working dirs
 /store/

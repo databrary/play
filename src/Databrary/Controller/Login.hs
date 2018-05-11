@@ -7,7 +7,6 @@ module Databrary.Controller.Login
   , loginHandler
   , postLogout
   , postLogoutHandler
-  -- , viewUser
   , postUser
   , userHandler
   ) where

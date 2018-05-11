@@ -103,7 +103,7 @@ in
     coreutils # cat, cut, md5sum
   ];
   description = "Databrary";
-  license = stdenv.lib.licenses.gpl3;
+  license = stdenv.lib.licenses.agpl3;
   preBuild = ''
     set -x
     ./initializeDB.sh

@@ -57,6 +57,13 @@ cabal-build: ; $(nix-shell) --run 'cabal -j new-build --disable-optimization'
 #
 
 ##
+## For haddock development
+##
+haddock:
+	$(nix-shell) --run 'cabal haddock --hyperlink-source'
+.PHONY: haddock
+
+##
 ## These may eventually be used to auto-generate databrary.cabal
 ##
 
