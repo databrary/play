@@ -365,7 +365,7 @@ app.directive 'spreadsheet', [
             if $scope.views[i].name == 'participant'
               partindex = true
             i++
-          if partindex == false
+          if !Editing or partindex == false
             $scope.views.unshift pseudoCategory.slot
           else
             $scope.views.splice 1, 0, pseudoCategory.slot

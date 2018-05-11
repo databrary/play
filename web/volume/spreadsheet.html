@@ -8,7 +8,7 @@
   <a href="" ng-click="showConsents=true" ng-hide="showConsents">
     Show legend of session release levels
   </a>
-  <ul class="release-legend flat" ng-show="showConsents">
+  <ul class="release-legend flat margin-vertical" ng-show="showConsents">
     <li ng-repeat="c in ::page.constants.releases">
       <span class="icon release" ng-class="::page.constants.release[c]"></span>
       <span message="release.{{::page.constants.release[c]}}.title"></span>: 
@@ -38,6 +38,17 @@
 </div>
 
 <div class="spreadsheet-dynamic-section" ng-if="::editing && views.length > 1">
+  <div class="spreadsheet-dynamic-info">
+    <a href="" ng-click="showConsents=false" ng-show="showConsents">
+      <span class="icon question-mark spreadsheet-help"></span>
+    </a>
+    <a href="" ng-click="showConsents=true" ng-hide="showConsents">
+      <span class="icon question-mark spreadsheet-help"></span>
+    </a>
+    <video controls="" preload="metadata" seek="clip" style="max-width:91%;margin:2%;" ng-show="showConsents" class="margin-vertical">
+      <source ng-src="https://nyu.databrary.org/slot/27587/0,183810/asset/122478/download?inline=true" type="video/mp4" src="https://nyu.databrary.org/slot/27587/0,183810/asset/122478/download?inline=true">
+    </video>
+  </div>
   <div class="inline-block spreadsheet-switch-view">
     Summarize by: &nbsp;
     <ul class="flat spreadsheet-tab-options">
