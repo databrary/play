@@ -38,6 +38,8 @@ selfAuthorize :: Party -> Authorize
 selfAuthorize p =
   Authorize (Authorization (if partyId (partyRow p) == partyId (partyRow nobodyParty) then minBound else maxBound) p p) Nothing
 
+-- | Get all active authorizations that the child party has been approved from parent parties. Use any permission
+-- provided as a lower bounds for parent party authorizations to retrieve.
 lookupAuthorizedParents :: (MonadDB c m, MonadHasIdentity c m) => Party -> Maybe Permission -> m [Authorize]
 lookupAuthorizedParents child perm = do
   ident <- peek
@@ -46,6 +48,8 @@ lookupAuthorizedParents child perm = do
     (\p -> $(selectQuery (selectAuthorizeParent 'child 'ident) "$WHERE (expires IS NULL OR expires > CURRENT_TIMESTAMP) AND site >= ${p} AND member >= ${p} AND (site <> 'NONE' OR member <> 'NONE')"))
     perm
 
+-- | Get all active authorizations that the parent party has granted to child parties. Use any permission
+-- provided as a lower bounds for child party authorizations to retrieve.
 lookupAuthorizedChildren :: (MonadDB c m, MonadHasIdentity c m) => Party -> Maybe Permission -> m [Authorize]
 lookupAuthorizedChildren parent perm = do
   ident <- peek
@@ -54,7 +58,8 @@ lookupAuthorizedChildren parent perm = do
     (\p -> $(selectQuery (selectAuthorizeChild 'parent 'ident) "$WHERE (expires IS NULL OR expires > CURRENT_TIMESTAMP) AND site >= ${p} AND member >= ${p} AND (site <> 'NONE' OR member <> 'NONE')"))
     perm
 
--- | Attempt to find an authorization request or grant from the child party to the granting parent party
+-- | Attempt to find an authorization request or grant from the child party to the granting parent party.
+-- Exclude expired authorizations.
 lookupAuthorize :: MonadDB c m => Party -> Party -> m (Maybe Authorize)
 lookupAuthorize child parent =
   dbQuery1 $
@@ -64,19 +69,22 @@ lookupAuthorize child parent =
                     -- only include authorizations that either have no expiration or have not expired yet
                     "$WHERE authorize.child = ${partyId $ partyRow child} AND authorize.parent = ${partyId $ partyRow parent} AND (expires IS NULL OR expires > CURRENT_TIMESTAMP)")
 
+-- | Find an active authorization request or approval from child to parent.
 lookupAuthorizeParent :: (MonadDB c m, MonadHasIdentity c m) => Party -> Id Party -> m (Maybe Authorize)
 lookupAuthorizeParent child parent = do
   ident <- peek
   dbQuery1 $ $(selectQuery (selectAuthorizeParent 'child 'ident) "$WHERE authorize.parent = ${parent} AND (expires IS NULL OR expires > CURRENT_TIMESTAMP)")
 
+-- | Get the core active authorization entry between a child and parent, after inheritance has been applied.
+-- Override authorize_view for the corner case of nobody as both parent and child.
 lookupAuthorization :: (MonadDB c m, MonadHasIdentity c m) => Party -> Party -> m Authorization
 lookupAuthorization child parent
   | partyId (partyRow child) == partyId (partyRow parent) = return $ authorization $ selfAuthorize child
   | otherwise = do
     auth <- peek
     if partyId (view auth) == partyId (partyRow child) && partyId (partyRow parent) == partyId (partyRow rootParty)
-      then return $ Authorization (siteAccess auth) child parent
-      else fromMaybe (Authorization mempty child parent) <$>
+      then return $ Authorization (siteAccess auth) child parent -- short circuit to get already fetched value in siteauthx
+      else fromMaybe (Authorization mempty child parent) <$> -- if not valid entry found, assume no access
         dbQuery1 ((\a -> a child parent) <$> $(selectQuery authorizationRow "!$WHERE authorize_view.child = ${partyId $ partyRow child} AND authorize_view.parent = ${partyId $ partyRow parent}"))
 
 -- | Update or insert the authorization object. Use the request and identity context to log the change in the
