@@ -13,6 +13,7 @@ module Databrary.Model.Authorize
   , authorizeActive
   , authorizeJSON
   , lookupAuthorizeActivity
+  , makeAuthorize
   ) where
 
 import Control.Monad (when)

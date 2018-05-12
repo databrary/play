@@ -38,13 +38,17 @@ import Databrary.Controller.Party
 import Databrary.Controller.Notification
 import Databrary.View.Authorize
 
+-- Every route in this module asserts the requesting user has ADMIN permissions over the primary (first) party
+--  referenced in the request. The requesting user must have ADMIN permissions because they are viewing/editing
+--  the primary party's authorization relationships. Typically the requesting user will be the primary party,
+--  but the requesting user can also be an admin that the primary party has delegated control to.
+
 viewAuthorize :: ActionRoute (API, PartyTarget, AuthorizeTarget)
 viewAuthorize = action GET (pathAPI </>> pathPartyTarget </> pathAuthorizeTarget) $ \(api, i, AuthorizeTarget app oi) -> withAuth $ do
   p <- getParty (Just PermissionADMIN) i
   o <- maybeAction =<< lookupParty oi
   let (child, parent) = if app then (p, o) else (o, p)
-  c <- lookupAuthorize child parent
-  let c' = Authorize (Authorization mempty child parent) Nothing `fromMaybe` c
+  (_, c') <- findOrMakeDefault child parent
   case api of
     JSON -> return $ okResponse [] $ JSON.pairs $ authorizeJSON c'
     HTML
@@ -98,8 +102,9 @@ postAuthorize = action POST (pathAPI </>> pathPartyTarget </> pathAuthorizeTarge
   p <- getParty (Just PermissionADMIN) i
   o <- maybeAction . mfilter ((0 <) . unId . partyId . partyRow) =<< lookupParty oi
   let (child, parent) = if app then (p, o) else (o, p)
-  c <- lookupAuthorize child parent
-  let c' = Authorize (Authorization mempty child parent) Nothing `fromMaybe` c
+  (c, c') <- findOrMakeDefault child parent
+  -- c <- lookupAuthorize child parent
+  -- let c' = unendingNoPrivilegeAuthorize child parent `fromMaybe` c
   a <- if app
     then do
       when (isNothing c) $ do
@@ -125,26 +130,38 @@ postAuthorize = action POST (pathAPI </>> pathPartyTarget </> pathAuthorizeTarge
           member <- "member" .:> deform
           expires <- "expires" .:> (deformCheck "Expiration must be within two years." (all (\e -> su || e > minexp && e <= maxexp))
             =<< (<|> (su `unlessUse` maxexp)) <$> deformNonEmpty deform)
-          return $ Authorize (Authorization (Access site member) child parent) $ fmap (`UTCTime` 43210) expires)
+          return $ makeAuthorize (Access site member) (fmap with1210Utc expires) child parent)
       updateAuthorize c a
       return a
   case api of
     JSON -> return $ okResponse [] $ JSON.pairs $ foldMap authorizeJSON a <> "party" JSON..=: partyJSON o
     HTML -> peeks $ otherRouteResponse [] viewAuthorize arg
 
+findOrMakeDefault :: (MonadDB c m) => Party -> Party -> m (Maybe Authorize, Authorize)
+findOrMakeDefault child parent = do
+  c <- lookupAuthorize child parent
+  pure (c, unendingNoPrivilegeAuthorize child parent `fromMaybe` c)
+
+-- | If present, delete either a prior request for authorization. The authorization to delete can be specified
+-- from the child perspective (child party is pathPartyTarget) or the parent perspective (parent party is pathPartyTarget).
+-- Inform all relevant parties that the authorization has been deleted.
 deleteAuthorize :: ActionRoute (API, PartyTarget, AuthorizeTarget)
 deleteAuthorize = action DELETE (pathAPI </>> pathPartyTarget </> pathAuthorizeTarget) $ \arg@(api, i, AuthorizeTarget apply oi) -> withAuth $ do
   p <- getParty (Just PermissionADMIN) i
   (o :: Party) <- do
       mAuthorizeTargetParty <- lookupParty oi
       maybeAction mAuthorizeTargetParty
-  let (child, parent) = if apply then (p, o) else (o, p) -- Delete request you sent vs request you recvd?
+  let (child, parent) = if apply then (p, o) else (o, p)
   mAuth <- lookupAuthorize child parent
   removeAuthorizeNotify mAuth
   case api of
     JSON -> return $ okResponse [] $ JSON.pairs $ "party" JSON..=: partyJSON o
     HTML -> peeks $ otherRouteResponse [] viewAuthorize arg
 
+-- | During registration and when requesting additional sponsors, if the target parent party doesn't exist in
+-- Databrary yet, this route enables a user to submit some information on which target parent (AI or institution)
+-- they are seeking, to trigger an email to the Databrary site admins, with the hope that the site admins are able
+-- to manually get the intended parties into Databrary.
 postAuthorizeNotFound :: ActionRoute (PartyTarget)
 postAuthorizeNotFound = action POST (pathJSON >/> pathPartyTarget </< "notfound") $ \i -> withAuth $ do
   p <- getParty (Just PermissionADMIN) i

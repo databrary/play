@@ -8,6 +8,7 @@ module Databrary.Model.Authorize.SQL
   , insertAuthorize
   , deleteAuthorize
   , selectAuthorizeActivity
+  , makeAuthorize
   ) where
 
 import qualified Language.Haskell.TH as TH
