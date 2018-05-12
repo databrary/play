@@ -48,6 +48,7 @@ viewAuthorize = action GET (pathAPI </>> pathPartyTarget </> pathAuthorizeTarget
     JSON -> return $ okResponse [] $ JSON.pairs $ authorizeJSON c'
     HTML
       | app -> return $ okResponse [] ("" :: T.Text) -- TODO
+      -- If the request is viewing an authorize from parent to child, then present edit form
       | otherwise -> peeks $ blankForm . htmlAuthorizeForm c'
 
 partyDelegates :: Party -> Handler [Account]

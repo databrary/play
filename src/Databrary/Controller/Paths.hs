@@ -33,7 +33,9 @@ type PathParameter = Parameter PathString
 
 idIso :: IdType a I.<-> Id a
 idIso = -- [I.biCase|a <-> Id a|]
-    ((\a -> Id a) R.:<->: (\(Id a) -> a))
+    ((\a      -> Id a)
+     R.:<->:
+     (\(Id a) -> a))
 
 pathIdWith :: forall a . (Kinded a) => PathParser (IdType a) -> PathParser (Id a)
 pathIdWith p = fromString (kindOf (undefined :: a)) >/> idIso >$< p
@@ -55,8 +57,8 @@ pathPartyTarget = -- [I.biCase|
   --   Right i <-> TargetParty i
   --  |]
     ((\p -> case p of
-        Left () -> TargetProfile
-        Right i -> TargetParty i)
+        Left ()       -> TargetProfile
+        Right i       -> TargetParty i)
      R.:<->:
      (\r -> case r of
         TargetProfile -> Left ()
@@ -64,8 +66,10 @@ pathPartyTarget = -- [I.biCase|
   >$< ("profile" |/| pathId)
 
 -- | This is a trailing part of connection between two parties. For a given party, the second
--- party mentioned as the target here is either the parent that the child is applying to (AuthorizeTarget True parentId)
--- or the child that the parent has authorized (AuthorizeTarget False childId)
+-- party mentioned as the target here is either the parent that the child is applying to such as
+-- ((TargetParty currentUserAsChildId), (AuthorizeTarget True parentId))
+-- or the child that the parent has authorized
+-- ((TargetParty currentUserAsParentId), (AuthorizeTarget False childId))
 data AuthorizeTarget = AuthorizeTarget
   { authorizeApply :: Bool -- ^ Whether this authorize action is referring to applying from a child to a parent
   , authorizeTarget :: Id Party
@@ -73,7 +77,9 @@ data AuthorizeTarget = AuthorizeTarget
 
 pathAuthorizeTarget :: PathParser AuthorizeTarget
 pathAuthorizeTarget = -- [I.biCase|(a, t) <-> AuthorizeTarget a t|]
-  ((\(a, t) -> AuthorizeTarget a t) R.:<->: (\(AuthorizeTarget a t) -> (a, t)))
+  ((\(a, t)                -> AuthorizeTarget a t)
+   R.:<->:
+   (\(AuthorizeTarget a t) -> (a, t)))
     >$<
       (I.isRight >$< ("authorize" |/| "apply")
        </> idIso >$< R.parameter)
@@ -86,14 +92,16 @@ pathVolumeAccessTarget :: PathParser VolumeAccessTarget
 pathVolumeAccessTarget =
   "access"
   >/> -- [I.biCase|i <-> VolumeAccessTarget (Id i)|]
-    ((\i -> VolumeAccessTarget (Id i))
+    ((\i                           -> VolumeAccessTarget (Id i))
      R.:<->:
      (\(VolumeAccessTarget (Id i)) -> i))
   >$< R.parameter
 
 slotIdIso :: (Id Container, Segment) I.<-> SlotId
 slotIdIso = -- [I.biCase|(c, s) <-> SlotId c s|]
-    ((\(c, s) -> SlotId c s) R.:<->: (\(SlotId c s) -> (c, s)))
+    ((\(c, s)       -> SlotId c s)
+     R.:<->:
+     (\(SlotId c s) -> (c, s)))
 
 pathSegment :: PathParser Segment
 pathSegment = fullSegment =/= R.parameter
@@ -111,6 +119,8 @@ data TagId = TagId
 
 pathTagId :: PathParser TagId
 pathTagId = -- [I.biCase|(b, t) <-> TagId b t|]
-  ((\(b, t) -> TagId b t) R.:<->: (\(TagId b t) -> (b, t)))
+  ((\(b, t)      -> TagId b t)
+   R.:<->:
+   (\(TagId b t) -> (b, t)))
   >$<
   (I.isRight >$< ("tag" |/| "keyword") </> R.parameter)
