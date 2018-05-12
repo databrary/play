@@ -46,7 +46,9 @@ data PartyTarget
   = TargetProfile -- ^ Actor's own party
   | TargetParty (Id Party) -- ^ Someone else's party
 
-
+-- | Typical examples of pathPartyTarget:
+-- /profile becomes TargetProfile
+-- /party/10 becomes TargetParty (Id 10)
 pathPartyTarget :: R.Path PartyTarget
 pathPartyTarget = -- [I.biCase|
   --   Left () <-> TargetProfile
@@ -61,8 +63,11 @@ pathPartyTarget = -- [I.biCase|
         TargetParty i -> Right i))
   >$< ("profile" |/| pathId)
 
+-- | This is a trailing part of connection between two parties. For a given party, the second
+-- party mentioned as the target here is either the parent that the child is applying to (AuthorizeTarget True parentId)
+-- or the child that the parent has authorized (AuthorizeTarget False childId)
 data AuthorizeTarget = AuthorizeTarget
-  { authorizeApply :: Bool
+  { authorizeApply :: Bool -- ^ Whether this authorize action is referring to applying from a child to a parent
   , authorizeTarget :: Id Party
   }
 
