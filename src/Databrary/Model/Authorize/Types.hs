@@ -2,7 +2,7 @@
 module Databrary.Model.Authorize.Types
   ( Authorization(..)
   , Authorize(..)
-  , unendingNoPrivilegeAuthorize
+  , mkAuthorizeRequest
   , with1210Utc
   ) where
 
@@ -34,8 +34,8 @@ data Authorize = Authorize
 instance Has Access Authorize where
   view = (view . authorization)
 
-unendingNoPrivilegeAuthorize :: Party -> Party -> Authorize
-unendingNoPrivilegeAuthorize child parent =
+mkAuthorizeRequest :: Party -> Party -> Authorize
+mkAuthorizeRequest child parent =
     Authorize (Authorization mempty child parent) Nothing
 
 with1210Utc :: Day -> UTCTime

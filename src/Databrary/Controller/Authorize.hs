@@ -49,7 +49,7 @@ viewAuthorize = action GET (pathAPI </>> pathPartyTarget </> pathAuthorizeTarget
   p <- getParty (Just PermissionADMIN) i
   o <- maybeAction =<< lookupParty oi
   let (child, parent) = if app then (p, o) else (o, p)
-  (_, c') <- findOrMakeDefault child parent
+  (_, c') <- findOrMakeRequest child parent
   case api of
     JSON -> return $ okResponse [] $ JSON.pairs $ authorizeJSON c'
     HTML
@@ -109,7 +109,7 @@ postAuthorize = action POST (pathAPI </>> pathPartyTarget </> pathAuthorizeTarge
   p <- getParty (Just PermissionADMIN) i
   o <- maybeAction . mfilter isNobodyParty =<< lookupParty oi -- Don't allow applying to or authorization request from nobody
   let (child, parent) = if app then (p, o) else (o, p)
-  (c, c') <- findOrMakeDefault child parent
+  (c, c') <- findOrMakeRequest child parent
   resultingAuthorize <- if app
     -- The request involves a child party applying for authorization from a parent party
     then do
@@ -153,10 +153,12 @@ postAuthorize = action POST (pathAPI </>> pathPartyTarget </> pathAuthorizeTarge
     JSON -> return $ okResponse [] $ JSON.pairs $ foldMap authorizeJSON resultingAuthorize <> "party" JSON..=: partyJSON o
     HTML -> peeks $ otherRouteResponse [] viewAuthorize arg
 
-findOrMakeDefault :: (MonadDB c m) => Party -> Party -> m (Maybe Authorize, Authorize)
-findOrMakeDefault child parent = do
+-- | Find an active authorization request or approval between child and parent parties.
+-- Also, build an authorization request or present the current authorization value.
+findOrMakeRequest :: (MonadDB c m) => Party -> Party -> m (Maybe Authorize, Authorize)
+findOrMakeRequest child parent = do
   c <- lookupAuthorize child parent
-  pure (c, unendingNoPrivilegeAuthorize child parent `fromMaybe` c)
+  pure (c, mkAuthorizeRequest child parent `fromMaybe` c)
 
 -- | If present, delete either a prior request for authorization. The authorization to delete can be specified
 -- from the child perspective (child party is pathPartyTarget) or the parent perspective (parent party is pathPartyTarget).
