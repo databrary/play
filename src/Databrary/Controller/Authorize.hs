@@ -20,6 +20,7 @@ import Network.HTTP.Types (noContent204)
 import Databrary.Ops
 import Databrary.Has (peek, peeks)
 import qualified Databrary.JSON as JSON
+import Databrary.Service.DB (MonadDB)
 import Databrary.Service.Mail
 import Databrary.Static.Service
 import Databrary.Model.Id.Types
@@ -51,7 +52,7 @@ viewAuthorize = action GET (pathAPI </>> pathPartyTarget </> pathAuthorizeTarget
       -- If the request is viewing an authorize from parent to child, then present edit form
       | otherwise -> peeks $ blankForm . htmlAuthorizeForm c'
 
-partyDelegates :: Party -> Handler [Account]
+partyDelegates :: (MonadDB c m, MonadHasIdentity c m) => Party -> m [Account]
 partyDelegates u = do
   l <- deleg u
   if null l
