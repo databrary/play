@@ -23,7 +23,8 @@ import qualified Databrary.JSON as JSON
 import Databrary.Service.DB (MonadDB)
 import Databrary.Service.Mail
 import Databrary.Static.Service
-import Databrary.Model.Id.Types
+import Databrary.Model.Audit (MonadAudit)
+-- import Databrary.Model.Id.Types
 import Databrary.Model.Party
 import Databrary.Model.Permission
 import Databrary.Model.Identity
@@ -72,7 +73,8 @@ removeAuthorizeNotify priorAuth =
     let noReplacementAuthorization = Nothing
     in updateAuthorize priorAuth noReplacementAuthorization
 
--- | Remove (only first argument provided) or swap in new authorization, triggering notifications
+-- | Remove (when only first argument provided) or swap in new authorization, triggering notifications.
+-- Do nothing when neither an old or new auth has been provided.
 updateAuthorize :: Maybe Authorize -> Maybe Authorize -> Handler ()
 updateAuthorize priorAuth newAuth
   | Just auth <- authorization <$> (priorAuth <|> newAuth :: Maybe Authorize) = do
@@ -97,18 +99,22 @@ updateAuthorize priorAuth newAuth
       $ fromMaybe (Authorize auth{ authorizeAccess = mempty } Nothing) newAuth
 updateAuthorize ~Nothing ~Nothing = return ()
 
+createAuthorize :: (MonadAudit c m) => Authorize -> m ()
+createAuthorize = changeAuthorize
+
+-- | Either create a new authorization request from PartyTarget child to a parent or
+-- update/create/reject with validation errors an authorization request to the PartyTarget parent from a child
 postAuthorize :: ActionRoute (API, PartyTarget, AuthorizeTarget)
 postAuthorize = action POST (pathAPI </>> pathPartyTarget </> pathAuthorizeTarget) $ \arg@(api, i, AuthorizeTarget app oi) -> withAuth $ do
   p <- getParty (Just PermissionADMIN) i
-  o <- maybeAction . mfilter ((0 <) . unId . partyId . partyRow) =<< lookupParty oi
+  o <- maybeAction . mfilter isNobodyParty =<< lookupParty oi -- Don't allow applying to or authorization request from nobody
   let (child, parent) = if app then (p, o) else (o, p)
   (c, c') <- findOrMakeDefault child parent
-  -- c <- lookupAuthorize child parent
-  -- let c' = unendingNoPrivilegeAuthorize child parent `fromMaybe` c
-  a <- if app
+  resultingAuthorize <- if app
+    -- The request involves a child party applying for authorization from a parent party
     then do
-      when (isNothing c) $ do
-        changeAuthorize c'
+      when (isNothing c) $ do -- if there is no pending request or existing authorization
+        createAuthorize c'
         dl <- partyDelegates o
         forM_ dl $ \t ->
           createNotification (blankNotification t NoticeAuthorizeChildRequest)
@@ -116,11 +122,14 @@ postAuthorize = action POST (pathAPI </>> pathPartyTarget </> pathAuthorizeTarge
         forM_ (partyAccount p) $ \t ->
           createNotification (blankNotification t NoticeAuthorizeRequest)
             { notificationParty = Just $ partyRow o }
+      -- make either the newly created request or the existing found request the result value
+      -- of this block
       return $ Just c'
+    -- The request involves a parent party either creating or acting upon an existing authorization request from a child party
     else do
       su <- peeks identityAdmin
       now <- peek
-      let maxexp = addGregorianYearsRollOver 2 $ utctDay now
+      let maxexp = addGregorianYearsRollOver 2 $ utctDay now -- TODO: use timestamp from actioncontext instead of now?
           minexp = fromGregorian 2000 1 1
       a <- runForm ((api == HTML) `thenUse` (htmlAuthorizeForm c')) $ do
         csrfForm
@@ -128,13 +137,15 @@ postAuthorize = action POST (pathAPI </>> pathPartyTarget </> pathAuthorizeTarge
         delete `unlessReturn` (do
           site <- "site" .:> deform
           member <- "member" .:> deform
-          expires <- "expires" .:> (deformCheck "Expiration must be within two years." (all (\e -> su || e > minexp && e <= maxexp))
-            =<< (<|> (su `unlessUse` maxexp)) <$> deformNonEmpty deform)
+          expires <-
+            "expires" .:>
+              (deformCheck "Expiration must be within two years." (all (\e -> su || e > minexp && e <= maxexp))
+               =<< (<|> (su `unlessUse` maxexp)) <$> deformNonEmpty deform)
           return $ makeAuthorize (Access site member) (fmap with1210Utc expires) child parent)
       updateAuthorize c a
       return a
   case api of
-    JSON -> return $ okResponse [] $ JSON.pairs $ foldMap authorizeJSON a <> "party" JSON..=: partyJSON o
+    JSON -> return $ okResponse [] $ JSON.pairs $ foldMap authorizeJSON resultingAuthorize <> "party" JSON..=: partyJSON o
     HTML -> peeks $ otherRouteResponse [] viewAuthorize arg
 
 findOrMakeDefault :: (MonadDB c m) => Party -> Party -> m (Maybe Authorize, Authorize)
