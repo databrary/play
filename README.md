@@ -9,6 +9,12 @@ Haddocks coverage would be another excellent place to start contributing...
 A simple [code coverage report](http://databrary.github.io/databrary/) is also
 available on our GitHub pages site.
 
+## Alternative Implementations
+
+Are you interested in Databrary's purpose, but have more familiarity with Go or Scala? 
+Feel free to start browsing ports of the Databrary concept to [Go](https://github.com/databrary/databrary-backend-go)
+and [Scala](https://github.com/databrary/databrary/tree/2313912b0598245790387f1238d45885745361f5).
+
 ## License
 
 Copyright (C) 2013-2018 New York University
