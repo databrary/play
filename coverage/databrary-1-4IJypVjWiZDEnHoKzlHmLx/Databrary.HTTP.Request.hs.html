@@ -59,28 +59,28 @@ span.spaces    { background: white }
 <span class="lineno">   43 </span><span class="decl"><span class="istickedoff">boolParameterValue = all boolValue</span></span>
 <span class="lineno">   44 </span>
 <span class="lineno">   45 </span>boolQueryParameter :: BS.ByteString -&gt; Wai.Request -&gt; Bool
-<span class="lineno">   46 </span><span class="decl"><span class="nottickedoff">boolQueryParameter q = any boolParameterValue . lookupQueryParameters q</span></span>
+<span class="lineno">   46 </span><span class="decl"><span class="istickedoff">boolQueryParameter q = any <span class="nottickedoff">boolParameterValue</span> . lookupQueryParameters <span class="nottickedoff">q</span></span></span>
 <span class="lineno">   47 </span>
 <span class="lineno">   48 </span>defaultHost :: BS.ByteString
-<span class="lineno">   49 </span><span class="decl"><span class="nottickedoff">defaultHost = &quot;databrary.org&quot;</span></span>
+<span class="lineno">   49 </span><span class="decl"><span class="istickedoff">defaultHost = &quot;databrary.org&quot;</span></span>
 <span class="lineno">   50 </span>
 <span class="lineno">   51 </span>requestHost :: Wai.Request -&gt; BS.ByteString
 <span class="lineno">   52 </span><span class="decl"><span class="istickedoff">requestHost req =</span>
-<span class="lineno">   53 </span><span class="spaces">  </span><span class="istickedoff">(if <span class="tickonlyfalse">Wai.isSecure req</span> then <span class="nottickedoff">&quot;https://&quot;</span> else &quot;http://&quot;)</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="istickedoff">(if Wai.isSecure req then &quot;https://&quot; else &quot;http://&quot;)</span>
 <span class="lineno">   54 </span><span class="spaces">  </span><span class="istickedoff">&lt;&gt; fromMaybe &quot;databrary.org&quot; (Wai.requestHeaderHost req)</span></span>
 <span class="lineno">   55 </span>
 <span class="lineno">   56 </span>requestURI :: Wai.Request -&gt; URI
-<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">requestURI req = URI</span>
-<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">{ uriScheme = if Wai.isSecure req then &quot;https:&quot; else &quot;http:&quot;</span>
-<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">, uriAuthority = Just URIAuth</span>
-<span class="lineno">   60 </span><span class="spaces">    </span><span class="nottickedoff">{ uriUserInfo = &quot;&quot;</span>
-<span class="lineno">   61 </span><span class="spaces">    </span><span class="nottickedoff">, uriRegName = BSC.unpack $ fromMaybe defaultHost $ Wai.requestHeaderHost req</span>
-<span class="lineno">   62 </span><span class="spaces">    </span><span class="nottickedoff">, uriPort = &quot;&quot;</span>
-<span class="lineno">   63 </span><span class="spaces">    </span><span class="nottickedoff">}</span>
-<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">, uriPath = BSC.unpack $ Wai.rawPathInfo req</span>
-<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">, uriQuery = BSC.unpack $ Wai.rawQueryString req</span>
-<span class="lineno">   66 </span><span class="spaces">  </span><span class="nottickedoff">, uriFragment = &quot;&quot;</span>
-<span class="lineno">   67 </span><span class="spaces">  </span><span class="nottickedoff">}</span></span>
+<span class="lineno">   57 </span><span class="decl"><span class="istickedoff">requestURI req = URI</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="istickedoff">{ uriScheme = if <span class="tickonlyfalse">Wai.isSecure req</span> then <span class="nottickedoff">&quot;https:&quot;</span> else &quot;http:&quot;</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="istickedoff">, uriAuthority = Just URIAuth</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="istickedoff">{ uriUserInfo = &quot;&quot;</span>
+<span class="lineno">   61 </span><span class="spaces">    </span><span class="istickedoff">, uriRegName = BSC.unpack $ fromMaybe defaultHost $ Wai.requestHeaderHost req</span>
+<span class="lineno">   62 </span><span class="spaces">    </span><span class="istickedoff">, uriPort = &quot;&quot;</span>
+<span class="lineno">   63 </span><span class="spaces">    </span><span class="istickedoff">}</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="istickedoff">, uriPath = BSC.unpack $ Wai.rawPathInfo req</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="istickedoff">, uriQuery = BSC.unpack $ Wai.rawQueryString req</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="istickedoff">, uriFragment = &quot;&quot;</span>
+<span class="lineno">   67 </span><span class="spaces">  </span><span class="istickedoff">}</span></span>
 
 </pre>
 </body>

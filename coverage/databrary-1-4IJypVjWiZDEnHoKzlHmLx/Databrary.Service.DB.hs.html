@@ -222,7 +222,7 @@ span.spaces    { background: white }
 <span class="lineno">  206 </span>-- Temporary helpers while removing postgresql-typed, remove after complete
 <span class="lineno">  207 </span>mapQuery2 :: BS.ByteString -&gt; ([PGValue] -&gt; a) -&gt; PGSimpleQuery a -- mapQuery is same as mapQuery2, both will be deleted
 <span class="lineno">  208 </span><span class="decl"><span class="istickedoff">mapQuery2 qry mkResult =</span>
-<span class="lineno">  209 </span><span class="spaces">  </span><span class="istickedoff">fmap <span class="nottickedoff">mkResult</span> (rawPGSimpleQuery qry)</span></span>
+<span class="lineno">  209 </span><span class="spaces">  </span><span class="istickedoff">fmap mkResult (rawPGSimpleQuery qry)</span></span>
 <span class="lineno">  210 </span>
 <span class="lineno">  211 </span>mapPrepQuery :: (BS.ByteString, [PGValue]) -&gt; ([PGValue] -&gt; a) -&gt; PGPreparedQuery a
 <span class="lineno">  212 </span><span class="decl"><span class="nottickedoff">mapPrepQuery (qry, params) mkResult =</span>

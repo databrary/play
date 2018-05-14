@@ -70,13 +70,13 @@ span.spaces    { background: white }
 <span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">liftM2 (-) (upperBound r) (lowerBound r)</span></span>
 <span class="lineno">   55 </span>
 <span class="lineno">   56 </span>showSegmentWith :: (Offset -&gt; ShowS) -&gt; Segment -&gt; ShowS
-<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">showSegmentWith _ (Segment Range.Empty) = showString &quot;empty&quot;</span>
-<span class="lineno">   58 </span><span class="spaces"></span><span class="nottickedoff">showSegmentWith sf (Segment r)</span>
-<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">| Just x &lt;- Range.getPoint r = sf x</span>
-<span class="lineno">   60 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise =</span>
-<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">maybe id (((if Range.lowerClosed r then id else showChar '(') .) . sf) (lowerBound r)</span>
-<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">. showChar ',' . maybe id sf (upperBound r)</span>
-<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">. (if Range.upperClosed r then showChar ']' else id)</span></span>
+<span class="lineno">   57 </span><span class="decl"><span class="istickedoff">showSegmentWith _ (Segment Range.Empty) = showString &quot;empty&quot;</span>
+<span class="lineno">   58 </span><span class="spaces"></span><span class="istickedoff">showSegmentWith sf (Segment r)</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="istickedoff">| Just x &lt;- <span class="nottickedoff">Range.getPoint r</span> = <span class="nottickedoff">sf x</span></span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="istickedoff">| <span class="nottickedoff">otherwise</span> =</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">maybe id (((if Range.lowerClosed r then id else showChar '(') .) . sf) (lowerBound r)</span></span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">. showChar ',' . maybe id sf (upperBound r)</span></span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">. (if Range.upperClosed r then showChar ']' else id)</span></span></span>
 <span class="lineno">   64 </span>
 <span class="lineno">   65 </span>instance Show Segment where
 <span class="lineno">   66 </span>  <span class="decl"><span class="nottickedoff">showsPrec = showSegmentWith . showsPrec</span></span>

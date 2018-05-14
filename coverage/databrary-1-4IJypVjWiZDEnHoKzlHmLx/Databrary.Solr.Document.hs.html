@@ -51,47 +51,47 @@ span.spaces    { background: white }
 <span class="lineno">   35 </span>import Databrary.StringUtil
 <span class="lineno">   36 </span>
 <span class="lineno">   37 </span>safeField :: T.Text -&gt; T.Text
-<span class="lineno">   38 </span><span class="decl"><span class="nottickedoff">safeField = T.map safeChar where</span>
-<span class="lineno">   39 </span><span class="spaces">  </span><span class="nottickedoff">safeChar c</span>
-<span class="lineno">   40 </span><span class="spaces">    </span><span class="nottickedoff">| isAlphaNum c = c</span>
-<span class="lineno">   41 </span><span class="spaces">    </span><span class="nottickedoff">| otherwise = '_'</span></span>
+<span class="lineno">   38 </span><span class="decl"><span class="istickedoff">safeField = T.map safeChar where</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">safeChar c</span>
+<span class="lineno">   40 </span><span class="spaces">    </span><span class="istickedoff">| isAlphaNum c = c</span>
+<span class="lineno">   41 </span><span class="spaces">    </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = '_'</span></span>
 <span class="lineno">   42 </span>
 <span class="lineno">   43 </span>newtype SolrRecordMeasures = SolrRecordMeasures [(Metric, MeasureDatum)]
 <span class="lineno">   44 </span>
 <span class="lineno">   45 </span>metricLabel :: Metric -&gt; T.Text
-<span class="lineno">   46 </span><span class="decl"><span class="nottickedoff">metricLabel Metric{ metricType = MeasureTypeText, metricOptions = _:_ } = &quot;enum&quot;</span>
-<span class="lineno">   47 </span><span class="spaces"></span><span class="nottickedoff">metricLabel m@Metric{ metricType = MeasureTypeText }</span>
-<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">| metricLong m = &quot;long&quot;</span>
-<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = &quot;text&quot;</span>
-<span class="lineno">   50 </span><span class="spaces"></span><span class="nottickedoff">metricLabel Metric{ metricType = MeasureTypeNumeric } = &quot;numeric&quot;</span>
-<span class="lineno">   51 </span><span class="spaces"></span><span class="nottickedoff">metricLabel Metric{ metricType = MeasureTypeDate } = &quot;date&quot;</span>
-<span class="lineno">   52 </span><span class="spaces"></span><span class="nottickedoff">metricLabel Metric{ metricType = MeasureTypeVoid } = &quot;void&quot;</span></span>
+<span class="lineno">   46 </span><span class="decl"><span class="istickedoff">metricLabel Metric{ metricType = MeasureTypeText, metricOptions = _:_ } = <span class="nottickedoff">&quot;enum&quot;</span></span>
+<span class="lineno">   47 </span><span class="spaces"></span><span class="istickedoff">metricLabel m@Metric{ metricType = MeasureTypeText }</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlyfalse">metricLong m</span> = <span class="nottickedoff">&quot;long&quot;</span></span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = &quot;text&quot;</span>
+<span class="lineno">   50 </span><span class="spaces"></span><span class="istickedoff">metricLabel Metric{ metricType = MeasureTypeNumeric } = &quot;numeric&quot;</span>
+<span class="lineno">   51 </span><span class="spaces"></span><span class="istickedoff">metricLabel Metric{ metricType = MeasureTypeDate } = <span class="nottickedoff">&quot;date&quot;</span></span>
+<span class="lineno">   52 </span><span class="spaces"></span><span class="istickedoff">metricLabel Metric{ metricType = MeasureTypeVoid } = <span class="nottickedoff">&quot;void&quot;</span></span></span>
 <span class="lineno">   53 </span>
 <span class="lineno">   54 </span>metricField :: Metric -&gt; T.Text
-<span class="lineno">   55 </span><span class="decl"><span class="nottickedoff">metricField m = &quot;record_&quot; &lt;&gt; metricLabel m &lt;&gt; ('_' `T.cons` safeField (metricName m))</span></span>
+<span class="lineno">   55 </span><span class="decl"><span class="istickedoff">metricField m = &quot;record_&quot; &lt;&gt; metricLabel m &lt;&gt; ('_' `T.cons` safeField (metricName m))</span></span>
 <span class="lineno">   56 </span>
 <span class="lineno">   57 </span>-- slight hack because we actually index dates as datetimes
 <span class="lineno">   58 </span>metricDatum :: Metric -&gt; MeasureDatum -&gt; JSON.Value
-<span class="lineno">   59 </span><span class="decl"><span class="nottickedoff">metricDatum Metric{ metricType = MeasureTypeDate } d = JSON.toJSON $ d &lt;&gt; &quot;T12:00:00Z&quot;</span>
-<span class="lineno">   60 </span><span class="spaces"></span><span class="nottickedoff">metricDatum Metric{ metricType = MeasureTypeVoid } _ = JSON.toJSON True</span>
-<span class="lineno">   61 </span><span class="spaces"></span><span class="nottickedoff">metricDatum _ d = JSON.toJSON d</span></span>
+<span class="lineno">   59 </span><span class="decl"><span class="istickedoff">metricDatum Metric{ metricType = MeasureTypeDate } d = <span class="nottickedoff">JSON.toJSON $ d &lt;&gt; &quot;T12:00:00Z&quot;</span></span>
+<span class="lineno">   60 </span><span class="spaces"></span><span class="istickedoff">metricDatum Metric{ metricType = MeasureTypeVoid } _ = <span class="nottickedoff">JSON.toJSON True</span></span>
+<span class="lineno">   61 </span><span class="spaces"></span><span class="istickedoff">metricDatum _ d = JSON.toJSON d</span></span>
 <span class="lineno">   62 </span>
 <span class="lineno">   63 </span>measureKeyValue :: JSON.KeyValue kv =&gt; (Metric, MeasureDatum) -&gt; kv
-<span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">measureKeyValue (m, d) = metricField m JSON..= metricDatum m d</span></span>
+<span class="lineno">   64 </span><span class="decl"><span class="istickedoff">measureKeyValue (m, d) = metricField m JSON..= metricDatum m d</span></span>
 <span class="lineno">   65 </span>
 <span class="lineno">   66 </span>instance JSON.ToJSON SolrRecordMeasures where
-<span class="lineno">   67 </span>  <span class="decl"><span class="nottickedoff">toJSON (SolrRecordMeasures ms) =</span>
-<span class="lineno">   68 </span><span class="spaces">    </span><span class="nottickedoff">JSON.object $ map measureKeyValue ms</span></span>
+<span class="lineno">   67 </span>  <span class="decl"><span class="istickedoff">toJSON (SolrRecordMeasures ms) =</span>
+<span class="lineno">   68 </span><span class="spaces">    </span><span class="istickedoff">JSON.object $ map measureKeyValue ms</span></span>
 <span class="lineno">   69 </span>  <span class="decl"><span class="nottickedoff">toEncoding (SolrRecordMeasures ms) =</span>
 <span class="lineno">   70 </span><span class="spaces">    </span><span class="nottickedoff">JSON.pairs $ foldr ((&lt;&gt;) . measureKeyValue) mempty ms</span></span>
 <span class="lineno">   71 </span>
 <span class="lineno">   72 </span>newtype SolrSegment = SolrSegment Segment deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">JSON.FromJSON</span></span></span></span>)
 <span class="lineno">   73 </span>
 <span class="lineno">   74 </span>instance Show SolrSegment where
-<span class="lineno">   75 </span>  <span class="decl"><span class="nottickedoff">showsPrec _ (SolrSegment s) = showSegmentWith (shows . offsetMillis) s</span></span>
+<span class="lineno">   75 </span>  <span class="decl"><span class="istickedoff">showsPrec _ (SolrSegment s) = showSegmentWith <span class="nottickedoff">(shows . offsetMillis)</span> s</span></span>
 <span class="lineno">   76 </span>
 <span class="lineno">   77 </span>instance JSON.ToJSON SolrSegment where
-<span class="lineno">   78 </span>  <span class="decl"><span class="nottickedoff">toJSON s = JSON.String $ T.pack $ show s</span></span>
+<span class="lineno">   78 </span>  <span class="decl"><span class="istickedoff">toJSON s = JSON.String $ T.pack $ show s</span></span>
 <span class="lineno">   79 </span>  <span class="decl"><span class="nottickedoff">toEncoding s = JSON.toEncoding $ show s</span></span>
 <span class="lineno">   80 </span>
 <span class="lineno">   81 </span>data SolrDocument
@@ -184,27 +184,27 @@ span.spaces    { background: white }
 <span class="lineno">  168 </span>$(return []) -- force new decl group for splice:
 <span class="lineno">  169 </span>
 <span class="lineno">  170 </span>solrToJSON :: SolrDocument -&gt; JSON.Value
-<span class="lineno">  171 </span><span class="decl"><span class="nottickedoff">solrToJSON =</span>
-<span class="lineno">  172 </span><span class="spaces">  </span><span class="nottickedoff">$(JTH.mkToJSON JTH.defaultOptions</span>
-<span class="lineno">  173 </span><span class="spaces">    </span><span class="nottickedoff">{ JTH.fieldLabelModifier = \('s':'o':'l':'r':s) -&gt; fromCamel s</span>
-<span class="lineno">  174 </span><span class="spaces">    </span><span class="nottickedoff">, JTH.constructorTagModifier = \('S':'o':'l':'r':s) -&gt; fromCamel s</span>
-<span class="lineno">  175 </span><span class="spaces">    </span><span class="nottickedoff">, JTH.omitNothingFields = True</span>
-<span class="lineno">  176 </span><span class="spaces">    </span><span class="nottickedoff">, JTH.sumEncoding = JTH.TaggedObject</span>
-<span class="lineno">  177 </span><span class="spaces">      </span><span class="nottickedoff">{ JTH.tagFieldName = &quot;content_type&quot;</span>
-<span class="lineno">  178 </span><span class="spaces">      </span><span class="nottickedoff">, JTH.contentsFieldName = error &quot;solrToJSON: contentsFieldName&quot;</span>
-<span class="lineno">  179 </span><span class="spaces">      </span><span class="nottickedoff">}</span>
-<span class="lineno">  180 </span><span class="spaces">    </span><span class="nottickedoff">} ''SolrDocument)</span></span>
+<span class="lineno">  171 </span><span class="decl"><span class="istickedoff">solrToJSON =</span>
+<span class="lineno">  172 </span><span class="spaces">  </span><span class="istickedoff">$(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">JTH.mkToJSON JTH.defaultOptions</span></span></span></span></span>
+<span class="lineno">  173 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">{ JTH.fieldLabelModifier = \('s':'o':'l':'r':s) -&gt; fromCamel s</span></span></span></span></span>
+<span class="lineno">  174 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">, JTH.constructorTagModifier = \('S':'o':'l':'r':s) -&gt; fromCamel s</span></span></span></span></span>
+<span class="lineno">  175 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">, JTH.omitNothingFields = True</span></span></span></span></span>
+<span class="lineno">  176 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">, JTH.sumEncoding = JTH.TaggedObject</span></span></span></span></span>
+<span class="lineno">  177 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">{ JTH.tagFieldName = &quot;content_type&quot;</span></span></span></span></span>
+<span class="lineno">  178 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">, JTH.contentsFieldName = error &quot;solrToJSON: contentsFieldName&quot;</span></span></span></span></span>
+<span class="lineno">  179 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">}</span></span></span></span></span>
+<span class="lineno">  180 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">} ''SolrDocument</span></span></span></span>)</span></span>
 <span class="lineno">  181 </span>
 <span class="lineno">  182 </span>fixToJSON :: SolrDocument -&gt; JSON.Value -&gt; JSON.Value
-<span class="lineno">  183 </span><span class="decl"><span class="nottickedoff">fixToJSON SolrRecord{} (JSON.Object o) = JSON.Object $</span>
-<span class="lineno">  184 </span><span class="spaces">  </span><span class="nottickedoff">maybe o (HM.union $ HM.delete k o) $ do</span>
-<span class="lineno">  185 </span><span class="spaces">    </span><span class="nottickedoff">JSON.Object m &lt;- HM.lookup k o</span>
-<span class="lineno">  186 </span><span class="spaces">    </span><span class="nottickedoff">return m</span>
-<span class="lineno">  187 </span><span class="spaces">  </span><span class="nottickedoff">where k = &quot;record_measures&quot;</span>
-<span class="lineno">  188 </span><span class="spaces"></span><span class="nottickedoff">fixToJSON _ j = j</span></span>
+<span class="lineno">  183 </span><span class="decl"><span class="istickedoff">fixToJSON SolrRecord{} (JSON.Object o) = <span class="nottickedoff">JSON.Object $</span></span>
+<span class="lineno">  184 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">maybe o (HM.union $ HM.delete k o) $ do</span></span>
+<span class="lineno">  185 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">JSON.Object m &lt;- HM.lookup k o</span></span>
+<span class="lineno">  186 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">return m</span></span>
+<span class="lineno">  187 </span><span class="spaces">  </span><span class="istickedoff">where <span class="nottickedoff">k = &quot;record_measures&quot;</span></span>
+<span class="lineno">  188 </span><span class="spaces"></span><span class="istickedoff">fixToJSON _ j = j</span></span>
 <span class="lineno">  189 </span>
 <span class="lineno">  190 </span>instance JSON.ToJSON SolrDocument where
-<span class="lineno">  191 </span>  <span class="decl"><span class="nottickedoff">toJSON s = fixToJSON s $ solrToJSON s</span></span>
+<span class="lineno">  191 </span>  <span class="decl"><span class="istickedoff">toJSON s = fixToJSON s $ solrToJSON s</span></span>
 <span class="lineno">  192 </span>  -- TODO: toEncoding (and cleanup fixToJSON)
 
 </pre>

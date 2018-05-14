@@ -180,9 +180,9 @@ span.spaces    { background: white }
 <span class="lineno">  164 </span><span class="spaces"></span><span class="nottickedoff">addFormatExtension p _ = p</span></span>
 <span class="lineno">  165 </span>
 <span class="lineno">  166 </span>getFormatByFilename :: RawFilePath -&gt; Maybe Format
-<span class="lineno">  167 </span><span class="decl"><span class="nottickedoff">getFormatByFilename n = do</span>
-<span class="lineno">  168 </span><span class="spaces">  </span><span class="nottickedoff">('.',e) &lt;- BSC.uncons $ takeExtension n</span>
-<span class="lineno">  169 </span><span class="spaces">  </span><span class="nottickedoff">getFormatByExtension e</span></span>
+<span class="lineno">  167 </span><span class="decl"><span class="istickedoff">getFormatByFilename n = do</span>
+<span class="lineno">  168 </span><span class="spaces">  </span><span class="istickedoff">('.',e) &lt;- BSC.uncons $ takeExtension n</span>
+<span class="lineno">  169 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">getFormatByExtension e</span></span></span>
 <span class="lineno">  170 </span>
 <span class="lineno">  171 </span>dropFormatExtension :: Format -&gt; RawFilePath -&gt; RawFilePath
 <span class="lineno">  172 </span><span class="decl"><span class="nottickedoff">dropFormatExtension fmt n</span>

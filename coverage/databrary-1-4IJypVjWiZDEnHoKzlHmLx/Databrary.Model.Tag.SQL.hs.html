@@ -23,110 +23,112 @@ span.spaces    { background: white }
 <span class="lineno">    7 </span>  , selectTagWeight
 <span class="lineno">    8 </span>  , selectTagCoverage
 <span class="lineno">    9 </span>  , selectSlotTagCoverage
-<span class="lineno">   10 </span>  ) where
-<span class="lineno">   11 </span>
-<span class="lineno">   12 </span>import Data.List (intercalate)
-<span class="lineno">   13 </span>import Data.Maybe (fromMaybe)
-<span class="lineno">   14 </span>import Database.PostgreSQL.Typed.Query (makePGQuery, simpleQueryFlags)
-<span class="lineno">   15 </span>import qualified Language.Haskell.TH as TH
-<span class="lineno">   16 </span>
-<span class="lineno">   17 </span>import Databrary.Model.SQL.Select
-<span class="lineno">   18 </span>import Databrary.Model.Id.Types
-<span class="lineno">   19 </span>import Databrary.Model.Party.Types
-<span class="lineno">   20 </span>import Databrary.Model.Container.Types
-<span class="lineno">   21 </span>import Databrary.Model.Segment
-<span class="lineno">   22 </span>import Databrary.Model.Slot.Types
-<span class="lineno">   23 </span>import Databrary.Model.Tag.Types
-<span class="lineno">   24 </span>
-<span class="lineno">   25 </span>tagRow :: Selector -- ^ @'Tag'@
-<span class="lineno">   26 </span><span class="decl"><span class="nottickedoff">tagRow = selectColumns 'Tag &quot;tag&quot; [&quot;id&quot;, &quot;name&quot;]</span></span>
-<span class="lineno">   27 </span>
-<span class="lineno">   28 </span>selectTag :: Selector -- ^ @'Tag'@
-<span class="lineno">   29 </span><span class="decl"><span class="nottickedoff">selectTag = tagRow</span></span>
-<span class="lineno">   30 </span>
-<span class="lineno">   31 </span>tagUseTable :: Bool -&gt; String
-<span class="lineno">   32 </span><span class="decl"><span class="nottickedoff">tagUseTable False = &quot;tag_use&quot;</span>
-<span class="lineno">   33 </span><span class="spaces"></span><span class="nottickedoff">tagUseTable True = &quot;keyword_use&quot;</span></span>
-<span class="lineno">   34 </span>
-<span class="lineno">   35 </span>makeTagUseRow :: Id Party -&gt; Id Container -&gt; Segment -&gt; Maybe Bool -&gt; Tag -&gt; TagUseRow
-<span class="lineno">   36 </span><span class="decl"><span class="nottickedoff">makeTagUseRow w c s k t = TagUseRow t (fromMaybe False k) w (SlotId c s)</span></span>
-<span class="lineno">   37 </span>
-<span class="lineno">   38 </span>tagUseRow :: Selector -- ' @'Tag' -&gt; 'TagUseRow'@
-<span class="lineno">   39 </span><span class="decl"><span class="nottickedoff">tagUseRow = addSelects '($)</span>
-<span class="lineno">   40 </span><span class="spaces">  </span><span class="nottickedoff">(selectColumns 'makeTagUseRow &quot;tag_use&quot; [&quot;who&quot;, &quot;container&quot;, &quot;segment&quot;])</span>
-<span class="lineno">   41 </span><span class="spaces">  </span><span class="nottickedoff">[SelectExpr &quot;tag_use.tableoid = 'keyword_use'::regclass&quot;]</span></span>
-<span class="lineno">   42 </span>
-<span class="lineno">   43 </span>selectTagUseRow :: Selector -- ^ @'TagUseId'@
-<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">selectTagUseRow = selectJoin '($)</span>
-<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">[ tagUseRow</span>
-<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;tag_use.tag = tag.id&quot;</span>
-<span class="lineno">   47 </span><span class="spaces">    </span><span class="nottickedoff">tagRow</span>
-<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
-<span class="lineno">   49 </span>
-<span class="lineno">   50 </span>insertTagUse :: Bool -- ^ keyword
-<span class="lineno">   51 </span>  -&gt; TH.Name -- ^ @'TagUse'@
-<span class="lineno">   52 </span>  -&gt; TH.ExpQ
-<span class="lineno">   53 </span><span class="decl"><span class="nottickedoff">insertTagUse keyword o = makePGQuery simpleQueryFlags $</span>
-<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">&quot;INSERT INTO &quot; ++ tagUseTable keyword ++ &quot; (tag, container, segment, who) VALUES (${tagId $ useTag &quot; ++ os ++ &quot;}, ${containerId $ containerRow $ slotContainer $ tagSlot  &quot; ++ os ++ &quot;}, ${slotSegment $ tagSlot  &quot; ++ os ++ &quot;}, ${partyId $ partyRow $ accountParty $ tagWho  &quot; ++ os ++ &quot;})&quot;</span>
-<span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">where os = nameRef o</span></span>
-<span class="lineno">   56 </span>
-<span class="lineno">   57 </span>deleteTagUse :: Bool -- ^ keyword
-<span class="lineno">   58 </span>  -&gt; TH.Name -- ^ @'TagUse'@
-<span class="lineno">   59 </span>  -&gt; TH.ExpQ
-<span class="lineno">   60 </span><span class="decl"><span class="nottickedoff">deleteTagUse keyword o = makePGQuery simpleQueryFlags $</span>
-<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">&quot;DELETE FROM ONLY &quot; ++ tagUseTable keyword ++ &quot; WHERE tag = ${tagId $ useTag &quot; ++ os ++ &quot;} AND container = ${containerId $ containerRow $ slotContainer $ tagSlot &quot; ++ os ++ &quot;} AND segment &lt;@ ${slotSegment $ tagSlot &quot; ++ os ++ &quot;}&quot;</span>
-<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">++ (if keyword then &quot;&quot; else &quot; AND who = ${partyId $ partyRow $ accountParty $ tagWho &quot; ++ os ++ &quot;}&quot;)</span>
-<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">where os = nameRef o</span></span>
-<span class="lineno">   64 </span>
-<span class="lineno">   65 </span>selectTagGroup :: String -- ^ table name
-<span class="lineno">   66 </span>  -&gt; String -- ^ query
-<span class="lineno">   67 </span>  -&gt; TH.Name -- ^ make function
-<span class="lineno">   68 </span>  -&gt; [(String, String)] -- ^ select columns (alias, select)
-<span class="lineno">   69 </span>  -&gt; Selector
-<span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">selectTagGroup name q make cols = selector</span>
-<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">(&quot;(SELECT tag,&quot; ++ intercalate &quot;,&quot; (map (\(a, s) -&gt; s ++ &quot; AS &quot; ++ a) cols)</span>
-<span class="lineno">   72 </span><span class="spaces">    </span><span class="nottickedoff">++ &quot; FROM tag_use &quot; ++ q ++ &quot; GROUP BY tag) AS &quot; ++ name)</span>
-<span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">$ OutputJoin False make $ map (SelectColumn name . fst) cols</span></span>
-<span class="lineno">   74 </span>
-<span class="lineno">   75 </span>tagWeightColumns :: [(String, String)]
-<span class="lineno">   76 </span><span class="decl"><span class="nottickedoff">tagWeightColumns =</span>
-<span class="lineno">   77 </span><span class="spaces">  </span><span class="nottickedoff">[ (&quot;weight&quot;, &quot;count(*)::integer&quot;)</span>
-<span class="lineno">   78 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
-<span class="lineno">   79 </span>
-<span class="lineno">   80 </span>makeTagWeight :: Int32 -&gt; Tag -&gt; TagWeight
-<span class="lineno">   81 </span><span class="decl"><span class="nottickedoff">makeTagWeight w t = TagWeight t w</span></span>
-<span class="lineno">   82 </span>
-<span class="lineno">   83 </span>selectTagWeight :: String -&gt; Selector -- ^ @'TagCoverage'@
-<span class="lineno">   84 </span><span class="decl"><span class="nottickedoff">selectTagWeight q = selectJoin '($)</span>
-<span class="lineno">   85 </span><span class="spaces">  </span><span class="nottickedoff">[ selectTagGroup &quot;tag_weight&quot; q 'makeTagWeight tagWeightColumns</span>
-<span class="lineno">   86 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;tag_weight.tag = tag.id&quot; selectTag</span>
-<span class="lineno">   87 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
-<span class="lineno">   88 </span>
-<span class="lineno">   89 </span>makeTagCoverage :: Int32 -&gt; [Maybe Segment] -&gt; [Maybe Segment] -&gt; [Maybe Segment] -&gt; Tag -&gt; Container -&gt; TagCoverage
-<span class="lineno">   90 </span><span class="decl"><span class="nottickedoff">makeTagCoverage w s k v t c = TagCoverage (TagWeight t w) c (segs s) (segs k) (segs v) where</span>
-<span class="lineno">   91 </span><span class="spaces">  </span><span class="nottickedoff">segs = map $ fromMaybe (error &quot;NULL tag segment&quot;)</span></span>
-<span class="lineno">   92 </span>
-<span class="lineno">   93 </span>tagCoverageColumns :: TH.Name -- ^ @'Party'@
-<span class="lineno">   94 </span>  -&gt; [(String, String)]
-<span class="lineno">   95 </span><span class="decl"><span class="nottickedoff">tagCoverageColumns acct = tagWeightColumns ++</span>
-<span class="lineno">   96 </span><span class="spaces">  </span><span class="nottickedoff">[ (&quot;coverage&quot;, &quot;segments_union(segment)&quot;)</span>
-<span class="lineno">   97 </span><span class="spaces">  </span><span class="nottickedoff">, (&quot;keywords&quot;, &quot;segments_union(CASE WHEN tableoid = 'keyword_use'::regclass THEN segment ELSE 'empty' END)&quot;)</span>
-<span class="lineno">   98 </span><span class="spaces">  </span><span class="nottickedoff">, (&quot;votes&quot;, &quot;segments_union(CASE WHEN tableoid = 'tag_use'::regclass AND who = ${partyId $ partyRow &quot; ++ nameRef acct ++ &quot;} THEN segment ELSE 'empty' END)&quot;)</span>
-<span class="lineno">   99 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
-<span class="lineno">  100 </span>
-<span class="lineno">  101 </span>selectTagCoverage :: TH.Name -- ^ @'Party'@
-<span class="lineno">  102 </span>  -&gt; String -- ^ query
-<span class="lineno">  103 </span>  -&gt; Selector -- ^ @'Tag' -&gt; 'Container' -&gt; 'TagCoverage'@
-<span class="lineno">  104 </span><span class="decl"><span class="nottickedoff">selectTagCoverage acct q =</span>
-<span class="lineno">  105 </span><span class="spaces">  </span><span class="nottickedoff">selectTagGroup &quot;tag_coverage&quot; q 'makeTagCoverage $ tagCoverageColumns acct</span></span>
-<span class="lineno">  106 </span>
-<span class="lineno">  107 </span>selectSlotTagCoverage :: TH.Name -- ^ @'Party'@
-<span class="lineno">  108 </span>  -&gt; TH.Name -- ^ @'Slot'
-<span class="lineno">  109 </span>  -&gt; Selector -- ^ @'TagCoverage'@
-<span class="lineno">  110 </span><span class="decl"><span class="nottickedoff">selectSlotTagCoverage acct slot = selectMap (`TH.AppE` (TH.VarE 'slotContainer `TH.AppE` TH.VarE slot)) $ selectJoin '($)</span>
-<span class="lineno">  111 </span><span class="spaces">  </span><span class="nottickedoff">[ selectTagCoverage acct $ &quot;WHERE container = ${containerId $ containerRow $ slotContainer &quot; ++ ss ++ &quot;} AND segment &amp;&amp; ${slotSegment &quot; ++ ss ++ &quot;}&quot;</span>
-<span class="lineno">  112 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;tag_coverage.tag = tag.id&quot; selectTag</span>
-<span class="lineno">  113 </span><span class="spaces">  </span><span class="nottickedoff">] where ss = nameRef slot</span></span>
+<span class="lineno">   10 </span>  -- for expanded queries
+<span class="lineno">   11 </span>  , makeTagUseRow
+<span class="lineno">   12 </span>  ) where
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import Data.List (intercalate)
+<span class="lineno">   15 </span>import Data.Maybe (fromMaybe)
+<span class="lineno">   16 </span>import Database.PostgreSQL.Typed.Query (makePGQuery, simpleQueryFlags)
+<span class="lineno">   17 </span>import qualified Language.Haskell.TH as TH
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import Databrary.Model.SQL.Select
+<span class="lineno">   20 </span>import Databrary.Model.Id.Types
+<span class="lineno">   21 </span>import Databrary.Model.Party.Types
+<span class="lineno">   22 </span>import Databrary.Model.Container.Types
+<span class="lineno">   23 </span>import Databrary.Model.Segment
+<span class="lineno">   24 </span>import Databrary.Model.Slot.Types
+<span class="lineno">   25 </span>import Databrary.Model.Tag.Types
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>tagRow :: Selector -- ^ @'Tag'@
+<span class="lineno">   28 </span><span class="decl"><span class="nottickedoff">tagRow = selectColumns 'Tag &quot;tag&quot; [&quot;id&quot;, &quot;name&quot;]</span></span>
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>selectTag :: Selector -- ^ @'Tag'@
+<span class="lineno">   31 </span><span class="decl"><span class="nottickedoff">selectTag = tagRow</span></span>
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>tagUseTable :: Bool -&gt; String
+<span class="lineno">   34 </span><span class="decl"><span class="nottickedoff">tagUseTable False = &quot;tag_use&quot;</span>
+<span class="lineno">   35 </span><span class="spaces"></span><span class="nottickedoff">tagUseTable True = &quot;keyword_use&quot;</span></span>
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>makeTagUseRow :: Id Party -&gt; Id Container -&gt; Segment -&gt; Maybe Bool -&gt; Tag -&gt; TagUseRow
+<span class="lineno">   38 </span><span class="decl"><span class="nottickedoff">makeTagUseRow w c s k t = TagUseRow t (fromMaybe False k) w (SlotId c s)</span></span>
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>tagUseRow :: Selector -- ' @'Tag' -&gt; 'TagUseRow'@
+<span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">tagUseRow = addSelects '($)</span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="nottickedoff">(selectColumns 'makeTagUseRow &quot;tag_use&quot; [&quot;who&quot;, &quot;container&quot;, &quot;segment&quot;])</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="nottickedoff">[SelectExpr &quot;tag_use.tableoid = 'keyword_use'::regclass&quot;]</span></span>
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>selectTagUseRow :: Selector -- ^ @'TagUseId'@
+<span class="lineno">   46 </span><span class="decl"><span class="nottickedoff">selectTagUseRow = selectJoin '($)</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="nottickedoff">[ tagUseRow</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;tag_use.tag = tag.id&quot;</span>
+<span class="lineno">   49 </span><span class="spaces">    </span><span class="nottickedoff">tagRow</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>insertTagUse :: Bool -- ^ keyword
+<span class="lineno">   53 </span>  -&gt; TH.Name -- ^ @'TagUse'@
+<span class="lineno">   54 </span>  -&gt; TH.ExpQ
+<span class="lineno">   55 </span><span class="decl"><span class="nottickedoff">insertTagUse keyword o = makePGQuery simpleQueryFlags $</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">&quot;INSERT INTO &quot; ++ tagUseTable keyword ++ &quot; (tag, container, segment, who) VALUES (${tagId $ useTag &quot; ++ os ++ &quot;}, ${containerId $ containerRow $ slotContainer $ tagSlot  &quot; ++ os ++ &quot;}, ${slotSegment $ tagSlot  &quot; ++ os ++ &quot;}, ${partyId $ partyRow $ accountParty $ tagWho  &quot; ++ os ++ &quot;})&quot;</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="nottickedoff">where os = nameRef o</span></span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>deleteTagUse :: Bool -- ^ keyword
+<span class="lineno">   60 </span>  -&gt; TH.Name -- ^ @'TagUse'@
+<span class="lineno">   61 </span>  -&gt; TH.ExpQ
+<span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">deleteTagUse keyword o = makePGQuery simpleQueryFlags $</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">&quot;DELETE FROM ONLY &quot; ++ tagUseTable keyword ++ &quot; WHERE tag = ${tagId $ useTag &quot; ++ os ++ &quot;} AND container = ${containerId $ containerRow $ slotContainer $ tagSlot &quot; ++ os ++ &quot;} AND segment &lt;@ ${slotSegment $ tagSlot &quot; ++ os ++ &quot;}&quot;</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">++ (if keyword then &quot;&quot; else &quot; AND who = ${partyId $ partyRow $ accountParty $ tagWho &quot; ++ os ++ &quot;}&quot;)</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">where os = nameRef o</span></span>
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>selectTagGroup :: String -- ^ table name
+<span class="lineno">   68 </span>  -&gt; String -- ^ query
+<span class="lineno">   69 </span>  -&gt; TH.Name -- ^ make function
+<span class="lineno">   70 </span>  -&gt; [(String, String)] -- ^ select columns (alias, select)
+<span class="lineno">   71 </span>  -&gt; Selector
+<span class="lineno">   72 </span><span class="decl"><span class="nottickedoff">selectTagGroup name q make cols = selector</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">(&quot;(SELECT tag,&quot; ++ intercalate &quot;,&quot; (map (\(a, s) -&gt; s ++ &quot; AS &quot; ++ a) cols)</span>
+<span class="lineno">   74 </span><span class="spaces">    </span><span class="nottickedoff">++ &quot; FROM tag_use &quot; ++ q ++ &quot; GROUP BY tag) AS &quot; ++ name)</span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="nottickedoff">$ OutputJoin False make $ map (SelectColumn name . fst) cols</span></span>
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span>tagWeightColumns :: [(String, String)]
+<span class="lineno">   78 </span><span class="decl"><span class="nottickedoff">tagWeightColumns =</span>
+<span class="lineno">   79 </span><span class="spaces">  </span><span class="nottickedoff">[ (&quot;weight&quot;, &quot;count(*)::integer&quot;)</span>
+<span class="lineno">   80 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>makeTagWeight :: Int32 -&gt; Tag -&gt; TagWeight
+<span class="lineno">   83 </span><span class="decl"><span class="nottickedoff">makeTagWeight w t = TagWeight t w</span></span>
+<span class="lineno">   84 </span>
+<span class="lineno">   85 </span>selectTagWeight :: String -&gt; Selector -- ^ @'TagCoverage'@
+<span class="lineno">   86 </span><span class="decl"><span class="nottickedoff">selectTagWeight q = selectJoin '($)</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="nottickedoff">[ selectTagGroup &quot;tag_weight&quot; q 'makeTagWeight tagWeightColumns</span>
+<span class="lineno">   88 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;tag_weight.tag = tag.id&quot; selectTag</span>
+<span class="lineno">   89 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">   90 </span>
+<span class="lineno">   91 </span>makeTagCoverage :: Int32 -&gt; [Maybe Segment] -&gt; [Maybe Segment] -&gt; [Maybe Segment] -&gt; Tag -&gt; Container -&gt; TagCoverage
+<span class="lineno">   92 </span><span class="decl"><span class="nottickedoff">makeTagCoverage w s k v t c = TagCoverage (TagWeight t w) c (segs s) (segs k) (segs v) where</span>
+<span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">segs = map $ fromMaybe (error &quot;NULL tag segment&quot;)</span></span>
+<span class="lineno">   94 </span>
+<span class="lineno">   95 </span>tagCoverageColumns :: TH.Name -- ^ @'Party'@
+<span class="lineno">   96 </span>  -&gt; [(String, String)]
+<span class="lineno">   97 </span><span class="decl"><span class="nottickedoff">tagCoverageColumns acct = tagWeightColumns ++</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="nottickedoff">[ (&quot;coverage&quot;, &quot;segments_union(segment)&quot;)</span>
+<span class="lineno">   99 </span><span class="spaces">  </span><span class="nottickedoff">, (&quot;keywords&quot;, &quot;segments_union(CASE WHEN tableoid = 'keyword_use'::regclass THEN segment ELSE 'empty' END)&quot;)</span>
+<span class="lineno">  100 </span><span class="spaces">  </span><span class="nottickedoff">, (&quot;votes&quot;, &quot;segments_union(CASE WHEN tableoid = 'tag_use'::regclass AND who = ${partyId $ partyRow &quot; ++ nameRef acct ++ &quot;} THEN segment ELSE 'empty' END)&quot;)</span>
+<span class="lineno">  101 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">  102 </span>
+<span class="lineno">  103 </span>selectTagCoverage :: TH.Name -- ^ @'Party'@
+<span class="lineno">  104 </span>  -&gt; String -- ^ query
+<span class="lineno">  105 </span>  -&gt; Selector -- ^ @'Tag' -&gt; 'Container' -&gt; 'TagCoverage'@
+<span class="lineno">  106 </span><span class="decl"><span class="nottickedoff">selectTagCoverage acct q =</span>
+<span class="lineno">  107 </span><span class="spaces">  </span><span class="nottickedoff">selectTagGroup &quot;tag_coverage&quot; q 'makeTagCoverage $ tagCoverageColumns acct</span></span>
+<span class="lineno">  108 </span>
+<span class="lineno">  109 </span>selectSlotTagCoverage :: TH.Name -- ^ @'Party'@
+<span class="lineno">  110 </span>  -&gt; TH.Name -- ^ @'Slot'
+<span class="lineno">  111 </span>  -&gt; Selector -- ^ @'TagCoverage'@
+<span class="lineno">  112 </span><span class="decl"><span class="nottickedoff">selectSlotTagCoverage acct slot = selectMap (`TH.AppE` (TH.VarE 'slotContainer `TH.AppE` TH.VarE slot)) $ selectJoin '($)</span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="nottickedoff">[ selectTagCoverage acct $ &quot;WHERE container = ${containerId $ containerRow $ slotContainer &quot; ++ ss ++ &quot;} AND segment &amp;&amp; ${slotSegment &quot; ++ ss ++ &quot;}&quot;</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;tag_coverage.tag = tag.id&quot; selectTag</span>
+<span class="lineno">  115 </span><span class="spaces">  </span><span class="nottickedoff">] where ss = nameRef slot</span></span>
 
 </pre>
 </body>

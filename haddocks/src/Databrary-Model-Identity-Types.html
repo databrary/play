@@ -28,7 +28,7 @@
 <a name="line-19"></a><a name="Identity"></a><span class='hs-comment'>-- | Who is making the request that we are handling?</span>
 <a name="line-20"></a><a name="Identity"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Identity</span>
 <a name="line-21"></a>  <span class='hs-keyglyph'>=</span> <span class='hs-conid'>NotLoggedIn</span>
-<a name="line-22"></a>  <span class='hs-comment'>-- ^ User may have an identity, but they have established it yet</span>
+<a name="line-22"></a>  <span class='hs-comment'>-- ^ User may have an identity, but they have not established it yet</span>
 <a name="line-23"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>IdentityNotNeeded</span>
 <a name="line-24"></a>  <span class='hs-comment'>-- ^ We don't care what the user's identity is.</span>
 <a name="line-25"></a>  <span class='hs-comment'>-- Used mainly for BackgroundContext, but also used when</span>

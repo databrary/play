@@ -45,12 +45,12 @@ span.spaces    { background: white }
 <span class="lineno">   29 </span><span class="decl"><span class="nottickedoff">version = Version [1] []</span></span>
 <span class="lineno">   30 </span>bindir, libdir, dynlibdir, datadir, libexecdir, sysconfdir :: FilePath
 <span class="lineno">   31 </span>
-<span class="lineno">   32 </span><span class="decl"><span class="nottickedoff">bindir     = &quot;/home/b/Projects/databrary/databrary/.cabal-sandbox/bin&quot;</span></span>
-<span class="lineno">   33 </span><span class="decl"><span class="nottickedoff">libdir     = &quot;/home/b/Projects/databrary/databrary/.cabal-sandbox/lib/x86_64-linux-ghc-8.0.2/databrary-1-4IJypVjWiZDEnHoKzlHmLx&quot;</span></span>
-<span class="lineno">   34 </span><span class="decl"><span class="nottickedoff">dynlibdir  = &quot;/home/b/Projects/databrary/databrary/.cabal-sandbox/lib/x86_64-linux-ghc-8.0.2&quot;</span></span>
-<span class="lineno">   35 </span><span class="decl"><span class="nottickedoff">datadir    = &quot;/home/b/Projects/databrary/databrary/.cabal-sandbox/share/x86_64-linux-ghc-8.0.2/databrary-1&quot;</span></span>
-<span class="lineno">   36 </span><span class="decl"><span class="nottickedoff">libexecdir = &quot;/home/b/Projects/databrary/databrary/.cabal-sandbox/libexec/x86_64-linux-ghc-8.0.2/databrary-1&quot;</span></span>
-<span class="lineno">   37 </span><span class="decl"><span class="nottickedoff">sysconfdir = &quot;/home/b/Projects/databrary/databrary/.cabal-sandbox/etc&quot;</span></span>
+<span class="lineno">   32 </span><span class="decl"><span class="nottickedoff">bindir     = &quot;/home/b/.cabal/bin&quot;</span></span>
+<span class="lineno">   33 </span><span class="decl"><span class="nottickedoff">libdir     = &quot;/home/b/.cabal/lib/x86_64-linux-ghc-8.0.2/databrary-1-4IJypVjWiZDEnHoKzlHmLx&quot;</span></span>
+<span class="lineno">   34 </span><span class="decl"><span class="nottickedoff">dynlibdir  = &quot;/home/b/.cabal/lib/x86_64-linux-ghc-8.0.2&quot;</span></span>
+<span class="lineno">   35 </span><span class="decl"><span class="nottickedoff">datadir    = &quot;/home/b/.cabal/share/x86_64-linux-ghc-8.0.2/databrary-1&quot;</span></span>
+<span class="lineno">   36 </span><span class="decl"><span class="nottickedoff">libexecdir = &quot;/home/b/.cabal/libexec/x86_64-linux-ghc-8.0.2/databrary-1&quot;</span></span>
+<span class="lineno">   37 </span><span class="decl"><span class="nottickedoff">sysconfdir = &quot;/home/b/.cabal/etc&quot;</span></span>
 <span class="lineno">   38 </span>
 <span class="lineno">   39 </span>getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir, getSysconfDir :: IO FilePath
 <span class="lineno">   40 </span><span class="decl"><span class="nottickedoff">getBinDir = catchIO (getEnv &quot;databrary_bindir&quot;) (\_ -&gt; return bindir)</span></span>
