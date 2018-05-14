@@ -4,6 +4,7 @@ module Databrary.Model.Authorize
   , selfAuthorize
   , lookupAuthorizedChildren
   , lookupAuthorizedParents
+  , AuthorizeFilter(..)
   , lookupAuthorize
   , lookupAuthorizeParent
   , lookupAuthorization
@@ -38,18 +39,21 @@ selfAuthorize :: Party -> Authorize
 selfAuthorize p =
   Authorize (Authorization (if partyId (partyRow p) == partyId (partyRow nobodyParty) then minBound else maxBound) p p) Nothing
 
--- | Get all active authorizations that the child party has been approved from parent parties. Use any permission
--- provided as a lower bounds for parent party authorizations to retrieve.
+-- | Get authorizations where the given party is the child. When the permission argument has a value,
+-- then only provide active, approved authorizations, filtering out authorizations lower than the
+-- provided level.
 lookupAuthorizedParents :: (MonadDB c m, MonadHasIdentity c m) => Party -> Maybe Permission -> m [Authorize]
 lookupAuthorizedParents child perm = do
+  -- TODO: specialize the argument to be AuthorizeFilter for this and Children function below
   ident <- peek
   dbQuery $ maybe
     $(selectQuery (selectAuthorizeParent 'child 'ident) "$")
     (\p -> $(selectQuery (selectAuthorizeParent 'child 'ident) "$WHERE (expires IS NULL OR expires > CURRENT_TIMESTAMP) AND site >= ${p} AND member >= ${p} AND (site <> 'NONE' OR member <> 'NONE')"))
     perm
 
--- | Get all active authorizations that the parent party has granted to child parties. Use any permission
--- provided as a lower bounds for child party authorizations to retrieve.
+-- | Get authorizations where the given party is the parent. When the permission argument has a value,
+-- then only provide active, approved authorizations, filtering out authorizations lower than the
+-- provided level.
 lookupAuthorizedChildren :: (MonadDB c m, MonadHasIdentity c m) => Party -> Maybe Permission -> m [Authorize]
 lookupAuthorizedChildren parent perm = do
   ident <- peek
@@ -58,16 +62,24 @@ lookupAuthorizedChildren parent perm = do
     (\p -> $(selectQuery (selectAuthorizeChild 'parent 'ident) "$WHERE (expires IS NULL OR expires > CURRENT_TIMESTAMP) AND site >= ${p} AND member >= ${p} AND (site <> 'NONE' OR member <> 'NONE')"))
     perm
 
+-- TODO: add combinators above expressing why the filters are being used, probably in authorize controller
+data AuthorizeFilter = AllAuthorizations | ActiveAuthorizations deriving (Eq, Show)
+
 -- | Attempt to find an authorization request or grant from the child party to the granting parent party.
--- Exclude expired authorizations.
-lookupAuthorize :: MonadDB c m => Party -> Party -> m (Maybe Authorize)
-lookupAuthorize child parent =
+-- If authorize filter is ForPartyViewer, filter out expired authorizations.
+lookupAuthorize :: MonadDB c m => AuthorizeFilter -> Party -> Party -> m (Maybe Authorize)
+lookupAuthorize aFilter child parent =
   dbQuery1 $
       (\mkAuthorize' -> mkAuthorize' child parent)
-          <$> $(selectQuery
-                    authorizeRow
-                    -- only include authorizations that either have no expiration or have not expired yet
-                    "$WHERE authorize.child = ${partyId $ partyRow child} AND authorize.parent = ${partyId $ partyRow parent} AND (expires IS NULL OR expires > CURRENT_TIMESTAMP)")
+          <$> case aFilter of
+                  ActiveAuthorizations ->
+                      $(selectQuery
+                            authorizeRow
+                            "$WHERE authorize.child = ${partyId $ partyRow child} AND authorize.parent = ${partyId $ partyRow parent} AND (expires IS NULL OR expires > CURRENT_TIMESTAMP)")
+                  AllAuthorizations ->
+                      $(selectQuery
+                            authorizeRow
+                            "$WHERE authorize.child = ${partyId $ partyRow child} AND authorize.parent = ${partyId $ partyRow parent}")
 
 -- | Find an active authorization request or approval from child to parent.
 lookupAuthorizeParent :: (MonadDB c m, MonadHasIdentity c m) => Party -> Id Party -> m (Maybe Authorize)
