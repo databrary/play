@@ -23,6 +23,7 @@ import Databrary.Model.Permission
 import Databrary.Service.DB
 import Databrary.Service.Entropy
 import Databrary.Service.Types
+import Databrary.Store.AV
 
 
 -- |
@@ -41,6 +42,7 @@ data TestContext = TestContext
     -- ^ for MonadAudit
     , ctxConn :: DBConn
     , ctxIdentity :: Identity
+    , ctxAV :: AV
     }
 
 instance Has Identity TestContext where
@@ -72,6 +74,9 @@ instance Has (Id Party) TestContext where
 
 instance Has Access TestContext where
     view = view . ctxIdentity
+
+instance Has AV TestContext where
+    view = ctxAV
 
 withinTestTransaction :: (PGConnection -> IO a) -> IO a
 withinTestTransaction act =
