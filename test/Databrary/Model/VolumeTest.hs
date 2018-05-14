@@ -14,7 +14,7 @@ import Test.Tasty.ExpectedFailure
 import TestHarness
 import Databrary.JSON
 -- import Databrary.Model.Id
-import Databrary.Model.Identity
+-- import Databrary.Model.Identity
 import Databrary.Model.Party
 import Databrary.Model.Permission.Types
 import Databrary.Model.Volume
