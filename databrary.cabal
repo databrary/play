@@ -570,6 +570,7 @@ test-suite discovered
     , Databrary.Store.AVTest
     , Databrary.Store.ConfigTest
     , Databrary.Store.FilenameTest
+    , Databrary.Store.ProbeTest
     , Databrary.StringUtilTest
     , Data.Csv.ContribTest
     , Data.RangeSet.ParseTest
