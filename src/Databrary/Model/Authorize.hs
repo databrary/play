@@ -62,7 +62,8 @@ lookupAuthorizedChildren parent perm = do
     (\p -> $(selectQuery (selectAuthorizeChild 'parent 'ident) "$WHERE (expires IS NULL OR expires > CURRENT_TIMESTAMP) AND site >= ${p} AND member >= ${p} AND (site <> 'NONE' OR member <> 'NONE')"))
     perm
 
-data AuthorizeFilter = ForPartyAdmin | ForPartyViewer deriving (Eq, Show)
+-- TODO: add combinators above expressing why the filters are being used, probably in authorize controller
+data AuthorizeFilter = AllAuthorizations | ActiveAuthorizations deriving (Eq, Show)
 
 -- | Attempt to find an authorization request or grant from the child party to the granting parent party.
 -- If authorize filter is ForPartyViewer, filter out expired authorizations.
@@ -71,11 +72,11 @@ lookupAuthorize aFilter child parent =
   dbQuery1 $
       (\mkAuthorize' -> mkAuthorize' child parent)
           <$> case aFilter of
-                  ForPartyViewer ->
+                  ActiveAuthorizations ->
                       $(selectQuery
                             authorizeRow
                             "$WHERE authorize.child = ${partyId $ partyRow child} AND authorize.parent = ${partyId $ partyRow parent} AND (expires IS NULL OR expires > CURRENT_TIMESTAMP)")
-                  ForPartyAdmin ->
+                  AllAuthorizations ->
                       $(selectQuery
                             authorizeRow
                             "$WHERE authorize.child = ${partyId $ partyRow child} AND authorize.parent = ${partyId $ partyRow parent}")
