@@ -17,6 +17,7 @@ module Databrary.Model.Authorize
   , makeAuthorize
   ) where
 
+-- import Control.Monad.IO.Class (liftIO)
 import Control.Monad (when)
 import Data.Int (Int64)
 import Data.Maybe (fromMaybe)

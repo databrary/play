@@ -7,6 +7,7 @@ module TestHarness
     , runReaderT
     , Wai.defaultRequest
     , Id(..)
+    , Identity(..)
     )
     where
 
@@ -42,6 +43,7 @@ data TestContext = TestContext
     -- ^ for MonadAudit
     , ctxConn :: DBConn
     , ctxIdentity :: Identity
+    , ctxSiteAuth :: SiteAuth
     , ctxAV :: AV
     }
 
@@ -64,7 +66,7 @@ instance Has Entropy TestContext where
 
 -- prefer using SiteAuth instead of Identity for test contexts
 instance Has SiteAuth TestContext where
-    view = undefined
+    view = ctxSiteAuth
 
 instance Has Party TestContext where
     view = undefined
