@@ -65,8 +65,6 @@ instance Has (Id Party) Account where
 instance Has Access Party where
   view Party{ partyAccess = Just a } = a
   view _ = mempty
--- instance Has Permission Party where
---   view = partyPermission
 
 instance Kinded Party where
   kindOf _ = "party"

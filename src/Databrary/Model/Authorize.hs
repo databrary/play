@@ -65,14 +65,13 @@ lookupAuthorizedChildren parent perm = do
 data AuthorizeFilter = ForPartyAdmin | ForPartyViewer deriving (Eq, Show)
 
 -- | Attempt to find an authorization request or grant from the child party to the granting parent party.
--- Exclude expired authorizations.
+-- If authorize filter is ForPartyViewer, filter out expired authorizations.
 lookupAuthorize :: MonadDB c m => AuthorizeFilter -> Party -> Party -> m (Maybe Authorize)
 lookupAuthorize aFilter child parent =
   dbQuery1 $
       (\mkAuthorize' -> mkAuthorize' child parent)
           <$> case aFilter of
                   ForPartyViewer ->
-                      -- only include authorizations that either have no expiration or have not expired yet
                       $(selectQuery
                             authorizeRow
                             "$WHERE authorize.child = ${partyId $ partyRow child} AND authorize.parent = ${partyId $ partyRow parent} AND (expires IS NULL OR expires > CURRENT_TIMESTAMP)")
