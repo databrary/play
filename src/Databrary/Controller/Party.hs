@@ -67,7 +67,7 @@ getParty
   -> PartyTarget
   -> Handler Party
 getParty (Just p) (TargetParty i) =
-  checkPermission p =<< maybeAction =<< lookupAuthParty i
+  (\party -> checkPermission2 partyPermission p party) =<< maybeAction =<< lookupAuthParty i
 getParty _ mi = do
   u <- accountParty <$> authAccount
   let isme TargetProfile = True
@@ -84,17 +84,21 @@ partyJSONField p "parents" o = do
     return $ (if admin then authorizeJSON a else mempty)
       <> "party" JSON..=: (partyJSON ap `JSON.foldObjectIntoRec` ("authorization" `JSON.kvObjectOrEmpty` acc))
       <> "expired" `JSON.kvObjectOrEmpty` (True `useWhen` (admin && authorizeExpired a now)))
+    -- if the current user doesn't have admin over the party in question, then filter out
+    -- inactive authorizations
     =<< lookupAuthorizedParents p (admin `unlessUse` PermissionNONE)
   where
-  admin = view p >= PermissionADMIN
+  admin = partyPermission p >= PermissionADMIN
   auth = admin && o == Just "authorization"
 partyJSONField p "children" _ =
   Just . JSON.mapObjects (\a ->
     let ap = authorizeChild (authorization a) in
     (if admin then authorizeJSON a else mempty) <> "party" JSON..=: partyJSON ap)
+    -- if the current user doesn't have admin over the party in question, then filter out
+    -- inactive authorizations
     <$> lookupAuthorizedChildren p (admin `unlessUse` PermissionNONE)
-  where admin = view p >= PermissionADMIN
-partyJSONField p "volumes" o = thenReturn (view p >= PermissionADMIN) $ do
+  where admin = partyPermission p >= PermissionADMIN
+partyJSONField p "volumes" o = thenReturn (partyPermission p >= PermissionADMIN) $ do
     vols <- lookupPartyVolumes p PermissionREAD
     (fmap (JSON.mapRecords id) . mapM vf) vols
   where

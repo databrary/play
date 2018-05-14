@@ -43,7 +43,7 @@ htmlPartyView :: Party -> RequestContext -> H.Html
 htmlPartyView p@Party{ partyRow = pr@PartyRow{..}, ..} req = htmlTemplate req Nothing $ \js -> do
   H.div H.! H.customAttribute "typeof" "person" $ do
     H.h1 H.! H.customAttribute "property" "name" $ H.text $ partyName pr
-    when (view p >= PermissionEDIT) $
+    when (partyPermission >= PermissionEDIT) $
       H.p $
         H.a H.! actionLink viewPartyEdit (TargetParty partyId) js $ "edit"
     H.img

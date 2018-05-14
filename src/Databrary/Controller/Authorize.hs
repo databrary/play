@@ -157,7 +157,7 @@ postAuthorize = action POST (pathAPI </>> pathPartyTarget </> pathAuthorizeTarge
 -- Also, build an authorization request or present the current authorization value.
 findOrMakeRequest :: (MonadDB c m) => Party -> Party -> m (Maybe Authorize, Authorize)
 findOrMakeRequest child parent = do
-  c <- lookupAuthorize child parent
+  c <- lookupAuthorize ForPartyViewer child parent -- TODO: should this conditionally use ForPartyAdmin based on permissionParty?
   pure (c, mkAuthorizeRequest child parent `fromMaybe` c)
 
 -- | If present, delete either a prior request for authorization. The authorization to delete can be specified
@@ -170,7 +170,7 @@ deleteAuthorize = action DELETE (pathAPI </>> pathPartyTarget </> pathAuthorizeT
       mAuthorizeTargetParty <- lookupParty oi
       maybeAction mAuthorizeTargetParty
   let (child, parent) = if apply then (p, o) else (o, p)
-  mAuth <- lookupAuthorize child parent
+  mAuth <- lookupAuthorize ForPartyAdmin child parent
   removeAuthorizeNotify mAuth
   case api of
     JSON -> return $ okResponse [] $ JSON.pairs $ "party" JSON..=: partyJSON o
