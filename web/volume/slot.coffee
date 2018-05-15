@@ -503,6 +503,8 @@ app.controller('volume/slot', [
         return false if typeof $scope.editing == 'string'
         $scope.editing = true
         $scope.current.updateExcerpt() if $scope.current?.excerpts
+        window.dataLayer.push
+          'event': 'gtm.drag'
       playrange = $scope.asset?.segment.intersect(ruler.selection)
       for t in $scope.tags
         t.update()
