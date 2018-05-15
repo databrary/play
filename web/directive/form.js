@@ -132,8 +132,20 @@ app.directive('ngForm', [
       };
 
       form.resetAll = function (force, check) {
-        if (!(force || form.$pristine || confirm(constants.message('navigation.confirmation'))))
-          return false;
+        if (!(force || form.$pristine)) {
+          if (!(confirm(constants.message('navigation.confirmation')))) {
+            window.dataLayer.push({
+              'event': 'gtm.confirm',
+              'gtm.confirmAction': 'cancel'
+            });
+            return false;
+          } else {
+            window.dataLayer.push({
+              'event': 'gtm.confirm',
+              'gtm.confirmAction': 'ok'
+            });
+          }
+        } 
         if (check)
           return true;
         var x = window.pageXOffset,
