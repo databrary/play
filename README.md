@@ -1,4 +1,4 @@
-# Databrary
+# Databrary [<img src="https://img.shields.io/badge/coverage-15%25-yellow.svg">](http://databrary.github.io/databrary/coverage/hpc_index.html)
 
 Want to help out? Feel free to start right here with this underwhelming README!
 
