@@ -3,6 +3,14 @@ module TestHarness
       TestContext ( .. )
     , withinTestTransaction
     , connectTestDb
+    , makeSuperAdminContext
+    , fakeIdentSessFromAuth
+    , addAuthorizedInstitution
+    , mkInstitution -- TODO: stop exporting
+    , mkAccount -- TODO: stop exporting
+    , addAuthorizedInvestigator
+    , addAffiliate
+    , lookupSiteAuthNoIdent
     -- * re-export for convenience
     , runReaderT
     , Wai.defaultRequest
@@ -13,14 +21,20 @@ module TestHarness
 
 import Control.Exception (bracket)
 import Control.Monad.Trans.Reader
+import qualified Data.ByteString as BS
+import Data.Maybe
 import Database.PostgreSQL.Typed.Protocol
+import qualified Data.Text as T
+import Data.Time
 import qualified Network.Wai as Wai
 
 import Databrary.Has
+import Databrary.Model.Authorize
 import Databrary.Model.Id
 import Databrary.Model.Identity
 import Databrary.Model.Party
 import Databrary.Model.Permission
+import Databrary.Model.Token
 import Databrary.Service.DB
 import Databrary.Service.Entropy
 import Databrary.Service.Types
@@ -93,3 +107,90 @@ withinTestTransaction act =
 connectTestDb :: IO PGConnection
 connectTestDb =
     loadPGDatabase >>= pgConnect
+
+makeSuperAdminContext :: PGConnection -> BS.ByteString -> IO TestContext
+makeSuperAdminContext cn adminEmail =
+    runReaderT
+        (do
+             Just auth <- lookupSiteAuthByEmail False adminEmail
+             let pid = (partyId . partyRow . accountParty . siteAccount) auth
+                 ident = fakeIdentSessFromAuth auth True
+             pure (TestContext {
+                        ctxConn = cn
+                      , ctxIdentity = ident
+                      , ctxSiteAuth = view ident
+                      , ctxPartyId = pid
+                      , ctxRequest = Wai.defaultRequest
+                      }))
+        TestContext { ctxConn = cn }
+
+fakeIdentSessFromAuth :: SiteAuth -> Bool -> Identity
+fakeIdentSessFromAuth a su =
+    Identified
+      (Session
+         (AccountToken (Token (Id "id") (UTCTime (fromGregorian 2017 1 2) (secondsToDiffTime 0))) a)
+         "verf"
+         su)
+
+addAuthorizedInstitution :: TestContext -> T.Text -> IO Party
+addAuthorizedInstitution adminCtxt instName = do
+    runReaderT
+        (do
+             created <- addParty (mkInstitution instName)
+             changeAuthorize (makeAuthorize (Access PermissionADMIN PermissionNONE) Nothing created rootParty)
+             pure created)
+        adminCtxt
+
+-- TODO: recieve expiration date
+addAuthorizedInvestigator :: TestContext -> T.Text -> T.Text -> BS.ByteString -> Party -> IO Account
+addAuthorizedInvestigator adminCtxt lastName firstName email instParty = do
+    let ctxtNoIdent = adminCtxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
+        a = mkAccount lastName firstName email
+    aiAccount <-
+        runReaderT
+            (do
+                 created <- addAccount a
+                 Just auth <- lookupSiteAuthByEmail False email
+                 changeAccount (auth { accountPasswd = Just "somehashedvalue" })
+                 pure created)
+            ctxtNoIdent
+    runReaderT
+        (changeAuthorize (makeAuthorize (Access PermissionADMIN PermissionNONE) Nothing (accountParty aiAccount) instParty))
+        adminCtxt
+    pure aiAccount
+
+-- TODO: receive expiration date
+addAffiliate :: TestContext -> T.Text -> T.Text -> BS.ByteString -> Party -> Permission -> Permission -> IO Account
+addAffiliate aiCntxt lastName firstName email aiParty site member = do
+    let ctxtNoIdent = aiCntxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
+        a = mkAccount lastName firstName email
+    affAccount <-
+        runReaderT
+            (do
+                 created <- addAccount a
+                 Just auth <- lookupSiteAuthByEmail False email
+                 changeAccount (auth { accountPasswd = Just "somehashedvalue" })
+                 pure created)
+            ctxtNoIdent
+    runReaderT
+        (changeAuthorize (makeAuthorize (Access site member) Nothing (accountParty affAccount) aiParty))
+        aiCntxt
+    pure affAccount
+
+lookupSiteAuthNoIdent :: TestContext -> BS.ByteString -> IO SiteAuth
+lookupSiteAuthNoIdent privCtxt email = do
+    let ctxtNoIdent = privCtxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
+    fromJust <$> runReaderT (lookupSiteAuthByEmail False email) ctxtNoIdent
+
+mkInstitution :: T.Text -> Party
+mkInstitution instName =
+    blankParty {
+          partyRow = (partyRow blankParty) { partySortName = instName }
+        }
+
+mkAccount :: T.Text -> T.Text -> BS.ByteString -> Account
+mkAccount sortName preName email = 
+    let pr = (partyRow blankParty) { partySortName = sortName , partyPreName = Just preName }
+        p = blankParty { partyRow = pr, partyAccount = Just a }
+        a = blankAccount { accountParty = p, accountEmail = email }
+    in a

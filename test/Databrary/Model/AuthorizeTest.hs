@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Model.AuthorizeTest where
 
-import qualified Data.ByteString as BS
-import qualified Data.Text as T
-import Data.Time
+-- import qualified Data.ByteString as BS
+-- import qualified Data.Text as T
+-- import Data.Time
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -11,7 +11,7 @@ import Databrary.Has
 import Databrary.Model.Authorize
 import Databrary.Model.Party
 import Databrary.Model.Permission
-import Databrary.Model.Token
+-- import Databrary.Model.Token
 import TestHarness
 
 -- session exercise various logic in Authorize
@@ -38,10 +38,9 @@ test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
             runReaderT
                 (do
                      a2 <- addAccount a
-                     let p = accountParty a2
                      Just auth2 <- lookupSiteAuthByEmail False "jake@smith.com"
                      changeAccount (auth2 { accountPasswd = Just "somehashval"})
-                     changeAuthorize (makeAuthorize (Access PermissionADMIN PermissionADMIN) Nothing p dbSite)
+                     changeAuthorize (makeAuthorize (Access PermissionADMIN PermissionADMIN) Nothing (accountParty a2) dbSite)
                      lookupSiteAuthByEmail False "jake@smith.com")
                 ctx
         step "Then we expect the user to have admin privileges on the databrary site"
@@ -76,51 +75,63 @@ test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
                 ctxt
         step "Then we expect the institution to have ADMIN site access, no member privileges"
         authorizeAccess authorization1 @?= Access { accessSite' = PermissionADMIN, accessMember' = PermissionNONE })
+
+    -- Note to self: beyond documentation, this a long winded way of testing authorize_view
+    withinTestTransaction (\cn2 -> do
+        step "Given a superadmin and an institution authorized as admin under db site"
+        ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
+        instParty <- addAuthorizedInstitution ctxt "New York University"
+        step "When the superadmin grants an authorized investigator with edit access on their parent institution"
+        _ <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
+        let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
+        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
+        step "Then we expect the authorized investigator to effectively have edit db site access"
+        siteAccess aiAuth @?= Access { accessSite' = PermissionEDIT, accessMember' = PermissionNONE })
+
+    withinTestTransaction (\cn2 -> do
+        step "Given an authorized investigator"
+        ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
+        instParty <- addAuthorizedInstitution ctxt "New York University"
+        aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Mick" "mick@smith.com" instParty
+        let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
+        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "mick@smith.com") ctxtNoIdent
+        let aiCtxt =
+                ctxt {
+                      ctxIdentity = fakeIdentSessFromAuth aiAuth False
+                    , ctxPartyId = (partyId . partyRow . accountParty) aiAcct
+                    , ctxSiteAuth = aiAuth
+                }
+            aiParty = accountParty aiAcct
+        step "When the authorized investigator grants various affiliates access on their lab and/or db site data"
+        _ <- addAffiliate aiCtxt "Smith" "Akbar" "akbar@smith.com" aiParty PermissionNONE PermissionEDIT
+        undergradAffAuth <- lookupSiteAuthNoIdent aiCtxt "akbar@smith.com"
+        _ <- addAffiliate aiCtxt "Smith" "Bob" "bob@smith.com" aiParty PermissionREAD PermissionADMIN
+        gradAffAuth <- lookupSiteAuthNoIdent aiCtxt "bob@smith.com"
+        _ <- addAffiliate aiCtxt "Smith" "Chris" "chris@smith.com" aiParty PermissionREAD PermissionREAD
+        aff1Auth <- lookupSiteAuthNoIdent aiCtxt "chris@smith.com"
+        _ <- addAffiliate aiCtxt "Smith" "Daria" "daria@smith.com" aiParty PermissionREAD PermissionEDIT
+        aff2Auth <- lookupSiteAuthNoIdent aiCtxt "daria@smith.com"
+        step "Then we expect each affiliate to have appropriate db site data and site admin access"
+        accessIsEq (siteAccess undergradAffAuth) PermissionNONE PermissionNONE
+        accessIsEq (siteAccess gradAffAuth) PermissionREAD PermissionNONE
+        accessIsEq (siteAccess aff1Auth) PermissionREAD PermissionNONE
+        accessIsEq (siteAccess aff2Auth) PermissionREAD PermissionNONE)
+
+accessIsEq :: Access -> Permission -> Permission -> Assertion
+accessIsEq a site member = a @?= Access { accessSite' = site, accessMember' = member }
   
-    -- create institution party (super admin ident)
-    -- save authorize as EDIT on databrary (super admin ident)
-    -- create AI account (identity not needed)
-    -- update AI account (identity not needed)
-    -- save authorize as EDIT on instituion (super admin ident or admin ident?)
-    -- lookup AI account
-
-    --- ... w/AI + affiliate; lookup affiliate account
-
-    -- repeat scenarios above but perform a restricted action (create volume as AI, view volume as affiliate)
-  
-mkAccount :: T.Text -> T.Text -> BS.ByteString -> Account
-mkAccount sortName preName email = 
-    let pr = (partyRow blankParty) { partySortName = sortName , partyPreName = Just preName }
-        p = blankParty { partyRow = pr, partyAccount = Just a }
-        a = blankAccount { accountParty = p, accountEmail = email }
-    in a
-
-fakeIdentSessFromAuth :: SiteAuth -> Bool -> Identity
-fakeIdentSessFromAuth a su =
-    Identified
-      (Session
-         (AccountToken (Token (Id "id") (UTCTime (fromGregorian 2017 1 2) (secondsToDiffTime 0))) a)
-         "verf"
-         su)
-
-mkInstitution :: T.Text -> Party
-mkInstitution instName =
-    blankParty {
-          partyRow = (partyRow blankParty) { partySortName = instName }
-        }
-
 -- Distribution of typical auths (site / member):
 
---     admin/admin from each super admin to db group <<
---     admin/none from each institution party to db group <<
+--     admin/admin from each super admin to db group << DONE
+--     admin/none from each institution party to db group << DONE
 
---     edit/none from each AI to their institution <<
+--     edit/none from each AI to their institution << DONE
 
---     none/edit from affiliate to AI (high) <<
---     read/admin from affiliate to AI (high) <<
---     read/read  from affiliate to AI (med) <<
+--     none/edit from undergrad affiliate to AI (high) << DONE
+--     read/admin from grad affiliate to AI (high) << DONE
+--     read/read  from ? affiliate to AI (med) <<
 --     read/edit from affiliate to AI (med) <<
---     none/admin from admin? to AI (low)
+--     none/admin from admin? or collab hack? or lab manager? to AI (low)
 --     none/read  from collaborator? to AI (low)
 --     read/none from collaborator? to AI (low)
 
