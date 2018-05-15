@@ -6,10 +6,10 @@ module Databrary.Model.PartyTest where
 -- import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
 -- import Control.Monad.Reader
-import qualified Data.ByteString as BS
+-- import qualified Data.ByteString as BS
 import Data.Maybe
-import qualified Data.Text as T
-import Data.Time
+-- import qualified Data.Text as T
+-- import Data.Time
 -- import Hedgehog
 import Hedgehog.Gen as Gen
 -- import Test.Tasty
@@ -21,30 +21,9 @@ import Databrary.Model.Identity
 import Databrary.Model.Party
 import Databrary.Model.Party.TypesTest
 import Databrary.Model.Permission
-import Databrary.Model.Token
+-- import Databrary.Model.Token
 import Databrary.Service.DB
 import TestHarness
-
-mkAccount :: T.Text -> T.Text -> BS.ByteString -> Account
-mkAccount sortName preName email = 
-    let pr = (partyRow blankParty) { partySortName = sortName , partyPreName = Just preName }
-        p = blankParty { partyRow = pr, partyAccount = Just a }
-        a = blankAccount { accountParty = p, accountEmail = email }
-    in a
-
-fakeIdentSessFromAuth :: SiteAuth -> Bool -> Identity
-fakeIdentSessFromAuth a su =
-    Identified
-      (Session
-         (AccountToken (Token (Id "id") (UTCTime (fromGregorian 2017 1 2) (secondsToDiffTime 0))) a)
-         "verf"
-         su)
-
-mkInstitution :: T.Text -> Party
-mkInstitution instName =
-    blankParty {
-          partyRow = (partyRow blankParty) { partySortName = instName }
-        }
 
 -- session driving a variety of functions in party module
 unit_Party_examples :: Assertion
