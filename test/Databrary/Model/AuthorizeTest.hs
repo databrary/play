@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables, FlexibleContexts #-}
 module Databrary.Model.AuthorizeTest where
 
 -- import qualified Data.ByteString as BS
@@ -9,6 +9,7 @@ import Test.Tasty
 import Test.Tasty.HUnit
 
 import Databrary.Has
+import Databrary.Model.Audit (MonadAudit)
 import Databrary.Model.Authorize
 import Databrary.Model.Container
 import Databrary.Model.Party
@@ -275,21 +276,55 @@ test_Authorize_examples2 = testCaseSteps "Authorize examples continued" $ \step 
         let aiParty = accountParty aiAcct
         createdContainer <- runReaderT
              (do
-                  v <- addVolume volumeExample -- note: skipping irrelevant change volume citation
-                  setDefaultVolumeAccessesForCreated aiParty v
+                  v <- addVolumeWithAccess volumeExample aiParty
                   -- simulate setting volume as private
                   _ <- changeVolumeAccess (mkVolAccess PermissionNONE Nothing nobodyParty v) -- TODO: handle root also?
                   -- modeled after createContainer
-                  let c = blankContainer v
-                      bc = c { containerRelease = Just ReleasePUBLIC }
-                  c' <- addContainer bc
-                  pure c')
+                  addContainer (mkContainer v (Just ReleasePUBLIC)))
              aiCtxt
         step "Then the public can't view the container"
-        -- Implementation of getVolume PUBLIC
+        -- Implementation of getSlot PUBLIC
         let cid = (containerId . containerRow) createdContainer
         mSlotForAnon <- runReaderT (lookupSlot (containerSlotId cid)) ctxtNoIdent
         isNothing mSlotForAnon @? "expected slot lookup to find nothing")
+
+    withinTestTransaction (\cn2 -> do -- TODO: move this to VolumeAccess or more general module around authorization
+        step "Given an authorized investigator's created public volume with a container released at Excerpts level"
+        ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
+        instParty <- addAuthorizedInstitution ctxt "New York University"
+        aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
+        let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
+        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
+        let aiCtxt = switchIdentity ctxt aiAuth False
+        -- TODO: should be lookup auth on rootParty
+        let aiParty = accountParty aiAcct
+        createdContainer <- runReaderT
+             (do
+                  v <- addVolumeWithAccess volumeExample aiParty
+                  addContainer (mkContainer v (Just ReleaseEXCERPTS)))
+             aiCtxt
+        step "When the public attempts to view the container"
+        -- Implementation of getSlot PUBLIC
+        let cid = (containerId . containerRow) createdContainer
+        Just slotForAnon <- runReaderT (lookupSlot (containerSlotId cid)) ctxtNoIdent
+        step "Then the public is denied"
+        -- TODO: this fails because containers are shown (okay?) regardless of container release, 
+        --   need to test an asset or record (?) within the container instead
+        -- (volumePermission . containerVolume . slotContainer) slotForAnon @?= PermissionNONE
+        )
+
+addVolumeWithAccess :: MonadAudit c m => Volume -> Party -> m Volume
+addVolumeWithAccess v p = do
+    v' <- addVolume v -- note: skipping irrelevant change volume citation
+    setDefaultVolumeAccessesForCreated p v'
+    pure v'
+
+mkContainer :: Volume -> Maybe Release -> Container
+mkContainer v mRel = -- note: modeled after create container
+  let
+      c = blankContainer v
+  in
+      c { containerRelease = mRel }
 
 mkVolAccess :: Permission -> Maybe Bool -> Party -> Volume -> VolumeAccess
 mkVolAccess perm mShareFull p v =
