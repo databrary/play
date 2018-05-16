@@ -18,6 +18,7 @@ module TestHarness
     , Wai.defaultRequest
     , Id(..)
     , Identity(..)
+    , module Databrary.Model.Permission
     )
     where
 
