@@ -11,6 +11,8 @@ module TestHarness
     , addAuthorizedInvestigator
     , addAffiliate
     , lookupSiteAuthNoIdent
+    , switchIdentity
+    -- , addAuthorization
     -- * re-export for convenience
     , runReaderT
     , Wai.defaultRequest
@@ -177,6 +179,15 @@ addAffiliate aiCntxt lastName firstName email aiParty site member = do
         aiCntxt
     pure affAccount
 
+{-
+-- TODO: receive authorization
+addAuthorization :: TestContext -> Party -> Party -> Permission -> Permission -> IO ()
+addAuthorization ctxt parentParty requestParty site member = do
+    runReaderT
+        (changeAuthorize (makeAuthorize (Access site member) Nothing requestParty parentParty))
+        ctxt
+-}
+
 lookupSiteAuthNoIdent :: TestContext -> BS.ByteString -> IO SiteAuth
 lookupSiteAuthNoIdent privCtxt email = do
     let ctxtNoIdent = privCtxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
@@ -194,3 +205,11 @@ mkAccount sortName preName email =
         p = blankParty { partyRow = pr, partyAccount = Just a }
         a = blankAccount { accountParty = p, accountEmail = email }
     in a
+
+switchIdentity :: TestContext -> SiteAuth -> Bool -> TestContext
+switchIdentity baseCtxt auth su = do
+    baseCtxt {
+          ctxIdentity = fakeIdentSessFromAuth auth su
+        , ctxPartyId = (partyId . partyRow . accountParty . siteAccount) auth
+        , ctxSiteAuth = auth
+    }
