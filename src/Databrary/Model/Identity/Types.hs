@@ -19,7 +19,7 @@ import Databrary.Model.Token.Types
 -- | Who is making the request that we are handling?
 data Identity
   = NotLoggedIn
-  -- ^ User may have an identity, but they have established it yet
+  -- ^ User may have an identity, but they have not established it yet
   | IdentityNotNeeded
   -- ^ We don't care what the user's identity is.
   -- Used mainly for BackgroundContext, but also used when

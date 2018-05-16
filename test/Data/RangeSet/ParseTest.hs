@@ -7,8 +7,8 @@ import Test.Tasty.HUnit
 import Data.RangeSet.Parse
 import qualified Data.RangeSet.List as R
 
-test_all :: [TestTree]
-test_all =
+test_examples :: [TestTree]
+test_examples =
   [ testCase "parseRangeSet-1"
     (parseRangeSet "" @?= (Just (R.fromList [] :: R.RSet Bool)))
   , testCase "parseRangeSet-2"

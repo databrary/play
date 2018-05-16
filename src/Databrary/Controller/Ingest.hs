@@ -199,13 +199,11 @@ runImport vol records =
     mapM (createOrUpdateRecord vol) records
 
 data ParticipantStatus = Create | Found Record
-    -- deriving (Show, Eq)
 
 data MeasureUpdateAction = Upsert Metric MeasureDatum | Delete Metric | Unchanged Metric | NoAction Metric
     deriving (Show, Eq)
 
 data ParticipantRecordAction = ParticipantRecordAction ParticipantStatus [MeasureUpdateAction]
-    -- deriving (Show, Eq)
 
 buildParticipantRecordAction :: ParticipantRecord -> ParticipantStatus -> ParticipantRecordAction
 buildParticipantRecordAction participantRecord updatingRecord =

@@ -180,8 +180,7 @@ test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
     -- lab only aff  + community access
     -- site only aff + vol owner only (this lab)
     -- site only aff + direct access to other lab
-    
-
+ 
 mkVolAccess :: Permission -> Maybe Bool -> Party -> Volume -> VolumeAccess
 mkVolAccess perm mShareFull p v =
     VolumeAccess perm perm Nothing mShareFull p v
