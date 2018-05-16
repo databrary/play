@@ -5,6 +5,7 @@ module Databrary.Model.VolumeAccess
   , lookupVolumeAccessParty
   , lookupPartyVolumeAccess
   , lookupPartyVolumes
+  , setDefaultVolumeAccessesForCreated
   , changeVolumeAccess
   , volumeAccessProvidesADMIN
   , volumeAccessJSON
@@ -52,6 +53,20 @@ lookupPartyVolumes :: (MonadDB c m, MonadHasIdentity c m) => Party -> Permission
 lookupPartyVolumes p perm = do
   ident <- peek
   dbQuery $(selectDistinctQuery (Just ["volume.id"]) (selectVolume 'ident) "$JOIN volume_access_view ON volume.id = volume_access_view.volume WHERE party = ${partyId $ partyRow p} AND access >= ${perm}")
+
+setDefaultVolumeAccessesForCreated :: (MonadAudit c m) => Party -> Volume -> m ()
+setDefaultVolumeAccessesForCreated owner v = do
+    _ <-
+        changeVolumeAccess $
+            VolumeAccess PermissionADMIN PermissionADMIN Nothing (getShareFullDefault owner PermissionADMIN) owner v
+    let volumeCreatePublicShareFullDefault = Just False
+    _ <-
+        changeVolumeAccess $
+            VolumeAccess PermissionPUBLIC PermissionPUBLIC Nothing volumeCreatePublicShareFullDefault nobodyParty v
+    _ <-
+        changeVolumeAccess $
+            VolumeAccess PermissionSHARED PermissionSHARED Nothing (getShareFullDefault rootParty PermissionSHARED) rootParty v
+    pure ()
 
 changeVolumeAccess :: (MonadAudit c m) => VolumeAccess -> m Bool
 changeVolumeAccess va = do
