@@ -3,7 +3,7 @@ module Databrary.Model.AuthorizeTest where
 
 -- import qualified Data.ByteString as BS
 -- import qualified Data.Text as T
--- import Data.Time
+import Data.Time
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -11,6 +11,8 @@ import Databrary.Has
 import Databrary.Model.Authorize
 import Databrary.Model.Party
 import Databrary.Model.Permission
+import Databrary.Model.Volume
+import Databrary.Model.VolumeAccess
 -- import Databrary.Model.Token
 import TestHarness
 
@@ -146,22 +148,58 @@ test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
         -- partyPermission p @?= PermissionEDIT
         )
 
+    withinTestTransaction (\cn2 -> do
+        step "Given an authorized investigator"
+        ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
+        instParty <- addAuthorizedInstitution ctxt "New York University"
+        aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
+        let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
+        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
+        let aiCtxt = switchIdentity ctxt aiAuth False
+        step "When the AI creates a private volume"
+        -- TODO: should be lookup auth on rootParty
+        let aiParty = accountParty aiAcct
+        createdVol <- runReaderT
+             (do
+                  -- TODO: make a util function in Model for use here
+                  v <- addVolume volumeExample -- note: skipping irrelevant change volume citation
+                  _ <- changeVolumeAccess (mkVolAccess PermissionADMIN (getShareFullDefault aiParty PermissionADMIN) aiParty v)
+                  _ <- changeVolumeAccess (mkVolAccess PermissionPUBLIC (Just False) nobodyParty v)
+                  _ <- changeVolumeAccess (mkVolAccess PermissionSHARED (getShareFullDefault rootParty PermissionSHARED) rootParty v)
+                  -- simulate setting volume as private
+                  _ <- changeVolumeAccess (mkVolAccess PermissionNONE Nothing nobodyParty v)
+                  pure v)
+             aiCtxt
+        -- TODO: should change owner volume access; nobody vol acc; root vol access
+        step "Then the public can't view it"
+        -- Implementation of getVolume PUBLIC
+        mVolForAnon <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) ctxtNoIdent
+        mVolForAnon @?= Nothing)
+
+mkVolAccess :: Permission -> Maybe Bool -> Party -> Volume -> VolumeAccess
+mkVolAccess perm mShareFull p v =
+    VolumeAccess perm perm Nothing mShareFull p v
+
 accessIsEq :: Access -> Permission -> Permission -> Assertion
 accessIsEq a site member = a @?= Access { accessSite' = site, accessMember' = member }
-  
--- Distribution of typical auths (site / member):
 
---     admin/admin from each super admin to db group << DONE
---     admin/none from each institution party to db group << DONE
-
---     edit/none from each AI to their institution << DONE
-
---     none/edit from undergrad affiliate to AI (high) << DONE
---     read/admin from grad affiliate to AI (high) << DONE
---     read/read  from ? affiliate to AI (med) <<
---     read/edit from affiliate to AI (med) <<
---     none/admin from admin? or collab hack? or lab manager? to AI (low)
---     none/read  from collaborator? to AI (low)
---     read/none from collaborator? to AI (low)
-
---     none/none from affilaite to AI (med)
+-- TODO: copied from VolumeTest, move to shared area instead
+volumeExample :: Volume
+volumeExample =
+    let
+        row =
+           VolumeRow {
+                 volumeId = Id 1
+               , volumeName = "Test Vol One: A Survey"
+               , volumeBody = Just "Here is a description for a volume"
+               , volumeAlias = Just "Test Vol 1"
+               , volumeDOI = Nothing
+               }
+    in
+        Volume {
+              volumeRow = row
+            , volumeCreation = UTCTime (fromGregorian 2018 1 2) (secondsToDiffTime 0)
+            , volumeOwners = [] -- [(Id 2, "Smith, John")]
+            , volumePermission = PermissionPUBLIC
+            , volumeAccessPolicy = PermLevelDefault
+            }
