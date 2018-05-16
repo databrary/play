@@ -1,3 +1,8 @@
+###*
+# Create highlight
+# @module
+###
+
 'use strict'
 
 app.directive 'volumeExcerpts', [

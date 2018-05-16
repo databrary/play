@@ -1,3 +1,8 @@
+###*
+# Spreadsheet pivot
+# @module
+###
+
 'use strict'
 
 app.directive 'volumePivot', [

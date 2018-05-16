@@ -1,3 +1,8 @@
+/**
+ * Forms to upload and match pariticpant metadata
+ * @module
+ */
+
 'use strict';
 app.directive('metadataForm', [
   'constantService', 'messageService', function(constants, messages) {

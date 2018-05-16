@@ -1,3 +1,8 @@
+###*
+# Volume view overview section
+# @module
+###
+
 'use strict'
 
 app.directive 'volumeOverview', [

@@ -1,3 +1,8 @@
+###*
+# The volume design tab functionalities
+# @module
+###
+
 'use strict'
 
 app.directive 'volumeDesign', [

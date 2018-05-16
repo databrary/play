@@ -1,3 +1,8 @@
+###*
+# The volume links tab functionalities
+# @module
+###
+
 'use strict'
 
 app.directive 'volumeEditLinksForm', [

@@ -1,3 +1,8 @@
+###*
+# Volume creation help steps
+# @module
+###
+
 'use strict'
 
 app.directive 'volumeMeter', [

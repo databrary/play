@@ -1,3 +1,8 @@
+/**
+ * The volume funding tab functionalities
+ * @module
+ */
+
 'use strict';
 
 app.directive('volumeEditFundingForm', [

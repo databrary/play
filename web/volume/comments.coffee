@@ -1,3 +1,8 @@
+###*
+# Volume comments
+# @module
+###
+
 'use strict'
 
 app.directive 'volumeComments', [

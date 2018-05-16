@@ -1,3 +1,8 @@
+###*
+# Volume filter
+# @module
+###
+
 'use strict'
 
 app.directive 'slotFilter', [

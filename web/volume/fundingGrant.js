@@ -1,3 +1,8 @@
+/**
+ * Form to add funding
+ * @module
+ */
+
 'use strict';
 
 app.directive('fundingGrantForm', [

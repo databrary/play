@@ -1,3 +1,8 @@
+###*
+# Form to search funding
+# @module
+###
+
 'use strict'
 
 app.directive 'fundingSearchForm', [

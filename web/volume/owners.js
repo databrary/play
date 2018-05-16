@@ -1,3 +1,8 @@
+/**
+ * List volume owners
+ * @module
+ */
+
 'use strict';
 
 app.directive('volumeOwners', [

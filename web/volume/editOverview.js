@@ -1,3 +1,8 @@
+/**
+ * The volume overivew tab functionalities
+ * @module
+ */
+
 'use strict';
 
 app.directive('volumeEditOverviewForm', [

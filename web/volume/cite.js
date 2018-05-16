@@ -1,3 +1,8 @@
+/**
+ * DOI lookup.
+ * @module
+ */
+
 'use strict';
 
 app.directive('citeVolume', [

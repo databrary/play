@@ -1,3 +1,8 @@
+/**
+ * The volume manage access tab functionalities
+ * @module
+ */
+
 'use strict';
 
 app.directive('volumeEditAccessForm', [

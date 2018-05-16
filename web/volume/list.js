@@ -1,3 +1,8 @@
+/**
+ * List volumes
+ * @module
+ */
+
 'use strict';
 
 app.directive('volumeList', [
