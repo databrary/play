@@ -1,3 +1,8 @@
+###*
+# Search invidiauls to grant access to.
+# @module
+###
+
 'use strict'
 
 app.directive 'accessSearchForm', [

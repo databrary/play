@@ -1,3 +1,8 @@
+/**
+ * Generate constants.
+ * @namespace constantService
+ */
+
 'use strict';
 
 app.factory('constantService', [

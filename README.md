@@ -1,6 +1,12 @@
 # Databrary
 
-Want to help out? Feel free to start right here with this underwhelming README!
+Want to help out? Feel free to start right here with this README!
+
+Frontend (AngularJS):
+
+We use JSDoc to generate documentation.
+
+Backend (Haskell):
 
 We have [preliminary library
 documentation](http://databrary.github.io/databrary/) on our GitHub Pages site.

@@ -1,3 +1,8 @@
+/**
+ * Show error messages.
+ * @namespace messageService
+ */
+
 'use strict';
 
 app.factory('messageService', [

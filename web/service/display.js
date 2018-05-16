@@ -1,3 +1,8 @@
+/**
+ * Config general page display.
+ * @namespace displayService
+ */
+
 'use strict';
 
 app.factory('displayService', [

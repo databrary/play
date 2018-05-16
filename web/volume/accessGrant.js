@@ -1,4 +1,8 @@
-'use strict';
+/**
+ * Form to grant access to invidiauls.
+ * @module
+ */
+ 'use strict';
 
 app.directive('accessGrantForm', [
   '$timeout', 'constantService', 'modelService', 'messageService', 'displayService',

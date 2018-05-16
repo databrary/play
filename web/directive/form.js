@@ -1,3 +1,7 @@
+/**
+ * General config of ngForm used throughout the site.
+ * @module
+ */
 'use strict';
 
 app.directive('ngForm', [
@@ -13,6 +17,10 @@ app.directive('ngForm', [
 
       var controls = [];
 
+      /**
+     * Check if the form is dirty.
+     * @class
+     */
       function checkDirty() {
         if (!(form.$dirty || form.$submitted) || controls.some(function (control) {
             return control.$dirty;
@@ -27,7 +35,10 @@ app.directive('ngForm', [
           form.$$parentForm.subformControl.$setPristine();
       }
 
-      // This method sets the form state back to its unsubitted state
+      /**
+     * Set the form state back to its unsubmitted state.
+     * @class
+     */
       form.$setUnsubmitted = function () {
         if (!form.$submitted || controls.some(function (control) {
           return control.$submitted;
@@ -131,6 +142,10 @@ app.directive('ngForm', [
         },
       };
 
+      /**
+     * Pop up a JS confirm dialogue to ask if the user is sure to abandon changes without submitting the form.
+     * @constructor
+     */
       form.resetAll = function (force, check) {
         if (!(force || form.$pristine)) {
           if (!(confirm(constants.message('navigation.confirmation')))) {

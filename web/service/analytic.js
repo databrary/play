@@ -1,3 +1,8 @@
+/**
+ * Send analytics data.
+ * @namespace analyticService
+ */
+
 'use strict';
 
 app.factory('analyticService', [

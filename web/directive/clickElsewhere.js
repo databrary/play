@@ -1,4 +1,8 @@
-'use strict';
+/**
+ * Handle events of clicking on non-event-target elements.
+ * @module
+ */
+ 'use strict';
 
 app.directive('clickElsewhere', [
   '$parse', '$document',

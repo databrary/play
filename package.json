@@ -22,5 +22,8 @@
     "stylus": "^0.54.5",
     "stylus-loader": "^3.0.1"
   },
-  "scripts": {}
+  "scripts": {},
+  "devDependencies": {
+    "jsdoc": "^3.5.5"
+  }
 }

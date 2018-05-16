@@ -1,3 +1,8 @@
+###*
+# Form to request Databrary to assist the user.
+# @module
+###
+
 'use strict'
 
 app.directive 'volumeAssist', [

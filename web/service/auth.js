@@ -1,3 +1,8 @@
+/**
+ * Handle logout.
+ * @namespace authService
+ */
+
 'use strict';
 
 app.factory('authService', [
