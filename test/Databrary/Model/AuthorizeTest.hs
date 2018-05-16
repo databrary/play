@@ -148,7 +148,7 @@ test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
         -- partyPermission p @?= PermissionEDIT
         )
 
-    withinTestTransaction (\cn2 -> do
+    withinTestTransaction (\cn2 -> do -- TODO: move this to VolumeAccess or more general module around authorization
         step "Given an authorized investigator"
         ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
         instParty <- addAuthorizedInstitution ctxt "New York University"
@@ -163,11 +163,9 @@ test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
              (do
                   -- TODO: make a util function in Model for use here
                   v <- addVolume volumeExample -- note: skipping irrelevant change volume citation
-                  _ <- changeVolumeAccess (mkVolAccess PermissionADMIN (getShareFullDefault aiParty PermissionADMIN) aiParty v)
-                  _ <- changeVolumeAccess (mkVolAccess PermissionPUBLIC (Just False) nobodyParty v)
-                  _ <- changeVolumeAccess (mkVolAccess PermissionSHARED (getShareFullDefault rootParty PermissionSHARED) rootParty v)
+                  setDefaultVolumeAccessesForCreated aiParty v
                   -- simulate setting volume as private
-                  _ <- changeVolumeAccess (mkVolAccess PermissionNONE Nothing nobodyParty v)
+                  _ <- changeVolumeAccess (mkVolAccess PermissionNONE Nothing nobodyParty v) -- TODO: handle root also?
                   pure v)
              aiCtxt
         -- TODO: should change owner volume access; nobody vol acc; root vol access
@@ -175,6 +173,14 @@ test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
         -- Implementation of getVolume PUBLIC
         mVolForAnon <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) ctxtNoIdent
         mVolForAnon @?= Nothing)
+
+    -- no ident      + community shared
+    -- lab only aff  + vol owner only (other lab)
+    -- lab only aff  + direct access to other lab
+    -- lab only aff  + community access
+    -- site only aff + vol owner only (this lab)
+    -- site only aff + direct access to other lab
+    
 
 mkVolAccess :: Permission -> Maybe Bool -> Party -> Volume -> VolumeAccess
 mkVolAccess perm mShareFull p v =
