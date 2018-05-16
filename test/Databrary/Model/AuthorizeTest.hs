@@ -201,8 +201,8 @@ test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
              aiCtxt
         step "Then the lab B member can't view it"
         -- Implementation of getVolume PUBLIC
-        mVolForAnon <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) affCtxt
-        mVolForAnon @?= Nothing)
+        mVolForAff <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) affCtxt
+        mVolForAff @?= Nothing)
 
     withinTestTransaction (\cn2 -> do -- TODO: move this to VolumeAccess or more general module around authorization
         step "Given an authorized investigator and their affiliate with site access only"
@@ -229,9 +229,34 @@ test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
              aiCtxt
         step "Then their lab member with site access only can't view it"
         -- Implementation of getVolume PUBLIC
-        mVolForAnon <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) affCtxt
-        mVolForAnon @?= Nothing)
- 
+        mVolForAff <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) affCtxt
+        mVolForAff @?= Nothing)
+
+    withinTestTransaction (\cn2 -> do -- TODO: move this to VolumeAccess or more general module around authorization
+        step "Given an authorized investigator for some lab A and an authorized investigator for lab B"
+        ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
+        instParty <- addAuthorizedInstitution ctxt "New York University"
+        aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
+        let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
+        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
+        let aiCtxt = switchIdentity ctxt aiAuth False
+        _ <- addAuthorizedInvestigator ctxt "Smith" "Sara" "sara@smith.com" instParty
+        Just aiAuth2 <- runReaderT (lookupSiteAuthByEmail False "sara@smith.com") ctxtNoIdent
+        let aiCtxt2 = switchIdentity ctxt aiAuth2 False
+        step "When the lab A AI creates a public volume"
+        -- TODO: should be lookup auth on rootParty
+        let aiParty = accountParty aiAcct
+        createdVol <- runReaderT
+             (do
+                  v <- addVolume volumeExample -- note: skipping irrelevant change volume citation
+                  setDefaultVolumeAccessesForCreated aiParty v -- partially shared, but effectively same as public
+                  pure v)
+             aiCtxt
+        step "Then the lab B AI can't add volume acccess"
+        -- Implementation of getVolume as used by postVolumeAccess
+        Just volForAI2 <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) aiCtxt2
+        volumePermission volForAI2 @?= PermissionSHARED)
+
 mkVolAccess :: Permission -> Maybe Bool -> Party -> Volume -> VolumeAccess
 mkVolAccess perm mShareFull p v =
     VolumeAccess perm perm Nothing mShareFull p v
