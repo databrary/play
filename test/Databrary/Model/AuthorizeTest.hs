@@ -95,12 +95,7 @@ test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
         aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Mick" "mick@smith.com" instParty
         let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
         Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "mick@smith.com") ctxtNoIdent
-        let aiCtxt =
-                ctxt {
-                      ctxIdentity = fakeIdentSessFromAuth aiAuth False
-                    , ctxPartyId = (partyId . partyRow . accountParty) aiAcct
-                    , ctxSiteAuth = aiAuth
-                }
+        let aiCtxt = switchIdentity ctxt aiAuth False
             aiParty = accountParty aiAcct
         step "When the authorized investigator grants various affiliates access on their lab and/or db site data"
         _ <- addAffiliate aiCtxt "Smith" "Akbar" "akbar@smith.com" aiParty PermissionNONE PermissionEDIT
@@ -116,6 +111,40 @@ test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
         accessIsEq (siteAccess gradAffAuth) PermissionREAD PermissionNONE
         accessIsEq (siteAccess aff1Auth) PermissionREAD PermissionNONE
         accessIsEq (siteAccess aff2Auth) PermissionREAD PermissionNONE)
+
+    withinTestTransaction (\cn2 -> do
+        step "Given an authorized investigator"
+        ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
+        instParty <- addAuthorizedInstitution ctxt "New York University"
+        _ <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
+        let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
+        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
+        let aiCtxt = switchIdentity ctxt aiAuth False
+        step "When the AI attempts to authorize some party as a superadmin on db site"
+        Just p <- runReaderT (lookupAuthParty ((partyId . partyRow) rootParty)) aiCtxt
+        step "Then the attempt fails during the check for privileges on db site party"
+        -- guts of checkPermission2, as used by getParty and postAuthorize - <= ADMIN
+        partyPermission p @?= PermissionSHARED)
+
+    withinTestTransaction (\cn2 -> do
+        step "Given an affiliate (with high priviliges)"
+        ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
+        instParty <- addAuthorizedInstitution ctxt "New York University"
+        aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Mick" "mick@smith.com" instParty
+        let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
+        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "mick@smith.com") ctxtNoIdent
+        let aiCtxt = switchIdentity ctxt aiAuth False
+            aiParty = accountParty aiAcct
+        affAcct <- addAffiliate aiCtxt "Smith" "Bob" "bob@smith.com" aiParty PermissionREAD PermissionADMIN
+        gradAffAuth <- lookupSiteAuthNoIdent aiCtxt "bob@smith.com"
+        let affCtxt = switchIdentity ctxt gradAffAuth False
+        step "When affiliate attempts to authorize anybody to any other party"
+        Just _ <- runReaderT (lookupAuthParty ((partyId . partyRow . accountParty) affAcct)) affCtxt
+        step "Then the attempt fails during the check for privileges on the parent party"
+        -- guts of checkPermission2, as used by getParty and postAuthorize - <= ADMIN
+        -- FAILING - needs change in postAuthorize
+        -- partyPermission p @?= PermissionEDIT
+        )
 
 accessIsEq :: Access -> Permission -> Permission -> Assertion
 accessIsEq a site member = a @?= Access { accessSite' = site, accessMember' = member }
