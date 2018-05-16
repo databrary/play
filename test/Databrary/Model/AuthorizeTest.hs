@@ -201,13 +201,36 @@ test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
              aiCtxt
         step "Then the lab B member can't view it"
         -- Implementation of getVolume PUBLIC
-        -- use affiliate cntxt
         mVolForAnon <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) affCtxt
         mVolForAnon @?= Nothing)
 
-    -- site only aff + vol owner only (this lab)
-    --   OR
-    -- site only aff + direct access to this lab
+    withinTestTransaction (\cn2 -> do -- TODO: move this to VolumeAccess or more general module around authorization
+        step "Given an authorized investigator and their affiliate with site access only"
+        ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
+        instParty <- addAuthorizedInstitution ctxt "New York University"
+        aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
+        let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
+        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
+        let aiCtxt = switchIdentity ctxt aiAuth False
+            aiParty = accountParty aiAcct
+        _ <- addAffiliate aiCtxt "Smith" "Bob" "bob@smith.com" aiParty PermissionREAD PermissionNONE
+        affAuth <- lookupSiteAuthNoIdent aiCtxt "bob@smith.com"
+        let affCtxt = switchIdentity ctxt affAuth False
+        step "When an AI creates a private volume"
+        -- TODO: should be lookup auth on rootParty
+        createdVol <- runReaderT
+             (do
+                  v <- addVolume volumeExample -- note: skipping irrelevant change volume citation
+                  setDefaultVolumeAccessesForCreated aiParty v
+                  -- simulate setting volume as private
+                  _ <- changeVolumeAccess (mkVolAccess PermissionNONE Nothing nobodyParty v)
+                  _ <- changeVolumeAccess (mkVolAccess PermissionNONE Nothing rootParty v)
+                  pure v)
+             aiCtxt
+        step "Then their lab member with site access only can't view it"
+        -- Implementation of getVolume PUBLIC
+        mVolForAnon <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) affCtxt
+        mVolForAnon @?= Nothing)
  
 mkVolAccess :: Permission -> Maybe Bool -> Party -> Volume -> VolumeAccess
 mkVolAccess perm mShareFull p v =
