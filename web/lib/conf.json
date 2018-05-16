@@ -1,0 +1,6 @@
+{
+    "source": {
+        "include": [ "web/directive/", "web/service/", "web/party/", "web/volume/", "web/site/" ],
+        "includePattern": ".+\\.js(doc|x)?$"
+    }
+}
