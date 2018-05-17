@@ -259,22 +259,20 @@ buildParticipantRecordAction participantRecord updatingRecord =
                  -- action = maybe (Upsert val) (\o -> if o == val then Unchanged else Upsert val)
                  let measureAction = maybe (Delete met) (Upsert met) mVal
                  measureAction
-    getFieldVal' :: (ParticipantRecord -> Maybe (Maybe (a, MeasureDatum))) -> Metric -> Maybe (Maybe MeasureDatum, Metric)
+    getFieldVal' :: (ParticipantRecord -> FieldUse a) -> Metric -> Maybe (Maybe MeasureDatum, Metric)
     getFieldVal' = getFieldVal participantRecord
 
 getFieldVal
     :: ParticipantRecord
-    -> (ParticipantRecord -> Maybe (Maybe (a, MeasureDatum)))
+    -> (ParticipantRecord -> FieldUse a)
     -> Metric
     -> Maybe (Maybe MeasureDatum, Metric)
 getFieldVal participantRecord extractFieldVal metric =
     case extractFieldVal participantRecord of
-        Just (Just (_, fieldVal)) ->
-            pure (Just fieldVal, metric)
-        Just Nothing ->
-            pure (Nothing, metric)
-        Nothing ->
-            Nothing -- field isn't used by this volume, so don't need to save the measure
+        Field fieldVal _ -> pure (Just fieldVal, metric)
+        FieldEmpty -> pure (Nothing, metric)
+        FieldUnused -> Nothing
+            -- field isn't used by this volume, so don't need to save the measure
 
 createOrUpdateRecord :: Volume -> ParticipantRecord -> Handler () -- TODO: error or record
 createOrUpdateRecord vol participantRecord = do
@@ -303,5 +301,5 @@ createOrUpdateRecord vol participantRecord = do
             Delete met -> fmap Just (removeRecordMeasure (Measure record met ""))
             Unchanged _ -> pure Nothing
             NoAction _ -> pure Nothing
-    getFieldVal' :: (ParticipantRecord -> Maybe (Maybe (a, MeasureDatum))) -> Metric -> Maybe (Maybe MeasureDatum, Metric)
+    getFieldVal' :: (ParticipantRecord -> FieldUse a) -> Metric -> Maybe (Maybe MeasureDatum, Metric)
     getFieldVal' = getFieldVal participantRecord

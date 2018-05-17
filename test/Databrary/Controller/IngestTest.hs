@@ -89,4 +89,4 @@ test_all =
 
 participantRecordIdGender :: BS.ByteString -> Maybe BS.ByteString -> ParticipantRecord
 participantRecordIdGender idVal mGen =
-    (participantRecordId idVal) { prdGender = Just (fmap (\v -> (v,v)) mGen) }
+    (participantRecordId idVal) { prdGender = maybe FieldEmpty (\gen -> Field gen gen) mGen }

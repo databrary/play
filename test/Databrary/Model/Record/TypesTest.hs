@@ -12,45 +12,45 @@ import Databrary.Model.Record.Types
 participantRecordAll :: ParticipantRecord
 participantRecordAll =
     ParticipantRecord
-         { prdId = Just (Just ("1", "1"))
-         , prdInfo = Just (Just ("infoval", "infoval"))
-         , prdDescription = Just (Just ("descval", "descval"))
-         , prdBirthdate = Just (Just (fromGregorian 2011 6 17, "2011-06-17"))
-         , prdGender = Just (Just ("Male", "Male"))
-         , prdRace = Just (Just ("White", "White"))
-         , prdEthnicity = Just (Just ("Hispanic or Latino", "Hispanic or Latino"))
-         , prdGestationalAge = Just (Just (2.5, "2.5"))
-         , prdPregnancyTerm = Just (Just ("Preterm", "Preterm"))
-         , prdBirthWeight = Just (Just (10.5, "10.5"))
-         , prdDisability = Just (Just ("normal", "normal"))
-         , prdLanguage = Just (Just ("English", "English"))
-         , prdCountry = Just (Just ("USA", "USA"))
-         , prdState = Just (Just ("MA", "MA"))
-         , prdSetting = Just (Just ("Lab", "Lab"))
+         { prdId = Field "1" "1"
+         , prdInfo = Field "infoval" "infoval"
+         , prdDescription = Field "descval" "descval"
+         , prdBirthdate = Field "2011-06-17" (fromGregorian 2011 6 17)
+         , prdGender = Field "Male" "Male"
+         , prdRace = Field "White" "White"
+         , prdEthnicity = Field "Hispanic or Latino" "Hispanic or Latino"
+         , prdGestationalAge = Field "2.5" 2.5
+         , prdPregnancyTerm = Field "Preterm" "Preterm"
+         , prdBirthWeight = Field "10.5" 10.5
+         , prdDisability = Field "normal" "normal"
+         , prdLanguage = Field "English" "English"
+         , prdCountry = Field "USA" "USA"
+         , prdState = Field "MA" "MA"
+         , prdSetting = Field "Lab" "Lab"
          }
 
 participantRecordId :: BS.ByteString -> ParticipantRecord
 participantRecordId idVal =
-    emptyParticipantRecord { prdId = Just (Just (idVal, idVal)) }
+    emptyParticipantRecord { prdId = Field idVal idVal }
 
 emptyParticipantRecord :: ParticipantRecord
 emptyParticipantRecord =
     ParticipantRecord
-         { prdId = Nothing
-         , prdInfo = Nothing
-         , prdDescription = Nothing
-         , prdBirthdate = Nothing
-         , prdGender = Nothing
-         , prdRace = Nothing
-         , prdEthnicity = Nothing
-         , prdGestationalAge = Nothing
-         , prdPregnancyTerm = Nothing
-         , prdBirthWeight = Nothing
-         , prdDisability = Nothing
-         , prdLanguage = Nothing
-         , prdCountry = Nothing
-         , prdState = Nothing
-         , prdSetting = Nothing
+         { prdId = FieldUnused
+         , prdInfo = FieldUnused
+         , prdDescription = FieldUnused
+         , prdBirthdate = FieldUnused
+         , prdGender = FieldUnused
+         , prdRace = FieldUnused
+         , prdEthnicity = FieldUnused
+         , prdGestationalAge = FieldUnused
+         , prdPregnancyTerm = FieldUnused
+         , prdBirthWeight = FieldUnused
+         , prdDisability = FieldUnused
+         , prdLanguage = FieldUnused
+         , prdCountry = FieldUnused
+         , prdState = FieldUnused
+         , prdSetting = FieldUnused
          }
 
 testRecordRow1 :: RecordRow

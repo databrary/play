@@ -399,17 +399,16 @@ participantRecordParseNamedRecord fieldMap m = do
     extractIfUsed2
       :: (ParticipantFieldMapping2 -> Maybe Text)
       -> (BS.ByteString -> Maybe (Maybe a))
-      -> Parser (Maybe (Maybe (a, MeasureDatum)))
+      -> Parser (FieldUse a)
     extractIfUsed2 maybeGetField validateValue = do
         case maybeGetField fieldMap of
             Just colName -> do
                 contents <- m .: (TE.encodeUtf8 colName)
                 maybe
                     (fail ("invalid value for " ++ show colName ++ ", found " ++ show contents))
-                    (\mV -> pure (Just (fmap (\v -> (v, contents)) mV)))
+                    (\mV -> pure (maybe FieldEmpty (Field contents) mV))
                     (validateValue contents)
-            Nothing ->
-                pure Nothing
+            Nothing -> pure FieldUnused
     
 
 -- verify that all expected columns are present, with some leniency in matching

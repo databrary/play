@@ -39,7 +39,7 @@ test_all =
            Right
                ( V.fromList ["id", "gender"]
                , V.fromList
-                   [emptyParticipantRecord { prdId = Just (Just ("1", "1")), prdGender = Just Nothing } ]))
+                   [emptyParticipantRecord { prdId = Field "1" "1", prdGender = FieldEmpty } ]))
     , testCase "attemptParseRows-all"
         (attemptParseRows
            participantFieldMappingAll
