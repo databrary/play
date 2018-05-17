@@ -17,23 +17,21 @@ import Databrary.Model.Release
 import Databrary.Model.Slot
 import Databrary.Model.Volume
 import Databrary.Model.VolumeAccess
--- import Databrary.Model.Token
-import TestHarness
+import TestHarness as Test
 
 -- session exercise various logic in Authorize
-test_Authorize_examples :: TestTree
-test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
-    (authorizeExpires . selfAuthorize) nobodyParty @?= Nothing
-
-    cn <- connectTestDb
-    step "Given an admin user"
-    let adminUser = nobodyParty { partyRow = (partyRow nobodyParty) { partyId = Id 7 } }
-    step "When we look at its direct authorization on databrary site"
-    Just auth <- runReaderT (lookupAuthorize ActiveAuthorizations adminUser rootParty) TestContext { ctxConn = cn }
-    step "Then we expect the authorization to have site and member level of ADMIN"
-    (authorizeAccess . authorization) auth @?= Access { accessSite' = PermissionADMIN, accessMember' = PermissionADMIN }
-
-    withinTestTransaction (\cn2 -> do
+test_Authorize_examples :: [TestTree]
+test_Authorize_examples =
+    [ testCase "nobody" $ (authorizeExpires . selfAuthorize) nobodyParty @?= Nothing
+    , testCaseSteps "admin" $ \step -> do
+        cn <- connectTestDb
+        step "Given an admin user"
+        let adminUser = nobodyParty { partyRow = (partyRow nobodyParty) { partyId = Id 7 } }
+        step "When we look at its direct authorization on databrary site"
+        Just auth <- runReaderT (lookupAuthorize ActiveAuthorizations adminUser rootParty) TestContext { ctxConn = cn }
+        step "Then we expect the authorization to have site and member level of ADMIN"
+        (authorizeAccess . authorization) auth @?= Access { accessSite' = PermissionADMIN, accessMember' = PermissionADMIN }
+    , Test.stepsWithTransaction "databrary super admin" $ \step cn2 -> do
         step "Given the databrary site group"
         let dbSite = rootParty
         step "When we grant a user as super admin"
@@ -43,47 +41,45 @@ test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
         Just auth3 <-
             runReaderT
                 (do
-                     a2 <- addAccount a
-                     Just auth2 <- lookupSiteAuthByEmail False "jake@smith.com"
-                     changeAccount (auth2 { accountPasswd = Just "somehashval"})
-                     changeAuthorize (makeAuthorize (Access PermissionADMIN PermissionADMIN) Nothing (accountParty a2) dbSite)
-                     lookupSiteAuthByEmail False "jake@smith.com")
+                    a2 <- addAccount a
+                    Just auth2 <- lookupSiteAuthByEmail False "jake@smith.com"
+                    changeAccount (auth2 { accountPasswd = Just "somehashval"})
+                    changeAuthorize (makeAuthorize (Access PermissionADMIN PermissionADMIN) Nothing (accountParty a2) dbSite)
+                    lookupSiteAuthByEmail False "jake@smith.com")
                 ctx
         step "Then we expect the user to have admin privileges on the databrary site"
-        siteAccess auth3 @?= Access { accessSite' = PermissionADMIN, accessMember' = PermissionADMIN })
-
-    withinTestTransaction (\cn2 -> do
+        siteAccess auth3 @?= Access { accessSite' = PermissionADMIN, accessMember' = PermissionADMIN }
+    , Test.stepsWithTransaction "superadmin grant admin" $ \step cn2 -> do
         step "Given a superadmin"
         ctxt <-
             runReaderT
                 (do
-                     Just auth2 <- lookupSiteAuthByEmail False "test@databrary.org"
-                     let pid = Id 7
-                         ident = fakeIdentSessFromAuth auth2 True
-                     pure (TestContext {
+                    Just auth2 <- lookupSiteAuthByEmail False "test@databrary.org"
+                    let pid = Id 7
+                        ident = fakeIdentSessFromAuth auth2 True
+                    pure TestContext {
                                 ctxConn = cn2
-                              , ctxIdentity = ident
-                              , ctxSiteAuth = view ident
-                              , ctxPartyId = pid
-                              , ctxRequest = defaultRequest
-                              }))
-                TestContext { ctxConn = cn }
+                            , ctxIdentity = ident
+                            , ctxSiteAuth = view ident
+                            , ctxPartyId = pid
+                            , ctxRequest = defaultRequest
+                            })
+                TestContext { ctxConn = cn2 }
         step "When the superadmin grants the institution admin access on the db site"
         let p = mkInstitution "New York University"
         authorization1 <-
             runReaderT
                 (do
-                     created <- addParty p
-                     changeAuthorize (makeAuthorize (Access PermissionADMIN PermissionNONE) Nothing created rootParty)
-                     -- TODO: what can an institution do on the site, if anything?
-                     lookupAuthorization created rootParty
+                    created <- addParty p
+                    changeAuthorize (makeAuthorize (Access PermissionADMIN PermissionNONE) Nothing created rootParty)
+                    -- TODO: what can an institution do on the site, if anything?
+                    lookupAuthorization created rootParty
                 )
                 ctxt
         step "Then we expect the institution to have ADMIN site access, no member privileges"
-        authorizeAccess authorization1 @?= Access { accessSite' = PermissionADMIN, accessMember' = PermissionNONE })
-
-    -- Note to self: beyond documentation, this a long winded way of testing authorize_view
-    withinTestTransaction (\cn2 -> do
+        authorizeAccess authorization1 @?= Access { accessSite' = PermissionADMIN, accessMember' = PermissionNONE }
+    , Test.stepsWithTransaction "superadmin grant edit" $ \step cn2 -> do
+        -- Note to self: beyond documentation, this a long winded way of testing authorize_view
         step "Given a superadmin and an institution authorized as admin under db site"
         ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
         instParty <- addAuthorizedInstitution ctxt "New York University"
@@ -92,9 +88,8 @@ test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
         let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
         Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
         step "Then we expect the authorized investigator to effectively have edit db site access"
-        siteAccess aiAuth @?= Access { accessSite' = PermissionEDIT, accessMember' = PermissionNONE })
-
-    withinTestTransaction (\cn2 -> do
+        siteAccess aiAuth @?= Access { accessSite' = PermissionEDIT, accessMember' = PermissionNONE }
+    , Test.stepsWithTransaction "authorized investigator grants" $ \step cn2 -> do
         step "Given an authorized investigator"
         ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
         instParty <- addAuthorizedInstitution ctxt "New York University"
@@ -116,9 +111,8 @@ test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
         accessIsEq (siteAccess undergradAffAuth) PermissionNONE PermissionNONE
         accessIsEq (siteAccess gradAffAuth) PermissionREAD PermissionNONE
         accessIsEq (siteAccess aff1Auth) PermissionREAD PermissionNONE
-        accessIsEq (siteAccess aff2Auth) PermissionREAD PermissionNONE)
-
-    withinTestTransaction (\cn2 -> do
+        accessIsEq (siteAccess aff2Auth) PermissionREAD PermissionNONE
+    , Test.stepsWithTransaction "authorized investigator authorizes" $ \step cn2 -> do
         step "Given an authorized investigator"
         ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
         instParty <- addAuthorizedInstitution ctxt "New York University"
@@ -130,9 +124,8 @@ test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
         Just p <- runReaderT (lookupAuthParty ((partyId . partyRow) rootParty)) aiCtxt
         step "Then the attempt fails during the check for privileges on db site party"
         -- guts of checkPermission2, as used by getParty and postAuthorize - <= ADMIN
-        partyPermission p @?= PermissionSHARED)
-
-    withinTestTransaction (\cn2 -> do
+        partyPermission p @?= PermissionSHARED
+    , Test.stepsWithTransaction "affiliate authorizes" (\step cn2 -> do
         step "Given an affiliate (with high priviliges)"
         ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
         instParty <- addAuthorizedInstitution ctxt "New York University"
@@ -151,8 +144,8 @@ test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
         -- FAILING - needs change in postAuthorize
         -- partyPermission p @?= PermissionEDIT
         )
-
-    withinTestTransaction (\cn2 -> do -- TODO: move this to VolumeAccess or more general module around authorization
+    , Test.stepsWithTransaction "authorized investigator creates private volume" (\step cn2 -> do
+        -- TODO: move this to VolumeAccess or more general module around authorization
         step "Given an authorized investigator"
         ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
         instParty <- addAuthorizedInstitution ctxt "New York University"
@@ -175,6 +168,7 @@ test_Authorize_examples = testCaseSteps "Authorize examples" $ \step -> do
         -- Implementation of getVolume PUBLIC
         mVolForAnon <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) ctxtNoIdent
         mVolForAnon @?= Nothing)
+    ]
 
     withinTestTransaction (\cn2 -> do -- TODO: move this to VolumeAccess or more general module around authorization
         step "Given an authorized investigator for some lab A and a lab B member with lab data access only"

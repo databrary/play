@@ -2,6 +2,7 @@ module TestHarness
     (
       TestContext ( .. )
     , withinTestTransaction
+    , stepsWithTransaction
     , connectTestDb
     , makeSuperAdminContext
     , fakeIdentSessFromAuth
@@ -24,11 +25,13 @@ module TestHarness
 
 import Control.Exception (bracket)
 import Control.Monad.Trans.Reader
-import qualified Data.ByteString as BS
 import Data.Maybe
-import Database.PostgreSQL.Typed.Protocol
-import qualified Data.Text as T
 import Data.Time
+import Database.PostgreSQL.Typed.Protocol
+import Test.Tasty
+import Test.Tasty.HUnit
+import qualified Data.ByteString as BS
+import qualified Data.Text as T
 import qualified Network.Wai as Wai
 
 import Databrary.Has
@@ -97,6 +100,7 @@ instance Has Access TestContext where
 instance Has AV TestContext where
     view = ctxAV
 
+-- | Execute a test within a DB connection that rolls back at the end.
 withinTestTransaction :: (PGConnection -> IO a) -> IO a
 withinTestTransaction act =
      bracket
@@ -106,6 +110,12 @@ withinTestTransaction act =
               pure cn)
          (\cn -> pgRollback cn >> pgDisconnect cn)
          act
+
+-- | Combine 'testCaseSteps' and 'withinTestTransaction'
+stepsWithTransaction
+    :: TestName -> ((String -> IO ()) -> PGConnection -> IO ()) -> TestTree
+stepsWithTransaction name f =
+    testCaseSteps name (\step -> withinTestTransaction (f step))
 
 connectTestDb :: IO PGConnection
 connectTestDb =
