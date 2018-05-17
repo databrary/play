@@ -105,12 +105,19 @@ section
 nav
 {
     display: block;
-    float: right;
+    /*float: right;*/
     margin-top: 28px;
-    width: 30%;
+    /*width: 30%;*/
     box-sizing: border-box;
-    border-left: 1px solid #ccc;
+    /*border-left: 1px solid #ccc;*/
     padding-left: 16px;
+    padding-top:24px;
+}
+
+nav > div {
+    width:300px;
+    display:inline-block;
+    float:left;
 }
 
 nav ul {

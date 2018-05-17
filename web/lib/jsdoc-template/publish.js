@@ -333,7 +333,7 @@ function buildMemberNav(items, itemHeading, itemsSeen, linktoFn) {
         });
 
         if (itemsNav !== '') {
-            nav += '<h3>' + itemHeading + '</h3><ul>' + itemsNav + '</ul>';
+            nav += '<div><h3>' + itemHeading + '</h3><ul>' + itemsNav + '</ul></div>';
         }
     }
 
@@ -364,7 +364,7 @@ function linktoExternal(longName, name) {
  */
 function buildNav(members) {
     var globalNav;
-    var nav = '<h2><a href="index.html">Back to Homepage</a></h2>';
+    var nav = '<h2><a href="index.html">Databrary Frontend AngularJS</a></h2>';
     var seen = {};
     var seenTutorials = {};
 

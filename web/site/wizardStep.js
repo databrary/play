@@ -1,3 +1,8 @@
+/**
+ * Wizard step
+ * @module
+ */
+
 'use strict';
 
 app.directive('wizardStep', [

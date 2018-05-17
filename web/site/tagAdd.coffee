@@ -1,3 +1,8 @@
+###*
+# Form to add tags
+# @module
+###
+
 'use strict'
 
 app.directive 'tagAdd', [

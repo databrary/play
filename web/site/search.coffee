@@ -1,3 +1,8 @@
+###*
+# Search functionality
+# @mixin site/search
+###
+
 'use strict'
 
 app.controller 'site/search', [

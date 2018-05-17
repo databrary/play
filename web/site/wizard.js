@@ -1,4 +1,9 @@
-/* globals Event */
+/**
+ * Wizard
+ * @module
+ */
+
+ /* globals Event */
 'use strict';
 
 app.directive('wizard', [

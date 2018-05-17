@@ -1,3 +1,8 @@
+###*
+# Get tags and vote for them
+# @module
+###
+
 'use strict'
 
 app.directive 'tags', [

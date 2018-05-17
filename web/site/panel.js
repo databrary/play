@@ -1,3 +1,8 @@
+/**
+ * Collapsible panels on the volume and party page
+ * @module
+ */
+
 'use strict';
 
 app.directive('panel', [

@@ -1,3 +1,8 @@
+###*
+# Form to search volume or people
+# @module
+###
+
 'use strict'
 
 app.directive 'searchForm', [

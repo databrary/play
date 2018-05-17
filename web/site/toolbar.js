@@ -1,3 +1,8 @@
+/**
+ * Toolbar
+ * @module
+ */
+
 'use strict';
 
 app.directive('toolbar', [

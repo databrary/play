@@ -1,3 +1,8 @@
+/**
+ * All models -- volume, party, session, record, etc.
+ * @namespace modelService
+ */
+
 'use strict';
 
 app.factory('modelService', [

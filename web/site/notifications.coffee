@@ -1,3 +1,8 @@
+###*
+# Notifications
+# @module
+###
+
 'use strict'
 
 app.directive 'notifications', [
