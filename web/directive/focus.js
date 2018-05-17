@@ -1,3 +1,8 @@
+/**
+ * Focus element
+ * @module
+ */
+
 'use strict';
 
 app.directive('focus', [

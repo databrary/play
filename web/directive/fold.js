@@ -1,3 +1,8 @@
+/**
+ * Collapsible accordion
+ * @module
+ */
+
 'use strict';
 
 app.directive('fold', [

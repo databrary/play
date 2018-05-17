@@ -1,3 +1,8 @@
+/**
+ * File model
+ * @module
+ */
+
 'use strict';
 
 app.directive('fileModel', [
