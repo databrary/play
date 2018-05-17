@@ -7,7 +7,7 @@
 , lifted-base, memory, mime-mail, mime-types, monad-control, mtl
 , network, network-uri, openssl, parsec, path, path-io, posix-paths
 , postgresql-simple, postgresql-typed, process, range-set-list
-, regex-posix, resource-pool, resourcet, scientific, servant, servant-server, smtp-mail
+, regex-posix, rematch, resource-pool, resourcet, scientific, servant, servant-server, smtp-mail
 , stdenv, streaming-commons, stringsearch, tasty, tasty-expected-failure
 , tasty-discover, tasty-hedgehog, tasty-quickcheck, tasty-hunit, QuickCheck, template-haskell, text, th-lift, th-lift-instances
 , time, transformers, transformers-base, unix, unordered-containers
@@ -68,7 +68,7 @@ in
     http-client-tls http-types invertible lifted-base memory mime-mail
     mime-types monad-control mtl network network-uri parsec path
     path-io posix-paths postgresql-simple postgresql-typed process
-    range-set-list regex-posix resource-pool resourcet scientific
+    range-set-list regex-posix rematch resource-pool resourcet scientific
     servant servant-server smtp-mail streaming-commons stringsearch template-haskell text th-lift
     th-lift-instances time transformers transformers-base unix
     unordered-containers utf8-string vector wai wai-extra wai-route warp warp-tls
