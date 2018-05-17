@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Frontend Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: service/router.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Make routes
+ * @namespace routerService
+ */
+
+'use strict';
+
+app.provider('routerService', [
+  '$routeProvider', 'routeData',
+  function ($routeProvider, controllers) {
+    function encodeUri(val) {
+      return encodeURIComponent(val).
+        replace(/%40/g, '@').
+        replace(/%3A/gi, ':').
+        replace(/%24/g, '$').
+        replace(/%2C/gi, ',').
+        replace(/%20/g, '+');
+    }
+
+    /* Add the query params to the url. */
+    function urlParams(url, params) {
+      if (!params) {
+        return url;
+      }
+
+      var q = url.includes('?');
+
+      _.each(params, function (value, key) {
+        if (value == null)
+          return;
+
+        var add = function (v) {
+          if (angular.isObject(v))
+            v = angular.toJson(v);
+
+          url += (q ? '&amp;' : '?') + encodeUri(key);
+          if (v !== true)
+            url += '=' + encodeUri(v);
+          q = true;
+        };
+
+        if (Array.isArray(value))
+          value.forEach(add);
+        else
+          add(value);
+      });
+
+      return url;
+    }
+
+    /* Apply a jsroute (from play's routeData) given the names of its arguments and optional data (or placeholders). */
+    function getRoute(route, argNames, data) {
+      var args;
+      var params = {};
+      if (!argNames)
+        argNames = [];
+      var ph = arguments.length &lt; 3;
+      if (ph)
+        args = argNames.map(function (a) { return ':' + a; });
+      else if (data == null)
+        args = [];
+      else if (Array.isArray(data))
+        args = data;
+      else if (typeof data === 'object') {
+        args = argNames.map(function (k) {
+          if (k in data) {
+            var r = data[k];
+            delete data[k];
+            return r;
+          }
+          return null;
+        });
+        params = data;
+      } else
+        args = [data];
+      var url = route.route.apply(null, args);
+      if (ph)
+        return url;
+      for (var i = route.route.length; i &lt; argNames.length &amp;&amp; i &lt; args.length; i++) {
+        params[argNames[i]] = args[i];
+      }
+      var q;
+      for (var p in params) {
+        if (!q) {
+          url += '?';
+          q = true;
+        }
+        url += p;
+        if (params[p] != null)
+          url += '=' + encodeUri(params[p]);
+      }
+      return url;
+    }
+
+    /* Add a route to $routeProvider and return a function to get a url given parameters. */
+    function makeRoute(route, argNames, handler) {
+      if (handler) {
+        var path = getRoute(route, argNames);
+        $routeProvider.when(path, handler);
+        if (path.includes('id/:segment'))
+          $routeProvider.when(path.replace('id/:segment', 'id'), handler);
+      }
+
+      return function (data, params) {
+        return urlParams(getRoute(route, argNames, data), params);
+      };
+    }
+
+    function checkPermission($q, f, perm) {
+      return f.then(function (obj) {
+        return obj.checkPermission(perm) ? obj :
+          $q.reject({status: 403});
+      });
+    }
+
+    var routes = {};
+
+    routes.index = makeRoute(controllers.viewRoot, [], {
+      controller: 'site/home',
+      templateUrl: 'site/home.html',
+      resolve: {
+        volume: [
+          'modelService', 'constantService',
+          function (models, constants) {
+            if (constants.sandbox) return; else
+            return models.Volume.get(9)
+              .catch(function() {
+                return {};
+              });
+          }
+        ],
+        tags: [
+          'modelService',
+          function (models) {
+            return models.Tag.top();
+          }
+        ],
+        activity: [
+          'modelService',
+          function (models) {
+            return models.siteActivity();
+          }
+        ]
+      },
+      reloadOnSearch: false,
+    });
+
+    //
+
+    routes.login = makeRoute(controllers.viewLogin, [], {
+      controller: 'party/login',
+      templateUrl: 'party/login.html',
+      reloadOnSearch: false
+    });
+
+    //
+
+    routes.register = makeRoute(controllers.viewRegister, [], {
+      controller: 'party/register',
+      templateUrl: 'party/register.html',
+      resolve: {
+        user: [
+          'modelService',
+          function (models) {
+            if (models.Login.isLoggedIn())
+              return models.Login.user.get(['parents']);
+            else
+              return models.Login.user;
+          }
+        ],
+        token: function () {},
+      },
+      reloadOnSearch: false
+    });
+
+    //
+
+    routes.password = makeRoute(controllers.viewPasswordReset, [], {
+      controller: 'party/reset',
+      templateUrl: 'party/reset.html',
+      reloadOnSearch: false
+    });
+
+    //
+
+    makeRoute(controllers.viewLoginToken, ['id'], {
+      controller: 'party/register',
+      templateUrl: 'party/register.html',
+      resolve: {
+        token: [
+          'modelService', '$route',
+          function (models, $route) {
+            return models.Login.getToken($route.current.params.id, $route.current.params.auth);
+          }
+        ],
+        user: [
+          'modelService', function (models) {
+            return models.Login.user;
+          }
+        ],
+      },
+      reloadOnSearch: false
+    });
+
+    //
+
+    routes.volumeSearch = makeRoute(controllers.viewVolumeSearch, [], {
+      controller: 'volume/search',
+      templateUrl: 'volume/search.html',
+      resolve: {
+        volumes: [
+          'pageService', function (page) {
+            return page.models.Volume.search(page.$route.current.params);
+          }
+        ]
+      },
+    });
+
+    // Solr search
+    routes.search = makeRoute(controllers.viewSearch, [], {
+      controller: 'site/search',
+      templateUrl: "site/search.html",
+      resolve: {
+        parties: [
+          '$route', 'searchService',
+          function ($route, search) {
+            return search.Party.search($route.current.params);
+          }
+        ],
+        volumes: [
+          '$route', 'searchService',
+          function ($route, search) {
+            return search.Volume.search($route.current.params);
+          }
+        ]
+      },
+      reloadOnSearch: true
+    });
+
+    routes.profile = makeRoute(controllers.viewProfile, [], {
+      controller: 'party/profile',
+      templateUrl: 'party/profile.html',
+      resolve: {
+        party: [
+          'modelService', function (models) {
+            return models.Login.user.get({parents:true, children:true, volumes:'access'});
+          }
+        ]
+      },
+      reloadOnSearch: false,
+    });
+
+    routes.party = makeRoute(controllers.viewParty, ['id'], {
+      controller: 'party/view',
+      templateUrl: 'party/view.html',
+      resolve: {
+        party: [
+          'pageService', function (page) {
+            return page.models.Party.get(page.$route.current.params.id, ['parents', 'children', 'access']);
+          }
+        ],
+      },
+      reloadOnSearch: false,
+    });
+
+    //
+
+    routes.partyEdit = makeRoute(controllers.viewPartyEdit, ['id'], {
+      controller: 'party/edit',
+      templateUrl: 'party/edit.html',
+      resolve: {
+        party: [
+          'pageService', function (page) {
+            return checkPermission(page.$q,
+              page.models.Party.get(page.$route.current.params.id, ['parents', 'children']),
+              page.permission.EDIT);
+          }
+        ],
+      },
+      reloadOnSearch: false,
+    });
+
+    routes.profileEdit = makeRoute(controllers.viewProfileEdit, [], {
+      controller: 'party/edit',
+      templateUrl: 'party/edit.html',
+      resolve: {
+        party: [
+          'modelService', function (models) {
+            return models.Login.user.get(['parents', 'children']);
+          }
+        ],
+      },
+      reloadOnSearch: false,
+    });
+
+    routes.partyActivity = makeRoute(controllers.viewPartyActivity, ['id'], {
+      controller: 'party/activity',
+      templateUrl: 'party/activity.html',
+      resolve: {
+        activity: [
+          'pageService', function (page) {
+            return page.models.Party.get(page.$route.current.params.id).then(function (p) {
+              return p.getActivity().then(function (a) {
+                a.party = p;
+                return a;
+              });
+            });
+          }
+        ],
+      }
+    });
+
+    routes.partySearch = makeRoute(controllers.viewPartySearch, [], {
+      controller: 'party/search',
+      templateUrl: 'party/search.html',
+      resolve: {
+        parties: [
+          'pageService', function (page) {
+            return page.models.Party.search(page.$route.current.params);
+          }
+        ]
+      },
+    });
+
+    var volumeEdit = {
+      controller: 'volume/edit',
+      templateUrl: 'volume/edit.html',
+      resolve: {
+        volume: [
+          'pageService', function (page) {
+            if (!('id' in page.$route.current.params)) {
+              return page.models.Login.user.get({parents:'authorization'})
+                .then(function () {
+                  return undefined;
+                });
+            }
+
+            return checkPermission(page.$q,
+              page.models.Volume.get(page.$route.current.params.id,
+                {access:true, citation:true, links:true, top:true, funding:true, records:true, containers:'all', tags:'keyword', metrics:true, excerpts:true}),
+              page.permission.EDIT)
+              .then(function (volume) {
+                return volume.top.getSlot(volume.top.segment, ['assets'])
+                  .then(function () {
+                    return volume;
+                  });
+              });
+          }
+        ],
+      },
+      reloadOnSearch: false,
+    };
+
+    routes.volumeCreate = makeRoute(controllers.viewVolumeCreate, ['owner'], volumeEdit);
+    routes.volumeEdit = makeRoute(controllers.viewVolumeEdit, ['id'], volumeEdit);
+
+    routes.volume = makeRoute(controllers.viewVolume, ['id'], {
+      controller: 'volume/view',
+      templateUrl: 'volume/view.html',
+      resolve: {
+        volume: [
+          'pageService', function (page) {
+            return page.models.Volume.get(page.$route.current.params.id,
+              {access:true, citation:true, links:true, funding:true, top:true, tags:true, excerpts:true, comments:true, records:true, containers:'all', metrics:true, state:true});
+          }
+        ]
+      },
+      reloadOnSearch: false,
+    });
+
+    routes.volumeDescription = makeRoute(controllers.viewVolumeDescription, ['id'], {
+      controller: 'volume/zip',
+      templateUrl: 'volume/zip.html',
+      resolve: {
+        volume: [
+          'pageService', function (page) {
+            return page.models.Volume.get(page.$route.current.params.id, {containers:'assets',top:true});
+          }
+        ],
+        slot: function() {
+        },
+      }
+    });
+
+    routes.volumeCSV = makeRoute(controllers.csvVolume, ['id'], {
+      controller: 'volume/csv',
+      templateUrl: 'volume/csv.html',
+      resolve: {
+        volume: [
+          'pageService', function (page) {
+            return page.models.Volume.get(page.$route.current.params.id);
+          }
+        ],
+      }
+    });
+
+    routes.volumeActivity = makeRoute(controllers.viewVolumeActivity, ['id'], {
+      controller: 'volume/activity',
+      templateUrl: 'volume/activity.html',
+      resolve: {
+        activity: [
+          'pageService', function (page) {
+            return page.models.Volume.get(page.$route.current.params.id).then(function (v) {
+              return v.getActivity().then(function (a) {
+                a.volume = v;
+                return a;
+              });
+            });
+          }
+        ],
+      }
+    });
+
+    routes.slotZip = makeRoute(controllers.zipSlot, ['vid', 'id'], {
+      controller: 'volume/zip',
+      templateUrl: 'volume/zip.html',
+      resolve: {
+        slot: [
+          'pageService', function (page) {
+            return page.models.Volume.get(page.$route.current.params.vid).then(function(v) {
+              return v.getSlot(page.$route.current.params.id, page.$route.current.params.segment, ['assets']);
+            });
+          }
+        ],
+        volume: function () {
+        },
+      }
+    });
+
+    routes.slotOrigZip = makeRoute(controllers.zipOrigSlot, ['vid', 'id'], {
+      controller: 'volume/zip',
+      templateUrl: 'volume/zip.html',
+      resolve: {
+        slot: [
+          'pageService', function (page) {
+            return page.models.Volume.get(page.$route.current.params.vid).then(function(v) {
+              return v.getSlot(page.$route.current.params.id, page.$route.current.params.segment, ['assets']);
+            });
+          }
+        ],
+        volume: function () {
+        },
+      }
+    });
+
+    routes.slotActivity = makeRoute(controllers.viewSlotActivity, ['vid', 'id'], {
+      controller: 'volume/slotActivity',
+      templateUrl: 'volume/slotActivity.html',
+      resolve: {
+        activity: [
+          'pageService', function (page) {
+            return page.models.Volume.get(page.$route.current.params.vid).then(function (v) {
+              return v.getSlot(page.$route.current.params.id).then(function (s) {
+                return s.getActivity().then(function (a) {
+                  a.slot = s;
+                  return a;
+                });
+              });
+            });
+          }
+        ],
+      }
+    });
+
+    function slotRoute(edit) { return {
+      controller: 'volume/slot',
+      templateUrl: 'volume/slot.html',
+      resolve: {
+        slot: [
+          'pageService', function (page) {
+            var r = page.models.Volume.get(page.$route.current.params.vid, edit ? ['records', 'metrics'] : ['metrics']);
+            return (edit ? checkPermission(page.$q, r, page.permission.EDIT) : r)
+              .then(function (volume) {
+                return volume.getSlot(page.$route.current.params.id, edit ? '-' : page.$route.current.params.segment,
+                  ['records', 'assets', 'excerpts', 'tags', 'comments']);
+              });
+          },
+        ],
+        edit: function () {
+          return edit;
+        }
+      },
+      reloadOnSearch: false,
+    }; }
+    routes.slotEdit = makeRoute(controllers.viewSlotEdit, ['vid', 'id'], slotRoute(true));
+    routes.slot = makeRoute(controllers.viewSlot, ['vid', 'id', 'segment'], slotRoute(false));
+
+    routes.slotAsset = makeRoute(controllers.viewAssetSegment, ['vid', 'cid', 'segment', 'id'], {
+      controller: 'asset/view',
+      templateUrl: 'asset/view.html',
+      resolve: {
+        asset: [
+          'pageService', function (page) {
+            return page.models.Volume.get(page.$route.current.params.vid)
+              .then(function (volume) {
+                return volume.getAsset(page.$route.current.params.id, page.$route.current.params.cid, page.$route.current.params.segment, ['container', 'asset']);
+              });
+          },
+        ]
+      },
+      reloadOnSearch: false,
+    });
+
+    routes.helpFormats = makeRoute(controllers.viewFormats, [], {
+      controller: 'asset/formats',
+      templateUrl: 'asset/formats.html',
+      reloadOnSearch: false,
+    });
+
+    routes.partyAvatar = makeRoute(controllers.partyAvatar, ['id', 'size']);
+    routes.volumeThumb = makeRoute(controllers.thumbVolume, ['id', 'size']);
+    routes.assetThumb = makeRoute(controllers.thumbAssetSegment, ['cid', 'segment', 'id', 'size']);
+    routes.slotThumb = makeRoute(controllers.thumbSlot, ['id','cid','segment', 'size']);
+    routes.assetDownload = makeRoute(controllers.downloadAssetSegment, ['cid', 'segment', 'id', 'inline']);
+    routes.rawAssetDownload = makeRoute(controllers.downloadAsset, ['id', 'inline']);
+    routes.rawAssetThumb = makeRoute(controllers.thumbAsset, ['id', 'size']);
+    routes.volumeZip = makeRoute(controllers.zipVolume, ['id']);
+    routes.volumeZipOrig = makeRoute(controllers.zipOrigVolume, ['id']);
+
+    $routeProvider.otherwise('/');
+
+    //
+
+    this.$get = [
+      '$rootScope', '$location', '$http', '$cacheFactory', 'constantService', 'analyticService',
+      function ($rootScope, $location, $http, $cacheFactory, constants, analytics) {
+        var router = angular.extend({
+          controllers: controllers,
+          prev: '/'
+        }, routes);
+
+        /* Simple wrapper to $http(route(...)).
+         * Non-object arguments (or an initial array) are passed to route.
+         * The next argument is passed as data (POST) or params.
+         * An additional argument is passed as extra config to $http.
+         */
+        router.http = function (route, args/*...*/) {
+          var i;
+          if (Array.isArray(args))
+            i = 2;
+          else {
+            for (i = 1; i &lt; arguments.length; i ++)
+              if (angular.isObject(arguments[i]))
+                break;
+            args = Array.prototype.slice.call(arguments, 1, i);
+          }
+          var r = {
+            method: route.method,
+            url: route.route.apply(null, args),
+            headers: {}
+          };
+          if (i &lt; arguments.length) {
+            if (r.method === 'POST' || r.method === 'PUT')
+              r.data = arguments[i];
+            else
+              r.url = urlParams(r.url, arguments[i]); // Workaround for ; escaping
+            if (++i &lt; arguments.length)
+              angular.extend(r, arguments[i]);
+          }
+          if (r.data instanceof FormData) {
+            if (!('transformRequest' in r))
+              r.transformRequest = angular.identity;
+            // Not sure why we do this but it seems to be necessary:
+            if (!('Content-Type' in r.headers))
+              r.headers['Content-Type'] = undefined;
+          }
+          var cache;
+          /* try to guess (conservatively) if this request is cached: */
+          if (r.method === 'GET' || r.method === 'JSONP') {
+            cache = r.cache || $http.defaults.cache &amp;&amp; $cacheFactory('$http');
+            if (cache &amp;&amp; !r.params)
+              cache = cache.get(r.url);
+          } else if (router.http.csverf)
+            r.headers['x-csverf'] = router.http.csverf;
+          if (!cache) {
+            var a = analytics.dump();
+            if (a)
+                r.headers.Analytics = a;
+          }
+          return $http(r);
+        };
+
+        var prev;
+        $rootScope.$on('$locationChangeStart', function (event, to, from) {
+          router.prev = prev;
+          prev = from;
+        });
+        $rootScope.$on('$routeChangeStart', function () {
+          router.prev = prev;
+        });
+
+        router.back = function () {
+          if (!router.prev || router.prev === $location.absUrl())
+            $location.url('/');
+          else
+            $location.$$parse(router.prev);
+        };
+
+        return router;
+      }
+    ];
+  }
+]);
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Databrary Frontend AngularJS</a></h2><div><h3>Directives</h3><ul><li><a href="module-directive_clickElsewhere.html">directive/clickElsewhere</a></li><li><a href="module-directive_form.html">directive/form</a></li><li><a href="module-party_authApply.html">party/authApply</a></li><li><a href="module-party_authGrant.html">party/authGrant</a></li><li><a href="module-party_authSearch.html">party/authSearch</a></li><li><a href="module-party_comments.html">party/comments</a></li><li><a href="module-party_data.html">party/data</a></li><li><a href="module-party_editAccount.html">party/editAccount</a></li><li><a href="module-party_editApply.html">party/editApply</a></li><li><a href="module-party_editGrant.html">party/editGrant</a></li><li><a href="module-party_editNotifications.html">party/editNotifications</a></li><li><a href="module-party_editProfile.html">party/editProfile</a></li><li><a href="module-party_load.html">party/load</a></li><li><a href="module-party_loginForm.html">party/loginForm</a></li><li><a href="module-party_network.html">party/network</a></li><li><a href="module-party_portrait.html">party/portrait</a></li><li><a href="module-party_userPasswordForm.html">party/userPasswordForm</a></li><li><a href="module-site_activity.html">site/activity</a></li><li><a href="module-site_activityChange.html">site/activityChange</a></li><li><a href="module-site_commentReply.html">site/commentReply</a></li><li><a href="module-site_displayAge.html">site/displayAge</a></li><li><a href="module-site_errors.html">site/errors</a></li><li><a href="module-site_figure.html">site/figure</a></li><li><a href="module-site_frame.html">site/frame</a></li><li><a href="module-site_inputAge.html">site/inputAge</a></li><li><a href="module-site_inputCompleter.html">site/inputCompleter</a></li><li><a href="module-site_notifications.html">site/notifications</a></li><li><a href="module-site_panel.html">site/panel</a></li><li><a href="module-site_searchForm.html">site/searchForm</a></li><li><a href="module-site_tagAdd.html">site/tagAdd</a></li><li><a href="module-site_tags.html">site/tags</a></li><li><a href="module-site_toolbar.html">site/toolbar</a></li><li><a href="module-site_tooltip.html">site/tooltip</a></li><li><a href="module-site_wizard.html">site/wizard</a></li><li><a href="module-site_wizardStep.html">site/wizardStep</a></li><li><a href="module-volume_accessGrant.html">volume/accessGrant</a></li><li><a href="module-volume_accessSearch.html">volume/accessSearch</a></li><li><a href="module-volume_assist.html">volume/assist</a></li><li><a href="module-volume_cite.html">volume/cite</a></li><li><a href="module-volume_comments.html">volume/comments</a></li><li><a href="module-volume_design.html">volume/design</a></li><li><a href="module-volume_editAccess.html">volume/editAccess</a></li><li><a href="module-volume_editFunding.html">volume/editFunding</a></li><li><a href="module-volume_editLinks.html">volume/editLinks</a></li><li><a href="module-volume_editOverview.html">volume/editOverview</a></li><li><a href="module-volume_excerpts.html">volume/excerpts</a></li><li><a href="module-volume_filter.html">volume/filter</a></li><li><a href="module-volume_fundingGrant.html">volume/fundingGrant</a></li><li><a href="module-volume_fundingSearch.html">volume/fundingSearch</a></li><li><a href="module-volume_list.html">volume/list</a></li><li><a href="module-volume_metadata.html">volume/metadata</a></li><li><a href="module-volume_meter.html">volume/meter</a></li><li><a href="module-volume_meterCanvas.html">volume/meterCanvas</a></li><li><a href="module-volume_overview.html">volume/overview</a></li><li><a href="module-volume_owners.html">volume/owners</a></li><li><a href="module-volume_pivot.html">volume/pivot</a></li><li><a href="module-volume_showInvestigators.html">volume/showInvestigators</a></li><li><a href="module-volume_slot.html">volume/slot</a></li><li><a href="module-volume_spreadsheet.html">volume/spreadsheet</a></li></ul></div><div><h3>Services</h3><ul><li><a href="analyticService.html">analyticService</a></li><li><a href="authService.html">authService</a></li><li><a href="constantService.html">constantService</a></li><li><a href="displayService.html">displayService</a></li><li><a href="messageService.html">messageService</a></li><li><a href="modelService.html">modelService</a></li><li><a href="Offset.html">Offset</a></li><li><a href="pageService.html">pageService</a></li><li><a href="play.html">play</a></li><li><a href="routerService.html">routerService</a></li><li><a href="searchService.html">searchService</a></li><li><a href="Segment.html">Segment</a></li><li><a href="storageService.html">storageService</a></li><li><a href="styleService.html">styleService</a></li><li><a href="tooltipService.html">tooltipService</a></li><li><a href="uploadService.html">uploadService</a></li></ul></div><div><h3>Controllers</h3><ul><li><a href="party_activity.html">party/activity</a></li><li><a href="party_edit.html">party/edit</a></li><li><a href="party_login.html">party/login</a></li><li><a href="party_profile.html">party/profile</a></li><li><a href="party_register.html">party/register</a></li><li><a href="party_reset.html">party/reset</a></li><li><a href="party_search.html">party/search</a></li><li><a href="party_view.html">party/view</a></li><li><a href="site_home.html">site/home</a></li><li><a href="site_search.html">site/search</a></li><li><a href="volume_activity.html">volume/activity</a></li><li><a href="volume_csv.html">volume/csv</a></li><li><a href="volume_edit.html">volume/edit</a></li><li><a href="volume_search.html">volume/search</a></li><li><a href="volume_slotActivity.html">volume/slotActivity</a></li><li><a href="volume_view.html">volume/view</a></li><li><a href="volume_zip.html">volume/zip</a></li></ul></div><div><h3>Functions</h3><ul><li><a href="-_anonymous_-pre-checkDirty.html">checkDirty</a></li><li><a href="-_anonymous_-pre-form.$setUnsubmitted.html">$setUnsubmitted</a></li><li><a href="-_anonymous_-pre-form.resetAll.html">resetAll</a></li></ul></div>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu May 17 2018 16:07:34 GMT-0400 (EDT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

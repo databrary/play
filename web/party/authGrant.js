@@ -1,3 +1,8 @@
+/**
+ * Form to grant authorization
+ * @module
+ */
+
 'use strict';
 
 app.directive('authGrantForm', [

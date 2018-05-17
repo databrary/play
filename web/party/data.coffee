@@ -1,3 +1,8 @@
+###*
+# Volumes of a party
+# @module
+###
+
 'use strict'
 
 app.directive 'partyData', [

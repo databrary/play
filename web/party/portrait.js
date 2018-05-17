@@ -1,3 +1,8 @@
+/**
+ * Avatar
+ * @module
+ */
+
 'use strict';
 
 app.directive('portrait', [

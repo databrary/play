@@ -1,3 +1,8 @@
+/**
+ * Form to request authorization
+ * @module
+ */
+
 'use strict';
 
 app.directive('authApplyForm', [

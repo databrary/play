@@ -1,3 +1,8 @@
+/**
+ * Change a party's password
+ * @module
+ */
+
 'use strict';
 
 app.directive('partyEditAccountForm', [

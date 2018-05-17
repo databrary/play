@@ -1,3 +1,8 @@
+###*
+# Search parties
+# @mixin party/search
+###
+
 'use strict'
 
 app.controller 'party/search', [

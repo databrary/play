@@ -1,3 +1,8 @@
+/**
+ * Form to set password
+ * @module
+ */
+
 'use strict';
 
 app.directive('userPasswordForm', [

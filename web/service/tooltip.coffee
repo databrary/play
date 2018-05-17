@@ -1,3 +1,8 @@
+###*
+# Tooltip
+# @namespace tooltipService
+###
+
 'use strict'
 
 app.factory 'tooltipService', [

@@ -1,3 +1,8 @@
+###*
+# Party activity
+# @mixin party/activity
+###
+
 'use strict'
 
 app.controller 'party/activity', [

@@ -1,3 +1,8 @@
+/**
+ * Edit party
+ * @mixin party/edit
+ */
+
 'use strict';
 
 app.controller('party/edit', [

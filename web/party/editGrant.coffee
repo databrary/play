@@ -1,3 +1,8 @@
+###*
+# Edit the form to grant authorization
+# @module
+###
+
 'use strict'
 
 app.directive 'partyEditGrantForm', [

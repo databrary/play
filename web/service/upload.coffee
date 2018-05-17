@@ -1,3 +1,8 @@
+###*
+# Upload file
+# @namespace uploadService
+###
+
 'use strict'
 
 app.factory('uploadService', [

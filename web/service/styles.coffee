@@ -1,3 +1,8 @@
+###*
+# Add style element
+# @namespace styleService
+###
+
 'use strict'
 
 app.factory 'styleService', [

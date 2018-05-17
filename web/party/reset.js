@@ -1,3 +1,8 @@
+/**
+ * Reset password
+ * @mixin party/reset
+ */
+
 'use strict';
 
 app.controller('party/reset', [

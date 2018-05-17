@@ -1,3 +1,8 @@
+/**
+ * Party view
+ * @mixin party/view
+ */
+
 'use strict';
 
 app.controller('party/view', [

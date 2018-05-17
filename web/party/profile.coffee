@@ -1,3 +1,8 @@
+###*
+# Build the party's profile page
+# @mixin party/profile
+###
+
 'use strict'
 
 app.controller 'party/profile', [

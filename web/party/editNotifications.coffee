@@ -1,3 +1,8 @@
+###*
+# Edit notifications
+# @module
+###
+
 'use strict'
 
 app.directive 'partyEditNotifications', [

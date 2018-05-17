@@ -1,3 +1,8 @@
+###*
+# Offset
+# @namespace Offset
+###
+
 'use strict'
 
 app.factory 'Offset', [

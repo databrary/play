@@ -1,3 +1,8 @@
+/**
+ * Log in the party
+ * @mixin party/login
+ */
+
 'use strict';
 
 app.controller('party/login', [

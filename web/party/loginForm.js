@@ -1,3 +1,8 @@
+/**
+ * Form to log in a party
+ * @module
+ */
+
 'use strict';
 
 app.directive('loginForm', [

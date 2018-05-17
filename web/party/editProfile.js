@@ -1,3 +1,8 @@
+/**
+ * Form to edit a party's profile
+ * @module
+ */
+
 'use strict';
 
 app.directive('partyEditProfileForm', [

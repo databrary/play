@@ -1,3 +1,8 @@
+/**
+ * Make the calls when party or volume is searched
+ * @namespace searchService
+ */
+
 'use strict';
 
 app.factory('searchService', [

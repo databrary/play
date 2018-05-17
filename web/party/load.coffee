@@ -1,3 +1,8 @@
+###*
+# Text to indicate a part is being loaded
+# @module
+###
+
 'use strict'
 
 app.directive 'loadParty', [

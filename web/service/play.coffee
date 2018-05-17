@@ -1,3 +1,8 @@
+###*
+# Play
+# @namespace play
+###
+
 'use strict'
 
 app.factory('$play', [

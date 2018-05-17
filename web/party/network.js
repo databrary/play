@@ -1,3 +1,8 @@
+/**
+ * Wrapper for the login form
+ * @module
+ */
+
 'use strict';
 
 app.directive('partyNetwork', [

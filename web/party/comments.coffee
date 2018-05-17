@@ -1,3 +1,8 @@
+###*
+# Comments for a party
+# @module
+###
+
 'use strict'
 
 app.directive 'partyComments', [

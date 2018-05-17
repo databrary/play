@@ -1,3 +1,8 @@
+###*
+# Search a party to request authorization from
+# @module
+###
+
 'use strict'
 
 app.directive 'authSearchForm', [

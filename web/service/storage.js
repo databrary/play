@@ -1,3 +1,8 @@
+/**
+ * Store in session or localStorage
+ * @namespace storageService
+ */
+
 'use strict';
 
 app.factory('storageService', [

@@ -1,3 +1,8 @@
+/**
+ * Generate the page info
+ * @namespace pageService
+ */
+
 'use strict';
 
 app.factory('pageService', [

@@ -1,3 +1,8 @@
+/**
+ * Form to register
+ * @mixin party/register
+ */
+
 'use strict';
 
 app.controller('party/register', [

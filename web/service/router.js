@@ -1,3 +1,8 @@
+/**
+ * Make routes
+ * @namespace routerService
+ */
+
 'use strict';
 
 app.provider('routerService', [
