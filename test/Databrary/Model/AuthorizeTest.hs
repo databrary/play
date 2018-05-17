@@ -2,6 +2,7 @@
 module Databrary.Model.AuthorizeTest where
 
 -- import qualified Data.ByteString as BS
+import Data.Aeson
 import Data.Maybe
 -- import qualified Data.Text as T
 import Data.Time
@@ -276,7 +277,7 @@ test_Authorize_examples2 = testCaseSteps "Authorize examples continued" $ \step 
                   -- simulate setting volume as private
                   _ <- changeVolumeAccess (mkVolAccess PermissionNONE Nothing nobodyParty v) -- TODO: handle root also?
                   -- modeled after createContainer
-                  addContainer (mkContainer v (Just ReleasePUBLIC)))
+                  addContainer (mkContainer v (Just ReleasePUBLIC) Nothing))
              aiCtxt
         step "Then the public can't view the container"
         -- Implementation of getSlot PUBLIC
@@ -297,17 +298,15 @@ test_Authorize_examples2 = testCaseSteps "Authorize examples continued" $ \step 
         createdContainer <- runReaderT
              (do
                   v <- addVolumeWithAccess volumeExample aiParty
-                  addContainer (mkContainer v (Just ReleaseEXCERPTS)))
+                  addContainer (mkContainer v (Just ReleaseEXCERPTS) (Just (fromGregorian 2017 1 2))))
              aiCtxt
         step "When the public attempts to view the container"
         -- Implementation of getSlot PUBLIC
         let cid = (containerId . containerRow) createdContainer
-        -- Just slotForAnon <- runReaderT (lookupSlot (containerSlotId cid)) ctxtNoIdent
-        step "Then the public is denied"
-        -- TODO: this fails because containers are shown (okay?) regardless of container release, 
-        --   need to test an asset or record (?) within the container instead
-        -- (volumePermission . containerVolume . slotContainer) slotForAnon @?= PermissionNONE
-        )
+        Just slotForAnon <- runReaderT (lookupSlot (containerSlotId cid)) ctxtNoIdent
+        step "Then the public can't see protected parts like the detailed test date"
+        (volumePermission . containerVolume . slotContainer) slotForAnon @?= PermissionPUBLIC
+        (encode . getContainerDate . slotContainer) slotForAnon @?= "2017")
 
 addVolumeWithAccess :: MonadAudit c m => Volume -> Party -> m Volume
 addVolumeWithAccess v p = do
@@ -315,12 +314,14 @@ addVolumeWithAccess v p = do
     setDefaultVolumeAccessesForCreated p v'
     pure v'
 
-mkContainer :: Volume -> Maybe Release -> Container
-mkContainer v mRel = -- note: modeled after create container
+mkContainer :: Volume -> Maybe Release -> Maybe Day -> Container
+mkContainer v mRel mDate = -- note: modeled after create container
   let
       c = blankContainer v
   in
-      c { containerRelease = mRel }
+      c { containerRelease = mRel
+        , containerRow = (containerRow c) { containerDate = mDate }
+        }
 
 mkVolAccess :: Permission -> Maybe Bool -> Party -> Volume -> VolumeAccess
 mkVolAccess perm mShareFull p v =
