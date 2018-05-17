@@ -94,25 +94,3 @@ runActionRoute routeMap mkNewRouteMap routeContext req =
   where
     err :: (Status, ResponseHeaders) -> Action
     err (status, headers) = withoutAuth $ peeks $ response status headers . htmlNotFound
-
--- TODO: delete notes below
--- route
---  :: Monad m => [(ByteString, Handler m)] -> Request -> (Response -> m ResponseReceived) -> m ResponseReceived
-{-
-type Handler m
-= [(ByteString, ByteString)] -- The captured path parameters.
--> Request -- The matched Request.
--> (Response -> m ResponseReceived) -- The continuation.
--> m ResponseReceived
--}
-
-{-
-type ActionRoute a = R.RouteAction a Action
-
-data Action = Action
-  { _actionAuth :: !Bool
-  , _actionM :: !(Handler Response)
-  }
-newtype Handler a = Handler { unHandler :: ReaderT RequestContext IO a }
-  deriving (Functor, Applicative, Alternative, Monad, MonadPlus, MonadIO, MonadBase IO, MonadThrow, MonadReader RequestContext)
--}

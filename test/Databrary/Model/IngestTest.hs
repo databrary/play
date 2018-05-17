@@ -1,8 +1,6 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Model.IngestTest where
 
--- import qualified Data.HashMap.Strict as HMP
--- import qualified Data.Csv as Csv
 import qualified Data.Vector as V
 import qualified Data.Aeson as Aeson
 import qualified Data.Either as E

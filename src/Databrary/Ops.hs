@@ -41,9 +41,6 @@ False `unlessUse` a = pure a
 {-# SPECIALIZE useWhen :: a -> Bool -> Maybe a #-}
 {-# SPECIALIZE unlessUse :: Bool -> a -> Maybe a #-}
 
--- infixr 1 ?$>
--- infixr 1 ?!$>
-
 -- |@liftM . (?>)@
 thenReturn :: (Applicative m, Alternative f) => Bool -> m a -> m (f a)
 False `thenReturn` _ = pure empty

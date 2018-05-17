@@ -53,9 +53,6 @@ instance ToObject Series
 instance ToObject [Pair]
 instance ToObject Object
 
--- objectEncoding :: Series -> Encoding
--- objectEncoding = pairs
-
 mapObjects :: (Functor t, Foldable t) => (a -> Series) -> t a -> Encoding
 mapObjects f = foldable . fmap (UnsafeEncoding . pairs . f)
 
@@ -116,16 +113,6 @@ recordMap = foldMap (\r -> tt (toJSON $ recordKey r) .=. recordObject r) where
 lookupAtParse :: FromJSON a => Array -> Int -> Parser a
 a `lookupAtParse` i = maybe (fail $ "index " ++ show i ++ " out of range") parseJSON $ a V.!? i
 
--- (.!?) :: FromJSON a => Array -> Int -> Parser (Maybe a)
--- a .!? i = mapM parseJSON $ a V.!? i
-
--- resultToEither :: Result a -> Either String a
--- resultToEither (Error e) = Left e
--- resultToEither (Success a) = Right a
-
--- eitherJSON :: FromJSON a => Value -> Either String a
--- eitherJSON = parseEither parseJSON  -- resultToEither . fromJSON
-
 instance ToJSON BS.ByteString where
   toJSON = String . TE.decodeUtf8 -- questionable
 
@@ -153,24 +140,3 @@ jsonQuery f ((k,mVal):qryPairs) = do
   where
     objToPair :: (KeyValue kv) => BS.ByteString -> Encoding -> kv
     objToPair key encObj = (((TE.decodeLatin1 key) .=) . UnsafeEncoding) encObj
-
-
-{-
--- TODO: remove??
-wordEscaped :: Char -> BP.BoundedPrim Word8
-wordEscaped q =
-  BP.condB (== c2w q) (backslash q) $
-  BP.condB (== c2w '\\') (backslash '\\') $
-  BP.condB (>= c2w ' ') (BP.liftFixedToBounded BP.word8) $
-  BP.condB (== c2w '\n') (backslash 'n') $
-  BP.condB (== c2w '\r') (backslash 'r') $
-  BP.condB (== c2w '\t') (backslash 't') $
-    BP.liftFixedToBounded $ (\c -> ('\\', ('u', fromIntegral c))) BP.>$< BP.char8 BP.>*< BP.char8 BP.>*< BP.word16HexFixed
-  where
-  backslash c = BP.liftFixedToBounded $ const ('\\', c) BP.>$< BP.char8 BP.>*< BP.char8
-
--- | Escape (but do not quote) a ByteString
-escapeByteString :: Char -> BS.ByteString -> B.Builder
-escapeByteString = BP.primMapByteStringBounded . wordEscaped
-
--}

@@ -113,20 +113,6 @@ instance Eq Metric where
 instance Ord Metric where
   compare = comparing metricId
 
--- makeHasRec ''Metric ['metricId, 'metricCategory, 'metricRelease, 'metricType]
--- instance Has (Id Metric) Metric where
---   view = metricId
--- instance Has Category Metric where
---   view = metricCategory
--- instance Has (Id Category) Metric where
---   view = (view . metricCategory)
--- instance Has (Maybe Release) Metric where
---   view = metricRelease
--- instance Has Release Metric where
---   view = (view . metricRelease)
--- instance Has MeasureType Metric where
---   view = metricType
-
 deriveLiftMany [''MeasureType, ''Metric]
 
 mkParticipantFieldMapping2 :: [(Metric, Text)] -> Either String ParticipantFieldMapping2
@@ -142,4 +128,3 @@ lookupField m (ParticipantFieldMapping2 mp) = Map.lookup m mp
 
 newtype ParticipantFieldMapping2 = ParticipantFieldMapping2 { pfmGetMapping :: (Map Metric Text) }
     deriving (Eq, Show)
-

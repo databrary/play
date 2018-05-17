@@ -43,13 +43,10 @@ getWebDir = do
 withWebDir :: (WebDir -> IO a) -> IO a
 withWebDir f = getWebDir >>= (\rfp -> f rfp)
 
--- convert a relative path from the web root into an expanded path including web root
+-- | Convert a relative path from the web root into an expanded path including web root
 makeWebFilePath :: RawFilePath -> IO WebFilePath
 makeWebFilePath r = withWebDir $ \webDirRaw -> do
   return $ WebFilePath r (webDirRaw RFP.</> r)
-
---webFilePath :: RawFilePath -> IO WebFilePath
---webFilePath = makeWebFilePath
 
 splitWebExtensions :: WebFilePath -> IO (WebFilePath, BS.ByteString)
 splitWebExtensions f = do

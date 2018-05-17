@@ -3,13 +3,10 @@ module Databrary.Main (main) where
 
 import Control.Exception (evaluate)
 import Control.Monad (void)
--- import qualified Data.Aeson.Encoding as J
--- import Data.ByteString.Builder (hPutBuilder)
 import Data.Either (partitionEithers)
 import qualified System.Console.GetOpt as Opt
 import System.Environment (getProgName, getArgs)
 import System.Exit (exitFailure)
--- import System.IO (stdout)
 
 import qualified Databrary.Store.Config as Conf
 import Databrary.Service.Init (withService)

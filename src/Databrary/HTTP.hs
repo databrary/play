@@ -20,12 +20,12 @@ import Network.HTTP.Types (Query, encodePathSegments, renderQueryBuilder)
 
 import Databrary.Model.Time
 
--- |Same as 'encodePathSegments' but for absolute paths (empty results in a single slash)
+-- | Same as 'encodePathSegments' but for absolute paths (empty results in a single slash)
 encodePathSegments' :: [T.Text] -> BSB.Builder
 encodePathSegments' [] = BSB.char8 '/'
 encodePathSegments' p = encodePathSegments p
 
--- |Same as 'encodePath' but using 'encodePathSegments''
+-- | Same as 'encodePath' but using 'encodePathSegments''
 encodePath' :: [T.Text] -> Query -> BSB.Builder
 encodePath' p [] = encodePathSegments' p
 encodePath' p q = encodePathSegments' p <> renderQueryBuilder True q
@@ -60,7 +60,6 @@ defaultDateFmt :: String
 defaultDateFmt = head dateFmts
 
 formatHTTPTimestamp :: Timestamp -> BS.ByteString
--- httpTimestamp = formatHTTPDate . epochTimeToHTTPDate . CTime . round . utcTimeToPOSIXSeconds
 formatHTTPTimestamp = BSC.pack . formatTime defaultTimeLocale defaultDateFmt
 
 parseHTTPTimestamp :: BS.ByteString -> Maybe Timestamp
