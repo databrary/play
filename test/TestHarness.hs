@@ -14,6 +14,7 @@ module TestHarness
     , lookupSiteAuthNoIdent
     , switchIdentity
     -- , addAuthorization
+    , expect
     -- * re-export for convenience
     , runReaderT
     , Wai.defaultRequest
@@ -24,6 +25,8 @@ module TestHarness
     where
 
 import Control.Exception (bracket)
+import Control.Rematch
+import Control.Rematch.Run
 import Control.Monad.Trans.Reader
 import Data.Maybe
 import Data.Time
@@ -33,6 +36,7 @@ import Test.Tasty.HUnit
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
 import qualified Network.Wai as Wai
+import Test.Tasty.HUnit
 
 import Databrary.Has
 import Databrary.Model.Authorize
@@ -46,6 +50,13 @@ import Databrary.Service.Entropy
 import Databrary.Service.Types
 import Databrary.Store.AV
 
+-- | Sloppily taken from hunit-rematch because author is too lazy
+-- to update dependency bounds on hackage. Use fetch from his github later.
+expect :: a -> Matcher a -> Assertion
+expect a matcher = case res of
+  MatchSuccess -> return ()
+  (MatchFailure msg) -> assertFailure msg
+  where res = runMatch matcher a
 
 -- |
 -- "God object" that can fulfill all needed "Has" instances. This is

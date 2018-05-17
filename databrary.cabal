@@ -485,6 +485,7 @@ test-suite discovered
     , network-uri
     , postgresql-typed
     , range-set-list
+    , rematch >= 0.2.0.0
     , tasty
     , tasty-discover
     , tasty-expected-failure
