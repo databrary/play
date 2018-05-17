@@ -12,9 +12,13 @@ import Test.Tasty.HUnit
 import Databrary.Has
 import Databrary.Model.Audit (MonadAudit)
 import Databrary.Model.Authorize
+import Databrary.Model.Category
 import Databrary.Model.Container
+import Databrary.Model.Measure
+import Databrary.Model.Metric
 import Databrary.Model.Party
 import Databrary.Model.Release
+import Databrary.Model.Record
 import Databrary.Model.Slot
 import Databrary.Model.Volume
 import Databrary.Model.VolumeAccess
@@ -308,20 +312,78 @@ test_Authorize_examples2 = testCaseSteps "Authorize examples continued" $ \step 
         (volumePermission . containerVolume . slotContainer) slotForAnon @?= PermissionPUBLIC
         (encode . getContainerDate . slotContainer) slotForAnon @?= "2017")
 
+test_Authorize_example4 :: TestTree
+test_Authorize_example4 = Test.stepsWithTransaction "viewRecords - public view private vol" $ \step cn2 -> do
+    step "Given an authorized investigator's created private volume with a record not attached to a container"
+    ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
+    instParty <- addAuthorizedInstitution ctxt "New York University"
+    aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
+    let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
+    Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
+    let aiCtxt = switchIdentity ctxt aiAuth False
+    -- TODO: should be lookup auth on rootParty
+    let aiParty = accountParty aiAcct
+    createdRecord <- runReaderT
+         (do
+              v <- addVolumeWithAccess volumeExample aiParty
+              _ <- changeVolumeAccess (mkVolAccess PermissionNONE Nothing nobodyParty v) -- TODO: handle root also?
+              addRecord (mkParticipantRecord v))
+         aiCtxt
+    step "When the public attempts to view the record"
+    -- Implementation of getRecord PUBLIC
+    -- lookupRecord uses record_release func, which references any release coming from a related slot; by default there is none
+    mRcrd <- runReaderT (lookupRecord ((recordId . recordRow) createdRecord)) ctxtNoIdent
+    step "Then the public can't"
+    isNothing mRcrd @? "Expected failure to retrieve record from restricted volume"
+
+test_Authorize_example5 :: TestTree
+test_Authorize_example5 = Test.stepsWithTransaction "viewRecords - public view public vol" $ \step cn2 -> do
+    step "Given an authorized investigator's created public volume with a record not attached to a container"
+    ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
+    instParty <- addAuthorizedInstitution ctxt "New York University"
+    aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
+    let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
+    Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
+    let aiCtxt = switchIdentity ctxt aiAuth False
+    -- TODO: should be lookup auth on rootParty
+    let aiParty = accountParty aiAcct
+    createdRecord <- runReaderT
+         (do
+              v <- addVolumeWithAccess volumeExample aiParty
+              r <- addRecord (mkParticipantRecord v)
+              _ <- changeRecordMeasure (Measure r participantMetricBirthdate "1990-01-02")
+              _ <- changeRecordMeasure (Measure r participantMetricGender "Male")
+              pure r)
+         aiCtxt
+    step "When the public attempts to view the record"
+    -- Implementation of getRecord PUBLIC
+    -- lookupRecord uses record_release func, which references any release coming from a related slot; by default there is none
+    Just rcrdForAnon <- runReaderT (lookupRecord ((recordId . recordRow) createdRecord)) ctxtNoIdent
+    step "Then the public can't see the restricted measures like birthdate"
+    (volumePermission . recordVolume) rcrdForAnon @?= PermissionPUBLIC
+    (fmap (\m -> (measureMetric m, measureDatum m)) . getRecordMeasures) rcrdForAnon @?= [(participantMetricGender, "Male")]
+
 addVolumeWithAccess :: MonadAudit c m => Volume -> Party -> m Volume
 addVolumeWithAccess v p = do
     v' <- addVolume v -- note: skipping irrelevant change volume citation
     setDefaultVolumeAccessesForCreated p v'
     pure v'
 
+mkParticipantRecord :: Volume -> Record
+mkParticipantRecord vol =  -- note: modeled after create record
+    let
+        br = blankRecord participantCategory vol
+    in
+        br
+
 mkContainer :: Volume -> Maybe Release -> Maybe Day -> Container
 mkContainer v mRel mDate = -- note: modeled after create container
-  let
-      c = blankContainer v
-  in
-      c { containerRelease = mRel
-        , containerRow = (containerRow c) { containerDate = mDate }
-        }
+    let
+        c = blankContainer v
+    in
+        c { containerRelease = mRel
+          , containerRow = (containerRow c) { containerDate = mDate }
+          }
 
 mkVolAccess :: Permission -> Maybe Bool -> Party -> Volume -> VolumeAccess
 mkVolAccess perm mShareFull p v =

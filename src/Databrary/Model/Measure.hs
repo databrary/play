@@ -9,6 +9,7 @@ module Databrary.Model.Measure
   ) where
 
 import Control.Monad (guard)
+import Data.Foldable (fold)
 import Data.List (find)
 import Data.Maybe (fromMaybe)
 import Data.Ord (comparing)
@@ -30,9 +31,11 @@ import Databrary.Model.Permission
 import Databrary.Model.Audit
 import Databrary.Model.Metric
 import Databrary.Model.Record.Types
+import Databrary.Model.Release.Types
 -- import Databrary.Model.Measure.SQL
 import Databrary.Model.PermissionUtil (maskRestrictedString)
 -- import qualified Databrary.Model.Measure.SQL
+import Databrary.Model.Volume.Types
 
 setMeasureDatum :: Measure -> MeasureDatum -> Measure
 setMeasureDatum m d = m{ measureDatum = d }
@@ -221,9 +224,27 @@ removeRecordMeasure m = do
     then rmMeasure m
     else measureRecord m
 
+-- | Enforce release on record somehow???
 getRecordMeasures :: Record -> Measures
-getRecordMeasures r = maybe [] filt $ readRelease (view r) where
-  filt rr = filter ((rr <=) . fromMaybe (view r) . view) $ recordMeasures r
+getRecordMeasures r =
+    case readRelease ((volumePermission . recordVolume) r) of  -- reads better with case than maybe
+        Nothing ->
+          []
+        Just rel ->
+          filter (viewerCanView rel) (recordMeasures r)
+  where
+    rcrdRel :: Release
+    rcrdRel =
+        (fold . recordRelease) r -- use monoid, defaulting to PRIVATE
+    requiredRelease :: Measure -> Release
+    requiredRelease m =
+        let
+            mMsrRel = view m
+        in 
+            fromMaybe rcrdRel mMsrRel
+    viewerCanView :: Release -> Measure -> Bool
+    viewerCanView viewerDeepestAllowedRelease m =
+        viewerDeepestAllowedRelease <= requiredRelease m
 
 decodeMeasure :: PGColumn t d => PGTypeName t -> Measure -> Maybe d
 decodeMeasure t Measure{ measureMetric = Metric{ metricType = m }, measureDatum = d } =
