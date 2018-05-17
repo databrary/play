@@ -369,12 +369,12 @@ function buildNav(members) {
     var seenTutorials = {};
 
     nav += buildMemberNav(members.modules, 'Directives', {}, linkto);
-    nav += buildMemberNav(members.externals, 'Externals', seen, linktoExternal);
     nav += buildMemberNav(members.namespaces, 'Services', seen, linkto);
+    nav += buildMemberNav(members.mixins, 'Controllers', seen, linkto);
     nav += buildMemberNav(members.classes, 'Functions', seen, linkto);
     nav += buildMemberNav(members.interfaces, 'Interfaces', seen, linkto);
     nav += buildMemberNav(members.events, 'Events', seen, linkto);
-    nav += buildMemberNav(members.mixins, 'Mixins', seen, linkto);
+    nav += buildMemberNav(members.externals, 'Externals', seen, linktoExternal);
     nav += buildMemberNav(members.tutorials, 'Tutorials', seenTutorials, linktoTutorial);
 
     if (members.globals.length) {
@@ -660,7 +660,7 @@ exports.publish = function(taffyData, opts, tutorials) {
         }
 
         if (myMixins.length) {
-            generate('Mixin: ' + myMixins[0].name, myMixins, helper.longnameToUrl[longname]);
+            generate('Controller: ' + myMixins[0].name, myMixins, helper.longnameToUrl[longname]);
         }
 
         if (myExternals.length) {

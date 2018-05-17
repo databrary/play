@@ -1,3 +1,8 @@
+###*
+# Show the PIs
+# @module
+###
+
 'use strict'
 
 app.directive 'showInvestigators', [

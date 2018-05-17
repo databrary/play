@@ -1,3 +1,8 @@
+/**
+ * Style the help steps
+ * @module
+ */
+
 'use strict';
 
 app.directive('volumeMeterCanvas', [

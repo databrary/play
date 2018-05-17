@@ -1,3 +1,8 @@
+/**
+ * Volume view page
+ * @mixin volume/view
+ */
+
 'use strict';
 
 app.controller('volume/view', [

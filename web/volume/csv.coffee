@@ -1,3 +1,8 @@
+###*
+# Volume CSV
+# @mixin volume/csv
+###
+
 'use strict'
 
 app.controller 'volume/csv', [

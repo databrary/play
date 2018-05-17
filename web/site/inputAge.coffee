@@ -1,3 +1,8 @@
+###*
+# Input age for volume search filter
+# @module
+###
+
 'use strict'
 
 app.directive 'inputAge', [

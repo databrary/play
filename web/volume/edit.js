@@ -1,3 +1,8 @@
+/**
+ * Volume edit
+ * @mixin volume/edit
+ */
+
 'use strict';
 
 app.controller('volume/edit', [

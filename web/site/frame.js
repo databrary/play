@@ -1,3 +1,8 @@
+/**
+ * Add title to each collapsible accordion at the top of the volume view page
+ * @module
+ */
+
 'use strict';
 
 app.directive('frame', [

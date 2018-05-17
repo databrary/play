@@ -1,3 +1,8 @@
+/**
+ * Style avatar
+ * @module
+ */
+
 'use strict';
 
 app.directive('figure', [

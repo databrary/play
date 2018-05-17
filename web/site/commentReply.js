@@ -1,3 +1,8 @@
+/**
+ * Form to reply to comments
+ * @module
+ */
+
 'use strict';
 
 app.directive('commentReplyForm', [

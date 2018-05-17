@@ -1,3 +1,8 @@
+###*
+# Volume session history
+# @mixin volume/slotActivity
+###
+
 'use strict'
 
 app.controller 'volume/slotActivity', [

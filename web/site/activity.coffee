@@ -1,3 +1,8 @@
+###*
+# History page display
+# @module
+###
+
 'use strict'
 
 app.directive 'activity', [

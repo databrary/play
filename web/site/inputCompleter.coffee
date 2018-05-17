@@ -1,3 +1,8 @@
+###*
+# Input completer for search text fields
+# @module
+###
+
 'use strict'
 
 app.directive 'inputCompleter', [

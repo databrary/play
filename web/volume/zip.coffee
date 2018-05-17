@@ -1,3 +1,8 @@
+###*
+# Volume zip
+# @mixin volume/zip
+###
+
 'use strict'
 
 app.controller 'volume/zip', [

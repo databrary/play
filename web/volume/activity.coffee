@@ -1,3 +1,8 @@
+###*
+# Volume history
+# @mixin volume/activity
+###
+
 'use strict'
 
 app.controller 'volume/activity', [

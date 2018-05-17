@@ -1,3 +1,8 @@
+###*
+# Data spreadsheet
+# @module
+###
+
 'use strict'
 
 app.directive 'spreadsheet', [

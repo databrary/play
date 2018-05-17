@@ -1,3 +1,8 @@
+###*
+# Volume files
+# @module
+###
+
 'use strict'
 
 app.controller('volume/slot', [

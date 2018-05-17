@@ -1,3 +1,8 @@
+###*
+# Volume search
+# @mixin volume/search
+###
+
 'use strict'
 
 app.controller 'volume/search', [

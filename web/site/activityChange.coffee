@@ -1,3 +1,8 @@
+###*
+# History change
+# @module
+###
+
 'use strict'
 
 app.directive 'activityChange', [

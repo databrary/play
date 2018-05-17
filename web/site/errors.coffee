@@ -1,3 +1,8 @@
+###*
+# Handle errors
+# @module
+###
+
 'use strict'
 
 app.directive('errors', [

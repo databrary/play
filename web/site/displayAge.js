@@ -1,3 +1,8 @@
+/**
+ * Show age on click
+ * @module
+ */
+
 'use strict';
 
 app.directive('displayAge', [

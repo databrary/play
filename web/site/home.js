@@ -1,3 +1,8 @@
+/**
+ * Home page
+ * @mixin site/home
+ */
+
 'use strict';
 
 app.controller('site/home', [
