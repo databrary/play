@@ -1,16 +1,30 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body{margin:40px auto;max-width:650px;line-height:1.6;font-size:18px;color:#444;padding:0 10px}h1,h2,h3{line-height:1.2}
+/* Copied from http://bettermotherfuckingwebsite.com/, with color and background
+tweaks. But what's with all the 'px'? I thought that was a no-no. *Shrug* */
+body{margin:40px auto;max-width:650px;line-height:1.6;font-size:18px;color:#4d4e53;background:#ffffff;padding:0 10px}h1,h2,h3{line-height:1.2}
+.foo{font-size:20px}
 </style>
 
 <title>Databrary Internal Docs</title>
 <h1>Databrary Internal Docs</h1>
-<p>Welcome!
-<h2><a href="haddocks/">Backend library documentation</a></h2>
-Generated with haddock.
-<h2><a href="coverage/hpc_index.html">Test coverage report</a></h2>
-Generated with hpc.
 <p>
-<a href=https://github.com/databrary/databrary
->Back to the Databrary GitHub repository</a>
+Welcome! This is the index page for Databrary's developer-focused code
+documentation. We have:
+
+<ul>
+  <li>
+    <a class="foo" href="frontend-doc/">Frontend library documentation</a>
+    generated with JSDoc.
+  <li>
+    <a class="foo" href="haddocks/">Backend library documentation</a>
+    generated with Haddock.
+  <li>
+    <a class="foo" href="coverage/hpc_index.html">A backend test coverage report</a>
+    generated with hpc.
+</ul>
+<hr>
+<p>
+When you've had your fill, you can go back to the
+<a href=https://github.com/databrary/databrary >Databrary GitHub repository</a>
