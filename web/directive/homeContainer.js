@@ -1,4 +1,10 @@
+/**
+ * Home page
+ * @module
+ */
+
 'use strict';
+
 app.directive('homeContainer', [
   '$document', function($document) {
     return {

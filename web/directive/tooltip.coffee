@@ -1,3 +1,8 @@
+###*
+# Tooltip
+# @module
+###
+
 'use strict'
 
 app.directive 'tooltip', [

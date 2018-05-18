@@ -1,3 +1,8 @@
+###*
+# Input date fields
+# @module
+###
+
 'use strict'
 
 app.directive 'inputDate', [

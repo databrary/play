@@ -1,3 +1,8 @@
+###*
+# Expose (or create a new dummy) form control to scope
+# @module
+###
+
 'use strict'
 
 # Expose (or create a new dummy) form control to scope

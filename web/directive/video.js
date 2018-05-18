@@ -1,3 +1,8 @@
+/**
+ * Create a video/audio segment
+ * @module
+ */
+
 'use strict';
 
 var videoDirective = [

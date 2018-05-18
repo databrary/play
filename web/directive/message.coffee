@@ -1,3 +1,8 @@
+###*
+# Get messages to show on the screen
+# @module
+###
+
 'use strict'
 
 app.directive 'message', [

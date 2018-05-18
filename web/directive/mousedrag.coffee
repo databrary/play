@@ -1,3 +1,8 @@
+###*
+# Mouse drag for the spreadsheet create highlight
+# @module
+###
+
 'use strict'
 
 app.directive 'mouseDragRegion', [

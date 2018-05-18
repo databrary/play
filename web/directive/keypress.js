@@ -1,3 +1,8 @@
+/**
+ * Handle tab, escape key press
+ * @module
+ */
+
 'use strict';
 
 (function () {

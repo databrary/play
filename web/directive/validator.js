@@ -1,3 +1,9 @@
+/**
+ * Input validator
+ * @module
+ */
+
+
 'use strict';
 
 app.directive('validator', [

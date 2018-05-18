@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Frontend Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: directive/homeContainer.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Home page
+ * @module
+ */
+
+'use strict';
+
+app.directive('homeContainer', [
+  '$document', function($document) {
+    return {
+      restrict: 'A',
+      link: function($scope, $element, $attrs) {
+        //arrow on click slide to the next section
+        $('.arrow-container').click(function(){
+          $('html, body').animate({
+                scrollTop: $(this).closest('.section').next('.section').find('h2').offset().top - 50
+            }, 1000);
+        });
+        //nyu slider
+        var streamWidth = 0;
+        $('.stream li').each(function(){
+          streamWidth += parseInt($(this).width(), 10);
+        });
+        $(".stream-nav.left").click(function () { 
+            var maxWidth = streamWidth + 10 - window.innerWidth;
+            var windowWidth = window.innerWidth - 80;
+            $('.stream li').each(function(){
+              $(this).css('margin-left', Math.min((parseInt($(this).css('margin-left'), 10) + windowWidth), 0) + 'px');
+              $(this).css('margin-right', Math.max((parseInt($(this).css('margin-right'), 10) - windowWidth), 0) + 'px');
+            });
+        });
+
+        $(".stream-nav.right").click(function () {
+          var maxWidth = streamWidth + 10 - window.innerWidth;
+          var windowWidth = window.innerWidth - 80;
+          $('.stream li').each(function(){
+            $(this).css('margin-left', Math.max((parseInt($(this).css('margin-left'), 10) - windowWidth), -Math.abs(maxWidth)) + 'px');
+            $(this).css('margin-right', Math.min((parseInt($(this).css('margin-right'), 10) + windowWidth), maxWidth) + 'px');
+          });
+        });
+
+        $('.opener').click(function(e){
+          e.preventDefault();
+          $(this).closest('div').next('.open-panel').slideToggle();
+        });
+
+        //testimonial carousel
+        var myIndex = 0;
+        var slideIndex = 1;
+        var stopCarousel = false;
+
+        function carousel() {
+          if (stopCarousel === false) {
+            var i;
+            var x = document.getElementsByClassName("testimonial");
+            if(x.length > 0){
+              for (i = 0; i &lt; x.length; i++) {
+                 x[i].style.opacity = "0";
+                 x[i].style.zIndex = "0";
+              }
+              myIndex++;
+              if (myIndex > x.length) {myIndex = 1}    
+              x[myIndex-1].style.opacity = "1";
+              x[myIndex-1].style.zIndex = "2"; 
+              slideIndex = myIndex;
+            
+              setTimeout(carousel, 8000);
+            }
+          }
+        }
+
+        carousel();
+
+        function showDivs(n) {
+          var i;
+          var x = document.getElementsByClassName("testimonial");
+          if (n > x.length) {slideIndex = 1} 
+          if (n &lt; 1) {slideIndex = x.length} ;
+          for (i = 0; i &lt; x.length; i++) {
+              x[i].style.opacity = "0";
+              x[i].style.zIndex = "0";
+          }
+          x[slideIndex-1].style.opacity = "1";
+          x[slideIndex-1].style.zIndex = "2";
+        }
+
+        $scope.plusDivs = function(n) {
+          stopCarousel = true;
+          showDivs(slideIndex += n);
+        }
+
+        $('.testimonials').mouseenter(function(){
+          stopCarousel = true;
+        })
+
+        jQuery(function($) {
+          // Asynchronously Load the map API 
+          var script = document.createElement('script');
+          script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyBZRvCMW10DAK5WKF9QCgtNWdmhkwpGinc&amp;callback=initMap";
+          document.getElementsByTagName("main")[0].appendChild(script);
+        });
+
+        function getUnique(count) {
+          var arrayVideo = [
+            ["554", "controls", "", "/slot/23424/0,41984/asset/102588/download?inline=true", "Trehub, S.E. &amp;amp; Cirelli, L. (2017). Naturalistic Examples of Infant/Toddler Musical Engagement.", "B7.554"],
+            ["46", "controls", "", "/slot/9861/-/asset/11368/download?inline=true", "Vishton, P. (2014). Different Gestalt processing for different actions? Comparing object-directed reaching and looking time measures.", "B78G6V"],
+            ["595", "controls", "", "/slot/25319/0,7108/asset/112350/download?inline=true", "Adolph, K. (2018). Excerpt: The organization of exploratory behaviors in infant locomotor planning.", "B7.595"],
+            ["596", "controls", "", "/slot/25322/0,12912/asset/112356/download?inline=true", "Adolph, K. &amp;amp; Tamis-LeMonda, C. (2018). Excerpt: Learning the Designed Actions of Everyday Objects.", "B7.596"],
+            ["112", "controls", "", "/slot/9860/-/asset/16631/download?inline=true", "Fausey, C.M., Smith, L.B. &amp;amp; Jayaraman, S. (2015). From faces to hands: Changing visual input in the first two years.", "B7JS39"],
+            ["38", "controls", "", "/slot/9817/-/asset/11240/download?inline=true", "Frank, M.C. (2014). The development of predictive processes in children’s discourse understanding.", "B72018"],
+            ["1", "controls", "", "/slot/17886/16852000,16916503/asset/84000/download?inline=true", "Adolph, K., Gilmore, R.O. &amp;amp; Staff (2013). Databrary sponsored workshops and events.", "B7159Q"],
+            ["70", "", "/slot/11883/-/asset/45810/download?inline=true", "", "Adolph, K., Baker, D. (2014). Arnold Gesell’s Films of Infant and Child Development.", "B7.70"],
+            ["27", "controls", "", "/slot/11141/0,5000/asset/37968/download?inline=true", "Wilkinson, K. (2014). Preliminary investigation of visual attention to human figures in photographs: Potential considerations for the design of aided AAC visual scene displays.", "B7G59R"],
+            ["44", "controls", "", "/slot/9809/-/asset/11354/download?inline=true", "Naigles, L. (2014). Children use syntax to learn verb meanings.", "B7J01M"],
+            ["326", "controls", "/slot/16668/-/asset/73157/download?inline=true", "/slot/16668/0,140984/asset/72645/download?inline=true", "Bahrick, L.E. (2017). Multisensory Attention Assessment Protocol (MAAP).", "B7.326"],
+            ["336", "controls", "/slot/16670/-/asset/73158/download?inline=true", "/slot/16670/0,67110/asset/72647/download?inline=true", "Bahrick, L.E. (2017). Intersensory Processing Efficiency Protocol (IPEP).", "B7.336"],
+            ["330", "controls", "", "slot/16570/51810262,51849602/asset/113441/download?inline=true", "Bergelson, E. (2017). SEEDLingS 6 Month.", "B7.330"],
+          ]
+          // Make a copy of the array
+          var tmp = arrayVideo.slice();
+          var ret = [];
+          
+          for (var i = 0; i &lt; count; i++) {
+            var index = Math.floor(Math.random() * tmp.length);
+            var removed = tmp.splice(index, 1);
+            // Since we are only removing one element
+            var removedHtml = '&lt;div id="first-tile" class="block features full-height">&lt;a target="_blank" href="/volume/' + removed[0][0] + '">&lt;div class="asset-display">&lt;video ' + removed[0][1] + ' poster="' + removed[0][2] + '">&lt;source type="video/mp4" src="' + removed[0][3] + '">&lt;/video>&lt;/div>&lt;/a>&lt;p class="citation">' + removed[0][4] + ' &lt;em>Databrary&lt;/em>. &lt;a href="http://doi.org/10.17910/' + removed[0][5] + '" target="_blank">http://doi.org/10.17910/' + removed[0][5] + '&lt;/a>.&lt;/p>&lt;/div>';
+            ret.push(removedHtml);
+          }
+          return ret;  
+        }
+        if (!sessionStorage.getItem('videolist')) {
+          var videolist = getUnique(5);
+          sessionStorage.setItem('videolist', JSON.stringify(videolist));
+        }
+
+        $('.ord-1').each(function(){
+          if (sessionStorage.getItem('videolist')) {
+            $(this).append(JSON.parse(sessionStorage.getItem('videolist'))[$('.ord-1').index($(this))]);
+          } else {
+            $(this).append(videolist[$('.ord-1').index($(this))]);
+          }
+          //stop video if the user plays another video
+          $('video').each(function(){
+            $(this).on('play', function(){
+              $('video').not($(this)).each(function(){
+                $(this).get(0).pause();
+              });
+            });
+          });
+          
+        });
+
+        //no hover for div with no a href
+        $('a.ui-link').each(function(){
+          if($(this).attr("href")) {
+            $(this).closest('div.block').addClass('hover');
+          } else {
+            $(this).css('cursor', 'text');
+          }
+        });
+
+        var tagFlip = setInterval(function(){
+          $('.tag-flip:visible').fadeOut(function(){
+            $('.tag-flip').not($(this)).fadeIn();
+          });
+        }, 5000);
+
+        $scope.$on('$destroy', function(){
+          if(google !== null &amp;&amp; typeof google === 'object' &amp;&amp; typeof google.maps === 'object'){
+            google.maps = null;
+          }
+          var i;
+          var x = document.getElementsByTagName("script");
+          for (i = 0; i &lt; x.length; i++) {
+            if(x[i].src.indexOf('https://maps.googleapis.com') !== -1){
+              x[i].parentNode.removeChild(x[i]);
+            }
+          }
+          clearInterval(tagFlip);
+        });
+ 
+      }
+    };
+  }
+]);
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Databrary Frontend AngularJS</a></h2><div><h3>Directives</h3><ul><li><a href="module-directive_clickElsewhere.html">directive/clickElsewhere</a></li><li><a href="module-directive_fileModel.html">directive/fileModel</a></li><li><a href="module-directive_focus.html">directive/focus</a></li><li><a href="module-directive_fold.html">directive/fold</a></li><li><a href="module-directive_form.html">directive/form</a></li><li><a href="module-directive_formCtrl.html">directive/formCtrl</a></li><li><a href="module-directive_hint.html">directive/hint</a></li><li><a href="module-directive_homeContainer.html">directive/homeContainer</a></li><li><a href="module-directive_inputDate.html">directive/inputDate</a></li><li><a href="module-directive_keypress.html">directive/keypress</a></li><li><a href="module-directive_message.html">directive/message</a></li><li><a href="module-directive_mousedrag.html">directive/mousedrag</a></li><li><a href="module-directive_scrollFloat.html">directive/scrollFloat</a></li><li><a href="module-directive_setContents.html">directive/setContents</a></li><li><a href="module-directive_tooltip.html">directive/tooltip</a></li><li><a href="module-directive_validator.html">directive/validator</a></li><li><a href="module-directive_video.html">directive/video</a></li><li><a href="module-party_authApply.html">party/authApply</a></li><li><a href="module-party_authGrant.html">party/authGrant</a></li><li><a href="module-party_authSearch.html">party/authSearch</a></li><li><a href="module-party_comments.html">party/comments</a></li><li><a href="module-party_data.html">party/data</a></li><li><a href="module-party_editAccount.html">party/editAccount</a></li><li><a href="module-party_editApply.html">party/editApply</a></li><li><a href="module-party_editGrant.html">party/editGrant</a></li><li><a href="module-party_editNotifications.html">party/editNotifications</a></li><li><a href="module-party_editProfile.html">party/editProfile</a></li><li><a href="module-party_load.html">party/load</a></li><li><a href="module-party_loginForm.html">party/loginForm</a></li><li><a href="module-party_network.html">party/network</a></li><li><a href="module-party_portrait.html">party/portrait</a></li><li><a href="module-party_userPasswordForm.html">party/userPasswordForm</a></li><li><a href="module-site_activity.html">site/activity</a></li><li><a href="module-site_activityChange.html">site/activityChange</a></li><li><a href="module-site_commentReply.html">site/commentReply</a></li><li><a href="module-site_displayAge.html">site/displayAge</a></li><li><a href="module-site_errors.html">site/errors</a></li><li><a href="module-site_figure.html">site/figure</a></li><li><a href="module-site_frame.html">site/frame</a></li><li><a href="module-site_inputAge.html">site/inputAge</a></li><li><a href="module-site_inputCompleter.html">site/inputCompleter</a></li><li><a href="module-site_notifications.html">site/notifications</a></li><li><a href="module-site_panel.html">site/panel</a></li><li><a href="module-site_searchForm.html">site/searchForm</a></li><li><a href="module-site_tagAdd.html">site/tagAdd</a></li><li><a href="module-site_tags.html">site/tags</a></li><li><a href="module-site_toolbar.html">site/toolbar</a></li><li><a href="module-site_tooltip.html">site/tooltip</a></li><li><a href="module-site_wizard.html">site/wizard</a></li><li><a href="module-site_wizardStep.html">site/wizardStep</a></li><li><a href="module-volume_accessGrant.html">volume/accessGrant</a></li><li><a href="module-volume_accessSearch.html">volume/accessSearch</a></li><li><a href="module-volume_assist.html">volume/assist</a></li><li><a href="module-volume_cite.html">volume/cite</a></li><li><a href="module-volume_comments.html">volume/comments</a></li><li><a href="module-volume_design.html">volume/design</a></li><li><a href="module-volume_editAccess.html">volume/editAccess</a></li><li><a href="module-volume_editFunding.html">volume/editFunding</a></li><li><a href="module-volume_editLinks.html">volume/editLinks</a></li><li><a href="module-volume_editOverview.html">volume/editOverview</a></li><li><a href="module-volume_excerpts.html">volume/excerpts</a></li><li><a href="module-volume_filter.html">volume/filter</a></li><li><a href="module-volume_fundingGrant.html">volume/fundingGrant</a></li><li><a href="module-volume_fundingSearch.html">volume/fundingSearch</a></li><li><a href="module-volume_list.html">volume/list</a></li><li><a href="module-volume_metadata.html">volume/metadata</a></li><li><a href="module-volume_meter.html">volume/meter</a></li><li><a href="module-volume_meterCanvas.html">volume/meterCanvas</a></li><li><a href="module-volume_overview.html">volume/overview</a></li><li><a href="module-volume_owners.html">volume/owners</a></li><li><a href="module-volume_pivot.html">volume/pivot</a></li><li><a href="module-volume_showInvestigators.html">volume/showInvestigators</a></li><li><a href="module-volume_slot.html">volume/slot</a></li><li><a href="module-volume_spreadsheet.html">volume/spreadsheet</a></li></ul></div><div><h3>Services</h3><ul><li><a href="analyticService.html">analyticService</a></li><li><a href="authService.html">authService</a></li><li><a href="constantService.html">constantService</a></li><li><a href="displayService.html">displayService</a></li><li><a href="messageService.html">messageService</a></li><li><a href="modelService.html">modelService</a></li><li><a href="Offset.html">Offset</a></li><li><a href="pageService.html">pageService</a></li><li><a href="play.html">play</a></li><li><a href="routerService.html">routerService</a></li><li><a href="searchService.html">searchService</a></li><li><a href="Segment.html">Segment</a></li><li><a href="storageService.html">storageService</a></li><li><a href="styleService.html">styleService</a></li><li><a href="tooltipService.html">tooltipService</a></li><li><a href="uploadService.html">uploadService</a></li></ul></div><div><h3>Controllers</h3><ul><li><a href="party_activity.html">party/activity</a></li><li><a href="party_edit.html">party/edit</a></li><li><a href="party_login.html">party/login</a></li><li><a href="party_profile.html">party/profile</a></li><li><a href="party_register.html">party/register</a></li><li><a href="party_reset.html">party/reset</a></li><li><a href="party_search.html">party/search</a></li><li><a href="party_view.html">party/view</a></li><li><a href="site_home.html">site/home</a></li><li><a href="site_search.html">site/search</a></li><li><a href="volume_activity.html">volume/activity</a></li><li><a href="volume_csv.html">volume/csv</a></li><li><a href="volume_edit.html">volume/edit</a></li><li><a href="volume_search.html">volume/search</a></li><li><a href="volume_slotActivity.html">volume/slotActivity</a></li><li><a href="volume_view.html">volume/view</a></li><li><a href="volume_zip.html">volume/zip</a></li></ul></div><div><h3>Functions</h3><ul><li><a href="-_anonymous_-pre-checkDirty.html">checkDirty</a></li><li><a href="-_anonymous_-pre-form.$setUnsubmitted.html">$setUnsubmitted</a></li><li><a href="-_anonymous_-pre-form.resetAll.html">resetAll</a></li></ul></div>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri May 18 2018 11:45:42 GMT-0400 (EDT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

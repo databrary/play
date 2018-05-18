@@ -1,3 +1,8 @@
+###*
+# Fix the save/cancel buttons at the top on scroll
+# @module
+###
+
 'use strict'
 
 app.directive 'scrollFloat', [

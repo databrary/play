@@ -1,3 +1,8 @@
+###*
+# Change element content
+# @module
+###
+
 app.directive 'setContents', [
   () ->
     restrict: 'A'

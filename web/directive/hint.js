@@ -1,3 +1,8 @@
+/**
+ * Show hint messages
+ * @module
+ */
+
 'use strict';
 
 app.directive('hint', [
