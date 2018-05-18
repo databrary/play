@@ -1,0 +1,3 @@
+[submodule "frontend-doc"]
+	path = frontend-doc
+	url = https://github.com/databrary/frontend-doc
