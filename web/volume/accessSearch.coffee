@@ -19,6 +19,11 @@ app.directive 'accessSearchForm', [
         form.$setPristine()
         ''
 
+      ###*
+      # Search invidiauls to grant access to.
+      # @class
+      ###
+
       form.search = (val) ->
         models.Party.search(
             query: val

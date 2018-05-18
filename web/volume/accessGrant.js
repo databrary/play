@@ -32,6 +32,10 @@ app.directive('accessGrantForm', [
           models.Login.checkAuthorization(constants.permission.ADMIN);
       };
 
+      /**
+       * Submit form to grant access
+       * @class
+       */
       form.save = function () {
         messages.clear(form);
         form.data.children = form.data.extend ? form.data.individual : 0;
@@ -61,6 +65,10 @@ app.directive('accessGrantForm', [
         });
       };
 
+      /**
+       * Submit form to remove access
+       * @class
+       */
       form.remove = function () {
         messages.clear(form);
         if (access.new) {

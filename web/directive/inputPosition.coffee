@@ -1,3 +1,8 @@
+###*
+# Input position
+# @module
+###
+
 'use strict'
 
 app.directive 'inputPosition', [
