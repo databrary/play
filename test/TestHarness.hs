@@ -20,7 +20,6 @@ module TestHarness
     , Wai.defaultRequest
     , Id(..)
     , Identity(..)
-    , module Databrary.Model.Permission
     )
     where
 
@@ -36,7 +35,6 @@ import Test.Tasty.HUnit
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
 import qualified Network.Wai as Wai
-import Test.Tasty.HUnit
 
 import Databrary.Has
 import Databrary.Model.Authorize

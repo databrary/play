@@ -17,6 +17,7 @@ import Databrary.Model.Container
 import Databrary.Model.Measure
 import Databrary.Model.Metric
 import Databrary.Model.Party
+import Databrary.Model.Permission
 import Databrary.Model.Release
 import Databrary.Model.Record
 import Databrary.Model.Slot
