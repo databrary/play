@@ -61,18 +61,18 @@ span.spaces    { background: white }
 <span class="lineno">   45 </span><span class="decl"><span class="istickedoff">blankContainer vol = Container</span>
 <span class="lineno">   46 </span><span class="spaces">  </span><span class="istickedoff">{ containerRow = ContainerRow</span>
 <span class="lineno">   47 </span><span class="spaces">    </span><span class="istickedoff">{ containerId = <span class="nottickedoff">error &quot;blankContainer&quot;</span></span>
-<span class="lineno">   48 </span><span class="spaces">    </span><span class="istickedoff">, containerTop = <span class="nottickedoff">False</span></span>
-<span class="lineno">   49 </span><span class="spaces">    </span><span class="istickedoff">, containerName = <span class="nottickedoff">Nothing</span></span>
+<span class="lineno">   48 </span><span class="spaces">    </span><span class="istickedoff">, containerTop = False</span>
+<span class="lineno">   49 </span><span class="spaces">    </span><span class="istickedoff">, containerName = Nothing</span>
 <span class="lineno">   50 </span><span class="spaces">    </span><span class="istickedoff">, containerDate = <span class="nottickedoff">Nothing</span></span>
 <span class="lineno">   51 </span><span class="spaces">    </span><span class="istickedoff">}</span>
 <span class="lineno">   52 </span><span class="spaces">  </span><span class="istickedoff">, containerRelease = Nothing</span>
-<span class="lineno">   53 </span><span class="spaces">  </span><span class="istickedoff">, containerVolume = <span class="nottickedoff">vol</span></span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="istickedoff">, containerVolume = vol</span>
 <span class="lineno">   54 </span><span class="spaces">  </span><span class="istickedoff">}</span></span>
 <span class="lineno">   55 </span>
 <span class="lineno">   56 </span>lookupContainer :: (MonadDB c m, MonadHasIdentity c m) =&gt; Id Container -&gt; m (Maybe Container)
-<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">lookupContainer ci = do</span>
-<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
-<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 $(selectQuery (selectContainer 'ident) &quot;$WHERE container.id = ${ci}&quot;)</span></span>
+<span class="lineno">   57 </span><span class="decl"><span class="istickedoff">lookupContainer ci = do</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="istickedoff">ident &lt;- peek</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="istickedoff">dbQuery1 $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery (selectContainer 'ident) &quot;$WHERE container.id = ${ci}&quot;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)</span></span>
 <span class="lineno">   60 </span>
 <span class="lineno">   61 </span>lookupVolumeContainer :: MonadDB c m =&gt; Volume -&gt; Id Container -&gt; m (Maybe Container)
 <span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">lookupVolumeContainer vol ci =</span>
@@ -113,69 +113,69 @@ span.spaces    { background: white }
 <span class="lineno">   97 </span><span class="spaces">            </span><span class="nottickedoff">(\[] -&gt; ()))</span></span>
 <span class="lineno">   98 </span>
 <span class="lineno">   99 </span>addContainer :: MonadAudit c m =&gt; Container -&gt; m Container
-<span class="lineno">  100 </span><span class="decl"><span class="nottickedoff">addContainer bc = do</span>
-<span class="lineno">  101 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
-<span class="lineno">  102 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a87ru = unknownPGTypeEnv</span>
-<span class="lineno">  103 </span><span class="spaces">  </span><span class="nottickedoff">row &lt;- dbQuery1' -- .(insertContainer 'ident 'bc)</span>
-<span class="lineno">  104 </span><span class="spaces">    </span><span class="nottickedoff">(mapQuery2</span>
-<span class="lineno">  105 </span><span class="spaces">      </span><span class="nottickedoff">((\ _p_a87rv _p_a87rw _p_a87rx _p_a87ry _p_a87rz _p_a87rA -&gt;</span>
-<span class="lineno">  106 </span><span class="spaces">                       </span><span class="nottickedoff">(Data.ByteString.concat</span>
-<span class="lineno">  107 </span><span class="spaces">                          </span><span class="nottickedoff">[Data.String.fromString</span>
-<span class="lineno">  108 </span><span class="spaces">                             </span><span class="nottickedoff">&quot;WITH audit_row AS (INSERT INTO container (volume,top,name,date) VALUES (&quot;,</span>
-<span class="lineno">  109 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
-<span class="lineno">  110 </span><span class="spaces">                             </span><span class="nottickedoff">_tenv_a87ru</span>
-<span class="lineno">  111 </span><span class="spaces">                             </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  112 </span><span class="spaces">                                </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
-<span class="lineno">  113 </span><span class="spaces">                             </span><span class="nottickedoff">_p_a87rv,</span>
-<span class="lineno">  114 </span><span class="spaces">                           </span><span class="nottickedoff">Data.String.fromString &quot;,&quot;,</span>
-<span class="lineno">  115 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
-<span class="lineno">  116 </span><span class="spaces">                             </span><span class="nottickedoff">_tenv_a87ru</span>
-<span class="lineno">  117 </span><span class="spaces">                             </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  118 </span><span class="spaces">                                </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;boolean&quot;)</span>
-<span class="lineno">  119 </span><span class="spaces">                             </span><span class="nottickedoff">_p_a87rw,</span>
-<span class="lineno">  120 </span><span class="spaces">                           </span><span class="nottickedoff">Data.String.fromString &quot;,&quot;,</span>
-<span class="lineno">  121 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
-<span class="lineno">  122 </span><span class="spaces">                             </span><span class="nottickedoff">_tenv_a87ru</span>
-<span class="lineno">  123 </span><span class="spaces">                             </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  124 </span><span class="spaces">                                </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
-<span class="lineno">  125 </span><span class="spaces">                             </span><span class="nottickedoff">_p_a87rx,</span>
-<span class="lineno">  126 </span><span class="spaces">                           </span><span class="nottickedoff">Data.String.fromString &quot;,&quot;,</span>
-<span class="lineno">  127 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
-<span class="lineno">  128 </span><span class="spaces">                             </span><span class="nottickedoff">_tenv_a87ru</span>
-<span class="lineno">  129 </span><span class="spaces">                             </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  130 </span><span class="spaces">                                </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;date&quot;)</span>
-<span class="lineno">  131 </span><span class="spaces">                             </span><span class="nottickedoff">_p_a87ry,</span>
-<span class="lineno">  132 </span><span class="spaces">                           </span><span class="nottickedoff">Data.String.fromString</span>
-<span class="lineno">  133 </span><span class="spaces">                             </span><span class="nottickedoff">&quot;) RETURNING *) INSERT INTO audit.container SELECT CURRENT_TIMESTAMP, &quot;,</span>
-<span class="lineno">  134 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
-<span class="lineno">  135 </span><span class="spaces">                             </span><span class="nottickedoff">_tenv_a87ru</span>
-<span class="lineno">  136 </span><span class="spaces">                             </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  137 </span><span class="spaces">                                </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
-<span class="lineno">  138 </span><span class="spaces">                             </span><span class="nottickedoff">_p_a87rz,</span>
-<span class="lineno">  139 </span><span class="spaces">                           </span><span class="nottickedoff">Data.String.fromString &quot;, &quot;,</span>
-<span class="lineno">  140 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
-<span class="lineno">  141 </span><span class="spaces">                             </span><span class="nottickedoff">_tenv_a87ru</span>
-<span class="lineno">  142 </span><span class="spaces">                             </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  143 </span><span class="spaces">                                </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;inet&quot;)</span>
-<span class="lineno">  144 </span><span class="spaces">                             </span><span class="nottickedoff">_p_a87rA,</span>
-<span class="lineno">  145 </span><span class="spaces">                           </span><span class="nottickedoff">Data.String.fromString</span>
-<span class="lineno">  146 </span><span class="spaces">                             </span><span class="nottickedoff">&quot;, 'add'::audit.action, * FROM audit_row RETURNING container.id&quot;]))</span>
-<span class="lineno">  147 </span><span class="spaces">         </span><span class="nottickedoff">(volumeId $ volumeRow $ containerVolume bc)</span>
-<span class="lineno">  148 </span><span class="spaces">         </span><span class="nottickedoff">(containerTop $ containerRow bc)</span>
-<span class="lineno">  149 </span><span class="spaces">         </span><span class="nottickedoff">(containerName $ containerRow bc)</span>
-<span class="lineno">  150 </span><span class="spaces">         </span><span class="nottickedoff">(containerDate $ containerRow bc)</span>
-<span class="lineno">  151 </span><span class="spaces">         </span><span class="nottickedoff">(auditWho ident)</span>
-<span class="lineno">  152 </span><span class="spaces">         </span><span class="nottickedoff">(auditIp ident))</span>
-<span class="lineno">  153 </span><span class="spaces">        </span><span class="nottickedoff">(\[_cid_a87rB]</span>
-<span class="lineno">  154 </span><span class="spaces">                  </span><span class="nottickedoff">-&gt; (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
-<span class="lineno">  155 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a87ru</span>
-<span class="lineno">  156 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  157 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
-<span class="lineno">  158 </span><span class="spaces">                        </span><span class="nottickedoff">_cid_a87rB)))</span>
-<span class="lineno">  159 </span><span class="spaces">  </span><span class="nottickedoff">pure</span>
-<span class="lineno">  160 </span><span class="spaces">      </span><span class="nottickedoff">((\ (vid_a87re)</span>
-<span class="lineno">  161 </span><span class="spaces">         </span><span class="nottickedoff">-&gt; Databrary.Model.Container.SQL.setContainerId bc vid_a87re)</span>
-<span class="lineno">  162 </span><span class="spaces">      </span><span class="nottickedoff">row)</span></span>
+<span class="lineno">  100 </span><span class="decl"><span class="istickedoff">addContainer bc = do</span>
+<span class="lineno">  101 </span><span class="spaces">  </span><span class="istickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">  102 </span><span class="spaces">  </span><span class="istickedoff">let <span class="nottickedoff">_tenv_a87ru = unknownPGTypeEnv</span></span>
+<span class="lineno">  103 </span><span class="spaces">  </span><span class="istickedoff">row &lt;- dbQuery1' -- .(insertContainer 'ident 'bc)</span>
+<span class="lineno">  104 </span><span class="spaces">    </span><span class="istickedoff">(mapQuery2</span>
+<span class="lineno">  105 </span><span class="spaces">      </span><span class="istickedoff">((\ _p_a87rv _p_a87rw _p_a87rx _p_a87ry _p_a87rz _p_a87rA -&gt;</span>
+<span class="lineno">  106 </span><span class="spaces">                       </span><span class="istickedoff">(Data.ByteString.concat</span>
+<span class="lineno">  107 </span><span class="spaces">                          </span><span class="istickedoff">[Data.String.fromString</span>
+<span class="lineno">  108 </span><span class="spaces">                             </span><span class="istickedoff">&quot;WITH audit_row AS (INSERT INTO container (volume,top,name,date) VALUES (&quot;,</span>
+<span class="lineno">  109 </span><span class="spaces">                           </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  110 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">_tenv_a87ru</span></span>
+<span class="lineno">  111 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  112 </span><span class="spaces">                                </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span></span>
+<span class="lineno">  113 </span><span class="spaces">                             </span><span class="istickedoff">_p_a87rv,</span>
+<span class="lineno">  114 </span><span class="spaces">                           </span><span class="istickedoff">Data.String.fromString &quot;,&quot;,</span>
+<span class="lineno">  115 </span><span class="spaces">                           </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  116 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">_tenv_a87ru</span></span>
+<span class="lineno">  117 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  118 </span><span class="spaces">                                </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;boolean&quot;)</span></span>
+<span class="lineno">  119 </span><span class="spaces">                             </span><span class="istickedoff">_p_a87rw,</span>
+<span class="lineno">  120 </span><span class="spaces">                           </span><span class="istickedoff">Data.String.fromString &quot;,&quot;,</span>
+<span class="lineno">  121 </span><span class="spaces">                           </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  122 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">_tenv_a87ru</span></span>
+<span class="lineno">  123 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  124 </span><span class="spaces">                                </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span></span>
+<span class="lineno">  125 </span><span class="spaces">                             </span><span class="istickedoff">_p_a87rx,</span>
+<span class="lineno">  126 </span><span class="spaces">                           </span><span class="istickedoff">Data.String.fromString &quot;,&quot;,</span>
+<span class="lineno">  127 </span><span class="spaces">                           </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  128 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">_tenv_a87ru</span></span>
+<span class="lineno">  129 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  130 </span><span class="spaces">                                </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;date&quot;)</span></span>
+<span class="lineno">  131 </span><span class="spaces">                             </span><span class="istickedoff">_p_a87ry,</span>
+<span class="lineno">  132 </span><span class="spaces">                           </span><span class="istickedoff">Data.String.fromString</span>
+<span class="lineno">  133 </span><span class="spaces">                             </span><span class="istickedoff">&quot;) RETURNING *) INSERT INTO audit.container SELECT CURRENT_TIMESTAMP, &quot;,</span>
+<span class="lineno">  134 </span><span class="spaces">                           </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  135 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">_tenv_a87ru</span></span>
+<span class="lineno">  136 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  137 </span><span class="spaces">                                </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span></span>
+<span class="lineno">  138 </span><span class="spaces">                             </span><span class="istickedoff">_p_a87rz,</span>
+<span class="lineno">  139 </span><span class="spaces">                           </span><span class="istickedoff">Data.String.fromString &quot;, &quot;,</span>
+<span class="lineno">  140 </span><span class="spaces">                           </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  141 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">_tenv_a87ru</span></span>
+<span class="lineno">  142 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  143 </span><span class="spaces">                                </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;inet&quot;)</span></span>
+<span class="lineno">  144 </span><span class="spaces">                             </span><span class="istickedoff">_p_a87rA,</span>
+<span class="lineno">  145 </span><span class="spaces">                           </span><span class="istickedoff">Data.String.fromString</span>
+<span class="lineno">  146 </span><span class="spaces">                             </span><span class="istickedoff">&quot;, 'add'::audit.action, * FROM audit_row RETURNING container.id&quot;]))</span>
+<span class="lineno">  147 </span><span class="spaces">         </span><span class="istickedoff">(volumeId $ volumeRow $ containerVolume bc)</span>
+<span class="lineno">  148 </span><span class="spaces">         </span><span class="istickedoff">(containerTop $ containerRow bc)</span>
+<span class="lineno">  149 </span><span class="spaces">         </span><span class="istickedoff">(containerName $ containerRow bc)</span>
+<span class="lineno">  150 </span><span class="spaces">         </span><span class="istickedoff">(containerDate $ containerRow bc)</span>
+<span class="lineno">  151 </span><span class="spaces">         </span><span class="istickedoff">(auditWho ident)</span>
+<span class="lineno">  152 </span><span class="spaces">         </span><span class="istickedoff">(auditIp ident))</span>
+<span class="lineno">  153 </span><span class="spaces">        </span><span class="istickedoff">(\[_cid_a87rB]</span>
+<span class="lineno">  154 </span><span class="spaces">                  </span><span class="istickedoff">-&gt; (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  155 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a87ru</span></span>
+<span class="lineno">  156 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  157 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span></span>
+<span class="lineno">  158 </span><span class="spaces">                        </span><span class="istickedoff">_cid_a87rB)))</span>
+<span class="lineno">  159 </span><span class="spaces">  </span><span class="istickedoff">pure</span>
+<span class="lineno">  160 </span><span class="spaces">      </span><span class="istickedoff">((\ (vid_a87re)</span>
+<span class="lineno">  161 </span><span class="spaces">         </span><span class="istickedoff">-&gt; Databrary.Model.Container.SQL.setContainerId bc vid_a87re)</span>
+<span class="lineno">  162 </span><span class="spaces">      </span><span class="istickedoff">row)</span></span>
 <span class="lineno">  163 </span>
 <span class="lineno">  164 </span>
 <span class="lineno">  165 </span>changeContainer :: MonadAudit c m =&gt; Container -&gt; m ()
@@ -300,9 +300,9 @@ span.spaces    { background: white }
 <span class="lineno">  284 </span><span class="spaces">                </span><span class="nottickedoff">(\ [] -&gt; ())))</span></span>
 <span class="lineno">  285 </span>
 <span class="lineno">  286 </span>getContainerDate :: Container -&gt; Maybe MaskedDate
-<span class="lineno">  287 </span><span class="decl"><span class="nottickedoff">getContainerDate c =</span>
-<span class="lineno">  288 </span><span class="spaces">  </span><span class="nottickedoff">maskDateIf (not (canReadData getContainerRelease getContainerVolumePermission c))</span>
-<span class="lineno">  289 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; containerDate (containerRow c)</span></span>
+<span class="lineno">  287 </span><span class="decl"><span class="istickedoff">getContainerDate c =</span>
+<span class="lineno">  288 </span><span class="spaces">  </span><span class="istickedoff">maskDateIf (not (canReadData getContainerRelease getContainerVolumePermission c))</span>
+<span class="lineno">  289 </span><span class="spaces">    </span><span class="istickedoff">&lt;$&gt; containerDate (containerRow c)</span></span>
 <span class="lineno">  290 </span>
 <span class="lineno">  291 </span>formatContainerDate :: Container -&gt; Maybe String
 <span class="lineno">  292 </span><span class="decl"><span class="nottickedoff">formatContainerDate c = formatTime defaultTimeLocale &quot;%Y-%m-%d&quot; &lt;$&gt; getContainerDate c</span></span>

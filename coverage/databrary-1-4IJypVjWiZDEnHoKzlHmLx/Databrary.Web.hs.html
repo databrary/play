@@ -59,29 +59,26 @@ span.spaces    { background: white }
 <span class="lineno">   43 </span>withWebDir :: (WebDir -&gt; IO a) -&gt; IO a
 <span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">withWebDir f = getWebDir &gt;&gt;= (\rfp -&gt; f rfp)</span></span>
 <span class="lineno">   45 </span>
-<span class="lineno">   46 </span>-- convert a relative path from the web root into an expanded path including web root
+<span class="lineno">   46 </span>-- | Convert a relative path from the web root into an expanded path including web root
 <span class="lineno">   47 </span>makeWebFilePath :: RawFilePath -&gt; IO WebFilePath
 <span class="lineno">   48 </span><span class="decl"><span class="nottickedoff">makeWebFilePath r = withWebDir $ \webDirRaw -&gt; do</span>
 <span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">return $ WebFilePath r (webDirRaw RFP.&lt;/&gt; r)</span></span>
 <span class="lineno">   50 </span>
-<span class="lineno">   51 </span>--webFilePath :: RawFilePath -&gt; IO WebFilePath
-<span class="lineno">   52 </span>--webFilePath = makeWebFilePath
-<span class="lineno">   53 </span>
-<span class="lineno">   54 </span>splitWebExtensions :: WebFilePath -&gt; IO (WebFilePath, BS.ByteString)
-<span class="lineno">   55 </span><span class="decl"><span class="nottickedoff">splitWebExtensions f = do</span>
-<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">let (fn, ext) = RFP.splitExtensions $ webFileRel f</span>
-<span class="lineno">   57 </span><span class="spaces">  </span><span class="nottickedoff">wfp &lt;- makeWebFilePath fn</span>
-<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">return (wfp, ext)</span></span>
-<span class="lineno">   59 </span>
-<span class="lineno">   60 </span>splitWebExtension :: WebFilePath -&gt; IO (WebFilePath, BS.ByteString)
-<span class="lineno">   61 </span><span class="decl"><span class="nottickedoff">splitWebExtension f = do</span>
-<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">let (fn, ext) = RFP.splitExtension $ webFileRel f</span>
-<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">wfp &lt;- makeWebFilePath fn</span>
-<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">return (wfp, ext)</span></span>
-<span class="lineno">   65 </span>
-<span class="lineno">   66 </span>replaceWebExtension :: String -&gt; WebFilePath -&gt; WebFilePath
-<span class="lineno">   67 </span><span class="decl"><span class="nottickedoff">replaceWebExtension e (WebFilePath r ra) = WebFilePath (RFP.replaceExtension r re) (RFP.replaceExtension ra re)</span>
-<span class="lineno">   68 </span><span class="spaces">  </span><span class="nottickedoff">where re = BSC.pack e</span></span>
+<span class="lineno">   51 </span>splitWebExtensions :: WebFilePath -&gt; IO (WebFilePath, BS.ByteString)
+<span class="lineno">   52 </span><span class="decl"><span class="nottickedoff">splitWebExtensions f = do</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">let (fn, ext) = RFP.splitExtensions $ webFileRel f</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">wfp &lt;- makeWebFilePath fn</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">return (wfp, ext)</span></span>
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>splitWebExtension :: WebFilePath -&gt; IO (WebFilePath, BS.ByteString)
+<span class="lineno">   58 </span><span class="decl"><span class="nottickedoff">splitWebExtension f = do</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">let (fn, ext) = RFP.splitExtension $ webFileRel f</span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="nottickedoff">wfp &lt;- makeWebFilePath fn</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">return (wfp, ext)</span></span>
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>replaceWebExtension :: String -&gt; WebFilePath -&gt; WebFilePath
+<span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">replaceWebExtension e (WebFilePath r ra) = WebFilePath (RFP.replaceExtension r re) (RFP.replaceExtension ra re)</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">where re = BSC.pack e</span></span>
 
 </pre>
 </body>

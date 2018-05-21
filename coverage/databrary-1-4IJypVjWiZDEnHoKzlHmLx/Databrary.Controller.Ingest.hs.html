@@ -215,114 +215,110 @@ span.spaces    { background: white }
 <span class="lineno">  199 </span><span class="spaces">    </span><span class="nottickedoff">mapM (createOrUpdateRecord vol) records</span></span>
 <span class="lineno">  200 </span>
 <span class="lineno">  201 </span>data ParticipantStatus = Create | Found Record
-<span class="lineno">  202 </span>    -- deriving (Show, Eq)
-<span class="lineno">  203 </span>
-<span class="lineno">  204 </span>data MeasureUpdateAction = Upsert Metric MeasureDatum | Delete Metric | Unchanged Metric | NoAction Metric
-<span class="lineno">  205 </span>    deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
-<span class="lineno">  206 </span>
-<span class="lineno">  207 </span>data ParticipantRecordAction = ParticipantRecordAction ParticipantStatus [MeasureUpdateAction]
-<span class="lineno">  208 </span>    -- deriving (Show, Eq)
-<span class="lineno">  209 </span>
-<span class="lineno">  210 </span>buildParticipantRecordAction :: ParticipantRecord -&gt; ParticipantStatus -&gt; ParticipantRecordAction
-<span class="lineno">  211 </span><span class="decl"><span class="istickedoff">buildParticipantRecordAction participantRecord updatingRecord =</span>
-<span class="lineno">  212 </span><span class="spaces">    </span><span class="istickedoff">let</span>
-<span class="lineno">  213 </span><span class="spaces">        </span><span class="istickedoff">mId = getFieldVal' prdId participantMetricId</span>
-<span class="lineno">  214 </span><span class="spaces">        </span><span class="istickedoff">mInfo = getFieldVal' prdInfo participantMetricInfo</span>
-<span class="lineno">  215 </span><span class="spaces">        </span><span class="istickedoff">mDescription = getFieldVal' prdDescription participantMetricDescription</span>
-<span class="lineno">  216 </span><span class="spaces">        </span><span class="istickedoff">mBirthdate = getFieldVal' prdBirthdate participantMetricBirthdate</span>
-<span class="lineno">  217 </span><span class="spaces">        </span><span class="istickedoff">mGender = getFieldVal' prdGender participantMetricGender</span>
-<span class="lineno">  218 </span><span class="spaces">        </span><span class="istickedoff">mRace = getFieldVal' prdRace participantMetricRace</span>
-<span class="lineno">  219 </span><span class="spaces">        </span><span class="istickedoff">mEthnicity = getFieldVal' prdEthnicity participantMetricEthnicity</span>
-<span class="lineno">  220 </span><span class="spaces">        </span><span class="istickedoff">mGestationalAge = getFieldVal' prdGestationalAge participantMetricGestationalAge</span>
-<span class="lineno">  221 </span><span class="spaces">        </span><span class="istickedoff">mPregnancyTerm = getFieldVal' prdPregnancyTerm participantMetricPregnancyTerm</span>
-<span class="lineno">  222 </span><span class="spaces">        </span><span class="istickedoff">mBirthWeight = getFieldVal' prdBirthWeight participantMetricBirthWeight</span>
-<span class="lineno">  223 </span><span class="spaces">        </span><span class="istickedoff">mDisability = getFieldVal' prdDisability participantMetricDisability</span>
-<span class="lineno">  224 </span><span class="spaces">        </span><span class="istickedoff">mLanguage = getFieldVal' prdLanguage participantMetricLanguage</span>
-<span class="lineno">  225 </span><span class="spaces">        </span><span class="istickedoff">mCountry = getFieldVal' prdCountry participantMetricCountry</span>
-<span class="lineno">  226 </span><span class="spaces">        </span><span class="istickedoff">mState = getFieldVal' prdState participantMetricState</span>
-<span class="lineno">  227 </span><span class="spaces">        </span><span class="istickedoff">mSetting = getFieldVal' prdSetting participantMetricSetting</span>
-<span class="lineno">  228 </span><span class="spaces">        </span><span class="istickedoff">-- print (&quot;save measure id:&quot;, mId)</span>
-<span class="lineno">  229 </span><span class="spaces">        </span><span class="istickedoff">measureActions =</span>
-<span class="lineno">  230 </span><span class="spaces">            </span><span class="istickedoff">[ changeRecordMeasureIfUsed mId</span>
-<span class="lineno">  231 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mInfo</span>
-<span class="lineno">  232 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mDescription</span>
-<span class="lineno">  233 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mBirthdate</span>
-<span class="lineno">  234 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mGender</span>
-<span class="lineno">  235 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mRace</span>
-<span class="lineno">  236 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mEthnicity</span>
-<span class="lineno">  237 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mGestationalAge</span>
-<span class="lineno">  238 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mPregnancyTerm</span>
-<span class="lineno">  239 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mBirthWeight</span>
-<span class="lineno">  240 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mDisability</span>
-<span class="lineno">  241 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mLanguage</span>
-<span class="lineno">  242 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mCountry</span>
-<span class="lineno">  243 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mState</span>
-<span class="lineno">  244 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mSetting</span>
-<span class="lineno">  245 </span><span class="spaces">            </span><span class="istickedoff">]</span>
-<span class="lineno">  246 </span><span class="spaces">    </span><span class="istickedoff">in</span>
-<span class="lineno">  247 </span><span class="spaces">        </span><span class="istickedoff">ParticipantRecordAction updatingRecord (catMaybes measureActions)</span>
-<span class="lineno">  248 </span><span class="spaces">  </span><span class="istickedoff">where</span>
-<span class="lineno">  249 </span><span class="spaces">    </span><span class="istickedoff">changeRecordMeasureIfUsed :: Maybe (Maybe MeasureDatum, Metric) -&gt; Maybe MeasureUpdateAction</span>
-<span class="lineno">  250 </span><span class="spaces">    </span><span class="istickedoff">changeRecordMeasureIfUsed mValueMetric = do</span>
-<span class="lineno">  251 </span><span class="spaces">        </span><span class="istickedoff">(mVal, met) &lt;- mValueMetric</span>
-<span class="lineno">  252 </span><span class="spaces">        </span><span class="istickedoff">pure (determineUpdatedMeasure mVal met)</span>
-<span class="lineno">  253 </span><span class="spaces">    </span><span class="istickedoff">determineUpdatedMeasure :: Maybe MeasureDatum -&gt; Metric -&gt; MeasureUpdateAction</span>
-<span class="lineno">  254 </span><span class="spaces">    </span><span class="istickedoff">determineUpdatedMeasure mVal met =</span>
-<span class="lineno">  255 </span><span class="spaces">        </span><span class="istickedoff">case updatingRecord of</span>
-<span class="lineno">  256 </span><span class="spaces">            </span><span class="istickedoff">Create -&gt;</span>
-<span class="lineno">  257 </span><span class="spaces">                </span><span class="istickedoff">maybe (NoAction met) (Upsert met) mVal</span>
-<span class="lineno">  258 </span><span class="spaces">            </span><span class="istickedoff">Found _ -&gt; do</span>
-<span class="lineno">  259 </span><span class="spaces">                 </span><span class="istickedoff">-- TODO:</span>
-<span class="lineno">  260 </span><span class="spaces">                 </span><span class="istickedoff">-- mOldVal &lt;- getOldVal metric record</span>
-<span class="lineno">  261 </span><span class="spaces">                 </span><span class="istickedoff">-- action = maybe (Upsert val) (\o -&gt; if o == val then Unchanged else Upsert val)</span>
-<span class="lineno">  262 </span><span class="spaces">                 </span><span class="istickedoff">let measureAction = maybe (Delete met) (Upsert met) mVal</span>
-<span class="lineno">  263 </span><span class="spaces">                 </span><span class="istickedoff">measureAction</span>
-<span class="lineno">  264 </span><span class="spaces">    </span><span class="istickedoff">getFieldVal' :: (ParticipantRecord -&gt; Maybe (Maybe (a, MeasureDatum))) -&gt; Metric -&gt; Maybe (Maybe MeasureDatum, Metric)</span>
-<span class="lineno">  265 </span><span class="spaces">    </span><span class="istickedoff">getFieldVal' = getFieldVal participantRecord</span></span>
-<span class="lineno">  266 </span>
-<span class="lineno">  267 </span>getFieldVal
-<span class="lineno">  268 </span>    :: ParticipantRecord
-<span class="lineno">  269 </span>    -&gt; (ParticipantRecord -&gt; Maybe (Maybe (a, MeasureDatum)))
-<span class="lineno">  270 </span>    -&gt; Metric
-<span class="lineno">  271 </span>    -&gt; Maybe (Maybe MeasureDatum, Metric)
-<span class="lineno">  272 </span><span class="decl"><span class="istickedoff">getFieldVal participantRecord extractFieldVal metric =</span>
-<span class="lineno">  273 </span><span class="spaces">    </span><span class="istickedoff">case extractFieldVal participantRecord of</span>
-<span class="lineno">  274 </span><span class="spaces">        </span><span class="istickedoff">Just (Just (_, fieldVal)) -&gt;</span>
-<span class="lineno">  275 </span><span class="spaces">            </span><span class="istickedoff">pure (Just fieldVal, metric)</span>
-<span class="lineno">  276 </span><span class="spaces">        </span><span class="istickedoff">Just Nothing -&gt;</span>
-<span class="lineno">  277 </span><span class="spaces">            </span><span class="istickedoff">pure (Nothing, metric)</span>
-<span class="lineno">  278 </span><span class="spaces">        </span><span class="istickedoff">Nothing -&gt;</span>
-<span class="lineno">  279 </span><span class="spaces">            </span><span class="istickedoff">Nothing</span></span> -- field isn't used by this volume, so don't need to save the measure
-<span class="lineno">  280 </span>
-<span class="lineno">  281 </span>createOrUpdateRecord :: Volume -&gt; ParticipantRecord -&gt; Handler () -- TODO: error or record
-<span class="lineno">  282 </span><span class="decl"><span class="nottickedoff">createOrUpdateRecord vol participantRecord = do</span>
-<span class="lineno">  283 </span><span class="spaces">    </span><span class="nottickedoff">let category = getCategory' (Id 1) -- TODO: use global variable</span>
-<span class="lineno">  284 </span><span class="spaces">        </span><span class="nottickedoff">mIdVal = fst $ maybe (error &quot;id missing&quot;) id (getFieldVal' prdId participantMetricId)</span>
-<span class="lineno">  285 </span><span class="spaces">        </span><span class="nottickedoff">idVal = maybe (error &quot;id empty&quot;) id mIdVal</span>
-<span class="lineno">  286 </span><span class="spaces">    </span><span class="nottickedoff">mOldParticipant &lt;- lookupVolumeParticipant vol idVal</span>
-<span class="lineno">  287 </span><span class="spaces">    </span><span class="nottickedoff">let recordStatus =</span>
-<span class="lineno">  288 </span><span class="spaces">            </span><span class="nottickedoff">case mOldParticipant of</span>
-<span class="lineno">  289 </span><span class="spaces">                </span><span class="nottickedoff">Nothing -&gt; Create</span>
-<span class="lineno">  290 </span><span class="spaces">                </span><span class="nottickedoff">Just oldParticipant -&gt; Found oldParticipant</span>
-<span class="lineno">  291 </span><span class="spaces">    </span><span class="nottickedoff">-- print (&quot;save measure id:&quot;, mId)</span>
-<span class="lineno">  292 </span><span class="spaces">    </span><span class="nottickedoff">case buildParticipantRecordAction participantRecord recordStatus of</span>
-<span class="lineno">  293 </span><span class="spaces">        </span><span class="nottickedoff">ParticipantRecordAction Create measureActs -&gt; do</span>
-<span class="lineno">  294 </span><span class="spaces">            </span><span class="nottickedoff">newParticipantShell &lt;- addRecord (blankRecord category vol) -- blankParticipantRecord</span>
-<span class="lineno">  295 </span><span class="spaces">            </span><span class="nottickedoff">_ &lt;- mapM (runMeasureUpdate newParticipantShell) measureActs</span>
-<span class="lineno">  296 </span><span class="spaces">            </span><span class="nottickedoff">pure () -- TODO: reload participant</span>
-<span class="lineno">  297 </span><span class="spaces">        </span><span class="nottickedoff">ParticipantRecordAction (Found oldRecord) measureActs -&gt; do</span>
-<span class="lineno">  298 </span><span class="spaces">            </span><span class="nottickedoff">_ &lt;- mapM (runMeasureUpdate oldRecord) measureActs</span>
-<span class="lineno">  299 </span><span class="spaces">            </span><span class="nottickedoff">pure ()</span>
-<span class="lineno">  300 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
-<span class="lineno">  301 </span><span class="spaces">    </span><span class="nottickedoff">runMeasureUpdate :: Record -&gt; MeasureUpdateAction -&gt; Handler (Maybe Record)</span>
-<span class="lineno">  302 </span><span class="spaces">    </span><span class="nottickedoff">runMeasureUpdate record act =</span>
-<span class="lineno">  303 </span><span class="spaces">        </span><span class="nottickedoff">case act of</span>
-<span class="lineno">  304 </span><span class="spaces">            </span><span class="nottickedoff">Upsert met val -&gt; changeRecordMeasure (Measure record met val)</span>
-<span class="lineno">  305 </span><span class="spaces">            </span><span class="nottickedoff">Delete met -&gt; fmap Just (removeRecordMeasure (Measure record met &quot;&quot;))</span>
-<span class="lineno">  306 </span><span class="spaces">            </span><span class="nottickedoff">Unchanged _ -&gt; pure Nothing</span>
-<span class="lineno">  307 </span><span class="spaces">            </span><span class="nottickedoff">NoAction _ -&gt; pure Nothing</span>
-<span class="lineno">  308 </span><span class="spaces">    </span><span class="nottickedoff">getFieldVal' :: (ParticipantRecord -&gt; Maybe (Maybe (a, MeasureDatum))) -&gt; Metric -&gt; Maybe (Maybe MeasureDatum, Metric)</span>
-<span class="lineno">  309 </span><span class="spaces">    </span><span class="nottickedoff">getFieldVal' = getFieldVal participantRecord</span></span>
+<span class="lineno">  202 </span>
+<span class="lineno">  203 </span>data MeasureUpdateAction = Upsert Metric MeasureDatum | Delete Metric | Unchanged Metric | NoAction Metric
+<span class="lineno">  204 </span>    deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">  205 </span>
+<span class="lineno">  206 </span>data ParticipantRecordAction = ParticipantRecordAction ParticipantStatus [MeasureUpdateAction]
+<span class="lineno">  207 </span>
+<span class="lineno">  208 </span>buildParticipantRecordAction :: ParticipantRecord -&gt; ParticipantStatus -&gt; ParticipantRecordAction
+<span class="lineno">  209 </span><span class="decl"><span class="istickedoff">buildParticipantRecordAction participantRecord updatingRecord =</span>
+<span class="lineno">  210 </span><span class="spaces">    </span><span class="istickedoff">let</span>
+<span class="lineno">  211 </span><span class="spaces">        </span><span class="istickedoff">mId = getFieldVal' prdId participantMetricId</span>
+<span class="lineno">  212 </span><span class="spaces">        </span><span class="istickedoff">mInfo = getFieldVal' prdInfo participantMetricInfo</span>
+<span class="lineno">  213 </span><span class="spaces">        </span><span class="istickedoff">mDescription = getFieldVal' prdDescription participantMetricDescription</span>
+<span class="lineno">  214 </span><span class="spaces">        </span><span class="istickedoff">mBirthdate = getFieldVal' prdBirthdate participantMetricBirthdate</span>
+<span class="lineno">  215 </span><span class="spaces">        </span><span class="istickedoff">mGender = getFieldVal' prdGender participantMetricGender</span>
+<span class="lineno">  216 </span><span class="spaces">        </span><span class="istickedoff">mRace = getFieldVal' prdRace participantMetricRace</span>
+<span class="lineno">  217 </span><span class="spaces">        </span><span class="istickedoff">mEthnicity = getFieldVal' prdEthnicity participantMetricEthnicity</span>
+<span class="lineno">  218 </span><span class="spaces">        </span><span class="istickedoff">mGestationalAge = getFieldVal' prdGestationalAge participantMetricGestationalAge</span>
+<span class="lineno">  219 </span><span class="spaces">        </span><span class="istickedoff">mPregnancyTerm = getFieldVal' prdPregnancyTerm participantMetricPregnancyTerm</span>
+<span class="lineno">  220 </span><span class="spaces">        </span><span class="istickedoff">mBirthWeight = getFieldVal' prdBirthWeight participantMetricBirthWeight</span>
+<span class="lineno">  221 </span><span class="spaces">        </span><span class="istickedoff">mDisability = getFieldVal' prdDisability participantMetricDisability</span>
+<span class="lineno">  222 </span><span class="spaces">        </span><span class="istickedoff">mLanguage = getFieldVal' prdLanguage participantMetricLanguage</span>
+<span class="lineno">  223 </span><span class="spaces">        </span><span class="istickedoff">mCountry = getFieldVal' prdCountry participantMetricCountry</span>
+<span class="lineno">  224 </span><span class="spaces">        </span><span class="istickedoff">mState = getFieldVal' prdState participantMetricState</span>
+<span class="lineno">  225 </span><span class="spaces">        </span><span class="istickedoff">mSetting = getFieldVal' prdSetting participantMetricSetting</span>
+<span class="lineno">  226 </span><span class="spaces">        </span><span class="istickedoff">-- print (&quot;save measure id:&quot;, mId)</span>
+<span class="lineno">  227 </span><span class="spaces">        </span><span class="istickedoff">measureActions =</span>
+<span class="lineno">  228 </span><span class="spaces">            </span><span class="istickedoff">[ changeRecordMeasureIfUsed mId</span>
+<span class="lineno">  229 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mInfo</span>
+<span class="lineno">  230 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mDescription</span>
+<span class="lineno">  231 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mBirthdate</span>
+<span class="lineno">  232 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mGender</span>
+<span class="lineno">  233 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mRace</span>
+<span class="lineno">  234 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mEthnicity</span>
+<span class="lineno">  235 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mGestationalAge</span>
+<span class="lineno">  236 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mPregnancyTerm</span>
+<span class="lineno">  237 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mBirthWeight</span>
+<span class="lineno">  238 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mDisability</span>
+<span class="lineno">  239 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mLanguage</span>
+<span class="lineno">  240 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mCountry</span>
+<span class="lineno">  241 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mState</span>
+<span class="lineno">  242 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mSetting</span>
+<span class="lineno">  243 </span><span class="spaces">            </span><span class="istickedoff">]</span>
+<span class="lineno">  244 </span><span class="spaces">    </span><span class="istickedoff">in</span>
+<span class="lineno">  245 </span><span class="spaces">        </span><span class="istickedoff">ParticipantRecordAction updatingRecord (catMaybes measureActions)</span>
+<span class="lineno">  246 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  247 </span><span class="spaces">    </span><span class="istickedoff">changeRecordMeasureIfUsed :: Maybe (Maybe MeasureDatum, Metric) -&gt; Maybe MeasureUpdateAction</span>
+<span class="lineno">  248 </span><span class="spaces">    </span><span class="istickedoff">changeRecordMeasureIfUsed mValueMetric = do</span>
+<span class="lineno">  249 </span><span class="spaces">        </span><span class="istickedoff">(mVal, met) &lt;- mValueMetric</span>
+<span class="lineno">  250 </span><span class="spaces">        </span><span class="istickedoff">pure (determineUpdatedMeasure mVal met)</span>
+<span class="lineno">  251 </span><span class="spaces">    </span><span class="istickedoff">determineUpdatedMeasure :: Maybe MeasureDatum -&gt; Metric -&gt; MeasureUpdateAction</span>
+<span class="lineno">  252 </span><span class="spaces">    </span><span class="istickedoff">determineUpdatedMeasure mVal met =</span>
+<span class="lineno">  253 </span><span class="spaces">        </span><span class="istickedoff">case updatingRecord of</span>
+<span class="lineno">  254 </span><span class="spaces">            </span><span class="istickedoff">Create -&gt;</span>
+<span class="lineno">  255 </span><span class="spaces">                </span><span class="istickedoff">maybe (NoAction met) (Upsert met) mVal</span>
+<span class="lineno">  256 </span><span class="spaces">            </span><span class="istickedoff">Found _ -&gt; do</span>
+<span class="lineno">  257 </span><span class="spaces">                 </span><span class="istickedoff">-- TODO:</span>
+<span class="lineno">  258 </span><span class="spaces">                 </span><span class="istickedoff">-- mOldVal &lt;- getOldVal metric record</span>
+<span class="lineno">  259 </span><span class="spaces">                 </span><span class="istickedoff">-- action = maybe (Upsert val) (\o -&gt; if o == val then Unchanged else Upsert val)</span>
+<span class="lineno">  260 </span><span class="spaces">                 </span><span class="istickedoff">let measureAction = maybe (Delete met) (Upsert met) mVal</span>
+<span class="lineno">  261 </span><span class="spaces">                 </span><span class="istickedoff">measureAction</span>
+<span class="lineno">  262 </span><span class="spaces">    </span><span class="istickedoff">getFieldVal' :: (ParticipantRecord -&gt; FieldUse a) -&gt; Metric -&gt; Maybe (Maybe MeasureDatum, Metric)</span>
+<span class="lineno">  263 </span><span class="spaces">    </span><span class="istickedoff">getFieldVal' = getFieldVal participantRecord</span></span>
+<span class="lineno">  264 </span>
+<span class="lineno">  265 </span>getFieldVal
+<span class="lineno">  266 </span>    :: ParticipantRecord
+<span class="lineno">  267 </span>    -&gt; (ParticipantRecord -&gt; FieldUse a)
+<span class="lineno">  268 </span>    -&gt; Metric
+<span class="lineno">  269 </span>    -&gt; Maybe (Maybe MeasureDatum, Metric)
+<span class="lineno">  270 </span><span class="decl"><span class="istickedoff">getFieldVal participantRecord extractFieldVal metric =</span>
+<span class="lineno">  271 </span><span class="spaces">    </span><span class="istickedoff">case extractFieldVal participantRecord of</span>
+<span class="lineno">  272 </span><span class="spaces">        </span><span class="istickedoff">Field fieldVal _ -&gt; pure (Just fieldVal, metric)</span>
+<span class="lineno">  273 </span><span class="spaces">        </span><span class="istickedoff">FieldEmpty -&gt; pure (Nothing, metric)</span>
+<span class="lineno">  274 </span><span class="spaces">        </span><span class="istickedoff">FieldUnused -&gt; Nothing</span></span>
+<span class="lineno">  275 </span>            -- field isn't used by this volume, so don't need to save the measure
+<span class="lineno">  276 </span>
+<span class="lineno">  277 </span>createOrUpdateRecord :: Volume -&gt; ParticipantRecord -&gt; Handler () -- TODO: error or record
+<span class="lineno">  278 </span><span class="decl"><span class="nottickedoff">createOrUpdateRecord vol participantRecord = do</span>
+<span class="lineno">  279 </span><span class="spaces">    </span><span class="nottickedoff">let category = getCategory' (Id 1) -- TODO: use global variable</span>
+<span class="lineno">  280 </span><span class="spaces">        </span><span class="nottickedoff">mIdVal = fst $ maybe (error &quot;id missing&quot;) id (getFieldVal' prdId participantMetricId)</span>
+<span class="lineno">  281 </span><span class="spaces">        </span><span class="nottickedoff">idVal = maybe (error &quot;id empty&quot;) id mIdVal</span>
+<span class="lineno">  282 </span><span class="spaces">    </span><span class="nottickedoff">mOldParticipant &lt;- lookupVolumeParticipant vol idVal</span>
+<span class="lineno">  283 </span><span class="spaces">    </span><span class="nottickedoff">let recordStatus =</span>
+<span class="lineno">  284 </span><span class="spaces">            </span><span class="nottickedoff">case mOldParticipant of</span>
+<span class="lineno">  285 </span><span class="spaces">                </span><span class="nottickedoff">Nothing -&gt; Create</span>
+<span class="lineno">  286 </span><span class="spaces">                </span><span class="nottickedoff">Just oldParticipant -&gt; Found oldParticipant</span>
+<span class="lineno">  287 </span><span class="spaces">    </span><span class="nottickedoff">-- print (&quot;save measure id:&quot;, mId)</span>
+<span class="lineno">  288 </span><span class="spaces">    </span><span class="nottickedoff">case buildParticipantRecordAction participantRecord recordStatus of</span>
+<span class="lineno">  289 </span><span class="spaces">        </span><span class="nottickedoff">ParticipantRecordAction Create measureActs -&gt; do</span>
+<span class="lineno">  290 </span><span class="spaces">            </span><span class="nottickedoff">newParticipantShell &lt;- addRecord (blankRecord category vol) -- blankParticipantRecord</span>
+<span class="lineno">  291 </span><span class="spaces">            </span><span class="nottickedoff">_ &lt;- mapM (runMeasureUpdate newParticipantShell) measureActs</span>
+<span class="lineno">  292 </span><span class="spaces">            </span><span class="nottickedoff">pure () -- TODO: reload participant</span>
+<span class="lineno">  293 </span><span class="spaces">        </span><span class="nottickedoff">ParticipantRecordAction (Found oldRecord) measureActs -&gt; do</span>
+<span class="lineno">  294 </span><span class="spaces">            </span><span class="nottickedoff">_ &lt;- mapM (runMeasureUpdate oldRecord) measureActs</span>
+<span class="lineno">  295 </span><span class="spaces">            </span><span class="nottickedoff">pure ()</span>
+<span class="lineno">  296 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  297 </span><span class="spaces">    </span><span class="nottickedoff">runMeasureUpdate :: Record -&gt; MeasureUpdateAction -&gt; Handler (Maybe Record)</span>
+<span class="lineno">  298 </span><span class="spaces">    </span><span class="nottickedoff">runMeasureUpdate record act =</span>
+<span class="lineno">  299 </span><span class="spaces">        </span><span class="nottickedoff">case act of</span>
+<span class="lineno">  300 </span><span class="spaces">            </span><span class="nottickedoff">Upsert met val -&gt; changeRecordMeasure (Measure record met val)</span>
+<span class="lineno">  301 </span><span class="spaces">            </span><span class="nottickedoff">Delete met -&gt; fmap Just (removeRecordMeasure (Measure record met &quot;&quot;))</span>
+<span class="lineno">  302 </span><span class="spaces">            </span><span class="nottickedoff">Unchanged _ -&gt; pure Nothing</span>
+<span class="lineno">  303 </span><span class="spaces">            </span><span class="nottickedoff">NoAction _ -&gt; pure Nothing</span>
+<span class="lineno">  304 </span><span class="spaces">    </span><span class="nottickedoff">getFieldVal' :: (ParticipantRecord -&gt; FieldUse a) -&gt; Metric -&gt; Maybe (Maybe MeasureDatum, Metric)</span>
+<span class="lineno">  305 </span><span class="spaces">    </span><span class="nottickedoff">getFieldVal' = getFieldVal participantRecord</span></span>
 
 </pre>
 </body>

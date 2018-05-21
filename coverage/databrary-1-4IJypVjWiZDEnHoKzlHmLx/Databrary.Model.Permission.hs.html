@@ -41,29 +41,29 @@ span.spaces    { background: white }
 <span class="lineno">   25 </span>
 <span class="lineno">   26 </span>-- |Alias for READ. Grants full access to private data, bypassing consent permissions.
 <span class="lineno">   27 </span>permissionPRIVATE :: Permission
-<span class="lineno">   28 </span><span class="decl"><span class="nottickedoff">permissionPRIVATE = PermissionREAD</span></span>
+<span class="lineno">   28 </span><span class="decl"><span class="istickedoff">permissionPRIVATE = PermissionREAD</span></span>
 <span class="lineno">   29 </span>
 <span class="lineno">   30 </span>-- |The necessary permission level to read a data object with the given release.
 <span class="lineno">   31 </span>-- Equivalent to the SQL function read_permission.
 <span class="lineno">   32 </span>readPermission :: Release -&gt; Permission
-<span class="lineno">   33 </span><span class="decl"><span class="nottickedoff">readPermission ReleasePUBLIC   = PermissionPUBLIC</span>
-<span class="lineno">   34 </span><span class="spaces"></span><span class="nottickedoff">readPermission ReleaseSHARED   = PermissionSHARED</span>
-<span class="lineno">   35 </span><span class="spaces"></span><span class="nottickedoff">readPermission ReleaseEXCERPTS = PermissionSHARED</span>
-<span class="lineno">   36 </span><span class="spaces"></span><span class="nottickedoff">readPermission ReleasePRIVATE  = permissionPRIVATE</span></span>
+<span class="lineno">   33 </span><span class="decl"><span class="istickedoff">readPermission ReleasePUBLIC   = <span class="nottickedoff">PermissionPUBLIC</span></span>
+<span class="lineno">   34 </span><span class="spaces"></span><span class="istickedoff">readPermission ReleaseSHARED   = <span class="nottickedoff">PermissionSHARED</span></span>
+<span class="lineno">   35 </span><span class="spaces"></span><span class="istickedoff">readPermission ReleaseEXCERPTS = <span class="nottickedoff">PermissionSHARED</span></span>
+<span class="lineno">   36 </span><span class="spaces"></span><span class="istickedoff">readPermission ReleasePRIVATE  = permissionPRIVATE</span></span>
 <span class="lineno">   37 </span>
 <span class="lineno">   38 </span>-- |The most restrictive data release level that the current user may access under the given permission.
 <span class="lineno">   39 </span>-- Equivalent to the SQL function read_release.  Inverse of 'readPermission' module meaning of @Nothing@.
 <span class="lineno">   40 </span>readRelease :: Permission -&gt; Maybe Release
 <span class="lineno">   41 </span><span class="decl"><span class="istickedoff">readRelease PermissionNONE   = Nothing</span>
-<span class="lineno">   42 </span><span class="spaces"></span><span class="istickedoff">readRelease PermissionPUBLIC = <span class="nottickedoff">Just ReleasePUBLIC</span></span>
+<span class="lineno">   42 </span><span class="spaces"></span><span class="istickedoff">readRelease PermissionPUBLIC = Just ReleasePUBLIC</span>
 <span class="lineno">   43 </span><span class="spaces"></span><span class="istickedoff">readRelease PermissionSHARED = <span class="nottickedoff">Just ReleaseSHARED</span></span>
 <span class="lineno">   44 </span><span class="spaces"></span><span class="istickedoff">readRelease _                = <span class="nottickedoff">Just ReleasePRIVATE</span></span></span>
 <span class="lineno">   45 </span>
 <span class="lineno">   46 </span>-- |The effective permission for data objects with the given attributes, effectively collapsing ineffective permissions NONE.
 <span class="lineno">   47 </span>releasePermission :: Release -&gt; Permission -&gt; Permission
-<span class="lineno">   48 </span><span class="decl"><span class="nottickedoff">releasePermission effectiveReleaseOnData currentUserAllowedPermissionOnVolume</span>
-<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">| currentUserAllowedPermissionOnVolume &gt;= readPermission effectiveReleaseOnData = currentUserAllowedPermissionOnVolume</span>
-<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = PermissionNONE</span></span>
+<span class="lineno">   48 </span><span class="decl"><span class="istickedoff">releasePermission effectiveReleaseOnData currentUserAllowedPermissionOnVolume</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlyfalse">currentUserAllowedPermissionOnVolume &gt;= readPermission effectiveReleaseOnData</span> = <span class="nottickedoff">currentUserAllowedPermissionOnVolume</span></span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = PermissionNONE</span></span>
 <span class="lineno">   51 </span>
 <span class="lineno">   52 </span>-- START future testing code
 <span class="lineno">   53 </span>runDataPermission3 :: (Release, Release) -&gt; (Permission, VolumeAccessPolicy) -&gt; Permission
@@ -120,18 +120,18 @@ span.spaces    { background: white }
 <span class="lineno">  104 </span>
 <span class="lineno">  105 </span>
 <span class="lineno">  106 </span>dataPermission3 :: (a -&gt; EffectiveRelease) -&gt; (a -&gt; (Permission, VolumeAccessPolicy)) -&gt; a -&gt; Permission
-<span class="lineno">  107 </span><span class="decl"><span class="nottickedoff">dataPermission3 getObjEffectiveRelease getCurrentUserPermLevel obj =</span>
-<span class="lineno">  108 </span><span class="spaces">  </span><span class="nottickedoff">let</span>
-<span class="lineno">  109 </span><span class="spaces">   </span><span class="nottickedoff">effRelease = getObjEffectiveRelease obj</span>
-<span class="lineno">  110 </span><span class="spaces">  </span><span class="nottickedoff">in </span>
-<span class="lineno">  111 </span><span class="spaces">    </span><span class="nottickedoff">case getCurrentUserPermLevel obj of</span>
-<span class="lineno">  112 </span><span class="spaces">      </span><span class="nottickedoff">(p@PermissionPUBLIC, PublicRestricted) -&gt; releasePermission (effRelPrivate effRelease) p</span>
-<span class="lineno">  113 </span><span class="spaces">      </span><span class="nottickedoff">-- other levels that behave more like private (options: none, shared, read, edit, admin) ? </span>
-<span class="lineno">  114 </span><span class="spaces">      </span><span class="nottickedoff">(p, _) -&gt; releasePermission (effRelPublic effRelease) p</span></span>
+<span class="lineno">  107 </span><span class="decl"><span class="istickedoff">dataPermission3 getObjEffectiveRelease getCurrentUserPermLevel obj =</span>
+<span class="lineno">  108 </span><span class="spaces">  </span><span class="istickedoff">let</span>
+<span class="lineno">  109 </span><span class="spaces">   </span><span class="istickedoff">effRelease = getObjEffectiveRelease obj</span>
+<span class="lineno">  110 </span><span class="spaces">  </span><span class="istickedoff">in </span>
+<span class="lineno">  111 </span><span class="spaces">    </span><span class="istickedoff">case getCurrentUserPermLevel obj of</span>
+<span class="lineno">  112 </span><span class="spaces">      </span><span class="istickedoff">(p@PermissionPUBLIC, PublicRestricted) -&gt; releasePermission (effRelPrivate effRelease) p</span>
+<span class="lineno">  113 </span><span class="spaces">      </span><span class="istickedoff">-- other levels that behave more like private (options: none, shared, read, edit, admin) ? </span>
+<span class="lineno">  114 </span><span class="spaces">      </span><span class="istickedoff">(p, _) -&gt; <span class="nottickedoff">releasePermission (effRelPublic effRelease) p</span></span></span>
 <span class="lineno">  115 </span>
 <span class="lineno">  116 </span>canReadData :: (a -&gt; EffectiveRelease) -&gt; (a -&gt; (Permission, VolumeAccessPolicy)) -&gt; a -&gt; Bool
-<span class="lineno">  117 </span><span class="decl"><span class="nottickedoff">canReadData getObjEffectiveRelease getCurrentUserPermLevel obj =</span>
-<span class="lineno">  118 </span><span class="spaces">  </span><span class="nottickedoff">dataPermission3 getObjEffectiveRelease getCurrentUserPermLevel obj &gt; PermissionNONE</span></span>
+<span class="lineno">  117 </span><span class="decl"><span class="istickedoff">canReadData getObjEffectiveRelease getCurrentUserPermLevel obj =</span>
+<span class="lineno">  118 </span><span class="spaces">  </span><span class="istickedoff">dataPermission3 getObjEffectiveRelease getCurrentUserPermLevel obj &gt; PermissionNONE</span></span>
 <span class="lineno">  119 </span>
 <span class="lineno">  120 </span>
 <span class="lineno">  121 </span>accessJSON :: JSON.ToObject o =&gt; Access -&gt; o

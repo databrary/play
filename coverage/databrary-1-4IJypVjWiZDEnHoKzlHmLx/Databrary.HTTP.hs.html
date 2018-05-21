@@ -36,12 +36,12 @@ span.spaces    { background: white }
 <span class="lineno">   20 </span>
 <span class="lineno">   21 </span>import Databrary.Model.Time
 <span class="lineno">   22 </span>
-<span class="lineno">   23 </span>-- |Same as 'encodePathSegments' but for absolute paths (empty results in a single slash)
+<span class="lineno">   23 </span>-- | Same as 'encodePathSegments' but for absolute paths (empty results in a single slash)
 <span class="lineno">   24 </span>encodePathSegments' :: [T.Text] -&gt; BSB.Builder
 <span class="lineno">   25 </span><span class="decl"><span class="nottickedoff">encodePathSegments' [] = BSB.char8 '/'</span>
 <span class="lineno">   26 </span><span class="spaces"></span><span class="nottickedoff">encodePathSegments' p = encodePathSegments p</span></span>
 <span class="lineno">   27 </span>
-<span class="lineno">   28 </span>-- |Same as 'encodePath' but using 'encodePathSegments''
+<span class="lineno">   28 </span>-- | Same as 'encodePath' but using 'encodePathSegments''
 <span class="lineno">   29 </span>encodePath' :: [T.Text] -&gt; Query -&gt; BSB.Builder
 <span class="lineno">   30 </span><span class="decl"><span class="nottickedoff">encodePath' p [] = encodePathSegments' p</span>
 <span class="lineno">   31 </span><span class="spaces"></span><span class="nottickedoff">encodePath' p q = encodePathSegments' p &lt;&gt; renderQueryBuilder True q</span></span>
@@ -76,11 +76,10 @@ span.spaces    { background: white }
 <span class="lineno">   60 </span><span class="decl"><span class="nottickedoff">defaultDateFmt = head dateFmts</span></span>
 <span class="lineno">   61 </span>
 <span class="lineno">   62 </span>formatHTTPTimestamp :: Timestamp -&gt; BS.ByteString
-<span class="lineno">   63 </span>-- httpTimestamp = formatHTTPDate . epochTimeToHTTPDate . CTime . round . utcTimeToPOSIXSeconds
-<span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">formatHTTPTimestamp = BSC.pack . formatTime defaultTimeLocale defaultDateFmt</span></span>
-<span class="lineno">   65 </span>
-<span class="lineno">   66 </span>parseHTTPTimestamp :: BS.ByteString -&gt; Maybe Timestamp
-<span class="lineno">   67 </span><span class="decl"><span class="nottickedoff">parseHTTPTimestamp b = msum $ map (\f -&gt; parseTimeM True defaultTimeLocale f s) dateFmts where s = BSC.unpack b</span></span>
+<span class="lineno">   63 </span><span class="decl"><span class="nottickedoff">formatHTTPTimestamp = BSC.pack . formatTime defaultTimeLocale defaultDateFmt</span></span>
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>parseHTTPTimestamp :: BS.ByteString -&gt; Maybe Timestamp
+<span class="lineno">   66 </span><span class="decl"><span class="nottickedoff">parseHTTPTimestamp b = msum $ map (\f -&gt; parseTimeM True defaultTimeLocale f s) dateFmts where s = BSC.unpack b</span></span>
 
 </pre>
 </body>

@@ -139,16 +139,16 @@ span.spaces    { background: white }
 <span class="lineno">  123 </span>
 <span class="lineno">  124 </span>-- |Combination of 'liftDBM' and lifted 'tryJust'
 <span class="lineno">  125 </span>dbTryJust :: MonadDB c m =&gt; (PGError -&gt; Maybe e) -&gt; DBM a -&gt; m (Either e a)
-<span class="lineno">  126 </span><span class="decl"><span class="nottickedoff">dbTryJust err q = liftDB $ tryJust err . runReaderT q</span></span>
+<span class="lineno">  126 </span><span class="decl"><span class="istickedoff">dbTryJust err q = liftDB $ tryJust <span class="nottickedoff">err</span> . runReaderT q</span></span>
 <span class="lineno">  127 </span>
 <span class="lineno">  128 </span>dbRunQuery :: (MonadDB c m, PGQuery q a) =&gt; q -&gt; m (Int, [a])
-<span class="lineno">  129 </span><span class="decl"><span class="nottickedoff">dbRunQuery q = liftDB $ \c -&gt; pgRunQuery c q</span></span>
+<span class="lineno">  129 </span><span class="decl"><span class="istickedoff">dbRunQuery q = liftDB $ \c -&gt; pgRunQuery c q</span></span>
 <span class="lineno">  130 </span>
 <span class="lineno">  131 </span>dbExecute :: (MonadDB c m, PGQuery q ()) =&gt; q -&gt; m Int
 <span class="lineno">  132 </span><span class="decl"><span class="istickedoff">dbExecute q = liftDB $ \c -&gt; pgExecute c q</span></span>
 <span class="lineno">  133 </span>
 <span class="lineno">  134 </span>dbExecuteSimple :: MonadDB c m =&gt; PGSimpleQuery () -&gt; m Int
-<span class="lineno">  135 </span><span class="decl"><span class="nottickedoff">dbExecuteSimple = dbExecute</span></span>
+<span class="lineno">  135 </span><span class="decl"><span class="istickedoff">dbExecuteSimple = dbExecute</span></span>
 <span class="lineno">  136 </span>
 <span class="lineno">  137 </span>dbExecute1 :: (MonadDB c m, PGQuery q (), Show q) =&gt; q -&gt; m Bool
 <span class="lineno">  138 </span><span class="decl"><span class="istickedoff">dbExecute1 q = do</span>
@@ -181,7 +181,7 @@ span.spaces    { background: white }
 <span class="lineno">  165 </span><span class="decl"><span class="istickedoff">dbQuery1' q = maybe <span class="nottickedoff">(fail $ &quot;pgQuery1' &quot; ++ show q ++ &quot;: no results&quot;)</span> return =&lt;&lt; dbQuery1 q</span></span>
 <span class="lineno">  166 </span>
 <span class="lineno">  167 </span>dbTransaction :: MonadDB c m =&gt; DBM a -&gt; m a
-<span class="lineno">  168 </span><span class="decl"><span class="nottickedoff">dbTransaction f = liftDB $ \c -&gt; pgTransaction c (runReaderT f c)</span></span>
+<span class="lineno">  168 </span><span class="decl"><span class="istickedoff">dbTransaction f = liftDB $ \c -&gt; pgTransaction c (runReaderT f c)</span></span>
 <span class="lineno">  169 </span>
 <span class="lineno">  170 </span>dbTransaction' :: (MonadBaseControl IO m, MonadDB c m) =&gt; m a -&gt; m a
 <span class="lineno">  171 </span><span class="decl"><span class="nottickedoff">dbTransaction' f = do</span>

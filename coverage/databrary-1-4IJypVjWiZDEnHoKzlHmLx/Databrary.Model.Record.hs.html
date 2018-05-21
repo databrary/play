@@ -56,9 +56,9 @@ span.spaces    { background: white }
 <span class="lineno">   40 </span>import Databrary.Model.Record.SQL
 <span class="lineno">   41 </span>
 <span class="lineno">   42 </span>lookupRecord :: (MonadHasIdentity c m, MonadDB c m) =&gt; Id Record -&gt; m (Maybe Record)
-<span class="lineno">   43 </span><span class="decl"><span class="nottickedoff">lookupRecord ri = do</span>
-<span class="lineno">   44 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
-<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 $(selectQuery (selectRecord 'ident) &quot;$WHERE record.id = ${ri}&quot;)</span></span>
+<span class="lineno">   43 </span><span class="decl"><span class="istickedoff">lookupRecord ri = do</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="istickedoff">ident &lt;- peek</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="istickedoff">dbQuery1 $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery (selectRecord 'ident) &quot;$WHERE record.id = ${ri}&quot;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)</span></span>
 <span class="lineno">   46 </span>
 <span class="lineno">   47 </span>lookupVolumeRecord :: MonadDB c m =&gt; Volume -&gt; Id Record -&gt; m (Maybe Record)
 <span class="lineno">   48 </span><span class="decl"><span class="nottickedoff">lookupVolumeRecord vol ri =</span>
@@ -85,9 +85,9 @@ span.spaces    { background: white }
 <span class="lineno">   69 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ fmap ($ vol) $(selectQuery selectVolumeRecord &quot;$WHERE record.volume = ${volumeId $ volumeRow vol}&quot;)</span></span>
 <span class="lineno">   70 </span>
 <span class="lineno">   71 </span>addRecord :: MonadAudit c m =&gt; Record -&gt; m Record
-<span class="lineno">   72 </span><span class="decl"><span class="nottickedoff">addRecord br = do</span>
-<span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
-<span class="lineno">   74 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1' $(insertRecord 'ident 'br)</span></span>
+<span class="lineno">   72 </span><span class="decl"><span class="istickedoff">addRecord br = do</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="istickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="istickedoff">dbQuery1' $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">insertRecord 'ident 'br</span></span></span></span></span></span></span></span></span></span>)</span></span>
 <span class="lineno">   75 </span>
 <span class="lineno">   76 </span>changeRecord :: MonadAudit c m =&gt; Record -&gt; m ()
 <span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">changeRecord r = do</span>

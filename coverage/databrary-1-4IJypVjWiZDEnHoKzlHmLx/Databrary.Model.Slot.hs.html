@@ -36,8 +36,8 @@ span.spaces    { background: white }
 <span class="lineno">   20 </span>useTDB
 <span class="lineno">   21 </span>
 <span class="lineno">   22 </span>lookupSlot :: (MonadDB c m, MonadHasIdentity c m) =&gt; Id Slot -&gt; m (Maybe Slot)
-<span class="lineno">   23 </span><span class="decl"><span class="nottickedoff">lookupSlot (Id (SlotId c s)) =</span>
-<span class="lineno">   24 </span><span class="spaces">  </span><span class="nottickedoff">fmap (`Slot` s) &lt;$&gt; lookupContainer c</span></span>
+<span class="lineno">   23 </span><span class="decl"><span class="istickedoff">lookupSlot (Id (SlotId c s)) =</span>
+<span class="lineno">   24 </span><span class="spaces">  </span><span class="istickedoff">fmap (`Slot` s) &lt;$&gt; lookupContainer c</span></span>
 <span class="lineno">   25 </span>
 <span class="lineno">   26 </span>auditSlotDownload :: MonadAudit c m =&gt; Bool -&gt; Slot -&gt; m ()
 <span class="lineno">   27 </span><span class="decl"><span class="nottickedoff">auditSlotDownload success Slot{ slotContainer = c, slotSegment = seg } = do</span>

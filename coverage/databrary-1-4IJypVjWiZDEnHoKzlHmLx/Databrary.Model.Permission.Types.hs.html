@@ -48,7 +48,7 @@ span.spaces    { background: white }
 <span class="lineno">   32 </span>    PermissionEDIT |
 <span class="lineno">   33 </span>    PermissionADMIN
 <span class="lineno">   34 </span>  deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>,
-<span class="lineno">   35 </span>            <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">Ord</span></span></span></span></span></span></span></span></span></span>,
+<span class="lineno">   35 </span>            <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Ord</span></span></span></span></span></span></span></span></span></span>,
 <span class="lineno">   36 </span>            <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Enum</span></span></span></span></span></span></span></span></span></span></span></span>,
 <span class="lineno">   37 </span>            <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">GHC.Arr.Ix</span></span></span></span></span></span>,
 <span class="lineno">   38 </span>            <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Bounded</span></span></span></span>,
@@ -65,23 +65,23 @@ span.spaces    { background: white }
 <span class="lineno">   49 </span>  <span class="decl"><span class="istickedoff">pgEncode _ PermissionNONE</span>
 <span class="lineno">   50 </span><span class="spaces">    </span><span class="istickedoff">= Data.ByteString.pack [78, 79, 78, 69]</span>
 <span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff">pgEncode _ PermissionPUBLIC</span>
-<span class="lineno">   52 </span><span class="spaces">    </span><span class="istickedoff">= <span class="nottickedoff">Data.ByteString.pack [80, 85, 66, 76, 73, 67]</span></span>
+<span class="lineno">   52 </span><span class="spaces">    </span><span class="istickedoff">= Data.ByteString.pack [80, 85, 66, 76, 73, 67]</span>
 <span class="lineno">   53 </span><span class="spaces">  </span><span class="istickedoff">pgEncode _ PermissionSHARED</span>
-<span class="lineno">   54 </span><span class="spaces">    </span><span class="istickedoff">= <span class="nottickedoff">Data.ByteString.pack [83, 72, 65, 82, 69, 68]</span></span>
+<span class="lineno">   54 </span><span class="spaces">    </span><span class="istickedoff">= Data.ByteString.pack [83, 72, 65, 82, 69, 68]</span>
 <span class="lineno">   55 </span><span class="spaces">  </span><span class="istickedoff">pgEncode _ PermissionREAD</span>
-<span class="lineno">   56 </span><span class="spaces">    </span><span class="istickedoff">= <span class="nottickedoff">Data.ByteString.pack [82, 69, 65, 68]</span></span>
+<span class="lineno">   56 </span><span class="spaces">    </span><span class="istickedoff">= Data.ByteString.pack [82, 69, 65, 68]</span>
 <span class="lineno">   57 </span><span class="spaces">  </span><span class="istickedoff">pgEncode _ PermissionEDIT</span>
-<span class="lineno">   58 </span><span class="spaces">    </span><span class="istickedoff">= <span class="nottickedoff">Data.ByteString.pack [69, 68, 73, 84]</span></span>
+<span class="lineno">   58 </span><span class="spaces">    </span><span class="istickedoff">= Data.ByteString.pack [69, 68, 73, 84]</span>
 <span class="lineno">   59 </span><span class="spaces">  </span><span class="istickedoff">pgEncode _ PermissionADMIN</span>
-<span class="lineno">   60 </span><span class="spaces">    </span><span class="istickedoff">= <span class="nottickedoff">Data.ByteString.pack [65, 68, 77, 73, 78]</span></span></span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="istickedoff">= Data.ByteString.pack [65, 68, 77, 73, 78]</span></span>
 <span class="lineno">   61 </span>instance Database.PostgreSQL.Typed.Types.PGColumn &quot;permission&quot; Permission where
 <span class="lineno">   62 </span>  <span class="decl"><span class="istickedoff">pgDecode _ x_a42l2</span>
 <span class="lineno">   63 </span><span class="spaces">    </span><span class="istickedoff">= case Data.ByteString.unpack x_a42l2 of</span>
 <span class="lineno">   64 </span><span class="spaces">        </span><span class="istickedoff">[78, 79, 78, 69] -&gt; PermissionNONE</span>
 <span class="lineno">   65 </span><span class="spaces">        </span><span class="istickedoff">[80, 85, 66, 76, 73, 67] -&gt; PermissionPUBLIC</span>
-<span class="lineno">   66 </span><span class="spaces">        </span><span class="istickedoff">[83, 72, 65, 82, 69, 68] -&gt; <span class="nottickedoff">PermissionSHARED</span></span>
-<span class="lineno">   67 </span><span class="spaces">        </span><span class="istickedoff">[82, 69, 65, 68] -&gt; <span class="nottickedoff">PermissionREAD</span></span>
-<span class="lineno">   68 </span><span class="spaces">        </span><span class="istickedoff">[69, 68, 73, 84] -&gt; <span class="nottickedoff">PermissionEDIT</span></span>
+<span class="lineno">   66 </span><span class="spaces">        </span><span class="istickedoff">[83, 72, 65, 82, 69, 68] -&gt; PermissionSHARED</span>
+<span class="lineno">   67 </span><span class="spaces">        </span><span class="istickedoff">[82, 69, 65, 68] -&gt; PermissionREAD</span>
+<span class="lineno">   68 </span><span class="spaces">        </span><span class="istickedoff">[69, 68, 73, 84] -&gt; PermissionEDIT</span>
 <span class="lineno">   69 </span><span class="spaces">        </span><span class="istickedoff">[65, 68, 77, 73, 78] -&gt; PermissionADMIN</span>
 <span class="lineno">   70 </span><span class="spaces">        </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">error</span></span>
 <span class="lineno">   71 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">(&quot;pgDecode permission: &quot;</span></span>
@@ -113,9 +113,9 @@ span.spaces    { background: white }
 <span class="lineno">   97 </span><span class="decl"><span class="istickedoff">accessPermission' (Access s m) = min s m</span></span>
 <span class="lineno">   98 </span>
 <span class="lineno">   99 </span>accessSite, accessMember, accessPermission :: Has Access a =&gt; a -&gt; Permission
-<span class="lineno">  100 </span><span class="decl"><span class="nottickedoff">accessSite = accessSite' . view</span></span>
+<span class="lineno">  100 </span><span class="decl"><span class="istickedoff">accessSite = accessSite' . view</span></span>
 <span class="lineno">  101 </span><span class="decl"><span class="istickedoff">accessMember = accessMember' . view</span></span>
-<span class="lineno">  102 </span><span class="decl"><span class="nottickedoff">accessPermission = accessPermission' . view</span></span>
+<span class="lineno">  102 </span><span class="decl"><span class="istickedoff">accessPermission = accessPermission' . view</span></span>
 <span class="lineno">  103 </span>
 <span class="lineno">  104 </span>instance Bounded Access where
 <span class="lineno">  105 </span>  <span class="decl"><span class="nottickedoff">minBound = Access minBound minBound</span></span>

@@ -415,85 +415,84 @@ span.spaces    { background: white }
 <span class="lineno">  399 </span><span class="spaces">    </span><span class="istickedoff">extractIfUsed2</span>
 <span class="lineno">  400 </span><span class="spaces">      </span><span class="istickedoff">:: (ParticipantFieldMapping2 -&gt; Maybe Text)</span>
 <span class="lineno">  401 </span><span class="spaces">      </span><span class="istickedoff">-&gt; (BS.ByteString -&gt; Maybe (Maybe a))</span>
-<span class="lineno">  402 </span><span class="spaces">      </span><span class="istickedoff">-&gt; Parser (Maybe (Maybe (a, MeasureDatum)))</span>
+<span class="lineno">  402 </span><span class="spaces">      </span><span class="istickedoff">-&gt; Parser (FieldUse a)</span>
 <span class="lineno">  403 </span><span class="spaces">    </span><span class="istickedoff">extractIfUsed2 maybeGetField validateValue = do</span>
 <span class="lineno">  404 </span><span class="spaces">        </span><span class="istickedoff">case maybeGetField fieldMap of</span>
 <span class="lineno">  405 </span><span class="spaces">            </span><span class="istickedoff">Just colName -&gt; do</span>
 <span class="lineno">  406 </span><span class="spaces">                </span><span class="istickedoff">contents &lt;- m .: (TE.encodeUtf8 colName)</span>
 <span class="lineno">  407 </span><span class="spaces">                </span><span class="istickedoff">maybe</span>
 <span class="lineno">  408 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">(fail (&quot;invalid value for &quot; ++ show colName ++ &quot;, found &quot; ++ show contents))</span></span>
-<span class="lineno">  409 </span><span class="spaces">                    </span><span class="istickedoff">(\mV -&gt; pure (Just (fmap (\v -&gt; (v, contents)) mV)))</span>
+<span class="lineno">  409 </span><span class="spaces">                    </span><span class="istickedoff">(\mV -&gt; pure (maybe FieldEmpty (Field contents) mV))</span>
 <span class="lineno">  410 </span><span class="spaces">                    </span><span class="istickedoff">(validateValue contents)</span>
-<span class="lineno">  411 </span><span class="spaces">            </span><span class="istickedoff">Nothing -&gt;</span>
-<span class="lineno">  412 </span><span class="spaces">                </span><span class="istickedoff">pure Nothing</span></span>
-<span class="lineno">  413 </span>    
-<span class="lineno">  414 </span>
-<span class="lineno">  415 </span>-- verify that all expected columns are present, with some leniency in matching
-<span class="lineno">  416 </span>-- left if no match possible
-<span class="lineno">  417 </span>determineMapping :: [Metric] -&gt; [Text] -&gt; Either String ParticipantFieldMapping2
-<span class="lineno">  418 </span><span class="decl"><span class="istickedoff">determineMapping participantActiveMetrics csvHeaders = do</span>
-<span class="lineno">  419 </span><span class="spaces">    </span><span class="istickedoff">(columnMatches :: [Text]) &lt;- traverse (detectMetricMatch csvHeaders) participantActiveMetrics</span>
-<span class="lineno">  420 </span><span class="spaces">    </span><span class="istickedoff">mkParticipantFieldMapping2 (zip participantActiveMetrics columnMatches)</span>
-<span class="lineno">  421 </span><span class="spaces">  </span><span class="istickedoff">where</span>
-<span class="lineno">  422 </span><span class="spaces">    </span><span class="istickedoff">detectMetricMatch :: [Text] -&gt; Metric -&gt; Either String Text</span>
-<span class="lineno">  423 </span><span class="spaces">    </span><span class="istickedoff">detectMetricMatch hdrs metric =</span>
-<span class="lineno">  424 </span><span class="spaces">        </span><span class="istickedoff">case L.find (\h -&gt; columnMetricCompatible h metric) hdrs of</span>
-<span class="lineno">  425 </span><span class="spaces">            </span><span class="istickedoff">Just hdr -&gt; Right hdr</span>
-<span class="lineno">  426 </span><span class="spaces">            </span><span class="istickedoff">Nothing -&gt; Left <span class="nottickedoff">(&quot;no compatible header found for metric: &quot; ++ (show . metricName) metric)</span></span></span>
-<span class="lineno">  427 </span>
-<span class="lineno">  428 </span>columnMetricCompatible :: Text -&gt; Metric -&gt; Bool
-<span class="lineno">  429 </span><span class="decl"><span class="istickedoff">columnMetricCompatible hdr metric =</span>
-<span class="lineno">  430 </span><span class="spaces">    </span><span class="istickedoff">(T.filter (/= ' ') . T.toLower . metricName) metric == T.toLower hdr</span></span>
-<span class="lineno">  431 </span>
-<span class="lineno">  432 </span>extractColumnsDistinctSampleJson :: Int -&gt; Csv.Header -&gt; Vector Csv.NamedRecord -&gt; [JSON.Value]
-<span class="lineno">  433 </span><span class="decl"><span class="nottickedoff">extractColumnsDistinctSampleJson maxSamples hdrs records =</span>
-<span class="lineno">  434 </span><span class="spaces">    </span><span class="nottickedoff">( fmap (\(colHdr, vals) -&gt; columnSampleJson colHdr vals)</span>
-<span class="lineno">  435 </span><span class="spaces">    </span><span class="nottickedoff">. extractColumnsDistinctSample maxSamples hdrs)</span>
-<span class="lineno">  436 </span><span class="spaces">    </span><span class="nottickedoff">records</span></span>
-<span class="lineno">  437 </span>
-<span class="lineno">  438 </span>extractColumnsInitialJson :: Int -&gt; Csv.Header -&gt; Vector Csv.NamedRecord -&gt; [JSON.Value]
-<span class="lineno">  439 </span><span class="decl"><span class="nottickedoff">extractColumnsInitialJson maxRows hdrs records =</span>
-<span class="lineno">  440 </span><span class="spaces">    </span><span class="nottickedoff">( fmap (\(colHdr, vals) -&gt; columnSampleJson colHdr vals)</span>
-<span class="lineno">  441 </span><span class="spaces">    </span><span class="nottickedoff">. extractColumnsInitialRows maxRows hdrs )</span>
-<span class="lineno">  442 </span><span class="spaces">    </span><span class="nottickedoff">records</span></span>
-<span class="lineno">  443 </span>
-<span class="lineno">  444 </span>data HeaderMappingEntry =
-<span class="lineno">  445 </span>    HeaderMappingEntry {
-<span class="lineno">  446 </span>          <span class="istickedoff"><span class="decl"><span class="istickedoff">hmeCsvField</span></span></span> :: Text
-<span class="lineno">  447 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">hmeMetric</span></span></span> :: Metric -- only participant metrics
-<span class="lineno">  448 </span>    } deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span>)
-<span class="lineno">  449 </span>
-<span class="lineno">  450 </span>instance FromJSON HeaderMappingEntry where
-<span class="lineno">  451 </span>    <span class="decl"><span class="istickedoff">parseJSON =</span>
-<span class="lineno">  452 </span><span class="spaces">        </span><span class="istickedoff">JSON.withObject <span class="nottickedoff">&quot;HeaderMappingEntry&quot;</span></span>
-<span class="lineno">  453 </span><span class="spaces">            </span><span class="istickedoff">(\o -&gt; do</span>
-<span class="lineno">  454 </span><span class="spaces">                 </span><span class="istickedoff">metricCanonicalName &lt;- o JSON..: &quot;metric&quot;</span>
-<span class="lineno">  455 </span><span class="spaces">                 </span><span class="istickedoff">case lookupParticipantMetricBySymbolicName metricCanonicalName of</span>
-<span class="lineno">  456 </span><span class="spaces">                     </span><span class="istickedoff">Just metric -&gt;</span>
-<span class="lineno">  457 </span><span class="spaces">                         </span><span class="istickedoff">HeaderMappingEntry</span>
-<span class="lineno">  458 </span><span class="spaces">                             </span><span class="istickedoff">&lt;$&gt; o JSON..: &quot;csv_field&quot;</span>
-<span class="lineno">  459 </span><span class="spaces">                             </span><span class="istickedoff">&lt;*&gt; pure metric</span>
-<span class="lineno">  460 </span><span class="spaces">                     </span><span class="istickedoff">Nothing -&gt;</span>
-<span class="lineno">  461 </span><span class="spaces">                         </span><span class="istickedoff"><span class="nottickedoff">fail (&quot;metric name does not match any participant metric: &quot; ++ show metricCanonicalName)</span>)</span></span>
-<span class="lineno">  462 </span>
-<span class="lineno">  463 </span>participantFieldMappingToJSON :: ParticipantFieldMapping2 -&gt; JSON.Value
-<span class="lineno">  464 </span><span class="decl"><span class="istickedoff">participantFieldMappingToJSON fldMap =</span>
-<span class="lineno">  465 </span><span class="spaces">    </span><span class="istickedoff">-- didn't use tojson to avoid orphan warning. didn't move tojson to metric.types because of circular ref to metric instances</span>
-<span class="lineno">  466 </span><span class="spaces">    </span><span class="istickedoff">(toJSON . fmap <span class="nottickedoff">fieldToEntry</span> . Map.toList . pfmGetMapping) fldMap</span>
-<span class="lineno">  467 </span><span class="spaces">  </span><span class="istickedoff">where</span>
-<span class="lineno">  468 </span><span class="spaces">    </span><span class="istickedoff">fieldToEntry :: (Metric, Text) -&gt; JSON.Value</span>
-<span class="lineno">  469 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">fieldToEntry (metric, colName) =</span></span>
-<span class="lineno">  470 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">(JSON.object</span></span>
-<span class="lineno">  471 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">[ &quot;metric&quot; JSON..= (T.filter (/= ' ') . T.toLower . metricName) metric -- TODO: use shared function</span></span>
-<span class="lineno">  472 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">, &quot;compatible_csv_fields&quot; JSON..= [colName] -- change to single value soon</span></span>
-<span class="lineno">  473 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">])</span></span></span>
-<span class="lineno">  474 </span>
-<span class="lineno">  475 </span>parseParticipantFieldMapping :: [Metric] -&gt; [(Metric, Text)] -&gt; Either String ParticipantFieldMapping2
-<span class="lineno">  476 </span><span class="decl"><span class="istickedoff">parseParticipantFieldMapping volParticipantActiveMetrics requestedMapping = do</span>
-<span class="lineno">  477 </span><span class="spaces">    </span><span class="istickedoff">when (   length volParticipantActiveMetrics /= length requestedMapping</span>
-<span class="lineno">  478 </span><span class="spaces">          </span><span class="istickedoff">|| L.sort volParticipantActiveMetrics /= (L.sort . fmap fst) requestedMapping)</span>
-<span class="lineno">  479 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">(Left &quot;The requested metric mapping does not completely match the required volume metrics&quot;)</span></span>
-<span class="lineno">  480 </span><span class="spaces">    </span><span class="istickedoff">mkParticipantFieldMapping2 requestedMapping</span></span>
+<span class="lineno">  411 </span><span class="spaces">            </span><span class="istickedoff">Nothing -&gt; pure FieldUnused</span></span>
+<span class="lineno">  412 </span>    
+<span class="lineno">  413 </span>
+<span class="lineno">  414 </span>-- verify that all expected columns are present, with some leniency in matching
+<span class="lineno">  415 </span>-- left if no match possible
+<span class="lineno">  416 </span>determineMapping :: [Metric] -&gt; [Text] -&gt; Either String ParticipantFieldMapping2
+<span class="lineno">  417 </span><span class="decl"><span class="istickedoff">determineMapping participantActiveMetrics csvHeaders = do</span>
+<span class="lineno">  418 </span><span class="spaces">    </span><span class="istickedoff">(columnMatches :: [Text]) &lt;- traverse (detectMetricMatch csvHeaders) participantActiveMetrics</span>
+<span class="lineno">  419 </span><span class="spaces">    </span><span class="istickedoff">mkParticipantFieldMapping2 (zip participantActiveMetrics columnMatches)</span>
+<span class="lineno">  420 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  421 </span><span class="spaces">    </span><span class="istickedoff">detectMetricMatch :: [Text] -&gt; Metric -&gt; Either String Text</span>
+<span class="lineno">  422 </span><span class="spaces">    </span><span class="istickedoff">detectMetricMatch hdrs metric =</span>
+<span class="lineno">  423 </span><span class="spaces">        </span><span class="istickedoff">case L.find (\h -&gt; columnMetricCompatible h metric) hdrs of</span>
+<span class="lineno">  424 </span><span class="spaces">            </span><span class="istickedoff">Just hdr -&gt; Right hdr</span>
+<span class="lineno">  425 </span><span class="spaces">            </span><span class="istickedoff">Nothing -&gt; Left <span class="nottickedoff">(&quot;no compatible header found for metric: &quot; ++ (show . metricName) metric)</span></span></span>
+<span class="lineno">  426 </span>
+<span class="lineno">  427 </span>columnMetricCompatible :: Text -&gt; Metric -&gt; Bool
+<span class="lineno">  428 </span><span class="decl"><span class="istickedoff">columnMetricCompatible hdr metric =</span>
+<span class="lineno">  429 </span><span class="spaces">    </span><span class="istickedoff">(T.filter (/= ' ') . T.toLower . metricName) metric == T.toLower hdr</span></span>
+<span class="lineno">  430 </span>
+<span class="lineno">  431 </span>extractColumnsDistinctSampleJson :: Int -&gt; Csv.Header -&gt; Vector Csv.NamedRecord -&gt; [JSON.Value]
+<span class="lineno">  432 </span><span class="decl"><span class="nottickedoff">extractColumnsDistinctSampleJson maxSamples hdrs records =</span>
+<span class="lineno">  433 </span><span class="spaces">    </span><span class="nottickedoff">( fmap (\(colHdr, vals) -&gt; columnSampleJson colHdr vals)</span>
+<span class="lineno">  434 </span><span class="spaces">    </span><span class="nottickedoff">. extractColumnsDistinctSample maxSamples hdrs)</span>
+<span class="lineno">  435 </span><span class="spaces">    </span><span class="nottickedoff">records</span></span>
+<span class="lineno">  436 </span>
+<span class="lineno">  437 </span>extractColumnsInitialJson :: Int -&gt; Csv.Header -&gt; Vector Csv.NamedRecord -&gt; [JSON.Value]
+<span class="lineno">  438 </span><span class="decl"><span class="nottickedoff">extractColumnsInitialJson maxRows hdrs records =</span>
+<span class="lineno">  439 </span><span class="spaces">    </span><span class="nottickedoff">( fmap (\(colHdr, vals) -&gt; columnSampleJson colHdr vals)</span>
+<span class="lineno">  440 </span><span class="spaces">    </span><span class="nottickedoff">. extractColumnsInitialRows maxRows hdrs )</span>
+<span class="lineno">  441 </span><span class="spaces">    </span><span class="nottickedoff">records</span></span>
+<span class="lineno">  442 </span>
+<span class="lineno">  443 </span>data HeaderMappingEntry =
+<span class="lineno">  444 </span>    HeaderMappingEntry {
+<span class="lineno">  445 </span>          <span class="istickedoff"><span class="decl"><span class="istickedoff">hmeCsvField</span></span></span> :: Text
+<span class="lineno">  446 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">hmeMetric</span></span></span> :: Metric -- only participant metrics
+<span class="lineno">  447 </span>    } deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span>)
+<span class="lineno">  448 </span>
+<span class="lineno">  449 </span>instance FromJSON HeaderMappingEntry where
+<span class="lineno">  450 </span>    <span class="decl"><span class="istickedoff">parseJSON =</span>
+<span class="lineno">  451 </span><span class="spaces">        </span><span class="istickedoff">JSON.withObject <span class="nottickedoff">&quot;HeaderMappingEntry&quot;</span></span>
+<span class="lineno">  452 </span><span class="spaces">            </span><span class="istickedoff">(\o -&gt; do</span>
+<span class="lineno">  453 </span><span class="spaces">                 </span><span class="istickedoff">metricCanonicalName &lt;- o JSON..: &quot;metric&quot;</span>
+<span class="lineno">  454 </span><span class="spaces">                 </span><span class="istickedoff">case lookupParticipantMetricBySymbolicName metricCanonicalName of</span>
+<span class="lineno">  455 </span><span class="spaces">                     </span><span class="istickedoff">Just metric -&gt;</span>
+<span class="lineno">  456 </span><span class="spaces">                         </span><span class="istickedoff">HeaderMappingEntry</span>
+<span class="lineno">  457 </span><span class="spaces">                             </span><span class="istickedoff">&lt;$&gt; o JSON..: &quot;csv_field&quot;</span>
+<span class="lineno">  458 </span><span class="spaces">                             </span><span class="istickedoff">&lt;*&gt; pure metric</span>
+<span class="lineno">  459 </span><span class="spaces">                     </span><span class="istickedoff">Nothing -&gt;</span>
+<span class="lineno">  460 </span><span class="spaces">                         </span><span class="istickedoff"><span class="nottickedoff">fail (&quot;metric name does not match any participant metric: &quot; ++ show metricCanonicalName)</span>)</span></span>
+<span class="lineno">  461 </span>
+<span class="lineno">  462 </span>participantFieldMappingToJSON :: ParticipantFieldMapping2 -&gt; JSON.Value
+<span class="lineno">  463 </span><span class="decl"><span class="istickedoff">participantFieldMappingToJSON fldMap =</span>
+<span class="lineno">  464 </span><span class="spaces">    </span><span class="istickedoff">-- didn't use tojson to avoid orphan warning. didn't move tojson to metric.types because of circular ref to metric instances</span>
+<span class="lineno">  465 </span><span class="spaces">    </span><span class="istickedoff">(toJSON . fmap <span class="nottickedoff">fieldToEntry</span> . Map.toList . pfmGetMapping) fldMap</span>
+<span class="lineno">  466 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  467 </span><span class="spaces">    </span><span class="istickedoff">fieldToEntry :: (Metric, Text) -&gt; JSON.Value</span>
+<span class="lineno">  468 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">fieldToEntry (metric, colName) =</span></span>
+<span class="lineno">  469 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">(JSON.object</span></span>
+<span class="lineno">  470 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">[ &quot;metric&quot; JSON..= (T.filter (/= ' ') . T.toLower . metricName) metric -- TODO: use shared function</span></span>
+<span class="lineno">  471 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">, &quot;compatible_csv_fields&quot; JSON..= [colName] -- change to single value soon</span></span>
+<span class="lineno">  472 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">])</span></span></span>
+<span class="lineno">  473 </span>
+<span class="lineno">  474 </span>parseParticipantFieldMapping :: [Metric] -&gt; [(Metric, Text)] -&gt; Either String ParticipantFieldMapping2
+<span class="lineno">  475 </span><span class="decl"><span class="istickedoff">parseParticipantFieldMapping volParticipantActiveMetrics requestedMapping = do</span>
+<span class="lineno">  476 </span><span class="spaces">    </span><span class="istickedoff">when (   length volParticipantActiveMetrics /= length requestedMapping</span>
+<span class="lineno">  477 </span><span class="spaces">          </span><span class="istickedoff">|| L.sort volParticipantActiveMetrics /= (L.sort . fmap fst) requestedMapping)</span>
+<span class="lineno">  478 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">(Left &quot;The requested metric mapping does not completely match the required volume metrics&quot;)</span></span>
+<span class="lineno">  479 </span><span class="spaces">    </span><span class="istickedoff">mkParticipantFieldMapping2 requestedMapping</span></span>
 
 </pre>
 </body>

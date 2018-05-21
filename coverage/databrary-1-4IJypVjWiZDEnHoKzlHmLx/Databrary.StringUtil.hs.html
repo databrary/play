@@ -16,38 +16,12 @@ span.spaces    { background: white }
 <pre>
 <span class="lineno">    1 </span>module Databrary.StringUtil
 <span class="lineno">    2 </span>  (    fromCamel
-<span class="lineno">    3 </span>   --, toCamel
-<span class="lineno">    4 </span>   --, toCamel'
-<span class="lineno">    5 </span>  ) where
+<span class="lineno">    3 </span>  ) where
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>import Text.Casing
 <span class="lineno">    6 </span>
-<span class="lineno">    7 </span>-- import Data.Char (toUpper, isUpper, toLower)
-<span class="lineno">    8 </span>import Text.Casing
-<span class="lineno">    9 </span>
-<span class="lineno">   10 </span>fromCamel :: String -&gt; String
-<span class="lineno">   11 </span><span class="decl"><span class="istickedoff">fromCamel = toQuietSnake . fromHumps</span></span>
-<span class="lineno">   12 </span>
-<span class="lineno">   13 </span>{-
-<span class="lineno">   14 </span>fromCamel :: String -&gt; String
-<span class="lineno">   15 </span>fromCamel &quot;&quot; = &quot;&quot;
-<span class="lineno">   16 </span>fromCamel (c:s) = toLower c:fromCamel' s
-<span class="lineno">   17 </span>
-<span class="lineno">   18 </span>fromCamel' :: String -&gt; String
-<span class="lineno">   19 </span>fromCamel' &quot;&quot; = &quot;&quot;
-<span class="lineno">   20 </span>fromCamel' cs@(c:s)
-<span class="lineno">   21 </span>  | isUpper c = '_':fromCamel cs
-<span class="lineno">   22 </span>  | otherwise = c:fromCamel' s
-<span class="lineno">   23 </span>-}
-<span class="lineno">   24 </span>
-<span class="lineno">   25 </span>{-
-<span class="lineno">   26 </span>toCamel :: String -&gt; String
-<span class="lineno">   27 </span>toCamel &quot;&quot; = &quot;&quot;
-<span class="lineno">   28 </span>toCamel (c:s) = toUpper c:toCamel' s
-<span class="lineno">   29 </span>
-<span class="lineno">   30 </span>toCamel' :: String -&gt; String
-<span class="lineno">   31 </span>toCamel' &quot;&quot; = &quot;&quot;
-<span class="lineno">   32 </span>toCamel' ('_':s) = toCamel s
-<span class="lineno">   33 </span>toCamel' (c:s) = c:toCamel' s
-<span class="lineno">   34 </span>-}
+<span class="lineno">    7 </span>fromCamel :: String -&gt; String
+<span class="lineno">    8 </span><span class="decl"><span class="istickedoff">fromCamel = toQuietSnake . fromHumps</span></span>
 
 </pre>
 </body>

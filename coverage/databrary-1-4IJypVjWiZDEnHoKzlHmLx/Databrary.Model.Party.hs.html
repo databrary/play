@@ -82,7 +82,7 @@ span.spaces    { background: white }
 <span class="lineno">   66 </span>nobodyParty, rootParty, staffParty :: Party -- TODO: load on startup from service module
 <span class="lineno">   67 </span><span class="decl"><span class="istickedoff">nobodyParty =</span>
 <span class="lineno">   68 </span><span class="spaces">   </span><span class="istickedoff">Party</span>
-<span class="lineno">   69 </span><span class="spaces">         </span><span class="istickedoff">(PartyRow <span class="nottickedoff">(Id (-1))</span> (T.pack &quot;Everybody&quot;) Nothing <span class="nottickedoff">Nothing</span> <span class="nottickedoff">Nothing</span> <span class="nottickedoff">Nothing</span>)</span>
+<span class="lineno">   69 </span><span class="spaces">         </span><span class="istickedoff">(PartyRow (Id (-1)) (T.pack &quot;Everybody&quot;) Nothing <span class="nottickedoff">Nothing</span> <span class="nottickedoff">Nothing</span> <span class="nottickedoff">Nothing</span>)</span>
 <span class="lineno">   70 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">Nothing</span></span>
 <span class="lineno">   71 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">PermissionREAD</span></span>
 <span class="lineno">   72 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">Nothing</span></span></span>
@@ -560,9 +560,9 @@ span.spaces    { background: white }
 <span class="lineno">  544 </span>lookupFixedParty :: Id Party -&gt; Identity -&gt; Maybe Party
 <span class="lineno">  545 </span><span class="decl"><span class="istickedoff">lookupFixedParty (Id (-1)) _ = <span class="nottickedoff">Just nobodyParty</span></span>
 <span class="lineno">  546 </span><span class="spaces"></span><span class="istickedoff">lookupFixedParty (Id 0) i =</span>
-<span class="lineno">  547 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">Just rootParty{</span></span>
-<span class="lineno">  548 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">partyPermission = accessPermission i `max` PermissionSHARED</span></span>
-<span class="lineno">  549 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">, partyAccess = (accessMember i &gt; PermissionNONE) `thenUse` (view i) }</span></span>
+<span class="lineno">  547 </span><span class="spaces">  </span><span class="istickedoff">Just rootParty{</span>
+<span class="lineno">  548 </span><span class="spaces">    </span><span class="istickedoff">partyPermission = accessPermission i `max` PermissionSHARED</span>
+<span class="lineno">  549 </span><span class="spaces">  </span><span class="istickedoff">, partyAccess = <span class="nottickedoff">(accessMember i &gt; PermissionNONE) `thenUse` (view i)</span> }</span>
 <span class="lineno">  550 </span><span class="spaces"></span><span class="istickedoff">lookupFixedParty i a = <span class="nottickedoff">(view a)</span> `useWhen` (i == view a)</span></span>
 <span class="lineno">  551 </span>
 <span class="lineno">  552 </span>isNobodyParty :: Party -&gt; Bool
@@ -677,10 +677,10 @@ span.spaces    { background: white }
 <span class="lineno">  661 </span>-- a complicated set of cascading rules that determines the current viewer's
 <span class="lineno">  662 </span>-- permissions over the party.
 <span class="lineno">  663 </span>lookupAuthParty :: (MonadDB c m, MonadHasIdentity c m) =&gt; Id Party -&gt; m (Maybe Party)
-<span class="lineno">  664 </span><span class="decl"><span class="nottickedoff">lookupAuthParty i = do</span>
-<span class="lineno">  665 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
-<span class="lineno">  666 </span><span class="spaces">  </span><span class="nottickedoff">lookupFixedParty i ident `orElseM`</span>
-<span class="lineno">  667 </span><span class="spaces">    </span><span class="nottickedoff">dbQuery1 $(selectQuery (selectAuthParty 'ident) &quot;$WHERE party.id = ${i}&quot;)</span></span>
+<span class="lineno">  664 </span><span class="decl"><span class="istickedoff">lookupAuthParty i = do</span>
+<span class="lineno">  665 </span><span class="spaces">  </span><span class="istickedoff">ident &lt;- peek</span>
+<span class="lineno">  666 </span><span class="spaces">  </span><span class="istickedoff">lookupFixedParty i ident `orElseM`</span>
+<span class="lineno">  667 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">dbQuery1 $(selectQuery (selectAuthParty 'ident) &quot;$WHERE party.id = ${i}&quot;)</span></span></span>
 <span class="lineno">  668 </span>
 <span class="lineno">  669 </span>-- | resolve email to its party and enclosing account and site authenticated identity, possibly case insensitive
 <span class="lineno">  670 </span>lookupSiteAuthByEmail

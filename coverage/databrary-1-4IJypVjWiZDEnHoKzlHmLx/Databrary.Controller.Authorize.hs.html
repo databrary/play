@@ -173,7 +173,7 @@ span.spaces    { background: white }
 <span class="lineno">  157 </span>-- Also, build an authorization request or present the current authorization value.
 <span class="lineno">  158 </span>findOrMakeRequest :: (MonadDB c m) =&gt; Party -&gt; Party -&gt; m (Maybe Authorize, Authorize)
 <span class="lineno">  159 </span><span class="decl"><span class="nottickedoff">findOrMakeRequest child parent = do</span>
-<span class="lineno">  160 </span><span class="spaces">  </span><span class="nottickedoff">c &lt;- lookupAuthorize child parent</span>
+<span class="lineno">  160 </span><span class="spaces">  </span><span class="nottickedoff">c &lt;- lookupAuthorize ActiveAuthorizations child parent -- TODO: conditionally use ActiveAuth based on permissionParty?</span>
 <span class="lineno">  161 </span><span class="spaces">  </span><span class="nottickedoff">pure (c, mkAuthorizeRequest child parent `fromMaybe` c)</span></span>
 <span class="lineno">  162 </span>
 <span class="lineno">  163 </span>-- | If present, delete either a prior request for authorization. The authorization to delete can be specified
@@ -186,7 +186,7 @@ span.spaces    { background: white }
 <span class="lineno">  170 </span><span class="spaces">      </span><span class="nottickedoff">mAuthorizeTargetParty &lt;- lookupParty oi</span>
 <span class="lineno">  171 </span><span class="spaces">      </span><span class="nottickedoff">maybeAction mAuthorizeTargetParty</span>
 <span class="lineno">  172 </span><span class="spaces">  </span><span class="nottickedoff">let (child, parent) = if apply then (p, o) else (o, p)</span>
-<span class="lineno">  173 </span><span class="spaces">  </span><span class="nottickedoff">mAuth &lt;- lookupAuthorize child parent</span>
+<span class="lineno">  173 </span><span class="spaces">  </span><span class="nottickedoff">mAuth &lt;- lookupAuthorize AllAuthorizations child parent</span>
 <span class="lineno">  174 </span><span class="spaces">  </span><span class="nottickedoff">removeAuthorizeNotify mAuth</span>
 <span class="lineno">  175 </span><span class="spaces">  </span><span class="nottickedoff">case api of</span>
 <span class="lineno">  176 </span><span class="spaces">    </span><span class="nottickedoff">JSON -&gt; return $ okResponse [] $ JSON.pairs $ &quot;party&quot; JSON..=: partyJSON o</span>

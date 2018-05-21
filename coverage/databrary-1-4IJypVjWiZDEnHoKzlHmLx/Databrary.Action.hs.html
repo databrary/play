@@ -110,28 +110,6 @@ span.spaces    { background: white }
 <span class="lineno">   94 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
 <span class="lineno">   95 </span><span class="spaces">    </span><span class="nottickedoff">err :: (Status, ResponseHeaders) -&gt; Action</span>
 <span class="lineno">   96 </span><span class="spaces">    </span><span class="nottickedoff">err (status, headers) = withoutAuth $ peeks $ response status headers . htmlNotFound</span></span>
-<span class="lineno">   97 </span>
-<span class="lineno">   98 </span>-- TODO: delete notes below
-<span class="lineno">   99 </span>-- route
-<span class="lineno">  100 </span>--  :: Monad m =&gt; [(ByteString, Handler m)] -&gt; Request -&gt; (Response -&gt; m ResponseReceived) -&gt; m ResponseReceived
-<span class="lineno">  101 </span>{-
-<span class="lineno">  102 </span>type Handler m
-<span class="lineno">  103 </span>= [(ByteString, ByteString)] -- The captured path parameters.
-<span class="lineno">  104 </span>-&gt; Request -- The matched Request.
-<span class="lineno">  105 </span>-&gt; (Response -&gt; m ResponseReceived) -- The continuation.
-<span class="lineno">  106 </span>-&gt; m ResponseReceived
-<span class="lineno">  107 </span>-}
-<span class="lineno">  108 </span>
-<span class="lineno">  109 </span>{-
-<span class="lineno">  110 </span>type ActionRoute a = R.RouteAction a Action
-<span class="lineno">  111 </span>
-<span class="lineno">  112 </span>data Action = Action
-<span class="lineno">  113 </span>  { _actionAuth :: !Bool
-<span class="lineno">  114 </span>  , _actionM :: !(Handler Response)
-<span class="lineno">  115 </span>  }
-<span class="lineno">  116 </span>newtype Handler a = Handler { unHandler :: ReaderT RequestContext IO a }
-<span class="lineno">  117 </span>  deriving (Functor, Applicative, Alternative, Monad, MonadPlus, MonadIO, MonadBase IO, MonadThrow, MonadReader RequestContext)
-<span class="lineno">  118 </span>-}
 
 </pre>
 </body>

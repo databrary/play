@@ -36,20 +36,20 @@ span.spaces    { background: white }
 <span class="lineno">   20 </span>type instance IdType Container = Int32
 <span class="lineno">   21 </span>
 <span class="lineno">   22 </span>data ContainerRow = ContainerRow
-<span class="lineno">   23 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">containerId</span></span></span> :: Id Container
-<span class="lineno">   24 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">containerTop</span></span></span> :: Bool
-<span class="lineno">   25 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">containerName</span></span></span> :: Maybe T.Text
-<span class="lineno">   26 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">containerDate</span></span></span> :: Maybe Date
-<span class="lineno">   27 </span>  }
+<span class="lineno">   23 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">containerId</span></span></span> :: Id Container
+<span class="lineno">   24 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">containerTop</span></span></span> :: Bool
+<span class="lineno">   25 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">containerName</span></span></span> :: Maybe T.Text
+<span class="lineno">   26 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">containerDate</span></span></span> :: Maybe Date
+<span class="lineno">   27 </span>  } deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>)
 <span class="lineno">   28 </span>
 <span class="lineno">   29 </span>data Container = Container
-<span class="lineno">   30 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">containerRow</span></span></span> :: !ContainerRow
+<span class="lineno">   30 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">containerRow</span></span></span> :: !ContainerRow
 <span class="lineno">   31 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">containerRelease</span></span></span> :: Maybe Release
-<span class="lineno">   32 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">containerVolume</span></span></span> :: Volume
+<span class="lineno">   32 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">containerVolume</span></span></span> :: Volume
 <span class="lineno">   33 </span>  }
 <span class="lineno">   34 </span>
 <span class="lineno">   35 </span>getContainerVolumePermission :: Container -&gt; (Permission, VolumeAccessPolicy)
-<span class="lineno">   36 </span><span class="decl"><span class="nottickedoff">getContainerVolumePermission = volumePermissionPolicy . containerVolume</span></span>
+<span class="lineno">   36 </span><span class="decl"><span class="istickedoff">getContainerVolumePermission = volumePermissionPolicy . containerVolume</span></span>
 <span class="lineno">   37 </span>
 <span class="lineno">   38 </span>getContainerRelease :: Container -&gt; EffectiveRelease
 <span class="lineno">   39 </span><span class="decl"><span class="istickedoff">getContainerRelease c =  </span>

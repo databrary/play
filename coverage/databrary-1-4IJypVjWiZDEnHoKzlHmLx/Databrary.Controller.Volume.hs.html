@@ -332,83 +332,76 @@ span.spaces    { background: white }
 <span class="lineno">  316 </span><span class="spaces">    </span><span class="nottickedoff">return (bv, cite, own)</span>
 <span class="lineno">  317 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- addVolume bv</span>
 <span class="lineno">  318 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- changeVolumeCitation v cite</span>
-<span class="lineno">  319 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;-</span>
-<span class="lineno">  320 </span><span class="spaces">    </span><span class="nottickedoff">changeVolumeAccess $ VolumeAccess PermissionADMIN PermissionADMIN Nothing (getShareFullDefault owner PermissionADMIN) owner v</span>
-<span class="lineno">  321 </span><span class="spaces">  </span><span class="nottickedoff">-- TODO: do this as one action insde of volume access module</span>
-<span class="lineno">  322 </span><span class="spaces">  </span><span class="nottickedoff">let volumeCreatePublicShareFullDefault = Just False</span>
-<span class="lineno">  323 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;-</span>
-<span class="lineno">  324 </span><span class="spaces">    </span><span class="nottickedoff">changeVolumeAccess $ VolumeAccess PermissionPUBLIC PermissionPUBLIC Nothing volumeCreatePublicShareFullDefault nobodyParty v</span>
-<span class="lineno">  325 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;-</span>
-<span class="lineno">  326 </span><span class="spaces">    </span><span class="nottickedoff">changeVolumeAccess $ VolumeAccess PermissionSHARED PermissionSHARED Nothing (getShareFullDefault rootParty PermissionSHARED) rootParty v</span>
-<span class="lineno">  327 </span><span class="spaces">  </span><span class="nottickedoff">when (on (/=) (partyId . partyRow) owner u) $ forM_ (partyAccount owner) $ \t -&gt;</span>
-<span class="lineno">  328 </span><span class="spaces">    </span><span class="nottickedoff">createNotification (blankNotification t NoticeVolumeCreated)</span>
-<span class="lineno">  329 </span><span class="spaces">      </span><span class="nottickedoff">{ notificationVolume = Just $ volumeRow v</span>
-<span class="lineno">  330 </span><span class="spaces">      </span><span class="nottickedoff">, notificationParty = Just $ partyRow owner</span>
-<span class="lineno">  331 </span><span class="spaces">      </span><span class="nottickedoff">}</span>
-<span class="lineno">  332 </span><span class="spaces">  </span><span class="nottickedoff">case api of</span>
-<span class="lineno">  333 </span><span class="spaces">    </span><span class="nottickedoff">JSON -&gt; return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v</span>
-<span class="lineno">  334 </span><span class="spaces">    </span><span class="nottickedoff">HTML -&gt; peeks $ otherRouteResponse [] viewVolume (api, volumeId $ volumeRow v)</span></span>
-<span class="lineno">  335 </span>
-<span class="lineno">  336 </span>viewVolumeLinks :: ActionRoute (Id Volume)
-<span class="lineno">  337 </span><span class="decl"><span class="nottickedoff">viewVolumeLinks = action GET (pathHTML &gt;/&gt; pathId &lt;/&lt; &quot;link&quot;) $ \vi -&gt; withAuth $ do</span>
-<span class="lineno">  338 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
-<span class="lineno">  339 </span><span class="spaces">  </span><span class="nottickedoff">links &lt;- lookupVolumeLinks v</span>
-<span class="lineno">  340 </span><span class="spaces">  </span><span class="nottickedoff">peeks $ blankForm . htmlVolumeLinksEdit v links</span></span>
-<span class="lineno">  341 </span>
-<span class="lineno">  342 </span>postVolumeLinks :: ActionRoute (API, Id Volume)
-<span class="lineno">  343 </span><span class="decl"><span class="nottickedoff">postVolumeLinks = action POST (pathAPI &lt;/&gt; pathId &lt;/&lt; &quot;link&quot;) $ \arg@(api, vi) -&gt; withAuth $ do</span>
-<span class="lineno">  344 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
-<span class="lineno">  345 </span><span class="spaces">  </span><span class="nottickedoff">links &lt;- lookupVolumeLinks v</span>
-<span class="lineno">  346 </span><span class="spaces">  </span><span class="nottickedoff">links' &lt;- runForm ((api == HTML) `thenUse` (htmlVolumeLinksEdit v links)) $ do</span>
-<span class="lineno">  347 </span><span class="spaces">    </span><span class="nottickedoff">csrfForm</span>
-<span class="lineno">  348 </span><span class="spaces">    </span><span class="nottickedoff">withSubDeforms $ \_ -&gt; Citation</span>
-<span class="lineno">  349 </span><span class="spaces">      </span><span class="nottickedoff">&lt;$&gt; (&quot;head&quot; .:&gt; deform)</span>
-<span class="lineno">  350 </span><span class="spaces">      </span><span class="nottickedoff">&lt;*&gt; (&quot;url&quot; .:&gt; (Just &lt;$&gt; deform))</span>
-<span class="lineno">  351 </span><span class="spaces">      </span><span class="nottickedoff">&lt;*&gt; pure Nothing</span>
-<span class="lineno">  352 </span><span class="spaces">      </span><span class="nottickedoff">&lt;*&gt; pure Nothing</span>
-<span class="lineno">  353 </span><span class="spaces">  </span><span class="nottickedoff">changeVolumeLinks v links'</span>
-<span class="lineno">  354 </span><span class="spaces">  </span><span class="nottickedoff">case api of</span>
-<span class="lineno">  355 </span><span class="spaces">    </span><span class="nottickedoff">JSON -&gt;</span>
-<span class="lineno">  356 </span><span class="spaces">      </span><span class="nottickedoff">return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v `JSON.foldObjectIntoRec` (&quot;links&quot; JSON..= links')</span>
-<span class="lineno">  357 </span><span class="spaces">    </span><span class="nottickedoff">HTML -&gt; peeks $ otherRouteResponse [] viewVolume arg</span></span>
-<span class="lineno">  358 </span>
-<span class="lineno">  359 </span>postVolumeAssist :: ActionRoute (Id Volume)
-<span class="lineno">  360 </span><span class="decl"><span class="nottickedoff">postVolumeAssist = action POST (pathJSON &gt;/&gt; pathId &lt;/&lt; &quot;assist&quot;) $ \vi -&gt; withAuth $ do</span>
-<span class="lineno">  361 </span><span class="spaces">  </span><span class="nottickedoff">user &lt;- authAccount</span>
-<span class="lineno">  362 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
-<span class="lineno">  363 </span><span class="spaces">  </span><span class="nottickedoff">addr &lt;- peeks staticAssistAddr</span>
-<span class="lineno">  364 </span><span class="spaces">  </span><span class="nottickedoff">cont &lt;- parseRequestContent (const 0)</span>
-<span class="lineno">  365 </span><span class="spaces">  </span><span class="nottickedoff">body &lt;- case cont :: Content () of</span>
-<span class="lineno">  366 </span><span class="spaces">    </span><span class="nottickedoff">ContentText body -&gt; return body</span>
-<span class="lineno">  367 </span><span class="spaces">    </span><span class="nottickedoff">_ -&gt; result $ emptyResponse unsupportedMediaType415 []</span>
-<span class="lineno">  368 </span><span class="spaces">  </span><span class="nottickedoff">sendMail [Left addr] [Right user] (&quot;Databrary upload assistance request for volume &quot; &lt;&gt; T.pack (show vi)) $ TL.fromChunks</span>
-<span class="lineno">  369 </span><span class="spaces">    </span><span class="nottickedoff">[ partyName $ partyRow $ accountParty user, &quot; has requested curation assistance for &quot;, volumeName $ volumeRow v, &quot;\n\n&quot; ] &lt;&gt; body `TL.snoc` '\n'</span>
-<span class="lineno">  370 </span><span class="spaces">  </span><span class="nottickedoff">createVolumeNotification v ($ NoticeVolumeAssist)</span>
-<span class="lineno">  371 </span><span class="spaces">  </span><span class="nottickedoff">return $ emptyResponse noContent204 []</span></span>
-<span class="lineno">  372 </span>
-<span class="lineno">  373 </span>volumeSearchForm :: DeformHandler f VolumeFilter
-<span class="lineno">  374 </span><span class="decl"><span class="nottickedoff">volumeSearchForm = VolumeFilter</span>
-<span class="lineno">  375 </span><span class="spaces">  </span><span class="nottickedoff">&lt;$&gt; (&quot;query&quot; .:&gt; deformNonEmpty deform)</span>
-<span class="lineno">  376 </span><span class="spaces">  </span><span class="nottickedoff">&lt;*&gt; (&quot;party&quot; .:&gt; optional deform)</span>
-<span class="lineno">  377 </span><span class="spaces">  </span><span class="nottickedoff">&lt;*&gt; paginateForm</span></span>
-<span class="lineno">  378 </span>
-<span class="lineno">  379 </span>queryVolumes :: ActionRoute API
-<span class="lineno">  380 </span><span class="decl"><span class="nottickedoff">queryVolumes = action GET (pathAPI &lt;/&lt; &quot;volume&quot;) $ \api -&gt; withAuth $ do</span>
-<span class="lineno">  381 </span><span class="spaces">  </span><span class="nottickedoff">when (api == HTML) angular</span>
-<span class="lineno">  382 </span><span class="spaces">  </span><span class="nottickedoff">vf &lt;- runForm ((api == HTML) `thenUse` (htmlVolumeSearch mempty [])) volumeSearchForm</span>
-<span class="lineno">  383 </span><span class="spaces">  </span><span class="nottickedoff">p &lt;- findVolumes vf</span>
-<span class="lineno">  384 </span><span class="spaces">  </span><span class="nottickedoff">case api of</span>
-<span class="lineno">  385 </span><span class="spaces">    </span><span class="nottickedoff">JSON -&gt; return $ okResponse [] $ JSON.mapRecords (\v -&gt; volumeJSONSimple v) p</span>
-<span class="lineno">  386 </span><span class="spaces">    </span><span class="nottickedoff">HTML -&gt; peeks $ blankForm . htmlVolumeSearch vf p</span></span>
-<span class="lineno">  387 </span>
-<span class="lineno">  388 </span>thumbVolume :: ActionRoute (Id Volume)
-<span class="lineno">  389 </span><span class="decl"><span class="nottickedoff">thumbVolume = action GET (pathId &lt;/&lt; &quot;thumb&quot;) $ \vi -&gt; withAuth $ do</span>
-<span class="lineno">  390 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionPUBLIC vi</span>
-<span class="lineno">  391 </span><span class="spaces">  </span><span class="nottickedoff">e &lt;- lookupVolumeThumb v</span>
-<span class="lineno">  392 </span><span class="spaces">  </span><span class="nottickedoff">maybe</span>
-<span class="lineno">  393 </span><span class="spaces">    </span><span class="nottickedoff">(peeks $ otherRouteResponse [] webFile (Just $ staticPath [&quot;images&quot;, &quot;draft.png&quot;]))</span>
-<span class="lineno">  394 </span><span class="spaces">    </span><span class="nottickedoff">(\as -&gt; peeks $ otherRouteResponse [] downloadAssetSegment (slotId $ view as, view as))</span>
-<span class="lineno">  395 </span><span class="spaces">    </span><span class="nottickedoff">e</span></span>
+<span class="lineno">  319 </span><span class="spaces">  </span><span class="nottickedoff">setDefaultVolumeAccessesForCreated owner v</span>
+<span class="lineno">  320 </span><span class="spaces">  </span><span class="nottickedoff">when (on (/=) (partyId . partyRow) owner u) $ forM_ (partyAccount owner) $ \t -&gt;</span>
+<span class="lineno">  321 </span><span class="spaces">    </span><span class="nottickedoff">createNotification (blankNotification t NoticeVolumeCreated)</span>
+<span class="lineno">  322 </span><span class="spaces">      </span><span class="nottickedoff">{ notificationVolume = Just $ volumeRow v</span>
+<span class="lineno">  323 </span><span class="spaces">      </span><span class="nottickedoff">, notificationParty = Just $ partyRow owner</span>
+<span class="lineno">  324 </span><span class="spaces">      </span><span class="nottickedoff">}</span>
+<span class="lineno">  325 </span><span class="spaces">  </span><span class="nottickedoff">case api of</span>
+<span class="lineno">  326 </span><span class="spaces">    </span><span class="nottickedoff">JSON -&gt; return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v</span>
+<span class="lineno">  327 </span><span class="spaces">    </span><span class="nottickedoff">HTML -&gt; peeks $ otherRouteResponse [] viewVolume (api, volumeId $ volumeRow v)</span></span>
+<span class="lineno">  328 </span>
+<span class="lineno">  329 </span>viewVolumeLinks :: ActionRoute (Id Volume)
+<span class="lineno">  330 </span><span class="decl"><span class="nottickedoff">viewVolumeLinks = action GET (pathHTML &gt;/&gt; pathId &lt;/&lt; &quot;link&quot;) $ \vi -&gt; withAuth $ do</span>
+<span class="lineno">  331 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
+<span class="lineno">  332 </span><span class="spaces">  </span><span class="nottickedoff">links &lt;- lookupVolumeLinks v</span>
+<span class="lineno">  333 </span><span class="spaces">  </span><span class="nottickedoff">peeks $ blankForm . htmlVolumeLinksEdit v links</span></span>
+<span class="lineno">  334 </span>
+<span class="lineno">  335 </span>postVolumeLinks :: ActionRoute (API, Id Volume)
+<span class="lineno">  336 </span><span class="decl"><span class="nottickedoff">postVolumeLinks = action POST (pathAPI &lt;/&gt; pathId &lt;/&lt; &quot;link&quot;) $ \arg@(api, vi) -&gt; withAuth $ do</span>
+<span class="lineno">  337 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
+<span class="lineno">  338 </span><span class="spaces">  </span><span class="nottickedoff">links &lt;- lookupVolumeLinks v</span>
+<span class="lineno">  339 </span><span class="spaces">  </span><span class="nottickedoff">links' &lt;- runForm ((api == HTML) `thenUse` (htmlVolumeLinksEdit v links)) $ do</span>
+<span class="lineno">  340 </span><span class="spaces">    </span><span class="nottickedoff">csrfForm</span>
+<span class="lineno">  341 </span><span class="spaces">    </span><span class="nottickedoff">withSubDeforms $ \_ -&gt; Citation</span>
+<span class="lineno">  342 </span><span class="spaces">      </span><span class="nottickedoff">&lt;$&gt; (&quot;head&quot; .:&gt; deform)</span>
+<span class="lineno">  343 </span><span class="spaces">      </span><span class="nottickedoff">&lt;*&gt; (&quot;url&quot; .:&gt; (Just &lt;$&gt; deform))</span>
+<span class="lineno">  344 </span><span class="spaces">      </span><span class="nottickedoff">&lt;*&gt; pure Nothing</span>
+<span class="lineno">  345 </span><span class="spaces">      </span><span class="nottickedoff">&lt;*&gt; pure Nothing</span>
+<span class="lineno">  346 </span><span class="spaces">  </span><span class="nottickedoff">changeVolumeLinks v links'</span>
+<span class="lineno">  347 </span><span class="spaces">  </span><span class="nottickedoff">case api of</span>
+<span class="lineno">  348 </span><span class="spaces">    </span><span class="nottickedoff">JSON -&gt;</span>
+<span class="lineno">  349 </span><span class="spaces">      </span><span class="nottickedoff">return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v `JSON.foldObjectIntoRec` (&quot;links&quot; JSON..= links')</span>
+<span class="lineno">  350 </span><span class="spaces">    </span><span class="nottickedoff">HTML -&gt; peeks $ otherRouteResponse [] viewVolume arg</span></span>
+<span class="lineno">  351 </span>
+<span class="lineno">  352 </span>postVolumeAssist :: ActionRoute (Id Volume)
+<span class="lineno">  353 </span><span class="decl"><span class="nottickedoff">postVolumeAssist = action POST (pathJSON &gt;/&gt; pathId &lt;/&lt; &quot;assist&quot;) $ \vi -&gt; withAuth $ do</span>
+<span class="lineno">  354 </span><span class="spaces">  </span><span class="nottickedoff">user &lt;- authAccount</span>
+<span class="lineno">  355 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
+<span class="lineno">  356 </span><span class="spaces">  </span><span class="nottickedoff">addr &lt;- peeks staticAssistAddr</span>
+<span class="lineno">  357 </span><span class="spaces">  </span><span class="nottickedoff">cont &lt;- parseRequestContent (const 0)</span>
+<span class="lineno">  358 </span><span class="spaces">  </span><span class="nottickedoff">body &lt;- case cont :: Content () of</span>
+<span class="lineno">  359 </span><span class="spaces">    </span><span class="nottickedoff">ContentText body -&gt; return body</span>
+<span class="lineno">  360 </span><span class="spaces">    </span><span class="nottickedoff">_ -&gt; result $ emptyResponse unsupportedMediaType415 []</span>
+<span class="lineno">  361 </span><span class="spaces">  </span><span class="nottickedoff">sendMail [Left addr] [Right user] (&quot;Databrary upload assistance request for volume &quot; &lt;&gt; T.pack (show vi)) $ TL.fromChunks</span>
+<span class="lineno">  362 </span><span class="spaces">    </span><span class="nottickedoff">[ partyName $ partyRow $ accountParty user, &quot; has requested curation assistance for &quot;, volumeName $ volumeRow v, &quot;\n\n&quot; ] &lt;&gt; body `TL.snoc` '\n'</span>
+<span class="lineno">  363 </span><span class="spaces">  </span><span class="nottickedoff">createVolumeNotification v ($ NoticeVolumeAssist)</span>
+<span class="lineno">  364 </span><span class="spaces">  </span><span class="nottickedoff">return $ emptyResponse noContent204 []</span></span>
+<span class="lineno">  365 </span>
+<span class="lineno">  366 </span>volumeSearchForm :: DeformHandler f VolumeFilter
+<span class="lineno">  367 </span><span class="decl"><span class="nottickedoff">volumeSearchForm = VolumeFilter</span>
+<span class="lineno">  368 </span><span class="spaces">  </span><span class="nottickedoff">&lt;$&gt; (&quot;query&quot; .:&gt; deformNonEmpty deform)</span>
+<span class="lineno">  369 </span><span class="spaces">  </span><span class="nottickedoff">&lt;*&gt; (&quot;party&quot; .:&gt; optional deform)</span>
+<span class="lineno">  370 </span><span class="spaces">  </span><span class="nottickedoff">&lt;*&gt; paginateForm</span></span>
+<span class="lineno">  371 </span>
+<span class="lineno">  372 </span>queryVolumes :: ActionRoute API
+<span class="lineno">  373 </span><span class="decl"><span class="nottickedoff">queryVolumes = action GET (pathAPI &lt;/&lt; &quot;volume&quot;) $ \api -&gt; withAuth $ do</span>
+<span class="lineno">  374 </span><span class="spaces">  </span><span class="nottickedoff">when (api == HTML) angular</span>
+<span class="lineno">  375 </span><span class="spaces">  </span><span class="nottickedoff">vf &lt;- runForm ((api == HTML) `thenUse` (htmlVolumeSearch mempty [])) volumeSearchForm</span>
+<span class="lineno">  376 </span><span class="spaces">  </span><span class="nottickedoff">p &lt;- findVolumes vf</span>
+<span class="lineno">  377 </span><span class="spaces">  </span><span class="nottickedoff">case api of</span>
+<span class="lineno">  378 </span><span class="spaces">    </span><span class="nottickedoff">JSON -&gt; return $ okResponse [] $ JSON.mapRecords (\v -&gt; volumeJSONSimple v) p</span>
+<span class="lineno">  379 </span><span class="spaces">    </span><span class="nottickedoff">HTML -&gt; peeks $ blankForm . htmlVolumeSearch vf p</span></span>
+<span class="lineno">  380 </span>
+<span class="lineno">  381 </span>thumbVolume :: ActionRoute (Id Volume)
+<span class="lineno">  382 </span><span class="decl"><span class="nottickedoff">thumbVolume = action GET (pathId &lt;/&lt; &quot;thumb&quot;) $ \vi -&gt; withAuth $ do</span>
+<span class="lineno">  383 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionPUBLIC vi</span>
+<span class="lineno">  384 </span><span class="spaces">  </span><span class="nottickedoff">e &lt;- lookupVolumeThumb v</span>
+<span class="lineno">  385 </span><span class="spaces">  </span><span class="nottickedoff">maybe</span>
+<span class="lineno">  386 </span><span class="spaces">    </span><span class="nottickedoff">(peeks $ otherRouteResponse [] webFile (Just $ staticPath [&quot;images&quot;, &quot;draft.png&quot;]))</span>
+<span class="lineno">  387 </span><span class="spaces">    </span><span class="nottickedoff">(\as -&gt; peeks $ otherRouteResponse [] downloadAssetSegment (slotId $ view as, view as))</span>
+<span class="lineno">  388 </span><span class="spaces">    </span><span class="nottickedoff">e</span></span>
 
 </pre>
 </body>
