@@ -99,6 +99,7 @@ volumeAccessPolicyJSON :: Volume -> Maybe Bool
 volumeAccessPolicyJSON v =
   case volumePermissionPolicy v of
     (PermissionPUBLIC, PublicRestricted) -> Just False
+    (PermissionSHARED, SharedRestricted) -> Just False
     (PermissionPUBLIC, PermLevelDefault) -> Just True
     _ -> Nothing
 
