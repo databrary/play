@@ -110,6 +110,7 @@ dataPermission3 getObjEffectiveRelease getCurrentUserPermLevel obj =
   in 
     case getCurrentUserPermLevel obj of
       (p@PermissionPUBLIC, PublicRestricted) -> releasePermission (effRelPrivate effRelease) p
+      (p@PermissionSHARED, SharedRestricted) -> releasePermission (effRelPrivate effRelease) p
       -- other levels that behave more like private (options: none, shared, read, edit, admin) ? 
       (p, _) -> releasePermission (effRelPublic effRelease) p
 
