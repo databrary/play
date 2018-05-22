@@ -137,6 +137,7 @@ volumeIsPublicRestricted :: Volume -> Bool
 volumeIsPublicRestricted v =
   case volumePermissionPolicy v of
     (PermissionPUBLIC, PublicRestricted) -> True
+    (PermissionSHARED, SharedRestricted) -> True
     _ -> False
 
 volumeJSONField :: Volume -> BS.ByteString -> Maybe BS.ByteString -> StateT VolumeCache Handler (Maybe JSON.Encoding)
