@@ -70,6 +70,9 @@ volumeAccessPolicyWithDefault perm1 mShareFull =
     PermissionPUBLIC ->
       let shareFull = fromMaybe True mShareFull -- assume true because historically volumes were public full
       in if shareFull then PermLevelDefault else PublicRestricted
+    PermissionSHARED ->
+      let shareFull = fromMaybe True mShareFull -- assume true because historically volumes were public full
+      in if shareFull then PermLevelDefault else SharedRestricted
     _ ->
       PermLevelDefault
 
