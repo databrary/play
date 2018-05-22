@@ -111,7 +111,7 @@ instance Monoid Access where
 
 deriveLiftMany [''Permission, ''Access]
 
-data VolumeAccessPolicy = PublicRestricted | PermLevelDefault
+data VolumeAccessPolicy = PublicRestricted | SharedRestricted | PermLevelDefault
   deriving (Show, Eq)
 
 deriveLift ''VolumeAccessPolicy
