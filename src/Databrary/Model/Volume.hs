@@ -160,6 +160,7 @@ volumePublicAccessSummary vas =
              case accessPolicy of
                PublicRestricted -> PublicAccessRestricted
                PermLevelDefault -> PublicAccessFull
+               _ -> PublicAccessFull -- should never happen
          _ -> PublicAccessFull)
     mPublicAccess
   where
