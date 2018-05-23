@@ -3,6 +3,7 @@ module Databrary.Model.Party.Types
   ( PartyRow(..)
   , Party(..)
   , Account(..)
+  , getPartyId
   , SiteAuth(..)
   , nobodySiteAuth
   , blankParty
@@ -47,20 +48,22 @@ data Account = Account
   }
 
 -- makeHasRec ''PartyRow ['partyId]
-instance Has (Id Party) PartyRow where
-  view = partyId
+-- instance Has (Id Party) PartyRow where
+--   view = partyId
 -- makeHasRec ''Party ['partyRow]
-instance Has PartyRow Party where
-  view = partyRow
+-- instance Has PartyRow Party where
+--   view = partyRow
 instance Has (Id Party) Party where
-  view = (view . partyRow)
+  view = getPartyId
+getPartyId :: Party -> Id Party
+getPartyId = partyId . partyRow
 -- makeHasRec ''Account ['accountParty]
 instance Has Party Account where
   view = accountParty
 instance Has PartyRow Account where
-  view = (view . accountParty)
+  view = (partyRow . accountParty)
 instance Has (Id Party) Account where
-  view = (view . accountParty)
+  view = (getPartyId . accountParty)
 
 instance Has Access Party where
   view Party{ partyAccess = Just a } = a
