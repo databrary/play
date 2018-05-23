@@ -29,7 +29,11 @@ import Databrary.Service.Periodic (forkPeriodic)
 import Databrary.Service.Types
 import Databrary.Controller.Notification (forkNotifier)
 
-initService :: Bool -> C.Config -> IO Service
+-- | Initialize a Service from a Config
+initService
+    :: Bool -- ^ Run in foreground?
+    -> C.Config
+    -> IO Service
 initService fg conf = do
   time <- getCurrentTime
   logs <- initLogs (conf C.! (if fg then "log" else "log.bg"))
@@ -75,11 +79,17 @@ initService fg conf = do
     { servicePeriodic = periodic
     }
 
+-- | Close up Solr, database, and logs
 finiService :: Service -> IO ()
 finiService Service{..} = do
   finiSolr serviceSolr
   finiDB serviceDB
   finiLogs serviceLogs
 
-withService :: Bool -> C.Config -> (Service -> IO a) -> IO a
+-- | Bracket an action that uses a Service, governed by a Config.
+withService
+    :: Bool -- ^ Run in foreground?
+    -> C.Config -- ^ Config for the Service
+    -> (Service -> IO a) -- ^ Action to run
+    -> IO a -- ^ Result of action
 withService fg c = bracket (initService fg c) finiService

@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Routes
-  ( routeMap
-  , newRouteMap
+  ( routeMapInvertible
+  , routeMapWai
   ) where
 
 import qualified Data.ByteString as BS
 import Web.Route.Invertible (RouteMap, routes, routeCase)
-import qualified Network.Wai.Route as WAR
+import qualified Network.Wai.Route as WaiRoute
 import qualified Network.Wai as WAI
 import qualified Network.HTTP.Types.Method as HTM
 
@@ -42,11 +42,12 @@ import Databrary.Controller.Web
 import Databrary.Controller.Search
 import Databrary.Controller.Periodic
 import Databrary.Controller.Notification
-import Databrary.Action.Run (runAction)
+import Databrary.Action.Run (actionApp)
 import Databrary.Service.Types (Service)
 
-newRouteMap :: Service -> [(BS.ByteString, WAR.Handler IO)]
-newRouteMap routeContext =
+-- | Map of route actions managed by Wai Routes.
+routeMapWai :: Service -> [(BS.ByteString, WaiRoute.Handler IO)]
+routeMapWai routeContext =
     [   ("", hn (viewRootHandler HTML)) -- (\ps req resp -> runAction routeContext (viewRootHandler HTML ps) req resp))
       , ("/", hn (viewRootHandler HTML))
       , ("/api", hn (viewRootHandler JSON))
@@ -192,15 +193,16 @@ newRouteMap routeContext =
       -}
     ]
   where
-    hn0 :: Action -> WAR.Handler IO  -- make handler
-    hn0 act = \_ req responder -> runAction routeContext act req responder
-    hn :: ([(BS.ByteString, BS.ByteString)] -> Action) -> WAR.Handler IO  -- make handler
-    hn mkAction = \ps req responder -> runAction routeContext (mkAction ps) req responder
-    hnm :: (HTM.Method -> [(BS.ByteString, BS.ByteString)] -> Action) -> WAR.Handler IO  -- make handler with method
-    hnm mkAction = \ps req responder -> runAction routeContext (mkAction (WAI.requestMethod req) ps) req responder
+    hn0 :: Action -> WaiRoute.Handler IO  -- make handler
+    hn0 act = \_ req responder -> actionApp routeContext act req responder
+    hn :: ([(BS.ByteString, BS.ByteString)] -> Action) -> WaiRoute.Handler IO  -- make handler
+    hn mkAction = \ps req responder -> actionApp routeContext (mkAction ps) req responder
+    hnm :: (HTM.Method -> [(BS.ByteString, BS.ByteString)] -> Action) -> WaiRoute.Handler IO  -- make handler with method
+    hnm mkAction = \ps req responder -> actionApp routeContext (mkAction (WAI.requestMethod req) ps) req responder
 
-routeMap :: RouteMap Action
-routeMap = routes
+-- | Map of route actions handled by web-inv-routes.
+routeMapInvertible :: RouteMap Action
+routeMapInvertible = routes
   [
   --   route viewRoot
   -- , route viewRobotsTxt
