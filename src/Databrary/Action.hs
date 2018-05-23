@@ -1,7 +1,5 @@
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
@@ -33,18 +31,17 @@ module Databrary.Action
   , actionRouteApp
   ) where
 
-import qualified Data.ByteString.Builder as BSB
-import qualified Data.ByteString.Lazy as BSL
 import Network.HTTP.Types
     (Status, seeOther303, forbidden403, notFound404, ResponseHeaders, hLocation)
+import Servant
+import qualified Data.ByteString.Builder as BSB
+import qualified Data.ByteString.Lazy as BSL
 import qualified Network.Wai as Wai
 import qualified Web.Route.Invertible.Wai as Invertible
-import Servant
-import Servant.HTML.Blaze
-import Text.Blaze.Html (Html)
 
 import Databrary.Has (peeks)
 import Databrary.HTTP.Request
+import Databrary.API
 import Databrary.Action.Types as Databrary
 import Databrary.Action.Run
 import Databrary.Action.Response
@@ -85,23 +82,18 @@ maybeAction :: Maybe a -> Databrary.Handler a
 maybeAction (Just a) = return a
 maybeAction Nothing = result =<< peeks notFoundResponse
 
-type LegacyAPI = Raw
-type DatabraryAPI
-    = "user" :> "login" :> Get '[HTML] Html
-    :<|> LegacyAPI
-
-databraryAPI :: Proxy DatabraryAPI
-databraryAPI = Proxy
-
 newtype WaiRouteApp = WaiRouteApp Application
 
-serverApi2 :: WaiRouteApp -> Server DatabraryAPI
-serverApi2 (WaiRouteApp app') =
+-- | Create a server to serve the ServantAPI.
+apiServer :: WaiRouteApp -> Server ServantAPI
+apiServer (WaiRouteApp app') =
     pure "this" :<|> Tagged app'
 
-databraryAPIApp :: WaiRouteApp -> Application
-databraryAPIApp waiRouteApp =
-    serve databraryAPI (serverApi2 waiRouteApp)
+-- Build a Wai.Application out of our Servant server plus the Wai Route escape
+-- hatch.
+servantApp :: WaiRouteApp -> Application
+servantApp waiRouteApp =
+    serve servantAPI (apiServer waiRouteApp)
 
 -- | The lowest level of the Databrary 'web framework'. Makes a Wai Application
 -- given a route map, a hatch into the Wai Route fallback, and the
@@ -129,7 +121,7 @@ actionRouteApp invMap waiRouteApp routeContext req =
             if st == notFound404 -- currently, this might be only possible error result?
             then
                 -- Our hatch to the WaiRouteApp is Servant!
-                databraryAPIApp waiRouteApp req
+                servantApp waiRouteApp req
             else
                 actionApp routeContext (err (st,hdrs)) req
   where

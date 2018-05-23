@@ -1,14 +1,32 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators #-}
+-- | This module describes the routes served by Databrary.
+--
+-- It is a tale of systems that evolve over time. Writing these words on
+-- 2018-05-23, I am beginning to serve routes with Servant. Meanwhile, ~90
+-- routes are still served by the original system, web-inv-routes; and ~30 are
+-- served by Wai.Route as a temporary stopgap.
+--
+-- This module glues the API description to a particular service implementation.
+-- See "Databrary.API" for a pure description of the Servant-described API.
 module Databrary.Routes
-  ( routeMapInvertible
-  , routeMapWai
+  (
+  -- * Temporary measures: Wai.Route
+    routeMapWai
+  -- * OG route descriptions: web-inv-routes
+  , routeMapInvertible
   ) where
 
-import qualified Data.ByteString as BS
 import Web.Route.Invertible (RouteMap, routes, routeCase)
-import qualified Network.Wai.Route as WaiRoute
-import qualified Network.Wai as WAI
+import qualified Data.ByteString as BS
 import qualified Network.HTTP.Types.Method as HTM
+import qualified Network.Wai as WAI
+import qualified Network.Wai.Route as WaiRoute
 
 import Databrary.Action
 import Databrary.Controller.Root

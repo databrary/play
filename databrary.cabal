@@ -39,6 +39,7 @@ library
     Data.ByteString.Builder.Escape
     Data.Csv.Contrib
     Data.RangeSet.Parse
+    Databrary.API
     Databrary.Warp
     Databrary.Solr.Service
     Databrary.Solr.Search
