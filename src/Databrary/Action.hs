@@ -86,8 +86,7 @@ newtype WaiRouteApp = WaiRouteApp Application
 
 -- | Create a server to serve the ServantAPI.
 apiServer :: WaiRouteApp -> Server ServantAPI
-apiServer (WaiRouteApp app') =
-    pure "this" :<|> Tagged app'
+apiServer (WaiRouteApp app') = Tagged app'
 
 -- Build a Wai.Application out of our Servant server plus the Wai Route escape
 -- hatch.
