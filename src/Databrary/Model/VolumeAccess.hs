@@ -68,6 +68,7 @@ setDefaultVolumeAccessesForCreated owner v = do
             VolumeAccess PermissionSHARED PermissionSHARED Nothing (getShareFullDefault rootParty PermissionSHARED) rootParty v
     pure ()
 
+-- TODO: update test's using changeVolumeAccess?
 changeVolumeAccess :: (MonadAudit c m) => VolumeAccess -> m Bool
 changeVolumeAccess va = do
   ident <- getAuditIdentity
