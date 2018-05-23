@@ -48,7 +48,7 @@ and exists
   (select *
    from volume_access va
    where (va.volume, va.party, va.individual, va.children, va.share_full)
-     = (volume, 0, 'PUBLIC', 'PUBLIC', false));
+     = (volume, -1, 'PUBLIC', 'PUBLIC', false));
 
 -- migrate all existing entries such that share_full = true for db community group (0)
 --  when there is no entry indicating sharing is restricted for anonymous/nobody group (-1)
@@ -59,4 +59,4 @@ and not exists
   (select *
    from volume_access va
    where (va.volume, va.party, va.individual, va.children, va.share_full)
-     = (volume, 0, 'PUBLIC', 'PUBLIC', false));
+     = (volume, -1, 'PUBLIC', 'PUBLIC', false));
