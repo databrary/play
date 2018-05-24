@@ -63,8 +63,8 @@ getPartyId = partyId . partyRow
 -- makeHasRec ''Account ['accountParty]
 instance Has Party Account where
   view = accountParty
-instance Has PartyRow Account where
-  view = (partyRow . accountParty)
+-- instance Has PartyRow Account where
+--  view = (partyRow . accountParty)
 instance Has (Id Party) Account where
   view = (getPartyId . accountParty)
 
@@ -89,8 +89,8 @@ instance Has Account SiteAuth where
   view = siteAccount
 instance Has Party SiteAuth where
   view = (view . siteAccount)
-instance Has PartyRow SiteAuth where
-  view = (view . siteAccount)
+-- instance Has PartyRow SiteAuth where
+--  view = (view . siteAccount)
 instance Has (Id Party) SiteAuth where
   view = (view . siteAccount)
 instance Has Access SiteAuth where
