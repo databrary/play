@@ -5,6 +5,9 @@ module Databrary.Model.Party.Types
   , Account(..)
   , getPartyId
   , SiteAuth(..)
+  , nobodyParty
+  , rootParty
+  , staffParty
   , nobodySiteAuth
   , blankParty
   , blankAccount
@@ -94,6 +97,26 @@ instance Has Access SiteAuth where
   view = siteAccess
 
 deriveLiftMany [''PartyRow, ''Party, ''Account]
+
+nobodyParty, rootParty, staffParty :: Party -- TODO: load on startup from service module
+nobodyParty =
+   Party
+         (PartyRow (Id (-1)) (T.pack "Everybody") Nothing Nothing Nothing Nothing)
+         Nothing
+         PermissionREAD
+         Nothing
+rootParty =
+   Party
+         (PartyRow (Id 0) (T.pack "Databrary") Nothing Nothing Nothing Nothing)
+         Nothing
+         PermissionSHARED
+         Nothing
+staffParty =
+   Party
+         (PartyRow (Id 2) (T.pack "Staff") Nothing Nothing (Just (T.pack "Databrary")) Nothing)
+         Nothing
+         PermissionPUBLIC
+         Nothing
 
 -- this is unfortunate, mainly to avoid untangling Party.SQL
 nobodySiteAuth :: SiteAuth
