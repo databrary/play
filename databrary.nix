@@ -7,7 +7,7 @@
 , lifted-base, memory, mime-mail, mime-types, monad-control, mtl
 , network, network-uri, openssl, parsec, path, path-io, posix-paths
 , postgresql-simple, postgresql-typed, process, range-set-list
-, regex-posix, rematch, resource-pool, resourcet, scientific, servant, servant-server, smtp-mail
+, regex-posix, rematch, resource-pool, resourcet, scientific, servant, servant-blaze, servant-server, smtp-mail
 , stdenv, streaming-commons, stringsearch, tasty, tasty-expected-failure
 , tasty-discover, tasty-hedgehog, tasty-quickcheck, tasty-hunit, QuickCheck, template-haskell, text, th-lift, th-lift-instances
 , time, transformers, transformers-base, unix, unordered-containers
@@ -42,38 +42,36 @@ in
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [
-    aeson aeson-better-errors array attoparsec base bcrypt binary
-    blaze-html blaze-markup bytestring case-insensitive casing cassava
-    conduit-combinators containers cookie cryptonite data-default-class
-    directory either fast-logger filepath hashable hjsonschema http-client
-    http-client-tls http-types invertible lifted-base memory mime-mail
-    mime-types monad-control mtl network network-uri parsec path
-    path-io posix-paths postgresql-simple postgresql-typed process
-    range-set-list regex-posix resource-pool resourcet scientific
-    servant servant-server smtp-mail streaming-commons stringsearch template-haskell text th-lift
-    th-lift-instances time transformers transformers-base unix
-    unordered-containers utf8-string vector wai wai-extra wai-route warp warp-tls
-    web-inv-route xml zip zlib
-    gargoyle gargoyle-postgresql
+    aeson aeson-better-errors array attoparsec base bcrypt binary blaze-html
+    blaze-markup bytestring case-insensitive casing cassava conduit-combinators
+    containers cookie cryptonite data-default-class directory either fast-logger
+    filepath hashable hjsonschema http-client http-client-tls http-types
+    invertible lifted-base memory mime-mail mime-types monad-control mtl network
+    network-uri parsec path path-io posix-paths postgresql-simple
+    postgresql-typed process range-set-list regex-posix resource-pool resourcet
+    scientific servant servant-blaze servant-server smtp-mail streaming-commons
+    stringsearch template-haskell text th-lift th-lift-instances time
+    transformers transformers-base unix unordered-containers utf8-string vector
+    wai wai-extra wai-route warp warp-tls web-inv-route xml zip zlib gargoyle
+    gargoyle-postgresql
   ];
   librarySystemDepends = [ cracklib openssl openssl.dev ];
   libraryPkgconfigDepends = [
     ffmpeg
   ];
   executableHaskellDepends = [
-    aeson aeson-better-errors array attoparsec base bcrypt binary
-    blaze-html blaze-markup bytestring case-insensitive casing cassava
-    conduit-combinators containers cookie cryptonite data-default-class
-    directory either fast-logger filepath hashable hjsonschema http-client
-    http-client-tls http-types invertible lifted-base memory mime-mail
-    mime-types monad-control mtl network network-uri parsec path
-    path-io posix-paths postgresql-simple postgresql-typed process
-    range-set-list regex-posix rematch resource-pool resourcet scientific
-    servant servant-server smtp-mail streaming-commons stringsearch template-haskell text th-lift
+    aeson aeson-better-errors array attoparsec base bcrypt binary blaze-html
+    blaze-markup bytestring case-insensitive casing cassava conduit-combinators
+    containers cookie cryptonite data-default-class directory either fast-logger
+    filepath hashable hjsonschema http-client http-client-tls http-types
+    invertible lifted-base memory mime-mail mime-types monad-control mtl network
+    network-uri parsec path path-io posix-paths postgresql-simple
+    postgresql-typed process range-set-list regex-posix rematch resource-pool
+    resourcet scientific servant servant-blaze servant-server smtp-mail
+    streaming-commons stringsearch template-haskell text th-lift
     th-lift-instances time transformers transformers-base unix
-    unordered-containers utf8-string vector wai wai-extra wai-route warp warp-tls
-    web-inv-route xml zip zlib
-    gargoyle gargoyle-postgresql
+    unordered-containers utf8-string vector wai wai-extra wai-route warp
+    warp-tls web-inv-route xml zip zlib gargoyle gargoyle-postgresql
   ];
   executableSystemDepends = [ cracklib openssl openssl.dev ];
   executablePkgconfigDepends = [

@@ -39,6 +39,7 @@ library
     Data.ByteString.Builder.Escape
     Data.Csv.Contrib
     Data.RangeSet.Parse
+    Databrary.API
     Databrary.Warp
     Databrary.Solr.Service
     Databrary.Solr.Search
@@ -382,6 +383,7 @@ library
     path-io >= 1.2.2,
     wai-route >= 0.3.1.1,
     servant >= 0.11,
+    servant-blaze >= 0.7 && < 0.8,
     servant-server >= 0.11,
     stringsearch >= 0.3.6.6
                 

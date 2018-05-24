@@ -1,4 +1,4 @@
-# Editing this Makefile? run make with `make BUILDDEV=1` for better build
+# Editing this Makefile? run make with `BUILDDEV=1 make` for better build
 # debugging.
 
 # Not everything is cached in our own cache, so use both

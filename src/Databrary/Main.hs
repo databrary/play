@@ -12,12 +12,13 @@ import Data.Either (partitionEithers)
 import qualified System.Console.GetOpt as Opt
 import System.Environment (getProgName, getArgs)
 import System.Exit (exitFailure)
+import qualified Network.Wai.Route as WaiRoute
 
 import qualified Databrary.Store.Config as Conf
 import Databrary.Service.Init (withService)
 import Databrary.Web.Rules (generateWebFiles)
-import Databrary.Action (runActionRoute)
-import Databrary.Routes (routeMap, newRouteMap)
+import Databrary.Action (actionRouteApp, WaiRouteApp(..))
+import Databrary.Routes (routeMapInvertible, routeMapWai)
 import Databrary.Warp (runWarp)
 
 
@@ -64,13 +65,21 @@ main = do
     ([], [], []) -> do 
       putStrLn "No flags or args...."
       putStrLn "evaluating routemap..."
-      routes <- evaluate routeMap
+      routes <- evaluate routeMapInvertible
       putStrLn "evaluating routemap...withService..."
+      -- Note: True = run in foreground
       withService True conf $ \rc -> do
         -- used to run migrations on startup when not in devel mode
         -- should check migrations2 table for last migration against last entry in schema2 dir
         putStrLn "running warp"
-        runWarp conf rc (runActionRoute routes newRouteMap rc)
+        runWarp
+            conf
+            rc
+            (actionRouteApp
+                routes
+                (WaiRouteApp (WaiRoute.route (routeMapWai rc)))
+                rc
+            )
     _ -> do
       mapM_ putStrLn err
       putStrLn $ Opt.usageInfo ("Usage: " ++ prog ++ " [OPTION...]") opts
