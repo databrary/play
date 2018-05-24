@@ -165,6 +165,7 @@ volumePublicAccessSummary vas =
          _ -> PublicAccessFull)
     mPublicAccess
   where
-    mPublicAccess = find (\va -> (partyId . partyRow . volumeAccessParty) va == nobodyId) vas -- nobodyParty forms a cycle
-    nobodyId = Id (-1)
+    -- can't use equality on parties because Party is a circular,
+    mPublicAccess = find (\va -> (getPartyId . volumeAccessParty) va == nobodyId) vas
+    nobodyId = getPartyId nobodyParty
 
