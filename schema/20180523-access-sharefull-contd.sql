@@ -6,12 +6,12 @@ ALTER TABLE "volume_access" ADD CONSTRAINT "volume_access_check_full3"
 
 CREATE OR REPLACE VIEW "volume_access_view" ("volume", "party", "access", "share_full") AS
             -- vap = volume access with computed permission for each child
-	WITH vap AS (
+        WITH vap AS (
            SELECT volume
                 , parent
-       	        , child
+                , child
                 , LEAST(children, CASE WHEN children <= 'SHARED' THEN site ELSE member END) as result_perm
-       	        , share_full
+                , share_full
            FROM volume_access
              JOIN authorize_view ON party = parent), 
            -- vap_max = parent, child combination representing the parent
@@ -19,7 +19,7 @@ CREATE OR REPLACE VIEW "volume_access_view" ("volume", "party", "access", "share
              vap_max AS (
            SELECT volume
                 , max(parent) as mparent -- arbitrary tie breaker
-       	        , child
+                , child
            FROM vap
            WHERE NOT EXISTS
              (SELECT *
@@ -27,8 +27,8 @@ CREATE OR REPLACE VIEW "volume_access_view" ("volume", "party", "access", "share
               WHERE (vap.volume, vap.child) = (v2.volume, v2.child)
               AND v2.result_perm > vap.result_perm)
            GROUP BY volume, child)
-	    
-	SELECT volume, party, individual, share_full FROM volume_access
+    
+        SELECT volume, party, individual, share_full FROM volume_access
 
         UNION ALL
 
