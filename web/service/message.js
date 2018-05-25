@@ -32,6 +32,10 @@ app.factory('messageService', [
       delete byBody[this.orig];
     };
 
+    Message.prototype.addStorage = function () {
+      sessionStorage.setItem('notification' + Math.floor(Date.now() / 1000), this.body);
+    };
+
     Message.prototype.next = function () {
       var more;
       if (Array.isArray(this.more))
