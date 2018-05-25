@@ -87,7 +87,6 @@ library
     Databrary.Model.RecordSlot.Types
     Databrary.Model.RecordSlot.SQL
     Databrary.Model.VolumeState.Types
-    Databrary.Model.VolumeState.SQL
     Databrary.Model.Citation
     Databrary.Model.Container
     Databrary.Model.Transcode.Types
