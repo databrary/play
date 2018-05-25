@@ -17,9 +17,22 @@ import qualified Databrary.Store.Config as C
 import Databrary.Service.Types
 import Databrary.Service.Log
 
-runWarp :: C.Config -> Service -> Wai.Application -> IO ()
+-- | Runs any Wai.Application through warp with our preferred options plus our
+-- configuration. Also uses our pre-initialized logging capabilities.
+runWarp
+    :: C.Config
+    -- ^ Used to get tls and port info
+    --
+    -- TODO: Pass those things in explicitly
+    -> Service
+    -- ^ Uset to get logging capabilities.
+    --
+    -- TODO: Ditto
+    -> Wai.Application
+    -- ^ Any old Wai Application
+    -> IO ()
 runWarp conf rc app =
-  run (conf C.! "ssl.key") (certs $ conf C.! "ssl.cert")
+  run (conf C.! "ssl.key") (oneOrMany $ conf C.! "ssl.cert")
     ( Warp.setPort (conf C.! "port")
     $ Warp.setTimeout 300
 #ifndef DEVEL
@@ -35,6 +48,6 @@ runWarp conf rc app =
     $ Warp.defaultSettings)
     app
   where
-  certs c = C.config c <|> return <$> C.config c
+  oneOrMany c = C.config c <|> return <$> C.config c
   run (Just k) (Just (cert:chain)) = WarpTLS.runTLS (WarpTLS.tlsSettingsChain cert chain k)
   run _ _ = Warp.runSettings

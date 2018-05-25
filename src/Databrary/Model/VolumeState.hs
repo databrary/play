@@ -18,11 +18,40 @@ import Databrary.Model.SQL
 import Databrary.Model.Permission.Types
 import Databrary.Model.Volume.Types
 import Databrary.Model.VolumeState.Types
-import Databrary.Model.VolumeState.SQL
+-- import Databrary.Model.VolumeState.SQL
 
 lookupVolumeState :: (MonadDB c m) => Volume -> m [VolumeState]
-lookupVolumeState v =
-  dbQuery $ ($ v) <$> $(selectQuery selectVolumeState "$WHERE volume = ${volumeId $ volumeRow v} AND (public OR ${(extractPermissionIgnorePolicy . volumeRolePolicy) v >= PermissionEDIT})")
+lookupVolumeState v = do
+  let _tenv_a7xjl = unknownPGTypeEnv
+  rows <- 
+    -- (selectQuery selectVolumeState "$WHERE volume = ${volumeId $ volumeRow v} AND (public OR ${(extractPermissionIgnorePolicy . volumeRolePolicy) v >= PermissionEDIT})")
+     mapRunPrepQuery
+      ((\ _p_a7xjm _p_a7xjn ->
+                       (Data.String.fromString
+                          "SELECT volume_state.key,volume_state.value,volume_state.public FROM volume_state WHERE volume = $1 AND (public OR $2)",
+                       [pgEncodeParameter
+                          _tenv_a7xjl (PGTypeProxy :: PGTypeName "integer") _p_a7xjm,
+                        pgEncodeParameter
+                          _tenv_a7xjl (PGTypeProxy :: PGTypeName "boolean") _p_a7xjn],
+                       [pgBinaryColumn
+                          _tenv_a7xjl (PGTypeProxy :: PGTypeName "character varying"),
+                        pgBinaryColumn _tenv_a7xjl (PGTypeProxy :: PGTypeName "jsonb"),
+                        pgBinaryColumn _tenv_a7xjl (PGTypeProxy :: PGTypeName "boolean")]))
+         (volumeId $ volumeRow v) ((extractPermissionIgnorePolicy . volumeRolePolicy) v) >= PermissionEDIT))
+               (\ [_ckey_a7xjo, _cvalue_a7xjp, _cpublic_a7xjq]
+                  -> (pgDecodeColumnNotNull
+                        _tenv_a7xjl
+                        (PGTypeProxy :: PGTypeName "character varying")
+                        _ckey_a7xjo, 
+                      pgDecodeColumnNotNull
+                        _tenv_a7xjl (PGTypeProxy :: PGTypeName "jsonb") _cvalue_a7xjp, 
+                      pgDecodeColumnNotNull
+                        _tenv_a7xjl (PGTypeProxy :: PGTypeName "boolean") _cpublic_a7xjq))
+  pure
+    (fmap
+      (\ (vkey_a7xhf, vvalue_a7xhg, vpublic_a7xhh)
+         -> VolumeState vkey_a7xhf vvalue_a7xhg vpublic_a7xhh v)
+      rows)
 
 mapQuery :: ByteString -> ([PGValue] -> a) -> PGSimpleQuery a
 mapQuery qry mkResult =

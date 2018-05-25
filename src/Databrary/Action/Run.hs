@@ -11,7 +11,7 @@
 module Databrary.Action.Run
   (
   -- * \"Framework\" code
-    runAction
+    actionApp
   , forkAction
   -- * Declaring authentication needs for Actions
   , withAuth
@@ -85,15 +85,17 @@ instance Has Wai.Request IdContext where view = ctxReq
 instance Has Secret IdContext where view = ctxSec
 instance Has DBConn IdContext where view = ctxConn
 
--- | Run a Databrary 'Action' as a Wai Application.
+
+-- | Convert an Action into a Wai.Application.
 --
--- This is the lowest level of the Databrary \"web framework\". It runs the
--- requested action with some resolved identity to build the HTTP response.
-runAction
+-- This is the 2nd-lowest level of the Databrary \"web framework\". It runs the
+-- requested action with some resolved identity to build the HTTP response. See
+-- 'actionRouteApp' for level 1.
+actionApp
     :: Service -- ^ All the low-level system capabilities
     -> Action -- ^ Action to run
     -> Wai.Application -- ^ Callback for Wai
-runAction service (Action needsAuth act) waiReq waiSend
+actionApp service (Action needsAuth act) waiReq waiSend
     = let
           ident' :: Secret -> DBConn -> ReaderT ActionContext IO Identity
           ident' sec con = case needsAuth of

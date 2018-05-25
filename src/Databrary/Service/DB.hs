@@ -26,6 +26,7 @@ module Databrary.Service.DB
   , runTDB
   , mapQuery2
   , mapPrepQuery
+  , mapRunPrepQuery
   -- FIXME: added for tests
   , loadPGDatabase
   , pgConnect
@@ -211,3 +212,8 @@ mapQuery2 qry mkResult =
 mapPrepQuery :: (BS.ByteString, [PGValue]) -> ([PGValue] -> a) -> PGPreparedQuery a
 mapPrepQuery (qry, params) mkResult =
   fmap mkResult (rawPGPreparedQuery qry params)
+
+mapRunPrepQuery :: (MonadDB c m) => (BS.ByteString, [PGValue], [Bool]) -> ([PGValue] -> a) -> m [a]
+mapRunPrepQuery (qry, params, bc) mkResult = do
+  rows <- liftDB $ \c -> snd <$> pgPreparedQuery c qry [] params bc
+  pure (fmap mkResult rows)
