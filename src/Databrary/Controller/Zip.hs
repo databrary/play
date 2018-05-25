@@ -144,7 +144,7 @@ zipResponse2 n zipAddActions = do
 
 checkAsset :: AssetSlot -> Bool
 checkAsset a =
-  canReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 a && assetBacked (view a)
+  canReadData2 getAssetSlotRelease2 getAssetSlotVolumePermission2 a && assetBacked (view a)
 
 containerZipEntryCorrectAssetSlots2 :: Bool -> BS.ByteString -> Container -> Handler (ZIP.ZipArchive (), Bool)
 containerZipEntryCorrectAssetSlots2 isOrig prefix c = do

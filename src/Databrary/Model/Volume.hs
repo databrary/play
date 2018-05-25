@@ -97,10 +97,10 @@ volumeJSONSimple v = volumeJSON v Nothing
 
 volumeAccessPolicyJSON :: Volume -> Maybe Bool
 volumeAccessPolicyJSON v =
-  case volumePermissionPolicy v of
-    (PermissionPUBLIC, PublicRestricted) -> Just False
-    (PermissionSHARED, SharedRestricted) -> Just False
-    (PermissionPUBLIC, PermLevelDefault) -> Just True
+  case volumeRolePolicy v of
+    RolePublicViewer PublicRestrictedPolicy -> Just False
+    RoleSharedViewer SharedRestrictedPolicy -> Just False
+    RolePublicViewer PublicNoPolicy -> Just True
     _ -> Nothing
 
 data VolumeFilter = VolumeFilter

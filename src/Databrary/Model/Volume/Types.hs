@@ -4,7 +4,8 @@ module Databrary.Model.Volume.Types
   , Volume(..)
   , VolumeOwner
   , blankVolume
-  , volumePermissionPolicy
+  -- , volumePermissionPolicy
+  , volumeRolePolicy
   , volumeAccessPolicyWithDefault
   , coreVolumeId
   ) where
@@ -59,10 +60,17 @@ instance Has Permission Volume where
   view = volumePermission
 deriveLiftMany [''VolumeRow, ''Volume]
 
-volumePermissionPolicy :: Volume -> (Permission, VolumeAccessPolicy)
-volumePermissionPolicy Volume{..} =
-  ( volumePermission
-  , volumeAccessPolicy )
+volumeRolePolicy :: Volume -> VolumeRolePolicy
+volumeRolePolicy Volume{..} =
+  case (volumePermission, volumeAccessPolicy) of
+      (PermissionNONE, _) -> RoleNone
+      (PermissionPUBLIC, PublicRestricted) -> RolePublicViewer PublicRestrictedPolicy
+      (PermissionPUBLIC, _) -> RolePublicViewer PublicNoPolicy
+      (PermissionSHARED, SharedRestricted) -> RoleSharedViewer SharedRestrictedPolicy
+      (PermissionSHARED, _) -> RoleSharedViewer SharedNoPolicy
+      (PermissionREAD, _) -> RoleReader
+      (PermissionEDIT, _) -> RoleEditor
+      (PermissionADMIN, _) -> RoleAdmin
 
 volumeAccessPolicyWithDefault :: Permission -> Maybe Bool -> VolumeAccessPolicy
 volumeAccessPolicyWithDefault perm1 mShareFull =
@@ -75,7 +83,6 @@ volumeAccessPolicyWithDefault perm1 mShareFull =
       in if shareFull then PermLevelDefault else SharedRestricted
     _ ->
       PermLevelDefault
-
 
 blankVolume :: Volume
 blankVolume = Volume

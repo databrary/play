@@ -6,8 +6,10 @@ module Databrary.Model.Permission
   , permissionPRIVATE
   , readPermission
   , readRelease
-  , dataPermission3
-  , canReadData
+  -- , dataPermission3
+  , dataPermission4
+  -- , canReadData
+  , canReadData2
   , accessJSON
   -- testing only
   , testdataPermission3
@@ -50,21 +52,21 @@ releasePermission effectiveReleaseOnData currentUserAllowedPermissionOnVolume
   | otherwise = PermissionNONE
 
 -- START future testing code
-runDataPermission3 :: (Release, Release) -> (Permission, VolumeAccessPolicy) -> Permission
-runDataPermission3 (relPub, relPriv) (perm, policy) =
-  dataPermission3 (const (EffectiveRelease {effRelPublic = relPub, effRelPrivate = relPriv})) (const (perm, policy)) ()
+runDataPermission4 :: (Release, Release) -> VolumeRolePolicy -> Permission
+runDataPermission4 (relPub, relPriv) rolePolicy =
+  dataPermission4 (const (EffectiveRelease {effRelPublic = relPub, effRelPrivate = relPriv})) (const rolePolicy) ()
 
 -- <volume shared level>AS<current user's access to that volume>
-fullySharedAsPublic, partiallySharedAsPublic, fullyOrPartiallyOrDatabrarySharedAsDatabraryMember :: (Permission, VolumeAccessPolicy)
-privateOrDatabrarySharedAsPublic, privateAsDatabraryMember :: (Permission, VolumeAccessPolicy)
-privateAsVolumeAffiliate, privateAsOwner :: (Permission, VolumeAccessPolicy)
-fullySharedAsPublic = (PermissionPUBLIC, PermLevelDefault)
-partiallySharedAsPublic = (PermissionPUBLIC, PublicRestricted)
-fullyOrPartiallyOrDatabrarySharedAsDatabraryMember = (PermissionSHARED, PermLevelDefault)
-privateOrDatabrarySharedAsPublic = (PermissionNONE, PermLevelDefault)
-privateAsDatabraryMember = (PermissionNONE, PermLevelDefault)
-privateAsVolumeAffiliate = (PermissionEDIT, PermLevelDefault)
-privateAsOwner = (PermissionADMIN, PermLevelDefault)
+fullySharedAsPublic, partiallySharedAsPublic, fullyOrPartiallyOrDatabrarySharedAsDatabraryMember :: VolumeRolePolicy
+privateOrDatabrarySharedAsPublic, privateAsDatabraryMember :: VolumeRolePolicy
+privateAsVolumeAffiliate, privateAsOwner :: VolumeRolePolicy
+fullySharedAsPublic = RolePublicViewer PublicNoPolicy
+partiallySharedAsPublic = RolePublicViewer PublicRestrictedPolicy
+fullyOrPartiallyOrDatabrarySharedAsDatabraryMember = RoleSharedViewer SharedNoPolicy
+privateOrDatabrarySharedAsPublic = RoleNone
+privateAsDatabraryMember = RoleNone
+privateAsVolumeAffiliate = RoleEditor
+privateAsOwner = RoleAdmin
 
 publiclyReleasedExcerpt :: (Release, Release)
 publiclyReleasedExcerpt = (ReleasePUBLIC, ReleasePUBLIC)
@@ -77,47 +79,48 @@ privatelyReleasedAssetOrExcerpt = (ReleasePRIVATE, ReleasePRIVATE)
 
 testdataPermission3 :: [(Permission, Permission)]
 testdataPermission3 =
-  [ (runDataPermission3 publiclyReleasedExcerpt fullySharedAsPublic, PermissionPUBLIC)
-  , (runDataPermission3 publiclyReleasedExcerpt partiallySharedAsPublic, PermissionPUBLIC)
-  , (runDataPermission3 publiclyReleasedExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)
+  [ (runDataPermission4 publiclyReleasedExcerpt fullySharedAsPublic, PermissionPUBLIC)
+  , (runDataPermission4 publiclyReleasedExcerpt partiallySharedAsPublic, PermissionPUBLIC)
+  , (runDataPermission4 publiclyReleasedExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)
 
-  , (runDataPermission3 publiclyReleasedAsset fullySharedAsPublic, PermissionPUBLIC)
-  , (runDataPermission3 publiclyReleasedAsset partiallySharedAsPublic, PermissionNONE)
-  , (runDataPermission3 publiclyReleasedAsset fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)
+  , (runDataPermission4 publiclyReleasedAsset fullySharedAsPublic, PermissionPUBLIC)
+  , (runDataPermission4 publiclyReleasedAsset partiallySharedAsPublic, PermissionNONE)
+  , (runDataPermission4 publiclyReleasedAsset fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)
 
-  , (runDataPermission3 databraryReleasedAssetOrExcerpt fullySharedAsPublic, PermissionNONE)
-  , (runDataPermission3 databraryReleasedAssetOrExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)
+  , (runDataPermission4 databraryReleasedAssetOrExcerpt fullySharedAsPublic, PermissionNONE)
+  , (runDataPermission4 databraryReleasedAssetOrExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)
 
-  , (runDataPermission3 excerptsReleasedAssetOrExcerpt fullySharedAsPublic, PermissionNONE) -- because perm public < perm shared
-  , (runDataPermission3 excerptsReleasedAssetOrExcerpt partiallySharedAsPublic, PermissionNONE)
-  , (runDataPermission3 excerptsReleasedAssetOrExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)
+  , (runDataPermission4 excerptsReleasedAssetOrExcerpt fullySharedAsPublic, PermissionNONE) -- because perm public < perm shared
+  , (runDataPermission4 excerptsReleasedAssetOrExcerpt partiallySharedAsPublic, PermissionNONE)
+  , (runDataPermission4 excerptsReleasedAssetOrExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)
 
-  , (runDataPermission3 privatelyReleasedAssetOrExcerpt fullySharedAsPublic, PermissionNONE)
-  , (runDataPermission3 privatelyReleasedAssetOrExcerpt partiallySharedAsPublic, PermissionNONE)
-  , (runDataPermission3 privatelyReleasedAssetOrExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionNONE)
-  , (runDataPermission3 privatelyReleasedAssetOrExcerpt privateOrDatabrarySharedAsPublic, PermissionNONE)
-  , (runDataPermission3 privatelyReleasedAssetOrExcerpt privateAsDatabraryMember, PermissionNONE)
-  , (runDataPermission3 privatelyReleasedAssetOrExcerpt privateAsVolumeAffiliate, PermissionEDIT)
-  , (runDataPermission3 privatelyReleasedAssetOrExcerpt privateAsOwner, PermissionADMIN)
+  , (runDataPermission4 privatelyReleasedAssetOrExcerpt fullySharedAsPublic, PermissionNONE)
+  , (runDataPermission4 privatelyReleasedAssetOrExcerpt partiallySharedAsPublic, PermissionNONE)
+  , (runDataPermission4 privatelyReleasedAssetOrExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionNONE)
+  , (runDataPermission4 privatelyReleasedAssetOrExcerpt privateOrDatabrarySharedAsPublic, PermissionNONE)
+  , (runDataPermission4 privatelyReleasedAssetOrExcerpt privateAsDatabraryMember, PermissionNONE)
+  , (runDataPermission4 privatelyReleasedAssetOrExcerpt privateAsVolumeAffiliate, PermissionEDIT)
+  , (runDataPermission4 privatelyReleasedAssetOrExcerpt privateAsOwner, PermissionADMIN)
   ]
 -- END future testing code
 
-
-dataPermission3 :: (a -> EffectiveRelease) -> (a -> (Permission, VolumeAccessPolicy)) -> a -> Permission
-dataPermission3 getObjEffectiveRelease getCurrentUserPermLevel obj =
+dataPermission4 :: (a -> EffectiveRelease) -> (a -> VolumeRolePolicy) -> a -> Permission
+dataPermission4 getObjEffectiveRelease getCurrentUserVolumeRole obj =
   let
    effRelease = getObjEffectiveRelease obj
   in 
-    case getCurrentUserPermLevel obj of
-      (p@PermissionPUBLIC, PublicRestricted) -> releasePermission (effRelPrivate effRelease) p
-      (p@PermissionSHARED, SharedRestricted) -> releasePermission (effRelPrivate effRelease) p
-      -- other levels that behave more like private (options: none, shared, read, edit, admin) ? 
-      (p, _) -> releasePermission (effRelPublic effRelease) p
+    case getCurrentUserVolumeRole obj of
+      RolePublicViewer PublicRestrictedPolicy ->
+        releasePermission (effRelPrivate effRelease) PermissionPUBLIC
+      RoleSharedViewer SharedRestrictedPolicy ->
+        releasePermission (effRelPrivate effRelease) PermissionSHARED
+      -- other levels that behave more like private (options: none, shared, read, edit, admin) ?
+      rp ->
+         releasePermission (effRelPublic effRelease) (extractPermissionIgnorePolicy rp)
 
-canReadData :: (a -> EffectiveRelease) -> (a -> (Permission, VolumeAccessPolicy)) -> a -> Bool
-canReadData getObjEffectiveRelease getCurrentUserPermLevel obj =
-  dataPermission3 getObjEffectiveRelease getCurrentUserPermLevel obj > PermissionNONE
-
+canReadData2 :: (a -> EffectiveRelease) -> (a -> VolumeRolePolicy) -> a -> Bool
+canReadData2 getObjEffectiveRelease getCurrentUserVolumeRole obj =
+  dataPermission4 getObjEffectiveRelease getCurrentUserVolumeRole obj > PermissionNONE
 
 accessJSON :: JSON.ToObject o => Access -> o
 accessJSON Access{..} =

@@ -82,20 +82,20 @@ getAsset :: Bool -> Permission -> Bool -> Id Asset -> Handler AssetSlot
 getAsset getOrig p checkDataPerm i = do
   mAssetSlot <- (if getOrig then lookupOrigAssetSlot else lookupAssetSlot) i
   slot <- maybeAction mAssetSlot
-  void (checkPermission2 (fst . getAssetSlotVolumePermission2) p slot)
+  void (checkPermission2 (extractPermissionIgnorePolicy . getAssetSlotVolumePermission2) p slot)
   when checkDataPerm $ do
     -- TODO: delete
     liftIO $ print ("checking data perm", "assetSlot", slot)
     liftIO $ print ("checking data perm", "seg rlses", getAssetSlotRelease2 slot,
                     "vol prm", getAssetSlotVolumePermission2 slot)
-    liftIO $ print ("result perm", dataPermission3 getAssetSlotRelease2 getAssetSlotVolumePermission2 slot)
+    liftIO $ print ("result perm", dataPermission4 getAssetSlotRelease2 getAssetSlotVolumePermission2 slot)
     void (userCanReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 slot)
   pure slot
 
 assetJSONField :: AssetSlot -> BS.ByteString -> Maybe BS.ByteString -> Handler (Maybe JSON.Encoding)
 assetJSONField a "container" _ =
   return $ JSON.recordEncoding . containerJSON False . slotContainer <$> assetSlot a -- containerJSON should consult volume
-assetJSONField a "creation" _ | ((fst . getAssetSlotVolumePermission2) a) >= PermissionEDIT = do
+assetJSONField a "creation" _ | ((extractPermissionIgnorePolicy . getAssetSlotVolumePermission2) a) >= PermissionEDIT = do
   (t, n) <- assetCreation $ slotAsset a
   return $ Just $ JSON.pairs $
        "date" `JSON.kvObjectOrEmpty` t
@@ -339,6 +339,6 @@ thumbAsset = action GET (pathId </> pathSegment </< "thumb") $ \(ai, seg) -> wit
   let as = assetSegmentInterp 0.25 $ newAssetSegment a seg Nothing
   if formatIsImage (view as)
     && assetBacked (view as)
-    && canReadData getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as
+    && canReadData2 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as
     then peeks $ otherRouteResponse [] downloadAsset (view as, assetSegment as)
     else peeks $ otherRouteResponse [] formatIcon (view as)
