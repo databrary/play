@@ -37,7 +37,7 @@ lookupVolumeState v = do
                           _tenv_a7xjl (PGTypeProxy :: PGTypeName "character varying"),
                         pgBinaryColumn _tenv_a7xjl (PGTypeProxy :: PGTypeName "jsonb"),
                         pgBinaryColumn _tenv_a7xjl (PGTypeProxy :: PGTypeName "boolean")]))
-         (volumeId $ volumeRow v) ((extractPermissionIgnorePolicy . volumeRolePolicy) v) >= PermissionEDIT))
+         (volumeId $ volumeRow v) ((extractPermissionIgnorePolicy . volumeRolePolicy) v >= PermissionEDIT))
                (\ [_ckey_a7xjo, _cvalue_a7xjp, _cpublic_a7xjq]
                   -> (pgDecodeColumnNotNull
                         _tenv_a7xjl
