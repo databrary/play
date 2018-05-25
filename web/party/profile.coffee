@@ -122,15 +122,22 @@ app.controller 'party/profile', [
     delete collaborators[party.id]
     for a in party.parents
       delete collaborators[a.party.id]
+    notificationArray = []
     for a in party.children
       delete collaborators[a.party.id]
       p = Party.make(a.party)
       p.child = a
       (parties.children[a.member] || (parties.children[a.member] = [])).push(p)
       unless a.member || a.site
-        messages.add
-          type: 'yellow',
-          body: $sce.trustAsHtml('<span>' + constants.message('auth.notice.pending', {sce:$sce.HTML}, a.party.name) + ' <a href="' + party.editRoute('grant', a.party.id) + '">Manage</a>.</span>')
+        Object.keys(sessionStorage).forEach (item) ->
+          if item.indexOf('notification') > -1
+            notificationArray.push(sessionStorage.getItem(item))
+          return
+        notificationBody = '<span>' + constants.message('auth.notice.pending', {sce:$sce.HTML}, a.party.name) + ' <a href="' + party.editRoute('grant', a.party.id) + '">Manage</a>.</span>'
+        if !notificationArray.includes(notificationBody)
+          messages.add
+            type: 'yellow',
+            body: $sce.trustAsHtml(notificationBody)
     parties.collaborators = (Party.all[pi] for pi of collaborators)
 
     stringSort = (a,b) -> +(a > b) || +(a == b) - 1
