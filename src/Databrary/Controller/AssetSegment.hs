@@ -56,13 +56,13 @@ getAssetSegment :: Bool -> Permission -> Bool -> Maybe (Id Volume) -> Id Slot ->
 getAssetSegment getOrig p checkDataPerm mv s a = do
   mAssetSeg <- (if getOrig then lookupOrigSlotAssetSegment else lookupSlotAssetSegment) s a
   assetSeg <- maybeAction ((maybe id (\v -> mfilter $ (v ==) . view) mv) mAssetSeg)
-  void (checkPermission2 (fst . getAssetSegmentVolumePermission2) p assetSeg)
+  void (checkPermission2 (extractPermissionIgnorePolicy . getAssetSegmentVolumePermission2) p assetSeg)
   when checkDataPerm $ do
     -- TODO: delete
     liftIO $ print ("checking data perm", "as", assetSeg)
     liftIO $ print ("checking data perm", "seg rlses", getAssetSegmentRelease2 assetSeg,
                     "vol prm", getAssetSegmentVolumePermission2 assetSeg)
-    liftIO $ print ("result perm", dataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
+    liftIO $ print ("result perm", dataPermission4 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
     void (userCanReadData getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
   pure assetSeg
 
@@ -136,6 +136,6 @@ thumbAssetSegment getOrig = action GET (pathSlotId </> pathId </< "thumb") $ \(s
   let as' = assetSegmentInterp 0.25 as
   if formatIsImage (view as')
     && assetBacked (view as)
-    && canReadData getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as'
+    && canReadData2 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as'
     then peeks $ otherRouteResponse [] downloadAssetSegment (slotId $ view as', assetId $ assetRow $ view as')
     else peeks $ otherRouteResponse [] formatIcon (view as)
