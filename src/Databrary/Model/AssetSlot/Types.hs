@@ -61,8 +61,8 @@ getAssetSlotVolume :: AssetSlot -> Volume
 getAssetSlotVolume = assetVolume . slotAsset
 instance Has (Id Volume) AssetSlot where
   view = view . slotAsset
-getAssetSlotVolumePermission2 :: AssetSlot -> (Permission, VolumeAccessPolicy)
-getAssetSlotVolumePermission2 = volumePermissionPolicy . getAssetSlotVolume
+getAssetSlotVolumePermission2 :: AssetSlot -> VolumeRolePolicy
+getAssetSlotVolumePermission2 = volumeRolePolicy . getAssetSlotVolume
 getAssetSlotFormat :: AssetSlot -> Format
 getAssetSlotFormat = getAssetFormat . slotAsset
 

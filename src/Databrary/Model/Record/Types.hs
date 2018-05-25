@@ -118,8 +118,8 @@ instance Has (Maybe Release) Record where
 instance Has Release Record where
   view = (view . recordRelease)
 
-getRecordVolumePermission :: Record -> (Permission, VolumeAccessPolicy)
-getRecordVolumePermission = volumePermissionPolicy . recordVolume
+getRecordVolumePermission :: Record -> VolumeRolePolicy
+getRecordVolumePermission = volumeRolePolicy . recordVolume
 
 instance Has Record Measure where
   view = measureRecord
