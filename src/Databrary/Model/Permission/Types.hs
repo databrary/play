@@ -133,6 +133,10 @@ data VolumeRolePolicy =
   | RoleAdmin
   deriving (Show, Eq)
 
+deriveLift ''PublicPolicy
+deriveLift ''SharedPolicy
+deriveLift ''VolumeRolePolicy
+
 extractPermissionIgnorePolicy :: VolumeRolePolicy -> Permission
 extractPermissionIgnorePolicy rp =
   case rp of
