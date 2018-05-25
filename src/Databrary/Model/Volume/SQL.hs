@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
 module Databrary.Model.Volume.SQL
   ( selectVolumeRow
-  , selectPermissionVolume
+  -- , selectPermissionVolume
   , selectVolume
   , updateVolume
   , insertVolume
@@ -61,11 +61,6 @@ selectVolume i = selectJoin 'makeVolume
   , maybeJoinOn "volume.id = volume_owners.volume" -- join in Maybe [Maybe Text] of owners
     $ selectColumn "volume_owners" "owners"
   , joinOn "volume_permission.permission >= 'PUBLIC'::permission" -- join in Maybe Permission
-  {-
-      (selector
-        ("LATERAL (VALUES (CASE WHEN ${identitySuperuser " ++ is ++ "} THEN enum_last(NULL::permission) ELSE volume_access_check(volume.id, ${view " ++ is ++ " :: Id Party}) END)) AS volume_permission (permission)")
-        (SelectColumn "volume_permission" "permission"))
-  -}
       (selector
         ("LATERAL \
          \  (VALUES \
