@@ -56,21 +56,16 @@ genVolumeCreationTime =
                    <*> Gen.integral (Range.constant 1 28))
           <*> (secondsToDiffTime <$> Gen.integral (Range.constant 0 86399))
 
-genVolumePermissionPolicy :: Gen (Permission, VolumeAccessPolicy)
-genVolumePermissionPolicy = do
+genVolumeRolePolicy :: Gen VolumeRolePolicy
+genVolumeRolePolicy = do
     perm <- Gen.enumBounded
-    policy <-
-        case perm of
-            PermissionPUBLIC -> Gen.element [PermLevelDefault, PublicRestricted]
-            _ -> pure PermLevelDefault
-    pure (perm, policy)
+    mShareFull <- Gen.maybe (Gen.bool)
+    pure (volumeAccessPolicyWithDefault perm mShareFull)
 
 genVolumeSimple :: Gen Volume
 genVolumeSimple = do
-    (perm, policy) <- genVolumePermissionPolicy
     Volume
         <$> genVolumeRowSimple
         <*> genVolumeCreationTime
         <*> Gen.list (Range.constant 1 3) genVolumeOwner
-        <*> pure perm
-        <*> pure policy
+        <*> genVolumeRolePolicy

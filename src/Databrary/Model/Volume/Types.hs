@@ -5,7 +5,7 @@ module Databrary.Model.Volume.Types
   , VolumeOwner
   , blankVolume
   -- , volumePermissionPolicy
-  , volumeRolePolicy
+  -- , volumeRolePolicy
   , volumeAccessPolicyWithDefault
   , coreVolumeId
   ) where
@@ -40,8 +40,9 @@ data Volume = Volume
   { volumeRow :: !VolumeRow
   , volumeCreation :: Timestamp
   , volumeOwners :: [VolumeOwner]
-  , volumePermission :: Permission
-  , volumeAccessPolicy :: VolumeAccessPolicy
+  , volumeRolePolicy :: VolumeRolePolicy
+  -- , volumePermission :: Permission
+  -- , volumeAccessPolicy :: VolumeAccessPolicy
   }
   deriving (Show, Eq)
 
@@ -57,9 +58,10 @@ instance Has (Id Volume) VolumeRow where
 instance Has (Id Volume) Volume where
   view = (view . volumeRow)
 instance Has Permission Volume where
-  view = volumePermission
+  view = extractPermissionIgnorePolicy . volumeRolePolicy
 deriveLiftMany [''VolumeRow, ''Volume]
 
+{-
 volumeRolePolicy :: Volume -> VolumeRolePolicy
 volumeRolePolicy Volume{..} =
   case (volumePermission, volumeAccessPolicy) of
@@ -71,18 +73,25 @@ volumeRolePolicy Volume{..} =
       (PermissionREAD, _) -> RoleReader
       (PermissionEDIT, _) -> RoleEditor
       (PermissionADMIN, _) -> RoleAdmin
+-}
 
-volumeAccessPolicyWithDefault :: Permission -> Maybe Bool -> VolumeAccessPolicy
+volumeAccessPolicyWithDefault :: Permission -> Maybe Bool -> VolumeRolePolicy
 volumeAccessPolicyWithDefault perm1 mShareFull =
   case perm1 of
+    PermissionNONE ->
+      RoleNone
     PermissionPUBLIC ->
       let shareFull = fromMaybe True mShareFull -- assume true because historically volumes were public full
-      in if shareFull then PermLevelDefault else PublicRestricted
+      in RolePublicViewer (if shareFull then PublicNoPolicy else PublicRestrictedPolicy)
     PermissionSHARED ->
       let shareFull = fromMaybe True mShareFull -- assume true because historically volumes were public full
-      in if shareFull then PermLevelDefault else SharedRestricted
-    _ ->
-      PermLevelDefault
+      in RoleSharedViewer (if shareFull then SharedNoPolicy else SharedRestrictedPolicy)
+    PermissionREAD ->
+      RoleReader
+    PermissionEDIT ->
+      RoleEditor
+    PermissionADMIN ->
+      RoleAdmin
 
 blankVolume :: Volume
 blankVolume = Volume
@@ -95,8 +104,7 @@ blankVolume = Volume
     }
   , volumeCreation = posixSecondsToUTCTime 1357900000
   , volumeOwners = []
-  , volumePermission = PermissionNONE
-  , volumeAccessPolicy = PermLevelDefault
+  , volumeRolePolicy = RoleNone
   }
 
 coreVolumeId :: Id Volume

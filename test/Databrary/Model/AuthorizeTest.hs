@@ -261,7 +261,7 @@ test_Authorize_examples3 = testCaseSteps "Authorize examples continued" $ \step 
         step "Then the lab B AI can't add volume acccess"
         -- Implementation of getVolume as used by postVolumeAccess
         Just volForAI2 <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) aiCtxt2
-        volumePermission volForAI2 @?= PermissionSHARED)
+        volumeRolePolicy volForAI2 @?= RoleSharedViewer SharedRestrictedPolicy)
 
 test_Authorize_examples2 :: TestTree
 test_Authorize_examples2 = testCaseSteps "Authorize examples continued" $ \step -> do
@@ -310,7 +310,7 @@ test_Authorize_examples2 = testCaseSteps "Authorize examples continued" $ \step 
         let cid = (containerId . containerRow) createdContainer
         Just slotForAnon <- runReaderT (lookupSlot (containerSlotId cid)) ctxtNoIdent
         step "Then the public can't see protected parts like the detailed test date"
-        (volumePermission . containerVolume . slotContainer) slotForAnon @?= PermissionPUBLIC
+        (volumeRolePolicy . containerVolume . slotContainer) slotForAnon @?= RolePublicViewer PublicRestrictedPolicy
         (encode . getContainerDate . slotContainer) slotForAnon @?= "2017")
 
 test_Authorize_example4 :: TestTree
@@ -361,7 +361,7 @@ test_Authorize_example5 = Test.stepsWithTransaction "viewRecords - public view p
     -- lookupRecord uses record_release func, which references any release coming from a related slot; by default there is none
     Just rcrdForAnon <- runReaderT (lookupRecord ((recordId . recordRow) createdRecord)) ctxtNoIdent
     step "Then the public can't see the restricted measures like birthdate"
-    (volumePermission . recordVolume) rcrdForAnon @?= PermissionPUBLIC
+    (volumeRolePolicy . recordVolume) rcrdForAnon @?= RolePublicViewer PublicRestrictedPolicy
     (fmap (\m -> (measureMetric m, measureDatum m)) . getRecordMeasures) rcrdForAnon @?= [(participantMetricGender, "Male")]
 
 addVolumeWithAccess :: MonadAudit c m => Volume -> Party -> m Volume
@@ -410,6 +410,5 @@ volumeExample =
               volumeRow = row
             , volumeCreation = UTCTime (fromGregorian 2018 1 2) (secondsToDiffTime 0)
             , volumeOwners = [] -- [(Id 2, "Smith, John")]
-            , volumePermission = PermissionPUBLIC
-            , volumeAccessPolicy = PermLevelDefault
+            , volumeRolePolicy = RolePublicViewer PublicNoPolicy
             }
