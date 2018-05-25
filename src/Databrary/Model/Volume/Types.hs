@@ -4,8 +4,6 @@ module Databrary.Model.Volume.Types
   , Volume(..)
   , VolumeOwner
   , blankVolume
-  -- , volumePermissionPolicy
-  -- , volumeRolePolicy
   , volumeAccessPolicyWithDefault
   , coreVolumeId
   ) where
@@ -16,7 +14,7 @@ import qualified Data.Text as T
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import Language.Haskell.TH.Lift (deriveLiftMany)
 
-import Databrary.Has (Has(..)) -- makeHasRec)
+import Databrary.Has (Has(..))
 import Databrary.Model.Time
 import Databrary.Model.Kind
 import Databrary.Model.Permission.Types
@@ -41,39 +39,19 @@ data Volume = Volume
   , volumeCreation :: Timestamp
   , volumeOwners :: [VolumeOwner]
   , volumeRolePolicy :: VolumeRolePolicy
-  -- , volumePermission :: Permission
-  -- , volumeAccessPolicy :: VolumeAccessPolicy
   }
   deriving (Show, Eq)
 
 instance Kinded Volume where
   kindOf _ = "volume"
 
--- makeHasRec ''VolumeRow ['volumeId]
 instance Has (Id Volume) VolumeRow where
   view = volumeId
--- makeHasRec ''Volume ['volumeRow, 'volumePermission]
--- instance Has VolumeRow Volume where
---   view = volumeRow
 instance Has (Id Volume) Volume where
   view = (view . volumeRow)
 instance Has Permission Volume where
   view = extractPermissionIgnorePolicy . volumeRolePolicy
 deriveLiftMany [''VolumeRow, ''Volume]
-
-{-
-volumeRolePolicy :: Volume -> VolumeRolePolicy
-volumeRolePolicy Volume{..} =
-  case (volumePermission, volumeAccessPolicy) of
-      (PermissionNONE, _) -> RoleNone
-      (PermissionPUBLIC, PublicRestricted) -> RolePublicViewer PublicRestrictedPolicy
-      (PermissionPUBLIC, _) -> RolePublicViewer PublicNoPolicy
-      (PermissionSHARED, SharedRestricted) -> RoleSharedViewer SharedRestrictedPolicy
-      (PermissionSHARED, _) -> RoleSharedViewer SharedNoPolicy
-      (PermissionREAD, _) -> RoleReader
-      (PermissionEDIT, _) -> RoleEditor
-      (PermissionADMIN, _) -> RoleAdmin
--}
 
 volumeAccessPolicyWithDefault :: Permission -> Maybe Bool -> VolumeRolePolicy
 volumeAccessPolicyWithDefault perm1 mShareFull =
