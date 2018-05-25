@@ -79,14 +79,56 @@ lookupSlotAssets (Slot c s) =
 
 lookupOrigSlotAssets :: (MonadDB c m) => Slot -> m [AssetSlot]
 lookupOrigSlotAssets slot@(Slot c _) = do
-  xs <-  dbQuery [pgSQL|
+  let _tenv_ablno = unknownPGTypeEnv
+  xs <-  dbQuery {- [pgSQL|
     SELECT asset.id,asset.format,output_asset.release,asset.duration,asset.name,asset.sha1,asset.size 
     FROM slot_asset 
     INNER JOIN transcode ON slot_asset.asset = transcode.asset
     INNER JOIN asset ON transcode.orig = asset.id
     INNER JOIN asset output_asset ON transcode.asset = output_asset.id
     WHERE slot_asset.container = ${containerId $ containerRow c}
-    |]
+    |] -}
+   (mapQuery2
+    ((\ _p_ablnp ->
+                    (Data.ByteString.concat
+                       [fromString
+                          "\n\
+                          \    SELECT asset.id,asset.format,output_asset.release,asset.duration,asset.name,asset.sha1,asset.size \n\
+                          \    FROM slot_asset \n\
+                          \    INNER JOIN transcode ON slot_asset.asset = transcode.asset\n\
+                          \    INNER JOIN asset ON transcode.orig = asset.id\n\
+                          \    INNER JOIN asset output_asset ON transcode.asset = output_asset.id\n\
+                          \    WHERE slot_asset.container = ",
+                        pgEscapeParameter
+                          _tenv_ablno (PGTypeProxy :: PGTypeName "integer") _p_ablnp,
+                        fromString
+                          "\n\
+                          \    "]))
+     (containerId $ containerRow c))
+            (\
+               [_cid_ablnq,
+                _cformat_ablnr,
+                _crelease_ablns,
+                _cduration_ablnt,
+                _cname_ablnu,
+                _csha1_ablnv,
+                _csize_ablnw]
+               -> (pgDecodeColumnNotNull
+                     _tenv_ablno (PGTypeProxy :: PGTypeName "integer") _cid_ablnq, 
+                   pgDecodeColumnNotNull
+                     _tenv_ablno (PGTypeProxy :: PGTypeName "smallint") _cformat_ablnr, 
+                   pgDecodeColumn
+                     _tenv_ablno (PGTypeProxy :: PGTypeName "release") _crelease_ablns, 
+                   pgDecodeColumn
+                     _tenv_ablno
+                     (PGTypeProxy :: PGTypeName "interval")
+                     _cduration_ablnt, 
+                   pgDecodeColumn
+                     _tenv_ablno (PGTypeProxy :: PGTypeName "text") _cname_ablnu, 
+                   pgDecodeColumn
+                     _tenv_ablno (PGTypeProxy :: PGTypeName "bytea") _csha1_ablnv, 
+                   pgDecodeColumn
+                     _tenv_ablno (PGTypeProxy :: PGTypeName "bigint") _csize_ablnw)))
   return $ flip fmap xs $ \(assetId,formatId,release,duration,name,sha1,size) ->
     -- this format value is only used to differentiate between audio/video or not
     -- so it is okay that it is hardcoded to mp4, under the assumption that everything with an original
@@ -256,8 +298,21 @@ changeAssetSlot as = do
 
 changeAssetSlotDuration :: MonadDB c m => Asset -> m Bool
 changeAssetSlotDuration a
-  | Just dur <- assetDuration $ assetRow a =
-    dbExecute1 [pgSQL|UPDATE slot_asset SET segment = segment(lower(segment), lower(segment) + ${dur}) WHERE asset = ${assetId $ assetRow a}|]
+  | Just dur <- assetDuration $ assetRow a = do
+     let _tenv_ablLj = unknownPGTypeEnv
+     dbExecute1 -- [pgSQL|UPDATE slot_asset SET segment = segment(lower(segment), lower(segment) + ${dur}) WHERE asset = ${assetId $ assetRow a}|]
+      (mapQuery2
+        ((\ _p_ablLk _p_ablLl ->
+                        (Data.ByteString.concat
+                           [fromString
+                              "UPDATE slot_asset SET segment = segment(lower(segment), lower(segment) + ",
+                            pgEscapeParameter
+                              _tenv_ablLj (PGTypeProxy :: PGTypeName "interval") _p_ablLk,
+                            fromString ") WHERE asset = ",
+                            pgEscapeParameter
+                              _tenv_ablLj (PGTypeProxy :: PGTypeName "integer") _p_ablLl]))
+          dur (assetId $ assetRow a))
+        (\[] -> ()))
   | otherwise = return False
 
 fixAssetSlotDuration :: AssetSlot -> AssetSlot
