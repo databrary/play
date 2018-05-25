@@ -4,7 +4,6 @@ module Databrary.Model.Permission.Types
   ( Permission(..)
   , Access(..), accessPermission'
   , accessSite, accessMember, accessPermission
-  , VolumeAccessPolicy(..)
   , PublicPolicy(..)
   , SharedPolicy(..)
   , VolumeRolePolicy(..)
@@ -115,10 +114,12 @@ instance Monoid Access where
 
 deriveLiftMany [''Permission, ''Access]
 
+{-
 data VolumeAccessPolicy = PublicRestricted | SharedRestricted | PermLevelDefault
   deriving (Show, Eq)
 
 deriveLift ''VolumeAccessPolicy
+-}
 
 data PublicPolicy = PublicRestrictedPolicy | PublicNoPolicy deriving (Show, Eq)
 
