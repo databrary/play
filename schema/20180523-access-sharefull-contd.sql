@@ -10,7 +10,14 @@ CREATE OR REPLACE VIEW "volume_access_view" ("volume", "party", "access", "share
            SELECT volume
                 , parent
                 , child
+                -- either
+                --  1. provide permission granted to children of this parent on this volume, when this is most restrictive
+                --  2. when permission to children on this volume is granted with a low level typically associated with the nobody or databrary group,
+                --       then use the child's site permission
+                --  3. when permission to children on this volume is granted with a higher level typically associated with a specific user,
+                --       then use the child's permission on the parent's data
                 , LEAST(children, CASE WHEN children <= 'SHARED' THEN site ELSE member END) as result_perm
+                -- share_full policy value is unconditionally transferred down, as is, from parent to children
                 , share_full
            FROM volume_access
              JOIN authorize_view ON party = parent), 
