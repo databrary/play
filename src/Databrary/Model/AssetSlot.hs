@@ -28,7 +28,7 @@ import Data.Monoid ((<>))
 import Data.Maybe (fromJust, catMaybes)
 import Data.String
 import qualified Data.Text as T
-import Database.PostgreSQL.Typed (pgSQL)
+-- import Database.PostgreSQL.Typed (pgSQL)
 import Database.PostgreSQL.Typed.Types
 
 import Databrary.Ops
@@ -321,8 +321,23 @@ fixAssetSlotDuration as
   | otherwise = as
 
 findAssetContainerEnd :: MonadDB c m => Container -> m Offset
-findAssetContainerEnd c = fromMaybe 0 <$>
-  dbQuery1' [pgSQL|SELECT max(upper(segment))+'1s' FROM slot_asset WHERE container = ${containerId $ containerRow c}|]
+findAssetContainerEnd c = do
+  let _tenv_ablQT = unknownPGTypeEnv
+  fromMaybe 0 <$>
+    dbQuery1' -- [pgSQL|SELECT max(upper(segment))+'1s' FROM slot_asset WHERE container = ${containerId $ containerRow c}|]
+     (mapQuery2
+      ((\ _p_ablQU ->
+                      (Data.ByteString.concat
+                         [fromString
+                            "SELECT max(upper(segment))+'1s' FROM slot_asset WHERE container = ",
+                          pgEscapeParameter
+                            _tenv_ablQT (PGTypeProxy :: PGTypeName "integer") _p_ablQU]))
+        (containerId $ containerRow c))
+              (\[_ccolumn_ablQV]
+                 -> (pgDecodeColumn
+                       _tenv_ablQT
+                       (PGTypeProxy :: PGTypeName "interval")
+                       _ccolumn_ablQV)))
 
 assetSlotName :: AssetSlot -> Maybe T.Text
 assetSlotName a =
