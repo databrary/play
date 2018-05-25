@@ -51,59 +51,6 @@ releasePermission effectiveReleaseOnData currentUserAllowedPermissionOnVolume
   | currentUserAllowedPermissionOnVolume >= readPermission effectiveReleaseOnData = currentUserAllowedPermissionOnVolume
   | otherwise = PermissionNONE
 
--- START future testing code
-runDataPermission4 :: (Release, Release) -> VolumeRolePolicy -> Permission
-runDataPermission4 (relPub, relPriv) rolePolicy =
-  dataPermission4 (const (EffectiveRelease {effRelPublic = relPub, effRelPrivate = relPriv})) (const rolePolicy) ()
-
--- <volume shared level>AS<current user's access to that volume>
-fullySharedAsPublic, partiallySharedAsPublic, fullyOrPartiallyOrDatabrarySharedAsDatabraryMember :: VolumeRolePolicy
-privateOrDatabrarySharedAsPublic, privateAsDatabraryMember :: VolumeRolePolicy
-privateAsVolumeAffiliate, privateAsOwner :: VolumeRolePolicy
-fullySharedAsPublic = RolePublicViewer PublicNoPolicy
-partiallySharedAsPublic = RolePublicViewer PublicRestrictedPolicy
-fullyOrPartiallyOrDatabrarySharedAsDatabraryMember = RoleSharedViewer SharedNoPolicy
-privateOrDatabrarySharedAsPublic = RoleNone
-privateAsDatabraryMember = RoleNone
-privateAsVolumeAffiliate = RoleEditor
-privateAsOwner = RoleAdmin
-
-publiclyReleasedExcerpt :: (Release, Release)
-publiclyReleasedExcerpt = (ReleasePUBLIC, ReleasePUBLIC)
-
-publiclyReleasedAsset, databraryReleasedAssetOrExcerpt, excerptsReleasedAssetOrExcerpt, privatelyReleasedAssetOrExcerpt :: (Release, Release)
-publiclyReleasedAsset = (ReleasePUBLIC, ReleasePRIVATE)
-excerptsReleasedAssetOrExcerpt = (ReleaseEXCERPTS, ReleasePRIVATE)  -- is it possible to set an excerpt to "excerpts' release level?
-databraryReleasedAssetOrExcerpt = (ReleaseSHARED, ReleasePRIVATE)  -- is this shared or private?
-privatelyReleasedAssetOrExcerpt = (ReleasePRIVATE, ReleasePRIVATE)
-
-testdataPermission3 :: [(Permission, Permission)]
-testdataPermission3 =
-  [ (runDataPermission4 publiclyReleasedExcerpt fullySharedAsPublic, PermissionPUBLIC)
-  , (runDataPermission4 publiclyReleasedExcerpt partiallySharedAsPublic, PermissionPUBLIC)
-  , (runDataPermission4 publiclyReleasedExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)
-
-  , (runDataPermission4 publiclyReleasedAsset fullySharedAsPublic, PermissionPUBLIC)
-  , (runDataPermission4 publiclyReleasedAsset partiallySharedAsPublic, PermissionNONE)
-  , (runDataPermission4 publiclyReleasedAsset fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)
-
-  , (runDataPermission4 databraryReleasedAssetOrExcerpt fullySharedAsPublic, PermissionNONE)
-  , (runDataPermission4 databraryReleasedAssetOrExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)
-
-  , (runDataPermission4 excerptsReleasedAssetOrExcerpt fullySharedAsPublic, PermissionNONE) -- because perm public < perm shared
-  , (runDataPermission4 excerptsReleasedAssetOrExcerpt partiallySharedAsPublic, PermissionNONE)
-  , (runDataPermission4 excerptsReleasedAssetOrExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)
-
-  , (runDataPermission4 privatelyReleasedAssetOrExcerpt fullySharedAsPublic, PermissionNONE)
-  , (runDataPermission4 privatelyReleasedAssetOrExcerpt partiallySharedAsPublic, PermissionNONE)
-  , (runDataPermission4 privatelyReleasedAssetOrExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionNONE)
-  , (runDataPermission4 privatelyReleasedAssetOrExcerpt privateOrDatabrarySharedAsPublic, PermissionNONE)
-  , (runDataPermission4 privatelyReleasedAssetOrExcerpt privateAsDatabraryMember, PermissionNONE)
-  , (runDataPermission4 privatelyReleasedAssetOrExcerpt privateAsVolumeAffiliate, PermissionEDIT)
-  , (runDataPermission4 privatelyReleasedAssetOrExcerpt privateAsOwner, PermissionADMIN)
-  ]
--- END future testing code
-
 dataPermission4 :: (a -> EffectiveRelease) -> (a -> VolumeRolePolicy) -> a -> Permission
 dataPermission4 getObjEffectiveRelease getCurrentUserVolumeRole obj =
   let
