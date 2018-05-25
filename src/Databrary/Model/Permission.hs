@@ -6,13 +6,9 @@ module Databrary.Model.Permission
   , permissionPRIVATE
   , readPermission
   , readRelease
-  -- , dataPermission3
   , dataPermission4
-  -- , canReadData
   , canReadData2
   , accessJSON
-  -- testing only
-  , testdataPermission3
   ) where
 
 import Data.Monoid ((<>))
