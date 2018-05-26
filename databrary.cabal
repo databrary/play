@@ -102,7 +102,6 @@ library
     Databrary.Model.Permission
     Databrary.Model.Kind
     Databrary.Model.Metric.Types
-    Databrary.Model.Metric.SQL
     Databrary.Model.Permission.Types
     Databrary.Model.Permission.SQL
     Databrary.Model.Party
@@ -532,6 +531,7 @@ test-suite discovered
     , Databrary.Model.Citation.CrossRefTest
     , Databrary.Model.Comment.TypesTest
     , Databrary.Model.Container.TypesTest
+    , Databrary.Model.EnumTest
     , Databrary.Model.FormatTest
     , Databrary.Model.FundingTest
     , Databrary.Model.Funding.FundRefTest
