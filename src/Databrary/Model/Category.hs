@@ -16,6 +16,10 @@ import qualified Databrary.JSON as JSON
 import Databrary.Model.Id
 import Databrary.Model.Category.Types
 
+-- Formerly used when loaded from db
+-- categoryRow :: Selector -- Category
+-- categoryRow = selectColumns 'Category "category" ["id", "name", "description"]
+
 -- TODO: db coherence
 allCategories :: [Category]
 allCategories =
