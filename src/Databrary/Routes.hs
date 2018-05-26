@@ -107,7 +107,6 @@ routeMapWai routeContext =
         -- , route viewVolume
         -- , route postVolume
         -- , route viewVolumeEdit
-        -- , route viewVolumeAccess
         -- , route postVolumeAccess
         -- , route viewVolumeLinks
         -- , route postVolumeLinks
@@ -259,7 +258,6 @@ routeMapInvertible = routes
   , route viewVolume
   , route postVolume
   , route viewVolumeEdit
-  , route viewVolumeAccess
   , route postVolumeAccess
   , route viewVolumeLinks
   , route postVolumeLinks
