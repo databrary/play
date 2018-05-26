@@ -2,7 +2,7 @@
 module Databrary.Controller.Container
   ( getContainer
   , viewContainer
-  , viewContainerEdit
+  -- , viewContainerEdit
   , createContainer
   , postContainer
   , deleteContainer
@@ -76,6 +76,7 @@ containerForm c = do
     , containerRelease = fromMaybe (containerRelease c) release
     }
 
+{-
 viewContainerEdit :: ActionRoute (Maybe (Id Volume), Id Slot)
 viewContainerEdit = action GET (pathHTML >/> pathMaybe pathId </> pathSlotId </< "edit") $ \(vi, ci) -> withAuth $ do
   when (isJust vi) $ angular
@@ -83,6 +84,7 @@ viewContainerEdit = action GET (pathHTML >/> pathMaybe pathId </> pathSlotId </<
   unless (isJust vi) $
     result =<< peeks (redirectRouteResponse movedPermanently301 [] viewContainerEdit (Just (view c), containerSlotId (view c)))
   peeks $ blankForm . htmlContainerEdit (Right c)
+-}
 
 createContainer :: ActionRoute (Id Volume)
 createContainer = action POST (pathJSON >/> pathId </< "slot") $ \vi -> withAuth $ do

@@ -126,7 +126,6 @@ routeMapWai routeContext =
 
         -- , route createContainer  -- all 2nd pass
         -- , route $ viewSlot False 
-        -- , route viewContainerEdit
         -- , route postContainer
         -- , route deleteContainer
         -- , route viewContainerActivity  -- 2nd pass
@@ -278,7 +277,6 @@ routeMapInvertible = routes
 
   , route createContainer
   , route $ viewSlot False 
-  , route viewContainerEdit
   , route postContainer
   , route deleteContainer
   , route viewContainerActivity
