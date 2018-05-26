@@ -8,4 +8,4 @@ import Databrary.Action
 
 viewContainer :: ActionRoute (API, (Maybe (Id Volume), Id Container))
 postContainer :: ActionRoute (API, Id Slot)
-createContainer :: ActionRoute (API, Id Volume)
+createContainer :: ActionRoute (Id Volume)

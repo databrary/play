@@ -31,5 +31,5 @@ htmlContainerForm cont = do
   field "release" $ inputEnum False (containerRelease =<< cont)
 
 htmlContainerEdit :: Either Volume Container -> RequestContext -> FormHtml f
-htmlContainerEdit (Left v)  = htmlForm "Create container" createContainer (HTML, volumeId $ volumeRow v) (htmlContainerForm Nothing) (const mempty)
+htmlContainerEdit (Left v)  = htmlForm "Create container" createContainer (volumeId $ volumeRow v) (htmlContainerForm Nothing) (const mempty)
 htmlContainerEdit (Right c) = htmlForm ("Edit container " <> fold (containerName $ containerRow c)) postContainer (HTML, containerSlotId $ containerId $ containerRow c) (htmlContainerForm $ Just c) (const mempty)

@@ -207,7 +207,7 @@ jsRoutes =
   , rt "\"deleteContainer\":{method:\"DELETE\",route:function(int320){return \"/api/slot/\"+int320+\"\";}},"
   -- , jsRoute "deleteContainer" deleteContainer (JSON, container)
   , rt "\"createContainer\":{method:\"POST\",route:function(int320){return \"/api/volume/\"+int320+\"/slot\";}},"
-  -- , jsRoute "createContainer" createContainer (JSON, volume)
+  -- , jsRoute "createContainer" createContainer (volume)
   , rt "\"getContainerActivity\":{method:\"GET\",route:function(int320){return \"/api/slot/\"+int320+\"/activity\";}},"
   -- , jsRoute "getContainerActivity" viewContainerActivity (JSON, (Nothing, container))
 

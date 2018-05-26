@@ -40,6 +40,7 @@ import Databrary.Controller.Volume
 import Databrary.Controller.Notification
 import {-# SOURCE #-} Databrary.Controller.Slot
 import Databrary.View.Container
+import Databrary.View.Form (FormHtml)
 
 getContainer :: Permission -> Maybe (Id Volume) -> Id Slot -> Bool -> Handler Container
 getContainer p mv (Id (SlotId i s)) top
@@ -83,15 +84,15 @@ viewContainerEdit = action GET (pathHTML >/> pathMaybe pathId </> pathSlotId </<
     result =<< peeks (redirectRouteResponse movedPermanently301 [] viewContainerEdit (Just (view c), containerSlotId (view c)))
   peeks $ blankForm . htmlContainerEdit (Right c)
 
-createContainer :: ActionRoute (API, Id Volume)
-createContainer = action POST (pathAPI </> pathId </< "slot") $ \(api, vi) -> withAuth $ do
+createContainer :: ActionRoute (Id Volume)
+createContainer = action POST (pathJSON >/> pathId </< "slot") $ \vi -> withAuth $ do
   vol <- getVolume PermissionEDIT vi
-  bc <- runForm ((api == HTML) `thenUse` (htmlContainerEdit (Left vol))) $ containerForm (blankContainer vol)
+  bc <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ containerForm (blankContainer vol)
   c <- addContainer bc
   -- TODO: NoticeReleaseSlot?
-  case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ containerJSON False c -- False because level EDIT
-    HTML -> peeks $ otherRouteResponse [] viewContainer (api, (Just vi, containerId $ containerRow c))
+  -- case api of
+  return $ okResponse [] $ JSON.recordEncoding $ containerJSON False c -- False because level EDIT
+  -- HTML -> peeks $ otherRouteResponse [] viewContainer (api, (Just vi, containerId $ containerRow c))
 
 postContainer :: ActionRoute (API, Id Slot)
 postContainer = action POST (pathAPI </> pathSlotId) $ \(api, ci) -> withAuth $ do
