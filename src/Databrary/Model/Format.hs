@@ -61,6 +61,14 @@ mimeTypeTopCompare a b = mttc (BSC.unpack a) (BSC.unpack b) where
   mttc _       []      = GT
   mttc (ac:as) (bc:bs) = compare ac bc <> mttc as bs
 
+{- formerly used when reading format from db
+makeFormat :: Id Format -> BS.ByteString -> [Maybe BS.ByteString] -> T.Text -> Format
+makeFormat i m e n = Format i m (map (fromMaybe (error "NULL format.extension")) e) n
+
+formatRow :: Selector -- Format
+formatRow = selectColumns 'makeFormat "format" ["id", "mimetype", "extension", "name"]
+-}
+
 -- | Harcoded list of all formats recognized by Databrary for uploading
 -- TODO: db coherence
 allFormats :: [Format]
