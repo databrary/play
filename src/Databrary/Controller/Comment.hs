@@ -25,13 +25,14 @@ import Databrary.Controller.Permission
 import Databrary.Controller.Form
 import Databrary.Controller.Slot
 import Databrary.Controller.Notification
-import Databrary.View.Comment
+import Databrary.View.Form (FormHtml)
+-- import Databrary.View.Comment
 
-postComment :: ActionRoute (API, Id Slot)
-postComment = action POST (pathAPI </> pathSlotId </< "comment") $ \(api, si) -> withAuth $ do
+postComment :: ActionRoute (Id Slot)
+postComment = action POST (pathJSON >/> pathSlotId </< "comment") $ \si -> withAuth $ do
   u <- authAccount
   s <- getSlot PermissionSHARED Nothing si
-  (c, p) <- runForm ((api == HTML) `thenUse` (htmlCommentForm s)) $ do
+  (c, p) <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ do
     csrfForm
     text <- "text" .:> (deformRequired =<< deform)
     parent <- "parent" .:> deformNonEmpty (deformMaybe' "comment not found" =<< lift . lookupComment =<< deform)
@@ -52,6 +53,5 @@ postComment = action POST (pathAPI </> pathSlotId </< "comment") $ \(api, si) ->
     , notificationSegment = Just $ view c'
     , notificationCommentId = Just $ view c'
     }
-  case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ commentJSON c'
-    HTML -> peeks $ otherRouteResponse [] (viewSlot False) (api, (Just (view c'), slotId (commentSlot c')))
+  return $ okResponse [] $ JSON.recordEncoding $ commentJSON c'
+  -- HTML -> peeks $ otherRouteResponse [] (viewSlot False) (api, (Just (view c'), slotId (commentSlot c')))
