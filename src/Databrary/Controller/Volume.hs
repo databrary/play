@@ -6,7 +6,7 @@ module Databrary.Controller.Volume
   , viewVolumeCreateHandler
   , postVolume
   , createVolume
-  , viewVolumeLinks
+  -- , viewVolumeLinks
   , postVolumeLinks
   , postVolumeAssist
   , queryVolumes
@@ -75,7 +75,7 @@ import Databrary.Controller.Angular
 import Databrary.Controller.Web
 import {-# SOURCE #-} Databrary.Controller.AssetSegment
 import Databrary.Controller.Notification
-import Databrary.View.Volume
+import Databrary.View.Form (FormHtml)
 
 getVolume :: Permission -> Id Volume -> Handler Volume
 getVolume p i = do
@@ -228,15 +228,16 @@ viewVolume = action GET (pathAPI </> pathId) $ \(api, vi) -> withAuth $ do
   v <- getVolume PermissionPUBLIC vi
   accesses <- lookupVolumeAccess v PermissionNONE
   -- (liftIO . print) ("num accesses", length accesses)
-  case api of
-    JSON ->
-      let idSeriesRecAct :: Handler (JSON.Record (Id Volume) JSON.Series)
-          idSeriesRecAct = volumeJSONQuery v (Just accesses) =<< peeks Wai.queryString
-      in okResponse [] . JSON.recordEncoding <$> idSeriesRecAct
+  -- case api of
+  (let idSeriesRecAct :: Handler (JSON.Record (Id Volume) JSON.Series)
+       idSeriesRecAct = volumeJSONQuery v (Just accesses) =<< peeks Wai.queryString
+   in okResponse [] . JSON.recordEncoding <$> idSeriesRecAct)
+  {-
     HTML -> do
       top <- lookupVolumeTopContainer v
       t <- lookupSlotKeywords $ containerSlot top
       peeks $ okResponse [] . htmlVolumeView v t
+  -}
 
 volumeForm :: Volume -> DeformHandler f Volume
 volumeForm v = do
@@ -275,34 +276,35 @@ volumeCitationForm v = do
   return (vol{ volumeRow = (volumeRow vol){ volumeName = name } }, empty `unlessUse` fill)
 
 viewVolumeEdit :: ActionRoute (Id Volume)
-viewVolumeEdit = action GET (pathHTML >/> pathId </< "edit") $ \vi -> withAuth $ do
+viewVolumeEdit = action GET (pathHTML >/> pathId </< "edit") $ \_ -> withAuth $ do
   angular
+  return (okResponse [] ("" :: String)) -- should never get here
+  {-
   v <- getVolume PermissionEDIT vi
   cite <- lookupVolumeCitation v
-  peeks $ blankForm . htmlVolumeEdit (Just (v, cite))
+  peeks $ blankForm . htmlVolumeEdit (Just (v, cite)) -}
 
 viewVolumeCreateHandler :: Action  -- TODO : GET only
 viewVolumeCreateHandler = withAuth $ do
   angular
-  peeks $ blankForm . htmlVolumeEdit Nothing
+  return (okResponse [] ("" :: String)) -- should never get here
+  -- peeks $ blankForm . htmlVolumeEdit Nothing
 
-postVolume :: ActionRoute (API, Id Volume)
-postVolume = action POST (pathAPI </> pathId) $ \arg@(api, vi) -> withAuth $ do
+postVolume :: ActionRoute (Id Volume)
+postVolume = action POST (pathJSON >/> pathId) $ \vi -> withAuth $ do
   v <- getVolume PermissionEDIT vi
   cite <- lookupVolumeCitation v
-  (v', cite') <- runForm ((api == HTML) `thenUse` (htmlVolumeEdit (Just (v, cite)))) $ volumeCitationForm v
+  (v', cite') <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ volumeCitationForm v
   changeVolume v'
   r <- changeVolumeCitation v' cite'
-  case api of
-    JSON ->
-      return $ okResponse [] $
-        JSON.recordEncoding $ volumeJSONSimple v' `JSON.foldObjectIntoRec` ("citation" JSON..= if r then cite' else cite)
-    HTML -> peeks $ otherRouteResponse [] viewVolume arg
+  return $ okResponse [] $
+    JSON.recordEncoding $ volumeJSONSimple v' `JSON.foldObjectIntoRec` ("citation" JSON..= if r then cite' else cite)
+    -- HTML -> peeks $ otherRouteResponse [] viewVolume arg
 
-createVolume :: ActionRoute API
-createVolume = action POST (pathAPI </< "volume") $ \api -> withAuth $ do
+createVolume :: ActionRoute ()
+createVolume = action POST (pathJSON >/> "volume") $ \() -> withAuth $ do
   u <- peek
-  (bv, cite, owner) <- runForm ((api == HTML) `thenUse` (htmlVolumeEdit Nothing)) $ do
+  (bv, cite, owner) <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ do
     csrfForm
     (bv, cite) <- volumeCitationForm blankVolume
     own <- "owner" .:> do
@@ -322,21 +324,22 @@ createVolume = action POST (pathAPI </< "volume") $ \api -> withAuth $ do
       { notificationVolume = Just $ volumeRow v
       , notificationParty = Just $ partyRow owner
       }
-  case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v
-    HTML -> peeks $ otherRouteResponse [] viewVolume (api, volumeId $ volumeRow v)
+  return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v
+  -- HTML -> peeks $ otherRouteResponse [] viewVolume (api, volumeId $ volumeRow v)
 
+{-
 viewVolumeLinks :: ActionRoute (Id Volume)
 viewVolumeLinks = action GET (pathHTML >/> pathId </< "link") $ \vi -> withAuth $ do
   v <- getVolume PermissionEDIT vi
   links <- lookupVolumeLinks v
   peeks $ blankForm . htmlVolumeLinksEdit v links
+-}
 
-postVolumeLinks :: ActionRoute (API, Id Volume)
-postVolumeLinks = action POST (pathAPI </> pathId </< "link") $ \arg@(api, vi) -> withAuth $ do
+postVolumeLinks :: ActionRoute (Id Volume)
+postVolumeLinks = action POST (pathJSON >/> pathId </< "link") $ \vi -> withAuth $ do
   v <- getVolume PermissionEDIT vi
-  links <- lookupVolumeLinks v
-  links' <- runForm ((api == HTML) `thenUse` (htmlVolumeLinksEdit v links)) $ do
+  -- links <- lookupVolumeLinks v
+  links' <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ do
     csrfForm
     withSubDeforms $ \_ -> Citation
       <$> ("head" .:> deform)
@@ -344,10 +347,8 @@ postVolumeLinks = action POST (pathAPI </> pathId </< "link") $ \arg@(api, vi) -
       <*> pure Nothing
       <*> pure Nothing
   changeVolumeLinks v links'
-  case api of
-    JSON ->
-      return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v `JSON.foldObjectIntoRec` ("links" JSON..= links')
-    HTML -> peeks $ otherRouteResponse [] viewVolume arg
+  return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v `JSON.foldObjectIntoRec` ("links" JSON..= links')
+  -- HTML -> peeks $ otherRouteResponse [] viewVolume arg
 
 postVolumeAssist :: ActionRoute (Id Volume)
 postVolumeAssist = action POST (pathJSON >/> pathId </< "assist") $ \vi -> withAuth $ do
@@ -372,11 +373,10 @@ volumeSearchForm = VolumeFilter
 queryVolumes :: ActionRoute API
 queryVolumes = action GET (pathAPI </< "volume") $ \api -> withAuth $ do
   when (api == HTML) angular
-  vf <- runForm ((api == HTML) `thenUse` (htmlVolumeSearch mempty [])) volumeSearchForm
+  vf <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) volumeSearchForm
   p <- findVolumes vf
-  case api of
-    JSON -> return $ okResponse [] $ JSON.mapRecords (\v -> volumeJSONSimple v) p
-    HTML -> peeks $ blankForm . htmlVolumeSearch vf p
+  return $ okResponse [] $ JSON.mapRecords (\v -> volumeJSONSimple v) p
+  -- HTML -> peeks $ blankForm . htmlVolumeSearch vf p
 
 thumbVolume :: ActionRoute (Id Volume)
 thumbVolume = action GET (pathId </< "thumb") $ \vi -> withAuth $ do

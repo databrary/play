@@ -108,7 +108,6 @@ routeMapWai routeContext =
         -- , route postVolume
         -- , route viewVolumeEdit
         -- , route postVolumeAccess
-        -- , route viewVolumeLinks
         -- , route postVolumeLinks
         -- , route postVolumeFunding  -- 2nd pass
         -- , route deleteVolumeFunder  -- 2nd pass
@@ -256,7 +255,6 @@ routeMapInvertible = routes
   , route postVolume
   , route viewVolumeEdit
   , route postVolumeAccess
-  , route viewVolumeLinks
   , route postVolumeLinks
   , route postVolumeFunding
   , route deleteVolumeFunder

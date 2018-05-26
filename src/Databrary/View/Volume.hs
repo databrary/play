@@ -1,33 +1,36 @@
 {-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 module Databrary.View.Volume
-  ( htmlVolumeViewLink
+  (
+    htmlVolumeViewLink
+    {-
   , htmlVolumeView
   , htmlVolumeEdit
   , htmlVolumeLinksEdit
   , htmlVolumeSearch
+   -}
   ) where
 
-import Control.Monad (when, forM_)
-import Data.Monoid ((<>))
+-- import Control.Monad (when, forM_)
+-- import Data.Monoid ((<>))
 import Network.HTTP.Types.QueryLike (QueryLike(..))
 import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as HA
+-- import qualified Text.Blaze.Html5.Attributes as HA
 
-import Databrary.Has (view)
+-- import Databrary.Has (view)
 import Databrary.Action
-import Databrary.Model.Permission
+-- import Databrary.Model.Permission
 import Databrary.Model.Volume
-import Databrary.Model.Citation
-import Databrary.Model.Tag
-import Databrary.HTTP.Form.View
-import Databrary.Controller.Paths
+-- import Databrary.Model.Citation
+-- import Databrary.Model.Tag
+-- import Databrary.HTTP.Form.View
+-- import Databrary.Controller.Paths
 import Databrary.View.Html
-import Databrary.View.Template
-import Databrary.View.Form
-import Databrary.View.Paginate
+-- import Databrary.View.Template
+-- import Databrary.View.Form
+-- import Databrary.View.Paginate
 
-import {-# SOURCE #-} Databrary.Controller.Angular
-import {-# SOURCE #-} Databrary.Controller.Party
+-- import {-# SOURCE #-} Databrary.Controller.Angular
+-- import {-# SOURCE #-} Databrary.Controller.Party
 import {-# SOURCE #-} Databrary.Controller.Volume
 
 htmlVolumeViewLink :: QueryLike q => VolumeRow -> q -> H.Html
@@ -35,6 +38,7 @@ htmlVolumeViewLink v q =
   H.a H.! actionLink viewVolume (HTML, volumeId v) q
     $ H.text $ volumeName v
 
+{-
 htmlVolumeView :: Volume -> [Tag] -> RequestContext -> H.Html
 htmlVolumeView v t req = htmlTemplate req Nothing $ \js -> do
   H.div H.! H.customAttribute "typeof" "dataset" $ do
@@ -104,3 +108,4 @@ htmlVolumeSearch VolumeFilter{..} vl req = htmlForm "Volume search" queryVolumes
   (field "query" $ inputText volumeFilterQuery)
   (\js -> htmlPaginate (htmlVolumeList js) volumeFilterPaginate vl (view req))
   req
+-}
