@@ -137,15 +137,12 @@ routeMapWai routeContext =
 
         -- , route viewAsset  -- all 2nd pass
         -- , route postAsset
-        -- , route viewAssetEdit
         -- , route deleteAsset
         -- , route downloadAsset
         -- , route downloadOrigAsset 
         -- , route thumbAsset
-        -- , route viewAssetCreate
         -- , route createAsset
         -- , route createSlotAsset
-        -- , route viewSlotAssetCreate
 
         -- , route (viewAssetSegment False)  -- all 2nd pass
         -- , route downloadAssetSegment 
@@ -288,15 +285,12 @@ routeMapInvertible = routes
 
   , route viewAsset
   , route postAsset
-  , route viewAssetEdit
   , route deleteAsset
   , route downloadAsset
   , route downloadOrigAsset 
   , route thumbAsset
-  , route viewAssetCreate
   , route createAsset
   , route createSlotAsset
-  , route viewSlotAssetCreate
 
   , route (viewAssetSegment False)
   , route downloadAssetSegment 

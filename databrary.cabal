@@ -191,7 +191,6 @@ library
     Databrary.View.Template
     Databrary.View.Zip
     Databrary.View.Notification
-    Databrary.View.Asset
     Databrary.View.Root
     Databrary.View.Angular
     Databrary.View.Paginate
