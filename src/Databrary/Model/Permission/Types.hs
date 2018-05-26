@@ -4,7 +4,10 @@ module Databrary.Model.Permission.Types
   ( Permission(..)
   , Access(..), accessPermission'
   , accessSite, accessMember, accessPermission
-  , VolumeAccessPolicy(..)
+  , PublicPolicy(..)
+  , SharedPolicy(..)
+  , VolumeRolePolicy(..)
+  , extractPermissionIgnorePolicy
   ) where
 
 import Language.Haskell.TH.Lift (deriveLift, deriveLiftMany)
@@ -111,7 +114,29 @@ instance Monoid Access where
 
 deriveLiftMany [''Permission, ''Access]
 
-data VolumeAccessPolicy = PublicRestricted | PermLevelDefault
+data PublicPolicy = PublicRestrictedPolicy | PublicNoPolicy deriving (Show, Eq)
+
+data SharedPolicy = SharedRestrictedPolicy | SharedNoPolicy deriving (Show, Eq)
+
+data VolumeRolePolicy =
+    RoleNone
+  | RolePublicViewer PublicPolicy
+  | RoleSharedViewer SharedPolicy
+  | RoleReader
+  | RoleEditor
+  | RoleAdmin
   deriving (Show, Eq)
 
-deriveLift ''VolumeAccessPolicy
+deriveLift ''PublicPolicy
+deriveLift ''SharedPolicy
+deriveLift ''VolumeRolePolicy
+
+extractPermissionIgnorePolicy :: VolumeRolePolicy -> Permission
+extractPermissionIgnorePolicy rp =
+  case rp of
+      RoleNone -> PermissionNONE
+      RolePublicViewer _ -> PermissionPUBLIC
+      RoleSharedViewer _ -> PermissionSHARED
+      RoleReader -> PermissionREAD
+      RoleEditor -> PermissionEDIT
+      RoleAdmin -> PermissionADMIN

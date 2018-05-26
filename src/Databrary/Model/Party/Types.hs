@@ -3,7 +3,11 @@ module Databrary.Model.Party.Types
   ( PartyRow(..)
   , Party(..)
   , Account(..)
+  , getPartyId
   , SiteAuth(..)
+  , nobodyParty
+  , rootParty
+  , staffParty
   , nobodySiteAuth
   , blankParty
   , blankAccount
@@ -47,20 +51,22 @@ data Account = Account
   }
 
 -- makeHasRec ''PartyRow ['partyId]
-instance Has (Id Party) PartyRow where
-  view = partyId
+-- instance Has (Id Party) PartyRow where
+--   view = partyId
 -- makeHasRec ''Party ['partyRow]
-instance Has PartyRow Party where
-  view = partyRow
+-- instance Has PartyRow Party where
+--   view = partyRow
 instance Has (Id Party) Party where
-  view = (view . partyRow)
+  view = getPartyId
+getPartyId :: Party -> Id Party
+getPartyId = partyId . partyRow
 -- makeHasRec ''Account ['accountParty]
 instance Has Party Account where
   view = accountParty
-instance Has PartyRow Account where
-  view = (view . accountParty)
+-- instance Has PartyRow Account where
+--  view = (partyRow . accountParty)
 instance Has (Id Party) Account where
-  view = (view . accountParty)
+  view = (getPartyId . accountParty)
 
 instance Has Access Party where
   view Party{ partyAccess = Just a } = a
@@ -83,14 +89,34 @@ instance Has Account SiteAuth where
   view = siteAccount
 instance Has Party SiteAuth where
   view = (view . siteAccount)
-instance Has PartyRow SiteAuth where
-  view = (view . siteAccount)
+-- instance Has PartyRow SiteAuth where
+--  view = (view . siteAccount)
 instance Has (Id Party) SiteAuth where
   view = (view . siteAccount)
 instance Has Access SiteAuth where
   view = siteAccess
 
 deriveLiftMany [''PartyRow, ''Party, ''Account]
+
+nobodyParty, rootParty, staffParty :: Party -- TODO: load on startup from service module
+nobodyParty =
+   Party
+         (PartyRow (Id (-1)) (T.pack "Everybody") Nothing Nothing Nothing Nothing)
+         Nothing
+         PermissionREAD
+         Nothing
+rootParty =
+   Party
+         (PartyRow (Id 0) (T.pack "Databrary") Nothing Nothing Nothing Nothing)
+         Nothing
+         PermissionSHARED
+         Nothing
+staffParty =
+   Party
+         (PartyRow (Id 2) (T.pack "Staff") Nothing Nothing (Just (T.pack "Databrary")) Nothing)
+         Nothing
+         PermissionPUBLIC
+         Nothing
 
 -- this is unfortunate, mainly to avoid untangling Party.SQL
 nobodySiteAuth :: SiteAuth
