@@ -82,7 +82,6 @@ library
     Databrary.Model.Token
     Databrary.Model.Slot
     Databrary.Model.Category.Types
-    Databrary.Model.Category.SQL
     Databrary.Model.Authorize
     Databrary.Model.RecordSlot.Types
     Databrary.Model.RecordSlot.SQL
