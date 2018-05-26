@@ -27,7 +27,7 @@ import Databrary.Controller.Register
 import Databrary.Controller.Token
 import Databrary.Controller.Party
 import Databrary.Controller.Volume
-import Databrary.Controller.Container
+-- import Databrary.Controller.Container
 import Databrary.Controller.Slot
 import Databrary.Controller.Record
 import Databrary.Controller.Format
@@ -203,11 +203,11 @@ jsRoutes =
   , rt "\"getSlot\":{method:\"GET\",route:function(int320,segment1){return \"/api/slot/\"+int320+\"/\"+segment1+\"\";}},"
   -- , jsRoute "getSlot" (viewSlot False) (JSON, (Nothing, slot))
   , rt "\"postContainer\":{method:\"POST\",route:function(int320){return \"/api/slot/\"+int320+\"\";}},"
-  -- , jsRoute "postContainer" postContainer (JSON, container)
+  -- , jsRoute "postContainer" postContainer (container)
   , rt "\"deleteContainer\":{method:\"DELETE\",route:function(int320){return \"/api/slot/\"+int320+\"\";}},"
-  -- , jsRoute "deleteContainer" deleteContainer (JSON, container)
+  -- , jsRoute "deleteContainer" deleteContainer (container)
   , rt "\"createContainer\":{method:\"POST\",route:function(int320){return \"/api/volume/\"+int320+\"/slot\";}},"
-  -- , jsRoute "createContainer" createContainer (JSON, volume)
+  -- , jsRoute "createContainer" createContainer (volume)
   , rt "\"getContainerActivity\":{method:\"GET\",route:function(int320){return \"/api/slot/\"+int320+\"/activity\";}},"
   -- , jsRoute "getContainerActivity" viewContainerActivity (JSON, (Nothing, container))
 
@@ -311,7 +311,6 @@ fakeBackendDepend1
        , ActionRoute (Id Volume)
        , ActionRoute (API, Id Volume)
        , Bool -> ActionRoute (API, (Maybe (Id Volume), Id Slot))
-       , ActionRoute (Maybe (Id Volume), Id Slot)
        , ActionRoute (API, (Maybe (Id Volume), Id Slot))
        , ActionRoute (Maybe (Id Volume), Id Slot)
        , ActionRoute (API, Id Record)
@@ -335,7 +334,6 @@ fakeBackendDepend1 =
   , csvVolume :: ActionRoute (Id Volume)
   , viewVolumeActivity :: ActionRoute (API, Id Volume)
   , viewSlot :: Bool -> ActionRoute (API, (Maybe (Id Volume), Id Slot))
-  , viewContainerEdit :: ActionRoute (Maybe (Id Volume), Id Slot)
   , viewContainerActivity :: ActionRoute (API, (Maybe (Id Volume), Id Slot))
   , thumbSlot :: ActionRoute (Maybe (Id Volume), Id Slot)
   , viewRecord :: ActionRoute (API, Id Record)

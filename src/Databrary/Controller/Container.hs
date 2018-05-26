@@ -2,7 +2,7 @@
 module Databrary.Controller.Container
   ( getContainer
   , viewContainer
-  , viewContainerEdit
+  -- , viewContainerEdit
   , createContainer
   , postContainer
   , deleteContainer
@@ -12,12 +12,11 @@ module Databrary.Controller.Container
 import Control.Arrow (second)
 import Control.Monad (when, unless, mfilter)
 import qualified Data.Invertible as I
-import Data.Maybe (isJust, fromMaybe, maybeToList)
+import Data.Maybe (fromMaybe, maybeToList)
 import qualified Data.Text as T
-import Network.HTTP.Types (noContent204, movedPermanently301, conflict409)
+import Network.HTTP.Types (noContent204, conflict409)
 import qualified Web.Route.Invertible as R
 
-import Databrary.Ops
 import Databrary.Has
 import qualified Databrary.JSON as JSON
 import Databrary.Model.Id
@@ -35,11 +34,12 @@ import Databrary.HTTP.Path.Parser
 import Databrary.Controller.Paths
 import Databrary.Controller.Permission
 import Databrary.Controller.Form
-import Databrary.Controller.Angular
+-- import Databrary.Controller.Angular
 import Databrary.Controller.Volume
 import Databrary.Controller.Notification
 import {-# SOURCE #-} Databrary.Controller.Slot
-import Databrary.View.Container
+-- import Databrary.View.Container
+import Databrary.View.Form (FormHtml)
 
 getContainer :: Permission -> Maybe (Id Volume) -> Id Slot -> Bool -> Handler Container
 getContainer p mv (Id (SlotId i s)) top
@@ -75,6 +75,7 @@ containerForm c = do
     , containerRelease = fromMaybe (containerRelease c) release
     }
 
+{-
 viewContainerEdit :: ActionRoute (Maybe (Id Volume), Id Slot)
 viewContainerEdit = action GET (pathHTML >/> pathMaybe pathId </> pathSlotId </< "edit") $ \(vi, ci) -> withAuth $ do
   when (isJust vi) $ angular
@@ -82,21 +83,22 @@ viewContainerEdit = action GET (pathHTML >/> pathMaybe pathId </> pathSlotId </<
   unless (isJust vi) $
     result =<< peeks (redirectRouteResponse movedPermanently301 [] viewContainerEdit (Just (view c), containerSlotId (view c)))
   peeks $ blankForm . htmlContainerEdit (Right c)
+-}
 
-createContainer :: ActionRoute (API, Id Volume)
-createContainer = action POST (pathAPI </> pathId </< "slot") $ \(api, vi) -> withAuth $ do
+createContainer :: ActionRoute (Id Volume)
+createContainer = action POST (pathJSON >/> pathId </< "slot") $ \vi -> withAuth $ do
   vol <- getVolume PermissionEDIT vi
-  bc <- runForm ((api == HTML) `thenUse` (htmlContainerEdit (Left vol))) $ containerForm (blankContainer vol)
+  bc <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ containerForm (blankContainer vol)
   c <- addContainer bc
   -- TODO: NoticeReleaseSlot?
-  case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ containerJSON False c -- False because level EDIT
-    HTML -> peeks $ otherRouteResponse [] viewContainer (api, (Just vi, containerId $ containerRow c))
+  -- case api of
+  return $ okResponse [] $ JSON.recordEncoding $ containerJSON False c -- False because level EDIT
+  -- HTML -> peeks $ otherRouteResponse [] viewContainer (api, (Just vi, containerId $ containerRow c))
 
-postContainer :: ActionRoute (API, Id Slot)
-postContainer = action POST (pathAPI </> pathSlotId) $ \(api, ci) -> withAuth $ do
+postContainer :: ActionRoute (Id Slot)
+postContainer = action POST (pathJSON >/> pathSlotId) $ \(ci) -> withAuth $ do
   c <- getContainer PermissionEDIT Nothing ci False
-  c' <- runForm ((api == HTML) `thenUse` (htmlContainerEdit (Right c))) $ containerForm c
+  c' <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ containerForm c
   changeContainer c'
   when (containerRelease c' /= containerRelease c) $ do
     r <- changeRelease (containerSlot c') (containerRelease c')
@@ -107,18 +109,16 @@ postContainer = action POST (pathAPI </> pathSlotId) $ \(api, ci) -> withAuth $ 
         { notificationContainerId = Just $ containerId $ containerRow c'
         , notificationRelease = containerRelease c'
         }
-  case api of
-    JSON -> return $ okResponse [] $ JSON.recordEncoding $ containerJSON False c' -- False because level EDIT
-    HTML -> peeks $ otherRouteResponse [] (viewSlot False) (api, (Just (view c'), ci))
+  return $ okResponse [] $ JSON.recordEncoding $ containerJSON False c' -- False because level EDIT
+  --HTML -> peeks $ otherRouteResponse [] (viewSlot False) (api, (Just (view c'), ci))
 
-deleteContainer :: ActionRoute (API, Id Slot)
-deleteContainer = action DELETE (pathAPI </> pathSlotId) $ \(api, ci) -> withAuth $ do
+deleteContainer :: ActionRoute (Id Slot)
+deleteContainer = action DELETE (pathJSON >/> pathSlotId) $ \ci -> withAuth $ do
   guardVerfHeader
   c <- getContainer PermissionEDIT Nothing ci False
   r <- removeContainer c
-  unless r $ result $ case api of
-    JSON -> response conflict409 [] $ JSON.recordEncoding $ containerJSON False c -- False because level EDIT
-    HTML -> response conflict409 [] ("This container is not empty." :: T.Text)
-  case api of
-    JSON -> return $ emptyResponse noContent204 []
-    HTML -> peeks $ otherRouteResponse [] viewVolume (api, view c)
+  unless r $ result $ 
+    response conflict409 [] $ JSON.recordEncoding $ containerJSON False c -- False because level EDIT
+    -- HTML -> response conflict409 [] ("This container is not empty." :: T.Text)
+  return $ emptyResponse noContent204 []
+  -- HTML -> peeks $ otherRouteResponse [] viewVolume (api, view c)
