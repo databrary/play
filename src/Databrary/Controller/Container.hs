@@ -2,7 +2,7 @@
 module Databrary.Controller.Container
   ( getContainer
   , viewContainer
-  -- , viewContainerEdit
+  , viewContainerEdit
   , createContainer
   , postContainer
   , deleteContainer
@@ -12,9 +12,9 @@ module Databrary.Controller.Container
 import Control.Arrow (second)
 import Control.Monad (when, unless, mfilter)
 import qualified Data.Invertible as I
-import Data.Maybe (fromMaybe, maybeToList)
+import Data.Maybe (fromMaybe, maybeToList, isJust)
 import qualified Data.Text as T
-import Network.HTTP.Types (noContent204, conflict409)
+import Network.HTTP.Types (noContent204, movedPermanently301, conflict409)
 import qualified Web.Route.Invertible as R
 
 import Databrary.Has
@@ -34,7 +34,7 @@ import Databrary.HTTP.Path.Parser
 import Databrary.Controller.Paths
 import Databrary.Controller.Permission
 import Databrary.Controller.Form
--- import Databrary.Controller.Angular
+import Databrary.Controller.Angular
 import Databrary.Controller.Volume
 import Databrary.Controller.Notification
 import {-# SOURCE #-} Databrary.Controller.Slot
@@ -75,15 +75,14 @@ containerForm c = do
     , containerRelease = fromMaybe (containerRelease c) release
     }
 
-{-
 viewContainerEdit :: ActionRoute (Maybe (Id Volume), Id Slot)
 viewContainerEdit = action GET (pathHTML >/> pathMaybe pathId </> pathSlotId </< "edit") $ \(vi, ci) -> withAuth $ do
   when (isJust vi) $ angular
   c <- getContainer PermissionEDIT vi ci False
   unless (isJust vi) $
     result =<< peeks (redirectRouteResponse movedPermanently301 [] viewContainerEdit (Just (view c), containerSlotId (view c)))
-  peeks $ blankForm . htmlContainerEdit (Right c)
--}
+  return $ okResponse [] $ ("" :: String) -- should never get here
+  -- peeks $ blankForm . htmlContainerEdit (Right c)
 
 createContainer :: ActionRoute (Id Volume)
 createContainer = action POST (pathJSON >/> pathId </< "slot") $ \vi -> withAuth $ do
