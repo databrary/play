@@ -242,11 +242,11 @@ jsRoutes =
   , rt "\"getAssetSegment\":{method:\"GET\",route:function(int320,int321,segment2,int323){return \"/api/volume/\"+int320+\"/slot/\"+int321+\"/\"+segment2+\"/asset/\"+int323+\"\";}},"
   -- , jsRoute "getAssetSegment" (viewAssetSegment False) (JSON, Just volume, slot, asset)
   , rt "\"postAsset\":{method:\"POST\",route:function(int320){return \"/api/asset/\"+int320+\"\";}},"
-  -- , jsRoute "postAsset" postAsset (JSON, asset)
+  -- , jsRoute "postAsset" postAsset (asset)
   , rt "\"createAsset\":{method:\"POST\",route:function(int320){return \"/api/volume/\"+int320+\"/asset\";}},"
-  -- , jsRoute "createAsset" createAsset (JSON, volume)
+  -- , jsRoute "createAsset" createAsset (volume)
   , rt "\"deleteAsset\":{method:\"DELETE\",route:function(int320){return \"/api/asset/\"+int320+\"\";}},"
-  -- , jsRoute "deleteAsset" deleteAsset (JSON, asset)
+  -- , jsRoute "deleteAsset" deleteAsset (asset)
   , rt "\"postExcerpt\":{method:\"POST\",route:function(int320,segment1,int322){return \"/api/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/excerpt\";}},"
   -- , jsRoute "postExcerpt" postExcerpt (slot, asset)
   , rt "\"deleteExcerpt\":{method:\"DELETE\",route:function(int320,segment1,int322){return \"/api/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/excerpt\";}},"
