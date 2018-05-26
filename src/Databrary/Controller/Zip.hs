@@ -200,10 +200,12 @@ zipVolume isOrig =
   zipResponse2 (BSC.pack $ "databrary-" ++ show (volumeId $ volumeRow v) ++ if idSetIsFull s then "" else "-partial") zipActs
 
 viewVolumeDescription :: ActionRoute (Id Volume)
-viewVolumeDescription = action GET (pathId </< "description") $ \vi -> withAuth $ do
+viewVolumeDescription = action GET (pathId </< "description") $ \_ -> withAuth $ do
   angular
+  {-
   (v, s, a) <- getVolumeInfo vi
   top <- lookupVolumeTopContainer v
   glob <- lookupSlotRecords $ containerSlot top
   (desc, _, _) <- volumeDescription False v (top, glob) s a
-  return $ okResponse [] desc
+  -}
+  return $ okResponse [] (""::String)
