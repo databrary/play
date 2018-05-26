@@ -50,7 +50,7 @@ import Databrary.Controller.Web
 import Databrary.Controller.IdSet
 import Databrary.View.Html
 
-import {-# SOURCE #-} Databrary.Controller.Zip
+-- import {-# SOURCE #-} Databrary.Controller.Zip
 
 htmlVolumeDescription :: Bool -> Volume -> [Citation] -> [Funding] -> [RecordSlot] -> IdSet Container -> [[AssetSlot]] -> [[AssetSlot]] -> RequestContext -> H.Html
 htmlVolumeDescription inzip Volume{ volumeRow = VolumeRow{..}, ..} cite fund glob cs atl abl req = H.docTypeHtml $ do
@@ -103,17 +103,18 @@ htmlVolumeDescription inzip Volume{ volumeRow = VolumeRow{..}, ..} cite fund glo
     H.dl $ do
       H.dt "Created"
       H.dd $ H.string $ formatTime defaultTimeLocale "%d %b %Y" volumeCreation
-      if inzip
-      then do
+--      if inzip
+--      then do
+      do
         H.dt "Downloaded"
         H.dd $ do
           H.string $ formatTime defaultTimeLocale "%a, %d %b %Y %H:%M:%S %Z" (view req :: Timestamp)
           void " by "
           H.a H.! HA.href (link viewParty (HTML, TargetParty $ view req)) $
             H.text $ partyName $ partyRow $ view req
-      else do
-        H.dt $ H.a H.! actionLink (zipVolume True) volumeId (idSetQuery cs) $
-          void "Download Original"
+--      else do
+--        H.dt $ H.a H.! actionLink (zipVolume True) volumeId (idSetQuery cs) $
+--          void "Download Original"
     unless (idSetIsFull cs) $ H.p $ msg "download.zip.partial"
     H.p $ do
       msg "download.warning"
