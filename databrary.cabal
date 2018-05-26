@@ -178,7 +178,6 @@ library
     Databrary.StringUtil
     Databrary.View.Format
     Databrary.View.Volume
-    Databrary.View.Activity
     Databrary.View.Token
     Databrary.View.Authorize
     Databrary.View.Container

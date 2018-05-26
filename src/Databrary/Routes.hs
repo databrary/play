@@ -185,8 +185,8 @@ routeMapWai routeContext =
       , ("/api/cite", hn0 getCitationHandler)
       , ("/api/funder", hn0 queryFunderHandler)
         -- , route remoteTranscode  -- second pass
-      , ("/api/activity", hn0 (viewSiteActivityHandler JSON))
-      , ("/activity", hn0 (viewSiteActivityHandler HTML))
+      , ("/api/activity", hn0 viewSiteActivityHandler)
+      -- , ("/activity", hn0 (viewSiteActivityHandler HTML))
 
         -- , route viewNotifications <<<<<<<<
         -- , route deleteNotification -- second pass

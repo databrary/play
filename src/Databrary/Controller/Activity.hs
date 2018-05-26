@@ -35,21 +35,22 @@ import Databrary.Controller.Angular
 import Databrary.Controller.Party
 import Databrary.Controller.Volume
 import Databrary.Controller.Container
-import Databrary.View.Activity
+-- import Databrary.View.Activity
 
-viewSiteActivity :: ActionRoute API
-viewSiteActivity = action GET (pathAPI </< "activity") $ \api -> viewSiteActivityHandler api
+viewSiteActivity :: ActionRoute ()
+viewSiteActivity = action GET (pathJSON >/> "activity") $ \() -> viewSiteActivityHandler
 
-viewSiteActivityHandler :: API -> Action -- TODO: GET only
-viewSiteActivityHandler = \api -> withAuth $ do
+viewSiteActivityHandler :: Action -- TODO: GET only
+viewSiteActivityHandler = withAuth $ do
   ss <- focusIO $ readIORef . serviceStats
   vl <- map (second $ ("volume" JSON..=:) . (\v -> volumeJSONSimple v)) . nubBy ((==) `on` volumeId . volumeRow . snd) <$> lookupVolumeShareActivity 8
   al <- map (second $ ("party"  JSON..=:) . partyJSON)  . nubBy ((==) `on` partyId  . partyRow  . snd) <$> lookupAuthorizeActivity 8
-  case api of
-    JSON -> return $ okResponse [] $ JSON.pairs $
-         "stats" JSON..= ss
-      <> JSON.nestObject "activity" (\u -> map (u . ent) (take 12 $ mergeBy ((fo .) . comparing fst) vl al))
-    HTML -> peeks $ okResponse [] . htmlSiteActivity ss
+  return
+    $ okResponse []
+      $ JSON.pairs $
+           "stats" JSON..= ss
+        <> JSON.nestObject "activity" (\u -> map (u . ent) (take 12 $ mergeBy ((fo .) . comparing fst) vl al))
+    -- HTML -> peeks $ okResponse [] . htmlSiteActivity ss
   where
   ent (t, j) = j <> "time" JSON..= t
   fo GT = LT
