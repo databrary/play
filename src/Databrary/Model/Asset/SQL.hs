@@ -2,8 +2,8 @@
 module Databrary.Model.Asset.SQL
   ( selectAssetRow
   , selectAsset
-  , insertAsset
-  , updateAsset
+  -- , insertAsset
+  -- , updateAsset
   , makeAssetRow
   , setAssetId
   -- for expanded queries
@@ -19,7 +19,6 @@ import Databrary.Model.Format
 import Databrary.Model.Id.Types
 import Databrary.Model.Release.Types
 import Databrary.Model.SQL.Select
-import Databrary.Model.Audit.SQL
 import Databrary.Model.Volume.SQL
 import Databrary.Model.Asset.Types
 
@@ -36,6 +35,10 @@ selectAsset ident = selectJoin 'Asset
   , joinOn "asset.volume = volume.id" $ selectVolume ident
   ]
 
+setAssetId :: Asset -> Id Asset -> Asset
+setAssetId a i = a{ assetRow = (assetRow a){ assetId = i } }
+
+{-
 assetKeys :: String -- ^ @'Asset'@
   -> [(String, String)]
 assetKeys r =
@@ -53,9 +56,6 @@ assetSets a =
   , ("size", "${assetSize $ assetRow " ++ a ++ "}")
   ]
 
-setAssetId :: Asset -> Id Asset -> Asset
-setAssetId a i = a{ assetRow = (assetRow a){ assetId = i } }
-
 insertAsset :: TH.Name -- ^ @'AuditIdentity'@
   -> TH.Name -- ^ @'Asset'@
   -> TH.ExpQ -- ^ @'Asset'@
@@ -70,3 +70,4 @@ updateAsset ident a = auditUpdate ident "asset"
   (assetSets (nameRef a))
   (whereEq $ assetKeys (nameRef a))
   Nothing
+-}
