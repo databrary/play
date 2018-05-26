@@ -1,14 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Controller.VolumeAccess
-  ( viewVolumeAccess
-  , postVolumeAccess
+  (--  viewVolumeAccess
+    postVolumeAccess
   ) where
 
 -- import Control.Monad.IO.Class (liftIO)
 import Control.Monad (when, forM_)
 import Data.Function (on)
 
-import Databrary.Ops
+-- import Databrary.Ops
 import Databrary.Has
 import qualified Databrary.JSON as JSON
 import Databrary.Model.Id
@@ -26,22 +26,25 @@ import Databrary.Controller.Paths
 import Databrary.Controller.Form
 import Databrary.Controller.Volume
 import Databrary.Controller.Notification
-import Databrary.View.VolumeAccess
+-- import Databrary.View.VolumeAccess
+import Databrary.View.Form (FormHtml)
 
+{- obsolete
 viewVolumeAccess :: ActionRoute (Id Volume, VolumeAccessTarget)
 viewVolumeAccess = action GET (pathHTML >/> pathId </> pathVolumeAccessTarget) $ \(vi, VolumeAccessTarget ap) -> withAuth $ do
   v <- getVolume PermissionADMIN vi
   a <- maybeAction =<< lookupVolumeAccessParty v ap
   peeks $ blankForm . htmlVolumeAccessForm a
+-}
 
-postVolumeAccess :: ActionRoute (API, (Id Volume, VolumeAccessTarget))
-postVolumeAccess = action POST (pathAPI </> pathId </> pathVolumeAccessTarget) $ \(api, arg@(vi, VolumeAccessTarget ap)) -> withAuth $ do
+postVolumeAccess :: ActionRoute ((Id Volume, VolumeAccessTarget))
+postVolumeAccess = action POST (pathJSON >/> pathId </> pathVolumeAccessTarget) $ \(vi, VolumeAccessTarget ap) -> withAuth $ do
   v <- getVolume (if ap == partyId (partyRow staffParty) then PermissionEDIT else PermissionADMIN) vi
   a <- maybeAction =<< lookupVolumeAccessParty v ap
   u <- peek
   let su = identityAdmin u
       ru = unId ap > 0
-  a' <- runForm ((api == HTML) `thenUse` (htmlVolumeAccessForm a)) $ do
+  a' <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ do
     csrfForm
     delete <- "delete" .:> deform
     let del
@@ -86,6 +89,5 @@ postVolumeAccess = action POST (pathAPI </> pathId </> pathVolumeAccessTarget) $
           { notificationVolume = Just $ volumeRow v
           , notificationPermission = Just $ volumeAccessIndividual a'
           }
-  case api of
-    JSON -> return $ okResponse [] $ JSON.pairs $ volumeAccessPartyJSON (if r then a' else a)
-    HTML -> peeks $ otherRouteResponse [] viewVolumeAccess arg
+  return $ okResponse [] $ JSON.pairs $ volumeAccessPartyJSON (if r then a' else a)
+  -- HTML -> peeks $ otherRouteResponse [] viewVolumeAccess arg
