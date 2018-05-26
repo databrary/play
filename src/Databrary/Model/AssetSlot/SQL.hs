@@ -3,15 +3,15 @@ module Databrary.Model.AssetSlot.SQL
   ( slotAssetRow
   , makeSlotAsset
   , selectContainerSlotAsset
-  , selectOrigContainerSlotAsset 
+  -- , selectOrigContainerSlotAsset 
   , selectAssetSlotAsset
   , selectVolumeSlotAsset
   , selectVolumeSlotIdAsset
-  , selectSlotAsset
+  -- , selectSlotAsset
   , selectAssetSlot
-  , insertSlotAsset
-  , updateSlotAsset
-  , deleteSlotAsset
+  -- , insertSlotAsset
+  -- , updateSlotAsset
+  -- , deleteSlotAsset
   ) where
 
 import Data.Maybe (fromMaybe)
@@ -26,7 +26,6 @@ import Databrary.Model.Container.Types
 import Databrary.Model.Container.SQL
 import Databrary.Model.Slot.Types
 import Databrary.Model.SQL.Select
-import Databrary.Model.Audit.SQL
 import Databrary.Model.Volume.SQL
 import Databrary.Model.AssetSlot.Types
 
@@ -48,11 +47,13 @@ selectContainerSlotAsset = selectJoin 'makeContainerSlotAsset
   , joinOn "slot_asset.asset = asset.id" selectAssetRow -- XXX volumes match?
   ]
 
+{-
 selectOrigContainerSlotAsset :: Selector -- ^ @'Container' -> 'AssetSlot'@
 selectOrigContainerSlotAsset = selectJoin 'makeContainerSlotAsset
   [ slotAssetRow
   , joinOn "slot_asset.asset = asset.id" selectAssetRow -- XXX volumes match?
   ]
+-}
 
 makeVolumeSlotIdAsset :: SlotId -> AssetRow -> Volume -> (Asset, SlotId)
 makeVolumeSlotIdAsset s ar v = (Asset ar v, s)
@@ -86,6 +87,7 @@ selectVolumeSlotAsset = selectJoin 'makeVolumeSlotAsset
     selectVolumeContainer
   ]
 
+{-
 selectSlotAsset :: TH.Name -- ^ @'Identity'@
   -> Selector -- ^ @'AssetSlot'@
 selectSlotAsset ident = selectJoin '($)
@@ -93,6 +95,7 @@ selectSlotAsset ident = selectJoin '($)
   , joinOn "asset.volume = volume.id"
     $ selectVolume ident
   ]
+-}
 
 makeVolumeAssetSlot :: AssetRow -> Maybe (Asset -> AssetSlot) -> Volume -> AssetSlot
 makeVolumeAssetSlot ar sf = fromMaybe assetNoSlot sf . Asset ar
@@ -112,6 +115,7 @@ selectAssetSlot ident = selectJoin '($)
     $ selectVolume ident
   ]
 
+{-
 slotAssetKeys :: String -- ^ @'AssetSlot'@
   -> [(String, String)]
 slotAssetKeys as =
@@ -148,3 +152,4 @@ deleteSlotAsset ident o = auditDelete ident "slot_asset"
   (whereEq $ slotAssetKeys os)
   Nothing
   where os = nameRef o
+-}
