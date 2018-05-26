@@ -4,7 +4,7 @@ module Databrary.Model.AssetSegment.SQL
   , makeExcerpt
   , selectAssetSegment
   , selectContainerAssetSegment
-  , selectAssetAssetSegment
+  -- , selectAssetAssetSegment
   ) where
 
 import Data.Maybe (fromMaybe)
@@ -60,6 +60,7 @@ selectContainerAssetSegment seg = selectJoin 'makeContainerAssetSegment
     selectAssetRow -- XXX volumes match?
   ]
 
+{-
 makeAssetAssetSegment :: (Asset -> Container -> AssetSegment) -> (Volume -> Container) -> Asset -> AssetSegment
 makeAssetAssetSegment f cf a = f a (cf (assetVolume a))
 
@@ -70,6 +71,7 @@ selectAssetAssetSegment seg = selectJoin 'makeAssetAssetSegment
   , joinOn "slot_asset.container = container.id"
     selectVolumeContainer -- XXX volumes match?
   ]
+-}
 
 makeVolumeAssetSegment :: (Asset -> Container -> AssetSegment) -> AssetRow -> (Volume -> Container) -> Volume -> AssetSegment
 makeVolumeAssetSegment f ar cf v = f (Asset ar v) (cf v)
