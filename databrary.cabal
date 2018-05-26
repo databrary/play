@@ -168,7 +168,6 @@ library
     Databrary.Model.Id
     Databrary.Model.Stats
     Databrary.Model.Format.Types
-    Databrary.Model.Format.SQL
     Databrary.Model.Transcode
     Databrary.Model.AssetSegment.Types
     Databrary.Model.AssetSegment.SQL
