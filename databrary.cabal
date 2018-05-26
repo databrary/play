@@ -195,7 +195,6 @@ library
     Databrary.View.Root
     Databrary.View.Angular
     Databrary.View.Paginate
-    Databrary.View.Record
     Databrary.View.Ingest
     Databrary.View.VolumeAccess
     Databrary.View.Html
