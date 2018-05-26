@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings, TemplateHaskell #-}
 module Databrary.Model.Token.SQL
   ( selectLoginToken
-  , selectSession
+  -- , selectSession
   , selectUpload
   -- for expanded queries
   , makeUpload
@@ -29,11 +29,11 @@ accountTokenRow table = selectJoin 'AccountToken
 selectLoginToken :: Selector -- @'Session'@
 selectLoginToken =
   addSelects 'LoginToken (accountTokenRow "login_token") [SelectColumn "login_token" "password"]
-
+{-
 selectSession :: Selector -- @'Session'@
 selectSession =
   addSelects 'Session (accountTokenRow "session") [SelectColumn "session" "verf", SelectColumn "session" "superuser"]
-
+-}
 makeUpload :: Token -> BS.ByteString -> Int64 -> SiteAuth -> Upload
 makeUpload t n z u = Upload (AccountToken t u) n z
 
