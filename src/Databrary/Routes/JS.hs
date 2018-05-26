@@ -271,7 +271,7 @@ jsRoutes =
   , rt "\"getTopTags\":{method:\"GET\",route:function(){return \"/api/tags\";}},"
   -- , jsRoute "getTopTags" queryTags Nothing
   , rt "\"getSiteActivity\":{method:\"GET\",route:function(){return \"/api/activity\";}},"
-  -- , jsRoute "getSiteActivity" viewSiteActivity (JSON)
+  -- , jsRoute "getSiteActivity" viewSiteActivity ()
 
   , rt "\"getNotifications\":{method:\"GET\",route:function(){return \"/api/notification\";}},"
   -- , jsRoute "getNotifications" viewNotifications ()
