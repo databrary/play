@@ -51,7 +51,6 @@ makeCommentRow i c s w t x = CommentRow i w (SlotId c s) t x
 
 selectCommentRow :: Selector -- ^ @'CommentRow'@
 selectCommentRow = selectColumns 'makeCommentRow "comment" ["id", "container", "segment", "who", "time", "text"]
--}
 
 _commentSets :: String -- ^ @'Comment'@
   -> [(String, String)]
@@ -62,3 +61,4 @@ _commentSets o =
   , ("text", "${commentText " ++ o ++ "}")
   , ("parent", "${listToMaybe $ commentParents " ++ o ++ "}")
   ]
+-}
