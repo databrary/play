@@ -61,11 +61,27 @@ setDefaultRequest c = c { ctxRequest = defaultRequest }
 -- 4 = ai grant
 -- 5 = ai authorize
 -- 6 = aff authorize
--- 7 = ai create priv vol
+test_7 :: TestTree
+test_7 = Test.stepsWithTransaction "" $ \step cn2 -> do
+    step "Given an authorized investigator"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    step "When the AI creates a private volume"
+    -- TODO: should be lookup auth on rootParty
+    vid <- runReaderT
+         (do
+              v <- addVolumeSetPrivate volumeExample aiAcct
+              pure ((volumeId . volumeRow) v))
+         aiCtxt
+    step "Then the public can't view it"
+    -- Implementation of getVolume PUBLIC
+    mVolForAnon <- runWithNoIdent cn2 (lookupVolume vid)
+    mVolForAnon @?= Nothing
+
 -- 8 = ai lab a, lab b access
 -- 9 = aff site access only
 -- 10 = ai lab a, ai lab b vol access
 
+----- container ----
 test_11 :: TestTree
 test_11 = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "Given an authorized investigator"
@@ -74,8 +90,7 @@ test_11 = Test.stepsWithTransaction "" $ \step cn2 -> do
     -- TODO: should be lookup auth on rootParty
     cid <- runReaderT
          (do
-              v <- addVolumeWithAccess volumeExample aiAcct
-              setVolumePrivate v
+              v <- addVolumeSetPrivate volumeExample aiAcct
               makeAddContainer v (Just ReleasePUBLIC) Nothing)
          aiCtxt
     step "Then the public can't view the container"
@@ -91,7 +106,7 @@ test_12 = Test.stepsWithTransaction "" $ \step cn2 -> do
     cid <- runReaderT
          (do
               v <- addVolumeWithAccess volumeExample aiAcct
-              makeAddContainer v (Just ReleaseEXCERPTS) (Just (fromGregorian 2017 1 2)))
+              makeAddContainer v (Just ReleaseEXCERPTS) (Just (someDay 2017)))
          aiCtxt
     step "When the public attempts to view the container"
     -- Implementation of getSlot PUBLIC
@@ -99,6 +114,10 @@ test_12 = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "Then the public can't see protected parts like the detailed test date"
     (encode . getContainerDate . slotContainer) slotForAnon @?= "2017"
 
+someDay :: Integer -> Day
+someDay yr = fromGregorian yr 1 2
+
+----- record ---
 test_13 :: TestTree
 test_13 = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "Given an authorized investigator's created private volume with a record not attached to a container"
@@ -106,8 +125,7 @@ test_13 = Test.stepsWithTransaction "" $ \step cn2 -> do
     -- TODO: should be lookup auth on rootParty
     rid <- runReaderT
          (do
-              v <- addVolumeWithAccess volumeExample aiAcct
-              setVolumePrivate v
+              v <- addVolumeSetPrivate volumeExample aiAcct
               addParticipantRecordWithMeasures v [])
          aiCtxt
     step "When the public attempts to view the record"
@@ -136,8 +154,9 @@ lookupSlotByContainerId :: (MonadDB c m, MonadHasIdentity c m) => Id Container -
 lookupSlotByContainerId cid = lookupSlot (containerSlotId cid)
 
 setVolumePrivate :: (MonadAudit c m) => Volume -> m ()
-setVolumePrivate v =
-    void (changeVolumeAccess (mkVolAccess PermissionNONE Nothing nobodyParty v)) -- TODO: handle root also?
+setVolumePrivate v = do
+    void (changeVolumeAccess (mkVolAccess PermissionNONE Nothing nobodyParty v))
+    void (changeVolumeAccess (mkVolAccess PermissionNONE Nothing rootParty v))
 
 runWithNoIdent :: DBConn -> ReaderT TestContext IO a -> IO a
 runWithNoIdent cn rdr = runReaderT rdr ((mkDbContext cn) { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded })
@@ -174,6 +193,12 @@ addVolumeWithAccess :: MonadAudit c m => Volume -> Account -> m Volume
 addVolumeWithAccess v a = do
     v' <- addVolume v -- note: skipping irrelevant change volume citation
     setDefaultVolumeAccessesForCreated (accountParty a) v'
+    pure v'
+
+addVolumeSetPrivate :: (MonadAudit c m) => Volume -> Account -> m Volume
+addVolumeSetPrivate v a = do
+    v' <- addVolumeWithAccess v a
+    setVolumePrivate v'
     pure v'
 
 -- TODO: remove from authorizetest

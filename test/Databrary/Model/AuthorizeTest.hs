@@ -135,30 +135,6 @@ test_Authorize_examples =
         -- FAILING - needs change in postAuthorize
         -- partyPermission p @?= PermissionEDIT
         )
-    , Test.stepsWithTransaction "authorized investigator creates private volume" (\step cn2 -> do
-        -- TODO: move this to VolumeAccess or more general module around authorization
-        step "Given an authorized investigator"
-        ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
-        instParty <- addAuthorizedInstitution ctxt "New York University"
-        aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
-        let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
-        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
-        let aiCtxt = switchIdentity ctxt aiAuth False
-        step "When the AI creates a private volume"
-        -- TODO: should be lookup auth on rootParty
-        let aiParty = accountParty aiAcct
-        createdVol <- runReaderT
-             (do
-                  v <- addVolume volumeExample -- note: skipping irrelevant change volume citation
-                  setDefaultVolumeAccessesForCreated aiParty v
-                  -- simulate setting volume as private
-                  _ <- changeVolumeAccess (mkVolAccess PermissionNONE Nothing nobodyParty v) -- TODO: handle root also?
-                  pure v)
-             aiCtxt
-        step "Then the public can't view it"
-        -- Implementation of getVolume PUBLIC
-        mVolForAnon <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) ctxtNoIdent
-        mVolForAnon @?= Nothing)
     ]
 
 test_Authorize_examples3 :: TestTree
