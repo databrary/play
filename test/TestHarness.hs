@@ -1,14 +1,18 @@
 module TestHarness
     (
       TestContext ( .. )
+    , mkDbContext
+    , runContextReaderT
     , withinTestTransaction
     , stepsWithTransaction
     , connectTestDb
     , makeSuperAdminContext
     , fakeIdentSessFromAuth
     , addAuthorizedInstitution
+    , addAuthorizedInvestigatorWithInstitution
     , mkInstitution -- TODO: stop exporting
     , mkAccount -- TODO: stop exporting
+    , mkAccountSimple -- TODO: stop exporting
     , addAuthorizedInvestigator
     , addAffiliate
     , lookupSiteAuthNoIdent
@@ -71,6 +75,7 @@ data TestContext = TestContext
     , ctxPartyId :: Id Party
     -- ^ for MonadAudit
     , ctxConn :: DBConn
+    -- ^ for MonadDB
     , ctxIdentity :: Identity
     , ctxSiteAuth :: SiteAuth
     , ctxAV :: AV
@@ -108,6 +113,14 @@ instance Has Access TestContext where
 
 instance Has AV TestContext where
     view = ctxAV
+
+-- | Convenience for building a context with only a db connection
+mkDbContext :: DBConn -> TestContext
+mkDbContext c = TestContext { ctxConn = c }
+
+-- | Convenience for runReaderT where context consists of db connection only
+runContextReaderT :: DBConn -> ReaderT TestContext IO a -> IO a
+runContextReaderT cn rdrActions = runReaderT rdrActions (TestContext { ctxConn = cn })
 
 -- | Execute a test within a DB connection that rolls back at the end.
 withinTestTransaction :: (PGConnection -> IO a) -> IO a
@@ -181,6 +194,16 @@ addAuthorizedInvestigator adminCtxt lastName firstName email instParty = do
         adminCtxt
     pure aiAccount
 
+addAuthorizedInvestigatorWithInstitution :: DBConn -> BS.ByteString -> T.Text -> BS.ByteString -> IO (Account, TestContext)
+addAuthorizedInvestigatorWithInstitution cn adminEmail instName aiEmail = do
+    ctxt <- makeSuperAdminContext cn adminEmail
+    instParty <- addAuthorizedInstitution ctxt instName
+    aiAcct <- addAuthorizedInvestigator ctxt "Last" "First" aiEmail instParty
+    let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
+    Just aiAuth <- runReaderT (lookupSiteAuthByEmail False aiEmail) ctxtNoIdent
+    let aiCtxt = switchIdentity ctxt aiAuth False
+    pure (aiAcct, aiCtxt)
+
 -- TODO: receive expiration date
 addAffiliate :: TestContext -> T.Text -> T.Text -> BS.ByteString -> Party -> Permission -> Permission -> IO Account
 addAffiliate aiCntxt lastName firstName email aiParty site member = do
@@ -222,6 +245,13 @@ mkInstitution instName =
 mkAccount :: T.Text -> T.Text -> BS.ByteString -> Account
 mkAccount sortName preName email = 
     let pr = (partyRow blankParty) { partySortName = sortName , partyPreName = Just preName }
+        p = blankParty { partyRow = pr, partyAccount = Just a }
+        a = blankAccount { accountParty = p, accountEmail = email }
+    in a
+
+mkAccountSimple :: BS.ByteString -> Account
+mkAccountSimple email = 
+    let pr = (partyRow blankParty) { partySortName = "Smith" , partyPreName = Just "John" }
         p = blankParty { partyRow = pr, partyAccount = Just a }
         a = blankAccount { accountParty = p, accountEmail = email }
     in a
