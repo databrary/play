@@ -65,7 +65,6 @@ setDefaultRequest c = c { ctxRequest = defaultRequest }
 -- 10 = ai lab a, ai lab b vol access
 -- 11 = public can't view priv
 -- 12 = public can't see restricted release cntr
--- 13 = public can't view priv vol record
 
 test_13 :: TestTree
 test_13 = Test.stepsWithTransaction "" $ \step cn2 -> do

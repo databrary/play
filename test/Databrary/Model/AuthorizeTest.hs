@@ -298,44 +298,11 @@ test_Authorize_examples2 = testCaseSteps "Authorize examples continued" $ \step 
         (volumePermission . containerVolume . slotContainer) slotForAnon @?= PermissionPUBLIC
         (encode . getContainerDate . slotContainer) slotForAnon @?= "2017")
 
-{-
-_test_Authorize_example4 :: TestTree
-_test_Authorize_example4 = Test.stepsWithTransaction "viewRecords - public view private vol" $ \step cn2 -> do
-    step "Given an authorized investigator's created private volume with a record not attached to a container"
-    ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
-    instParty <- addAuthorizedInstitution ctxt "New York University"
-    aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
-    let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
-    Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
-    let aiCtxt = switchIdentity ctxt aiAuth False
-    -- TODO: should be lookup auth on rootParty
-    let aiParty = accountParty aiAcct
-    createdRecord <- runReaderT
-         (do
-              v <- addVolumeWithAccess volumeExample aiParty
-              _ <- changeVolumeAccess (mkVolAccess PermissionNONE Nothing nobodyParty v) -- TODO: handle root also?
-              addRecord (mkParticipantRecord v))
-         aiCtxt
-    step "When the public attempts to view the record"
-    -- Implementation of getRecord PUBLIC
-    -- lookupRecord uses record_release func, which references any release coming from a related slot; by default there is none
-    mRcrd <- runReaderT (lookupRecord ((recordId . recordRow) createdRecord)) ctxtNoIdent
-    step "Then the public can't"
-    isNothing mRcrd @? "Expected failure to retrieve record from restricted volume"
--}
-
 addVolumeWithAccess :: MonadAudit c m => Volume -> Party -> m Volume
 addVolumeWithAccess v p = do
     v' <- addVolume v -- note: skipping irrelevant change volume citation
     setDefaultVolumeAccessesForCreated p v'
     pure v'
-
-mkParticipantRecord :: Volume -> Record
-mkParticipantRecord vol =  -- note: modeled after create record
-    let
-        br = blankRecord participantCategory vol
-    in
-        br
 
 mkContainer :: Volume -> Maybe Release -> Maybe Day -> Container
 mkContainer v mRel mDate = -- note: modeled after create container
