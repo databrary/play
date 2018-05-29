@@ -194,6 +194,10 @@ app.controller 'party/profile', [
         return false
       return
 
+    ###*
+    # Sort volumes
+    # @interface profile/sortVolumes
+    ###
     $scope.sortVolumes = (b) ->
       if $scope.volumeSort == b
         # volumes.individual.reverse()

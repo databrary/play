@@ -54,8 +54,12 @@ app.factory('modelService', [
       return obj && opt in obj && (!obj[opt] || typeof obj[opt] !== 'object' || !obj[opt]._PLACEHOLDER);
     }
 
-    /* determine whether the given object satisfies all the given dependency options already.
-     * returns the missing options, or null if nothing is missing. */
+    /**
+     * determine whether the given object satisfies all the given dependency options already.
+     * returns the missing options, or null if nothing is missing.
+     * @interface modelService/checkOptions
+     */
+
     function checkOptions(obj, options) {
       var opts = {};
       var need = obj ? null : opts;
@@ -103,8 +107,12 @@ app.factory('modelService', [
       };
     }
 
-    /* delegate the given (missing) fields on instances of obj to the sub-object sub,
-     * but allow assignments to work directly as usual. */
+    /**
+     * delegate the given (missing) fields on instances of obj to the sub-object sub,
+     * but allow assignments to work directly as usual.
+     * @interface modelService/delegate
+     */
+
     function delegate(obj, sub /*, field... */) {
       function descr(f) {
         return {
@@ -448,6 +456,29 @@ app.factory('modelService', [
       // producers: false,
     };
 
+    /**
+     * Initialize volume with the following properties: <br />
+     * <blockquote>id <br />
+     * permission <br />
+     * name <br />
+     * alias <br />
+     * body <br />
+     * doi <br />
+     * creation <br />
+     * owners <br />
+     * citation <br />
+     * links <br />
+     * funding <br />
+     * tags <br />
+     * state <br />
+     * publicaccess <br />
+     * publicsharefull <br />
+     * suggested_mapping <br />
+     * csv_upload_id <br />
+     * column_samples <br />
+     * columns_firstvals </blockquote>
+     * @interface modelService/Volume/init
+     */
     Volume.prototype.init = function (init) {
       var i, l;
       Model.prototype.init.call(this, init);
