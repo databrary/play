@@ -150,11 +150,11 @@ app.directive 'spreadsheet', [
         SlotCount = 0
 
         ###*
-        # Row in spreadsheet with the following properties:
-        #   i: Row index
-        #   tr: DOM Element tr
-        #   [Category_id]: (array of) metric data for category
-        # @interface spreadsheet/row
+        # Row in spreadsheet with the following properties: <br />
+        # <blockquote>  i: Row index <br />
+        #   tr: DOM Element tr <br />
+        #   [Category_id]: (array of) metric data for category </blockquote>
+        # @interface spreadsheet/Row
         ###
         class Row
 
@@ -216,26 +216,28 @@ app.directive 'spreadsheet', [
           Object.defineProperty @prototype, 'key',
             get: -> @get(Key.id)
 
-
+        ###*
+        # Cell in spreadsheet with the following properties: <br />
+        # <blockquote>cell: target TD element <br />
+        #   id: cell.id <br />
+        #   i: Row <br />
+        #   n: Count (index of count), optional [0] <br />
+        #   m: index into Cols <br />
+        #   cols: Groups element <br />
+        #   col: Cols element <br />
+        #   category: Category <br />
+        #   c: Category_id <br />
+        #   count: Count[i][c] <br />
+        #   metric: Metric <br />
+        #   row: Rows[i] <br />
+        #   slot: Container <br />
+        #   d: Data <br />
+        #   record: Record <br />
+        #   asset: Asset <br />
+        #   v: Data value </blockquote>
+        # @interface spreadsheet/Info
+        ###
         class Info
-          # Represents everything we know about a specific cell.  Properties:
-          #   cell: target TD element
-          #   id: cell.id
-          #   i: Row
-          #   n: Count (index of count), optional [0]
-          #   m: index into Cols
-          #   cols: Groups element
-          #   col: Cols element
-          #   category: Category
-          #   c: Category_id
-          #   count: Count[i][c]
-          #   metric: Metric
-          #   row: Rows[i]
-          #   slot: Container
-          #   d: Data
-          #   record: Record
-          #   asset: Asset
-          #   v: Data value
 
           constructor: (x) ->
             if typeof x == 'number'
@@ -329,9 +331,11 @@ app.directive 'spreadsheet', [
           info = new Info(el)
           info if info.c?
 
-        ################################# Populate data structures
-
-        # Fill Cols and Groups from volume metrics
+        ###*
+        # Populate data structures and fill Cols and Groups from volume metrics
+        # @interface spreadsheet/populateCols
+        ###
+        
         populateCols = (slot) ->
           Cols = []
           all = Object.keys(volume.metrics).sort(byNumber).map((i) -> constants.category[i])
@@ -404,7 +408,11 @@ app.directive 'spreadsheet', [
             name: a.name
           d
 
+        ###*
         # Fill all Data values for Row i
+        # @interface spreadsheet/populateSlot
+        ###
+        
         populateSlot = (slot) ->
           row = new Row()
           row.add('slot', populateSlotData(slot))
@@ -472,9 +480,11 @@ app.directive 'spreadsheet', [
           if nog == 0 && nor
             delete Rows[nor.i]
 
-        ################################# Generate HTML
-
-        # Add or replace the text contents of cell c for measure/type m with value v
+        ###*
+        # Generate HTML and add or replace the text contents of cell c for measure/type m with value v
+        # @interface spreadsheet/generateText
+        ###
+         
         generateText = (info) ->
           $(cell = info.cell).empty()
           cell.className = ''
@@ -607,7 +617,11 @@ app.directive 'spreadsheet', [
             td.appendChild(document.createTextNode(t + " " + info.category.name + "s"))
           td
 
+        ###*
         # Add all the measure tds to row i for count n, record r
+        # @interface spreadsheet/generateRecord
+        ###
+    
         generateRecord = (info) ->
           return unless l = info.cols.metrics.length # impossible?
           if td = generateMultiple(info)
@@ -632,7 +646,11 @@ app.directive 'spreadsheet', [
             generateCell(mi)
           return
 
+        ###*
         # Fill out Rows[i].
+        # @interface spreadsheet/generateRow
+        ###
+
         generateRow = (i) ->
           info = new Info(i)
           row = info.row
@@ -688,9 +706,12 @@ app.directive 'spreadsheet', [
                   info.cell = document.getElementById(premid + n)
                   generateText(info) if info.cell
 
-        ################################# Place DOM elements
-
-        # Place all rows into spreadsheet.
+        
+        ###*
+        # Place DOM elements and place all rows into spreadsheet.
+        # @interface spreadsheet/fill
+        ###
+        
         fill = ->
           collapse()
           n = 0
@@ -716,7 +737,11 @@ app.directive 'spreadsheet', [
             delete $scope.more
           return
 
+        ###*
         # Populate order based on compare function applied to values.
+        # @interface spreadsheet/sort
+        ###
+
         sort = (get) ->
           idx = new Array(Order.length)
           for o, i in Order
@@ -728,7 +753,11 @@ app.directive 'spreadsheet', [
         currentSort = undefined
         currentSortDirection = false
 
+        ###*
         # Sort by column
+        # @interface spreadsheet/sortBy
+        ###
+        
         sortBy = (col, dir) ->
           if currentSort == col && !dir?
             currentSortDirection = !currentSortDirection
@@ -760,8 +789,10 @@ app.directive 'spreadsheet', [
             cls.push 'intransitive sortable'
           cls
 
-        ################################# Backend saving
-
+        ###*
+        # Backend saving
+        # @interface spreadsheet/saveRun
+        ###
         setFocus = undefined
 
         saveRun = (cell, run) ->
@@ -904,9 +935,11 @@ app.directive 'spreadsheet', [
               updateDatum(info, v)
               return
 
-        ################################# Interaction
-
-        # Collapse any expanded row.
+        ###*
+        # Interaction and collapse any expanded row.
+        # @interface spreadsheet/collapse
+        ###
+      
         collapse = ->
           return unless Expanded
           i = Expanded.i
@@ -925,7 +958,11 @@ app.directive 'spreadsheet', [
 
           t
 
+        ###*
         # Expand (or collapse) a row
+        # @interface spreadsheet/expand
+        ###
+        
         expand = (info) ->
           if Expanded?.i == info.i && `Expanded.c == info.c`
             if info.t == 'more'
@@ -1367,7 +1404,11 @@ app.directive 'spreadsheet', [
             $scope.pivot.show()
           return
 
-        # Call all populate functions
+        ###*
+        # Call all populate functions on folder tab change/onload
+        # @interface spreadsheet/setKey
+        ###
+        
         setKey = (key) ->
           unselect()
           oldKey = Key

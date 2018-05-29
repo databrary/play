@@ -41,6 +41,10 @@ app.controller 'party/profile', [
           @selectionMessage()
         return
 
+    ###*
+    # party to show on the profile page
+    # @interface profile/Party
+    ###
     class Party extends Item
       @all = {}
 
@@ -65,6 +69,10 @@ app.controller 'party/profile', [
         else if t
           $location.url(party.editRoute(t, @party.id))
 
+    ###*
+    # volume to show on the profile page
+    # @interface profile/Volume
+    ###
     class Volume extends Item
       constructor: (@volume) ->
         @access = {}
