@@ -149,12 +149,14 @@ app.directive 'spreadsheet', [
         Expanded = undefined # Info
         SlotCount = 0
 
-
+        ###*
+        # Row in spreadsheet with the following properties:
+        #   i: Row index
+        #   tr: DOM Element tr
+        #   [Category_id]: (array of) metric data for category
+        # @interface spreadsheet/row
+        ###
         class Row
-          # Represents everything about a row.  Properties:
-          #   i: Row index
-          #   tr: DOM Element tr
-          #   [Category_id]: (array of) metric data for category
 
           constructor: (i) ->
             @i = i ? Rows.length

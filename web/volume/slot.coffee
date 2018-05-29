@@ -21,7 +21,7 @@ app.controller('volume/slot', [
 
     ###*
     # Represents a point on the timeline, which can be expressed as "o" (offset time in ms), "x" (pixel X position in client coordinates), or "p" (fractional position on the timeline, may escape [0,1])
-    # @interface slot/class/TimePoint
+    # @interface slot/TimePoint
     ###
     class TimePoint
       constructor: (v, t) ->
@@ -126,7 +126,7 @@ app.controller('volume/slot', [
 
     ###*
     # Elaboration on Segment that uses lt and ut TimePoints
-    # @interface slot/class/TimeSegment
+    # @interface slot/TimeSegment
     ###
     class TimeSegment extends Segment
       init: (a, u) ->
@@ -397,7 +397,10 @@ app.controller('volume/slot', [
         setPlayerHeight()
       return
 
-    ################################### Track management
+    ###*
+    # Track management
+    # @interface slot/TimeBar
+    ###
 
     stayDirty = (global) ->
       if global || editing && $scope.current && $scope.form.edit && ($scope.current.asset || $scope.current.record) && ($scope.current.dirty = $scope.form.edit.$dirty)
@@ -432,9 +435,13 @@ app.controller('volume/slot', [
           @choose()
         return
 
+      ###*
       # Generic function that takes in a time, then will determine if it's
       # close enough to do a premiere-esque "snap" feature to the nearest
       # object.
+      # @interface slot/TimeBar/snapping
+      ###
+    
       snapping: (pos) ->
         # Let's start with an empty array, which will contain all the times
         # to compare against.
@@ -472,7 +479,10 @@ app.controller('volume/slot', [
     unchoose = TimeBar.prototype.choose.bind(undefined)
     $scope.click = TimeBar.prototype.click.bind(undefined)
 
-    ################################### Selection (temporal) management
+    ###*
+    # Selection (temporal) management
+    # @interface slot/setSelectionEnd
+    ###
 
     $scope.setSelectionEnd = (u) ->
       pos = ruler.position.o
@@ -542,7 +552,10 @@ app.controller('volume/slot', [
       else
         ruler.selection
 
-    ################################### Track implementations
+    ###*
+    # Track implementations
+    # @interface slot/Asset
+    ###
 
     class Asset extends TimeBar
       constructor: (asset) ->
@@ -845,6 +858,10 @@ app.controller('volume/slot', [
             !a.asset - !b.asset || !a.file - !b.file
         return
 
+    ###*
+    # Excerpt in slot
+    # @interface slot/Excerpt
+    ###
     class Excerpt extends TimeBar
       constructor: (e) ->
         super(e.segment)
@@ -875,6 +892,10 @@ app.controller('volume/slot', [
     $scope.fileError = (file, message) ->
       file.store.error(message)
 
+    ###*
+    # Record in slot
+    # @interface slot/Record
+    ###
     class Record extends TimeBar
       constructor: (r) ->
         @rec = r
@@ -1041,6 +1062,10 @@ app.controller('volume/slot', [
             return
       return
 
+    ###*
+    # TagName in slot
+    # @interface slot/TagName
+    ###
     class TagName extends TimeBar
       constructor: (name) ->
         @id = name
@@ -1076,6 +1101,11 @@ app.controller('volume/slot', [
 
     tagToggle = storage.getString('tag-toggle')?.split("\n") ? []
 
+
+    ###*
+    # Tag in slot
+    # @interface slot/Tag
+    ###
     class Tag extends TagName
       constructor: (t) ->
         super(t.id)
@@ -1118,6 +1148,10 @@ app.controller('volume/slot', [
             break
         @state = state
 
+    ###*
+    # Comment in slot
+    # @interface slot/Comment
+    ###
     class Comment extends TimeBar
       constructor: (c) ->
         @comment = c
