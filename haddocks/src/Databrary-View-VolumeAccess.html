@@ -11,7 +11,7 @@
 <a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>View</span><span class='hs-varop'>.</span><span class='hs-conid'>VolumeAccess</span>
 <a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>volumeAccessTitle</span>
 <a name="line-4"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>volumeAccessPresetTitle</span>
-<a name="line-5"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>htmlVolumeAccessForm</span>
+<a name="line-5"></a>  <span class='hs-comment'>-- , htmlVolumeAccessForm</span>
 <a name="line-6"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-7"></a>
 <a name="line-8"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-varop'>.</span><span class='hs-conid'>Char8</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>BSC</span>
@@ -20,15 +20,15 @@
 <a name="line-11"></a>
 <a name="line-12"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Store</span><span class='hs-varop'>.</span><span class='hs-conid'>Config</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>C</span>
 <a name="line-13"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Service</span><span class='hs-varop'>.</span><span class='hs-conid'>Messages</span>
-<a name="line-14"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Action</span>
-<a name="line-15"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Party</span>
+<a name="line-14"></a><span class='hs-comment'>-- import Databrary.Action</span>
+<a name="line-15"></a><span class='hs-comment'>-- import Databrary.Model.Party</span>
 <a name="line-16"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Permission</span>
-<a name="line-17"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Volume</span>
-<a name="line-18"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>VolumeAccess</span>
-<a name="line-19"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Controller</span><span class='hs-varop'>.</span><span class='hs-conid'>Paths</span>
-<a name="line-20"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>View</span><span class='hs-varop'>.</span><span class='hs-conid'>Form</span>
+<a name="line-17"></a><span class='hs-comment'>-- import Databrary.Model.Volume</span>
+<a name="line-18"></a><span class='hs-comment'>-- import Databrary.Model.VolumeAccess</span>
+<a name="line-19"></a><span class='hs-comment'>-- import Databrary.Controller.Paths</span>
+<a name="line-20"></a><span class='hs-comment'>-- import Databrary.View.Form</span>
 <a name="line-21"></a>
-<a name="line-22"></a><span class='hs-keyword'>import</span> <span class='hs-comment'>{-# SOURCE #-}</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Controller</span><span class='hs-varop'>.</span><span class='hs-conid'>VolumeAccess</span>
+<a name="line-22"></a><span class='hs-comment'>-- import {-# SOURCE #-} Databrary.Controller.VolumeAccess</span>
 <a name="line-23"></a>
 <a name="line-24"></a><a name="volumeAccessTitle"></a><span class='hs-definition'>volumeAccessTitle</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Permission</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Messages</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>T</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span>
 <a name="line-25"></a><span class='hs-definition'>volumeAccessTitle</span> <span class='hs-varid'>perm</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getMessage</span> <span class='hs-varop'>$</span> <span class='hs-conid'>C</span><span class='hs-varop'>.</span><span class='hs-conid'>Path</span> <span class='hs-keyglyph'>[</span><span class='hs-str'>"access"</span><span class='hs-layout'>,</span> <span class='hs-str'>"edit"</span><span class='hs-layout'>,</span> <span class='hs-conid'>BSC</span><span class='hs-varop'>.</span><span class='hs-varid'>pack</span> <span class='hs-layout'>(</span><span class='hs-varid'>show</span> <span class='hs-varid'>perm</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-str'>"title"</span><span class='hs-keyglyph'>]</span>
@@ -36,14 +36,16 @@
 <a name="line-27"></a><a name="volumeAccessPresetTitle"></a><span class='hs-definition'>volumeAccessPresetTitle</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Messages</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>T</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span>
 <a name="line-28"></a><span class='hs-definition'>volumeAccessPresetTitle</span> <span class='hs-varid'>shared</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getMessage</span> <span class='hs-varop'>$</span> <span class='hs-conid'>C</span><span class='hs-varop'>.</span><span class='hs-conid'>Path</span> <span class='hs-keyglyph'>[</span><span class='hs-str'>"access"</span><span class='hs-layout'>,</span> <span class='hs-str'>"preset"</span><span class='hs-layout'>,</span> <span class='hs-str'>"title"</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-conid'>BSC</span><span class='hs-varop'>.</span><span class='hs-varid'>pack</span> <span class='hs-layout'>(</span><span class='hs-varid'>show</span> <span class='hs-layout'>(</span><span class='hs-varid'>fromEnum</span> <span class='hs-varid'>shared</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>]</span>
 <a name="line-29"></a>
-<a name="line-30"></a><a name="htmlVolumeAccessForm"></a><span class='hs-definition'>htmlVolumeAccessForm</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>VolumeAccess</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>RequestContext</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>FormHtml</span> <span class='hs-varid'>f</span>
-<a name="line-31"></a><span class='hs-definition'>htmlVolumeAccessForm</span> <span class='hs-varid'>a</span><span class='hs-keyglyph'>@</span><span class='hs-conid'>VolumeAccess</span><span class='hs-layout'>{</span> <span class='hs-varid'>volumeAccessVolume</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>vol</span><span class='hs-layout'>,</span> <span class='hs-varid'>volumeAccessParty</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>p</span> <span class='hs-layout'>}</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>htmlForm</span>
-<a name="line-32"></a>  <span class='hs-layout'>(</span><span class='hs-str'>"Access to "</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>volumeName</span> <span class='hs-layout'>(</span><span class='hs-varid'>volumeRow</span> <span class='hs-varid'>vol</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-str'>" for "</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>partyName</span> <span class='hs-layout'>(</span><span class='hs-varid'>partyRow</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-<a name="line-33"></a>  <span class='hs-varid'>postVolumeAccess</span> <span class='hs-layout'>(</span><span class='hs-conid'>HTML</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varid'>volumeId</span> <span class='hs-varop'>$</span> <span class='hs-varid'>volumeRow</span> <span class='hs-varid'>vol</span><span class='hs-layout'>,</span> <span class='hs-conid'>VolumeAccessTarget</span> <span class='hs-varop'>$</span> <span class='hs-varid'>partyId</span> <span class='hs-varop'>$</span> <span class='hs-varid'>partyRow</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-<a name="line-34"></a>  <span class='hs-layout'>(</span><span class='hs-keyword'>do</span>
-<a name="line-35"></a>    <span class='hs-varid'>field</span> <span class='hs-str'>"individual"</span> <span class='hs-varop'>$</span> <span class='hs-varid'>inputEnum</span> <span class='hs-conid'>True</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Just</span> <span class='hs-varop'>$</span> <span class='hs-varid'>volumeAccessIndividual</span> <span class='hs-varid'>a</span>
-<a name="line-36"></a>    <span class='hs-varid'>field</span> <span class='hs-str'>"children"</span> <span class='hs-varop'>$</span> <span class='hs-varid'>inputEnum</span> <span class='hs-conid'>True</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Just</span> <span class='hs-varop'>$</span> <span class='hs-varid'>volumeAccessChildren</span> <span class='hs-varid'>a</span>
-<a name="line-37"></a>    <span class='hs-varid'>field</span> <span class='hs-str'>"delete"</span> <span class='hs-varop'>$</span> <span class='hs-varid'>inputCheckbox</span> <span class='hs-conid'>False</span><span class='hs-layout'>)</span>
-<a name="line-38"></a>  <span class='hs-layout'>(</span><span class='hs-varid'>const</span> <span class='hs-varid'>mempty</span><span class='hs-layout'>)</span>
+<a name="line-30"></a><span class='hs-comment'>{-
+<a name="line-31"></a>htmlVolumeAccessForm :: VolumeAccess -&gt; RequestContext -&gt; FormHtml f
+<a name="line-32"></a>htmlVolumeAccessForm a@VolumeAccess{ volumeAccessVolume = vol, volumeAccessParty = p } = htmlForm
+<a name="line-33"></a>  ("Access to " &lt;&gt; volumeName (volumeRow vol) &lt;&gt; " for " &lt;&gt; partyName (partyRow p))
+<a name="line-34"></a>  postVolumeAccess (HTML, (volumeId $ volumeRow vol, VolumeAccessTarget $ partyId $ partyRow p))
+<a name="line-35"></a>  (do
+<a name="line-36"></a>    field "individual" $ inputEnum True $ Just $ volumeAccessIndividual a
+<a name="line-37"></a>    field "children" $ inputEnum True $ Just $ volumeAccessChildren a
+<a name="line-38"></a>    field "delete" $ inputCheckbox False)
+<a name="line-39"></a>  (const mempty)
+<a name="line-40"></a>-}</span>
 </pre></body>
 </html>

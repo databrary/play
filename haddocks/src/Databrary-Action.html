@@ -7,101 +7,135 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}</span>
-<a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Action</span>
-<a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-conid'>Request</span>
-<a name="line-4"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>RequestContext</span>
-<a name="line-5"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Handler</span>
-<a name="line-6"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Action</span>
-<a name="line-7"></a>
-<a name="line-8"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Response</span>
-<a name="line-9"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>response</span>
-<a name="line-10"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>emptyResponse</span>
-<a name="line-11"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>redirectRouteResponse</span>
-<a name="line-12"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>otherRouteResponse</span>
-<a name="line-13"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>forbiddenResponse</span>
-<a name="line-14"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>notFoundResponse</span>
-<a name="line-15"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>okResponse</span>
-<a name="line-16"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>result</span>
-<a name="line-17"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>maybeAction</span>
-<a name="line-18"></a>
-<a name="line-19"></a>  <span class='hs-layout'>,</span> <span class='hs-keyword'>module</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Action</span><span class='hs-varop'>.</span><span class='hs-conid'>Route</span>
-<a name="line-20"></a>
-<a name="line-21"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>withAuth</span>
-<a name="line-22"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>withoutAuth</span>
-<a name="line-23"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>runActionRoute</span>
-<a name="line-24"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-25"></a>
-<a name="line-26"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>BS</span>
-<a name="line-27"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-varop'>.</span><span class='hs-conid'>Builder</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>BSB</span>
-<a name="line-28"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-varop'>.</span><span class='hs-conid'>Lazy</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>BSL</span>
-<a name="line-29"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Network</span><span class='hs-varop'>.</span><span class='hs-conid'>HTTP</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span> <span class='hs-layout'>(</span><span class='hs-conid'>Status</span><span class='hs-layout'>,</span> <span class='hs-varid'>seeOther303</span><span class='hs-layout'>,</span> <span class='hs-varid'>forbidden403</span><span class='hs-layout'>,</span> <span class='hs-varid'>notFound404</span><span class='hs-layout'>,</span> <span class='hs-conid'>ResponseHeaders</span><span class='hs-layout'>,</span> <span class='hs-varid'>hLocation</span><span class='hs-layout'>)</span>
-<a name="line-30"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Network</span><span class='hs-varop'>.</span><span class='hs-conid'>Wai</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Wai</span>
-<a name="line-31"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Web</span><span class='hs-varop'>.</span><span class='hs-conid'>Route</span><span class='hs-varop'>.</span><span class='hs-conid'>Invertible</span><span class='hs-varop'>.</span><span class='hs-conid'>Wai</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>R</span>
-<a name="line-32"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Network</span><span class='hs-varop'>.</span><span class='hs-conid'>Wai</span><span class='hs-varop'>.</span><span class='hs-conid'>Route</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>WAR</span>
-<a name="line-33"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Servant</span><span class='hs-varop'>.</span><span class='hs-conid'>API</span>
-<a name="line-34"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Servant</span>
-<a name="line-35"></a>
-<a name="line-36"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-varid'>peeks</span><span class='hs-layout'>)</span>
-<a name="line-37"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>HTTP</span><span class='hs-varop'>.</span><span class='hs-conid'>Request</span>
-<a name="line-38"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Action</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Databrary</span>
-<a name="line-39"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Action</span><span class='hs-varop'>.</span><span class='hs-conid'>Run</span>
-<a name="line-40"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Action</span><span class='hs-varop'>.</span><span class='hs-conid'>Response</span>
-<a name="line-41"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Action</span><span class='hs-varop'>.</span><span class='hs-conid'>Route</span>
-<a name="line-42"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Service</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
-<a name="line-43"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>View</span><span class='hs-varop'>.</span><span class='hs-conid'>Error</span>
-<a name="line-44"></a>
-<a name="line-45"></a><a name="redirectRouteResponse"></a><span class='hs-definition'>redirectRouteResponse</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Status</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ResponseHeaders</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>R</span><span class='hs-varop'>.</span><span class='hs-conid'>RouteAction</span> <span class='hs-varid'>r</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Request</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Response</span>
-<a name="line-46"></a><span class='hs-definition'>redirectRouteResponse</span> <span class='hs-varid'>s</span> <span class='hs-varid'>h</span> <span class='hs-varid'>r</span> <span class='hs-varid'>a</span> <span class='hs-varid'>req</span> <span class='hs-keyglyph'>=</span>
-<a name="line-47"></a>  <span class='hs-varid'>emptyResponse</span> <span class='hs-varid'>s</span> <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-varid'>hLocation</span><span class='hs-layout'>,</span> <span class='hs-conid'>BSL</span><span class='hs-varop'>.</span><span class='hs-varid'>toStrict</span> <span class='hs-varop'>$</span> <span class='hs-conid'>BSB</span><span class='hs-varop'>.</span><span class='hs-varid'>toLazyByteString</span> <span class='hs-varop'>$</span> <span class='hs-varid'>actionURL</span> <span class='hs-layout'>(</span><span class='hs-conid'>Just</span> <span class='hs-varid'>req</span><span class='hs-layout'>)</span> <span class='hs-varid'>r</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-conid'>Wai</span><span class='hs-varop'>.</span><span class='hs-varid'>queryString</span> <span class='hs-varid'>req</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-conop'>:</span> <span class='hs-varid'>h</span><span class='hs-layout'>)</span>
-<a name="line-48"></a>
-<a name="line-49"></a><a name="otherRouteResponse"></a><span class='hs-definition'>otherRouteResponse</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ResponseHeaders</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>R</span><span class='hs-varop'>.</span><span class='hs-conid'>RouteAction</span> <span class='hs-varid'>r</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Request</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Response</span>
-<a name="line-50"></a><span class='hs-definition'>otherRouteResponse</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>redirectRouteResponse</span> <span class='hs-varid'>seeOther303</span>
+<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE DataKinds #-}</span>
+<a name="line-2"></a><span class='hs-comment'>{-# LANGUAGE FlexibleInstances #-}</span>
+<a name="line-3"></a><span class='hs-comment'>{-# LANGUAGE MultiParamTypeClasses #-}</span>
+<a name="line-4"></a><span class='hs-comment'>{-# LANGUAGE OverloadedStrings #-}</span>
+<a name="line-5"></a><span class='hs-comment'>{-# LANGUAGE RankNTypes #-}</span>
+<a name="line-6"></a><span class='hs-comment'>{-# LANGUAGE ScopedTypeVariables #-}</span>
+<a name="line-7"></a><span class='hs-comment'>{-# LANGUAGE TypeOperators #-}</span>
+<a name="line-8"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Action</span>
+<a name="line-9"></a>  <span class='hs-layout'>(</span> <span class='hs-conid'>Request</span>
+<a name="line-10"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>RequestContext</span>
+<a name="line-11"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Handler</span>
+<a name="line-12"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Action</span>
+<a name="line-13"></a>
+<a name="line-14"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Response</span>
+<a name="line-15"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>response</span>
+<a name="line-16"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>emptyResponse</span>
+<a name="line-17"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>redirectRouteResponse</span>
+<a name="line-18"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>otherRouteResponse</span>
+<a name="line-19"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>forbiddenResponse</span>
+<a name="line-20"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>notFoundResponse</span>
+<a name="line-21"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>okResponse</span>
+<a name="line-22"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>result</span>
+<a name="line-23"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>maybeAction</span>
+<a name="line-24"></a>
+<a name="line-25"></a>  <span class='hs-layout'>,</span> <span class='hs-keyword'>module</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Action</span><span class='hs-varop'>.</span><span class='hs-conid'>Route</span>
+<a name="line-26"></a>
+<a name="line-27"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>withAuth</span>
+<a name="line-28"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>withoutAuth</span>
+<a name="line-29"></a>  <span class='hs-comment'>-- * Building the application</span>
+<a name="line-30"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>WaiRouteApp</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
+<a name="line-31"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>actionRouteApp</span>
+<a name="line-32"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-33"></a>
+<a name="line-34"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Network</span><span class='hs-varop'>.</span><span class='hs-conid'>HTTP</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
+<a name="line-35"></a>    <span class='hs-layout'>(</span><span class='hs-conid'>Status</span><span class='hs-layout'>,</span> <span class='hs-varid'>seeOther303</span><span class='hs-layout'>,</span> <span class='hs-varid'>forbidden403</span><span class='hs-layout'>,</span> <span class='hs-varid'>notFound404</span><span class='hs-layout'>,</span> <span class='hs-conid'>ResponseHeaders</span><span class='hs-layout'>,</span> <span class='hs-varid'>hLocation</span><span class='hs-layout'>)</span>
+<a name="line-36"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Servant</span>
+<a name="line-37"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-varop'>.</span><span class='hs-conid'>Builder</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>BSB</span>
+<a name="line-38"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-varop'>.</span><span class='hs-conid'>Lazy</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>BSL</span>
+<a name="line-39"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Network</span><span class='hs-varop'>.</span><span class='hs-conid'>Wai</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Wai</span>
+<a name="line-40"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Web</span><span class='hs-varop'>.</span><span class='hs-conid'>Route</span><span class='hs-varop'>.</span><span class='hs-conid'>Invertible</span><span class='hs-varop'>.</span><span class='hs-conid'>Wai</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Invertible</span>
+<a name="line-41"></a>
+<a name="line-42"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-varid'>peeks</span><span class='hs-layout'>)</span>
+<a name="line-43"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>HTTP</span><span class='hs-varop'>.</span><span class='hs-conid'>Request</span>
+<a name="line-44"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>API</span>
+<a name="line-45"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Action</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Databrary</span>
+<a name="line-46"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Action</span><span class='hs-varop'>.</span><span class='hs-conid'>Run</span>
+<a name="line-47"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Action</span><span class='hs-varop'>.</span><span class='hs-conid'>Response</span>
+<a name="line-48"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Action</span><span class='hs-varop'>.</span><span class='hs-conid'>Route</span>
+<a name="line-49"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Service</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
+<a name="line-50"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>View</span><span class='hs-varop'>.</span><span class='hs-conid'>Error</span>
 <a name="line-51"></a>
-<a name="line-52"></a><a name="forbiddenResponse"></a><span class='hs-definition'>forbiddenResponse</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>RequestContext</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Response</span>
-<a name="line-53"></a><span class='hs-definition'>forbiddenResponse</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>response</span> <span class='hs-varid'>forbidden403</span> <span class='hs-conid'>[]</span> <span class='hs-varop'>.</span> <span class='hs-varid'>htmlForbidden</span>
-<a name="line-54"></a>
-<a name="line-55"></a><a name="notFoundResponse"></a><span class='hs-definition'>notFoundResponse</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>RequestContext</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Response</span>
-<a name="line-56"></a><span class='hs-definition'>notFoundResponse</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>response</span> <span class='hs-varid'>notFound404</span> <span class='hs-conid'>[]</span> <span class='hs-varop'>.</span> <span class='hs-varid'>htmlNotFound</span>
-<a name="line-57"></a>
-<a name="line-58"></a><a name="maybeAction"></a><span class='hs-comment'>-- | Fail with 404 if not 'Just'</span>
-<a name="line-59"></a><span class='hs-definition'>maybeAction</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>a</span>
-<a name="line-60"></a><span class='hs-definition'>maybeAction</span> <span class='hs-layout'>(</span><span class='hs-conid'>Just</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>return</span> <span class='hs-varid'>a</span>
-<a name="line-61"></a><span class='hs-definition'>maybeAction</span> <span class='hs-conid'>Nothing</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>result</span> <span class='hs-varop'>=&lt;&lt;</span> <span class='hs-varid'>peeks</span> <span class='hs-varid'>notFoundResponse</span>
-<a name="line-62"></a>
-<a name="line-63"></a><a name="API1"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>API1</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Raw</span>
-<a name="line-64"></a>
-<a name="line-65"></a><a name="api1"></a><span class='hs-definition'>api1</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Proxy</span> <span class='hs-conid'>API1</span>
-<a name="line-66"></a><span class='hs-definition'>api1</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Proxy</span>
-<a name="line-67"></a>
-<a name="line-68"></a><a name="serverApi1"></a><span class='hs-definition'>serverApi1</span> <span class='hs-keyglyph'>::</span> <span class='hs-keyglyph'>[</span><span class='hs-layout'>(</span><span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-layout'>,</span> <span class='hs-conid'>WAR</span><span class='hs-varop'>.</span><span class='hs-conid'>Handler</span> <span class='hs-conid'>IO</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Server</span> <span class='hs-conid'>API1</span>
-<a name="line-69"></a><span class='hs-definition'>serverApi1</span> <span class='hs-varid'>newRouteMap</span> <span class='hs-keyglyph'>=</span>
-<a name="line-70"></a>    <span class='hs-conid'>Tagged</span> <span class='hs-layout'>(</span><span class='hs-conid'>WAR</span><span class='hs-varop'>.</span><span class='hs-varid'>route</span> <span class='hs-varid'>newRouteMap</span><span class='hs-layout'>)</span>
+<a name="line-52"></a><a name="redirectRouteResponse"></a><span class='hs-comment'>-- | Redirect a request to a new route</span>
+<a name="line-53"></a><span class='hs-definition'>redirectRouteResponse</span>
+<a name="line-54"></a>    <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Status</span>
+<a name="line-55"></a>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ResponseHeaders</span>
+<a name="line-56"></a>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Invertible</span><span class='hs-varop'>.</span><span class='hs-conid'>RouteAction</span> <span class='hs-varid'>r</span> <span class='hs-varid'>a</span>
+<a name="line-57"></a>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span>
+<a name="line-58"></a>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Request</span>
+<a name="line-59"></a>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Response</span>
+<a name="line-60"></a><span class='hs-definition'>redirectRouteResponse</span> <span class='hs-varid'>status</span> <span class='hs-varid'>hdrs</span> <span class='hs-varid'>ra</span> <span class='hs-varid'>r</span> <span class='hs-varid'>req</span> <span class='hs-keyglyph'>=</span>
+<a name="line-61"></a>    <span class='hs-varid'>emptyResponse</span> <span class='hs-varid'>status</span> <span class='hs-layout'>(</span><span class='hs-varid'>locationHeader</span> <span class='hs-conop'>:</span> <span class='hs-varid'>hdrs</span><span class='hs-layout'>)</span>
+<a name="line-62"></a>  <span class='hs-keyword'>where</span>
+<a name="line-63"></a>    <span class='hs-varid'>locationHeader</span> <span class='hs-keyglyph'>=</span>
+<a name="line-64"></a>        <span class='hs-layout'>(</span><span class='hs-varid'>hLocation</span><span class='hs-layout'>,</span> <span class='hs-varid'>build</span> <span class='hs-layout'>(</span><span class='hs-varid'>actionURL</span> <span class='hs-layout'>(</span><span class='hs-conid'>Just</span> <span class='hs-varid'>req</span><span class='hs-layout'>)</span> <span class='hs-varid'>ra</span> <span class='hs-varid'>r</span> <span class='hs-layout'>(</span><span class='hs-conid'>Wai</span><span class='hs-varop'>.</span><span class='hs-varid'>queryString</span> <span class='hs-varid'>req</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-65"></a>    <span class='hs-varid'>build</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>BSL</span><span class='hs-varop'>.</span><span class='hs-varid'>toStrict</span> <span class='hs-varop'>.</span> <span class='hs-conid'>BSB</span><span class='hs-varop'>.</span><span class='hs-varid'>toLazyByteString</span>
+<a name="line-66"></a>
+<a name="line-67"></a><a name="otherRouteResponse"></a><span class='hs-comment'>-- | Redirect with HTTP code 303</span>
+<a name="line-68"></a><span class='hs-definition'>otherRouteResponse</span>
+<a name="line-69"></a>    <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ResponseHeaders</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Invertible</span><span class='hs-varop'>.</span><span class='hs-conid'>RouteAction</span> <span class='hs-varid'>r</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Request</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Response</span>
+<a name="line-70"></a><span class='hs-definition'>otherRouteResponse</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>redirectRouteResponse</span> <span class='hs-varid'>seeOther303</span>
 <a name="line-71"></a>
-<a name="line-72"></a><a name="api1App"></a><span class='hs-definition'>api1App</span> <span class='hs-keyglyph'>::</span> <span class='hs-keyglyph'>[</span><span class='hs-layout'>(</span><span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-layout'>,</span> <span class='hs-conid'>WAR</span><span class='hs-varop'>.</span><span class='hs-conid'>Handler</span> <span class='hs-conid'>IO</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Application</span>
-<a name="line-73"></a><span class='hs-definition'>api1App</span> <span class='hs-varid'>newRouteMap</span> <span class='hs-keyglyph'>=</span>
-<a name="line-74"></a>    <span class='hs-varid'>serve</span> <span class='hs-varid'>api1</span> <span class='hs-layout'>(</span><span class='hs-varid'>serverApi1</span> <span class='hs-varid'>newRouteMap</span><span class='hs-layout'>)</span>
+<a name="line-72"></a><a name="forbiddenResponse"></a><span class='hs-comment'>-- | HTTP code 403</span>
+<a name="line-73"></a><span class='hs-definition'>forbiddenResponse</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>RequestContext</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Response</span>
+<a name="line-74"></a><span class='hs-definition'>forbiddenResponse</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>response</span> <span class='hs-varid'>forbidden403</span> <span class='hs-conid'>[]</span> <span class='hs-varop'>.</span> <span class='hs-varid'>htmlForbidden</span>
 <a name="line-75"></a>
-<a name="line-76"></a><a name="runActionRoute"></a><span class='hs-definition'>runActionRoute</span>
-<a name="line-77"></a>    <span class='hs-keyglyph'>::</span> <span class='hs-conid'>R</span><span class='hs-varop'>.</span><span class='hs-conid'>RouteMap</span> <span class='hs-conid'>Action</span>
-<a name="line-78"></a>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>Service</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-layout'>(</span><span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-layout'>,</span> <span class='hs-conid'>WAR</span><span class='hs-varop'>.</span><span class='hs-conid'>Handler</span> <span class='hs-conid'>IO</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span>
-<a name="line-79"></a>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Service</span>
-<a name="line-80"></a>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Wai</span><span class='hs-varop'>.</span><span class='hs-conid'>Application</span>
-<a name="line-81"></a><span class='hs-definition'>runActionRoute</span> <span class='hs-varid'>routeMap</span> <span class='hs-varid'>mkNewRouteMap</span> <span class='hs-varid'>routeContext</span> <span class='hs-varid'>req</span> <span class='hs-keyglyph'>=</span>
-<a name="line-82"></a>    <span class='hs-keyword'>let</span> <span class='hs-varid'>eMatchedAction</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Either</span> <span class='hs-layout'>(</span><span class='hs-conid'>Status</span><span class='hs-layout'>,</span> <span class='hs-conid'>ResponseHeaders</span><span class='hs-layout'>)</span> <span class='hs-conid'>Action</span>
-<a name="line-83"></a>        <span class='hs-varid'>eMatchedAction</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>R</span><span class='hs-varop'>.</span><span class='hs-varid'>routeWai</span> <span class='hs-varid'>req</span> <span class='hs-varid'>routeMap</span>
-<a name="line-84"></a>    <span class='hs-keyword'>in</span>
-<a name="line-85"></a>      <span class='hs-keyword'>case</span> <span class='hs-varid'>eMatchedAction</span> <span class='hs-keyword'>of</span>
-<a name="line-86"></a>        <span class='hs-conid'>Right</span> <span class='hs-varid'>act</span> <span class='hs-keyglyph'>-&gt;</span>
-<a name="line-87"></a>            <span class='hs-varid'>runAction</span> <span class='hs-varid'>routeContext</span> <span class='hs-varid'>act</span> <span class='hs-varid'>req</span>
-<a name="line-88"></a>        <span class='hs-conid'>Left</span> <span class='hs-layout'>(</span><span class='hs-varid'>st</span><span class='hs-layout'>,</span><span class='hs-varid'>hdrs</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span>
-<a name="line-89"></a>            <span class='hs-keyword'>if</span> <span class='hs-varid'>st</span> <span class='hs-varop'>==</span> <span class='hs-varid'>notFound404</span> <span class='hs-comment'>-- currently, this might be only possible error result?</span>
-<a name="line-90"></a>            <span class='hs-keyword'>then</span>
-<a name="line-91"></a>                <span class='hs-varid'>api1App</span> <span class='hs-layout'>(</span><span class='hs-varid'>mkNewRouteMap</span> <span class='hs-varid'>routeContext</span><span class='hs-layout'>)</span> <span class='hs-varid'>req</span>
-<a name="line-92"></a>            <span class='hs-keyword'>else</span>
-<a name="line-93"></a>                <span class='hs-varid'>runAction</span> <span class='hs-varid'>routeContext</span> <span class='hs-layout'>(</span><span class='hs-varid'>err</span> <span class='hs-layout'>(</span><span class='hs-varid'>st</span><span class='hs-layout'>,</span><span class='hs-varid'>hdrs</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>req</span>
-<a name="line-94"></a>  <span class='hs-keyword'>where</span>
-<a name="line-95"></a>    <span class='hs-varid'>err</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Status</span><span class='hs-layout'>,</span> <span class='hs-conid'>ResponseHeaders</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Action</span>
-<a name="line-96"></a>    <span class='hs-varid'>err</span> <span class='hs-layout'>(</span><span class='hs-varid'>status</span><span class='hs-layout'>,</span> <span class='hs-varid'>headers</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>withoutAuth</span> <span class='hs-varop'>$</span> <span class='hs-varid'>peeks</span> <span class='hs-varop'>$</span> <span class='hs-varid'>response</span> <span class='hs-varid'>status</span> <span class='hs-varid'>headers</span> <span class='hs-varop'>.</span> <span class='hs-varid'>htmlNotFound</span>
+<a name="line-76"></a><a name="notFoundResponse"></a><span class='hs-comment'>-- | HTTP code 404</span>
+<a name="line-77"></a><span class='hs-definition'>notFoundResponse</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>RequestContext</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Response</span>
+<a name="line-78"></a><span class='hs-definition'>notFoundResponse</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>response</span> <span class='hs-varid'>notFound404</span> <span class='hs-conid'>[]</span> <span class='hs-varop'>.</span> <span class='hs-varid'>htmlNotFound</span>
+<a name="line-79"></a>
+<a name="line-80"></a><a name="maybeAction"></a><span class='hs-comment'>-- | Fail with 404 if not 'Just'</span>
+<a name="line-81"></a><span class='hs-definition'>maybeAction</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>a</span>
+<a name="line-82"></a><span class='hs-definition'>maybeAction</span> <span class='hs-layout'>(</span><span class='hs-conid'>Just</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>return</span> <span class='hs-varid'>a</span>
+<a name="line-83"></a><span class='hs-definition'>maybeAction</span> <span class='hs-conid'>Nothing</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>result</span> <span class='hs-varop'>=&lt;&lt;</span> <span class='hs-varid'>peeks</span> <span class='hs-varid'>notFoundResponse</span>
+<a name="line-84"></a>
+<a name="line-85"></a><a name="WaiRouteApp"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>WaiRouteApp</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>WaiRouteApp</span> <span class='hs-conid'>Application</span>
+<a name="line-86"></a>
+<a name="line-87"></a><a name="apiServer"></a><span class='hs-comment'>-- | Create a server to serve the ServantAPI.</span>
+<a name="line-88"></a><span class='hs-definition'>apiServer</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>WaiRouteApp</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Server</span> <span class='hs-conid'>ServantAPI</span>
+<a name="line-89"></a><span class='hs-definition'>apiServer</span> <span class='hs-layout'>(</span><span class='hs-conid'>WaiRouteApp</span> <span class='hs-varid'>app'</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Tagged</span> <span class='hs-varid'>app'</span>
+<a name="line-90"></a>
+<a name="line-91"></a><a name="servantApp"></a><span class='hs-comment'>-- Build a Wai.Application out of our Servant server plus the Wai Route escape</span>
+<a name="line-92"></a><span class='hs-comment'>-- hatch.</span>
+<a name="line-93"></a><span class='hs-definition'>servantApp</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>WaiRouteApp</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Application</span>
+<a name="line-94"></a><span class='hs-definition'>servantApp</span> <span class='hs-varid'>waiRouteApp</span> <span class='hs-keyglyph'>=</span>
+<a name="line-95"></a>    <span class='hs-varid'>serve</span> <span class='hs-varid'>servantAPI</span> <span class='hs-layout'>(</span><span class='hs-varid'>apiServer</span> <span class='hs-varid'>waiRouteApp</span><span class='hs-layout'>)</span>
+<a name="line-96"></a>
+<a name="line-97"></a><a name="actionRouteApp"></a><span class='hs-comment'>-- | The lowest level of the Databrary 'web framework'. Makes a Wai Application</span>
+<a name="line-98"></a><span class='hs-comment'>-- given a route map, a hatch into the Wai Route fallback, and the</span>
+<a name="line-99"></a><span class='hs-comment'>-- already-generated system capabilities.</span>
+<a name="line-100"></a><span class='hs-definition'>actionRouteApp</span>
+<a name="line-101"></a>    <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Invertible</span><span class='hs-varop'>.</span><span class='hs-conid'>RouteMap</span> <span class='hs-conid'>Action</span>
+<a name="line-102"></a>    <span class='hs-comment'>-- ^ The original route map. Now partially replaced by Servant and Wai</span>
+<a name="line-103"></a>    <span class='hs-comment'>-- Routes</span>
+<a name="line-104"></a>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>WaiRouteApp</span>
+<a name="line-105"></a>    <span class='hs-comment'>-- ^ The newer Wai Route-based Application</span>
+<a name="line-106"></a>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Service</span>
+<a name="line-107"></a>    <span class='hs-comment'>-- ^ System capabilities</span>
+<a name="line-108"></a>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Wai</span><span class='hs-varop'>.</span><span class='hs-conid'>Application</span>
+<a name="line-109"></a>    <span class='hs-comment'>-- ^ The actual web app</span>
+<a name="line-110"></a><span class='hs-definition'>actionRouteApp</span> <span class='hs-varid'>invMap</span> <span class='hs-varid'>waiRouteApp</span> <span class='hs-varid'>routeContext</span> <span class='hs-varid'>req</span> <span class='hs-keyglyph'>=</span>
+<a name="line-111"></a>    <span class='hs-comment'>-- Route lookup</span>
+<a name="line-112"></a>    <span class='hs-keyword'>let</span> <span class='hs-varid'>eMatchedAction</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Either</span> <span class='hs-layout'>(</span><span class='hs-conid'>Status</span><span class='hs-layout'>,</span> <span class='hs-conid'>ResponseHeaders</span><span class='hs-layout'>)</span> <span class='hs-conid'>Action</span>
+<a name="line-113"></a>        <span class='hs-varid'>eMatchedAction</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Invertible</span><span class='hs-varop'>.</span><span class='hs-varid'>routeWai</span> <span class='hs-varid'>req</span> <span class='hs-varid'>invMap</span>
+<a name="line-114"></a>    <span class='hs-keyword'>in</span>
+<a name="line-115"></a>      <span class='hs-keyword'>case</span> <span class='hs-varid'>eMatchedAction</span> <span class='hs-keyword'>of</span>
+<a name="line-116"></a>        <span class='hs-conid'>Right</span> <span class='hs-varid'>act</span> <span class='hs-keyglyph'>-&gt;</span>
+<a name="line-117"></a>            <span class='hs-comment'>-- Still handled by invertible routes</span>
+<a name="line-118"></a>            <span class='hs-varid'>actionApp</span> <span class='hs-varid'>routeContext</span> <span class='hs-varid'>act</span> <span class='hs-varid'>req</span>
+<a name="line-119"></a>        <span class='hs-conid'>Left</span> <span class='hs-layout'>(</span><span class='hs-varid'>st</span><span class='hs-layout'>,</span><span class='hs-varid'>hdrs</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span>
+<a name="line-120"></a>            <span class='hs-keyword'>if</span> <span class='hs-varid'>st</span> <span class='hs-varop'>==</span> <span class='hs-varid'>notFound404</span> <span class='hs-comment'>-- currently, this might be only possible error result?</span>
+<a name="line-121"></a>            <span class='hs-keyword'>then</span>
+<a name="line-122"></a>                <span class='hs-comment'>-- Our hatch to the WaiRouteApp is Servant!</span>
+<a name="line-123"></a>                <span class='hs-varid'>servantApp</span> <span class='hs-varid'>waiRouteApp</span> <span class='hs-varid'>req</span>
+<a name="line-124"></a>            <span class='hs-keyword'>else</span>
+<a name="line-125"></a>                <span class='hs-varid'>actionApp</span> <span class='hs-varid'>routeContext</span> <span class='hs-layout'>(</span><span class='hs-varid'>err</span> <span class='hs-layout'>(</span><span class='hs-varid'>st</span><span class='hs-layout'>,</span><span class='hs-varid'>hdrs</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>req</span>
+<a name="line-126"></a>  <span class='hs-keyword'>where</span>
+<a name="line-127"></a>    <span class='hs-comment'>-- This is almost, but not quite, equal to 'notFoundResponseHandler'</span>
+<a name="line-128"></a>    <span class='hs-varid'>err</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Status</span><span class='hs-layout'>,</span> <span class='hs-conid'>ResponseHeaders</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Action</span>
+<a name="line-129"></a>    <span class='hs-varid'>err</span> <span class='hs-layout'>(</span><span class='hs-varid'>status</span><span class='hs-layout'>,</span> <span class='hs-varid'>headers</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span>
+<a name="line-130"></a>        <span class='hs-varid'>withoutAuth</span> <span class='hs-layout'>(</span><span class='hs-varid'>peeks</span> <span class='hs-layout'>(</span><span class='hs-varid'>response</span> <span class='hs-varid'>status</span> <span class='hs-varid'>headers</span> <span class='hs-varop'>.</span> <span class='hs-varid'>htmlNotFound</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
 </pre></body>
 </html>
