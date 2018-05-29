@@ -21,7 +21,7 @@ app.directive 'accessSearchForm', [
 
       ###*
       # Search invidiauls to grant access to.
-      # @class
+      # @interface form/search
       ###
 
       form.search = (val) ->

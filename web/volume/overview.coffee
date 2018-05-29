@@ -8,6 +8,10 @@
 app.directive 'volumeOverview', [
   'constantService',
   (constants) ->
+    ###*
+    # Generate volume summary
+    # @interface volume/generateSummary
+    ###
     generateSummary = (volume) ->
       volume.summary = summary =
         sessions: 0
@@ -43,6 +47,10 @@ app.directive 'volumeOverview', [
             else
               summary.genders[g] = 1
 
+    ###*
+    # Generate volume release table summary
+    # @interface volume/generateReleasesummary
+    ###
     generateReleasesummary = (volume) ->
       volume.releasesummary = summary =
         'sessions':

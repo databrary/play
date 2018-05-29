@@ -19,7 +19,10 @@ app.controller('volume/slot', [
 
     ################################### Base classes/utilities
 
+    ###*
     # Represents a point on the timeline, which can be expressed as "o" (offset time in ms), "x" (pixel X position in client coordinates), or "p" (fractional position on the timeline, may escape [0,1])
+    # @interface slot/class/TimePoint
+    ###
     class TimePoint
       constructor: (v, t) ->
         if v instanceof TimePoint
@@ -121,7 +124,10 @@ app.controller('volume/slot', [
           style.left = 100*p + '%'
         style
 
+    ###*
     # Elaboration on Segment that uses lt and ut TimePoints
+    # @interface slot/class/TimeSegment
+    ###
     class TimeSegment extends Segment
       init: (a, u) ->
         if arguments.length >= 2
@@ -200,7 +206,10 @@ app.controller('volume/slot', [
         updateSelection()
         event?.stopPropagation()
 
-    ################################### Global state
+    ###*
+    # Set the global state
+    # @interface slot/searchLocation
+    ###
 
     target = $location.search()
     video = undefined # currently playing video element
@@ -251,7 +260,10 @@ app.controller('volume/slot', [
       resetRange()
       return
 
-    ################################### Video/playback controls
+    ###*
+    # Video/playback controls
+    # @interface slot/updatePosition
+    ###
 
     $scope.updatePosition = () ->
       seg = (if $scope.editing == 'asset' then $scope.current else $scope.asset?.segment)
@@ -330,7 +342,10 @@ app.controller('volume/slot', [
         video[0].play()
       return
 
-    ################################### Player display
+    ###*
+    # Video player display
+    # @interface slot/setPlayerHeight
+    ###
 
     playerMinHeight = 200
     viewportMinHeight = 120

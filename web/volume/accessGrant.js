@@ -34,7 +34,7 @@ app.directive('accessGrantForm', [
 
       /**
        * Submit form to grant access
-       * @class
+       * @interface form/save
        */
       form.save = function () {
         messages.clear(form);
@@ -67,7 +67,7 @@ app.directive('accessGrantForm', [
 
       /**
        * Submit form to remove access
-       * @class
+       * @interface form/remove
        */
       form.remove = function () {
         messages.clear(form);

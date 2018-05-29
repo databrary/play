@@ -19,7 +19,7 @@ app.directive('ngForm', [
 
       /**
      * Check if the form is dirty.
-     * @class
+     * @interface form/checkDirty
      */
       function checkDirty() {
         if (!(form.$dirty || form.$submitted) || controls.some(function (control) {
@@ -37,7 +37,7 @@ app.directive('ngForm', [
 
       /**
      * Set the form state back to its unsubmitted state.
-     * @class
+     * @interface form/$setUnsubmitted
      */
       form.$setUnsubmitted = function () {
         if (!form.$submitted || controls.some(function (control) {
@@ -144,7 +144,7 @@ app.directive('ngForm', [
 
       /**
      * Pop up a JS confirm dialogue to ask if the user is sure to abandon changes without submitting the form.
-     * @constructor
+     * @interface form/resetAll
      */
       form.resetAll = function (force, check) {
         if (!(force || form.$pristine)) {

@@ -371,8 +371,8 @@ function buildNav(members) {
     nav += buildMemberNav(members.modules, 'Directives', {}, linkto);
     nav += buildMemberNav(members.namespaces, 'Services', seen, linkto);
     nav += buildMemberNav(members.mixins, 'Controllers', seen, linkto);
-    nav += buildMemberNav(members.classes, 'Functions', seen, linkto);
-    nav += buildMemberNav(members.interfaces, 'Interfaces', seen, linkto);
+    nav += buildMemberNav(members.interfaces, 'Functions', seen, linkto);
+    nav += buildMemberNav(members.classes, 'classes', seen, linkto);
     nav += buildMemberNav(members.events, 'Events', seen, linkto);
     nav += buildMemberNav(members.externals, 'Externals', seen, linktoExternal);
     nav += buildMemberNav(members.tutorials, 'Tutorials', seenTutorials, linktoTutorial);
@@ -652,7 +652,7 @@ exports.publish = function(taffyData, opts, tutorials) {
         }
 
         if (myClasses.length) {
-            generate('Function: ' + myClasses[0].name, myClasses, helper.longnameToUrl[longname]);
+            generate('Class: ' + myClasses[0].name, myClasses, helper.longnameToUrl[longname]);
         }
 
         if (myNamespaces.length) {
@@ -668,7 +668,7 @@ exports.publish = function(taffyData, opts, tutorials) {
         }
 
         if (myInterfaces.length) {
-            generate('Interface: ' + myInterfaces[0].name, myInterfaces, helper.longnameToUrl[longname]);
+            generate('Function: ' + myInterfaces[0].name, myInterfaces, helper.longnameToUrl[longname]);
         }
     });
 
