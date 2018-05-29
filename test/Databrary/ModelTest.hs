@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, FlexibleContexts #-}
 module Databrary.ModelTest where
 
+import Data.Aeson
 import Data.Maybe
 import Control.Monad
 import Control.Monad.Trans.Reader
@@ -12,14 +13,14 @@ import Databrary.Has
 import Databrary.Model.Audit (MonadAudit)
 import Databrary.Model.Authorize
 import Databrary.Model.Category
--- import Databrary.Model.Container
+import Databrary.Model.Container
 import Databrary.Model.Measure
 import Databrary.Model.Metric
 import Databrary.Model.Party
 import Databrary.Model.Permission
--- import Databrary.Model.Release
+import Databrary.Model.Release
 import Databrary.Model.Record
--- import Databrary.Model.Slot
+import Databrary.Model.Slot
 import Databrary.Model.Volume
 import Databrary.Model.VolumeAccess
 import Databrary.Service.DB (DBConn)
@@ -63,8 +64,39 @@ setDefaultRequest c = c { ctxRequest = defaultRequest }
 -- 8 = ai lab a, lab b access
 -- 9 = aff site access only
 -- 10 = ai lab a, ai lab b vol access
--- 11 = public can't view priv
--- 12 = public can't see restricted release cntr
+
+test_11 :: TestTree
+test_11 = Test.stepsWithTransaction "" $ \step cn2 -> do
+    step "Given an authorized investigator"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    step "When the AI creates a private volume with a fully released container"
+    -- TODO: should be lookup auth on rootParty
+    cid <- runReaderT
+         (do
+              v <- addVolumeWithAccess volumeExample (accountParty aiAcct)
+              setVolumePrivate v
+              makeAddContainer v (Just ReleasePUBLIC) Nothing)
+         aiCtxt
+    step "Then the public can't view the container"
+    -- Implementation of getSlot PUBLIC
+    mSlotForAnon <- runWithNoIdent cn2 (lookupSlot (containerSlotId cid))
+    isNothing mSlotForAnon @? "expected slot lookup to find nothing"
+
+test_12 :: TestTree
+test_12 = Test.stepsWithTransaction "" $ \step cn2 -> do
+    step "Given an authorized investigator's created public volume with a container released at Excerpts level"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    -- TODO: should be lookup auth on rootParty
+    cid <- runReaderT
+         (do
+              v <- addVolumeWithAccess volumeExample (accountParty aiAcct)
+              makeAddContainer v (Just ReleaseEXCERPTS) (Just (fromGregorian 2017 1 2)))
+         aiCtxt
+    step "When the public attempts to view the container"
+    -- Implementation of getSlot PUBLIC
+    Just slotForAnon <- runWithNoIdent cn2 (lookupSlot (containerSlotId cid))
+    step "Then the public can't see protected parts like the detailed test date"
+    (encode . getContainerDate . slotContainer) slotForAnon @?= "2017"
 
 test_13 :: TestTree
 test_13 = Test.stepsWithTransaction "" $ \step cn2 -> do
@@ -74,7 +106,7 @@ test_13 = Test.stepsWithTransaction "" $ \step cn2 -> do
     rid <- runReaderT
          (do
               v <- addVolumeWithAccess volumeExample (accountParty aiAcct)
-              void (changeVolumeAccess (mkVolAccess PermissionNONE Nothing nobodyParty v)) -- TODO: handle root also?
+              setVolumePrivate v
               addParticipantRecordWithMeasures v [])
          aiCtxt
     step "When the public attempts to view the record"
@@ -99,12 +131,31 @@ test_14 = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "Then the public can't see the restricted measures like birthdate"
     (participantMetricBirthdate `notElem` (fmap measureMetric . getRecordMeasures) rcrdForAnon) @? "Expected birthdate to be removed"
 
+setVolumePrivate :: (MonadAudit c m) => Volume -> m ()
+setVolumePrivate v =
+    void (changeVolumeAccess (mkVolAccess PermissionNONE Nothing nobodyParty v)) -- TODO: handle root also?
+
 runWithNoIdent :: DBConn -> ReaderT TestContext IO a -> IO a
 runWithNoIdent cn rdr = runReaderT rdr ((mkDbContext cn) { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded })
 
 addAuthorizedInvestigatorWithInstitution' :: DBConn -> IO (Account, TestContext)
 addAuthorizedInvestigatorWithInstitution' c =
     addAuthorizedInvestigatorWithInstitution c "test@databrary.org" "New York University" "raul@smith.com"
+
+-- modeled after createContainer
+makeAddContainer :: (MonadAudit c m) => Volume -> Maybe Release -> Maybe Day -> m (Id Container)
+makeAddContainer v mRel mDate = do
+    c <- addContainer (mkContainer v mRel mDate)
+    pure ((containerId . containerRow) c)
+
+mkContainer :: Volume -> Maybe Release -> Maybe Day -> Container
+mkContainer v mRel mDate = -- note: modeled after create container
+    let
+        c = blankContainer v
+    in
+        c { containerRelease = mRel
+          , containerRow = (containerRow c) { containerDate = mDate }
+          }
 
 addParticipantRecordWithMeasures :: (MonadAudit c m) => Volume -> [Record -> Measure] -> m (Id Record)
 addParticipantRecordWithMeasures v mkMeasures = do
@@ -132,7 +183,6 @@ someBirthdateMeasure r = Measure r participantMetricBirthdate "1990-01-02"
 someGenderMeasure :: Record -> Measure
 someGenderMeasure r = Measure r participantMetricGender "Male"
 
--- TODO: remove from authorizetest
 mkParticipantRecord :: Volume -> Record
 mkParticipantRecord vol =  -- note: modeled after create record
     blankRecord participantCategory vol

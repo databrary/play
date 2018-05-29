@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, FlexibleContexts #-}
 module Databrary.Model.AuthorizeTest where
 
-import Data.Aeson
-import Data.Maybe
+-- import Data.Aeson
+-- import Data.Maybe
 import Data.Time
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -10,13 +10,13 @@ import Test.Tasty.HUnit
 import Databrary.Has
 import Databrary.Model.Audit (MonadAudit)
 import Databrary.Model.Authorize
-import Databrary.Model.Category
-import Databrary.Model.Container
+-- import Databrary.Model.Category
+-- import Databrary.Model.Container
 import Databrary.Model.Party
 import Databrary.Model.Permission
-import Databrary.Model.Release
-import Databrary.Model.Record
-import Databrary.Model.Slot
+-- import Databrary.Model.Release
+-- import Databrary.Model.Record
+-- import Databrary.Model.Slot
 import Databrary.Model.Volume
 import Databrary.Model.VolumeAccess
 import TestHarness as Test
@@ -248,70 +248,11 @@ test_Authorize_examples3 = testCaseSteps "Authorize examples continued" $ \step 
         Just volForAI2 <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) aiCtxt2
         volumePermission volForAI2 @?= PermissionSHARED)
 
-test_Authorize_examples2 :: TestTree
-test_Authorize_examples2 = testCaseSteps "Authorize examples continued" $ \step -> do
-    withinTestTransaction (\cn2 -> do -- TODO: move this to VolumeAccess or more general module around authorization
-        step "Given an authorized investigator"
-        ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
-        instParty <- addAuthorizedInstitution ctxt "New York University"
-        aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
-        let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
-        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
-        let aiCtxt = switchIdentity ctxt aiAuth False
-        step "When the AI creates a private volume with a fully released container"
-        -- TODO: should be lookup auth on rootParty
-        let aiParty = accountParty aiAcct
-        createdContainer <- runReaderT
-             (do
-                  v <- addVolumeWithAccess volumeExample aiParty
-                  -- simulate setting volume as private
-                  _ <- changeVolumeAccess (mkVolAccess PermissionNONE Nothing nobodyParty v) -- TODO: handle root also?
-                  -- modeled after createContainer
-                  addContainer (mkContainer v (Just ReleasePUBLIC) Nothing))
-             aiCtxt
-        step "Then the public can't view the container"
-        -- Implementation of getSlot PUBLIC
-        let cid = (containerId . containerRow) createdContainer
-        mSlotForAnon <- runReaderT (lookupSlot (containerSlotId cid)) ctxtNoIdent
-        isNothing mSlotForAnon @? "expected slot lookup to find nothing")
-
-    withinTestTransaction (\cn2 -> do -- TODO: move this to VolumeAccess or more general module around authorization
-        step "Given an authorized investigator's created public volume with a container released at Excerpts level"
-        ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
-        instParty <- addAuthorizedInstitution ctxt "New York University"
-        aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
-        let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
-        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
-        let aiCtxt = switchIdentity ctxt aiAuth False
-        -- TODO: should be lookup auth on rootParty
-        let aiParty = accountParty aiAcct
-        createdContainer <- runReaderT
-             (do
-                  v <- addVolumeWithAccess volumeExample aiParty
-                  addContainer (mkContainer v (Just ReleaseEXCERPTS) (Just (fromGregorian 2017 1 2))))
-             aiCtxt
-        step "When the public attempts to view the container"
-        -- Implementation of getSlot PUBLIC
-        let cid = (containerId . containerRow) createdContainer
-        Just slotForAnon <- runReaderT (lookupSlot (containerSlotId cid)) ctxtNoIdent
-        step "Then the public can't see protected parts like the detailed test date"
-        (volumePermission . containerVolume . slotContainer) slotForAnon @?= PermissionPUBLIC
-        (encode . getContainerDate . slotContainer) slotForAnon @?= "2017")
-
 addVolumeWithAccess :: MonadAudit c m => Volume -> Party -> m Volume
 addVolumeWithAccess v p = do
     v' <- addVolume v -- note: skipping irrelevant change volume citation
     setDefaultVolumeAccessesForCreated p v'
     pure v'
-
-mkContainer :: Volume -> Maybe Release -> Maybe Day -> Container
-mkContainer v mRel mDate = -- note: modeled after create container
-    let
-        c = blankContainer v
-    in
-        c { containerRelease = mRel
-          , containerRow = (containerRow c) { containerDate = mDate }
-          }
 
 mkVolAccess :: Permission -> Maybe Bool -> Party -> Volume -> VolumeAccess
 mkVolAccess perm mShareFull p v =
