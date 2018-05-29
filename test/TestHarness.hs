@@ -9,6 +9,7 @@ module TestHarness
     , makeSuperAdminContext
     , fakeIdentSessFromAuth
     , addAuthorizedInstitution
+    , addAuthorizedInvestigatorWithInstitution
     , mkInstitution -- TODO: stop exporting
     , mkAccount -- TODO: stop exporting
     , mkAccountSimple -- TODO: stop exporting
@@ -192,6 +193,16 @@ addAuthorizedInvestigator adminCtxt lastName firstName email instParty = do
         (changeAuthorize (makeAuthorize (Access PermissionADMIN PermissionNONE) Nothing (accountParty aiAccount) instParty))
         adminCtxt
     pure aiAccount
+
+addAuthorizedInvestigatorWithInstitution :: DBConn -> BS.ByteString -> T.Text -> BS.ByteString -> IO (Account, TestContext)
+addAuthorizedInvestigatorWithInstitution cn adminEmail instName aiEmail = do
+    ctxt <- makeSuperAdminContext cn adminEmail
+    instParty <- addAuthorizedInstitution ctxt instName
+    aiAcct <- addAuthorizedInvestigator ctxt "Last" "First" aiEmail instParty
+    let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
+    Just aiAuth <- runReaderT (lookupSiteAuthByEmail False aiEmail) ctxtNoIdent
+    let aiCtxt = switchIdentity ctxt aiAuth False
+    pure (aiAcct, aiCtxt)
 
 -- TODO: receive expiration date
 addAffiliate :: TestContext -> T.Text -> T.Text -> BS.ByteString -> Party -> Permission -> Permission -> IO Account

@@ -298,8 +298,9 @@ test_Authorize_examples2 = testCaseSteps "Authorize examples continued" $ \step 
         (volumePermission . containerVolume . slotContainer) slotForAnon @?= PermissionPUBLIC
         (encode . getContainerDate . slotContainer) slotForAnon @?= "2017")
 
-test_Authorize_example4 :: TestTree
-test_Authorize_example4 = Test.stepsWithTransaction "viewRecords - public view private vol" $ \step cn2 -> do
+{-
+_test_Authorize_example4 :: TestTree
+_test_Authorize_example4 = Test.stepsWithTransaction "viewRecords - public view private vol" $ \step cn2 -> do
     step "Given an authorized investigator's created private volume with a record not attached to a container"
     ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
     instParty <- addAuthorizedInstitution ctxt "New York University"
@@ -321,6 +322,7 @@ test_Authorize_example4 = Test.stepsWithTransaction "viewRecords - public view p
     mRcrd <- runReaderT (lookupRecord ((recordId . recordRow) createdRecord)) ctxtNoIdent
     step "Then the public can't"
     isNothing mRcrd @? "Expected failure to retrieve record from restricted volume"
+-}
 
 addVolumeWithAccess :: MonadAudit c m => Volume -> Party -> m Volume
 addVolumeWithAccess v p = do

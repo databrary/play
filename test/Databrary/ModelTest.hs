@@ -1,7 +1,9 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, FlexibleContexts #-}
 module Databrary.ModelTest where
 
-import Control.Monad (forM_)
+import Data.Maybe
+import Control.Monad
+import Control.Monad.Trans.Reader
 import Data.Time
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -20,6 +22,7 @@ import Databrary.Model.Record
 -- import Databrary.Model.Slot
 import Databrary.Model.Volume
 import Databrary.Model.VolumeAccess
+import Databrary.Service.DB (DBConn)
 import TestHarness as Test
 
 test_1 :: TestTree
@@ -45,6 +48,9 @@ test_1 = Test.stepsWithTransaction "" $ \step cn2 -> do
 setIdentityNotNeeded :: TestContext -> TestContext
 setIdentityNotNeeded c = c { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1) }
 
+setSiteAuthFromIdent :: TestContext -> TestContext
+setSiteAuthFromIdent c = c { ctxSiteAuth = view (ctxIdentity c) }
+
 setDefaultRequest :: TestContext -> TestContext
 setDefaultRequest c = c { ctxRequest = defaultRequest }
 
@@ -61,15 +67,27 @@ setDefaultRequest c = c { ctxRequest = defaultRequest }
 -- 12 = public can't see restricted release cntr
 -- 13 = public can't view priv vol record
 
+test_13 :: TestTree
+test_13 = Test.stepsWithTransaction "" $ \step cn2 -> do
+    step "Given an authorized investigator's created private volume with a record not attached to a container"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    -- TODO: should be lookup auth on rootParty
+    rid <- runReaderT
+         (do
+              v <- addVolumeWithAccess volumeExample (accountParty aiAcct)
+              void (changeVolumeAccess (mkVolAccess PermissionNONE Nothing nobodyParty v)) -- TODO: handle root also?
+              addParticipantRecordWithMeasures v [])
+         aiCtxt
+    step "When the public attempts to view the record"
+    -- Implementation of getRecord PUBLIC
+    mRcrd <- runWithNoIdent cn2 (lookupRecord rid)
+    step "Then the public can't"
+    isNothing mRcrd @? "Expected failure to retrieve record from restricted volume"
+
 test_14 :: TestTree
 test_14 = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "Given an authorized investigator's created public volume with a record not attached to a container"
-    ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
-    instParty <- addAuthorizedInstitution ctxt "New York University"
-    aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
-    let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
-    Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
-    let aiCtxt = switchIdentity ctxt aiAuth False
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     -- TODO: should be lookup auth on rootParty
     rid <- runReaderT
          (do
@@ -78,10 +96,16 @@ test_14 = Test.stepsWithTransaction "" $ \step cn2 -> do
          aiCtxt
     step "When the public attempts to view the record"
     -- Implementation of getRecord PUBLIC
-    -- lookupRecord uses record_release func, which references any release coming from a related slot; by default there is none
-    Just rcrdForAnon <- runReaderT (lookupRecord rid) ctxtNoIdent
+    Just rcrdForAnon <- runWithNoIdent cn2 (lookupRecord rid)
     step "Then the public can't see the restricted measures like birthdate"
     (participantMetricBirthdate `notElem` (fmap measureMetric . getRecordMeasures) rcrdForAnon) @? "Expected birthdate to be removed"
+
+runWithNoIdent :: DBConn -> ReaderT TestContext IO a -> IO a
+runWithNoIdent cn rdr = runReaderT rdr ((mkDbContext cn) { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded })
+
+addAuthorizedInvestigatorWithInstitution' :: DBConn -> IO (Account, TestContext)
+addAuthorizedInvestigatorWithInstitution' c =
+    addAuthorizedInvestigatorWithInstitution c "test@databrary.org" "New York University" "raul@smith.com"
 
 addParticipantRecordWithMeasures :: (MonadAudit c m) => Volume -> [Record -> Measure] -> m (Id Record)
 addParticipantRecordWithMeasures v mkMeasures = do
@@ -97,6 +121,11 @@ addVolumeWithAccess v p = do
     v' <- addVolume v -- note: skipping irrelevant change volume citation
     setDefaultVolumeAccessesForCreated p v'
     pure v'
+
+-- TODO: remove from authorizetest
+mkVolAccess :: Permission -> Maybe Bool -> Party -> Volume -> VolumeAccess
+mkVolAccess perm mShareFull p v =
+    VolumeAccess perm perm Nothing mShareFull p v
 
 someBirthdateMeasure :: Record -> Measure
 someBirthdateMeasure r = Measure r participantMetricBirthdate "1990-01-02"
