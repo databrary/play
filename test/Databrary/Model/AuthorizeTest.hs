@@ -8,7 +8,7 @@ import Test.Tasty
 import Test.Tasty.HUnit
 
 import Databrary.Has
-import Databrary.Model.Audit (MonadAudit)
+-- import Databrary.Model.Audit (MonadAudit)
 import Databrary.Model.Authorize
 -- import Databrary.Model.Category
 -- import Databrary.Model.Container
@@ -247,12 +247,6 @@ test_Authorize_examples3 = testCaseSteps "Authorize examples continued" $ \step 
         -- Implementation of getVolume as used by postVolumeAccess
         Just volForAI2 <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) aiCtxt2
         volumePermission volForAI2 @?= PermissionSHARED)
-
-addVolumeWithAccess :: MonadAudit c m => Volume -> Party -> m Volume
-addVolumeWithAccess v p = do
-    v' <- addVolume v -- note: skipping irrelevant change volume citation
-    setDefaultVolumeAccessesForCreated p v'
-    pure v'
 
 mkVolAccess :: Permission -> Maybe Bool -> Party -> Volume -> VolumeAccess
 mkVolAccess perm mShareFull p v =

@@ -14,6 +14,7 @@ import Databrary.Model.Audit (MonadAudit)
 import Databrary.Model.Authorize
 import Databrary.Model.Category
 import Databrary.Model.Container
+import Databrary.Model.Identity (MonadHasIdentity)
 import Databrary.Model.Measure
 import Databrary.Model.Metric
 import Databrary.Model.Party
@@ -23,7 +24,7 @@ import Databrary.Model.Record
 import Databrary.Model.Slot
 import Databrary.Model.Volume
 import Databrary.Model.VolumeAccess
-import Databrary.Service.DB (DBConn)
+import Databrary.Service.DB (DBConn, MonadDB)
 import TestHarness as Test
 
 test_1 :: TestTree
@@ -73,13 +74,13 @@ test_11 = Test.stepsWithTransaction "" $ \step cn2 -> do
     -- TODO: should be lookup auth on rootParty
     cid <- runReaderT
          (do
-              v <- addVolumeWithAccess volumeExample (accountParty aiAcct)
+              v <- addVolumeWithAccess volumeExample aiAcct
               setVolumePrivate v
               makeAddContainer v (Just ReleasePUBLIC) Nothing)
          aiCtxt
     step "Then the public can't view the container"
     -- Implementation of getSlot PUBLIC
-    mSlotForAnon <- runWithNoIdent cn2 (lookupSlot (containerSlotId cid))
+    mSlotForAnon <- runWithNoIdent cn2 (lookupSlotByContainerId cid)
     isNothing mSlotForAnon @? "expected slot lookup to find nothing"
 
 test_12 :: TestTree
@@ -89,12 +90,12 @@ test_12 = Test.stepsWithTransaction "" $ \step cn2 -> do
     -- TODO: should be lookup auth on rootParty
     cid <- runReaderT
          (do
-              v <- addVolumeWithAccess volumeExample (accountParty aiAcct)
+              v <- addVolumeWithAccess volumeExample aiAcct
               makeAddContainer v (Just ReleaseEXCERPTS) (Just (fromGregorian 2017 1 2)))
          aiCtxt
     step "When the public attempts to view the container"
     -- Implementation of getSlot PUBLIC
-    Just slotForAnon <- runWithNoIdent cn2 (lookupSlot (containerSlotId cid))
+    Just slotForAnon <- runWithNoIdent cn2 (lookupSlotByContainerId cid)
     step "Then the public can't see protected parts like the detailed test date"
     (encode . getContainerDate . slotContainer) slotForAnon @?= "2017"
 
@@ -105,7 +106,7 @@ test_13 = Test.stepsWithTransaction "" $ \step cn2 -> do
     -- TODO: should be lookup auth on rootParty
     rid <- runReaderT
          (do
-              v <- addVolumeWithAccess volumeExample (accountParty aiAcct)
+              v <- addVolumeWithAccess volumeExample aiAcct
               setVolumePrivate v
               addParticipantRecordWithMeasures v [])
          aiCtxt
@@ -122,7 +123,7 @@ test_14 = Test.stepsWithTransaction "" $ \step cn2 -> do
     -- TODO: should be lookup auth on rootParty
     rid <- runReaderT
          (do
-              v <- addVolumeWithAccess volumeExample (accountParty aiAcct)
+              v <- addVolumeWithAccess volumeExample aiAcct
               addParticipantRecordWithMeasures v [someBirthdateMeasure, someGenderMeasure])
          aiCtxt
     step "When the public attempts to view the record"
@@ -130,6 +131,9 @@ test_14 = Test.stepsWithTransaction "" $ \step cn2 -> do
     Just rcrdForAnon <- runWithNoIdent cn2 (lookupRecord rid)
     step "Then the public can't see the restricted measures like birthdate"
     (participantMetricBirthdate `notElem` (fmap measureMetric . getRecordMeasures) rcrdForAnon) @? "Expected birthdate to be removed"
+
+lookupSlotByContainerId :: (MonadDB c m, MonadHasIdentity c m) => Id Container -> m (Maybe Slot)
+lookupSlotByContainerId cid = lookupSlot (containerSlotId cid)
 
 setVolumePrivate :: (MonadAudit c m) => Volume -> m ()
 setVolumePrivate v =
@@ -166,10 +170,10 @@ addParticipantRecordWithMeasures v mkMeasures = do
     pure ((recordId . recordRow) r)
 
 -- TODO: remove from authorizetest
-addVolumeWithAccess :: MonadAudit c m => Volume -> Party -> m Volume
-addVolumeWithAccess v p = do
+addVolumeWithAccess :: MonadAudit c m => Volume -> Account -> m Volume
+addVolumeWithAccess v a = do
     v' <- addVolume v -- note: skipping irrelevant change volume citation
-    setDefaultVolumeAccessesForCreated p v'
+    setDefaultVolumeAccessesForCreated (accountParty a) v'
     pure v'
 
 -- TODO: remove from authorizetest
