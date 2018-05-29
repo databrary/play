@@ -26,35 +26,24 @@ import Databrary.Model.VolumeAccess
 import TestHarness as Test
 
 -- session exercise various logic in Authorize
+unit_Authorize_examples :: Assertion
+unit_Authorize_examples = do
+    (authorizeExpires . selfAuthorize) nobodyParty @?= Nothing
+    -- lookupAuthorize
+    cn <- connectTestDb
+    Just auth <- Test.runContextReaderT cn (lookupAuthorize ActiveAuthorizations (mockParty predefinedSiteAdminId) rootParty)
+    (authorizeAccess . authorization) auth @?= Access { accessSite' = PermissionADMIN, accessMember' = PermissionADMIN }
+
+predefinedSiteAdminId :: Id Party
+predefinedSiteAdminId = Id 7
+
+mockParty :: Id Party -> Party
+mockParty pid =
+    nobodyParty { partyRow = (partyRow nobodyParty) { partyId = pid } }
+
 test_Authorize_examples :: [TestTree]
 test_Authorize_examples =
     [ testCase "nobody" $ (authorizeExpires . selfAuthorize) nobodyParty @?= Nothing
-    , testCaseSteps "admin" $ \step -> do
-        cn <- connectTestDb
-        step "Given an admin user"
-        let adminUser = nobodyParty { partyRow = (partyRow nobodyParty) { partyId = Id 7 } }
-        step "When we look at its direct authorization on databrary site"
-        Just auth <- runReaderT (lookupAuthorize ActiveAuthorizations adminUser rootParty) TestContext { ctxConn = cn }
-        step "Then we expect the authorization to have site and member level of ADMIN"
-        (authorizeAccess . authorization) auth @?= Access { accessSite' = PermissionADMIN, accessMember' = PermissionADMIN }
-    , Test.stepsWithTransaction "databrary super admin" $ \step cn2 -> do
-        step "Given the databrary site group"
-        let dbSite = rootParty
-        step "When we grant a user as super admin"
-        let ctx =
-                TestContext { ctxConn = cn2, ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxRequest = defaultRequest }
-            a = mkAccount "Smith" "Jake" "jake@smith.com"
-        Just auth3 <-
-            runReaderT
-                (do
-                    a2 <- addAccount a
-                    Just auth2 <- lookupSiteAuthByEmail False "jake@smith.com"
-                    changeAccount (auth2 { accountPasswd = Just "somehashval"})
-                    changeAuthorize (makeAuthorize (Access PermissionADMIN PermissionADMIN) Nothing (accountParty a2) dbSite)
-                    lookupSiteAuthByEmail False "jake@smith.com")
-                ctx
-        step "Then we expect the user to have admin privileges on the databrary site"
-        siteAccess auth3 @?= Access { accessSite' = PermissionADMIN, accessMember' = PermissionADMIN }
     , Test.stepsWithTransaction "superadmin grant admin" $ \step cn2 -> do
         step "Given a superadmin"
         ctxt <-
