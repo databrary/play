@@ -28,6 +28,7 @@ import Databrary.Model.Record.TypesTest
 import Databrary.Model.Slot
 import Databrary.Model.Volume
 import Databrary.Model.VolumeAccess
+import Databrary.Model.VolumeAccess.TypesTest
 import Databrary.Service.DB (DBConn, MonadDB)
 import TestHarness as Test
 
@@ -160,8 +161,20 @@ lookupSlotByContainerId cid = lookupSlot (containerSlotId cid)
 
 setVolumePrivate :: (MonadAudit c m) => Volume -> m ()
 setVolumePrivate v = do
-    void (changeVolumeAccess (mkVolAccess PermissionNONE Nothing nobodyParty v))
-    void (changeVolumeAccess (mkVolAccess PermissionNONE Nothing rootParty v))
+    nobodyVa <- liftIO (mkGroupVolAccess PermissionNONE Nothing nobodyParty v)
+    rootVa <- liftIO (mkGroupVolAccess PermissionNONE Nothing rootParty v)
+    void (changeVolumeAccess nobodyVa)
+    void (changeVolumeAccess rootVa)
+
+mkGroupVolAccess :: Permission -> Maybe Bool -> Party -> Volume -> IO VolumeAccess
+mkGroupVolAccess perm mShareFull prty vol = do
+    va <- Gen.sample (genGroupVolumeAccess (Just prty) vol)
+    pure
+        (va
+             { volumeAccessIndividual = perm
+             , volumeAccessChildren = perm
+             , volumeAccessShareFull = mShareFull
+             })
 
 runWithNoIdent :: DBConn -> ReaderT TestContext IO a -> IO a
 runWithNoIdent cn rdr = runReaderT rdr ((mkDbContext cn) { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded })
@@ -180,12 +193,12 @@ makeAddContainer v mRel mDate = do
 -- note: modeled after create container
 mkContainer :: Volume -> Maybe Release -> Maybe Day -> IO Container
 mkContainer v mRel mDate = do
-   c <- Gen.sample genCreateContainer
-   pure
-       (c { containerRelease = mRel
-          , containerVolume = v
-          , containerRow = (containerRow c) { containerDate = mDate }
-          })
+    c <- Gen.sample genCreateContainer
+    pure
+        (c { containerRelease = mRel
+           , containerVolume = v
+           , containerRow = (containerRow c) { containerDate = mDate }
+           })
 
 addParticipantRecordWithMeasures :: (MonadAudit c m) => Volume -> [Measure] -> m (Id Record)
 addParticipantRecordWithMeasures v measures = do
@@ -210,10 +223,12 @@ addVolumeSetPrivate v a = do
     setVolumePrivate v'
     pure v'
 
+{-
 -- TODO: remove from authorizetest
-mkVolAccess :: Permission -> Maybe Bool -> Party -> Volume -> VolumeAccess
+mkVolAccess :: Permission -> Maybe Bool -> Party -> Volume -> IO VolumeAccess
 mkVolAccess perm mShareFull p v =
     VolumeAccess perm perm Nothing mShareFull p v
+-}
 
 mkParticipantRecord :: Volume -> IO Record
 mkParticipantRecord vol = do
