@@ -1,6 +1,8 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Databrary.Model.AssetRevision.SQL
   ( selectAssetRevision
+  -- exposed for expanded queries
+  , makeAssetRevision
   ) where
 
 import qualified Language.Haskell.TH as TH
