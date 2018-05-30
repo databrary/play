@@ -163,6 +163,20 @@ app.factory('modelService', [
       }
     });
 
+    /**
+     * Initialize party with the following properties: <br />
+     * <blockquote>id <br />
+     * permission <br />
+     * sortname <br />
+     * prename <br />
+     * orcid <br />
+     * affiliation <br />
+     * email <br />
+     * institution <br />
+     * url <br />
+     * authorization </blockquote>
+     * @interface modelService/Party/init
+     */
     Party.prototype.init = function (init) {
       Model.prototype.init.call(this, init);
       if ('access' in init)
@@ -334,6 +348,13 @@ app.factory('modelService', [
       Party.call(this, init);
     }
 
+    /**
+     * Login has the following additional properties: <br />
+     * <blockquote>csverf <br />
+     * superuser <br />
+     * notifications </blockquote>
+     * @interface modelService/Login
+     */
     Login.prototype = Object.create(Party.prototype);
     Login.prototype.constructor = Login;
     Login.prototype.fields = angular.extend({
@@ -793,6 +814,20 @@ app.factory('modelService', [
       Model.prototype.clear.apply(this.container, arguments);
     };
 
+    /**
+     * Slot has the following additional properties: <br />
+     * <blockquote>release <br />
+     * tags <br />
+     * assets <br />
+     * comments <br />
+     * container <br />
+     * records <br />
+     * excerpts <br />
+     * volume <br />
+     * releases </blockquote>
+     * @interface modelService/Slot
+     */
+
     function slotInit(slot, init) {
       if ('assets' in init) {
         var al = init.assets;
@@ -1062,6 +1097,16 @@ app.factory('modelService', [
       measures: true,
       // slots: false,
     };
+
+    /**
+     * Record has the following properties: <br />
+     * <blockquote>id <br />
+     * category <br />
+     * measures <br />
+     * volume <br />
+     * permission </blockquote>
+     * @interface modelService/Record
+     */
 
     Record.prototype.init = function (init) {
       Model.prototype.init.call(this, init);

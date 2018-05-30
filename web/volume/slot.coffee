@@ -17,6 +17,8 @@ app.controller('volume/slot', [
     $scope.authorized = models.Login.isAuthorized()
     $flow = $scope.$flow # not really in this scope
 
+    console.log(slot)
+
     ################################### Base classes/utilities
 
     ###*
