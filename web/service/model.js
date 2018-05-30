@@ -225,6 +225,10 @@ app.factory('modelService', [
         return $q.successful(p);
     }
 
+    /**
+     * Get Party
+     * @interface modelService/Party/get
+     */
     Party.get = function (id, options) {
       var p = Party.peek(id);
       if (!p)
@@ -242,6 +246,10 @@ app.factory('modelService', [
       return partyGet(this.id, this, options);
     };
 
+    /**
+     * Post Party
+     * @interface modelService/Party/save
+     */
     Party.prototype.save = function (data) {
       var p = this;
       return router.http(router.controllers.postParty, this.id, data)
@@ -249,6 +257,11 @@ app.factory('modelService', [
           return p.update(res.data);
         });
     };
+
+    /**
+     * Search Party
+     * @interface modelService/Party/search
+     */
 
     Party.search = function (data) {
       return router.http(router.controllers.getParties, data)
@@ -295,6 +308,11 @@ app.factory('modelService', [
         list.splice(i, 1);
     }
 
+    /**
+     * Post apply to authorize Party
+     * @interface modelService/Party/authorizeApply
+     */
+
     Party.prototype.authorizeApply = function (target, data) {
       var p = this;
       return router.http(router.controllers.postAuthorizeApply, this.id, target, data)
@@ -308,6 +326,10 @@ app.factory('modelService', [
       return router.http(router.controllers.postAuthorizeNotFound, this.id, data);
     };
 
+    /**
+     * Post authorize Party
+     * @interface modelService/Party/authorizeSave
+     */
     Party.prototype.authorizeSave = function (target, data) {
       var p = this;
       return router.http(router.controllers.postAuthorize, this.id, target, data)
@@ -334,6 +356,11 @@ app.factory('modelService', [
           return p;
         });
     };
+
+    /**
+     * Get Party activity
+     * @interface modelService/Party/getActivity
+     */
 
     Party.prototype.getActivity = function () {
       return router.http(router.controllers.getPartyActivity, this.id)
@@ -381,6 +408,11 @@ app.factory('modelService', [
       return loginPoke(l);
     }
 
+    /**
+     * Check if the user is logged in
+     * @interface modelService/Login/isLoggedIn
+     */
+
     Login.isLoggedIn = function () {
       return Login.user.id !== constants.party.NOBODY;
     };
@@ -389,6 +421,10 @@ app.factory('modelService', [
       return Login.user.authorization >= level;
     };
 
+    /**
+     * Check the user's permission level
+     * @interface modelService/Login/checkPermission
+     */
     Model.prototype.checkPermission = function (level) {
       return this.permission >= level;
     };
@@ -416,6 +452,10 @@ app.factory('modelService', [
       };
     });
 
+    /**
+     * Post the user's info
+     * @interface modelService/Login/saveAccount
+     */
     Login.prototype.saveAccount = function (data) {
       var p = this;
       return router.http(router.controllers.postUser, data)
@@ -424,6 +464,10 @@ app.factory('modelService', [
         });
     };
 
+    /**
+     * Post the registrant's info
+     * @interface modelService/Login/register
+     */
     Login.register = function (data) {
       return router.http(router.controllers.postRegister, data);
     };
@@ -1310,6 +1354,18 @@ app.factory('modelService', [
     Asset.prototype = Object.create(AssetSlot.prototype);
     Asset.prototype.constructor = Asset;
     Asset.prototype.class = 'asset';
+
+    /**
+     * Asset has the following properties: <br />
+     * <blockquote>id <br />
+     * classification <br />
+     * name <br />
+     * duration <br />
+     * pending <br />
+     * size <br />
+     * creation </blockquote>
+     * @interface modelService/Asset
+     */
 
     Asset.prototype.fields = angular.extend({
       id: true,
