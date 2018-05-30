@@ -20,8 +20,8 @@ import Databrary.Model.Container.SQL
 import Databrary.Model.Segment
 import Databrary.Model.Slot.Types
 
-makeComment :: Id Comment -> Segment -> Timestamp -> T.Text -> [Maybe (Id Comment)] -> Account -> Container -> Comment
-makeComment i s t x p w c = Comment i w (Slot c s) t x (map (fromMaybe (error "NULL comment thread")) p)
+-- makeComment :: Id Comment -> Segment -> Timestamp -> T.Text -> [Maybe (Id Comment)] -> Account -> Container -> Comment
+-- makeComment i s t x p w c = Comment i w (Slot c s) t x (map (fromMaybe (error "NULL comment thread")) p)
 
 commentRow :: Selector -- ^ @'Account' -> 'Container' -> 'Comment'@
 commentRow = selectColumns 'makeComment "comment" ["id", "segment", "time", "text", "thread"]

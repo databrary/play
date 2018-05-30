@@ -2,9 +2,11 @@
 module Databrary.Model.Comment.Types
   ( Comment(..)
   , CommentRow(..)
+  , makeComment
   ) where
 
 -- import qualified Data.Time as Time
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 
 import Databrary.Has (Has(..))
@@ -78,3 +80,6 @@ data CommentRow = CommentRow
   , commentRowTime :: Timestamp
   , commentRowText :: T.Text
   }
+
+makeComment :: Id Comment -> Segment -> Timestamp -> T.Text -> [Maybe (Id Comment)] -> Account -> Container -> Comment
+makeComment i s t x p w c = Comment i w (Slot c s) t x (map (fromMaybe (error "NULL comment thread")) p)
