@@ -34,7 +34,7 @@ import Databrary.Service.Crypto
 import Databrary.Service.DB
 import Databrary.Store.Types
 import Databrary.Store.Upload
-import Databrary.Model.SQL (selectQuery)
+-- import Databrary.Model.SQL (selectQuery)
 -- import Databrary.Model.SQL.Select (makeQuery, selectOutput)
 import Databrary.Model.Offset
 import Databrary.Model.Id.Types
@@ -44,7 +44,6 @@ import Databrary.Model.Party
 import Databrary.Model.Party.SQL
 import Databrary.Model.Permission.Types
 import Databrary.Model.Token.Types
-import Databrary.Model.Token.SQL
 
 loginTokenId :: (MonadHas Entropy c m, MonadHas Secret c m, MonadIO m) => LoginToken -> m (Id LoginToken)
 loginTokenId tok = Id <$> sign (unId (view tok :: Id Token))
@@ -56,8 +55,115 @@ loginTokenId tok = Id <$> sign (unId (view tok :: Id Token))
 -- Wrap the AccountToken in a LoginToken with a boolean indicating ???? . Seems to be always true.
 lookupLoginToken :: (MonadDB c m, MonadHas Secret c m) => Id LoginToken -> m (Maybe LoginToken)
 lookupLoginToken =
-  flatMapM (\t -> dbQuery1 $(selectQuery selectLoginToken "$!WHERE login_token.token = ${t} AND expires > CURRENT_TIMESTAMP"))
+  flatMapM (\t -> getToken t) -- dbQuery1 $(selectQuery selectLoginToken "$!WHERE login_token.token = ${t} AND expires > CURRENT_TIMESTAMP"))
     <=< unSign . unId
+
+getToken :: (MonadDB c m) => BS.ByteString -> m (Maybe LoginToken)
+getToken t = do
+  let _tenv_aar3U = unknownPGTypeEnv
+  mRow <- mapRunPrepQuery1
+      ((\ _p_aar3V ->
+                       (Data.String.fromString
+                          "SELECT login_token.token,login_token.expires,party.id,party.name,party.prename,party.orcid,party.affiliation,party.url,account.email,account.password,authorize_view.site,authorize_view.member,login_token.password FROM login_token JOIN party JOIN account USING (id) LEFT JOIN authorize_view ON account.id = authorize_view.child AND authorize_view.parent = 0 ON login_token.account = account.id WHERE login_token.token = $1 AND expires > CURRENT_TIMESTAMP",
+                       [pgEncodeParameter
+                          _tenv_aar3U (PGTypeProxy :: PGTypeName "bpchar") _p_aar3V],
+                       [pgBinaryColumn _tenv_aar3U (PGTypeProxy :: PGTypeName "bpchar"),
+                        pgBinaryColumn
+                          _tenv_aar3U (PGTypeProxy :: PGTypeName "timestamp with time zone"),
+                        pgBinaryColumn _tenv_aar3U (PGTypeProxy :: PGTypeName "integer"),
+                        pgBinaryColumn _tenv_aar3U (PGTypeProxy :: PGTypeName "text"),
+                        pgBinaryColumn _tenv_aar3U (PGTypeProxy :: PGTypeName "text"),
+                        pgBinaryColumn _tenv_aar3U (PGTypeProxy :: PGTypeName "bpchar"),
+                        pgBinaryColumn _tenv_aar3U (PGTypeProxy :: PGTypeName "text"),
+                        pgBinaryColumn _tenv_aar3U (PGTypeProxy :: PGTypeName "text"),
+                        pgBinaryColumn
+                          _tenv_aar3U (PGTypeProxy :: PGTypeName "character varying"),
+                        pgBinaryColumn
+                          _tenv_aar3U (PGTypeProxy :: PGTypeName "character varying"),
+                        pgBinaryColumn
+                          _tenv_aar3U (PGTypeProxy :: PGTypeName "permission"),
+                        pgBinaryColumn
+                          _tenv_aar3U (PGTypeProxy :: PGTypeName "permission"),
+                        pgBinaryColumn _tenv_aar3U (PGTypeProxy :: PGTypeName "boolean")]))
+         t)
+               (\
+                  [_ctoken_aar3W,
+                   _cexpires_aar3X,
+                   _cid_aar3Y,
+                   _cname_aar3Z,
+                   _cprename_aar40,
+                   _corcid_aar41,
+                   _caffiliation_aar42,
+                   _curl_aar43,
+                   _cemail_aar44,
+                   _cpassword_aar45,
+                   _csite_aar46,
+                   _cmember_aar47,
+                   _cpassword_aar48]
+                  -> (pgDecodeColumnNotNull
+                        _tenv_aar3U (PGTypeProxy :: PGTypeName "bpchar") _ctoken_aar3W, 
+                      pgDecodeColumnNotNull
+                        _tenv_aar3U
+                        (PGTypeProxy :: PGTypeName "timestamp with time zone")
+                        _cexpires_aar3X, 
+                      pgDecodeColumnNotNull
+                        _tenv_aar3U (PGTypeProxy :: PGTypeName "integer") _cid_aar3Y, 
+                      pgDecodeColumnNotNull
+                        _tenv_aar3U (PGTypeProxy :: PGTypeName "text") _cname_aar3Z, 
+                      pgDecodeColumnNotNull
+                        _tenv_aar3U (PGTypeProxy :: PGTypeName "text") _cprename_aar40, 
+                      pgDecodeColumnNotNull
+                        _tenv_aar3U (PGTypeProxy :: PGTypeName "bpchar") _corcid_aar41, 
+                      pgDecodeColumnNotNull
+                        _tenv_aar3U
+                        (PGTypeProxy :: PGTypeName "text")
+                        _caffiliation_aar42, 
+                      pgDecodeColumnNotNull
+                        _tenv_aar3U (PGTypeProxy :: PGTypeName "text") _curl_aar43, 
+                      pgDecodeColumnNotNull
+                        _tenv_aar3U
+                        (PGTypeProxy :: PGTypeName "character varying")
+                        _cemail_aar44, 
+                      pgDecodeColumnNotNull
+                        _tenv_aar3U
+                        (PGTypeProxy :: PGTypeName "character varying")
+                        _cpassword_aar45, 
+                      pgDecodeColumnNotNull
+                        _tenv_aar3U (PGTypeProxy :: PGTypeName "permission") _csite_aar46, 
+                      pgDecodeColumnNotNull
+                        _tenv_aar3U
+                        (PGTypeProxy :: PGTypeName "permission")
+                        _cmember_aar47, 
+                      pgDecodeColumnNotNull
+                        _tenv_aar3U
+                        (PGTypeProxy :: PGTypeName "boolean")
+                        _cpassword_aar48))
+  pure
+    (fmap
+      (\ (vtoken_aar3F, vexpires_aar3G, vid_aar3H, vname_aar3I,
+          vprename_aar3J, vorcid_aar3K, vaffiliation_aar3L, vurl_aar3M,
+          vemail_aar3N, vpassword_aar3O, vsite_aar3P, vmember_aar3Q,
+          vpassword_aar3R)
+         -> LoginToken
+              (AccountToken
+                 (Token vtoken_aar3F vexpires_aar3G)
+                 (makeSiteAuth
+                    (makeUserAccount
+                       (makeAccount
+                          (PartyRow
+                             vid_aar3H
+                             vname_aar3I
+                             vprename_aar3J
+                             vorcid_aar3K
+                             vaffiliation_aar3L
+                             vurl_aar3M)
+                          (Account vemail_aar3N)))
+                    vpassword_aar3O
+                    (do { cm_aar3S <- vsite_aar3P;
+                          cm_aar3T <- vmember_aar3Q;
+                          Just (Access cm_aar3S cm_aar3T) })))
+              vpassword_aar3R)
+      mRow)
 
 -- | Guts of loading a user and its authorizations during each request, when receiving a logged in session token.
 -- Find the active session in the sessions table.
@@ -213,8 +319,42 @@ lookupSession tok = do
 
 lookupUpload :: (MonadDB c m, MonadHasIdentity c m) => BS.ByteString -> m (Maybe Upload)
 lookupUpload tok = do
+  let _tenv_aar6E = unknownPGTypeEnv
   auth <- peek
-  dbQuery1 $ fmap ($ auth) $(selectQuery selectUpload "$!WHERE upload.token = ${tok} AND expires > CURRENT_TIMESTAMP AND upload.account = ${view auth :: Id Party}")
+  -- dbQuery1 $ fmap ($ auth) $(selectQuery selectUpload "$!WHERE upload.token = ${tok} AND expires > CURRENT_TIMESTAMP AND upload.account = ${view auth :: Id Party}")
+  mRow <- mapRunPrepQuery1
+      ((\ _p_aar6F _p_aar6G ->
+                       (Data.String.fromString
+                          "SELECT upload.token,upload.expires,upload.filename,upload.size FROM upload WHERE upload.token = $1 AND expires > CURRENT_TIMESTAMP AND upload.account = $2",
+                       [pgEncodeParameter
+                          _tenv_aar6E (PGTypeProxy :: PGTypeName "bpchar") _p_aar6F,
+                        pgEncodeParameter
+                          _tenv_aar6E (PGTypeProxy :: PGTypeName "integer") _p_aar6G],
+                       [pgBinaryColumn _tenv_aar6E (PGTypeProxy :: PGTypeName "bpchar"),
+                        pgBinaryColumn
+                          _tenv_aar6E (PGTypeProxy :: PGTypeName "timestamp with time zone"),
+                        pgBinaryColumn _tenv_aar6E (PGTypeProxy :: PGTypeName "text"),
+                        pgBinaryColumn _tenv_aar6E (PGTypeProxy :: PGTypeName "bigint")]))
+         tok (view auth :: Id Party))
+               (\
+                  [_ctoken_aar6H, _cexpires_aar6I, _cfilename_aar6J, _csize_aar6K]
+                  -> (pgDecodeColumnNotNull
+                        _tenv_aar6E (PGTypeProxy :: PGTypeName "bpchar") _ctoken_aar6H, 
+                      pgDecodeColumnNotNull
+                        _tenv_aar6E
+                        (PGTypeProxy :: PGTypeName "timestamp with time zone")
+                        _cexpires_aar6I, 
+                      pgDecodeColumnNotNull
+                        _tenv_aar6E (PGTypeProxy :: PGTypeName "text") _cfilename_aar6J, 
+                      pgDecodeColumnNotNull
+                        _tenv_aar6E (PGTypeProxy :: PGTypeName "bigint") _csize_aar6K))
+  pure
+    (fmap
+      (\ (vtoken_aar5q, vexpires_aar5r, vfilename_aar5s, vsize_aar5t)
+         -> makeUpload
+              (Token vtoken_aar5q vexpires_aar5r) vfilename_aar5s vsize_aar5t
+              auth)
+      mRow)
 
 entropyBase64 :: Int -> Entropy -> IO BS.ByteString
 entropyBase64 n e = (convertToBase Base64URLUnpadded :: Bytes -> BS.ByteString) <$> entropyBytes n e
@@ -538,7 +678,7 @@ cleanTokens = do
          fmap (\mkTok -> mkTok nobodySiteAuth)
           (fmap
               (\ (vtoken_a7EVR, vexpires_a7EVS, vfilename_a7EVT, vsize_a7EVU)
-                 -> Databrary.Model.Token.SQL.makeUpload
+                 -> makeUpload
                       (Token vtoken_a7EVR vexpires_a7EVS) vfilename_a7EVT vsize_a7EVU)
               rows)
   mapM_ removeUploadFile toks

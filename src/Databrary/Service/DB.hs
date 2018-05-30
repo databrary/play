@@ -27,6 +27,7 @@ module Databrary.Service.DB
   , mapQuery2
   , mapPrepQuery
   , mapRunPrepQuery
+  , mapRunPrepQuery1
   -- FIXME: added for tests
   , loadPGDatabase
   , pgConnect
@@ -217,3 +218,11 @@ mapRunPrepQuery :: (MonadDB c m) => (BS.ByteString, [PGValue], [Bool]) -> ([PGVa
 mapRunPrepQuery (qry, params, bc) mkResult = do
   rows <- liftDB $ \c -> snd <$> pgPreparedQuery c qry [] params bc
   pure (fmap mkResult rows)
+
+mapRunPrepQuery1 :: (MonadDB c m) => (BS.ByteString, [PGValue], [Bool]) -> ([PGValue] -> a) -> m (Maybe a)
+mapRunPrepQuery1 args@(q, _, _) mkResult = do
+  rows <- mapRunPrepQuery args mkResult
+  case rows of
+    [] -> return $ Nothing
+    [x] -> return $ Just x
+    _ -> fail $ "pgQuery1 " ++ show q ++ ": too many results"
