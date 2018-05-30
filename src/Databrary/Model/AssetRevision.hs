@@ -15,18 +15,14 @@ import qualified Data.String
 
 import Databrary.Has
 import Databrary.Service.DB
-import Databrary.Model.SQL
 import Databrary.Model.Id
 import Databrary.Model.Party
 import Databrary.Model.Identity
 import Databrary.Model.Asset
 import Databrary.Model.Asset.SQL
 import Databrary.Model.AssetRevision.Types
-import Databrary.Model.AssetRevision.SQL
 import Databrary.Model.Volume.SQL
 import Databrary.Model.Volume.Types
-
-useTDB
 
 mapQuery :: ByteString -> ([PGValue] -> a) -> PGSimpleQuery a
 mapQuery qry mkResult =
@@ -196,7 +192,7 @@ lookupAssetReplace a = do
           vname_abkPr, vc_abkPs, vsize_abkPt, vid_abkPu, vname_abkPv,
           vbody_abkPw, valias_abkPx, vdoi_abkPy, vc_abkPz, vowners_abkPA,
           vpermission_abkPB, vfull_abkPC)
-         -> Databrary.Model.AssetRevision.SQL.makeAssetRevision
+         -> makeAssetRevision
               (Asset
                  (Databrary.Model.Asset.SQL.makeAssetRow
                     vid_abkPn
@@ -328,7 +324,7 @@ lookupAssetTranscode a = do
           vname_abkSg, vc_abkSh, vsize_abkSi, vid_abkSj, vname_abkSk,
           vbody_abkSl, valias_abkSm, vdoi_abkSn, vc_abkSo, vowners_abkSp,
           vpermission_abkSq, vfull_abkSr)
-         -> Databrary.Model.AssetRevision.SQL.makeAssetRevision
+         -> makeAssetRevision
               (Asset
                  (Databrary.Model.Asset.SQL.makeAssetRow
                     vid_abkSc

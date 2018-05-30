@@ -153,7 +153,6 @@ library
     Databrary.Model.Citation.SQL
     Databrary.Model.Stats.Types
     Databrary.Model.AssetRevision.Types
-    Databrary.Model.AssetRevision.SQL
     Databrary.Model.VolumeState
     Databrary.Model.Ingest
     Databrary.Model.GeoNames
