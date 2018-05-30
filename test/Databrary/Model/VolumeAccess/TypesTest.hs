@@ -33,38 +33,3 @@ genGroupVolumeAccess mGroup vol = do
        <*> pure mShareFull
        <*> pure group
        <*> pure vol
-
-{-
--- TODO: expand these to really generate random measure values
-genBirthdateMeasure :: Gen (Metric, BS.ByteString)
-genBirthdateMeasure =
-    pure (participantMetricBirthdate, "1990-01-02")
-
-genGenderMeasure :: Gen (Metric, BS.ByteString)
-genGenderMeasure =
-    pure (participantMetricGender, "Male")
-
-genParticipantMetricValue :: Gen (Metric, BS.ByteString)
-genParticipantMetricValue =
-    Gen.choice [genBirthdateMeasure, genGenderMeasure]
-
-genCreateMeasure :: Gen Measure
-genCreateMeasure = do
-    (mtrc, val) <- genParticipantMetricValue
-    Measure
-        <$> (pure . error) "measure record not set yet"
-        <*> pure mtrc
-        <*> pure val
-
-genCategory :: Gen Category
-genCategory = Gen.element allCategories
-
-genCreateRecord :: Volume -> Gen Record
-genCreateRecord vol = do
-    -- repeats some logic from blankRecord
-    Record
-        <$> (RecordRow <$> (pure . error) "Id set after saved" <*> genCategory)
-        <*> pure []
-        <*> Gen.maybe Gen.enumBounded
-        <*> pure vol
--}
