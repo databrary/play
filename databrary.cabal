@@ -142,7 +142,6 @@ library
     Databrary.Model.Audit
     Databrary.Model.Record.Types
     Databrary.Model.Record.SQL
-    Databrary.Model.VolumeMetric.SQL
     Databrary.Model.SQL.Select
     Databrary.Model.Paginate
     Databrary.Model.Record
