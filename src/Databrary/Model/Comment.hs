@@ -23,7 +23,7 @@ import qualified Data.Text as T
 import Databrary.Has (peek, view)
 import qualified Databrary.JSON as JSON
 import Databrary.Service.DB
-import Databrary.Model.SQL
+-- import Databrary.Model.SQL
 import Databrary.Model.Id.Types
 import Databrary.Model.Party
 import Databrary.Model.Party.SQL
@@ -35,7 +35,7 @@ import Databrary.Model.Container
 import Databrary.Model.Segment
 import Databrary.Model.Slot
 import Databrary.Model.Comment.Types
-import Databrary.Model.Comment.SQL
+-- import Databrary.Model.Comment.SQL
 
 blankComment :: Account -> Slot -> Comment
 blankComment who slot = Comment
@@ -240,8 +240,100 @@ lookupComment i = do
 
 lookupSlotComments :: (MonadDB c m, MonadHasIdentity c m) => Slot -> Int -> m [Comment]
 lookupSlotComments (Slot c s) n = do
+  let _tenv_acBuC = unknownPGTypeEnv
   ident <- peek
-  dbQuery $ ($ c) <$> $(selectQuery (selectContainerComment 'ident) "$!WHERE comment.container = ${containerId $ containerRow c} AND comment.segment && ${s} ORDER BY comment.thread LIMIT ${fromIntegral n :: Int64}")
+  -- dbQuery $ ($ c) <$> $(selectQuery (selectContainerComment 'ident) "$!WHERE comment.container = ${containerId $ containerRow c} AND comment.segment && ${s} ORDER BY comment.thread LIMIT ${fromIntegral n :: Int64}")
+  rows <- mapRunPrepQuery
+      ((\ _p_acBuD _p_acBuE _p_acBuF ->
+                       (Data.String.fromString
+                          "SELECT comment.id,comment.segment,comment.time,comment.text,comment.thread,party.id,party.name,party.prename,party.orcid,party.affiliation,party.url,account.email FROM comment_thread AS comment JOIN party JOIN account USING (id) ON comment.who = account.id WHERE comment.container = $1 AND comment.segment && $2 ORDER BY comment.thread LIMIT $3",
+                       [pgEncodeParameter
+                          _tenv_acBuC (PGTypeProxy :: PGTypeName "integer") _p_acBuD,
+                        pgEncodeParameter
+                          _tenv_acBuC (PGTypeProxy :: PGTypeName "segment") _p_acBuE,
+                        pgEncodeParameter
+                          _tenv_acBuC (PGTypeProxy :: PGTypeName "bigint") _p_acBuF],
+                       [pgBinaryColumn _tenv_acBuC (PGTypeProxy :: PGTypeName "integer"),
+                        pgBinaryColumn _tenv_acBuC (PGTypeProxy :: PGTypeName "segment"),
+                        pgBinaryColumn
+                          _tenv_acBuC (PGTypeProxy :: PGTypeName "timestamp with time zone"),
+                        pgBinaryColumn _tenv_acBuC (PGTypeProxy :: PGTypeName "text"),
+                        pgBinaryColumn _tenv_acBuC (PGTypeProxy :: PGTypeName "integer[]"),
+                        pgBinaryColumn _tenv_acBuC (PGTypeProxy :: PGTypeName "integer"),
+                        pgBinaryColumn _tenv_acBuC (PGTypeProxy :: PGTypeName "text"),
+                        pgBinaryColumn _tenv_acBuC (PGTypeProxy :: PGTypeName "text"),
+                        pgBinaryColumn _tenv_acBuC (PGTypeProxy :: PGTypeName "bpchar"),
+                        pgBinaryColumn _tenv_acBuC (PGTypeProxy :: PGTypeName "text"),
+                        pgBinaryColumn _tenv_acBuC (PGTypeProxy :: PGTypeName "text"),
+                        pgBinaryColumn
+                          _tenv_acBuC (PGTypeProxy :: PGTypeName "character varying")]))
+         (containerId $ containerRow c) s (fromIntegral n :: Int64))
+               (\
+                  [_cid_acBuG,
+                   _csegment_acBuH,
+                   _ctime_acBuI,
+                   _ctext_acBuJ,
+                   _cthread_acBuK,
+                   _cid_acBuL,
+                   _cname_acBuM,
+                   _cprename_acBuN,
+                   _corcid_acBuO,
+                   _caffiliation_acBuP,
+                   _curl_acBuQ,
+                   _cemail_acBuR]
+                  -> (pgDecodeColumnNotNull
+                        _tenv_acBuC (PGTypeProxy :: PGTypeName "integer") _cid_acBuG, 
+                      pgDecodeColumnNotNull
+                        _tenv_acBuC (PGTypeProxy :: PGTypeName "segment") _csegment_acBuH, 
+                      pgDecodeColumnNotNull
+                        _tenv_acBuC
+                        (PGTypeProxy :: PGTypeName "timestamp with time zone")
+                        _ctime_acBuI, 
+                      pgDecodeColumnNotNull
+                        _tenv_acBuC (PGTypeProxy :: PGTypeName "text") _ctext_acBuJ, 
+                      pgDecodeColumnNotNull
+                        _tenv_acBuC
+                        (PGTypeProxy :: PGTypeName "integer[]")
+                        _cthread_acBuK, 
+                      pgDecodeColumnNotNull
+                        _tenv_acBuC (PGTypeProxy :: PGTypeName "integer") _cid_acBuL, 
+                      pgDecodeColumnNotNull
+                        _tenv_acBuC (PGTypeProxy :: PGTypeName "text") _cname_acBuM, 
+                      pgDecodeColumnNotNull
+                        _tenv_acBuC (PGTypeProxy :: PGTypeName "text") _cprename_acBuN, 
+                      pgDecodeColumnNotNull
+                        _tenv_acBuC (PGTypeProxy :: PGTypeName "bpchar") _corcid_acBuO, 
+                      pgDecodeColumnNotNull
+                        _tenv_acBuC
+                        (PGTypeProxy :: PGTypeName "text")
+                        _caffiliation_acBuP, 
+                      pgDecodeColumnNotNull
+                        _tenv_acBuC (PGTypeProxy :: PGTypeName "text") _curl_acBuQ, 
+                      pgDecodeColumnNotNull
+                        _tenv_acBuC
+                        (PGTypeProxy :: PGTypeName "character varying")
+                        _cemail_acBuR))
+  pure
+    (fmap
+      (\ (vid_acBu6, vsegment_acBu7, vtime_acBu8, vtext_acBu9,
+          vthread_acBua, vid_acBub, vname_acBuc, vprename_acBud,
+          vorcid_acBue, vaffiliation_acBuf, vurl_acBug, vemail_acBuh)
+         -> (makeComment
+                 vid_acBu6 vsegment_acBu7 vtime_acBu8 vtext_acBu9 vthread_acBua)
+              (Databrary.Model.Party.SQL.permissionParty
+                 (Databrary.Model.Party.SQL.makeAccount
+                    (PartyRow
+                       vid_acBub
+                       vname_acBuc
+                       vprename_acBud
+                       vorcid_acBue
+                       vaffiliation_acBuf
+                       vurl_acBug)
+                    (Account vemail_acBuh))
+                 Nothing
+                 ident)
+              c)
+      rows)
 
 mapQuery :: ByteString -> ([PGValue] -> a) -> PGSimpleQuery a
 mapQuery qry mkResult =
