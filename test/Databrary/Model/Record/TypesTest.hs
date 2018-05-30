@@ -7,10 +7,12 @@ import Hedgehog
 import qualified Hedgehog.Gen as Gen
 -- import Test.Tasty
 
+import Databrary.Model.Category
 import Databrary.Model.Category.TypesTest
 import Databrary.Model.Id.Types
 import Databrary.Model.Metric
 import Databrary.Model.Record.Types
+import Databrary.Model.Volume.Types
 
 -- TODO: expand these to really generate random measure values
 genBirthdateMeasure :: Gen (Metric, BS.ByteString)
@@ -32,6 +34,18 @@ genCreateMeasure = do
         <$> (pure . error) "measure record not set yet"
         <*> pure mtrc
         <*> pure val
+
+genCategory :: Gen Category
+genCategory = Gen.element allCategories
+
+genCreateRecord :: Volume -> Gen Record
+genCreateRecord vol = do
+    -- repeats some logic from blankRecord
+    Record
+        <$> (RecordRow <$> (pure . error) "Id set after saved" <*> genCategory)
+        <*> pure []
+        <*> Gen.maybe Gen.enumBounded
+        <*> pure vol
 
 participantRecordAll :: ParticipantRecord
 participantRecordAll =

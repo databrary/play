@@ -189,7 +189,9 @@ mkContainer v mRel mDate = do
 
 addParticipantRecordWithMeasures :: (MonadAudit c m) => Volume -> [Measure] -> m (Id Record)
 addParticipantRecordWithMeasures v measures = do
-    r <- addRecord (mkParticipantRecord v)
+    -- note: modeled after create record
+    nr <- (liftIO . mkParticipantRecord) v
+    r <- addRecord nr
     forM_
         measures
         (\m -> changeRecordMeasure (m { measureRecord = r }))
@@ -213,9 +215,15 @@ mkVolAccess :: Permission -> Maybe Bool -> Party -> Volume -> VolumeAccess
 mkVolAccess perm mShareFull p v =
     VolumeAccess perm perm Nothing mShareFull p v
 
-mkParticipantRecord :: Volume -> Record
-mkParticipantRecord vol =  -- note: modeled after create record
-    blankRecord participantCategory vol
+mkParticipantRecord :: Volume -> IO Record
+mkParticipantRecord vol = do
+    -- repeats some logic from blankRecord
+    nr <- Gen.sample (genCreateRecord vol)
+    pure
+        (nr {
+              recordRelease = Nothing
+            , recordRow = (recordRow nr) { recordCategory = participantCategory }
+            })
 
 -- TODO: copied from VolumeTest, move to shared area instead
 volumeExample :: Volume
