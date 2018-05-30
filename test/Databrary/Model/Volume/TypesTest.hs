@@ -74,3 +74,19 @@ genVolumeSimple = do
         <*> Gen.list (Range.constant 1 3) genVolumeOwner
         <*> pure perm
         <*> pure policy
+
+-- Note: keep this in sync with changes in Controller.createVolume
+genVolumeCreateSimple :: Gen Volume
+genVolumeCreateSimple = do
+    let bv = blankVolume
+    name <- genVolumeName
+    mBody <- Gen.maybe genVolumeBody
+    mAlias <- Gen.maybe genVolumeAlias
+    pure
+      (bv {
+        volumeRow = (volumeRow bv) {
+              volumeName = name
+            , volumeBody = mBody
+            , volumeAlias = mAlias
+            }
+       })

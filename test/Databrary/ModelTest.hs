@@ -27,6 +27,7 @@ import Databrary.Model.Record
 import Databrary.Model.Record.TypesTest
 import Databrary.Model.Slot
 import Databrary.Model.Volume
+import Databrary.Model.Volume.TypesTest
 import Databrary.Model.VolumeAccess
 import Databrary.Model.VolumeAccess.TypesTest
 import Databrary.Service.DB (DBConn, MonadDB)
@@ -74,7 +75,7 @@ test_7 = Test.stepsWithTransaction "" $ \step cn2 -> do
     -- TODO: should be lookup auth on rootParty
     vid <- runReaderT
          (do
-              v <- addVolumeSetPrivate volumeExample aiAcct
+              v <- addVolumeSetPrivate aiAcct
               pure ((volumeId . volumeRow) v))
          aiCtxt
     step "Then the public can't view it"
@@ -95,7 +96,7 @@ test_11 = Test.stepsWithTransaction "" $ \step cn2 -> do
     -- TODO: should be lookup auth on rootParty
     cid <- runReaderT
          (do
-              v <- addVolumeSetPrivate volumeExample aiAcct
+              v <- addVolumeSetPrivate aiAcct
               makeAddContainer v (Just ReleasePUBLIC) Nothing)
          aiCtxt
     step "Then the public can't view the container"
@@ -110,7 +111,7 @@ test_12 = Test.stepsWithTransaction "" $ \step cn2 -> do
     -- TODO: should be lookup auth on rootParty
     cid <- runReaderT
          (do
-              v <- addVolumeWithAccess volumeExample aiAcct
+              v <- addVolumeWithAccess aiAcct
               makeAddContainer v (Just ReleaseEXCERPTS) (Just (someDay 2017)))
          aiCtxt
     step "When the public attempts to view the container"
@@ -130,7 +131,7 @@ test_13 = Test.stepsWithTransaction "" $ \step cn2 -> do
     -- TODO: should be lookup auth on rootParty
     rid <- runReaderT
          (do
-              v <- addVolumeSetPrivate volumeExample aiAcct
+              v <- addVolumeSetPrivate aiAcct
               addParticipantRecordWithMeasures v [])
          aiCtxt
     step "When the public attempts to view the record"
@@ -146,7 +147,7 @@ test_14 = Test.stepsWithTransaction "" $ \step cn2 -> do
     -- TODO: should be lookup auth on rootParty
     rid <- runReaderT
          (do
-              v <- addVolumeWithAccess volumeExample aiAcct
+              v <- addVolumeWithAccess aiAcct
               (someMeasure, someMeasure2) <- (,) <$> Gen.sample genCreateMeasure <*> Gen.sample genCreateMeasure
               addParticipantRecordWithMeasures v [someMeasure, someMeasure2])
          aiCtxt
@@ -211,15 +212,18 @@ addParticipantRecordWithMeasures v measures = do
     pure ((recordId . recordRow) r)
 
 -- TODO: remove from authorizetest
-addVolumeWithAccess :: MonadAudit c m => Volume -> Account -> m Volume
-addVolumeWithAccess v a = do
+addVolumeWithAccess :: MonadAudit c m => Account -> m Volume
+addVolumeWithAccess a = do
+    v <- (liftIO . Gen.sample) genVolumeCreateSimple
     v' <- addVolume v -- note: skipping irrelevant change volume citation
     setDefaultVolumeAccessesForCreated (accountParty a) v'
     pure v'
 
-addVolumeSetPrivate :: (MonadAudit c m) => Volume -> Account -> m Volume
-addVolumeSetPrivate v a = do
-    v' <- addVolumeWithAccess v a
+addVolumeSetPrivate :: (MonadAudit c m) => Account -> m Volume
+addVolumeSetPrivate a = do
+    v <- (liftIO . Gen.sample) genVolumeCreateSimple
+    v' <- addVolume v -- note: skipping irrelevant change volume citation
+    setDefaultVolumeAccessesForCreated (accountParty a) v'
     setVolumePrivate v'
     pure v'
 
@@ -239,24 +243,3 @@ mkParticipantRecord vol = do
               recordRelease = Nothing
             , recordRow = (recordRow nr) { recordCategory = participantCategory }
             })
-
--- TODO: copied from VolumeTest, move to shared area instead
-volumeExample :: Volume
-volumeExample =
-    let
-        row =
-           VolumeRow {
-                 volumeId = Id 1
-               , volumeName = "Test Vol One: A Survey"
-               , volumeBody = Just "Here is a description for a volume"
-               , volumeAlias = Just "Test Vol 1"
-               , volumeDOI = Nothing
-               }
-    in
-        Volume {
-              volumeRow = row
-            , volumeCreation = UTCTime (fromGregorian 2018 1 2) (secondsToDiffTime 0)
-            , volumeOwners = [] -- [(Id 2, "Smith, John")]
-            , volumePermission = PermissionPUBLIC
-            , volumeAccessPolicy = PermLevelDefault
-            }
