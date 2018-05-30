@@ -5,6 +5,7 @@ module Databrary.Model.Token.Types
   , LoginToken(..)
   , Session(..)
   , Upload(..)
+  , makeUpload
   ) where
 
 import qualified Data.ByteString as BS
@@ -133,3 +134,6 @@ instance Has (Id Token) Upload where
 --   view = (view . uploadAccountToken)
 -- instance Has Account Upload where
 --   view = (view . uploadAccountToken)
+
+makeUpload :: Token -> BS.ByteString -> Int64 -> SiteAuth -> Upload
+makeUpload t n z u = Upload (AccountToken t u) n z
