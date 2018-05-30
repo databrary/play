@@ -476,6 +476,10 @@ app.factory('modelService', [
       return router.http(router.controllers.postPasswordReset, data);
     };
 
+    /**
+     * Get token to register a user
+     * @interface modelService/Login/getToken
+     */
     Login.getToken = function (token, auth) {
       return router.http(router.controllers.getLoginToken, token, auth)
         .then(resData);
@@ -617,6 +621,10 @@ app.factory('modelService', [
         return $q.successful(v);
     }
 
+    /**
+     * Get volume
+     * @interface modelService/Volume/get
+     */
     Volume.get = function (id, options) {
       var p = Volume.cache.get(id);
       if (!p)
@@ -634,6 +642,10 @@ app.factory('modelService', [
       return volumeGet(this.id, this, options);
     };
 
+    /**
+     * Post volume
+     * @interface modelService/Volume/save
+     */
     Volume.prototype.save = function (data) {
       var v = this;
       return router.http(router.controllers.postVolume, this.id, data)
@@ -667,6 +679,10 @@ app.factory('modelService', [
         });
     };
 
+    /**
+     * Create volume
+     * @interface modelService/Volume/create
+     */
     Volume.create = function (data, owner) {
       if (owner !== undefined)
         data.owner = owner;
@@ -678,6 +694,10 @@ app.factory('modelService', [
         });
     };
 
+    /**
+     * Search volume
+     * @interface modelService/Volume/search
+     */
     Volume.search = function (data) {
       return router.http(router.controllers.getVolumes, data)
         .then(function (res) {
@@ -751,6 +771,10 @@ app.factory('modelService', [
       }
     }
 
+    /**
+     * Post volume access
+     * @interface modelService/Volume/accessSave
+     */
     Volume.prototype.accessSave = function (target, data, sharefull) {
       var v = this;
       sharefull = sharefull || false;
@@ -1007,6 +1031,10 @@ app.factory('modelService', [
         });
     };
 
+    /**
+     * Post slot
+     * @interface modelService/Slot/save
+     */
     Slot.prototype.save = function (data) {
       var s = this;
       if ('release' in data) {
@@ -1032,6 +1060,10 @@ app.factory('modelService', [
         });
     };
 
+    /**
+     * Post slot record
+     * @interface modelService/Slot/addRecord
+     */
     Slot.prototype.addRecord = function (r, seg) {
       if (!seg)
         seg = this.segment;
@@ -1052,6 +1084,10 @@ app.factory('modelService', [
         });
     };
 
+    /**
+     * Create slot record
+     * @interface modelService/Slot/newRecord
+     */
     Slot.prototype.newRecord = function (c) {
       var s = this;
       if (c && typeof c === 'object')
