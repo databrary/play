@@ -46,24 +46,36 @@ app.directive('authGrantForm', [
 
       form.save = function () {
         messages.clear(form);
-        return party.authorizeSave(auth.party.id, form.data).then(function (res) {
-          form.validator.server({});
-          messages.add({
-            body: constants.message('auth.grant.save.success'),
-            type: 'green',
-            owner: form
-          });
+        if(!(form.data.site === 0 && form.data.member === 0)) {
+          var accessData = "";
+          if (form.data.site !==0) {
+            accessData = "Databrary data.";
+            if (form.data.member !== 0) {
+              accessData = "Databrary data and your lab data."
+            }
+          } else if (form.data.member !== 0) {
+            accessData = "your lab data."
+          }
+          confirm("By granting this authorization, you take responsibility for " + party.name + "'s use of " + accessData);
+        }
+        // return party.authorizeSave(auth.party.id, form.data).then(function (res) {
+        //   form.validator.server({});
+        //   messages.add({
+        //     body: constants.message('auth.grant.save.success'),
+        //     type: 'green',
+        //     owner: form
+        //   });
 
-          delete auth.new;
-          auth.site = res.site;
-          auth.member = res.member;
-          auth.expires = res.expires;
-          fill();
-          form.$setPristine();
-        }, function (res) {
-          form.validator.server(res);
-          display.scrollTo(form.$element);
-        });
+        //   delete auth.new;
+        //   auth.site = res.site;
+        //   auth.member = res.member;
+        //   auth.expires = res.expires;
+        //   fill();
+        //   form.$setPristine();
+        // }, function (res) {
+        //   form.validator.server(res);
+        //   display.scrollTo(form.$element);
+        // });
       };
 
       $scope.$on('authGrantSave', function () {
