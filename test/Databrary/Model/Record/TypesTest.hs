@@ -3,11 +3,35 @@ module Databrary.Model.Record.TypesTest where
 
 import qualified Data.ByteString as BS
 import Data.Time (fromGregorian)
-import Test.Tasty
+import Hedgehog
+import qualified Hedgehog.Gen as Gen
+-- import Test.Tasty
 
 import Databrary.Model.Category.TypesTest
 import Databrary.Model.Id.Types
+import Databrary.Model.Metric
 import Databrary.Model.Record.Types
+
+-- TODO: expand these to really generate random measure values
+genBirthdateMeasure :: Gen (Metric, BS.ByteString)
+genBirthdateMeasure =
+    pure (participantMetricBirthdate, "1990-01-02")
+
+genGenderMeasure :: Gen (Metric, BS.ByteString)
+genGenderMeasure =
+    pure (participantMetricGender, "Male")
+
+genParticipantMetricValue :: Gen (Metric, BS.ByteString)
+genParticipantMetricValue =
+    Gen.choice [genBirthdateMeasure, genGenderMeasure]
+
+genCreateMeasure :: Gen Measure
+genCreateMeasure = do
+    (mtrc, val) <- genParticipantMetricValue
+    Measure
+        <$> (pure . error) "measure record not set yet"
+        <*> pure mtrc
+        <*> pure val
 
 participantRecordAll :: ParticipantRecord
 participantRecordAll =
@@ -59,8 +83,3 @@ testRecordRow1 =
         recordId = Id 100
       , recordCategory = testCategory1
     }
-
-test_all :: [TestTree]
-test_all =
-    [
-    ]

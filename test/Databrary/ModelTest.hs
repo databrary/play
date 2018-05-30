@@ -1,11 +1,13 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, FlexibleContexts #-}
 module Databrary.ModelTest where
 
+import Control.Monad
+import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Trans.Reader
 import Data.Aeson
 import Data.Maybe
-import Control.Monad
-import Control.Monad.Trans.Reader
 import Data.Time
+import Hedgehog.Gen as Gen
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -14,6 +16,7 @@ import Databrary.Model.Audit (MonadAudit)
 import Databrary.Model.Authorize
 import Databrary.Model.Category
 import Databrary.Model.Container
+import Databrary.Model.Container.TypesTest
 import Databrary.Model.Identity (MonadHasIdentity)
 import Databrary.Model.Measure
 import Databrary.Model.Metric
@@ -21,6 +24,7 @@ import Databrary.Model.Party
 import Databrary.Model.Permission
 import Databrary.Model.Release
 import Databrary.Model.Record
+import Databrary.Model.Record.TypesTest
 import Databrary.Model.Slot
 import Databrary.Model.Volume
 import Databrary.Model.VolumeAccess
@@ -142,7 +146,8 @@ test_14 = Test.stepsWithTransaction "" $ \step cn2 -> do
     rid <- runReaderT
          (do
               v <- addVolumeWithAccess volumeExample aiAcct
-              addParticipantRecordWithMeasures v [someBirthdateMeasure, someGenderMeasure])
+              (someMeasure, someMeasure2) <- (,) <$> Gen.sample genCreateMeasure <*> Gen.sample genCreateMeasure
+              addParticipantRecordWithMeasures v [someMeasure, someMeasure2])
          aiCtxt
     step "When the public attempts to view the record"
     -- Implementation of getRecord PUBLIC
@@ -168,24 +173,26 @@ addAuthorizedInvestigatorWithInstitution' c =
 -- modeled after createContainer
 makeAddContainer :: (MonadAudit c m) => Volume -> Maybe Release -> Maybe Day -> m (Id Container)
 makeAddContainer v mRel mDate = do
-    c <- addContainer (mkContainer v mRel mDate)
+    nc <- liftIO (mkContainer v mRel mDate)
+    c <- addContainer nc
     pure ((containerId . containerRow) c)
 
-mkContainer :: Volume -> Maybe Release -> Maybe Day -> Container
-mkContainer v mRel mDate = -- note: modeled after create container
-    let
-        c = blankContainer v
-    in
-        c { containerRelease = mRel
+-- note: modeled after create container
+mkContainer :: Volume -> Maybe Release -> Maybe Day -> IO Container
+mkContainer v mRel mDate = do
+   c <- Gen.sample genCreateContainer
+   pure
+       (c { containerRelease = mRel
+          , containerVolume = v
           , containerRow = (containerRow c) { containerDate = mDate }
-          }
+          })
 
-addParticipantRecordWithMeasures :: (MonadAudit c m) => Volume -> [Record -> Measure] -> m (Id Record)
-addParticipantRecordWithMeasures v mkMeasures = do
+addParticipantRecordWithMeasures :: (MonadAudit c m) => Volume -> [Measure] -> m (Id Record)
+addParticipantRecordWithMeasures v measures = do
     r <- addRecord (mkParticipantRecord v)
     forM_
-        mkMeasures
-        (\mk -> changeRecordMeasure (mk r))
+        measures
+        (\m -> changeRecordMeasure (m { measureRecord = r }))
     pure ((recordId . recordRow) r)
 
 -- TODO: remove from authorizetest
@@ -205,12 +212,6 @@ addVolumeSetPrivate v a = do
 mkVolAccess :: Permission -> Maybe Bool -> Party -> Volume -> VolumeAccess
 mkVolAccess perm mShareFull p v =
     VolumeAccess perm perm Nothing mShareFull p v
-
-someBirthdateMeasure :: Record -> Measure
-someBirthdateMeasure r = Measure r participantMetricBirthdate "1990-01-02"
-
-someGenderMeasure :: Record -> Measure
-someGenderMeasure r = Measure r participantMetricGender "Male"
 
 mkParticipantRecord :: Volume -> Record
 mkParticipantRecord vol =  -- note: modeled after create record
