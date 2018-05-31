@@ -35,7 +35,7 @@ import qualified Hedgehog.Gen as Gen
 import Test.Tasty
 import Test.Tasty.HUnit
 import qualified Data.ByteString as BS
-import qualified Data.Text as T
+-- import qualified Data.Text as T
 import qualified Network.Wai as Wai
 
 import Databrary.Has
@@ -176,7 +176,7 @@ addAuthorizedInstitution adminCtxt = do
              pure created)
         adminCtxt
 
--- TODO: recieve expiration date  -- register as anon + approve as site admin
+-- TODO: recieve expiration date (expiration dates might not be used...)  -- register as anon + approve as site admin
 addAuthorizedInvestigator :: TestContext -> Party -> IO Account
 addAuthorizedInvestigator adminCtxt instParty = do
     let ctxtNoIdent = adminCtxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
