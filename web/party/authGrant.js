@@ -56,7 +56,7 @@ app.directive('authGrantForm', [
           } else if (form.data.member !== 0) {
             accessData = "your lab data."
           }
-          if (confirm("By granting this authorization, you take responsibility for " + party.name + "'s use of " + accessData)) {
+          if (confirm("By granting this authorization, you take responsibility for " + auth.party.name + "'s use of " + accessData)) {
             postauthData();
           }
         } else {
