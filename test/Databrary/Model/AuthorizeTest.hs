@@ -77,29 +77,29 @@ test_Authorize_examples =
         ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
         instParty <- addAuthorizedInstitution ctxt
         step "When the superadmin grants an authorized investigator with edit access on their parent institution"
-        _ <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
+        aiAcct <- addAuthorizedInvestigator ctxt instParty
         let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
-        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
+        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False (accountEmail aiAcct)) ctxtNoIdent
         step "Then we expect the authorized investigator to effectively have edit db site access"
         siteAccess aiAuth @?= Access { accessSite' = PermissionEDIT, accessMember' = PermissionNONE }
     , Test.stepsWithTransaction "authorized investigator grants" $ \step cn2 -> do
         step "Given an authorized investigator"
         ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
         instParty <- addAuthorizedInstitution ctxt
-        aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Mick" "mick@smith.com" instParty
+        aiAcct <- addAuthorizedInvestigator ctxt instParty
         let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
-        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "mick@smith.com") ctxtNoIdent
+        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False (accountEmail aiAcct)) ctxtNoIdent
         let aiCtxt = switchIdentity ctxt aiAuth False
             aiParty = accountParty aiAcct
         step "When the authorized investigator grants various affiliates access on their lab and/or db site data"
-        _ <- addAffiliate aiCtxt "Smith" "Akbar" "akbar@smith.com" aiParty PermissionNONE PermissionEDIT
-        undergradAffAuth <- lookupSiteAuthNoIdent aiCtxt "akbar@smith.com"
-        _ <- addAffiliate aiCtxt "Smith" "Bob" "bob@smith.com" aiParty PermissionREAD PermissionADMIN
-        gradAffAuth <- lookupSiteAuthNoIdent aiCtxt "bob@smith.com"
-        _ <- addAffiliate aiCtxt "Smith" "Chris" "chris@smith.com" aiParty PermissionREAD PermissionREAD
-        aff1Auth <- lookupSiteAuthNoIdent aiCtxt "chris@smith.com"
-        _ <- addAffiliate aiCtxt "Smith" "Daria" "daria@smith.com" aiParty PermissionREAD PermissionEDIT
-        aff2Auth <- lookupSiteAuthNoIdent aiCtxt "daria@smith.com"
+        affAcct1 <- addAffiliate aiCtxt aiParty PermissionNONE PermissionEDIT
+        undergradAffAuth <- lookupSiteAuthNoIdent aiCtxt (accountEmail affAcct1)
+        affAcct2 <- addAffiliate aiCtxt aiParty PermissionREAD PermissionADMIN
+        gradAffAuth <- lookupSiteAuthNoIdent aiCtxt (accountEmail affAcct2)
+        affAcct3 <- addAffiliate aiCtxt aiParty PermissionREAD PermissionREAD
+        aff1Auth <- lookupSiteAuthNoIdent aiCtxt (accountEmail affAcct3)
+        affAcct4 <- addAffiliate aiCtxt aiParty PermissionREAD PermissionEDIT
+        aff2Auth <- lookupSiteAuthNoIdent aiCtxt (accountEmail affAcct4)
         step "Then we expect each affiliate to have appropriate db site data and site admin access"
         accessIsEq (siteAccess undergradAffAuth) PermissionNONE PermissionNONE
         accessIsEq (siteAccess gradAffAuth) PermissionREAD PermissionNONE
@@ -109,9 +109,9 @@ test_Authorize_examples =
         step "Given an authorized investigator"
         ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
         instParty <- addAuthorizedInstitution ctxt
-        _ <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
+        aiAcct <- addAuthorizedInvestigator ctxt instParty
         let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
-        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
+        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False (accountEmail aiAcct)) ctxtNoIdent
         let aiCtxt = switchIdentity ctxt aiAuth False
         step "When the AI attempts to authorize some party as a superadmin on db site"
         Just p <- runReaderT (lookupAuthParty ((partyId . partyRow) rootParty)) aiCtxt
@@ -122,13 +122,13 @@ test_Authorize_examples =
         step "Given an affiliate (with high priviliges)"
         ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
         instParty <- addAuthorizedInstitution ctxt
-        aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Mick" "mick@smith.com" instParty
+        aiAcct <- addAuthorizedInvestigator ctxt instParty
         let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
-        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "mick@smith.com") ctxtNoIdent
+        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False (accountEmail aiAcct)) ctxtNoIdent
         let aiCtxt = switchIdentity ctxt aiAuth False
             aiParty = accountParty aiAcct
-        affAcct <- addAffiliate aiCtxt "Smith" "Bob" "bob@smith.com" aiParty PermissionREAD PermissionADMIN
-        gradAffAuth <- lookupSiteAuthNoIdent aiCtxt "bob@smith.com"
+        affAcct <- addAffiliate aiCtxt aiParty PermissionREAD PermissionADMIN
+        gradAffAuth <- lookupSiteAuthNoIdent aiCtxt (accountEmail affAcct)
         let affCtxt = switchIdentity ctxt gradAffAuth False
         step "When affiliate attempts to authorize anybody to any other party"
         Just _ <- runReaderT (lookupAuthParty ((partyId . partyRow . accountParty) affAcct)) affCtxt
@@ -145,16 +145,16 @@ test_Authorize_examples3 = testCaseSteps "Authorize examples continued" $ \step 
         step "Given an authorized investigator for some lab A and a lab B member with lab data access only"
         ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
         instParty <- addAuthorizedInstitution ctxt
-        aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
+        aiAcct <- addAuthorizedInvestigator ctxt instParty
         let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
-        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
+        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False (accountEmail aiAcct)) ctxtNoIdent
         let aiCtxt = switchIdentity ctxt aiAuth False
-        aiAcct2 <- addAuthorizedInvestigator ctxt "Smith" "Sara" "sara@smith.com" instParty
-        Just aiAuth2 <- runReaderT (lookupSiteAuthByEmail False "sara@smith.com") ctxtNoIdent
+        aiAcct2 <- addAuthorizedInvestigator ctxt instParty
+        Just aiAuth2 <- runReaderT (lookupSiteAuthByEmail False (accountEmail aiAcct2)) ctxtNoIdent
         let aiCtxt2 = switchIdentity ctxt aiAuth2 False
             aiParty2 = accountParty aiAcct2
-        _ <- addAffiliate aiCtxt2 "Smith" "Bob" "bob@smith.com" aiParty2 PermissionNONE PermissionADMIN
-        affAuth <- lookupSiteAuthNoIdent aiCtxt2 "bob@smith.com"
+        affAcct <- addAffiliate aiCtxt2 aiParty2 PermissionNONE PermissionADMIN
+        affAuth <- lookupSiteAuthNoIdent aiCtxt2 (accountEmail affAcct)
         let affCtxt = switchIdentity ctxt affAuth False
         step "When an AI creates a private volume for some lab A"
         -- TODO: should be lookup auth on rootParty
@@ -177,12 +177,12 @@ test_Authorize_examples3 = testCaseSteps "Authorize examples continued" $ \step 
         step "Given an authorized investigator for some lab A and an authorized investigator for lab B"
         ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
         instParty <- addAuthorizedInstitution ctxt
-        aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
+        aiAcct <- addAuthorizedInvestigator ctxt instParty
         let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
-        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
+        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False (accountEmail aiAcct)) ctxtNoIdent
         let aiCtxt = switchIdentity ctxt aiAuth False
-        _ <- addAuthorizedInvestigator ctxt "Smith" "Sara" "sara@smith.com" instParty
-        Just aiAuth2 <- runReaderT (lookupSiteAuthByEmail False "sara@smith.com") ctxtNoIdent
+        aiAcct2 <- addAuthorizedInvestigator ctxt instParty
+        Just aiAuth2 <- runReaderT (lookupSiteAuthByEmail False (accountEmail aiAcct2)) ctxtNoIdent
         let aiCtxt2 = switchIdentity ctxt aiAuth2 False
         step "When the lab A AI creates a public volume"
         -- TODO: should be lookup auth on rootParty

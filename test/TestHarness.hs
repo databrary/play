@@ -10,7 +10,6 @@ module TestHarness
     , fakeIdentSessFromAuth
     , addAuthorizedInstitution
     , addAuthorizedInvestigatorWithInstitution
-    , mkAccount -- TODO: stop exporting
     , addAuthorizedInvestigator
     , addAffiliate
     , lookupSiteAuthNoIdent
@@ -178,15 +177,15 @@ addAuthorizedInstitution adminCtxt = do
         adminCtxt
 
 -- TODO: recieve expiration date  -- register as anon + approve as site admin
-addAuthorizedInvestigator :: TestContext -> T.Text -> T.Text -> BS.ByteString -> Party -> IO Account
-addAuthorizedInvestigator adminCtxt lastName firstName email instParty = do
+addAuthorizedInvestigator :: TestContext -> Party -> IO Account
+addAuthorizedInvestigator adminCtxt instParty = do
     let ctxtNoIdent = adminCtxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
-        a = mkAccount lastName firstName email
+    a <- Gen.sample genAccountSimple
     aiAccount <-
         runReaderT
             (do
                  created <- addAccount a
-                 Just auth <- lookupSiteAuthByEmail False email
+                 Just auth <- lookupSiteAuthByEmail False (accountEmail a)
                  changeAccount (auth { accountPasswd = Just "somehashedvalue" })
                  pure created)
             ctxtNoIdent
@@ -200,27 +199,27 @@ addAuthorizedInvestigator adminCtxt lastName firstName email instParty = do
     -- some account w/email
     -- runWithoutIdent addAccount + lookupAuth + changeAccount
 
-addAuthorizedInvestigatorWithInstitution :: DBConn -> BS.ByteString -> BS.ByteString -> IO (Account, TestContext)
-addAuthorizedInvestigatorWithInstitution cn adminEmail aiEmail = do
+addAuthorizedInvestigatorWithInstitution :: DBConn -> BS.ByteString -> IO (Account, TestContext)
+addAuthorizedInvestigatorWithInstitution cn adminEmail = do
     ctxt <- makeSuperAdminContext cn adminEmail
     instParty <- addAuthorizedInstitution ctxt
-    aiAcct <- addAuthorizedInvestigator ctxt "Last" "First" aiEmail instParty
+    aiAcct <- addAuthorizedInvestigator ctxt instParty
 
     let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded } -- login as AI, bld cntxt
-    Just aiAuth <- runReaderT (lookupSiteAuthByEmail False aiEmail) ctxtNoIdent
+    Just aiAuth <- runReaderT (lookupSiteAuthByEmail False (accountEmail aiAcct)) ctxtNoIdent
     let aiCtxt = switchIdentity ctxt aiAuth False
     pure (aiAcct, aiCtxt)
 
 -- TODO: receive expiration date    -- register as anon + approve as ai
-addAffiliate :: TestContext -> T.Text -> T.Text -> BS.ByteString -> Party -> Permission -> Permission -> IO Account
-addAffiliate aiCntxt lastName firstName email aiParty site member = do
+addAffiliate :: TestContext -> Party -> Permission -> Permission -> IO Account
+addAffiliate aiCntxt aiParty site member = do
     let ctxtNoIdent = aiCntxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
-        a = mkAccount lastName firstName email
+    a <- Gen.sample genAccountSimple
     affAccount <-
         runReaderT
             (do
                  created <- addAccount a
-                 Just auth <- lookupSiteAuthByEmail False email
+                 Just auth <- lookupSiteAuthByEmail False (accountEmail a)
                  changeAccount (auth { accountPasswd = Just "somehashedvalue" })
                  pure created)
             ctxtNoIdent
@@ -242,22 +241,6 @@ lookupSiteAuthNoIdent :: TestContext -> BS.ByteString -> IO SiteAuth
 lookupSiteAuthNoIdent privCtxt email = do
     let ctxtNoIdent = privCtxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
     fromJust <$> runReaderT (lookupSiteAuthByEmail False email) ctxtNoIdent
-
-mkAccount :: T.Text -> T.Text -> BS.ByteString -> Account
-mkAccount sortName preName email = 
-    let pr = (partyRow blankParty) { partySortName = sortName , partyPreName = Just preName }
-        p = blankParty { partyRow = pr, partyAccount = Just a }
-        a = blankAccount { accountParty = p, accountEmail = email }
-    in a
-
-{-
-mkAccountSimple :: BS.ByteString -> Account
-mkAccountSimple email = 
-    let pr = (partyRow blankParty) { partySortName = "Smith" , partyPreName = Just "John" }
-        p = blankParty { partyRow = pr, partyAccount = Just a }
-        a = blankAccount { accountParty = p, accountEmail = email }
-    in a
--}
 
 switchIdentity :: TestContext -> SiteAuth -> Bool -> TestContext
 switchIdentity baseCtxt auth su = do

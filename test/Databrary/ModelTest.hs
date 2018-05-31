@@ -86,8 +86,8 @@ test_9 :: TestTree
 test_9 = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "Given an authorized investigator and their affiliate with site access only"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
-    _ <- addAffiliate aiCtxt "Smith" "Bob" "bob@smith.com" (accountParty aiAcct) PermissionREAD PermissionNONE
-    affAuth <- lookupSiteAuthNoIdent aiCtxt "bob@smith.com"
+    affAcct <- addAffiliate aiCtxt (accountParty aiAcct) PermissionREAD PermissionNONE
+    affAuth <- lookupSiteAuthNoIdent aiCtxt (accountEmail affAcct)
     let affCtxt = switchIdentity aiCtxt affAuth False
     step "When an AI creates a private volume"
     -- TODO: should be lookup auth on rootParty
@@ -194,7 +194,7 @@ runWithNoIdent cn rdr = runReaderT rdr ((mkDbContext cn) { ctxIdentity = Identit
 
 addAuthorizedInvestigatorWithInstitution' :: DBConn -> IO (Account, TestContext)
 addAuthorizedInvestigatorWithInstitution' c =
-    addAuthorizedInvestigatorWithInstitution c "test@databrary.org" "raul@smith.com"
+    addAuthorizedInvestigatorWithInstitution c "test@databrary.org"
 
 -- modeled after createContainer
 makeAddContainer :: (MonadAudit c m) => Volume -> Maybe Release -> Maybe Day -> m (Id Container)
