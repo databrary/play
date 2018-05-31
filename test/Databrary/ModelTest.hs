@@ -65,10 +65,13 @@ setDefaultRequest :: TestContext -> TestContext
 setDefaultRequest c = c { ctxRequest = defaultRequest }
 
 -- 2 = superadmin grant
--- 3 = superadmin grant edit
--- 4 = ai grant
--- 5 = ai authorize
+
+-- 3 = superadmin grant edit <<<  expand upon these to ensure all inheritances are covered
+-- 4 = ai grant <<<
+-- 5 = ai authorize <<<
+
 -- 6 = aff authorize
+
 test_7 :: TestTree
 test_7 = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "Given an authorized investigator"
@@ -81,7 +84,26 @@ test_7 = Test.stepsWithTransaction "" $ \step cn2 -> do
     mVolForAnon <- runWithNoIdent cn2 (lookupVolume ((volumeId . volumeRow) vol))
     mVolForAnon @?= Nothing
 
--- 8 = ai lab a, lab b access
+-- <<<< more cases to handle variotions of volume access and inheritance through authorization
+
+test_8 :: TestTree
+test_8 = Test.stepsWithTransaction "" $ \step cn2 -> do
+    step "Given an authorized investigator for some lab A and a lab B member with lab data access only"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    (aiAcct2, aiCtxt2) <- addAuthorizedInvestigatorWithInstitution' cn2
+    let aiParty2 = accountParty aiAcct2
+    affAcct <- addAffiliate aiCtxt2 aiParty2 PermissionNONE PermissionADMIN
+    affAuth <- lookupSiteAuthNoIdent aiCtxt2 (accountEmail affAcct)
+    let affCtxt = switchIdentity aiCtxt affAuth False
+    step "When an AI creates a private volume for some lab A"
+    -- TODO: should be lookup auth on rootParty
+    let aiParty = accountParty aiAcct
+    createdVol <- runReaderT (addVolumeSetPrivate aiAcct) aiCtxt
+    step "Then the lab B member can't view it"
+    -- Implementation of getVolume PUBLIC
+    mVolForAff <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) affCtxt
+    mVolForAff @?= Nothing
+
 test_9 :: TestTree
 test_9 = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "Given an authorized investigator and their affiliate with site access only"
@@ -97,7 +119,18 @@ test_9 = Test.stepsWithTransaction "" $ \step cn2 -> do
     mVolForAff <- runReaderT (lookupVolume ((volumeId . volumeRow) vol)) affCtxt
     mVolForAff @?= Nothing
 
--- 10 = ai lab a, ai lab b vol access
+test_10 :: TestTree
+test_10 = Test.stepsWithTransaction "" $ \step cn2 -> do
+    step "Given an authorized investigator for some lab A and an authorized investigator for lab B"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    (_, aiCtxt2) <- addAuthorizedInvestigatorWithInstitution' cn2
+    step "When the lab A AI creates a public volume"
+    -- TODO: should be lookup auth on rootParty
+    createdVol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt -- partially shared, but effectively same as public
+    step "Then the lab B AI can't add volume acccess"
+    -- Implementation of getVolume as used by postVolumeAccess
+    Just volForAI2 <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) aiCtxt2
+    volumePermission volForAI2 @?= PermissionSHARED
 
 ----- container ----
 test_11 :: TestTree

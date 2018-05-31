@@ -41,8 +41,8 @@ mockParty pid =
 
 test_Authorize_examples :: [TestTree]
 test_Authorize_examples =
-    [ testCase "nobody" $ (authorizeExpires . selfAuthorize) nobodyParty @?= Nothing
-    , Test.stepsWithTransaction "superadmin grant admin" $ \step cn2 -> do
+    [
+      Test.stepsWithTransaction "superadmin grant admin" $ \step cn2 -> do
         step "Given a superadmin"
         ctxt <-
             runReaderT
@@ -139,89 +139,5 @@ test_Authorize_examples =
         )
     ]
 
-test_Authorize_examples3 :: TestTree
-test_Authorize_examples3 = testCaseSteps "Authorize examples continued" $ \step -> do
-    withinTestTransaction (\cn2 -> do -- TODO: move this to VolumeAccess or more general module around authorization
-        step "Given an authorized investigator for some lab A and a lab B member with lab data access only"
-        ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
-        instParty <- addAuthorizedInstitution ctxt
-        aiAcct <- addAuthorizedInvestigator ctxt instParty
-        let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
-        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False (accountEmail aiAcct)) ctxtNoIdent
-        let aiCtxt = switchIdentity ctxt aiAuth False
-        aiAcct2 <- addAuthorizedInvestigator ctxt instParty
-        Just aiAuth2 <- runReaderT (lookupSiteAuthByEmail False (accountEmail aiAcct2)) ctxtNoIdent
-        let aiCtxt2 = switchIdentity ctxt aiAuth2 False
-            aiParty2 = accountParty aiAcct2
-        affAcct <- addAffiliate aiCtxt2 aiParty2 PermissionNONE PermissionADMIN
-        affAuth <- lookupSiteAuthNoIdent aiCtxt2 (accountEmail affAcct)
-        let affCtxt = switchIdentity ctxt affAuth False
-        step "When an AI creates a private volume for some lab A"
-        -- TODO: should be lookup auth on rootParty
-        let aiParty = accountParty aiAcct
-        createdVol <- runReaderT
-             (do
-                  v <- addVolume volumeExample -- note: skipping irrelevant change volume citation
-                  setDefaultVolumeAccessesForCreated aiParty v
-                  -- simulate setting volume as private
-                  _ <- changeVolumeAccess (mkVolAccess PermissionNONE Nothing nobodyParty v)
-                  _ <- changeVolumeAccess (mkVolAccess PermissionNONE Nothing rootParty v)
-                  pure v)
-             aiCtxt
-        step "Then the lab B member can't view it"
-        -- Implementation of getVolume PUBLIC
-        mVolForAff <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) affCtxt
-        mVolForAff @?= Nothing)
-
-    withinTestTransaction (\cn2 -> do -- TODO: move this to VolumeAccess or more general module around authorization
-        step "Given an authorized investigator for some lab A and an authorized investigator for lab B"
-        ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
-        instParty <- addAuthorizedInstitution ctxt
-        aiAcct <- addAuthorizedInvestigator ctxt instParty
-        let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
-        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False (accountEmail aiAcct)) ctxtNoIdent
-        let aiCtxt = switchIdentity ctxt aiAuth False
-        aiAcct2 <- addAuthorizedInvestigator ctxt instParty
-        Just aiAuth2 <- runReaderT (lookupSiteAuthByEmail False (accountEmail aiAcct2)) ctxtNoIdent
-        let aiCtxt2 = switchIdentity ctxt aiAuth2 False
-        step "When the lab A AI creates a public volume"
-        -- TODO: should be lookup auth on rootParty
-        let aiParty = accountParty aiAcct
-        createdVol <- runReaderT
-             (do
-                  v <- addVolume volumeExample -- note: skipping irrelevant change volume citation
-                  setDefaultVolumeAccessesForCreated aiParty v -- partially shared, but effectively same as public
-                  pure v)
-             aiCtxt
-        step "Then the lab B AI can't add volume acccess"
-        -- Implementation of getVolume as used by postVolumeAccess
-        Just volForAI2 <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) aiCtxt2
-        volumePermission volForAI2 @?= PermissionSHARED)
-
-mkVolAccess :: Permission -> Maybe Bool -> Party -> Volume -> VolumeAccess
-mkVolAccess perm mShareFull p v =
-    VolumeAccess perm perm Nothing mShareFull p v
-
 accessIsEq :: Access -> Permission -> Permission -> Assertion
 accessIsEq a site member = a @?= Access { accessSite' = site, accessMember' = member }
-
--- TODO: copied from VolumeTest, move to shared area instead
-volumeExample :: Volume
-volumeExample =
-    let
-        row =
-           VolumeRow {
-                 volumeId = Id 1
-               , volumeName = "Test Vol One: A Survey"
-               , volumeBody = Just "Here is a description for a volume"
-               , volumeAlias = Just "Test Vol 1"
-               , volumeDOI = Nothing
-               }
-    in
-        Volume {
-              volumeRow = row
-            , volumeCreation = UTCTime (fromGregorian 2018 1 2) (secondsToDiffTime 0)
-            , volumeOwners = [] -- [(Id 2, "Smith, John")]
-            , volumePermission = PermissionPUBLIC
-            , volumeAccessPolicy = PermLevelDefault
-            }
