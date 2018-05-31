@@ -84,7 +84,7 @@ test_7 = Test.stepsWithTransaction "" $ \step cn2 -> do
     mVolForAnon <- runWithNoIdent cn2 (lookupVolume ((volumeId . volumeRow) vol))
     mVolForAnon @?= Nothing
 
--- <<<< more cases to handle variotions of volume access and inheritance through authorization
+-- <<<< more cases to handle variations of volume access and inheritance through authorization
 
 test_8 :: TestTree
 test_8 = Test.stepsWithTransaction "" $ \step cn2 -> do
