@@ -73,18 +73,28 @@ test_7 = Test.stepsWithTransaction "" $ \step cn2 -> do
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     step "When the AI creates a private volume"
     -- TODO: should be lookup auth on rootParty
-    vid <- runReaderT
-         (do
-              v <- addVolumeSetPrivate aiAcct
-              pure ((volumeId . volumeRow) v))
-         aiCtxt
+    vol <- runReaderT (addVolumeSetPrivate aiAcct) aiCtxt
     step "Then the public can't view it"
     -- Implementation of getVolume PUBLIC
-    mVolForAnon <- runWithNoIdent cn2 (lookupVolume vid)
+    mVolForAnon <- runWithNoIdent cn2 (lookupVolume ((volumeId . volumeRow) vol))
     mVolForAnon @?= Nothing
 
 -- 8 = ai lab a, lab b access
--- 9 = aff site access only
+test_9 :: TestTree
+test_9 = Test.stepsWithTransaction "" $ \step cn2 -> do
+    step "Given an authorized investigator and their affiliate with site access only"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    _ <- addAffiliate aiCtxt "Smith" "Bob" "bob@smith.com" (accountParty aiAcct) PermissionREAD PermissionNONE
+    affAuth <- lookupSiteAuthNoIdent aiCtxt "bob@smith.com"
+    let affCtxt = switchIdentity aiCtxt affAuth False
+    step "When an AI creates a private volume"
+    -- TODO: should be lookup auth on rootParty
+    vol <- runReaderT (addVolumeSetPrivate aiAcct) aiCtxt
+    step "Then their lab member with site access only can't view it"
+    -- Implementation of getVolume PUBLIC
+    mVolForAff <- runReaderT (lookupVolume ((volumeId . volumeRow) vol)) affCtxt
+    mVolForAff @?= Nothing
+
 -- 10 = ai lab a, ai lab b vol access
 
 ----- container ----
@@ -182,7 +192,7 @@ runWithNoIdent cn rdr = runReaderT rdr ((mkDbContext cn) { ctxIdentity = Identit
 
 addAuthorizedInvestigatorWithInstitution' :: DBConn -> IO (Account, TestContext)
 addAuthorizedInvestigatorWithInstitution' c =
-    addAuthorizedInvestigatorWithInstitution c "test@databrary.org" "New York University" "raul@smith.com"
+    addAuthorizedInvestigatorWithInstitution c "test@databrary.org" "raul@smith.com"
 
 -- modeled after createContainer
 makeAddContainer :: (MonadAudit c m) => Volume -> Maybe Release -> Maybe Day -> m (Id Container)
@@ -226,13 +236,6 @@ addVolumeSetPrivate a = do
     setDefaultVolumeAccessesForCreated (accountParty a) v'
     setVolumePrivate v'
     pure v'
-
-{-
--- TODO: remove from authorizetest
-mkVolAccess :: Permission -> Maybe Bool -> Party -> Volume -> IO VolumeAccess
-mkVolAccess perm mShareFull p v =
-    VolumeAccess perm perm Nothing mShareFull p v
--}
 
 mkParticipantRecord :: Volume -> IO Record
 mkParticipantRecord vol = do

@@ -61,14 +61,14 @@ unit_Party_examples = do
                          ident = fakeIdentSessFromAuth auth True
                      pure (TestContext { ctxConn = cn, ctxIdentity = ident, ctxPartyId = pid, ctxRequest = defaultRequest }))
                 TestContext { ctxConn = cn }
-        let p = mkInstitution "New York University"
+        p <- Gen.sample genCreateInstitutionParty
         Just p' <-
             runReaderT
               (do
                   created <- addParty p
                   lookupParty ((partyId . partyRow) created))
               ctxt
-        (partySortName . partyRow) p' @?= "New York University"
+        (partySortName . partyRow) p' @?= (partySortName . partyRow) p
         -- TODO: explain the values below
         partyPermission p' @?= PermissionADMIN
         partyAccess p' @?= Just (Access { accessSite' = PermissionADMIN, accessMember' = PermissionADMIN }))

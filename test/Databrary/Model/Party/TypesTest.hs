@@ -83,6 +83,21 @@ genInstitutionParty = do
    -- what are the typical values for access and permission for an institution?
    Party <$> genInstitutionPartyRow <*> pure Nothing <*> gPerm <*> gAccess
 
+genCreateInstitutionParty :: Gen Party
+genCreateInstitutionParty = do
+   let bp = blankParty
+   url <- genInstitutionUrl
+   mPreName <- Gen.maybe (pure "The")
+   sortName <- genPartySortName
+   pure
+       (bp {
+             partyRow = (partyRow bp) {
+                 partySortName = sortName
+               , partyPreName = mPreName
+               , partyURL = url
+               }
+           })
+
 party1 :: Party
 party1 =
     let

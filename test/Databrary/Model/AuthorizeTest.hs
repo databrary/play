@@ -4,6 +4,7 @@ module Databrary.Model.AuthorizeTest where
 -- import Data.Aeson
 -- import Data.Maybe
 import Data.Time
+import qualified Hedgehog.Gen as Gen
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -13,6 +14,7 @@ import Databrary.Model.Authorize
 -- import Databrary.Model.Category
 -- import Databrary.Model.Container
 import Databrary.Model.Party
+import Databrary.Model.Party.TypesTest
 import Databrary.Model.Permission
 -- import Databrary.Model.Release
 -- import Databrary.Model.Record
@@ -57,7 +59,7 @@ test_Authorize_examples =
                             })
                 TestContext { ctxConn = cn2 }
         step "When the superadmin grants the institution admin access on the db site"
-        let p = mkInstitution "New York University"
+        p <- Gen.sample genCreateInstitutionParty
         authorization1 <-
             runReaderT
                 (do
@@ -73,7 +75,7 @@ test_Authorize_examples =
         -- Note to self: beyond documentation, this a long winded way of testing authorize_view
         step "Given a superadmin and an institution authorized as admin under db site"
         ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
-        instParty <- addAuthorizedInstitution ctxt "New York University"
+        instParty <- addAuthorizedInstitution ctxt
         step "When the superadmin grants an authorized investigator with edit access on their parent institution"
         _ <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
         let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
@@ -83,7 +85,7 @@ test_Authorize_examples =
     , Test.stepsWithTransaction "authorized investigator grants" $ \step cn2 -> do
         step "Given an authorized investigator"
         ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
-        instParty <- addAuthorizedInstitution ctxt "New York University"
+        instParty <- addAuthorizedInstitution ctxt
         aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Mick" "mick@smith.com" instParty
         let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
         Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "mick@smith.com") ctxtNoIdent
@@ -106,7 +108,7 @@ test_Authorize_examples =
     , Test.stepsWithTransaction "authorized investigator authorizes" $ \step cn2 -> do
         step "Given an authorized investigator"
         ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
-        instParty <- addAuthorizedInstitution ctxt "New York University"
+        instParty <- addAuthorizedInstitution ctxt
         _ <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
         let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
         Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
@@ -119,7 +121,7 @@ test_Authorize_examples =
     , Test.stepsWithTransaction "affiliate authorizes" (\step cn2 -> do
         step "Given an affiliate (with high priviliges)"
         ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
-        instParty <- addAuthorizedInstitution ctxt "New York University"
+        instParty <- addAuthorizedInstitution ctxt
         aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Mick" "mick@smith.com" instParty
         let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
         Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "mick@smith.com") ctxtNoIdent
@@ -142,7 +144,7 @@ test_Authorize_examples3 = testCaseSteps "Authorize examples continued" $ \step 
     withinTestTransaction (\cn2 -> do -- TODO: move this to VolumeAccess or more general module around authorization
         step "Given an authorized investigator for some lab A and a lab B member with lab data access only"
         ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
-        instParty <- addAuthorizedInstitution ctxt "New York University"
+        instParty <- addAuthorizedInstitution ctxt
         aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
         let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
         Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
@@ -172,37 +174,9 @@ test_Authorize_examples3 = testCaseSteps "Authorize examples continued" $ \step 
         mVolForAff @?= Nothing)
 
     withinTestTransaction (\cn2 -> do -- TODO: move this to VolumeAccess or more general module around authorization
-        step "Given an authorized investigator and their affiliate with site access only"
-        ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
-        instParty <- addAuthorizedInstitution ctxt "New York University"
-        aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
-        let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
-        Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
-        let aiCtxt = switchIdentity ctxt aiAuth False
-            aiParty = accountParty aiAcct
-        _ <- addAffiliate aiCtxt "Smith" "Bob" "bob@smith.com" aiParty PermissionREAD PermissionNONE
-        affAuth <- lookupSiteAuthNoIdent aiCtxt "bob@smith.com"
-        let affCtxt = switchIdentity ctxt affAuth False
-        step "When an AI creates a private volume"
-        -- TODO: should be lookup auth on rootParty
-        createdVol <- runReaderT
-             (do
-                  v <- addVolume volumeExample -- note: skipping irrelevant change volume citation
-                  setDefaultVolumeAccessesForCreated aiParty v
-                  -- simulate setting volume as private
-                  _ <- changeVolumeAccess (mkVolAccess PermissionNONE Nothing nobodyParty v)
-                  _ <- changeVolumeAccess (mkVolAccess PermissionNONE Nothing rootParty v)
-                  pure v)
-             aiCtxt
-        step "Then their lab member with site access only can't view it"
-        -- Implementation of getVolume PUBLIC
-        mVolForAff <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) affCtxt
-        mVolForAff @?= Nothing)
-
-    withinTestTransaction (\cn2 -> do -- TODO: move this to VolumeAccess or more general module around authorization
         step "Given an authorized investigator for some lab A and an authorized investigator for lab B"
         ctxt <- makeSuperAdminContext cn2 "test@databrary.org"
-        instParty <- addAuthorizedInstitution ctxt "New York University"
+        instParty <- addAuthorizedInstitution ctxt
         aiAcct <- addAuthorizedInvestigator ctxt "Smith" "Raul" "raul@smith.com" instParty
         let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
         Just aiAuth <- runReaderT (lookupSiteAuthByEmail False "raul@smith.com") ctxtNoIdent
