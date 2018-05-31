@@ -21,6 +21,7 @@ import Databrary.Model.Identity (MonadHasIdentity)
 import Databrary.Model.Measure
 import Databrary.Model.Metric
 import Databrary.Model.Party
+import Databrary.Model.Party.TypesTest
 import Databrary.Model.Permission
 import Databrary.Model.Release
 import Databrary.Model.Record
@@ -42,11 +43,12 @@ test_1 = Test.stepsWithTransaction "" $ \step cn2 -> do
     Just auth3 <-
         runReaderT
             (do
-                a2 <- addAccount (mkAccountSimple "jake@smith.com")
-                Just auth2 <- lookupSiteAuthByEmail False "jake@smith.com"
+                ca <- Gen.sample genAccountSimple
+                a2 <- addAccount ca
+                Just auth2 <- lookupSiteAuthByEmail False (accountEmail ca)
                 changeAccount (auth2 { accountPasswd = Just "somehashval"})
                 changeAuthorize (makeAuthorize (Access PermissionADMIN PermissionADMIN) Nothing (accountParty a2) dbSite)
-                lookupSiteAuthByEmail False "jake@smith.com")
+                lookupSiteAuthByEmail False (accountEmail ca))
             ctx
     step "Then we expect the user to have admin privileges on the databrary site"
     let acc = siteAccess auth3

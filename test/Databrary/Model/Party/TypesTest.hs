@@ -3,13 +3,13 @@ module Databrary.Model.Party.TypesTest where
 
 import qualified Data.ByteString as BS
 import Data.Maybe (fromJust)
+import Data.Monoid ((<>))
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import Hedgehog
 import Hedgehog.Gen as Gen
 import Hedgehog.Range as Range
 import Network.URI
-import Test.Tasty
--- import Test.Tasty.Hedgehog
 
 import Databrary.Model.Permission.Types
 import Databrary.Model.Party.Types
@@ -76,6 +76,16 @@ genPartySimple = do
         a2 = a { accountParty = p2 }
     in pure p2)
 
+genAccountSimple :: Gen Account
+genAccountSimple = do
+    firstName <- genPartyPreName
+    lastName <- genPartySortName
+    email <- (\d -> TE.encodeUtf8 (firstName <> "." <> lastName <> "@" <> d)) <$> Gen.element ["nyu.edu", "wm.edu"]
+    (let pr = (partyRow blankParty) { partySortName = lastName , partyPreName = Just firstName }
+         p = blankParty { partyRow = pr, partyAccount = Just a }
+         a = blankAccount { accountParty = p, accountEmail = email }
+     in pure a)
+
 genInstitutionParty :: Gen Party
 genInstitutionParty = do
    let gPerm = pure PermissionPUBLIC
@@ -126,8 +136,3 @@ genSiteAuthSimple = do
         <$> (pure . fromJust . partyAccount) p
         <*> Just <$> (Gen.utf8 (Range.constant 6 20) Gen.ascii)
         <*> pure ac
-
-test_all :: [TestTree]
-test_all =
-    [
-    ]

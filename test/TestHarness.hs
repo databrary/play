@@ -11,7 +11,6 @@ module TestHarness
     , addAuthorizedInstitution
     , addAuthorizedInvestigatorWithInstitution
     , mkAccount -- TODO: stop exporting
-    , mkAccountSimple -- TODO: stop exporting
     , addAuthorizedInvestigator
     , addAffiliate
     , lookupSiteAuthNoIdent
@@ -251,12 +250,14 @@ mkAccount sortName preName email =
         a = blankAccount { accountParty = p, accountEmail = email }
     in a
 
+{-
 mkAccountSimple :: BS.ByteString -> Account
 mkAccountSimple email = 
     let pr = (partyRow blankParty) { partySortName = "Smith" , partyPreName = Just "John" }
         p = blankParty { partyRow = pr, partyAccount = Just a }
         a = blankAccount { accountParty = p, accountEmail = email }
     in a
+-}
 
 switchIdentity :: TestContext -> SiteAuth -> Bool -> TestContext
 switchIdentity baseCtxt auth su = do
