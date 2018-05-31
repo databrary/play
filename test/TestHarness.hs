@@ -35,7 +35,7 @@ import qualified Hedgehog.Gen as Gen
 import Test.Tasty
 import Test.Tasty.HUnit
 import qualified Data.ByteString as BS
-import qualified Data.Text as T
+-- import qualified Data.Text as T
 import qualified Network.Wai as Wai
 
 import Databrary.Has
