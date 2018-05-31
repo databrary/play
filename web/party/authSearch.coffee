@@ -43,6 +43,7 @@ app.directive 'authSearchForm', [
               l = for found in data when found.id != party.id
                 text: found.name
                 select: select(found)
+                email: ' (' + found.email + ')' if found.email
 
               l.push notfound
               l
