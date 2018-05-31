@@ -23,11 +23,26 @@ import Databrary.Model.Id.Types
 import Databrary.Model.Volume.Types
 import Databrary.Model.Category
 import Databrary.Model.Metric
-import Databrary.Model.VolumeMetric.SQL
 
 lookupVolumeMetrics :: (MonadDB c m) => Volume -> m [Id Metric]
-lookupVolumeMetrics v =
-  dbQuery $(selectQuery selectVolumeMetric "$WHERE volume = ${volumeId $ volumeRow v} ORDER BY metric")
+lookupVolumeMetrics v = do
+  let _tenv_a80O7 = unknownPGTypeEnv
+  -- dbQuery $(selectQuery selectVolumeMetric "$WHERE volume = ${volumeId $ volumeRow v} ORDER BY metric")
+  rows <- mapRunPrepQuery
+      ((\ _p_a80O8 ->
+                       (Data.String.fromString
+                          "SELECT volume_metric.metric FROM volume_metric WHERE volume = $1 ORDER BY metric",
+                       [pgEncodeParameter
+                          _tenv_a80O7 (PGTypeProxy :: PGTypeName "integer") _p_a80O8],
+                       [pgBinaryColumn _tenv_a80O7 (PGTypeProxy :: PGTypeName "integer")]))
+         (volumeId $ volumeRow v))
+               (\ [_cmetric_a80O9]
+                  -> (pgDecodeColumnNotNull
+                        _tenv_a80O7 (PGTypeProxy :: PGTypeName "integer") _cmetric_a80O9))
+  pure
+    (fmap
+      (\ (vmetric_a80O2) -> id vmetric_a80O2)
+      rows)
 
 lookupVolumeParticipantMetrics :: (MonadDB c m) => Volume -> m [Metric]
 lookupVolumeParticipantMetrics vol = do

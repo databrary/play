@@ -7,6 +7,8 @@ module Databrary.Model.Volume.SQL
   , insertVolume
   -- for expanded queries
   , setCreation
+  , makeVolume
+  , makePermInfo
   ) where
 
 import Data.Maybe (fromMaybe)

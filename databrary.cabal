@@ -114,17 +114,14 @@ library
     Databrary.Model.Periodic
     Databrary.Model.Funding
     Databrary.Model.Release
-    -- Databrary.Model.Measure.SQL
     Databrary.Model.Activity.Types
     Databrary.Model.Activity.SQL
     Databrary.Model.Token.Types
-    Databrary.Model.Token.SQL
     Databrary.Model.Notification
     Databrary.Model.Funding.Types
     Databrary.Model.Funding.FundRef
     Databrary.Model.Funding.SQL
     Databrary.Model.Comment.Types
-    Databrary.Model.Comment.SQL
     Databrary.Model.Release.Types
     Databrary.Model.Release.SQL
     Databrary.Model.Asset
@@ -144,7 +141,6 @@ library
     Databrary.Model.Audit
     Databrary.Model.Record.Types
     Databrary.Model.Record.SQL
-    Databrary.Model.VolumeMetric.SQL
     Databrary.Model.SQL.Select
     Databrary.Model.Paginate
     Databrary.Model.Record
@@ -153,7 +149,6 @@ library
     Databrary.Model.Citation.SQL
     Databrary.Model.Stats.Types
     Databrary.Model.AssetRevision.Types
-    Databrary.Model.AssetRevision.SQL
     Databrary.Model.VolumeState
     Databrary.Model.Ingest
     Databrary.Model.GeoNames
@@ -514,6 +509,7 @@ test-suite discovered
     , Databrary.HTTP.ClientTest
     , Databrary.HTTP.Form.DeformTest
     , Databrary.HTTP.RequestTest
+    , Databrary.ModelTest
     , Databrary.Model.AgeTest
     , Databrary.Model.AssetTest
     , Databrary.Model.AssetSlot.TypesTest
@@ -557,6 +553,7 @@ test-suite discovered
     , Databrary.Model.VolumeTest
     , Databrary.Model.Volume.TypesTest
     , Databrary.Model.VolumeAccessTest
+    , Databrary.Model.VolumeAccess.TypesTest
     , Databrary.Model.VolumeState.TypesTest
     , Databrary.OpsTest
     , Databrary.Service.CryptoTest
