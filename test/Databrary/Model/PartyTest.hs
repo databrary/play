@@ -31,7 +31,7 @@ unit_Party_examples = do
     -- example of core logic within register + set password + login.
     -- most likely same logic for creating AI or Affiliate.
     withinTestTransaction (\cn -> do
-        let a = mkAccount "smith" "john" "john@smith.com"
+        a <- Gen.sample genAccountSimple -- mkAccount "smith" "john" "john@smith.com"
         let ident = IdentityNotNeeded
             pid = Id (-1)
             ctxt = TestContext { ctxConn = cn, ctxIdentity = ident, ctxPartyId = pid, ctxRequest = defaultRequest }
@@ -39,12 +39,12 @@ unit_Party_examples = do
             runReaderT
               (do
                   _ <- addAccount a
-                  Just auth <- lookupSiteAuthByEmail False "john@smith.com"
+                  Just auth <- lookupSiteAuthByEmail False (accountEmail a)
                   changeAccount auth { accountPasswd = Just "somehashedvalue" }
-                  lookupSiteAuthByEmail False "john@smith.com")
+                  lookupSiteAuthByEmail False (accountEmail a))
               ctxt
         let p = (accountParty . siteAccount) auth2
-        (accountEmail . siteAccount) auth2 @?= "john@smith.com"
+        (accountEmail . siteAccount) auth2 @?= (accountEmail a)
         accountPasswd auth2 @?= Just "somehashedvalue"
         siteAccess auth2 @?= Access { accessSite' = PermissionNONE, accessMember' = PermissionNONE }
         -- TODO: explain the values below
@@ -61,14 +61,14 @@ unit_Party_examples = do
                          ident = fakeIdentSessFromAuth auth True
                      pure (TestContext { ctxConn = cn, ctxIdentity = ident, ctxPartyId = pid, ctxRequest = defaultRequest }))
                 TestContext { ctxConn = cn }
-        let p = mkInstitution "New York University"
+        p <- Gen.sample genCreateInstitutionParty
         Just p' <-
             runReaderT
               (do
                   created <- addParty p
                   lookupParty ((partyId . partyRow) created))
               ctxt
-        (partySortName . partyRow) p' @?= "New York University"
+        (partySortName . partyRow) p' @?= (partySortName . partyRow) p
         -- TODO: explain the values below
         partyPermission p' @?= PermissionADMIN
         partyAccess p' @?= Just (Access { accessSite' = PermissionADMIN, accessMember' = PermissionADMIN }))

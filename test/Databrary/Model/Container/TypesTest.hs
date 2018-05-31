@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Model.Container.TypesTest where
 
+import Data.Text (Text)
 import Data.Time
 import Hedgehog
 import Hedgehog.Gen as Gen
@@ -22,7 +23,9 @@ genContainerTestDay =
                  <$> Gen.integral (Range.constant 2000 2018)
                  <*> Gen.integral (Range.constant 1 12)
                  <*> Gen.integral (Range.constant 1 28)
-        
+
+genContainerName :: Gen Text
+genContainerName = Gen.text (Range.constant 0 80) Gen.alphaNum
 
 genContainerRowSimple :: Gen ContainerRow
 genContainerRowSimple =
@@ -30,7 +33,7 @@ genContainerRowSimple =
     ContainerRow
         <$> (Id <$> Gen.integral (Range.constant 1 20000))
         <*> Gen.bool
-        <*> (Just <$> Gen.text (Range.constant 0 80) Gen.alphaNum)
+        <*> (Just <$> genContainerName)
         <*> (Just <$> genContainerTestDay)
 
 genContainerSimple :: Gen Container
@@ -39,6 +42,23 @@ genContainerSimple =
         <$> genContainerRowSimple
         <*> (pure . Just) ReleaseSHARED
         <*> genVolumeSimple
+
+genCreateContainerRow :: Gen ContainerRow
+genCreateContainerRow =
+   -- some redundancy with blankContainer
+    ContainerRow
+        <$> (pure . error) "container id created after save"
+        <*> Gen.bool
+        <*> Gen.maybe genContainerName
+        <*> Gen.maybe genContainerTestDay
+
+genCreateContainer :: Gen Container
+genCreateContainer =
+   -- some redundancy with blankContainer
+   Container
+        <$> genCreateContainerRow
+        <*> Gen.maybe Gen.enumBounded
+        <*> (pure . error) "container volume not specified"
 
 unit_getContainerRelease :: Assertion
 unit_getContainerRelease =
