@@ -42,11 +42,23 @@ import qualified Text.Blaze.Html.Renderer.Utf8 as Html
 
 import qualified Databrary.JSON as JSON
 
+-- | This class captures Databrary's mechanism for creating 'Response's from the
+-- values actually returned by handlers.
+--
+-- It is rather general. A value can be turned into a response either by
+-- modifying headers or by using one of Wai's Response composers (e.g.
+-- 'responseBuilder'). There are some rather esoteric instances.
+--
+-- Similar mechanisms in Servant or Yesod generally restrict themselves to
+-- building response *data* out of return values, without explicit mention of
+-- 'Response'. See e.g.
+-- <http://hackage.haskell.org/package/http-api-data-0.3.8.1/docs/Web-HttpApiData.html>
+--
+-- Servant also has
+-- <http://hackage.haskell.org/package/servant-0.13.0.1/docs/Servant-API-ContentTypes.html#t:MimeRender MimeRender>,
+-- which describes how to create a ByteString for use in creating Reponses.
 class ResponseData r where
   response :: Status -> ResponseHeaders -> r -> Response
-
-instance ResponseData (Status -> ResponseHeaders -> Response) where
-  response s h r = r s h
 
 instance ResponseData BSB.Builder where
   response = responseBuilder
@@ -65,9 +77,6 @@ instance ResponseData (Source (CND.ResourceT IO) BS.ByteString) where
 
 instance ResponseData StreamingBody where
   response = responseStream
-
-instance ResponseData ((BSB.Builder -> IO ()) -> IO ()) where
-  response s h f = responseStream s h (\w _ -> f w)
 
 instance ResponseData ((BS.ByteString -> IO ()) -> IO ()) where
   response s h f = responseStream s h (\w l -> f (\b -> if BS.null b then l else w (BSB.byteString b)))
@@ -119,18 +128,26 @@ emptyResponse s h = response s h BS.empty
 okResponse :: ResponseData r => ResponseHeaders -> r -> Response
 okResponse = response ok200
 
+-- | A wrapper for the short-circuiting machinery (see 'result').
 newtype Result = Result { resultResponse :: Response } deriving (Typeable)
 instance Show Result where
   showsPrec p (Result r) = showParen (p > 10)
     $ showString "Result " . showsPrec 11 (responseStatus r)
 instance Exception Result
 
+-- | Short circuit immediately, returning the given Reponse.
+--
+-- FIXME: Rather than implementing this using exceptions, could we either use a
+-- left-biased Alternative or simply use a better procedural style?
 result :: MonadIO m => Response -> m a
 result = liftIO . throwIO . Result
 
+-- | Short circuit from within non-monadic code. Not recommended, and hardly
+-- ever used.
 unsafeResult :: Response -> a
 unsafeResult = throw . Result
 
+-- | Run some action that may short circut using 'result' or 'unsafeResult'.
 runResult :: IO Response -> IO Response
 runResult = handle (return . resultResponse)
 
