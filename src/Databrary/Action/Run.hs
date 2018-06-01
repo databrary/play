@@ -66,11 +66,73 @@ data NeedsAuthentication = NeedsAuthentication | DoesntNeedAuthentication
 -- | This type captures both the authentication needs and the handler for a
 -- route.
 --
--- This type is only found buried within an 'ActionRoute'.
+-- It extends ActionRoute, which already has most info about a route and how to
+-- serve it, to include the authentication requirement.
 data Action = Action
     { _actionAuthentication :: !NeedsAuthentication
     , _actionM :: !(Handler Response)
     }
+
+-- | Convert an Action into a Wai.Application.
+--
+-- This is the 3rd level of the Databrary \"web framework\". It runs the
+-- requested action with some resolved identity to build the HTTP response. See
+-- 'actionRouteApp' for level 2, and 'servantApp' for level 1.
+--
+-- TODO: For converting to Servant, this whole function should be duplicated by
+-- new combinators.
+--
+-- For instance, there is a section (in the second 'let', within the do) where
+-- headers are added to the response. Servant requires us to put that in the
+-- type, which can be easily done. We can even make a combinator for looking up
+-- auth results and logging access. After all that, we should be able to create
+-- something with HoistServer that will run the rest of the (Databrary) Handler.
+--
+-- But then we'll have to map the Response (Action ~ ReaderT RequestContext IO
+-- Response) into something else! And how do we catch exceptions? Plain old
+-- catch blocks? And what do we convert exceptions into?
+actionApp
+    :: Service -- ^ All the low-level system capabilities
+    -> Action -- ^ Action to run
+    -> Wai.Application -- ^ Callback for Wai
+actionApp service (Action needsAuth act) waiReq waiSend =
+    let
+        isdb = isDatabraryClient waiReq
+        authenticatedAct :: ActionContextM (Identity, Response)
+        authenticatedAct = do
+            sec <- peek
+            conn <- peek
+            identity <- fetchIdent sec conn waiReq needsAuth
+            waiResponse <-
+                ReaderT
+                    -- runResult unwraps the short-circuit machinery from
+                    -- "Databrary.Action.Response", returning IO Response.
+                    $ \actCtx ->
+                        runResult
+                            (runHandler act (RequestContext actCtx waiReq identity))
+            return (identity, waiResponse)
+      in do
+          ts <- getCurrentTime
+          (identityUsed, waiResponse) <- runContextM authenticatedAct service
+          logAccess
+              ts
+              waiReq
+              (extractFromIdentifiedSessOrDefault
+                  Nothing
+                  (Just . (show :: Id Party -> String) . view)
+                  identityUsed)
+              waiResponse
+              (serviceLogs service)
+          let
+              waiResponse' = Wai.mapResponseHeaders
+                  (((hDate, formatHTTPTimestamp ts) :)
+                    . (if isdb then ((hCacheControl, "no-cache") :) else id))
+                  waiResponse
+          waiSend $ if Wai.requestMethod waiReq == methodHead
+              then emptyResponse
+                  (Wai.responseStatus waiResponse')
+                  (Wai.responseHeaders waiResponse')
+              else waiResponse'
 
 -- | Special-purpose context for determing the user's identity. We don't need
 -- the full Handler for that, and since this is sensitive work, we don't want to
@@ -85,59 +147,22 @@ instance Has Wai.Request IdContext where view = ctxReq
 instance Has Secret IdContext where view = ctxSec
 instance Has DBConn IdContext where view = ctxConn
 
-
--- | Convert an Action into a Wai.Application.
---
--- This is the 2nd-lowest level of the Databrary \"web framework\". It runs the
--- requested action with some resolved identity to build the HTTP response. See
--- 'actionRouteApp' for level 1.
-actionApp
-    :: Service -- ^ All the low-level system capabilities
-    -> Action -- ^ Action to run
-    -> Wai.Application -- ^ Callback for Wai
-actionApp service (Action needsAuth act) waiReq waiSend
-    = let
-          ident' :: Secret -> DBConn -> ReaderT ActionContext IO Identity
-          ident' sec con = case needsAuth of
-              NeedsAuthentication -> runReaderT determineIdentity (IdContext waiReq sec con)
-              DoesntNeedAuthentication -> return IdentityNotNeeded
-          authenticatedAct :: ContextM (Identity, Response)
-          authenticatedAct = do
-              sec <- peek
-              conn <- peek
-              identity <- ident' sec conn
-              waiResponse <-
-                  ReaderT
-                      -- runResult is IO Response -> IO Response
-                      $ \ctx -> runResult $ runHandler
-                            act
-                            (RequestContext ctx waiReq identity)
-              return (identity, waiResponse)
-      in do
-          ts <- getCurrentTime
-          (identityUsed, waiResponse) <- runContextM authenticatedAct service
-          logAccess
-              ts
-              waiReq
-              (extractFromIdentifiedSessOrDefault
-                  Nothing
-                  (Just . (show :: Id Party -> String) . view)
-                  identityUsed
-              )
-              waiResponse
-              (serviceLogs service)
-          let
-              isdb = isDatabraryClient waiReq
-              waiResponse' = Wai.mapResponseHeaders
-                  (((hDate, formatHTTPTimestamp ts) :)
-                  . (if isdb then ((hCacheControl, "no-cache") :) else id)
-                  )
-                  waiResponse
-          waiSend $ if Wai.requestMethod waiReq == methodHead
-              then emptyResponse
-                  (Wai.responseStatus waiResponse')
-                  (Wai.responseHeaders waiResponse')
-              else waiResponse'
+-- | Look up the user's identity (or don't)
+fetchIdent
+    :: Secret -- ^ Session key
+    -> DBConn -- ^ For querying the session table
+    -> Wai.Request
+    -- ^ FIXME: Why the entire request? Can we narrow the scope? What is
+    -- actually needed is the session cookie.
+    -> NeedsAuthentication
+    -- ^ Whether or not to actually do the lookup.
+    --
+    -- FIXME: This seems like an unncessary complication.
+    -> ActionContextM Identity
+fetchIdent sec con waiReq = \case
+    NeedsAuthentication ->
+        runReaderT determineIdentity (IdContext waiReq sec con)
+    DoesntNeedAuthentication -> return IdentityNotNeeded
 
 -- | Run a Handler action in the background (IO).
 --
@@ -158,11 +183,8 @@ forkAction h reqCtx = forkFinally $ runContextM (withHandler req ident h) srv
     ident = requestIdentity reqCtx
     srv = contextService (requestContext reqCtx)
 
--- | Tag an 'Action' as needing authentication.
---
--- For reference, note that Yesod's equivalent to this function returns
--- @Handler Identity@, and throws a permission error when the user isn't
--- identified.
+-- | Tag an 'Action' as needing to know whether or not the user is
+-- authenticated. This simply triggers an extra session lookup in 'actionApp'.
 withAuth
     :: Handler Response -- ^ The handler for the route
     -> Action -- ^ The bundled action
