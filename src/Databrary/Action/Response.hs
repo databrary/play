@@ -10,9 +10,25 @@ module Databrary.Action.Response
   , proxyResponse
   ) where
 
+import Conduit (Source, (.|))
 import Control.Exception (Exception, throwIO, throw, handle)
 import Control.Monad (join)
 import Control.Monad.IO.Class (MonadIO, liftIO)
+import Data.Typeable (Typeable)
+import Network.HTTP.Types (ResponseHeaders, Status, ok200, hContentType)
+import Network.Wai
+    ( Response
+    , responseBuilder
+    , responseLBS
+    , StreamingBody
+    , responseStream
+    , FilePart(..)
+    , responseFile
+    , responseStatus
+    )
+import System.Posix.Types (FileOffset)
+import qualified Conduit as CND
+import qualified Data.Binary.Builder as DBB
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Lazy as BSL
@@ -20,16 +36,9 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
-import Data.Typeable (Typeable)
 import qualified Network.HTTP.Client as HC
-import Network.HTTP.Types (ResponseHeaders, Status, ok200, hContentType)
-import Network.Wai (Response, responseBuilder, responseLBS, StreamingBody, responseStream, FilePart(..), responseFile, responseStatus)
-import System.Posix.Types (FileOffset)
 import qualified Text.Blaze.Html as Html
 import qualified Text.Blaze.Html.Renderer.Utf8 as Html
-import qualified Conduit as CND
-import Conduit (Source, (.|))
-import qualified Data.Binary.Builder as DBB
 
 import qualified Databrary.JSON as JSON
 
