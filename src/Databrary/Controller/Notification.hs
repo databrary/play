@@ -119,7 +119,7 @@ sendTargetNotifications l@(Notification{ notificationTarget = u }:_) = do
     $ mailNotifications msg l
 sendTargetNotifications [] = return ()
 
-emitNotifications :: Delivery -> ContextM ()
+emitNotifications :: Delivery -> ActionContextM ()
 emitNotifications d = do
   unl <- lookupUndeliveredNotifications d
   mapM_ sendTargetNotifications $ groupBy ((==) `on` partyId . partyRow . accountParty . notificationTarget) unl

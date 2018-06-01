@@ -46,7 +46,7 @@ import Databrary.Action.Response
 -- Transform a web request to a lower-level action.
 --
 -- Given an action that runs in a top-level Handler, build the necessary context
--- for that action, and run in it in the base-level ContextM
+-- for that action, and run in it in the base-level ActionContextM
 --
 -- Handler has a richer context: it has all of ActionContext, plus Identity and
 -- the Wai Request.
@@ -55,7 +55,7 @@ withHandler
      . Request -- ^ The wai request to handle
     -> Identity -- ^ The identity to use for this action
     -> Handler a -- ^ The action to perform
-    -> ContextM a -- ^ The base-level control access to the system
+    -> ActionContextM a -- ^ The base-level control access to the system
 withHandler waiReq identity h =
     let (handler :: ReaderT RequestContext IO a) = unHandler h
     in withReaderT (\(c :: ActionContext) -> RequestContext c waiReq identity) handler
@@ -141,8 +141,8 @@ actionApp service (Action needsAuth act) waiReq waiSend
 
 -- | Run a Handler action in the background (IO).
 --
--- A new ContextM is built, with a fresh guaranteed db connection and timestamp,
--- via 'runContextM'
+-- A new ActionContextM is built, with a fresh guaranteed db connection and
+-- timestamp, via 'runContextM'
 forkAction
     :: Handler a -- ^ Handler action to run
     -> RequestContext
