@@ -70,10 +70,13 @@ instance ResponseData BS.ByteString where
   response s h = responseBuilder s h . BSB.byteString
 
 instance ResponseData (Source (CND.ResourceT IO) BS.ByteString) where
-  response s h src =
-    responseStream s h
-      (\send _ -> do
-         CND.runConduitRes (src .| (CND.mapM_C (\bs -> CND.lift (send (DBB.fromByteString bs))))))
+    response s h src =
+        responseStream s h
+            (\send _ -> do
+                CND.runConduitRes
+                    (src
+                    .| (CND.mapM_C
+                        (\bs -> CND.lift (send (DBB.fromByteString bs))))))
 
 instance ResponseData StreamingBody where
   response = responseStream
