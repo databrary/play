@@ -176,5 +176,6 @@ htmlTemplate req title body = H.docTypeHtml $ do
               htmlFooter
               return r
   where
+  -- FIXME: I don't think these lines do what they think they do.
   (hasjs, nojs) = jsURL JSDefault (view req)
   canon = (Wai.requestMethod (view req) == methodGet && hasjs == JSDefault) `unlessUse` nojs
