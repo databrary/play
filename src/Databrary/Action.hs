@@ -28,6 +28,7 @@ module Databrary.Action
   , withoutAuth
   -- * Building the application
   , WaiRouteApp(..)
+  , ActionRouteApp (..)
   , actionRouteApp
   ) where
 
@@ -41,7 +42,6 @@ import qualified Web.Route.Invertible.Wai as Invertible
 
 import Databrary.Has (peeks)
 import Databrary.HTTP.Request
-import Databrary.API
 import Databrary.Action.Types as Databrary
 import Databrary.Action.Run
 import Databrary.Action.Response
@@ -83,47 +83,38 @@ maybeAction (Just a) = return a
 maybeAction Nothing = result =<< peeks notFoundResponse
 
 newtype WaiRouteApp = WaiRouteApp Application
+newtype ActionRouteApp = ActionRouteApp Application
 
--- | Create a server to serve the ServantAPI.
-apiServer :: WaiRouteApp -> Server ServantAPI
-apiServer (WaiRouteApp app') = Tagged app'
-
--- Build a Wai.Application out of our Servant server plus the Wai Route escape
--- hatch.
-servantApp :: WaiRouteApp -> Application
-servantApp waiRouteApp =
-    serve servantAPI (apiServer waiRouteApp)
-
--- | The lowest level of the Databrary 'web framework'. Makes a Wai Application
--- given a route map, a hatch into the Wai Route fallback, and the
+-- | The second level of the Databrary 'web framework'. Makes a (wrapped) Wai
+-- Application given a route map, a hatch into the Wai Route fallback, and the
 -- already-generated system capabilities.
+--
+-- Most routes are served by web-inv-route—style ActionRoutes, but some (~30%)
+-- have been converted to Wai Routes.
 actionRouteApp
     :: Invertible.RouteMap Action
-    -- ^ The original route map. Now partially replaced by Servant and Wai
-    -- Routes
+    -- ^ The original route map. Now partially replaced by Wai Routes
     -> WaiRouteApp
     -- ^ The newer Wai Route-based Application
     -> Service
     -- ^ System capabilities
-    -> Wai.Application
+    -> ActionRouteApp
     -- ^ The actual web app
-actionRouteApp invMap waiRouteApp routeContext req =
-    -- Route lookup
-    let eMatchedAction :: Either (Status, ResponseHeaders) Action
-        eMatchedAction = Invertible.routeWai req invMap
-    in
-      case eMatchedAction of
-        Right act ->
-            -- Still handled by invertible routes
-            actionApp routeContext act req
-        Left (st,hdrs) ->
-            if st == notFound404 -- currently, this might be only possible error result?
-            then
-                -- Our hatch to the WaiRouteApp is Servant!
-                servantApp waiRouteApp req
-            else
-                actionApp routeContext (err (st,hdrs)) req
+actionRouteApp invMap (WaiRouteApp waiRouteApp) svc = ActionRouteApp
+    (\req resp ->
+        -- Use the original Action if it still exists
+        either
+            (waiRouteFallback req resp)
+            (\act -> actionApp svc act req resp)
+            (Invertible.routeWai req invMap)
+    )
   where
+    waiRouteFallback req resp (st,hdrs)
+        -- Currently, this might be only possible error result?
+        | st == notFound404 = waiRouteApp req resp
+        -- Handle any other possible errors with the original app's error
+        -- handling.
+        | otherwise = actionApp svc (err (st,hdrs)) req resp
     -- This is almost, but not quite, equal to 'notFoundResponseHandler'
     err :: (Status, ResponseHeaders) -> Action
     err (status, headers) =

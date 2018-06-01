@@ -18,6 +18,7 @@ import qualified Databrary.Store.Config as Conf
 import Databrary.Service.Init (withService)
 import Databrary.Web.Rules (generateWebFiles)
 import Databrary.Action (actionRouteApp, WaiRouteApp(..))
+import Databrary.Action.Servant (servantApp)
 import Databrary.Routes (routeMapInvertible, routeMapWai)
 import Databrary.Warp (runWarp)
 
@@ -75,10 +76,12 @@ main = do
         runWarp
             conf
             rc
-            (actionRouteApp
-                routes
-                (WaiRouteApp (WaiRoute.route (routeMapWai rc)))
-                rc
+            (servantApp
+                (actionRouteApp
+                    routes
+                    (WaiRouteApp (WaiRoute.route (routeMapWai rc)))
+                    rc
+                )
             )
     _ -> do
       mapM_ putStrLn err

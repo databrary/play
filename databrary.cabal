@@ -59,6 +59,7 @@ library
     Databrary.Action.Route
     Databrary.Action.Response
     Databrary.Action.Request
+    Databrary.Action.Servant
     Databrary.Has
     Databrary.Context
     Databrary.EZID.Volume
