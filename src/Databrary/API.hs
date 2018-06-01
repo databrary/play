@@ -12,23 +12,24 @@
 -- Databrary.Routes eventually, if possible.
 module Databrary.API where
 
+import Data.Text (Text)
 import Servant
 -- Up next:
 -- import Servant.HTML.Blaze (HTML)
 -- import Text.Blaze.Html (Html)
 
--- | Used for clarity in ServantAPI
-type LegacyAPI = Raw
-
 -- | The Databrary API, as described by Servant. It's called ServantAPI, instead
 -- of DatabraryAPI, because it's currently the *third* API description for
 -- Databrary in this codebase.
-type ServantAPI = LegacyAPI
--- Up next:
---
---    = "user" :> "login" :> Get '[HTML] Html
---    :<|> LegacyAPI
+type ServantAPI
+    = PreferAngularAPI
+    :<|> ActionRouteAPI
 
--- | Boilerplate. This will go away when Servant adopts type application.
-servantAPI :: Proxy ServantAPI
-servantAPI = Proxy
+-- The fallback to OG routing
+type ActionRouteAPI = Raw
+
+-- | Routes that fire up the Angular SPA if possible.
+type PreferAngularAPI
+    = Header "User-Agent" Text :> QueryParam "js" Int :> EmptyAPI
+        -- Up next:
+        -- "user" :> "login" :> Get '[HTML] Html
