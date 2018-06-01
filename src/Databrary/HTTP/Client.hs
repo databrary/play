@@ -18,15 +18,15 @@ import Control.Exception.Lifted (handle)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Control (MonadBaseControl)
 import Control.Monad.Trans.State.Strict (StateT(..), evalStateT)
+import Data.Function (on)
+import Data.Monoid ((<>))
+import Network.HTTP.Client.TLS (tlsManagerSettings)
+import Network.HTTP.Types (hAccept, hContentType, statusIsSuccessful)
 import qualified Data.Aeson as JSON
 import qualified Data.Attoparsec.ByteString as P
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
-import Data.Function (on)
-import Data.Monoid ((<>))
 import qualified Network.HTTP.Client as HC
-import Network.HTTP.Client.TLS (tlsManagerSettings)
-import Network.HTTP.Types (hAccept, hContentType, statusIsSuccessful)
 
 import Databrary.Has
 
