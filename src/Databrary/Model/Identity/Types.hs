@@ -56,8 +56,11 @@ type MonadHasIdentity c m = (MonadHas Identity c m, Has SiteAuth c, Has Party c,
 
 -- | Extract a value from part of a session for Identified, otherwise use the default value
 extractFromIdentifiedSessOrDefault :: a -> (Session -> a) -> Identity -> a
-extractFromIdentifiedSessOrDefault _ extractor (Identified sess) = extractor sess
-extractFromIdentifiedSessOrDefault defaultVal _ _ = defaultVal
+extractFromIdentifiedSessOrDefault z f = \case
+    Identified sess -> f sess
+    NotLoggedIn -> z
+    IdentityNotNeeded -> z
+    ReIdentified _ -> z
 
 -- | Extract the secure token for state changing action, only available for logged in session identity
 identityVerf :: Identity -> Maybe BS.ByteString
