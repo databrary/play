@@ -101,20 +101,20 @@ actionRouteApp
     -> ActionRouteApp
     -- ^ The actual web app
 actionRouteApp invMap (WaiRouteApp waiRouteApp) svc = ActionRouteApp
-    (\req resp ->
+    (\waiRequest waiSend ->
         -- Use the original Action if it still exists
         either
-            (waiRouteFallback req resp)
-            (\act -> actionApp svc act req resp)
-            (Invertible.routeWai req invMap)
+            (waiRouteFallback waiRequest waiSend)
+            (\act -> actionApp svc act waiRequest waiSend)
+            (Invertible.routeWai waiRequest invMap)
     )
   where
-    waiRouteFallback req resp (st,hdrs)
+    waiRouteFallback waiRequest waiSend (st,hdrs)
         -- Currently, this might be only possible error result?
-        | st == notFound404 = waiRouteApp req resp
+        | st == notFound404 = waiRouteApp waiRequest waiSend
         -- Handle any other possible errors with the original app's error
         -- handling.
-        | otherwise = actionApp svc (err (st,hdrs)) req resp
+        | otherwise = actionApp svc (err (st,hdrs)) waiRequest waiSend
     -- This is almost, but not quite, equal to 'notFoundResponseHandler'
     err :: (Status, ResponseHeaders) -> Action
     err (status, headers) =

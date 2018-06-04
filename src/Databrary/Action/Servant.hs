@@ -21,8 +21,8 @@ import Databrary.API
 import Databrary.Action (ActionRouteApp (..))
 
 -- | Create a server to serve the ServantAPI.
-apiServer :: ActionRouteApp -> Server ServantAPI
-apiServer (ActionRouteApp app) = preferAngularServer :<|> Tagged app
+servantServer :: ActionRouteApp -> Server ServantAPI
+servantServer (ActionRouteApp app) = preferAngularServer :<|> Tagged app
 
 preferAngularServer :: Server PreferAngularAPI
 preferAngularServer _ _ = emptyServer
@@ -49,10 +49,10 @@ servantAPI :: Proxy ServantAPI
 servantAPI = Proxy
 
 -- | The lowest level of the Databrary 'web framework'. It simply builds a Wai
--- Application out of the 'apiServer' description.
+-- Application out of the 'servantServer' description.
 --
 -- Since Servant does not control most routes yet, this function delegates the
 -- rest to the original ActionRoute-based app.
 servantApp :: ActionRouteApp -> Application
 servantApp arApp =
-    serve servantAPI (apiServer arApp)
+    serve servantAPI (servantServer arApp)

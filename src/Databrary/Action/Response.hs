@@ -56,7 +56,7 @@ import qualified Databrary.JSON as JSON
 --
 -- Servant also has
 -- <http://hackage.haskell.org/package/servant-0.13.0.1/docs/Servant-API-ContentTypes.html#t:MimeRender MimeRender>,
--- which describes how to create a ByteString for use in creating Reponses.
+-- which describes how to create a ByteString for use in creating Responses.
 class ResponseData r where
   response :: Status -> ResponseHeaders -> r -> Response
 
