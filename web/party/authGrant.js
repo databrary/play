@@ -46,6 +46,26 @@ app.directive('authGrantForm', [
 
       form.save = function () {
         messages.clear(form);
+        if(!(form.data.site === 0 && form.data.member === 0)) {
+          var accessData = "";
+          if (form.data.site !==0) {
+            accessData = "Databrary data.";
+            if (form.data.member !== 0) {
+              accessData = "Databrary data and your lab data."
+            }
+          } else if (form.data.member !== 0) {
+            accessData = "your lab data."
+          }
+          if (confirm("By granting this authorization, you take responsibility for " + auth.party.name + "'s use of " + accessData)) {
+            postauthData();
+          }
+        } else {
+          postauthData();
+        }
+        
+      };
+
+      function postauthData() {
         return party.authorizeSave(auth.party.id, form.data).then(function (res) {
           form.validator.server({});
           messages.add({
@@ -64,7 +84,7 @@ app.directive('authGrantForm', [
           form.validator.server(res);
           display.scrollTo(form.$element);
         });
-      };
+      }
 
       $scope.$on('authGrantSave', function () {
         if (form.$dirty)
