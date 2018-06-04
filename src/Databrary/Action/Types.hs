@@ -98,8 +98,20 @@ instance Has Databrary.Model.Party.Types.Party RequestContext where
 instance Has Databrary.Model.Party.Types.SiteAuth RequestContext where
   view = (view . requestIdentity)
 
+-- | The monad in which route handlers run. At the top, each route 'Action'
+-- returns a 'Handler' 'Response'
 newtype Handler a = Handler { unHandler :: ReaderT RequestContext IO a }
-  deriving (Functor, Applicative, Alternative, Monad, MonadPlus, MonadIO, MonadBase IO, MonadThrow, MonadReader RequestContext)
+    deriving
+        ( Functor
+        , Applicative
+        , Alternative
+        , Monad
+        , MonadPlus
+        , MonadIO
+        , MonadBase IO
+        , MonadThrow
+        , MonadReader RequestContext
+        )
 
 {-# INLINE runHandler #-}
 runHandler :: Handler a -> RequestContext -> IO a
