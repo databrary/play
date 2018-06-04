@@ -1,0 +1,61 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE ForeignFunctionInterface, OverloadedStrings, TemplateHaskell #-}
+<span class="lineno">    2 </span>module Databrary.Service.Passwd
+<span class="lineno">    3 </span>  ( passwordPolicy
+<span class="lineno">    4 </span>  , passwdCheck
+<span class="lineno">    5 </span>  , Passwd
+<span class="lineno">    6 </span>  , initPasswd
+<span class="lineno">    7 </span>  ) where
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import Control.Concurrent.MVar (MVar, newMVar, withMVar)
+<span class="lineno">   10 </span>import qualified Crypto.BCrypt as BCrypt
+<span class="lineno">   11 </span>import qualified Data.ByteString as BS
+<span class="lineno">   12 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">   13 </span>import Foreign.C.String (CString)
+<span class="lineno">   14 </span>import Foreign.Ptr (nullPtr)
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import Databrary.Ops
+<span class="lineno">   17 </span>import Paths_databrary (getDataFileName)
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>passwordPolicy :: BCrypt.HashingPolicy
+<span class="lineno">   20 </span><span class="decl"><span class="nottickedoff">passwordPolicy = BCrypt.HashingPolicy</span>
+<span class="lineno">   21 </span><span class="spaces">  </span><span class="nottickedoff">{ BCrypt.preferredHashAlgorithm = &quot;$2b$&quot;</span>
+<span class="lineno">   22 </span><span class="spaces">  </span><span class="nottickedoff">, BCrypt.preferredHashCost = 12</span>
+<span class="lineno">   23 </span><span class="spaces">  </span><span class="nottickedoff">}</span></span>
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>foreign import ccall unsafe &quot;crack.h FascistCheck&quot;
+<span class="lineno">   26 </span>  cracklibCheck :: CString -&gt; CString -&gt; IO CString
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>newtype Passwd = Passwd { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_passwdLock</span></span></span> :: MVar () }
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>initPasswd :: IO Passwd
+<span class="lineno">   31 </span><span class="decl"><span class="nottickedoff">initPasswd = Passwd &lt;$&gt; newMVar ()</span></span>
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>-- | FIXME: bottleneck? Also, does GHC handle locking ccalls for us?
+<span class="lineno">   34 </span>passwdCheck :: BS.ByteString -&gt; BS.ByteString -&gt; BS.ByteString -&gt; Passwd -&gt; IO (Maybe BS.ByteString)
+<span class="lineno">   35 </span><span class="decl"><span class="nottickedoff">passwdCheck passwd _ _ (Passwd lock) =</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="nottickedoff">withMVar lock $ \() -&gt;</span>
+<span class="lineno">   37 </span><span class="spaces">    </span><span class="nottickedoff">BS.useAsCString passwd $ \p -&gt; do</span>
+<span class="lineno">   38 </span><span class="spaces">      </span><span class="nottickedoff">pw_dict &lt;- getDataFileName &quot;cracklib/pw_dict&quot;</span>
+<span class="lineno">   39 </span><span class="spaces">      </span><span class="nottickedoff">BS.useAsCString (BSC.pack pw_dict) $ \dict -&gt; do</span>
+<span class="lineno">   40 </span><span class="spaces">        </span><span class="nottickedoff">r &lt;- cracklibCheck p dict</span>
+<span class="lineno">   41 </span><span class="spaces">        </span><span class="nottickedoff">(r /= nullPtr) `thenReturn` (BS.packCString r)</span></span>
+
+</pre>
+</body>
+</html>

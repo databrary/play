@@ -1,0 +1,168 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, DataKinds, DeriveDataTypeable #-}
+<span class="lineno">    2 </span>{-# OPTIONS_GHC -fno-warn-orphans #-}
+<span class="lineno">    3 </span>module Databrary.Model.Segment
+<span class="lineno">    4 </span>  ( Segment(..)
+<span class="lineno">    5 </span>  , lowerBound, upperBound
+<span class="lineno">    6 </span>  , showSegmentWith
+<span class="lineno">    7 </span>  , segmentLength
+<span class="lineno">    8 </span>  , fullSegment
+<span class="lineno">    9 </span>  , emptySegment
+<span class="lineno">   10 </span>  , segmentFull
+<span class="lineno">   11 </span>  , segmentEmpty
+<span class="lineno">   12 </span>  , segmentContains
+<span class="lineno">   13 </span>  , segmentOverlaps
+<span class="lineno">   14 </span>  , segmentIntersect
+<span class="lineno">   15 </span>  , segmentInterp
+<span class="lineno">   16 </span>  , segmentJSON
+<span class="lineno">   17 </span>  , segmentSetDuration
+<span class="lineno">   18 </span>  ) where
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>import Control.Applicative ((&lt;|&gt;), optional, Alternative, empty)
+<span class="lineno">   21 </span>import Control.Monad (guard, liftM2)
+<span class="lineno">   22 </span>import Data.Maybe (fromMaybe, isNothing)
+<span class="lineno">   23 </span>import qualified Data.Text as T
+<span class="lineno">   24 </span>import Data.Typeable (Typeable)
+<span class="lineno">   25 </span>import Database.PostgreSQL.Typed.Types (PGType, PGParameter(..), PGColumn(..))
+<span class="lineno">   26 </span>import Database.PostgreSQL.Typed.Array (PGArrayType)
+<span class="lineno">   27 </span>import qualified Database.PostgreSQL.Typed.Range as Range
+<span class="lineno">   28 </span>import qualified Text.ParserCombinators.ReadP as RP
+<span class="lineno">   29 </span>import qualified Text.ParserCombinators.ReadPrec as RP (lift, readPrec_to_P, minPrec)
+<span class="lineno">   30 </span>import Text.Read (readMaybe, readPrec)
+<span class="lineno">   31 </span>import qualified Web.Route.Invertible as R
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   34 </span>import Databrary.Model.Offset
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>lowerBound, upperBound :: Range.Range a -&gt; Maybe a
+<span class="lineno">   37 </span><span class="decl"><span class="nottickedoff">lowerBound = Range.bound . Range.lowerBound</span></span>
+<span class="lineno">   38 </span><span class="decl"><span class="nottickedoff">upperBound = Range.bound . Range.upperBound</span></span>
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>newtype Segment = Segment { <span class="istickedoff"><span class="decl"><span class="istickedoff">segmentRange</span></span></span> :: Range.Range Offset } deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, Typeable)
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>instance PGType &quot;segment&quot;
+<span class="lineno">   43 </span>instance Range.PGRangeType &quot;segment&quot; &quot;interval&quot;
+<span class="lineno">   44 </span>instance PGType &quot;segment[]&quot;
+<span class="lineno">   45 </span>instance PGArrayType &quot;segment[]&quot; &quot;segment&quot;
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>instance PGParameter &quot;segment&quot; Segment where
+<span class="lineno">   48 </span>  <span class="decl"><span class="nottickedoff">pgEncode t (Segment r) = pgEncode t r</span></span>
+<span class="lineno">   49 </span>instance PGColumn &quot;segment&quot; Segment where
+<span class="lineno">   50 </span>  <span class="decl"><span class="nottickedoff">pgDecode t = Segment . pgDecode t</span></span>
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>segmentLength :: Segment -&gt; Maybe Offset
+<span class="lineno">   53 </span><span class="decl"><span class="nottickedoff">segmentLength (Segment r) =</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">liftM2 (-) (upperBound r) (lowerBound r)</span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>showSegmentWith :: (Offset -&gt; ShowS) -&gt; Segment -&gt; ShowS
+<span class="lineno">   57 </span><span class="decl"><span class="istickedoff">showSegmentWith _ (Segment Range.Empty) = showString &quot;empty&quot;</span>
+<span class="lineno">   58 </span><span class="spaces"></span><span class="istickedoff">showSegmentWith sf (Segment r)</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="istickedoff">| Just x &lt;- <span class="nottickedoff">Range.getPoint r</span> = <span class="nottickedoff">sf x</span></span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="istickedoff">| <span class="nottickedoff">otherwise</span> =</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">maybe id (((if Range.lowerClosed r then id else showChar '(') .) . sf) (lowerBound r)</span></span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">. showChar ',' . maybe id sf (upperBound r)</span></span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">. (if Range.upperClosed r then showChar ']' else id)</span></span></span>
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>instance Show Segment where
+<span class="lineno">   66 </span>  <span class="decl"><span class="nottickedoff">showsPrec = showSegmentWith . showsPrec</span></span>
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>readP :: Read a =&gt; RP.ReadP a
+<span class="lineno">   69 </span><span class="decl"><span class="nottickedoff">readP = RP.readPrec_to_P readPrec RP.minPrec</span></span>
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>instance Read Segment where
+<span class="lineno">   72 </span>  <span class="decl"><span class="nottickedoff">readPrec = RP.lift $ Segment &lt;$&gt; re RP.+++ rf RP.+++ rr where</span>
+<span class="lineno">   73 </span><span class="spaces">    </span><span class="nottickedoff">re = do</span>
+<span class="lineno">   74 </span><span class="spaces">      </span><span class="nottickedoff">RP.optional (RP.string &quot;empty&quot;)</span>
+<span class="lineno">   75 </span><span class="spaces">      </span><span class="nottickedoff">return Range.Empty</span>
+<span class="lineno">   76 </span><span class="spaces">    </span><span class="nottickedoff">rf = do</span>
+<span class="lineno">   77 </span><span class="spaces">      </span><span class="nottickedoff">_ &lt;- RP.char '-'</span>
+<span class="lineno">   78 </span><span class="spaces">      </span><span class="nottickedoff">return Range.full</span>
+<span class="lineno">   79 </span><span class="spaces">    </span><span class="nottickedoff">rr :: RP.ReadP (Range.Range Offset)</span>
+<span class="lineno">   80 </span><span class="spaces">    </span><span class="nottickedoff">rr = do</span>
+<span class="lineno">   81 </span><span class="spaces">      </span><span class="nottickedoff">lb &lt;- optional $ ('[' ==) &lt;$&gt; RP.satisfy (`elem` ['(','['])</span>
+<span class="lineno">   82 </span><span class="spaces">      </span><span class="nottickedoff">l &lt;- optional readP</span>
+<span class="lineno">   83 </span><span class="spaces">      </span><span class="nottickedoff">(guard (isNothing lb) &gt;&gt; Range.point &lt;$&gt; maybeA l) RP.+++ do</span>
+<span class="lineno">   84 </span><span class="spaces">        </span><span class="nottickedoff">_ &lt;- if isNothing lb &amp;&amp; isNothing l then RP.char ',' else RP.satisfy (`elem` [',','-'])</span>
+<span class="lineno">   85 </span><span class="spaces">        </span><span class="nottickedoff">u &lt;- optional readP</span>
+<span class="lineno">   86 </span><span class="spaces">        </span><span class="nottickedoff">ub &lt;- optional $ ('[' ==) &lt;$&gt; RP.satisfy (`elem` [')',']'])</span>
+<span class="lineno">   87 </span><span class="spaces">        </span><span class="nottickedoff">return $ Range.range (mb True lb l) (mb False ub u)</span>
+<span class="lineno">   88 </span><span class="spaces">    </span><span class="nottickedoff">-- more liberal than Range.makeBound:</span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="nottickedoff">mb :: Bool -&gt; Maybe Bool -&gt; Maybe Offset -&gt; Range.Bound Offset</span>
+<span class="lineno">   90 </span><span class="spaces">    </span><span class="nottickedoff">mb d = maybe Range.Unbounded . Range.Bounded . fromMaybe d</span></span>
+<span class="lineno">   91 </span>
+<span class="lineno">   92 </span>maybeA :: Alternative m =&gt; Maybe a -&gt; m a
+<span class="lineno">   93 </span><span class="decl"><span class="nottickedoff">maybeA (Just x) = pure x</span>
+<span class="lineno">   94 </span><span class="spaces"></span><span class="nottickedoff">maybeA Nothing = empty</span></span>
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>instance JSON.ToJSON Segment where
+<span class="lineno">   97 </span>  <span class="decl"><span class="nottickedoff">toJSON (Segment r)</span>
+<span class="lineno">   98 </span><span class="spaces">    </span><span class="nottickedoff">| Range.isEmpty r = JSON.Null</span>
+<span class="lineno">   99 </span><span class="spaces">    </span><span class="nottickedoff">| Just o &lt;- Range.getPoint r = JSON.toJSON o</span>
+<span class="lineno">  100 </span><span class="spaces">    </span><span class="nottickedoff">| otherwise = JSON.toJSON $ map Range.bound [Range.lowerBound r, Range.upperBound r]</span></span>
+<span class="lineno">  101 </span>
+<span class="lineno">  102 </span>instance JSON.FromJSON Segment where
+<span class="lineno">  103 </span>  <span class="decl"><span class="nottickedoff">parseJSON (JSON.String s) = maybe (fail &quot;Invalid segment string&quot;) return $ readMaybe $ T.unpack s</span>
+<span class="lineno">  104 </span><span class="spaces">  </span><span class="nottickedoff">parseJSON j = do</span>
+<span class="lineno">  105 </span><span class="spaces">    </span><span class="nottickedoff">a &lt;- JSON.parseJSON j &lt;|&gt; return &lt;$&gt; JSON.parseJSON j</span>
+<span class="lineno">  106 </span><span class="spaces">    </span><span class="nottickedoff">Segment &lt;$&gt; case a of</span>
+<span class="lineno">  107 </span><span class="spaces">      </span><span class="nottickedoff">[] -&gt; return Range.empty</span>
+<span class="lineno">  108 </span><span class="spaces">      </span><span class="nottickedoff">[p] -&gt; return $ maybe Range.empty Range.point p</span>
+<span class="lineno">  109 </span><span class="spaces">      </span><span class="nottickedoff">[l, u] -&gt; return $ Range.normal l u</span>
+<span class="lineno">  110 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; fail &quot;Segment array too long&quot;</span></span>
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span>instance R.Parameter T.Text Segment where
+<span class="lineno">  113 </span>  <span class="decl"><span class="nottickedoff">renderParameter s = T.pack $ showSegmentWith (shows . offsetMillis) s &quot;&quot;</span></span>
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span>fullSegment :: Segment
+<span class="lineno">  116 </span><span class="decl"><span class="istickedoff">fullSegment = Segment Range.full</span></span>
+<span class="lineno">  117 </span>
+<span class="lineno">  118 </span>emptySegment :: Segment
+<span class="lineno">  119 </span><span class="decl"><span class="istickedoff">emptySegment = Segment Range.empty</span></span>
+<span class="lineno">  120 </span>
+<span class="lineno">  121 </span>segmentFull :: Segment -&gt; Bool
+<span class="lineno">  122 </span><span class="decl"><span class="istickedoff">segmentFull = Range.isFull . segmentRange</span></span>
+<span class="lineno">  123 </span>
+<span class="lineno">  124 </span>segmentEmpty :: Segment -&gt; Bool
+<span class="lineno">  125 </span><span class="decl"><span class="nottickedoff">segmentEmpty = Range.isEmpty . segmentRange</span></span>
+<span class="lineno">  126 </span>
+<span class="lineno">  127 </span>segmentContains :: Segment -&gt; Segment -&gt; Bool
+<span class="lineno">  128 </span><span class="decl"><span class="nottickedoff">segmentContains (Segment a) (Segment b) = a Range.@&gt; b</span></span>
+<span class="lineno">  129 </span>
+<span class="lineno">  130 </span>segmentOverlaps :: Segment -&gt; Segment -&gt; Bool
+<span class="lineno">  131 </span><span class="decl"><span class="nottickedoff">segmentOverlaps (Segment a) (Segment b) = Range.overlaps a b</span></span>
+<span class="lineno">  132 </span>
+<span class="lineno">  133 </span>segmentIntersect :: Segment -&gt; Segment -&gt; Segment
+<span class="lineno">  134 </span><span class="decl"><span class="istickedoff">segmentIntersect (Segment a) (Segment b) = Segment (Range.intersect a b)</span></span>
+<span class="lineno">  135 </span>
+<span class="lineno">  136 </span>segmentInterp :: Float -&gt; Segment -&gt; Segment
+<span class="lineno">  137 </span><span class="decl"><span class="nottickedoff">segmentInterp f (Segment r)</span>
+<span class="lineno">  138 </span><span class="spaces">  </span><span class="nottickedoff">| Just u &lt;- upperBound r = Segment (Range.point (l + realToFrac f * (u - l)))</span>
+<span class="lineno">  139 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = Segment (Range.point 0)</span>
+<span class="lineno">  140 </span><span class="spaces">  </span><span class="nottickedoff">where l = fromMaybe 0 $ lowerBound r</span></span>
+<span class="lineno">  141 </span>
+<span class="lineno">  142 </span>segmentJSON :: JSON.ToObject o =&gt; Segment -&gt; o
+<span class="lineno">  143 </span><span class="decl"><span class="nottickedoff">segmentJSON s = &quot;segment&quot; `JSON.kvObjectOrEmpty` (if segmentFull s then empty else pure s)</span></span>
+<span class="lineno">  144 </span>
+<span class="lineno">  145 </span>segmentSetDuration :: Offset -&gt; Segment -&gt; Segment
+<span class="lineno">  146 </span><span class="decl"><span class="nottickedoff">segmentSetDuration o (Segment (Range.Range lb@(Range.Lower (Range.Bounded _ l)) (Range.Upper ub))) =</span>
+<span class="lineno">  147 </span><span class="spaces">  </span><span class="nottickedoff">Segment (Range.Range lb (Range.Upper (Range.Bounded (Range.boundClosed ub) (l + o))))</span>
+<span class="lineno">  148 </span><span class="spaces"></span><span class="nottickedoff">segmentSetDuration _ s = s</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.HTTP.Parse
+<span class="lineno">    3 </span>  ( Content(..)
+<span class="lineno">    4 </span>  , FileContent
+<span class="lineno">    5 </span>  , parseRequestContent
+<span class="lineno">    6 </span>  ) where
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>import Control.Monad (when, unless)
+<span class="lineno">    9 </span>import Control.Monad.IO.Class (liftIO)
+<span class="lineno">   10 </span>import Data.IORef (newIORef, readIORef, writeIORef)
+<span class="lineno">   11 </span>import Data.Word (Word64)
+<span class="lineno">   12 </span>import Network.HTTP.Types (requestEntityTooLarge413, unsupportedMediaType415, hContentType)
+<span class="lineno">   13 </span>import Network.Wai
+<span class="lineno">   14 </span>import Network.Wai.Parse
+<span class="lineno">   15 </span>import System.IO (Handle)
+<span class="lineno">   16 </span>import qualified Data.Aeson as JSON
+<span class="lineno">   17 </span>import qualified Data.Attoparsec.ByteString as AP
+<span class="lineno">   18 </span>import qualified Data.ByteString as BS
+<span class="lineno">   19 </span>import qualified Data.Text as T
+<span class="lineno">   20 </span>import qualified Data.Text.Encoding as TE
+<span class="lineno">   21 </span>import qualified Data.Text.Encoding.Error as TE
+<span class="lineno">   22 </span>import qualified Data.Text.Internal.Lazy as TL (chunk)
+<span class="lineno">   23 </span>import qualified Data.Text.Lazy as TL
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>import Databrary.Has (peek, peeks)
+<span class="lineno">   26 </span>import Databrary.Action.Types
+<span class="lineno">   27 </span>import Databrary.Store.Temp
+<span class="lineno">   28 </span>import Databrary.HTTP.Request (lookupRequestHeader)
+<span class="lineno">   29 </span>import Databrary.Action.Response (response, emptyResponse, result, unsafeResult)
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>requestTooLarge :: Response
+<span class="lineno">   32 </span><span class="decl"><span class="nottickedoff">requestTooLarge = emptyResponse requestEntityTooLarge413 []</span></span>
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>type ChunkParser a = IO BS.ByteString -&gt; IO a
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>_mapChunks :: (a -&gt; b) -&gt; ChunkParser a -&gt; ChunkParser b
+<span class="lineno">   37 </span><span class="decl"><span class="nottickedoff">_mapChunks f parse next = f &lt;$&gt; parse next</span></span>
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>_nullChunks :: ChunkParser Word64
+<span class="lineno">   40 </span><span class="decl"><span class="nottickedoff">_nullChunks next = go 0 where</span>
+<span class="lineno">   41 </span><span class="spaces">  </span><span class="nottickedoff">go n = do</span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="nottickedoff">b &lt;- next</span>
+<span class="lineno">   43 </span><span class="spaces">    </span><span class="nottickedoff">if BS.null b</span>
+<span class="lineno">   44 </span><span class="spaces">      </span><span class="nottickedoff">then return n</span>
+<span class="lineno">   45 </span><span class="spaces">      </span><span class="nottickedoff">else go (n + fromIntegral (BS.length b))</span></span>
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>limitChunks :: Word64 -&gt; ChunkParser a -&gt; ChunkParser a
+<span class="lineno">   48 </span><span class="decl"><span class="nottickedoff">limitChunks lim parse next = do</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">len &lt;- liftIO $ newIORef 0</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">parse $ do</span>
+<span class="lineno">   51 </span><span class="spaces">    </span><span class="nottickedoff">n &lt;- readIORef len</span>
+<span class="lineno">   52 </span><span class="spaces">    </span><span class="nottickedoff">b &lt;- next</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="nottickedoff">let n' = n + fromIntegral (BS.length b)</span>
+<span class="lineno">   54 </span><span class="spaces">    </span><span class="nottickedoff">when (n' &gt; lim) $ result requestTooLarge</span>
+<span class="lineno">   55 </span><span class="spaces">    </span><span class="nottickedoff">writeIORef len n'</span>
+<span class="lineno">   56 </span><span class="spaces">    </span><span class="nottickedoff">return b</span></span>
+<span class="lineno">   57 </span>
+<span class="lineno">   58 </span>writeChunks :: Handle -&gt; ChunkParser ()
+<span class="lineno">   59 </span><span class="decl"><span class="nottickedoff">writeChunks h next = run where</span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="nottickedoff">run = do</span>
+<span class="lineno">   61 </span><span class="spaces">    </span><span class="nottickedoff">b &lt;- next</span>
+<span class="lineno">   62 </span><span class="spaces">    </span><span class="nottickedoff">unless (BS.null b) $</span>
+<span class="lineno">   63 </span><span class="spaces">      </span><span class="nottickedoff">BS.hPut h b &gt;&gt; run</span></span>
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>parserChunks :: AP.Parser a -&gt; ChunkParser (AP.Result a)
+<span class="lineno">   66 </span><span class="decl"><span class="nottickedoff">parserChunks parser next = run (AP.parse parser) where</span>
+<span class="lineno">   67 </span><span class="spaces">  </span><span class="nottickedoff">run p = do</span>
+<span class="lineno">   68 </span><span class="spaces">    </span><span class="nottickedoff">b &lt;- next</span>
+<span class="lineno">   69 </span><span class="spaces">    </span><span class="nottickedoff">let r = p b</span>
+<span class="lineno">   70 </span><span class="spaces">    </span><span class="nottickedoff">if BS.null b</span>
+<span class="lineno">   71 </span><span class="spaces">      </span><span class="nottickedoff">then return r</span>
+<span class="lineno">   72 </span><span class="spaces">      </span><span class="nottickedoff">else run $ AP.feed r</span></span>
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>textChunks :: TE.OnDecodeError -&gt; ChunkParser TL.Text
+<span class="lineno">   75 </span><span class="decl"><span class="nottickedoff">textChunks err next = run (TE.streamDecodeUtf8With err) where</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="nottickedoff">run f = do</span>
+<span class="lineno">   77 </span><span class="spaces">    </span><span class="nottickedoff">b &lt;- next</span>
+<span class="lineno">   78 </span><span class="spaces">    </span><span class="nottickedoff">let TE.Some t r f' = f b</span>
+<span class="lineno">   79 </span><span class="spaces">    </span><span class="nottickedoff">if BS.null b</span>
+<span class="lineno">   80 </span><span class="spaces">      </span><span class="nottickedoff">then return $ TL.fromStrict $ maybe t (T.snoc t) $ err &quot;textChunks: invalid UTF-8&quot; . Just . fst =&lt;&lt; BS.uncons r</span>
+<span class="lineno">   81 </span><span class="spaces">      </span><span class="nottickedoff">else TL.chunk t &lt;$&gt; run f'</span></span>
+<span class="lineno">   82 </span>
+<span class="lineno">   83 </span>textChunks' :: ChunkParser TL.Text
+<span class="lineno">   84 </span><span class="decl"><span class="nottickedoff">textChunks' = textChunks (\e _ -&gt; unsafeResult $ response unsupportedMediaType415 [] e)</span></span>
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>_mapBackEnd :: (a -&gt; b) -&gt; BackEnd a -&gt; BackEnd b
+<span class="lineno">   88 </span><span class="decl"><span class="nottickedoff">_mapBackEnd f back param info next = f &lt;$&gt; back param info next</span></span>
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>rejectBackEnd :: BackEnd a
+<span class="lineno">   91 </span><span class="decl"><span class="nottickedoff">rejectBackEnd _ _ _ = result requestTooLarge</span></span>
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>
+<span class="lineno">   94 </span>_parseRequestChunks :: ChunkParser a -&gt; Handler a
+<span class="lineno">   95 </span><span class="decl"><span class="nottickedoff">_parseRequestChunks p = liftIO . p =&lt;&lt; peeks requestBody</span></span>
+<span class="lineno">   96 </span>
+<span class="lineno">   97 </span>limitRequestChunks :: Word64 -&gt; ChunkParser a -&gt; Handler a
+<span class="lineno">   98 </span><span class="decl"><span class="nottickedoff">limitRequestChunks lim p = do</span>
+<span class="lineno">   99 </span><span class="spaces">  </span><span class="nottickedoff">rq &lt;- peek</span>
+<span class="lineno">  100 </span><span class="spaces">  </span><span class="nottickedoff">case requestBodyLength rq of</span>
+<span class="lineno">  101 </span><span class="spaces">    </span><span class="nottickedoff">KnownLength l | l &gt; lim -&gt; result requestTooLarge</span>
+<span class="lineno">  102 </span><span class="spaces">    </span><span class="nottickedoff">_ -&gt; liftIO $ limitChunks lim p $ requestBody rq</span></span>
+<span class="lineno">  103 </span>
+<span class="lineno">  104 </span>data Content a
+<span class="lineno">  105 </span>  = ContentForm
+<span class="lineno">  106 </span>    { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">contentFormParams</span></span></span> :: [Param]
+<span class="lineno">  107 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">contentFormFiles</span></span></span> :: [File a]
+<span class="lineno">  108 </span>    }
+<span class="lineno">  109 </span>  | ContentJSON JSON.Value
+<span class="lineno">  110 </span>  | ContentText TL.Text
+<span class="lineno">  111 </span>  | ContentUnknown
+<span class="lineno">  112 </span>
+<span class="lineno">  113 </span>maxTextSize :: Word64
+<span class="lineno">  114 </span><span class="decl"><span class="nottickedoff">maxTextSize = 1024*1024</span></span>
+<span class="lineno">  115 </span>
+<span class="lineno">  116 </span>class FileContent a where
+<span class="lineno">  117 </span>  parseFileContent :: IO BS.ByteString -&gt; Handler a
+<span class="lineno">  118 </span>
+<span class="lineno">  119 </span>instance FileContent () where
+<span class="lineno">  120 </span>  <span class="decl"><span class="nottickedoff">parseFileContent _ = result requestTooLarge</span></span>
+<span class="lineno">  121 </span>
+<span class="lineno">  122 </span>instance FileContent TempFile where
+<span class="lineno">  123 </span>  <span class="decl"><span class="nottickedoff">parseFileContent = makeTempFile . flip writeChunks</span></span>
+<span class="lineno">  124 </span>
+<span class="lineno">  125 </span>instance FileContent JSON.Value where
+<span class="lineno">  126 </span>  <span class="decl"><span class="nottickedoff">parseFileContent b = liftIO $ either (result . response unsupportedMediaType415 []) return . AP.eitherResult =&lt;&lt; parserChunks JSON.json b</span></span>
+<span class="lineno">  127 </span>
+<span class="lineno">  128 </span>instance FileContent TL.Text where
+<span class="lineno">  129 </span>  <span class="decl"><span class="nottickedoff">parseFileContent = liftIO . textChunks'</span></span>
+<span class="lineno">  130 </span>
+<span class="lineno">  131 </span>parseFormContent :: RequestBodyType -&gt; Handler (Content a)
+<span class="lineno">  132 </span><span class="decl"><span class="nottickedoff">parseFormContent t = uncurry ContentForm</span>
+<span class="lineno">  133 </span><span class="spaces">  </span><span class="nottickedoff">&lt;$&gt; limitRequestChunks maxTextSize (liftIO . sinkRequestBody rejectBackEnd t)</span></span>
+<span class="lineno">  134 </span>
+<span class="lineno">  135 </span>parseFormFileContent :: FileContent a =&gt; (FileInfo BS.ByteString -&gt; Word64) -&gt; RequestBodyType -&gt; Handler (Content a)
+<span class="lineno">  136 </span><span class="decl"><span class="nottickedoff">parseFormFileContent ff rt = do</span>
+<span class="lineno">  137 </span><span class="spaces">  </span><span class="nottickedoff">app &lt;- peek</span>
+<span class="lineno">  138 </span><span class="spaces">  </span><span class="nottickedoff">(p, f) &lt;- liftIO $ do</span>
+<span class="lineno">  139 </span><span class="spaces">    </span><span class="nottickedoff">let be fn fi fb = case ff fi{ fileContent = fn } of</span>
+<span class="lineno">  140 </span><span class="spaces">          </span><span class="nottickedoff">0 -&gt; result requestTooLarge</span>
+<span class="lineno">  141 </span><span class="spaces">          </span><span class="nottickedoff">m -&gt; limitChunks m (\b -&gt; runHandler (parseFileContent b) app) fb</span>
+<span class="lineno">  142 </span><span class="spaces">    </span><span class="nottickedoff">sinkRequestBody be rt (requestBody $ contextRequest app)</span>
+<span class="lineno">  143 </span><span class="spaces">  </span><span class="nottickedoff">return $ ContentForm p f</span></span>
+<span class="lineno">  144 </span>
+<span class="lineno">  145 </span>parseJSONContent :: Handler (Content a)
+<span class="lineno">  146 </span><span class="decl"><span class="nottickedoff">parseJSONContent = maybe ContentUnknown ContentJSON . AP.maybeResult</span>
+<span class="lineno">  147 </span><span class="spaces">  </span><span class="nottickedoff">&lt;$&gt; limitRequestChunks maxTextSize (parserChunks JSON.json)</span></span>
+<span class="lineno">  148 </span>
+<span class="lineno">  149 </span>parseTextContent :: Handler (Content a)
+<span class="lineno">  150 </span><span class="decl"><span class="nottickedoff">parseTextContent = ContentText &lt;$&gt; limitRequestChunks maxTextSize textChunks'</span></span>
+<span class="lineno">  151 </span>  -- really would be better to catch the error and return ContentUnknown
+<span class="lineno">  152 </span>
+<span class="lineno">  153 </span>parseRequestContent :: FileContent a =&gt; (BS.ByteString -&gt; Word64) -&gt; Handler (Content a)
+<span class="lineno">  154 </span><span class="decl"><span class="nottickedoff">parseRequestContent fileLimits = do</span>
+<span class="lineno">  155 </span><span class="spaces">  </span><span class="nottickedoff">ct &lt;- peeks $ lookupRequestHeader hContentType</span>
+<span class="lineno">  156 </span><span class="spaces">  </span><span class="nottickedoff">case fmap parseContentType ct of</span>
+<span class="lineno">  157 </span><span class="spaces">    </span><span class="nottickedoff">Just (&quot;application/x-www-form-urlencoded&quot;, _) -&gt;</span>
+<span class="lineno">  158 </span><span class="spaces">      </span><span class="nottickedoff">parseFormContent UrlEncoded</span>
+<span class="lineno">  159 </span><span class="spaces">    </span><span class="nottickedoff">Just (&quot;multipart/form-data&quot;, attrs) | Just bound &lt;- lookup &quot;boundary&quot; attrs -&gt;</span>
+<span class="lineno">  160 </span><span class="spaces">      </span><span class="nottickedoff">parseFormFileContent (fileLimits . fileContent) $ Multipart bound</span>
+<span class="lineno">  161 </span><span class="spaces">    </span><span class="nottickedoff">Just (&quot;text/json&quot;, _) -&gt;</span>
+<span class="lineno">  162 </span><span class="spaces">      </span><span class="nottickedoff">parseJSONContent</span>
+<span class="lineno">  163 </span><span class="spaces">    </span><span class="nottickedoff">Just (&quot;application/json&quot;, _) -&gt;</span>
+<span class="lineno">  164 </span><span class="spaces">      </span><span class="nottickedoff">parseJSONContent</span>
+<span class="lineno">  165 </span><span class="spaces">    </span><span class="nottickedoff">Just (&quot;text/plain&quot;, _) -&gt;</span>
+<span class="lineno">  166 </span><span class="spaces">      </span><span class="nottickedoff">parseTextContent</span>
+<span class="lineno">  167 </span><span class="spaces">    </span><span class="nottickedoff">_ -&gt; return ContentUnknown</span></span>
+
+</pre>
+</body>
+</html>

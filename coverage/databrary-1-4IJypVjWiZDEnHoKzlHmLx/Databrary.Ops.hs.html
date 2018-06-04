@@ -1,0 +1,111 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE GeneralizedNewtypeDeriving, ViewPatterns #-}
+<span class="lineno">    2 </span>-- |
+<span class="lineno">    3 </span>-- FIXME: There is a lot of duplication of standard library tools in here.
+<span class="lineno">    4 </span>module Databrary.Ops
+<span class="lineno">    5 </span>  ( useWhen -- (&lt;?)
+<span class="lineno">    6 </span>  , thenUse --   (?&gt;)
+<span class="lineno">    7 </span>  , unlessUse -- , (?!&gt;)
+<span class="lineno">    8 </span>  -- , (?$&gt;)
+<span class="lineno">    9 </span>  , thenReturn
+<span class="lineno">   10 </span>  , unlessReturn -- , (?!$&gt;)
+<span class="lineno">   11 </span>  , rightJust
+<span class="lineno">   12 </span>  , fromMaybeM
+<span class="lineno">   13 </span>  , orElseM
+<span class="lineno">   14 </span>  , flatMapM
+<span class="lineno">   15 </span>  , groupTuplesBy
+<span class="lineno">   16 </span>  , mergeBy
+<span class="lineno">   17 </span>  ) where
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import Control.Applicative
+<span class="lineno">   20 </span>import qualified Data.Either.Combinators as EC
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>-- infixl 1 &lt;?
+<span class="lineno">   23 </span>-- infixr 1 ?!&gt;
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>-- |@'($&gt;)' . guard@
+<span class="lineno">   26 </span>thenUse :: Alternative f =&gt; Bool -&gt; a -&gt; f a
+<span class="lineno">   27 </span><span class="decl"><span class="istickedoff">False `thenUse` _ = empty</span>
+<span class="lineno">   28 </span><span class="spaces"></span><span class="istickedoff">True `thenUse` a = pure a</span></span>
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>-- |@flip '(?&gt;)'@
+<span class="lineno">   31 </span>useWhen :: Alternative f =&gt; a -&gt; Bool -&gt; f a
+<span class="lineno">   32 </span><span class="decl"><span class="istickedoff">_ `useWhen` False = empty</span>
+<span class="lineno">   33 </span><span class="spaces"></span><span class="istickedoff">a `useWhen` True = pure a</span></span>
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>-- |@'(?&gt;)' . not@
+<span class="lineno">   36 </span>unlessUse :: Alternative f =&gt; Bool -&gt; a -&gt; f a
+<span class="lineno">   37 </span><span class="decl"><span class="nottickedoff">True `unlessUse` _ = empty</span>
+<span class="lineno">   38 </span><span class="spaces"></span><span class="nottickedoff">False `unlessUse` a = pure a</span></span>
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>{-# SPECIALIZE thenUse :: Bool -&gt; a -&gt; Maybe a #-}
+<span class="lineno">   41 </span>{-# SPECIALIZE useWhen :: a -&gt; Bool -&gt; Maybe a #-}
+<span class="lineno">   42 </span>{-# SPECIALIZE unlessUse :: Bool -&gt; a -&gt; Maybe a #-}
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>-- |@liftM . (?&gt;)@
+<span class="lineno">   45 </span>thenReturn :: (Applicative m, Alternative f) =&gt; Bool -&gt; m a -&gt; m (f a)
+<span class="lineno">   46 </span><span class="decl"><span class="nottickedoff">False `thenReturn` _ = pure empty</span>
+<span class="lineno">   47 </span><span class="spaces"></span><span class="nottickedoff">True `thenReturn` f = pure &lt;$&gt; f</span></span>
+<span class="lineno">   48 </span>-- TODO: get rid of this
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>-- |@'(?$&gt;)' . not@
+<span class="lineno">   51 </span>unlessReturn :: (Applicative m, Alternative f) =&gt; Bool -&gt; m a -&gt; m (f a)
+<span class="lineno">   52 </span><span class="decl"><span class="nottickedoff">True `unlessReturn` _ = pure empty</span>
+<span class="lineno">   53 </span><span class="spaces"></span><span class="nottickedoff">False `unlessReturn` f = pure &lt;$&gt; f</span></span>
+<span class="lineno">   54 </span>-- TODO: get rid of this
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>{-# SPECIALIZE thenReturn :: Applicative m =&gt; Bool -&gt; m a -&gt; m (Maybe a) #-}
+<span class="lineno">   57 </span>{-# SPECIALIZE unlessReturn :: Applicative m =&gt; Bool -&gt; m a -&gt; m (Maybe a) #-}
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>rightJust :: Either a b -&gt; Maybe b
+<span class="lineno">   60 </span><span class="decl"><span class="istickedoff">rightJust = EC.rightToMaybe</span></span>
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>-- TODO: get rid of this
+<span class="lineno">   63 </span>fromMaybeM :: Monad m =&gt; m a -&gt; Maybe a -&gt; m a
+<span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">fromMaybeM _ (Just a) = return a</span>
+<span class="lineno">   65 </span><span class="spaces"></span><span class="nottickedoff">fromMaybeM m Nothing = m</span></span>
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>infixl 3 `orElseM`
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>-- TODO: get rid of this
+<span class="lineno">   70 </span>orElseM :: Monad m =&gt; Maybe a -&gt; m (Maybe a) -&gt; m (Maybe a)
+<span class="lineno">   71 </span><span class="decl"><span class="istickedoff">orElseM Nothing m = m</span>
+<span class="lineno">   72 </span><span class="spaces"></span><span class="istickedoff">orElseM m _ = return m</span></span>
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>-- TODO: get rid of this
+<span class="lineno">   75 </span>flatMapM :: Monad m =&gt; (a -&gt; m (Maybe b)) -&gt; Maybe a -&gt; m (Maybe b)
+<span class="lineno">   76 </span><span class="decl"><span class="nottickedoff">flatMapM justAction mVal = maybe (return Nothing) justAction mVal</span></span>
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>groupTuplesBy :: (a -&gt; a -&gt; Bool) -&gt; [(a, b)] -&gt; [(a, [b])]
+<span class="lineno">   79 </span><span class="decl"><span class="istickedoff">groupTuplesBy _ [] = []</span>
+<span class="lineno">   80 </span><span class="spaces"></span><span class="istickedoff">groupTuplesBy p ((a,b):(span (p a . fst) -&gt; (al, l))) = (a, b : map snd al) : groupTuplesBy <span class="nottickedoff">p</span> l</span></span>
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>-- |
+<span class="lineno">   83 </span>-- Merge two ordered lists using the given predicate, removing EQ &quot;duplicates&quot;
+<span class="lineno">   84 </span>-- (left-biased)
+<span class="lineno">   85 </span>mergeBy :: (a -&gt; a -&gt; Ordering) -&gt; [a] -&gt; [a] -&gt; [a]
+<span class="lineno">   86 </span><span class="decl"><span class="istickedoff">mergeBy _ [] l = l</span>
+<span class="lineno">   87 </span><span class="spaces"></span><span class="istickedoff">mergeBy _ l [] = <span class="nottickedoff">l</span></span>
+<span class="lineno">   88 </span><span class="spaces"></span><span class="istickedoff">mergeBy p al@(a:ar) bl@(b:br) = case p a b of</span>
+<span class="lineno">   89 </span><span class="spaces">  </span><span class="istickedoff">LT -&gt; a : mergeBy p ar bl</span>
+<span class="lineno">   90 </span><span class="spaces">  </span><span class="istickedoff">EQ -&gt; <span class="nottickedoff">mergeBy p al br</span></span>
+<span class="lineno">   91 </span><span class="spaces">  </span><span class="istickedoff">GT -&gt; b : mergeBy p al br</span></span>
+
+</pre>
+</body>
+</html>

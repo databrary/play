@@ -1,0 +1,73 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Controller.Funding
+<span class="lineno">    3 </span>  ( queryFunderHandler
+<span class="lineno">    4 </span>  , postVolumeFunding
+<span class="lineno">    5 </span>  , deleteVolumeFunder
+<span class="lineno">    6 </span>  ) where
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>import Control.Monad (liftM2)
+<span class="lineno">    9 </span>import qualified Data.Text as T
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import Databrary.Has (focusIO)
+<span class="lineno">   12 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   13 </span>import Databrary.Model.Id
+<span class="lineno">   14 </span>import Databrary.Model.Permission
+<span class="lineno">   15 </span>import Databrary.Model.Volume
+<span class="lineno">   16 </span>import Databrary.Model.Funding
+<span class="lineno">   17 </span>import Databrary.Model.Funding.FundRef
+<span class="lineno">   18 </span>import Databrary.HTTP.Form.Deform
+<span class="lineno">   19 </span>import Databrary.HTTP.Path.Parser
+<span class="lineno">   20 </span>import Databrary.Action
+<span class="lineno">   21 </span>import Databrary.Controller.Paths
+<span class="lineno">   22 </span>import Databrary.Controller.Form
+<span class="lineno">   23 </span>import Databrary.Controller.Permission
+<span class="lineno">   24 </span>import Databrary.Controller.Volume
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>queryFunderHandler :: Action -- TODO: GET only
+<span class="lineno">   27 </span><span class="decl"><span class="nottickedoff">queryFunderHandler = withAuth $ do</span>
+<span class="lineno">   28 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- authAccount</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="nottickedoff">(q, a) &lt;- runForm Nothing $ liftM2 (,)</span>
+<span class="lineno">   30 </span><span class="spaces">    </span><span class="nottickedoff">(&quot;query&quot; .:&gt; (deformRequired =&lt;&lt; deform))</span>
+<span class="lineno">   31 </span><span class="spaces">    </span><span class="nottickedoff">(&quot;all&quot; .:&gt; deform)</span>
+<span class="lineno">   32 </span><span class="spaces">  </span><span class="nottickedoff">r &lt;- if a</span>
+<span class="lineno">   33 </span><span class="spaces">    </span><span class="nottickedoff">then focusIO $ searchFundRef q</span>
+<span class="lineno">   34 </span><span class="spaces">    </span><span class="nottickedoff">else findFunders q</span>
+<span class="lineno">   35 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ JSON.mapObjects funderJSON r</span></span>
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>postVolumeFunding :: ActionRoute (Id Volume, Id Funder)
+<span class="lineno">   38 </span><span class="decl"><span class="nottickedoff">postVolumeFunding = action POST (pathJSON &gt;/&gt; pathId &lt;/&gt; pathId) $ \(vi, fi) -&gt; withAuth $ do</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="nottickedoff">f &lt;- maybeAction =&lt;&lt; lookupFunderRef fi</span>
+<span class="lineno">   41 </span><span class="spaces">  </span><span class="nottickedoff">a &lt;- runForm Nothing $ do</span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="nottickedoff">csrfForm</span>
+<span class="lineno">   43 </span><span class="spaces">    </span><span class="nottickedoff">&quot;awards&quot; .:&gt; filter (not . T.null) &lt;$&gt; withSubDeforms (\_ -&gt; deform)</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="nottickedoff">let fa = Funding f a</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- changeVolumeFunding v fa</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ JSON.pairs $ fundingJSON fa</span></span>
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>deleteVolumeFunder :: ActionRoute (Id Volume, Id Funder)
+<span class="lineno">   49 </span><span class="decl"><span class="nottickedoff">deleteVolumeFunder = action DELETE (pathJSON &gt;/&gt; pathId &lt;/&gt; pathId) $ \(vi, fi) -&gt; withAuth $ do</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">guardVerfHeader</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- removeVolumeFunder v fi</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v</span></span>
+
+</pre>
+</body>
+</html>

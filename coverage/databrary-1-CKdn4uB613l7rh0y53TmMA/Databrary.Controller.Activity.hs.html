@@ -1,0 +1,104 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Controller.Activity
+<span class="lineno">    3 </span>  ( viewSiteActivityHandler
+<span class="lineno">    4 </span>  , viewSiteActivity -- remove when view not using it
+<span class="lineno">    5 </span>  , viewPartyActivity
+<span class="lineno">    6 </span>  , viewVolumeActivity
+<span class="lineno">    7 </span>  , viewContainerActivity
+<span class="lineno">    8 </span>  ) where
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import Control.Arrow (second)
+<span class="lineno">   11 </span>import Control.Monad (when)
+<span class="lineno">   12 </span>import Data.Function (on)
+<span class="lineno">   13 </span>import Data.IORef (readIORef)
+<span class="lineno">   14 </span>import Data.List (nubBy)
+<span class="lineno">   15 </span>import Data.Maybe (isJust, mapMaybe)
+<span class="lineno">   16 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   17 </span>import Data.Ord (comparing)
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import Databrary.Ops
+<span class="lineno">   20 </span>import Databrary.Has
+<span class="lineno">   21 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   22 </span>import Databrary.Service.Types
+<span class="lineno">   23 </span>import Databrary.Model.Id
+<span class="lineno">   24 </span>import Databrary.Model.Permission
+<span class="lineno">   25 </span>import Databrary.Model.Party
+<span class="lineno">   26 </span>import Databrary.Model.Authorize
+<span class="lineno">   27 </span>import Databrary.Model.Volume
+<span class="lineno">   28 </span>import Databrary.Model.VolumeAccess
+<span class="lineno">   29 </span>import Databrary.Model.Slot
+<span class="lineno">   30 </span>import Databrary.Model.Activity
+<span class="lineno">   31 </span>import Databrary.HTTP.Path.Parser
+<span class="lineno">   32 </span>import Databrary.Action
+<span class="lineno">   33 </span>import Databrary.Controller.Paths
+<span class="lineno">   34 </span>import Databrary.Controller.Angular
+<span class="lineno">   35 </span>import Databrary.Controller.Party
+<span class="lineno">   36 </span>import Databrary.Controller.Volume
+<span class="lineno">   37 </span>import Databrary.Controller.Container
+<span class="lineno">   38 </span>-- import Databrary.View.Activity
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>viewSiteActivity :: ActionRoute ()
+<span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">viewSiteActivity = action GET (pathJSON &gt;/&gt; &quot;activity&quot;) $ \() -&gt; viewSiteActivityHandler</span></span>
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>viewSiteActivityHandler :: Action -- TODO: GET only
+<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">viewSiteActivityHandler = withAuth $ do</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">ss &lt;- focusIO $ readIORef . serviceStats</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">vl &lt;- map (second $ (&quot;volume&quot; JSON..=:) . (\v -&gt; volumeJSONSimple v)) . nubBy ((==) `on` volumeId . volumeRow . snd) &lt;$&gt; lookupVolumeShareActivity 8</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="nottickedoff">al &lt;- map (second $ (&quot;party&quot;  JSON..=:) . partyJSON)  . nubBy ((==) `on` partyId  . partyRow  . snd) &lt;$&gt; lookupAuthorizeActivity 8</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">return</span>
+<span class="lineno">   49 </span><span class="spaces">    </span><span class="nottickedoff">$ okResponse []</span>
+<span class="lineno">   50 </span><span class="spaces">      </span><span class="nottickedoff">$ JSON.pairs $</span>
+<span class="lineno">   51 </span><span class="spaces">           </span><span class="nottickedoff">&quot;stats&quot; JSON..= ss</span>
+<span class="lineno">   52 </span><span class="spaces">        </span><span class="nottickedoff">&lt;&gt; JSON.nestObject &quot;activity&quot; (\u -&gt; map (u . ent) (take 12 $ mergeBy ((fo .) . comparing fst) vl al))</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="nottickedoff">-- HTML -&gt; peeks $ okResponse [] . htmlSiteActivity ss</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">ent (t, j) = j &lt;&gt; &quot;time&quot; JSON..= t</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">fo GT = LT</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="nottickedoff">fo _ = GT</span></span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>viewPartyActivity :: ActionRoute (API, PartyTarget)
+<span class="lineno">   60 </span><span class="decl"><span class="nottickedoff">viewPartyActivity = action GET (pathAPI &lt;/&gt; pathPartyTarget &lt;/&lt; &quot;activity&quot;) $ \(api, p) -&gt; withAuth $ do</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">when (api == HTML) angular</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getParty (Just PermissionADMIN) p</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">a &lt;- lookupPartyActivity v</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">return $ case api of</span>
+<span class="lineno">   65 </span><span class="spaces">    </span><span class="nottickedoff">~JSON -&gt; okResponse [] $ JSON.toEncoding $ mapMaybe activityJSON a</span></span>
+<span class="lineno">   66 </span>    -- TODO: HTML
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>viewVolumeActivity :: ActionRoute (API, Id Volume)
+<span class="lineno">   69 </span><span class="decl"><span class="nottickedoff">viewVolumeActivity = action GET (pathAPI &lt;/&gt; pathId &lt;/&lt; &quot;activity&quot;) $ \(api, vi) -&gt; withAuth $ do</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="nottickedoff">when (api == HTML) angular</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="nottickedoff">a &lt;- lookupVolumeActivity v</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">return $ case api of</span>
+<span class="lineno">   74 </span><span class="spaces">    </span><span class="nottickedoff">~JSON -&gt; okResponse [] $ JSON.toEncoding $ mapMaybe activityJSON a</span></span>
+<span class="lineno">   75 </span>    -- TODO: HTML
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span>viewContainerActivity :: ActionRoute (API, (Maybe (Id Volume), Id Slot))
+<span class="lineno">   78 </span><span class="decl"><span class="nottickedoff">viewContainerActivity = action GET (pathAPI &lt;/&gt; pathMaybe pathId &lt;/&gt; pathSlotId &lt;/&lt; &quot;activity&quot;) $ \(api, (vi, ci)) -&gt; withAuth $ do</span>
+<span class="lineno">   79 </span><span class="spaces">  </span><span class="nottickedoff">when (api == HTML &amp;&amp; isJust vi) angular</span>
+<span class="lineno">   80 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getContainer PermissionEDIT vi ci True</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="nottickedoff">a &lt;- lookupContainerActivity v</span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="nottickedoff">return $ case api of</span>
+<span class="lineno">   83 </span><span class="spaces">    </span><span class="nottickedoff">~JSON -&gt; okResponse [] $ JSON.toEncoding $ mapMaybe activityJSON a</span></span>
+<span class="lineno">   84 </span>    -- TODO: HTML
+
+</pre>
+</body>
+</html>

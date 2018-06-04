@@ -1,0 +1,71 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.HTTP.Cookie
+<span class="lineno">    3 </span>  ( getSignedCookie
+<span class="lineno">    4 </span>  , setSignedCookie
+<span class="lineno">    5 </span>  , clearCookie
+<span class="lineno">    6 </span>  ) where
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>import qualified Data.ByteString as BS
+<span class="lineno">    9 </span>import qualified Data.ByteString.Builder as BSB
+<span class="lineno">   10 </span>import qualified Data.ByteString.Lazy as BSL
+<span class="lineno">   11 </span>import Network.HTTP.Types (Header, hCookie)
+<span class="lineno">   12 </span>import qualified Network.Wai as Wai
+<span class="lineno">   13 </span>import qualified Web.Cookie as Cook
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Databrary.Ops
+<span class="lineno">   16 </span>import Databrary.Has
+<span class="lineno">   17 </span>import Databrary.Service.Crypto
+<span class="lineno">   18 </span>import Databrary.Service.Types
+<span class="lineno">   19 </span>import Databrary.Model.Time
+<span class="lineno">   20 </span>import Databrary.HTTP.Request
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>getCookies :: Request -&gt; Cook.Cookies
+<span class="lineno">   23 </span><span class="decl"><span class="nottickedoff">getCookies = maybe [] Cook.parseCookies . lookupRequestHeader hCookie</span></span>
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>getSignedCookie :: (MonadHas Secret c m, MonadHasRequest c m) =&gt; BS.ByteString -&gt; m (Maybe BS.ByteString)
+<span class="lineno">   26 </span><span class="decl"><span class="nottickedoff">getSignedCookie c = flatMapM unSign . lookup c =&lt;&lt; peeks getCookies</span></span>
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>-- | sign the value, generate cookie, and provide set cookie response header
+<span class="lineno">   29 </span>setSignedCookie
+<span class="lineno">   30 </span>    :: (MonadSign c m, MonadHasRequest c m)
+<span class="lineno">   31 </span>    =&gt; BS.ByteString -- ^ cookie name
+<span class="lineno">   32 </span>    -&gt; BS.ByteString -- ^ cookie value (unsigned)
+<span class="lineno">   33 </span>    -&gt; Timestamp     -- ^ expiration for this cookie value
+<span class="lineno">   34 </span>    -&gt; m Header
+<span class="lineno">   35 </span><span class="decl"><span class="istickedoff">setSignedCookie c val ex  = do</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="istickedoff">val' &lt;- sign val</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="istickedoff">sec &lt;- peeks Wai.isSecure</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="istickedoff">return (&quot;set-cookie&quot;, BSL.toStrict $ BSB.toLazyByteString $ Cook.renderSetCookie $ Cook.def</span>
+<span class="lineno">   39 </span><span class="spaces">    </span><span class="istickedoff">{ Cook.setCookieName = c</span>
+<span class="lineno">   40 </span><span class="spaces">    </span><span class="istickedoff">, Cook.setCookieValue = val'</span>
+<span class="lineno">   41 </span><span class="spaces">    </span><span class="istickedoff">, Cook.setCookiePath = Just &quot;/&quot;</span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="istickedoff">, Cook.setCookieExpires = Just ex</span>
+<span class="lineno">   43 </span><span class="spaces">    </span><span class="istickedoff">, Cook.setCookieSecure = sec</span>
+<span class="lineno">   44 </span><span class="spaces">    </span><span class="istickedoff">, Cook.setCookieHttpOnly = True</span>
+<span class="lineno">   45 </span><span class="spaces">    </span><span class="istickedoff">})</span></span>
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>clearCookie :: BS.ByteString -&gt; Header
+<span class="lineno">   48 </span><span class="decl"><span class="nottickedoff">clearCookie c = (&quot;set-cookie&quot;, BSL.toStrict $ BSB.toLazyByteString $ Cook.renderSetCookie $ Cook.def</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">{ Cook.setCookieName = c</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">, Cook.setCookiePath = Just &quot;/&quot;</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">})</span></span>
+
+</pre>
+</body>
+</html>

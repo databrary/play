@@ -1,0 +1,154 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
+<span class="lineno">    2 </span>module Databrary.View.Party
+<span class="lineno">    3 </span>  ( htmlPartyViewLink
+<span class="lineno">    4 </span>  , htmlPartyView
+<span class="lineno">    5 </span>  , htmlPartyEdit
+<span class="lineno">    6 </span>  , htmlPartySearch
+<span class="lineno">    7 </span>  , htmlPartyAdmin
+<span class="lineno">    8 </span>  , htmlPartyDelete
+<span class="lineno">    9 </span>  ) where
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import Control.Monad (when, forM_, void)
+<span class="lineno">   12 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">   13 </span>import Data.Maybe (fromMaybe)
+<span class="lineno">   14 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   15 </span>import Network.HTTP.Types.QueryLike (QueryLike(..))
+<span class="lineno">   16 </span>import qualified Text.Blaze.Html5 as H
+<span class="lineno">   17 </span>import qualified Text.Blaze.Html5.Attributes as HA
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import Databrary.Has (view)
+<span class="lineno">   20 </span>import Databrary.Model.Permission
+<span class="lineno">   21 </span>import Databrary.Model.Party
+<span class="lineno">   22 </span>import Databrary.Model.ORCID
+<span class="lineno">   23 </span>import Databrary.Store.Temp
+<span class="lineno">   24 </span>import Databrary.Action.Types
+<span class="lineno">   25 </span>import Databrary.Action
+<span class="lineno">   26 </span>import Databrary.Controller.Paths
+<span class="lineno">   27 </span>import Databrary.View.Html
+<span class="lineno">   28 </span>import Databrary.View.Template
+<span class="lineno">   29 </span>import Databrary.View.Form
+<span class="lineno">   30 </span>import Databrary.View.Paginate
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>import {-# SOURCE #-} Databrary.Controller.Angular
+<span class="lineno">   33 </span>import {-# SOURCE #-} Databrary.Controller.Party
+<span class="lineno">   34 </span>import {-# SOURCE #-} Databrary.Controller.Volume
+<span class="lineno">   35 </span>import {-# SOURCE #-} Databrary.Controller.Register
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>htmlPartyViewLink :: QueryLike q =&gt; PartyRow -&gt; q -&gt; H.Html
+<span class="lineno">   38 </span><span class="decl"><span class="nottickedoff">htmlPartyViewLink p q =</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="nottickedoff">H.a H.! actionLink viewParty (HTML, TargetParty $ partyId p) q</span>
+<span class="lineno">   40 </span><span class="spaces">    </span><span class="nottickedoff">$ H.text $ partyName p</span></span>
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>htmlPartyView :: Party -&gt; RequestContext -&gt; H.Html
+<span class="lineno">   43 </span><span class="decl"><span class="nottickedoff">htmlPartyView p@Party{ partyRow = pr@PartyRow{..}, ..} req = htmlTemplate req Nothing $ \js -&gt; do</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="nottickedoff">H.div H.! H.customAttribute &quot;typeof&quot; &quot;person&quot; $ do</span>
+<span class="lineno">   45 </span><span class="spaces">    </span><span class="nottickedoff">H.h1 H.! H.customAttribute &quot;property&quot; &quot;name&quot; $ H.text $ partyName pr</span>
+<span class="lineno">   46 </span><span class="spaces">    </span><span class="nottickedoff">when (partyPermission &gt;= PermissionEDIT) $</span>
+<span class="lineno">   47 </span><span class="spaces">      </span><span class="nottickedoff">H.p $</span>
+<span class="lineno">   48 </span><span class="spaces">        </span><span class="nottickedoff">H.a H.! actionLink viewPartyEdit (TargetParty partyId) js $ &quot;edit&quot;</span>
+<span class="lineno">   49 </span><span class="spaces">    </span><span class="nottickedoff">H.img</span>
+<span class="lineno">   50 </span><span class="spaces">      </span><span class="nottickedoff">H.! HA.src (builderValue $ actionURL Nothing viewAvatar partyId [])</span>
+<span class="lineno">   51 </span><span class="spaces">    </span><span class="nottickedoff">H.dl $ do</span>
+<span class="lineno">   52 </span><span class="spaces">      </span><span class="nottickedoff">forM_ partyAffiliation $ \a -&gt; do</span>
+<span class="lineno">   53 </span><span class="spaces">        </span><span class="nottickedoff">H.dt &quot;affiliation&quot;</span>
+<span class="lineno">   54 </span><span class="spaces">        </span><span class="nottickedoff">H.dd H.! H.customAttribute &quot;property&quot; &quot;affiliation&quot; $ H.text a</span>
+<span class="lineno">   55 </span><span class="spaces">      </span><span class="nottickedoff">forM_ partyURL $ \u -&gt; do</span>
+<span class="lineno">   56 </span><span class="spaces">        </span><span class="nottickedoff">let us = show u</span>
+<span class="lineno">   57 </span><span class="spaces">        </span><span class="nottickedoff">H.dt &quot;url&quot;</span>
+<span class="lineno">   58 </span><span class="spaces">        </span><span class="nottickedoff">H.dd H.! H.customAttribute &quot;property&quot; &quot;url&quot; $ H.a H.! HA.href (H.stringValue us) $ H.string us</span>
+<span class="lineno">   59 </span><span class="spaces">      </span><span class="nottickedoff">forM_ (partyEmail p) $ \e -&gt; do</span>
+<span class="lineno">   60 </span><span class="spaces">        </span><span class="nottickedoff">H.dt &quot;email&quot;</span>
+<span class="lineno">   61 </span><span class="spaces">        </span><span class="nottickedoff">H.dd H.! H.customAttribute &quot;property&quot; &quot;email&quot; $ H.a H.! HA.href (byteStringValue $ &quot;mailto:&quot; &lt;&gt; e) $ byteStringHtml e</span>
+<span class="lineno">   62 </span><span class="spaces">      </span><span class="nottickedoff">forM_ partyORCID $ \o -&gt; do</span>
+<span class="lineno">   63 </span><span class="spaces">        </span><span class="nottickedoff">H.dt &quot;orcid&quot;</span>
+<span class="lineno">   64 </span><span class="spaces">        </span><span class="nottickedoff">H.dd H.! H.customAttribute &quot;property&quot; &quot;sameAs&quot; $ H.a H.! HA.href (H.stringValue $ show $ orcidURL o) $ H.string $ show o</span>
+<span class="lineno">   65 </span><span class="spaces">    </span><span class="nottickedoff">H.a H.! actionLink queryVolumes HTML (toQuery js &lt;&gt; [(&quot;party&quot;, Just $ BSC.pack $ show partyId)]) $ &quot;volumes&quot;</span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="nottickedoff">return ()</span></span>
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>htmlPartyForm :: Maybe Party -&gt; FormHtml TempFile
+<span class="lineno">   69 </span><span class="decl"><span class="nottickedoff">htmlPartyForm t = do</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="nottickedoff">field &quot;prename&quot; $ inputText $ partyPreName . partyRow =&lt;&lt; t</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">field &quot;sortname&quot; $ inputText $ partySortName . partyRow &lt;$&gt; t</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="nottickedoff">field &quot;affiliation&quot; $ inputText $ partyAffiliation . partyRow =&lt;&lt; t</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">field &quot;url&quot; $ inputText $ show &lt;$&gt; (partyURL . partyRow =&lt;&lt; t)</span></span>
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>htmlPartyEdit :: Maybe Party -&gt; RequestContext -&gt; FormHtml TempFile
+<span class="lineno">   76 </span><span class="decl"><span class="nottickedoff">htmlPartyEdit t = maybe</span>
+<span class="lineno">   77 </span><span class="spaces">  </span><span class="nottickedoff">(htmlForm &quot;Create party&quot; createParty HTML)</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="nottickedoff">(\p -&gt; htmlForm</span>
+<span class="lineno">   79 </span><span class="spaces">    </span><span class="nottickedoff">(&quot;Edit &quot; &lt;&gt; partyName (partyRow p))</span>
+<span class="lineno">   80 </span><span class="spaces">    </span><span class="nottickedoff">postParty (HTML, TargetParty $ partyId $ partyRow p))</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="nottickedoff">t</span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="nottickedoff">(htmlPartyForm t)</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">(const mempty)</span></span>
+<span class="lineno">   84 </span>
+<span class="lineno">   85 </span>htmlPartyList :: JSOpt -&gt; [Party] -&gt; H.Html
+<span class="lineno">   86 </span><span class="decl"><span class="nottickedoff">htmlPartyList js pl = H.ul $ forM_ pl $ \p -&gt; H.li $ do</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="nottickedoff">H.h2 $ htmlPartyViewLink (partyRow p) js</span>
+<span class="lineno">   88 </span><span class="spaces">  </span><span class="nottickedoff">mapM_ H.text $ partyAffiliation $ partyRow p</span></span>
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>htmlPartySearchForm :: PartyFilter -&gt; FormHtml f
+<span class="lineno">   91 </span><span class="decl"><span class="nottickedoff">htmlPartySearchForm pf = do</span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="nottickedoff">field &quot;query&quot; $ inputText $ partyFilterQuery pf</span>
+<span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">field &quot;authorization&quot; $ inputEnum False $ partyFilterAuthorization pf</span>
+<span class="lineno">   94 </span><span class="spaces">  </span><span class="nottickedoff">field &quot;institution&quot; $ inputCheckbox $ fromMaybe False $ partyFilterInstitution pf</span></span>
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>htmlPartySearch :: PartyFilter -&gt; [Party] -&gt; RequestContext -&gt; FormHtml f
+<span class="lineno">   97 </span><span class="decl"><span class="nottickedoff">htmlPartySearch pf pl req = htmlForm &quot;Search users&quot; queryParties HTML</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="nottickedoff">(htmlPartySearchForm pf)</span>
+<span class="lineno">   99 </span><span class="spaces">  </span><span class="nottickedoff">(\js -&gt; htmlPaginate (htmlPartyList js) (partyFilterPaginate pf) pl (view req))</span>
+<span class="lineno">  100 </span><span class="spaces">  </span><span class="nottickedoff">req</span></span>
+<span class="lineno">  101 </span>
+<span class="lineno">  102 </span>htmlPartyAdmin :: PartyFilter -&gt; [Party] -&gt; RequestContext -&gt; FormHtml f
+<span class="lineno">  103 </span><span class="decl"><span class="nottickedoff">htmlPartyAdmin pf pl req = htmlForm &quot;party admin&quot; adminParties ()</span>
+<span class="lineno">  104 </span><span class="spaces">  </span><span class="nottickedoff">(htmlPartySearchForm pf)</span>
+<span class="lineno">  105 </span><span class="spaces">  </span><span class="nottickedoff">(\js -&gt; htmlPaginate</span>
+<span class="lineno">  106 </span><span class="spaces">    </span><span class="nottickedoff">(\pl' -&gt; H.table $ do</span>
+<span class="lineno">  107 </span><span class="spaces">      </span><span class="nottickedoff">H.thead $</span>
+<span class="lineno">  108 </span><span class="spaces">        </span><span class="nottickedoff">H.tr $ do</span>
+<span class="lineno">  109 </span><span class="spaces">          </span><span class="nottickedoff">H.th &quot;id&quot;</span>
+<span class="lineno">  110 </span><span class="spaces">          </span><span class="nottickedoff">H.th &quot;name&quot;</span>
+<span class="lineno">  111 </span><span class="spaces">          </span><span class="nottickedoff">H.th &quot;email&quot;</span>
+<span class="lineno">  112 </span><span class="spaces">          </span><span class="nottickedoff">H.th &quot;affiliation&quot;</span>
+<span class="lineno">  113 </span><span class="spaces">          </span><span class="nottickedoff">H.th &quot;act&quot;</span>
+<span class="lineno">  114 </span><span class="spaces">      </span><span class="nottickedoff">H.tbody $</span>
+<span class="lineno">  115 </span><span class="spaces">        </span><span class="nottickedoff">forM_ pl' $ \Party{ partyRow = pr@PartyRow{..}, ..} -&gt; H.tr $ do</span>
+<span class="lineno">  116 </span><span class="spaces">          </span><span class="nottickedoff">H.td $ H.a H.! actionLink viewParty (HTML, TargetParty partyId) js</span>
+<span class="lineno">  117 </span><span class="spaces">            </span><span class="nottickedoff">$ H.string $ show partyId</span>
+<span class="lineno">  118 </span><span class="spaces">          </span><span class="nottickedoff">H.td $ H.text $ partyName pr</span>
+<span class="lineno">  119 </span><span class="spaces">          </span><span class="nottickedoff">H.td $ mapM_ (byteStringHtml . accountEmail) partyAccount</span>
+<span class="lineno">  120 </span><span class="spaces">          </span><span class="nottickedoff">H.td $ mapM_ H.text partyAffiliation</span>
+<span class="lineno">  121 </span><span class="spaces">          </span><span class="nottickedoff">H.td $ do</span>
+<span class="lineno">  122 </span><span class="spaces">            </span><span class="nottickedoff">actionForm resendInvestigator partyId js</span>
+<span class="lineno">  123 </span><span class="spaces">              </span><span class="nottickedoff">$ H.input H.! HA.type_ &quot;submit&quot; H.! HA.value &quot;agreement&quot;</span>
+<span class="lineno">  124 </span><span class="spaces">            </span><span class="nottickedoff">H.a H.! actionLink viewPartyDelete partyId js</span>
+<span class="lineno">  125 </span><span class="spaces">              </span><span class="nottickedoff">$ &quot;delete&quot;</span>
+<span class="lineno">  126 </span><span class="spaces">    </span><span class="nottickedoff">)</span>
+<span class="lineno">  127 </span><span class="spaces">    </span><span class="nottickedoff">(partyFilterPaginate pf) pl (view req))</span>
+<span class="lineno">  128 </span><span class="spaces">  </span><span class="nottickedoff">req</span></span>
+<span class="lineno">  129 </span>
+<span class="lineno">  130 </span>htmlPartyDelete :: Party -&gt; RequestContext -&gt; FormHtml f
+<span class="lineno">  131 </span><span class="decl"><span class="nottickedoff">htmlPartyDelete Party{ partyRow = pr@PartyRow{..}, ..} = htmlForm (&quot;delete &quot; &lt;&gt; partyName pr)</span>
+<span class="lineno">  132 </span><span class="spaces">  </span><span class="nottickedoff">deleteParty partyId</span>
+<span class="lineno">  133 </span><span class="spaces">  </span><span class="nottickedoff">(return ())</span>
+<span class="lineno">  134 </span><span class="spaces">  </span><span class="nottickedoff">(void . htmlPartyViewLink pr)</span></span>
+
+</pre>
+</body>
+</html>

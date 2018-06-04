@@ -1,0 +1,63 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Web.Files
+<span class="lineno">    3 </span>  ( allWebFiles
+<span class="lineno">    4 </span>  , findWebFiles
+<span class="lineno">    5 </span>  ) where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import Control.Exception (bracket)
+<span class="lineno">    8 </span>import Control.Monad (ap)
+<span class="lineno">    9 </span>import qualified Data.ByteString as BS
+<span class="lineno">   10 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">   11 </span>import System.Posix.Directory.ByteString (openDirStream, closeDirStream)
+<span class="lineno">   12 </span>import System.Posix.Directory.Foreign (dtDir, dtReg)
+<span class="lineno">   13 </span>import System.Posix.Directory.Traversals (readDirEnt)
+<span class="lineno">   14 </span>import System.Posix.FilePath (takeExtensions)
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import Databrary.Files
+<span class="lineno">   17 </span>import Databrary.Web
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>listFiles :: RawFilePath -&gt; IO [RawFilePath]
+<span class="lineno">   20 </span><span class="decl"><span class="nottickedoff">listFiles dir = loop &quot;&quot; where</span>
+<span class="lineno">   21 </span><span class="spaces">  </span><span class="nottickedoff">loop b = bracket</span>
+<span class="lineno">   22 </span><span class="spaces">    </span><span class="nottickedoff">(openDirStream (dir &lt;/&gt; b))</span>
+<span class="lineno">   23 </span><span class="spaces">    </span><span class="nottickedoff">closeDirStream</span>
+<span class="lineno">   24 </span><span class="spaces">    </span><span class="nottickedoff">(ent b)</span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="nottickedoff">ent b dh = do</span>
+<span class="lineno">   26 </span><span class="spaces">    </span><span class="nottickedoff">(t, f) &lt;- readDirEnt dh</span>
+<span class="lineno">   27 </span><span class="spaces">    </span><span class="nottickedoff">if BS.null f</span>
+<span class="lineno">   28 </span><span class="spaces">      </span><span class="nottickedoff">then return []</span>
+<span class="lineno">   29 </span><span class="spaces">      </span><span class="nottickedoff">else ap</span>
+<span class="lineno">   30 </span><span class="spaces">        </span><span class="nottickedoff">(if     BSC.head f == '.'</span>
+<span class="lineno">   31 </span><span class="spaces">          </span><span class="nottickedoff">then return id</span>
+<span class="lineno">   32 </span><span class="spaces">        </span><span class="nottickedoff">else if t == dtDir</span>
+<span class="lineno">   33 </span><span class="spaces">          </span><span class="nottickedoff">then (++) &lt;$&gt; loop (b &lt;/&gt; f)</span>
+<span class="lineno">   34 </span><span class="spaces">        </span><span class="nottickedoff">else if t == dtReg</span>
+<span class="lineno">   35 </span><span class="spaces">          </span><span class="nottickedoff">then return $ (:) (b &lt;/&gt; f)</span>
+<span class="lineno">   36 </span><span class="spaces">        </span><span class="nottickedoff">else   return id)</span>
+<span class="lineno">   37 </span><span class="spaces">        </span><span class="nottickedoff">(ent b dh)</span></span>
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>allWebFiles :: IO [WebFilePath]
+<span class="lineno">   40 </span><span class="decl"><span class="nottickedoff">allWebFiles = withWebDir $ \webDirRaw -&gt; mapM makeWebFilePath =&lt;&lt; listFiles webDirRaw</span></span>
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>findWebFiles :: BS.ByteString -&gt; IO [WebFilePath]
+<span class="lineno">   43 </span><span class="decl"><span class="nottickedoff">findWebFiles ext = filter ((ext ==) . takeExtensions . webFileRel) &lt;$&gt; allWebFiles</span></span>
+
+</pre>
+</body>
+</html>

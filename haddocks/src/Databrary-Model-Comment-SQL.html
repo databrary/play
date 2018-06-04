@@ -60,16 +60,16 @@
 <a name="line-51"></a>
 <a name="line-52"></a>selectCommentRow :: Selector -- ^ @'CommentRow'@
 <a name="line-53"></a>selectCommentRow = selectColumns 'makeCommentRow "comment" ["id", "container", "segment", "who", "time", "text"]
-<a name="line-54"></a>
-<a name="line-55"></a>_commentSets :: String -- ^ @'Comment'@
-<a name="line-56"></a>  -&gt; [(String, String)]
-<a name="line-57"></a>_commentSets o =
-<a name="line-58"></a>  [ ("who", "${partyId $ accountParty $ commentWho " ++ o ++ "}")
-<a name="line-59"></a>  , ("container", "${containerId $ slotContainer $ commentSlot " ++ o ++ "}")
-<a name="line-60"></a>  , ("segment", "${slotSegment $ commentSlot " ++ o ++ "}")
-<a name="line-61"></a>  , ("text", "${commentText " ++ o ++ "}")
-<a name="line-62"></a>  , ("parent", "${listToMaybe $ commentParents " ++ o ++ "}")
-<a name="line-63"></a>  ]
-<a name="line-64"></a>-}</span>
+<a name="line-54"></a>-}</span>
+<a name="line-55"></a>
+<a name="line-56"></a><span class='hs-sel'>_commentSets</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span> <span class='hs-comment'>-- ^ @'Comment'@</span>
+<a name="line-57"></a>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-layout'>(</span><span class='hs-conid'>String</span><span class='hs-layout'>,</span> <span class='hs-conid'>String</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>]</span>
+<a name="line-58"></a><span class='hs-sel'>_commentSets</span> <span class='hs-varid'>o</span> <span class='hs-keyglyph'>=</span>
+<a name="line-59"></a>  <span class='hs-keyglyph'>[</span> <span class='hs-layout'>(</span><span class='hs-str'>"who"</span><span class='hs-layout'>,</span> <span class='hs-str'>"${partyId $ accountParty $ commentWho "</span> <span class='hs-varop'>++</span> <span class='hs-varid'>o</span> <span class='hs-varop'>++</span> <span class='hs-str'>"}"</span><span class='hs-layout'>)</span>
+<a name="line-60"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-str'>"container"</span><span class='hs-layout'>,</span> <span class='hs-str'>"${containerId $ slotContainer $ commentSlot "</span> <span class='hs-varop'>++</span> <span class='hs-varid'>o</span> <span class='hs-varop'>++</span> <span class='hs-str'>"}"</span><span class='hs-layout'>)</span>
+<a name="line-61"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-str'>"segment"</span><span class='hs-layout'>,</span> <span class='hs-str'>"${slotSegment $ commentSlot "</span> <span class='hs-varop'>++</span> <span class='hs-varid'>o</span> <span class='hs-varop'>++</span> <span class='hs-str'>"}"</span><span class='hs-layout'>)</span>
+<a name="line-62"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-str'>"text"</span><span class='hs-layout'>,</span> <span class='hs-str'>"${commentText "</span> <span class='hs-varop'>++</span> <span class='hs-varid'>o</span> <span class='hs-varop'>++</span> <span class='hs-str'>"}"</span><span class='hs-layout'>)</span>
+<a name="line-63"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-str'>"parent"</span><span class='hs-layout'>,</span> <span class='hs-str'>"${listToMaybe $ commentParents "</span> <span class='hs-varop'>++</span> <span class='hs-varid'>o</span> <span class='hs-varop'>++</span> <span class='hs-str'>"}"</span><span class='hs-layout'>)</span>
+<a name="line-64"></a>  <span class='hs-keyglyph'>]</span>
 </pre></body>
 </html>

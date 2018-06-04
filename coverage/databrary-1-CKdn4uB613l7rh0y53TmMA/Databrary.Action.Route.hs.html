@@ -1,0 +1,93 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
+<span class="lineno">    2 </span>module Databrary.Action.Route
+<span class="lineno">    3 </span>  ( Method(..)
+<span class="lineno">    4 </span>  , ActionRoute
+<span class="lineno">    5 </span>  , actionURL
+<span class="lineno">    6 </span>  , actionURI
+<span class="lineno">    7 </span>  , actionMethod
+<span class="lineno">    8 </span>  , action
+<span class="lineno">    9 </span>  , multipartAction
+<span class="lineno">   10 </span>  , API(..)
+<span class="lineno">   11 </span>  , pathHTML
+<span class="lineno">   12 </span>  , pathJSON
+<span class="lineno">   13 </span>  , pathAPI
+<span class="lineno">   14 </span>  ) where
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import qualified Data.ByteString.Builder as BSB
+<span class="lineno">   17 </span>import qualified Data.Invertible as I
+<span class="lineno">   18 </span>import Network.HTTP.Types (Query)
+<span class="lineno">   19 </span>import Network.URI (URI(..))
+<span class="lineno">   20 </span>import qualified Web.Route.Invertible as R
+<span class="lineno">   21 </span>import Web.Route.Invertible (Method(..))
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>import Databrary.HTTP.Request
+<span class="lineno">   24 </span>import Databrary.HTTP.Route
+<span class="lineno">   25 </span>import Databrary.HTTP.Path.Parser
+<span class="lineno">   26 </span>import Databrary.Action.Run
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>-- | A 'R.RouteAction' (library code) that holds an 'Action' (Databrary code).
+<span class="lineno">   29 </span>-- The type parameter a represents the values that get captured in a route
+<span class="lineno">   30 </span>-- description (like /foo/:int would capture an Int).
+<span class="lineno">   31 </span>type ActionRoute a = R.RouteAction a Action
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>actionURL :: Maybe Request -&gt; R.RouteAction r a -&gt; r -&gt; Query -&gt; BSB.Builder
+<span class="lineno">   34 </span><span class="decl"><span class="nottickedoff">actionURL mreq route routeParams query</span>
+<span class="lineno">   35 </span><span class="spaces">  </span><span class="nottickedoff">| R.requestMethod rr == GET = routeURL mreq rr query</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = error $ &quot;actionURL: &quot; ++ show rr</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="nottickedoff">where rr = R.requestActionRoute route routeParams</span></span>
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>actionURI :: Maybe Request -&gt; R.RouteAction r a -&gt; r -&gt; Query -&gt; URI
+<span class="lineno">   40 </span><span class="decl"><span class="nottickedoff">actionURI req r a q</span>
+<span class="lineno">   41 </span><span class="spaces">  </span><span class="nottickedoff">| R.requestMethod rr == GET = routeURI req rr q</span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = error $ &quot;actionURI: &quot; ++ show rr</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="nottickedoff">where rr = R.requestActionRoute r a</span></span>
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>actionMethod :: R.RouteAction r a -&gt; r -&gt; Method
+<span class="lineno">   46 </span><span class="decl"><span class="nottickedoff">actionMethod r = R.requestMethod . R.requestActionRoute r</span></span>
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>-- | A shortcut for specifying route actions.
+<span class="lineno">   49 </span>action
+<span class="lineno">   50 </span>    :: Method -- ^ HTTP method to handle
+<span class="lineno">   51 </span>    -&gt; PathParser r -- ^ Path to handle (r holds the captured elements)
+<span class="lineno">   52 </span>    -&gt; (r -&gt; a) -- ^ Action to build the response (a)
+<span class="lineno">   53 </span>    -&gt; R.RouteAction r a -- ^ The complete, built route/action specifier.
+<span class="lineno">   54 </span><span class="decl"><span class="nottickedoff">action method path act =</span>
+<span class="lineno">   55 </span><span class="spaces">    </span><span class="nottickedoff">R.routePath path R.&gt;* R.routeMethod method `R.RouteAction` act</span></span>
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>multipartAction :: R.RouteAction q a -&gt; R.RouteAction q a
+<span class="lineno">   58 </span><span class="decl"><span class="nottickedoff">multipartAction (R.RouteAction r a) =</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">R.RouteAction (r R.&gt;* (R.routeAccept &quot;multipart/form-data&quot; R.&gt;| R.unit)) a</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>data API
+<span class="lineno">   62 </span>  = HTML
+<span class="lineno">   63 </span>  | JSON
+<span class="lineno">   64 </span>  deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>pathHTML :: PathParser ()
+<span class="lineno">   67 </span><span class="decl"><span class="nottickedoff">pathHTML = R.unit</span></span>
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>pathJSON :: PathParser ()
+<span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">pathJSON = &quot;api&quot;</span></span>
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>pathAPI :: PathParser API
+<span class="lineno">   73 </span><span class="decl"><span class="nottickedoff">pathAPI = [I.biCase|Left () &lt;-&gt; JSON ; Right () &lt;-&gt; HTML|] R.&gt;$&lt; (pathJSON R.&gt;|&lt; pathHTML)</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Model.Asset.SQL
+<span class="lineno">    3 </span>  ( selectAssetRow
+<span class="lineno">    4 </span>  , selectAsset
+<span class="lineno">    5 </span>  , insertAsset
+<span class="lineno">    6 </span>  , updateAsset
+<span class="lineno">    7 </span>  , makeAssetRow
+<span class="lineno">    8 </span>  , setAssetId
+<span class="lineno">    9 </span>  -- for expanded queries
+<span class="lineno">   10 </span>  ) where
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import qualified Data.ByteString as BS
+<span class="lineno">   13 </span>import Data.Int (Int64)
+<span class="lineno">   14 </span>import qualified Data.Text as T
+<span class="lineno">   15 </span>import qualified Language.Haskell.TH as TH
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>import Databrary.Model.Offset
+<span class="lineno">   18 </span>import Databrary.Model.Format
+<span class="lineno">   19 </span>import Databrary.Model.Id.Types
+<span class="lineno">   20 </span>import Databrary.Model.Release.Types
+<span class="lineno">   21 </span>import Databrary.Model.SQL.Select
+<span class="lineno">   22 </span>import Databrary.Model.Audit.SQL
+<span class="lineno">   23 </span>import Databrary.Model.Volume.SQL
+<span class="lineno">   24 </span>import Databrary.Model.Asset.Types
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>makeAssetRow :: Id Asset -&gt; Id Format -&gt; Maybe Release -&gt; Maybe Offset -&gt; Maybe T.Text -&gt; Maybe BS.ByteString -&gt; Maybe Int64 -&gt; AssetRow
+<span class="lineno">   27 </span><span class="decl"><span class="nottickedoff">makeAssetRow i = AssetRow i . getFormat'</span></span>
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>selectAssetRow :: Selector -- ^ @'AssetRow'@
+<span class="lineno">   30 </span><span class="decl"><span class="nottickedoff">selectAssetRow = selectColumns 'makeAssetRow &quot;asset&quot; [&quot;id&quot;, &quot;format&quot;, &quot;release&quot;, &quot;duration&quot;, &quot;name&quot;, &quot;sha1&quot;, &quot;size&quot;]</span></span>
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>selectAsset :: TH.Name -- ^ @'Identity'@
+<span class="lineno">   33 </span>  -&gt; Selector -- ^ @'Asset'@
+<span class="lineno">   34 </span><span class="decl"><span class="nottickedoff">selectAsset ident = selectJoin 'Asset</span>
+<span class="lineno">   35 </span><span class="spaces">  </span><span class="nottickedoff">[ selectAssetRow</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;asset.volume = volume.id&quot; $ selectVolume ident</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>assetKeys :: String -- ^ @'Asset'@
+<span class="lineno">   40 </span>  -&gt; [(String, String)]
+<span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">assetKeys r =</span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="nottickedoff">[ (&quot;id&quot;, &quot;${assetId $ assetRow &quot; ++ r ++ &quot;}&quot;) ]</span></span>
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>assetSets :: String -- ^ @'Asset'@
+<span class="lineno">   45 </span>  -&gt; [(String, String)]
+<span class="lineno">   46 </span><span class="decl"><span class="nottickedoff">assetSets a =</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="nottickedoff">[ (&quot;volume&quot;, &quot;${volumeId $ volumeRow $ assetVolume &quot; ++ a ++ &quot;}&quot;)</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">, (&quot;format&quot;, &quot;${formatId $ assetFormat $ assetRow &quot; ++ a ++ &quot;}&quot;)</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">, (&quot;release&quot;, &quot;${assetRelease $ assetRow &quot; ++ a ++ &quot;}&quot;)</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">, (&quot;duration&quot;, &quot;${assetDuration $ assetRow &quot; ++ a ++ &quot;}&quot;)</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">, (&quot;name&quot;, &quot;${assetName $ assetRow &quot; ++ a ++ &quot;}&quot;)</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">, (&quot;sha1&quot;, &quot;${assetSHA1 $ assetRow &quot; ++ a ++ &quot;}&quot;)</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">, (&quot;size&quot;, &quot;${assetSize $ assetRow &quot; ++ a ++ &quot;}&quot;)</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>setAssetId :: Asset -&gt; Id Asset -&gt; Asset
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">setAssetId a i = a{ assetRow = (assetRow a){ assetId = i } }</span></span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>insertAsset :: TH.Name -- ^ @'AuditIdentity'@
+<span class="lineno">   60 </span>  -&gt; TH.Name -- ^ @'Asset'@
+<span class="lineno">   61 </span>  -&gt; TH.ExpQ -- ^ @'Asset'@
+<span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">insertAsset ident a = auditInsert ident &quot;asset&quot;</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">(assetSets (nameRef a))</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">(Just $ selectOutput $ selectMap ((TH.VarE 'setAssetId `TH.AppE` TH.VarE a) `TH.AppE`) $ selectColumn &quot;asset&quot; &quot;id&quot;)</span></span>
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>updateAsset :: TH.Name -- ^ @'AuditIdentity'@
+<span class="lineno">   67 </span>  -&gt; TH.Name -- ^ @'Asset'@
+<span class="lineno">   68 </span>  -&gt; TH.ExpQ -- ^ @()@
+<span class="lineno">   69 </span><span class="decl"><span class="nottickedoff">updateAsset ident a = auditUpdate ident &quot;asset&quot;</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="nottickedoff">(assetSets (nameRef a))</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">(whereEq $ assetKeys (nameRef a))</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="nottickedoff">Nothing</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell, TypeFamilies, DeriveDataTypeable, OverloadedStrings, DataKinds #-}
+<span class="lineno">    2 </span>{-# OPTIONS_GHC -fno-warn-orphans #-}
+<span class="lineno">    3 </span>module Databrary.Model.Metric.Types
+<span class="lineno">    4 </span>  ( MeasureDatum
+<span class="lineno">    5 </span>  , MeasureType(..)
+<span class="lineno">    6 </span>  , Metric(..)
+<span class="lineno">    7 </span>  , ParticipantFieldMapping2(..)
+<span class="lineno">    8 </span>  , mkParticipantFieldMapping2
+<span class="lineno">    9 </span>  , lookupField
+<span class="lineno">   10 </span>  ) where
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import Control.Monad (when)
+<span class="lineno">   13 </span>import qualified Data.ByteString as BS
+<span class="lineno">   14 </span>import Data.Function (on)
+<span class="lineno">   15 </span>import qualified Data.List as L
+<span class="lineno">   16 </span>import Data.Map (Map)
+<span class="lineno">   17 </span>import qualified Data.Map as Map
+<span class="lineno">   18 </span>import Data.Ord (comparing)
+<span class="lineno">   19 </span>import qualified Data.Text as T
+<span class="lineno">   20 </span>import Data.Text (Text)
+<span class="lineno">   21 </span>import Instances.TH.Lift ()
+<span class="lineno">   22 </span>import Language.Haskell.TH.Lift (deriveLiftMany)
+<span class="lineno">   23 </span>import qualified Data.Typeable.Internal
+<span class="lineno">   24 </span>import qualified GHC.Arr
+<span class="lineno">   25 </span>import qualified Database.PostgreSQL.Typed.Types
+<span class="lineno">   26 </span>import qualified Database.PostgreSQL.Typed.Dynamic
+<span class="lineno">   27 </span>import qualified Database.PostgreSQL.Typed.Enum
+<span class="lineno">   28 </span>import qualified Data.Aeson.Types
+<span class="lineno">   29 </span>import qualified Data.ByteString.Char8
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>-- import Databrary.Has (Has(..))
+<span class="lineno">   32 </span>import Databrary.Model.Enum
+<span class="lineno">   33 </span>import Databrary.Model.Kind
+<span class="lineno">   34 </span>import Databrary.Model.Release.Types
+<span class="lineno">   35 </span>import Databrary.Model.Id.Types
+<span class="lineno">   36 </span>import Databrary.Model.Category.Types
+<span class="lineno">   37 </span>import qualified Databrary.HTTP.Form.Deform
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>-- makeDBEnum &quot;data_type&quot; &quot;MeasureType&quot;
+<span class="lineno">   40 </span>-- TODO: db coherence
+<span class="lineno">   41 </span>data MeasureType
+<span class="lineno">   42 </span>  = MeasureTypeText |
+<span class="lineno">   43 </span>    MeasureTypeNumeric |
+<span class="lineno">   44 </span>    MeasureTypeDate |
+<span class="lineno">   45 </span>    MeasureTypeVoid
+<span class="lineno">   46 </span>  deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>,
+<span class="lineno">   47 </span>            <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span>,
+<span class="lineno">   48 </span>            <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Enum</span></span></span></span></span></span></span></span></span></span></span></span>,
+<span class="lineno">   49 </span>            <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">GHC.Arr.Ix</span></span></span></span></span></span>,
+<span class="lineno">   50 </span>            <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Bounded</span></span></span></span>,
+<span class="lineno">   51 </span>            Data.Typeable.Internal.Typeable)
+<span class="lineno">   52 </span>instance Show MeasureType where
+<span class="lineno">   53 </span>  <span class="decl"><span class="nottickedoff">show MeasureTypeText = &quot;text&quot;</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">show MeasureTypeNumeric = &quot;numeric&quot;</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">show MeasureTypeDate = &quot;date&quot;</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">show MeasureTypeVoid = &quot;void&quot;</span></span>
+<span class="lineno">   57 </span>instance Database.PostgreSQL.Typed.Types.PGType &quot;data_type&quot;
+<span class="lineno">   58 </span>instance Database.PostgreSQL.Typed.Types.PGParameter &quot;data_type&quot; MeasureType where
+<span class="lineno">   59 </span>  <span class="decl"><span class="nottickedoff">pgEncode _ MeasureTypeText</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="nottickedoff">= BS.pack [116, 101, 120, 116]</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">pgEncode _ MeasureTypeNumeric</span>
+<span class="lineno">   62 </span><span class="spaces">    </span><span class="nottickedoff">= BS.pack [110, 117, 109, 101, 114, 105, 99]</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">pgEncode _ MeasureTypeDate</span>
+<span class="lineno">   64 </span><span class="spaces">    </span><span class="nottickedoff">= BS.pack [100, 97, 116, 101]</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">pgEncode _ MeasureTypeVoid</span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="nottickedoff">= BS.pack [118, 111, 105, 100]</span></span>
+<span class="lineno">   67 </span>instance Database.PostgreSQL.Typed.Types.PGColumn &quot;data_type&quot; MeasureType where
+<span class="lineno">   68 </span>  <span class="decl"><span class="nottickedoff">pgDecode _ x_a4zCt</span>
+<span class="lineno">   69 </span><span class="spaces">    </span><span class="nottickedoff">= case BS.unpack x_a4zCt of </span>
+<span class="lineno">   70 </span><span class="spaces">        </span><span class="nottickedoff">[116, 101, 120, 116] -&gt; MeasureTypeText</span>
+<span class="lineno">   71 </span><span class="spaces">        </span><span class="nottickedoff">[110, 117, 109, 101, 114, 105, 99] -&gt; MeasureTypeNumeric</span>
+<span class="lineno">   72 </span><span class="spaces">        </span><span class="nottickedoff">[100, 97, 116, 101] -&gt; MeasureTypeDate</span>
+<span class="lineno">   73 </span><span class="spaces">        </span><span class="nottickedoff">[118, 111, 105, 100] -&gt; MeasureTypeVoid</span>
+<span class="lineno">   74 </span><span class="spaces">        </span><span class="nottickedoff">_ -&gt; error</span>
+<span class="lineno">   75 </span><span class="spaces">               </span><span class="nottickedoff">(&quot;pgDecode data_type: &quot;</span>
+<span class="lineno">   76 </span><span class="spaces">                </span><span class="nottickedoff">++ (Data.ByteString.Char8.unpack x_a4zCt))</span></span> 
+<span class="lineno">   77 </span>instance Database.PostgreSQL.Typed.Dynamic.PGRep &quot;data_type&quot; MeasureType
+<span class="lineno">   78 </span>instance Database.PostgreSQL.Typed.Enum.PGEnum MeasureType
+<span class="lineno">   79 </span>instance Kinded MeasureType where
+<span class="lineno">   80 </span>  <span class="decl"><span class="nottickedoff">kindOf _ = &quot;data_type&quot;</span></span>
+<span class="lineno">   81 </span>instance DBEnum MeasureType
+<span class="lineno">   82 </span>instance Data.Aeson.Types.ToJSON MeasureType where
+<span class="lineno">   83 </span>  <span class="decl"><span class="nottickedoff">toJSON</span>
+<span class="lineno">   84 </span><span class="spaces">    </span><span class="nottickedoff">= (Data.Aeson.Types.toJSON . fromEnum)</span></span>
+<span class="lineno">   85 </span>instance Data.Aeson.Types.FromJSON MeasureType where
+<span class="lineno">   86 </span>  <span class="decl"><span class="nottickedoff">parseJSON = parseJSONEnum</span></span>
+<span class="lineno">   87 </span>instance Databrary.HTTP.Form.Deform.Deform f_a4zCu MeasureType where
+<span class="lineno">   88 </span>  <span class="decl"><span class="nottickedoff">deform = enumForm</span></span>
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>type MeasureDatum = BS.ByteString
+<span class="lineno">   91 </span>
+<span class="lineno">   92 </span>type instance IdType Metric = Int32
+<span class="lineno">   93 </span>
+<span class="lineno">   94 </span>data Metric = Metric
+<span class="lineno">   95 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">metricId</span></span></span> :: !(Id Metric)
+<span class="lineno">   96 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">metricCategory</span></span></span> :: !Category
+<span class="lineno">   97 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">metricName</span></span></span> :: !T.Text
+<span class="lineno">   98 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">metricRelease</span></span></span> :: !(Maybe Release)
+<span class="lineno">   99 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">metricType</span></span></span> :: !MeasureType
+<span class="lineno">  100 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">metricOptions</span></span></span> :: ![MeasureDatum]
+<span class="lineno">  101 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">metricAssumed</span></span></span> :: !(Maybe MeasureDatum)
+<span class="lineno">  102 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">metricDescription</span></span></span> :: !(Maybe T.Text)
+<span class="lineno">  103 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">metricRequired</span></span></span> :: !(Maybe Bool)
+<span class="lineno">  104 </span>  } deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>)
+<span class="lineno">  105 </span>
+<span class="lineno">  106 </span>instance Kinded Metric where
+<span class="lineno">  107 </span>  <span class="decl"><span class="nottickedoff">kindOf _ = &quot;metric&quot;</span></span>
+<span class="lineno">  108 </span>
+<span class="lineno">  109 </span>instance Eq Metric where
+<span class="lineno">  110 </span>  <span class="decl"><span class="istickedoff">(==) = on (==) metricId</span></span>
+<span class="lineno">  111 </span>  <span class="decl"><span class="nottickedoff">(/=) = on (/=) metricId</span></span>
+<span class="lineno">  112 </span>
+<span class="lineno">  113 </span>instance Ord Metric where
+<span class="lineno">  114 </span>  <span class="decl"><span class="istickedoff">compare = comparing metricId</span></span>
+<span class="lineno">  115 </span>
+<span class="lineno">  116 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLiftMany [''MeasureType, ''Metric]</span></span></span></span></span>
+<span class="lineno">  117 </span>
+<span class="lineno">  118 </span>mkParticipantFieldMapping2 :: [(Metric, Text)] -&gt; Either String ParticipantFieldMapping2
+<span class="lineno">  119 </span><span class="decl"><span class="istickedoff">mkParticipantFieldMapping2 metricColumn = do</span>
+<span class="lineno">  120 </span><span class="spaces">    </span><span class="istickedoff">let mpng = Map.fromList metricColumn</span>
+<span class="lineno">  121 </span><span class="spaces">        </span><span class="istickedoff">columns = Map.elems mpng</span>
+<span class="lineno">  122 </span><span class="spaces">    </span><span class="istickedoff">when (length (L.nub columns) /= length columns) <span class="nottickedoff">(Left &quot;columns mapped to are not unique&quot;)</span></span>
+<span class="lineno">  123 </span><span class="spaces">    </span><span class="istickedoff">-- should we enforce minimum required metrics, such as requiring id?</span>
+<span class="lineno">  124 </span><span class="spaces">    </span><span class="istickedoff">(pure . ParticipantFieldMapping2) mpng</span></span>
+<span class="lineno">  125 </span>
+<span class="lineno">  126 </span>lookupField :: Metric -&gt; ParticipantFieldMapping2 -&gt; Maybe Text
+<span class="lineno">  127 </span><span class="decl"><span class="istickedoff">lookupField m (ParticipantFieldMapping2 mp) = Map.lookup m mp</span></span>
+<span class="lineno">  128 </span>
+<span class="lineno">  129 </span>newtype ParticipantFieldMapping2 = ParticipantFieldMapping2 { <span class="istickedoff"><span class="decl"><span class="istickedoff">pfmGetMapping</span></span></span> :: (Map Metric Text) }
+<span class="lineno">  130 </span>    deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>)
+
+</pre>
+</body>
+</html>

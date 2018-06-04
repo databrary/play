@@ -1,0 +1,152 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Model.Funding.FundRef
+<span class="lineno">    3 </span>  ( fundRefDOI
+<span class="lineno">    4 </span>  , lookupFunderRef
+<span class="lineno">    5 </span>  , searchFundRef
+<span class="lineno">    6 </span>  -- for testing
+<span class="lineno">    7 </span>  , annotateFunder
+<span class="lineno">    8 </span>  ) where
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import Control.Monad ((&lt;=&lt;), (&gt;=&gt;), guard, mfilter)
+<span class="lineno">   11 </span>import Control.Monad.IO.Class (MonadIO)
+<span class="lineno">   12 </span>import Control.Monad.Trans.Class (lift)
+<span class="lineno">   13 </span>import Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
+<span class="lineno">   14 </span>import Data.Foldable (fold)
+<span class="lineno">   15 </span>import Data.Function (on)
+<span class="lineno">   16 </span>import qualified Data.HashMap.Strict as HM
+<span class="lineno">   17 </span>import Data.List (stripPrefix, sortBy, nubBy)
+<span class="lineno">   18 </span>import Data.Maybe (fromJust, mapMaybe)
+<span class="lineno">   19 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   20 </span>import Data.Ord (comparing, Down(..))
+<span class="lineno">   21 </span>import Data.String (IsString(..))
+<span class="lineno">   22 </span>import qualified Data.Text as T
+<span class="lineno">   23 </span>import qualified Data.Text.Encoding as TE
+<span class="lineno">   24 </span>import qualified Data.Vector as V
+<span class="lineno">   25 </span>import qualified Network.HTTP.Client as HC
+<span class="lineno">   26 </span>import Text.Read (readMaybe)
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>import Databrary.Ops
+<span class="lineno">   29 </span>import Databrary.Has (MonadHas, focusIO)
+<span class="lineno">   30 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   31 </span>import Databrary.HTTP.Client
+<span class="lineno">   32 </span>import Databrary.Service.DB
+<span class="lineno">   33 </span>import Databrary.Model.Id.Types
+<span class="lineno">   34 </span>import Databrary.Model.GeoNames
+<span class="lineno">   35 </span>import Databrary.Model.Funding
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>fundRefDOI :: String
+<span class="lineno">   38 </span><span class="decl"><span class="nottickedoff">fundRefDOI = &quot;10.13039/&quot;</span></span>
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>-- Not quite like Data.CaseInsensitive (non-strict 'ciFolded')
+<span class="lineno">   41 </span>data CI = CI
+<span class="lineno">   42 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">unCI</span></span></span> :: !T.Text
+<span class="lineno">   43 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">ciFolded</span></span></span> :: T.Text
+<span class="lineno">   44 </span>  }
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>{-# NOINLINE toCI #-} -- toCaseFold's entire switch gets inlined!
+<span class="lineno">   47 </span>toCI :: T.Text -&gt; CI
+<span class="lineno">   48 </span><span class="decl"><span class="istickedoff">toCI t = CI t (T.toCaseFold t)</span></span>
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>instance IsString CI where
+<span class="lineno">   51 </span>  <span class="decl"><span class="nottickedoff">fromString = toCI . fromString</span></span>
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>onCI :: (T.Text -&gt; T.Text -&gt; a) -&gt; CI -&gt; CI -&gt; a
+<span class="lineno">   54 </span><span class="decl"><span class="istickedoff">onCI f = f `on` ciFolded</span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>instance Eq CI where
+<span class="lineno">   57 </span>  <span class="decl"><span class="istickedoff">(==) = onCI (==)</span></span>
+<span class="lineno">   58 </span>  <span class="decl"><span class="nottickedoff">(/=) = onCI (/=)</span></span>
+<span class="lineno">   59 </span>
+<span class="lineno">   60 </span>annotateFunder :: Funder -&gt; [T.Text] -&gt; Maybe T.Text -&gt; Funder
+<span class="lineno">   61 </span><span class="decl"><span class="istickedoff">annotateFunder f [] Nothing = <span class="nottickedoff">f</span></span>
+<span class="lineno">   62 </span><span class="spaces"></span><span class="istickedoff">annotateFunder f@Funder{ funderName = n } a c = f{ funderName =</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="istickedoff">maybe <span class="nottickedoff">id</span> (\cc -&gt; (&lt;&gt; (&quot;, &quot; &lt;&gt; cc))) (mfilter (not . noc . toCI) c)</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="istickedoff">$ case unCI &lt;$&gt; nai' of</span>
+<span class="lineno">   65 </span><span class="spaces">      </span><span class="istickedoff">[] -&gt; <span class="nottickedoff">&quot;&quot;</span> -- impossible</span>
+<span class="lineno">   66 </span><span class="spaces">      </span><span class="istickedoff">[nn] -&gt; <span class="nottickedoff">nn</span></span>
+<span class="lineno">   67 </span><span class="spaces">      </span><span class="istickedoff">(nn:aa) -&gt; nn &lt;&gt; &quot; (&quot; &lt;&gt; T.intercalate &quot;, &quot; aa &lt;&gt; &quot;)&quot;</span>
+<span class="lineno">   68 </span><span class="spaces">  </span><span class="istickedoff">}</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="istickedoff">ni = toCI n</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="istickedoff">ai = toCI &lt;$&gt; sortBy (comparing $ Down . T.length) a</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="istickedoff">nai' = nubBy (onCI T.isInfixOf) $</span>
+<span class="lineno">   73 </span><span class="spaces">    </span><span class="istickedoff">(case filter (T.isInfixOf `onCI` ni) ai of</span>
+<span class="lineno">   74 </span><span class="spaces">      </span><span class="istickedoff">[] -&gt; ni</span>
+<span class="lineno">   75 </span><span class="spaces">      </span><span class="istickedoff">(lni:_) -&gt; <span class="nottickedoff">lni</span>) : ai</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="istickedoff">noc ci = toCI (geoName geoNameUS) == ci || any (T.isInfixOf `onCI` ci) nai'</span></span>
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>parseFundRef :: JSON.Value -&gt; JSON.Parser (Funder, Maybe (Id GeoName))
+<span class="lineno">   79 </span><span class="decl"><span class="nottickedoff">parseFundRef = JSON.withObject &quot;fundref&quot; $ \j -&gt; do</span>
+<span class="lineno">   80 </span><span class="spaces">  </span><span class="nottickedoff">doi &lt;- j JSON..: &quot;id&quot;</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="nottickedoff">fid &lt;- maybe (fail $ &quot;doi: &quot; ++ doi) (return . Id) $ readMaybe =&lt;&lt; stripPrefix (&quot;http://dx.doi.org/&quot; ++ fundRefDOI) doi</span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="nottickedoff">name &lt;- label =&lt;&lt; j JSON..: &quot;prefLabel&quot;</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">let alts = mapMaybe (JSON.parseMaybe (label &lt;=&lt; JSON.parseJSON)) $ case HM.lookup &quot;altLabel&quot; j of</span>
+<span class="lineno">   84 </span><span class="spaces">        </span><span class="nottickedoff">Just (JSON.Array v) -&gt; V.toList v</span>
+<span class="lineno">   85 </span><span class="spaces">        </span><span class="nottickedoff">Just o -&gt; [o]</span>
+<span class="lineno">   86 </span><span class="spaces">        </span><span class="nottickedoff">Nothing -&gt; []</span>
+<span class="lineno">   87 </span><span class="spaces">      </span><span class="nottickedoff">geo = do</span>
+<span class="lineno">   88 </span><span class="spaces">        </span><span class="nottickedoff">r &lt;- JSON.parseMaybe ((JSON..: &quot;country&quot;) &gt;=&gt; (JSON..: &quot;resource&quot;)) j</span>
+<span class="lineno">   89 </span><span class="spaces">        </span><span class="nottickedoff">g &lt;- parseGeoNameRef r</span>
+<span class="lineno">   90 </span><span class="spaces">        </span><span class="nottickedoff">guard (g /= geoNameId geoNameUS)</span>
+<span class="lineno">   91 </span><span class="spaces">        </span><span class="nottickedoff">return g</span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="nottickedoff">return (annotateFunder (Funder fid name) alts Nothing, geo)</span>
+<span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   94 </span><span class="spaces">  </span><span class="nottickedoff">label j = j JSON..: &quot;Label&quot; &gt;&gt;= (JSON..: &quot;literalForm&quot;) &gt;&gt;= (JSON..: &quot;content&quot;)</span></span>
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>lookupFundRef :: Id Funder -&gt; HTTPClient -&gt; IO (Maybe Funder)
+<span class="lineno">   97 </span><span class="decl"><span class="nottickedoff">lookupFundRef fi hcm = runMaybeT $ do</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="nottickedoff">req &lt;- HC.parseRequest $ &quot;http://data.fundref.org/fundref/funder/&quot; ++ fundRefDOI ++ show fi</span>
+<span class="lineno">   99 </span><span class="spaces">  </span><span class="nottickedoff">j &lt;- MaybeT $ httpRequestJSON req hcm</span>
+<span class="lineno">  100 </span><span class="spaces">  </span><span class="nottickedoff">(f, gi) &lt;- MaybeT $ return $ JSON.parseMaybe parseFundRef j</span>
+<span class="lineno">  101 </span><span class="spaces">  </span><span class="nottickedoff">g &lt;- lift $ flatMapM (\i -&gt; lookupGeoName i hcm) gi</span>
+<span class="lineno">  102 </span><span class="spaces">  </span><span class="nottickedoff">return $ annotateFunder f [] (geoName &lt;$&gt; g)</span></span>
+<span class="lineno">  103 </span>
+<span class="lineno">  104 </span>lookupFunderRef :: (MonadIO m, MonadDB c m, MonadHas HTTPClient c m) =&gt; Id Funder -&gt; m (Maybe Funder)
+<span class="lineno">  105 </span><span class="decl"><span class="nottickedoff">lookupFunderRef fi = do</span>
+<span class="lineno">  106 </span><span class="spaces">  </span><span class="nottickedoff">f &lt;- lookupFunder fi</span>
+<span class="lineno">  107 </span><span class="spaces">  </span><span class="nottickedoff">f `orElseM` do</span>
+<span class="lineno">  108 </span><span class="spaces">    </span><span class="nottickedoff">r &lt;- focusIO $ lookupFundRef fi</span>
+<span class="lineno">  109 </span><span class="spaces">    </span><span class="nottickedoff">mapM_ addFunder r</span>
+<span class="lineno">  110 </span><span class="spaces">    </span><span class="nottickedoff">return r</span></span>
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span>parseFundRefs :: JSON.Value -&gt; JSON.Parser [Funder]
+<span class="lineno">  113 </span><span class="decl"><span class="nottickedoff">parseFundRefs = JSON.withArray &quot;fundrefs&quot; $</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="nottickedoff">return . mapMaybe (JSON.parseMaybe pfr) . V.toList</span>
+<span class="lineno">  115 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  116 </span><span class="spaces">  </span><span class="nottickedoff">pfr = JSON.withObject &quot;fundref&quot; $ \j -&gt; do</span>
+<span class="lineno">  117 </span><span class="spaces">    </span><span class="nottickedoff">is &lt;- j JSON..: &quot;id&quot;</span>
+<span class="lineno">  118 </span><span class="spaces">    </span><span class="nottickedoff">i &lt;- maybe (fail &quot;invalid id&quot;) (return . Id) $ readMaybe is</span>
+<span class="lineno">  119 </span><span class="spaces">    </span><span class="nottickedoff">name &lt;- j JSON..: &quot;value&quot;</span>
+<span class="lineno">  120 </span><span class="spaces">    </span><span class="nottickedoff">alts &lt;- j JSON..:? &quot;other_names&quot;</span>
+<span class="lineno">  121 </span><span class="spaces">    </span><span class="nottickedoff">country &lt;- j JSON..:? &quot;country&quot;</span>
+<span class="lineno">  122 </span><span class="spaces">    </span><span class="nottickedoff">return $ annotateFunder (Funder i name) (fold alts) country</span></span>
+<span class="lineno">  123 </span>
+<span class="lineno">  124 </span>fundRefReq :: HC.Request
+<span class="lineno">  125 </span><span class="decl"><span class="nottickedoff">fundRefReq = (fromJust $ HC.parseRequest &quot;http://search.crossref.org/funders&quot;)</span>
+<span class="lineno">  126 </span><span class="spaces">  </span><span class="nottickedoff">{ HC.cookieJar = Nothing }</span></span>
+<span class="lineno">  127 </span>
+<span class="lineno">  128 </span>searchFundRef :: T.Text -&gt; HTTPClient -&gt; IO [Funder]
+<span class="lineno">  129 </span><span class="decl"><span class="nottickedoff">searchFundRef q hcm = do</span>
+<span class="lineno">  130 </span><span class="spaces">  </span><span class="nottickedoff">j &lt;- httpRequestJSON req hcm</span>
+<span class="lineno">  131 </span><span class="spaces">  </span><span class="nottickedoff">return $ fold $ JSON.parseMaybe parseFundRefs =&lt;&lt; j</span>
+<span class="lineno">  132 </span><span class="spaces">  </span><span class="nottickedoff">where req = HC.setQueryString [(&quot;q&quot;, Just $ TE.encodeUtf8 q)] fundRefReq</span></span>
+
+</pre>
+</body>
+</html>

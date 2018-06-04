@@ -1,0 +1,197 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
+<span class="lineno">    2 </span>module Databrary.Controller.Notification
+<span class="lineno">    3 </span>  ( viewNotify
+<span class="lineno">    4 </span>  , postNotify
+<span class="lineno">    5 </span>  , createNotification
+<span class="lineno">    6 </span>  , createVolumeNotification
+<span class="lineno">    7 </span>  , broadcastNotification
+<span class="lineno">    8 </span>  , viewNotifications
+<span class="lineno">    9 </span>  , deleteNotification
+<span class="lineno">   10 </span>  , deleteNotifications
+<span class="lineno">   11 </span>  , forkNotifier
+<span class="lineno">   12 </span>  , updateStateNotifications
+<span class="lineno">   13 </span>  , updateAuthorizeNotifications
+<span class="lineno">   14 </span>  ) where
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import Control.Applicative ((&lt;|&gt;))
+<span class="lineno">   17 </span>import Control.Concurrent (ThreadId, forkFinally, threadDelay)
+<span class="lineno">   18 </span>import Control.Concurrent.MVar (takeMVar, tryTakeMVar)
+<span class="lineno">   19 </span>import Control.Monad (join, when, void, forM_)
+<span class="lineno">   20 </span>import Data.Function (on)
+<span class="lineno">   21 </span>import Data.List (groupBy)
+<span class="lineno">   22 </span>import Data.Time.Clock (getCurrentTime, addUTCTime)
+<span class="lineno">   23 </span>import Database.PostgreSQL.Typed (pgSQL)
+<span class="lineno">   24 </span>import Network.HTTP.Types (noContent204)
+<span class="lineno">   25 </span>import qualified Text.Regex.Posix as Regex
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>import Databrary.Has
+<span class="lineno">   28 </span>import Databrary.Ops
+<span class="lineno">   29 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   30 </span>import Databrary.Service.Types
+<span class="lineno">   31 </span>import Databrary.Service.DB
+<span class="lineno">   32 </span>import Databrary.Service.Notification
+<span class="lineno">   33 </span>import Databrary.Service.Log
+<span class="lineno">   34 </span>import Databrary.Service.Mail
+<span class="lineno">   35 </span>import Databrary.Service.Messages
+<span class="lineno">   36 </span>import Databrary.Context
+<span class="lineno">   37 </span>import Databrary.Model.Id.Types
+<span class="lineno">   38 </span>import Databrary.Model.Party
+<span class="lineno">   39 </span>import Databrary.Model.Volume.Types
+<span class="lineno">   40 </span>import Databrary.Model.Authorize.Types
+<span class="lineno">   41 </span>import Databrary.Model.Notification
+<span class="lineno">   42 </span>import Databrary.HTTP.Path.Parser
+<span class="lineno">   43 </span>import Databrary.HTTP.Form.Deform
+<span class="lineno">   44 </span>import Databrary.Controller.Permission
+<span class="lineno">   45 </span>import Databrary.Controller.Paths
+<span class="lineno">   46 </span>import Databrary.Controller.Form
+<span class="lineno">   47 </span>import Databrary.Action
+<span class="lineno">   48 </span>import Databrary.View.Notification
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>viewNotify :: ActionRoute ()
+<span class="lineno">   51 </span><span class="decl"><span class="nottickedoff">viewNotify = action GET (pathJSON &lt;/&lt; &quot;notify&quot;) $ \() -&gt; withAuth $ do</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">u &lt;- authAccount</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">n &lt;- lookupAccountNotify u</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ JSON.toEncoding n</span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>postNotify :: ActionRoute ()
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">postNotify = action POST (pathJSON &lt;/&lt; &quot;notify&quot;) $ \() -&gt; withAuth $ do</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">u &lt;- authAccount</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">(nl, md) &lt;- runForm Nothing $ do</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="nottickedoff">csrfForm</span>
+<span class="lineno">   61 </span><span class="spaces">    </span><span class="nottickedoff">(,)</span>
+<span class="lineno">   62 </span><span class="spaces">      </span><span class="nottickedoff">&lt;$&gt; (&quot;notice&quot; .:&gt; return &lt;$&gt; deform &lt;|&gt; withSubDeforms (const deform))</span>
+<span class="lineno">   63 </span><span class="spaces">      </span><span class="nottickedoff">&lt;*&gt; (&quot;delivery&quot; .:&gt; deformNonEmpty deform)</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">mapM_ (maybe (void . removeNotify u) (\d n -&gt; changeNotify u n d) md) nl</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">return $ emptyResponse noContent204 []</span></span>
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>createNotification :: Notification -&gt; Handler ()
+<span class="lineno">   68 </span><span class="decl"><span class="nottickedoff">createNotification n' = do</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="nottickedoff">d &lt;- lookupNotify (notificationTarget n') (notificationNotice n')</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="nottickedoff">when (d &gt; DeliveryNone) $ do</span>
+<span class="lineno">   71 </span><span class="spaces">    </span><span class="nottickedoff">n &lt;- addNotification n'</span>
+<span class="lineno">   72 </span><span class="spaces">    </span><span class="nottickedoff">if notificationDelivered n' &gt;= DeliveryAsync</span>
+<span class="lineno">   73 </span><span class="spaces">      </span><span class="nottickedoff">then sendTargetNotifications [n]</span>
+<span class="lineno">   74 </span><span class="spaces">      </span><span class="nottickedoff">else when (d &gt;= DeliveryAsync) $ focusIO $ triggerNotifications Nothing</span></span>
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>broadcastNotification :: Bool -&gt; ((Notice -&gt; Notification) -&gt; Notification) -&gt; Handler ()
+<span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">broadcastNotification add f =</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="nottickedoff">void $ (if add then addBroadcastNotification else removeMatchingNotifications) $ f $ blankNotification $ siteAccount nobodySiteAuth</span></span>
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>createVolumeNotification :: Volume -&gt; ((Notice -&gt; Notification) -&gt; Notification) -&gt; Handler ()
+<span class="lineno">   81 </span><span class="decl"><span class="nottickedoff">createVolumeNotification v f = do</span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="nottickedoff">u &lt;- peek</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">forM_ (volumeOwners v) $ \(p, _) -&gt; when (u /= p) $</span>
+<span class="lineno">   84 </span><span class="spaces">    </span><span class="nottickedoff">createNotification (f $ blankNotification blankAccount{ accountParty = blankParty{ partyRow = (partyRow blankParty){ partyId = p } } })</span>
+<span class="lineno">   85 </span><span class="spaces">      </span><span class="nottickedoff">{ notificationVolume = Just $ volumeRow v }</span></span>
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>viewNotifications :: ActionRoute ()
+<span class="lineno">   88 </span><span class="decl"><span class="nottickedoff">viewNotifications = action GET (pathJSON &lt;/&lt; &quot;notification&quot;) $ \() -&gt; withAuth $ do</span>
+<span class="lineno">   89 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- authAccount</span>
+<span class="lineno">   90 </span><span class="spaces">  </span><span class="nottickedoff">nl &lt;- lookupUserNotifications</span>
+<span class="lineno">   91 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- changeNotificationsDelivery (filter ((DeliverySite &gt;) . notificationDelivered) nl) DeliverySite -- would be nice if it could be done as part of lookupNotifications</span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="nottickedoff">msg &lt;- peek</span>
+<span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $</span>
+<span class="lineno">   94 </span><span class="spaces">    </span><span class="nottickedoff">JSON.mapRecords</span>
+<span class="lineno">   95 </span><span class="spaces">      </span><span class="nottickedoff">(\n -&gt; notificationJSON n `JSON.foldObjectIntoRec` (&quot;html&quot; JSON..= htmlNotification msg n))</span>
+<span class="lineno">   96 </span><span class="spaces">      </span><span class="nottickedoff">nl</span></span>
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>deleteNotification :: ActionRoute (Id Notification)
+<span class="lineno">   99 </span><span class="decl"><span class="nottickedoff">deleteNotification = action DELETE (pathJSON &gt;/&gt; pathId) $ \i -&gt; withAuth $ do</span>
+<span class="lineno">  100 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- authAccount</span>
+<span class="lineno">  101 </span><span class="spaces">  </span><span class="nottickedoff">r &lt;- removeNotification i</span>
+<span class="lineno">  102 </span><span class="spaces">  </span><span class="nottickedoff">if r</span>
+<span class="lineno">  103 </span><span class="spaces">    </span><span class="nottickedoff">then return $ emptyResponse noContent204 []</span>
+<span class="lineno">  104 </span><span class="spaces">    </span><span class="nottickedoff">else peeks notFoundResponse</span></span>
+<span class="lineno">  105 </span>
+<span class="lineno">  106 </span>deleteNotifications :: ActionRoute ()
+<span class="lineno">  107 </span><span class="decl"><span class="nottickedoff">deleteNotifications = action DELETE (pathJSON &gt;/&gt; &quot;notification&quot;) $ \() -&gt; withAuth $ do</span>
+<span class="lineno">  108 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- authAccount</span>
+<span class="lineno">  109 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- removeNotifications</span>
+<span class="lineno">  110 </span><span class="spaces">  </span><span class="nottickedoff">return $ emptyResponse noContent204 []</span></span>
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span>-- |Assumed to be all same target
+<span class="lineno">  113 </span>sendTargetNotifications :: (MonadMail c m, MonadHas Notifications c m, MonadHas Messages c m) =&gt; [Notification] -&gt; m ()
+<span class="lineno">  114 </span><span class="decl"><span class="nottickedoff">sendTargetNotifications l@(Notification{ notificationTarget = u }:_) = do</span>
+<span class="lineno">  115 </span><span class="spaces">  </span><span class="nottickedoff">Notifications{ notificationsFilter = filt, notificationsCopy = copy } &lt;- peek</span>
+<span class="lineno">  116 </span><span class="spaces">  </span><span class="nottickedoff">msg &lt;- peek</span>
+<span class="lineno">  117 </span><span class="spaces">  </span><span class="nottickedoff">sendMail (map Right (filter (Regex.matchTest filt . accountEmail) [u])) (maybe [] (return . Left) copy)</span>
+<span class="lineno">  118 </span><span class="spaces">    </span><span class="nottickedoff">&quot;Databrary notifications&quot;</span>
+<span class="lineno">  119 </span><span class="spaces">    </span><span class="nottickedoff">$ mailNotifications msg l</span>
+<span class="lineno">  120 </span><span class="spaces"></span><span class="nottickedoff">sendTargetNotifications [] = return ()</span></span>
+<span class="lineno">  121 </span>
+<span class="lineno">  122 </span>emitNotifications :: Delivery -&gt; ContextM ()
+<span class="lineno">  123 </span><span class="decl"><span class="nottickedoff">emitNotifications d = do</span>
+<span class="lineno">  124 </span><span class="spaces">  </span><span class="nottickedoff">unl &lt;- lookupUndeliveredNotifications d</span>
+<span class="lineno">  125 </span><span class="spaces">  </span><span class="nottickedoff">mapM_ sendTargetNotifications $ groupBy ((==) `on` partyId . partyRow . accountParty . notificationTarget) unl</span>
+<span class="lineno">  126 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- changeNotificationsDelivery unl d</span>
+<span class="lineno">  127 </span><span class="spaces">  </span><span class="nottickedoff">return ()</span></span>
+<span class="lineno">  128 </span>
+<span class="lineno">  129 </span>runNotifier :: Service -&gt; IO ()
+<span class="lineno">  130 </span><span class="decl"><span class="nottickedoff">runNotifier rc = loop where</span>
+<span class="lineno">  131 </span><span class="spaces">  </span><span class="nottickedoff">t = notificationsTrigger $ serviceNotification rc</span>
+<span class="lineno">  132 </span><span class="spaces">  </span><span class="nottickedoff">loop = do</span>
+<span class="lineno">  133 </span><span class="spaces">    </span><span class="nottickedoff">d' &lt;- takeMVar t</span>
+<span class="lineno">  134 </span><span class="spaces">    </span><span class="nottickedoff">d &lt;- d' `orElseM` do</span>
+<span class="lineno">  135 </span><span class="spaces">      </span><span class="nottickedoff">threadDelay 60000000 -- 60 second throttle on async notifications</span>
+<span class="lineno">  136 </span><span class="spaces">      </span><span class="nottickedoff">join &lt;$&gt; tryTakeMVar t</span>
+<span class="lineno">  137 </span><span class="spaces">    </span><span class="nottickedoff">runContextM (emitNotifications $ periodicDelivery d) rc</span>
+<span class="lineno">  138 </span><span class="spaces">    </span><span class="nottickedoff">loop</span></span>
+<span class="lineno">  139 </span>
+<span class="lineno">  140 </span>forkNotifier :: Service -&gt; IO ThreadId
+<span class="lineno">  141 </span><span class="decl"><span class="nottickedoff">forkNotifier rc = forkFinally (runNotifier rc) $ \r -&gt; do</span>
+<span class="lineno">  142 </span><span class="spaces">  </span><span class="nottickedoff">t &lt;- getCurrentTime</span>
+<span class="lineno">  143 </span><span class="spaces">  </span><span class="nottickedoff">logMsg t (&quot;notifier aborted: &quot; ++ show r) (view rc)</span></span>
+<span class="lineno">  144 </span>
+<span class="lineno">  145 </span>updateStateNotifications :: MonadDB c m =&gt; m ()
+<span class="lineno">  146 </span><span class="decl"><span class="nottickedoff">updateStateNotifications =</span>
+<span class="lineno">  147 </span><span class="spaces">  </span><span class="nottickedoff">dbTransaction $ dbExecute_ [pgSQL|#</span>
+<span class="lineno">  148 </span><span class="spaces">    </span><span class="nottickedoff">CREATE TEMPORARY TABLE notification_authorize_expire (id, target, party, permission, time, notice) ON COMMIT DROP</span>
+<span class="lineno">  149 </span><span class="spaces">      </span><span class="nottickedoff">AS   WITH authorize_expire AS (SELECT * FROM authorize WHERE expires BETWEEN CURRENT_TIMESTAMP - interval '30 days' AND CURRENT_TIMESTAMP + interval '1 week')</span>
+<span class="lineno">  150 </span><span class="spaces">         </span><span class="nottickedoff">SELECT notification.id, COALESCE(child, target), COALESCE(parent, party), site, expires, CASE WHEN expires &lt;= CURRENT_TIMESTAMP THEN ${NoticeAuthorizeExpired} WHEN expires &gt; CURRENT_TIMESTAMP THEN ${NoticeAuthorizeExpiring} END</span>
+<span class="lineno">  151 </span><span class="spaces">           </span><span class="nottickedoff">FROM notification FULL JOIN authorize_expire JOIN account ON child = id ON child = target AND parent = party</span>
+<span class="lineno">  152 </span><span class="spaces">          </span><span class="nottickedoff">WHERE (notice IS NULL OR notice = ${NoticeAuthorizeExpiring} OR notice = ${NoticeAuthorizeExpired})</span>
+<span class="lineno">  153 </span><span class="spaces">      </span><span class="nottickedoff">UNION ALL</span>
+<span class="lineno">  154 </span><span class="spaces">         </span><span class="nottickedoff">SELECT notification.id, COALESCE(parent, target), COALESCE(child, party), site, expires, CASE WHEN expires &lt;= CURRENT_TIMESTAMP THEN ${NoticeAuthorizeChildExpired} WHEN expires &gt; CURRENT_TIMESTAMP THEN ${NoticeAuthorizeChildExpiring} END</span>
+<span class="lineno">  155 </span><span class="spaces">           </span><span class="nottickedoff">FROM notification FULL JOIN authorize_expire JOIN account ON parent = id ON parent = target AND child = party</span>
+<span class="lineno">  156 </span><span class="spaces">          </span><span class="nottickedoff">WHERE (notice IS NULL OR notice = ${NoticeAuthorizeChildExpiring} OR notice = ${NoticeAuthorizeChildExpired});</span>
+<span class="lineno">  157 </span><span class="spaces">    </span><span class="nottickedoff">DELETE FROM notification USING notification_authorize_expire nae</span>
+<span class="lineno">  158 </span><span class="spaces">          </span><span class="nottickedoff">WHERE notification.id = nae.id AND nae.notice IS NULL;</span>
+<span class="lineno">  159 </span><span class="spaces">    </span><span class="nottickedoff">UPDATE notification SET notice = nae.notice, time = nae.time, delivered = CASE WHEN notification.notice = nae.notice THEN delivered ELSE 'none' END, permission = nae.permission</span>
+<span class="lineno">  160 </span><span class="spaces">      </span><span class="nottickedoff">FROM notification_authorize_expire nae WHERE notification.id = nae.id;</span>
+<span class="lineno">  161 </span><span class="spaces">    </span><span class="nottickedoff">INSERT INTO notification (notice, target, party, permission, time, agent)</span>
+<span class="lineno">  162 </span><span class="spaces">         </span><span class="nottickedoff">SELECT notice, target, party, permission, time, ${partyId $ partyRow nobodyParty}</span>
+<span class="lineno">  163 </span><span class="spaces">           </span><span class="nottickedoff">FROM notification_authorize_expire WHERE id IS NULL;</span>
+<span class="lineno">  164 </span><span class="spaces">  </span><span class="nottickedoff">|]</span></span>
+<span class="lineno">  165 </span>
+<span class="lineno">  166 </span>updateAuthorizeNotifications :: (MonadHas ActionContext c m, MonadDB c m) =&gt; Maybe Authorize -&gt; Authorize -&gt; m ()
+<span class="lineno">  167 </span><span class="decl"><span class="nottickedoff">updateAuthorizeNotifications Nothing _ = return ()</span>
+<span class="lineno">  168 </span><span class="spaces"></span><span class="nottickedoff">updateAuthorizeNotifications (Just Authorize{ authorizeExpires = o }) Authorize{ authorization = Authorization{ authorizeChild = Party{ partyRow = PartyRow{ partyId = c } }, authorizeParent = Party{ partyRow = PartyRow{ partyId = p } } }, authorizeExpires = e } = do</span>
+<span class="lineno">  169 </span><span class="spaces">  </span><span class="nottickedoff">t &lt;- peeks contextTimestamp</span>
+<span class="lineno">  170 </span><span class="spaces">  </span><span class="nottickedoff">let t' = addUTCTime 691200 t</span>
+<span class="lineno">  171 </span><span class="spaces">  </span><span class="nottickedoff">when (all (t' &lt;) e &amp;&amp; any (t' &gt;=) o) $</span>
+<span class="lineno">  172 </span><span class="spaces">    </span><span class="nottickedoff">dbExecute_ [pgSQL|#</span>
+<span class="lineno">  173 </span><span class="spaces">      </span><span class="nottickedoff">DELETE FROM notification</span>
+<span class="lineno">  174 </span><span class="spaces">       </span><span class="nottickedoff">WHERE agent = ${partyId $ partyRow nobodyParty}</span>
+<span class="lineno">  175 </span><span class="spaces">         </span><span class="nottickedoff">AND (((notice = ${NoticeAuthorizeExpiring} OR notice = ${NoticeAuthorizeExpired}) AND target = ${c} AND party = ${p})</span>
+<span class="lineno">  176 </span><span class="spaces">           </span><span class="nottickedoff">OR ((notice = ${NoticeAuthorizeChildExpiring} OR notice = ${NoticeAuthorizeChildExpired}) AND target = ${p} AND party = ${c}))</span>
+<span class="lineno">  177 </span><span class="spaces">    </span><span class="nottickedoff">|]</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.View.Form
+<span class="lineno">    3 </span>  ( FormHtml
+<span class="lineno">    4 </span>  , field
+<span class="lineno">    5 </span>  , inputText
+<span class="lineno">    6 </span>  , inputTextarea
+<span class="lineno">    7 </span>  , inputPassword
+<span class="lineno">    8 </span>  , inputCheckbox
+<span class="lineno">    9 </span>  , inputSelect
+<span class="lineno">   10 </span>  , inputEnum
+<span class="lineno">   11 </span>  , inputDate
+<span class="lineno">   12 </span>  , inputFile
+<span class="lineno">   13 </span>  , inputHidden
+<span class="lineno">   14 </span>  , csrfForm
+<span class="lineno">   15 </span>  , htmlForm
+<span class="lineno">   16 </span>  ) where
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import Control.Applicative ((&lt;|&gt;))
+<span class="lineno">   19 </span>import Control.Monad (when)
+<span class="lineno">   20 </span>import Control.Monad.Reader (reader)
+<span class="lineno">   21 </span>import Control.Monad.Trans.Class (lift)
+<span class="lineno">   22 </span>import Control.Monad.Trans.Control (liftWith)
+<span class="lineno">   23 </span>import qualified Data.ByteString as BS
+<span class="lineno">   24 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">   25 </span>import Data.Foldable (fold)
+<span class="lineno">   26 </span>import qualified Data.Text as T
+<span class="lineno">   27 </span>import Data.Time.Format (formatTime, defaultTimeLocale)
+<span class="lineno">   28 </span>import qualified Text.Blaze.Internal as M
+<span class="lineno">   29 </span>import qualified Text.Blaze.Html5 as H
+<span class="lineno">   30 </span>import qualified Text.Blaze.Html5.Attributes as HA
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>import Databrary.Ops
+<span class="lineno">   33 </span>import Databrary.Has (view)
+<span class="lineno">   34 </span>import Databrary.Model.Enum
+<span class="lineno">   35 </span>import Databrary.Model.Time
+<span class="lineno">   36 </span>import Databrary.Model.Token
+<span class="lineno">   37 </span>import Databrary.Model.Identity
+<span class="lineno">   38 </span>import Databrary.Action
+<span class="lineno">   39 </span>import Databrary.HTTP.Form
+<span class="lineno">   40 </span>import Databrary.HTTP.Form.Errors
+<span class="lineno">   41 </span>import Databrary.HTTP.Form.View
+<span class="lineno">   42 </span>import Databrary.View.Html
+<span class="lineno">   43 </span>import Databrary.View.Template
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>import {-# SOURCE #-} Databrary.Controller.Angular
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>type FormHtmlM f = FormViewT f M.MarkupM
+<span class="lineno">   48 </span>type FormHtml f = FormHtmlM f ()
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>pathId :: FormHtmlM f H.AttributeValue
+<span class="lineno">   51 </span><span class="decl"><span class="nottickedoff">pathId = reader (byteStringValue . formPathBS)</span></span>
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>value :: FormHtmlM f (Maybe BS.ByteString)
+<span class="lineno">   54 </span><span class="decl"><span class="nottickedoff">value = do</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">val &lt;- reader formDatum</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">return $ case val of</span>
+<span class="lineno">   57 </span><span class="spaces">    </span><span class="nottickedoff">FormDatumNone -&gt; Nothing</span>
+<span class="lineno">   58 </span><span class="spaces">    </span><span class="nottickedoff">FormDatumJSON _ -&gt; Nothing -- that's weird</span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="nottickedoff">FormDatumBS b -&gt; (BS.null b) `unlessUse` b</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="nottickedoff">FormDatumFlag -&gt; Nothing</span></span>
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>errorList :: [FormErrorMessage] -&gt; H.Html
+<span class="lineno">   63 </span><span class="decl"><span class="nottickedoff">errorList [] = mempty</span>
+<span class="lineno">   64 </span><span class="spaces"></span><span class="nottickedoff">errorList err =</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">H.ul H.! HA.class_ &quot;error-list&quot; $ mapM_</span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="nottickedoff">((H.li H.! HA.class_ &quot;error&quot;) . H.toHtml) err</span></span>
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>errorLists :: [(FormPath, FormErrorMessage)] -&gt; H.Html
+<span class="lineno">   69 </span><span class="decl"><span class="nottickedoff">errorLists [] = mempty</span>
+<span class="lineno">   70 </span><span class="spaces"></span><span class="nottickedoff">errorLists err =</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">H.dl H.! HA.class_ &quot;error-list&quot; $ mapM_ (\(p,e) -&gt; do</span>
+<span class="lineno">   72 </span><span class="spaces">    </span><span class="nottickedoff">H.dt $ H.toHtml (formPathText p)</span>
+<span class="lineno">   73 </span><span class="spaces">    </span><span class="nottickedoff">H.dd H.! HA.class_ &quot;error&quot; $ H.toHtml e) err</span></span>
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>_label :: H.AttributeValue -&gt; H.Html -&gt; H.Html
+<span class="lineno">   76 </span><span class="decl"><span class="nottickedoff">_label ref = H.label</span>
+<span class="lineno">   77 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.for ref</span></span>
+<span class="lineno">   78 </span>
+<span class="lineno">   79 </span>type Field = H.AttributeValue -&gt; Maybe BS.ByteString -&gt; H.Html
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>field :: T.Text -&gt; Field -&gt; FormHtml f
+<span class="lineno">   82 </span><span class="decl"><span class="nottickedoff">field k sub = k .:&gt; do</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">ref &lt;- pathId</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">err &lt;- formViewErrors</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="nottickedoff">val &lt;- value</span>
+<span class="lineno">   86 </span><span class="spaces">  </span><span class="nottickedoff">lift $ H.label $ do</span>
+<span class="lineno">   87 </span><span class="spaces">    </span><span class="nottickedoff">H.toHtml k</span>
+<span class="lineno">   88 </span><span class="spaces">    </span><span class="nottickedoff">sub ref val</span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="nottickedoff">errorList err</span>
+<span class="lineno">   90 </span><span class="spaces">    </span><span class="nottickedoff">H.br</span></span>
+<span class="lineno">   91 </span>
+<span class="lineno">   92 </span>inputText :: H.ToValue a =&gt; Maybe a -&gt; Field
+<span class="lineno">   93 </span><span class="decl"><span class="nottickedoff">inputText val ref dat = H.input</span>
+<span class="lineno">   94 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.type_ &quot;text&quot;</span>
+<span class="lineno">   95 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.id    ref</span>
+<span class="lineno">   96 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.name  ref</span>
+<span class="lineno">   97 </span><span class="spaces">  </span><span class="nottickedoff">!? (HA.value &lt;$&gt; (fmap byteStringValue dat &lt;|&gt; fmap H.toValue val))</span></span>
+<span class="lineno">   98 </span>
+<span class="lineno">   99 </span>inputTextarea :: H.ToMarkup a =&gt; Maybe a -&gt; Field
+<span class="lineno">  100 </span><span class="decl"><span class="nottickedoff">inputTextarea val ref dat = H.textarea</span>
+<span class="lineno">  101 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.id    ref</span>
+<span class="lineno">  102 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.name  ref</span>
+<span class="lineno">  103 </span><span class="spaces">  </span><span class="nottickedoff">$ fold $ fmap byteStringHtml dat &lt;|&gt; fmap H.toHtml val</span></span>
+<span class="lineno">  104 </span>
+<span class="lineno">  105 </span>inputPassword :: Field
+<span class="lineno">  106 </span><span class="decl"><span class="nottickedoff">inputPassword ref _ = H.input</span>
+<span class="lineno">  107 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.type_ &quot;password&quot;</span>
+<span class="lineno">  108 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.id    ref</span>
+<span class="lineno">  109 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.name  ref</span></span>
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>inputCheckbox :: Bool -&gt; Field
+<span class="lineno">  112 </span><span class="decl"><span class="nottickedoff">inputCheckbox val ref dat = H.input</span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.type_ &quot;checkbox&quot;</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.id    ref</span>
+<span class="lineno">  115 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.name  ref</span>
+<span class="lineno">  116 </span><span class="spaces">  </span><span class="nottickedoff">H.!? (maybe val (const True) dat, HA.checked &quot;checked&quot;)</span></span>
+<span class="lineno">  117 </span>
+<span class="lineno">  118 </span>inputSelect :: H.ToMarkup b =&gt; Maybe BS.ByteString -&gt; [(BS.ByteString, b)] -&gt; Field
+<span class="lineno">  119 </span><span class="decl"><span class="nottickedoff">inputSelect val choices ref dat = H.select</span>
+<span class="lineno">  120 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.id   ref</span>
+<span class="lineno">  121 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.name ref</span>
+<span class="lineno">  122 </span><span class="spaces">  </span><span class="nottickedoff">$ mapM_ (\(v, c) -&gt; H.option</span>
+<span class="lineno">  123 </span><span class="spaces">    </span><span class="nottickedoff">H.!  HA.value (byteStringValue v)</span>
+<span class="lineno">  124 </span><span class="spaces">    </span><span class="nottickedoff">H.!? (any (v ==) (dat &lt;|&gt; val), HA.selected &quot;selected&quot;)</span>
+<span class="lineno">  125 </span><span class="spaces">    </span><span class="nottickedoff">$ H.toHtml c) choices</span></span>
+<span class="lineno">  126 </span>
+<span class="lineno">  127 </span>inputEnum :: forall a . DBEnum a =&gt; Bool -&gt; Maybe a -&gt; Field
+<span class="lineno">  128 </span><span class="decl"><span class="nottickedoff">inputEnum req val =</span>
+<span class="lineno">  129 </span><span class="spaces">  </span><span class="nottickedoff">inputSelect (bshow &lt;$&gt; val) $ (if req then id else ((&quot;&quot;, &quot;&quot;) :)) $ map (\(x, v) -&gt; (bshow (x :: a), v)) pgEnumValues</span>
+<span class="lineno">  130 </span><span class="spaces">  </span><span class="nottickedoff">where bshow = BSC.pack . show . fromEnum</span></span>
+<span class="lineno">  131 </span>
+<span class="lineno">  132 </span>inputDate :: Maybe Date -&gt; Field
+<span class="lineno">  133 </span><span class="decl"><span class="nottickedoff">inputDate val ref dat = H.input</span>
+<span class="lineno">  134 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.type_ &quot;date&quot;</span>
+<span class="lineno">  135 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.id    ref</span>
+<span class="lineno">  136 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.name  ref</span>
+<span class="lineno">  137 </span><span class="spaces">  </span><span class="nottickedoff">!? (HA.value &lt;$&gt; (fmap byteStringValue dat &lt;|&gt; fmap (H.toValue . formatTime defaultTimeLocale &quot;%F&quot;) val))</span></span>
+<span class="lineno">  138 </span>
+<span class="lineno">  139 </span>inputFile :: Field
+<span class="lineno">  140 </span><span class="decl"><span class="nottickedoff">inputFile ref _ = H.input</span>
+<span class="lineno">  141 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.type_ &quot;file&quot;</span>
+<span class="lineno">  142 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.id    ref</span>
+<span class="lineno">  143 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.name  ref</span></span>
+<span class="lineno">  144 </span>
+<span class="lineno">  145 </span>inputHidden :: H.ToValue a =&gt; a -&gt; Field
+<span class="lineno">  146 </span><span class="decl"><span class="nottickedoff">inputHidden val ref dat = H.input</span>
+<span class="lineno">  147 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.type_ &quot;hidden&quot;</span>
+<span class="lineno">  148 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.id    ref</span>
+<span class="lineno">  149 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.name  ref</span>
+<span class="lineno">  150 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.value (maybe (H.toValue val) byteStringValue dat)</span></span>
+<span class="lineno">  151 </span>
+<span class="lineno">  152 </span>csrfForm :: RequestContext -&gt; FormHtml f
+<span class="lineno">  153 </span><span class="decl"><span class="nottickedoff">csrfForm =</span>
+<span class="lineno">  154 </span><span class="spaces">    </span><span class="nottickedoff">lift . extractFromIdentifiedSessOrDefault mempty (\s -&gt; inputHidden (byteStringValue $ sessionVerf s) &quot;csverf&quot; Nothing) . view</span></span>
+<span class="lineno">  155 </span>
+<span class="lineno">  156 </span>htmlForm :: T.Text -&gt; ActionRoute a -&gt; a -&gt; FormHtml f -&gt; (JSOpt -&gt; H.Html) -&gt; RequestContext -&gt; FormHtml f
+<span class="lineno">  157 </span><span class="decl"><span class="nottickedoff">htmlForm title act arg form body req = liftWith $ \run -&gt; do</span>
+<span class="lineno">  158 </span><span class="spaces">  </span><span class="nottickedoff">htmlTemplate req (Just title) $ \js -&gt; do</span>
+<span class="lineno">  159 </span><span class="spaces">    </span><span class="nottickedoff">actionForm act arg js $ do</span>
+<span class="lineno">  160 </span><span class="spaces">      </span><span class="nottickedoff">(_, err) &lt;- run $ when (actionMethod act arg /= GET) (csrfForm req) &gt;&gt; form</span>
+<span class="lineno">  161 </span><span class="spaces">      </span><span class="nottickedoff">errorLists $ allFormErrors err</span>
+<span class="lineno">  162 </span><span class="spaces">      </span><span class="nottickedoff">H.input</span>
+<span class="lineno">  163 </span><span class="spaces">        </span><span class="nottickedoff">H.! HA.type_ &quot;submit&quot;</span>
+<span class="lineno">  164 </span><span class="spaces">    </span><span class="nottickedoff">body js</span></span>
+
+</pre>
+</body>
+</html>

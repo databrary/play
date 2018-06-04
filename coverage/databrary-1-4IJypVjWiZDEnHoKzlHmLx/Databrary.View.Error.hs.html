@@ -1,0 +1,39 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.View.Error
+<span class="lineno">    3 </span>  ( htmlNotFound
+<span class="lineno">    4 </span>  , htmlForbidden
+<span class="lineno">    5 </span>  ) where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import Control.Monad (void)
+<span class="lineno">    8 </span>import qualified Text.Blaze.Html5 as H
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import Databrary.Action.Types
+<span class="lineno">   11 </span>import Databrary.View.Template
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>htmlNotFound :: RequestContext -&gt; H.Html
+<span class="lineno">   14 </span><span class="decl"><span class="nottickedoff">htmlNotFound req = htmlTemplate req (Just &quot;Not found&quot;) $ \_ -&gt; do</span>
+<span class="lineno">   15 </span><span class="spaces">  </span><span class="nottickedoff">void $ &quot;The resource you requested may no longer be available.&quot;</span></span>
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>htmlForbidden :: RequestContext -&gt; H.Html
+<span class="lineno">   18 </span><span class="decl"><span class="nottickedoff">htmlForbidden req = htmlTemplate req (Just &quot;Access denied&quot;) $ \_ -&gt; do</span>
+<span class="lineno">   19 </span><span class="spaces">  </span><span class="nottickedoff">void $ &quot;You do not have access to the requested resource.&quot;</span></span>
+
+</pre>
+</body>
+</html>

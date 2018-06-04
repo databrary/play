@@ -1,0 +1,49 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
+<span class="lineno">    2 </span>module Databrary.View.Activity
+<span class="lineno">    3 </span>  ( htmlSiteActivity
+<span class="lineno">    4 </span>  ) where
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>import qualified Data.Array.Unboxed as A
+<span class="lineno">    7 </span>import Data.List (find)
+<span class="lineno">    8 </span>import qualified Data.Map.Strict as M
+<span class="lineno">    9 </span>import qualified Text.Blaze.Html5 as H
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import Databrary.Model.Stats.Types
+<span class="lineno">   12 </span>import Databrary.Model.Permission.Types
+<span class="lineno">   13 </span>import Databrary.Model.Category
+<span class="lineno">   14 </span>import Databrary.Action.Types
+<span class="lineno">   15 </span>import Databrary.View.Template
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>htmlSiteActivity :: SiteStats -&gt; RequestContext -&gt; H.Html
+<span class="lineno">   18 </span><span class="decl"><span class="nottickedoff">htmlSiteActivity SiteStats{..} req = htmlTemplate req (Just &quot;activity&quot;) $ \_ -&gt; do</span>
+<span class="lineno">   19 </span><span class="spaces">  </span><span class="nottickedoff">H.ul $ do</span>
+<span class="lineno">   20 </span><span class="spaces">    </span><span class="nottickedoff">H.li $ sh (statsAuthorizedSite A.! PermissionEDIT) &gt;&gt; &quot; authorized PIs&quot;</span>
+<span class="lineno">   21 </span><span class="spaces">    </span><span class="nottickedoff">H.li $ sh (statsAuthorizedSite A.! PermissionREAD) &gt;&gt; &quot; affiliates who have access to the shared data&quot;</span>
+<span class="lineno">   22 </span><span class="spaces">    </span><span class="nottickedoff">H.li $ sh (statsAuthorizedSite A.! PermissionADMIN) &gt;&gt; &quot; universities&quot;</span>
+<span class="lineno">   23 </span><span class="spaces">    </span><span class="nottickedoff">H.li $ sh statsVolumes &gt;&gt; &quot; volumes, &quot; &gt;&gt; sh statsVolumesShared &gt;&gt; &quot; have been opened for sharing&quot;</span>
+<span class="lineno">   24 </span><span class="spaces">    </span><span class="nottickedoff">H.li $ sh statsAssetDuration &gt;&gt; &quot; of recordings and &quot; &gt;&gt; sh statsAssets &gt;&gt; &quot; files from &quot; &gt;&gt; sh (maybe 0 ((statsRecords M.!) . categoryId) participant) &gt;&gt; &quot; participants&quot;</span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="nottickedoff">return ()</span>
+<span class="lineno">   26 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   27 </span><span class="spaces">  </span><span class="nottickedoff">participant = find ((&quot;participant&quot; ==) . categoryName) allCategories</span>
+<span class="lineno">   28 </span><span class="spaces">  </span><span class="nottickedoff">sh :: Show a =&gt; a -&gt; H.Markup</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="nottickedoff">sh = H.string . show</span></span>
+
+</pre>
+</body>
+</html>

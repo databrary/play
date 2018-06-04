@@ -1,0 +1,67 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Model.Release.SQL
+<span class="lineno">    3 </span>  ( releaseRow
+<span class="lineno">    4 </span>  , insertRelease
+<span class="lineno">    5 </span>  , updateRelease
+<span class="lineno">    6 </span>  , deleteRelease
+<span class="lineno">    7 </span>  ) where
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import qualified Language.Haskell.TH as TH
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import Databrary.Model.SQL.Select
+<span class="lineno">   12 </span>import Databrary.Model.Audit.SQL
+<span class="lineno">   13 </span>import Databrary.Model.Slot.SQL
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>releaseRow :: Selector -- ^ @'Release'@
+<span class="lineno">   16 </span><span class="decl"><span class="nottickedoff">releaseRow = selectColumn &quot;slot_release&quot; &quot;release&quot;</span></span>
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>releaseSets :: String -- ^ @'Release'@
+<span class="lineno">   19 </span>  -&gt; [(String, String)]
+<span class="lineno">   20 </span><span class="decl"><span class="nottickedoff">releaseSets o =</span>
+<span class="lineno">   21 </span><span class="spaces">  </span><span class="nottickedoff">[ (&quot;release&quot;, &quot;${&quot; ++ o ++ &quot;}&quot;)</span>
+<span class="lineno">   22 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>insertRelease :: TH.Name -- ^ @'AuditIdentity'@
+<span class="lineno">   25 </span>  -&gt; TH.Name -- ^ @'Slot'@
+<span class="lineno">   26 </span>  -&gt; TH.Name -- ^ @'Release'@
+<span class="lineno">   27 </span>  -&gt; TH.ExpQ
+<span class="lineno">   28 </span><span class="decl"><span class="nottickedoff">insertRelease ident s c = auditInsert ident &quot;slot_release&quot;</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="nottickedoff">(slotKeys (nameRef s) ++ releaseSets (nameRef c))</span>
+<span class="lineno">   30 </span><span class="spaces">  </span><span class="nottickedoff">Nothing</span></span>
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>updateRelease :: TH.Name -- ^ @'AuditIdentity'@
+<span class="lineno">   33 </span>  -&gt; TH.Name -- ^ @'Slot'@
+<span class="lineno">   34 </span>  -&gt; TH.Name -- ^ @'Release'@
+<span class="lineno">   35 </span>  -&gt; TH.ExpQ -- ^ @'Release'@
+<span class="lineno">   36 </span><span class="decl"><span class="nottickedoff">updateRelease ident s c = auditUpdate ident &quot;slot_release&quot;</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="nottickedoff">(releaseSets (nameRef c))</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="nottickedoff">(whereEq $ slotKeys (nameRef s))</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="nottickedoff">Nothing</span></span>
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>deleteRelease :: TH.Name -- ^ @'AuditIdentity'@
+<span class="lineno">   42 </span>  -&gt; TH.Name -- ^ @'Slot'@
+<span class="lineno">   43 </span>  -&gt; TH.ExpQ -- ^ @()@
+<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">deleteRelease ident o = auditDelete ident &quot;slot_release&quot;</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">(&quot;container = ${containerId $ containerRow $ slotContainer &quot; ++ os ++ &quot;} AND segment &lt;@ ${slotSegment &quot; ++ os ++ &quot;}&quot;)</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">Nothing</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="nottickedoff">where os = nameRef o</span></span>
+
+</pre>
+</body>
+</html>

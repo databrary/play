@@ -1,0 +1,188 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, RecordWildCards, ScopedTypeVariables, DataKinds #-}
+<span class="lineno">    2 </span>module Databrary.Model.Volume
+<span class="lineno">    3 </span>  ( module Databrary.Model.Volume.Types
+<span class="lineno">    4 </span>  , coreVolume
+<span class="lineno">    5 </span>  , lookupVolume
+<span class="lineno">    6 </span>  , changeVolume
+<span class="lineno">    7 </span>  , addVolume
+<span class="lineno">    8 </span>  , auditVolumeDownload
+<span class="lineno">    9 </span>  , VolumeFilter(..)
+<span class="lineno">   10 </span>  , findVolumes
+<span class="lineno">   11 </span>  , getVolumeAlias
+<span class="lineno">   12 </span>  , volumeRowJSON
+<span class="lineno">   13 </span>  , volumeJSON
+<span class="lineno">   14 </span>  , volumeJSONSimple
+<span class="lineno">   15 </span>  , updateVolumeIndex
+<span class="lineno">   16 </span>  ) where
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import Control.Applicative ((&lt;|&gt;))
+<span class="lineno">   19 </span>import Control.Monad (guard)
+<span class="lineno">   20 </span>import qualified Data.ByteString as BS
+<span class="lineno">   21 </span>import Data.List (find)
+<span class="lineno">   22 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   23 </span>import qualified Data.Time as TM
+<span class="lineno">   24 </span>import qualified Data.Text as T
+<span class="lineno">   25 </span>import Database.PostgreSQL.Typed.Query (pgSQL, unsafeModifyQuery)
+<span class="lineno">   26 </span>import Database.PostgreSQL.Typed.Dynamic (pgLiteralRep)
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>import Databrary.Has (peek, view)
+<span class="lineno">   29 </span>import Databrary.Service.DB
+<span class="lineno">   30 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   31 </span>import Databrary.Model.SQL (selectQuery)
+<span class="lineno">   32 </span>import Databrary.Model.Paginate (Paginate (..), def)
+<span class="lineno">   33 </span>import Databrary.Model.Paginate.SQL (paginateSQL)
+<span class="lineno">   34 </span>import Databrary.Model.Id
+<span class="lineno">   35 </span>import Databrary.Model.Permission
+<span class="lineno">   36 </span>import Databrary.Model.Audit
+<span class="lineno">   37 </span>import Databrary.Model.Party.Types
+<span class="lineno">   38 </span>import Databrary.Model.Identity.Types
+<span class="lineno">   39 </span>import Databrary.Model.Volume.Types
+<span class="lineno">   40 </span>import Databrary.Model.Volume.SQL
+<span class="lineno">   41 </span>import Databrary.Model.VolumeAccess.Types (VolumeAccess(..))
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>coreVolume :: Volume
+<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">coreVolume = -- TODO: load on startup in lookups service module</span>
+<span class="lineno">   45 </span><span class="spaces">      </span><span class="nottickedoff">Volume</span>
+<span class="lineno">   46 </span><span class="spaces">            </span><span class="nottickedoff">(VolumeRow (Id 0) (T.pack &quot;Core&quot;) Nothing Nothing Nothing)</span>
+<span class="lineno">   47 </span><span class="spaces">            </span><span class="nottickedoff">(TM.UTCTime</span>
+<span class="lineno">   48 </span><span class="spaces">                </span><span class="nottickedoff">(TM.ModifiedJulianDay 56303)</span>
+<span class="lineno">   49 </span><span class="spaces">                </span><span class="nottickedoff">(TM.picosecondsToDiffTime 37600000000000000))</span>
+<span class="lineno">   50 </span><span class="spaces">            </span><span class="nottickedoff">[]</span>
+<span class="lineno">   51 </span><span class="spaces">            </span><span class="nottickedoff">PermissionPUBLIC</span>
+<span class="lineno">   52 </span><span class="spaces">            </span><span class="nottickedoff">PermLevelDefault</span></span>
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>lookupVolume :: (MonadDB c m, MonadHasIdentity c m) =&gt; Id Volume -&gt; m (Maybe Volume)
+<span class="lineno">   55 </span><span class="decl"><span class="istickedoff">lookupVolume vi = do</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="istickedoff">ident :: Identity &lt;- peek</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="istickedoff">dbQuery1 $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery (selectVolume 'ident) &quot;$WHERE volume.id = ${vi}&quot;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)</span></span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>changeVolume :: MonadAudit c m =&gt; Volume -&gt; m ()
+<span class="lineno">   60 </span><span class="decl"><span class="nottickedoff">changeVolume v = do</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute1' $(updateVolume 'ident 'v)</span></span>
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>addVolume :: MonadAudit c m =&gt; Volume -&gt; m Volume
+<span class="lineno">   65 </span><span class="decl"><span class="istickedoff">addVolume bv = do</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="istickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">   67 </span><span class="spaces">  </span><span class="istickedoff">dbQuery1' $ fmap (\v -&gt; v [] PermissionADMIN PermLevelDefault) $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">insertVolume 'ident 'bv</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)</span></span>
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>getVolumeAlias :: Volume -&gt; Maybe T.Text
+<span class="lineno">   70 </span><span class="decl"><span class="istickedoff">getVolumeAlias v = guard (volumePermission v &gt;= PermissionREAD) &gt;&gt; <span class="nottickedoff">volumeAlias (volumeRow v)</span></span></span>
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>auditVolumeDownload :: MonadAudit c m =&gt; Bool -&gt; Volume -&gt; m ()
+<span class="lineno">   73 </span><span class="decl"><span class="nottickedoff">auditVolumeDownload success vol = do</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="nottickedoff">ai &lt;- getAuditIdentity</span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute1' [pgSQL|$INSERT INTO audit.volume (audit_action, audit_user, audit_ip, id) VALUES</span>
+<span class="lineno">   76 </span><span class="spaces">    </span><span class="nottickedoff">(${if success then AuditActionOpen else AuditActionAttempt}, ${auditWho ai}, ${auditIp ai}, ${volumeId $ volumeRow vol})|]</span></span>
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>volumeRowJSON :: JSON.ToObject o =&gt; VolumeRow -&gt; JSON.Record (Id Volume) o
+<span class="lineno">   79 </span><span class="decl"><span class="istickedoff">volumeRowJSON VolumeRow{..} = JSON.Record volumeId $</span>
+<span class="lineno">   80 </span><span class="spaces">     </span><span class="istickedoff">&quot;name&quot; JSON..= volumeName</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="istickedoff">&lt;&gt; &quot;body&quot; JSON..= volumeBody</span></span>
+<span class="lineno">   82 </span>
+<span class="lineno">   83 </span>volumeJSON :: JSON.ToObject o =&gt; Volume -&gt; Maybe [VolumeAccess] -&gt; JSON.Record (Id Volume) o
+<span class="lineno">   84 </span><span class="decl"><span class="istickedoff">volumeJSON v@Volume{..} mAccesses =</span>
+<span class="lineno">   85 </span><span class="spaces">    </span><span class="istickedoff">volumeRowJSON volumeRow `JSON.foldObjectIntoRec`</span>
+<span class="lineno">   86 </span><span class="spaces">   </span><span class="istickedoff">(</span>
+<span class="lineno">   87 </span><span class="spaces">       </span><span class="istickedoff"><span class="nottickedoff">&quot;doi&quot;</span> `JSON.kvObjectOrEmpty` volumeDOI volumeRow</span>
+<span class="lineno">   88 </span><span class="spaces">    </span><span class="istickedoff">&lt;&gt; <span class="nottickedoff">&quot;alias&quot;</span> `JSON.kvObjectOrEmpty` getVolumeAlias v</span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="istickedoff">&lt;&gt; &quot;creation&quot; JSON..= volumeCreation</span>
+<span class="lineno">   90 </span><span class="spaces">    </span><span class="istickedoff">&lt;&gt; &quot;owners&quot; JSON..= map <span class="nottickedoff">(\(i, n) -&gt; JSON.Object $ &quot;id&quot; JSON..= i &lt;&gt; &quot;name&quot; JSON..= n)</span> volumeOwners</span>
+<span class="lineno">   91 </span><span class="spaces">    </span><span class="istickedoff">&lt;&gt; &quot;permission&quot; JSON..= volumePermission</span>
+<span class="lineno">   92 </span><span class="spaces">    </span><span class="istickedoff">&lt;&gt; &quot;publicsharefull&quot; JSON..= volumeAccessPolicyJSON v</span>
+<span class="lineno">   93 </span><span class="spaces">    </span><span class="istickedoff">&lt;&gt; <span class="nottickedoff">&quot;publicaccess&quot;</span> `JSON.kvObjectOrEmpty` fmap <span class="nottickedoff">(show . volumePublicAccessSummary)</span> mAccesses)</span></span>
+<span class="lineno">   94 </span>
+<span class="lineno">   95 </span>volumeJSONSimple :: JSON.ToObject o =&gt; Volume -&gt; JSON.Record (Id Volume) o
+<span class="lineno">   96 </span><span class="decl"><span class="istickedoff">volumeJSONSimple v = volumeJSON v Nothing</span></span>
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>volumeAccessPolicyJSON :: Volume -&gt; Maybe Bool
+<span class="lineno">   99 </span><span class="decl"><span class="istickedoff">volumeAccessPolicyJSON v =</span>
+<span class="lineno">  100 </span><span class="spaces">  </span><span class="istickedoff">case volumePermissionPolicy v of</span>
+<span class="lineno">  101 </span><span class="spaces">    </span><span class="istickedoff">(PermissionPUBLIC, PublicRestricted) -&gt; <span class="nottickedoff">Just False</span></span>
+<span class="lineno">  102 </span><span class="spaces">    </span><span class="istickedoff">(PermissionPUBLIC, PermLevelDefault) -&gt; Just True</span>
+<span class="lineno">  103 </span><span class="spaces">    </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">Nothing</span></span></span>
+<span class="lineno">  104 </span>
+<span class="lineno">  105 </span>data VolumeFilter = VolumeFilter
+<span class="lineno">  106 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">volumeFilterQuery</span></span></span> :: Maybe String
+<span class="lineno">  107 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">volumeFilterParty</span></span></span> :: Maybe (Id Party)
+<span class="lineno">  108 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">volumeFilterPaginate</span></span></span> :: Paginate
+<span class="lineno">  109 </span>  }
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>instance Monoid VolumeFilter where
+<span class="lineno">  112 </span>  <span class="decl"><span class="nottickedoff">mempty = VolumeFilter Nothing Nothing def</span></span>
+<span class="lineno">  113 </span>  <span class="decl"><span class="nottickedoff">mappend (VolumeFilter q1 p1 p) (VolumeFilter q2 p2 _) =</span>
+<span class="lineno">  114 </span><span class="spaces">    </span><span class="nottickedoff">VolumeFilter (q1 &lt;&gt; q2) (p1 &lt;|&gt; p2) p</span></span>
+<span class="lineno">  115 </span>
+<span class="lineno">  116 </span>volumeFilter :: VolumeFilter -&gt; BS.ByteString
+<span class="lineno">  117 </span><span class="decl"><span class="nottickedoff">volumeFilter VolumeFilter{..} = BS.concat</span>
+<span class="lineno">  118 </span><span class="spaces">  </span><span class="nottickedoff">[ withq volumeFilterParty (const &quot; JOIN volume_access ON volume.id = volume_access.volume&quot;)</span>
+<span class="lineno">  119 </span><span class="spaces">  </span><span class="nottickedoff">, withq volumeFilterQuery (\n -&gt; &quot; JOIN volume_text_idx ON volume.id = volume_text_idx.volume, plainto_tsquery('english', &quot; &lt;&gt; pgLiteralRep n &lt;&gt; &quot;) query&quot;)</span>
+<span class="lineno">  120 </span><span class="spaces">  </span><span class="nottickedoff">, &quot; WHERE volume.id &gt; 0 &quot;</span>
+<span class="lineno">  121 </span><span class="spaces">  </span><span class="nottickedoff">, withq volumeFilterParty (\p -&gt; &quot; AND volume_access.party = &quot; &lt;&gt; pgLiteralRep p &lt;&gt; &quot; AND volume_access.individual &gt;= 'EDIT'&quot;)</span>
+<span class="lineno">  122 </span><span class="spaces">  </span><span class="nottickedoff">, withq volumeFilterQuery (const &quot; AND ts @@ query&quot;)</span>
+<span class="lineno">  123 </span><span class="spaces">  </span><span class="nottickedoff">, &quot; ORDER BY &quot;</span>
+<span class="lineno">  124 </span><span class="spaces">  </span><span class="nottickedoff">, withq volumeFilterQuery (const &quot;ts_rank(ts, query) DESC,&quot;)</span>
+<span class="lineno">  125 </span><span class="spaces">  </span><span class="nottickedoff">, withq volumeFilterParty (const &quot;volume_access.individual DESC,&quot;)</span>
+<span class="lineno">  126 </span><span class="spaces">  </span><span class="nottickedoff">, &quot;volume.id DESC &quot;</span>
+<span class="lineno">  127 </span><span class="spaces">  </span><span class="nottickedoff">, paginateSQL volumeFilterPaginate</span>
+<span class="lineno">  128 </span><span class="spaces">  </span><span class="nottickedoff">]</span>
+<span class="lineno">  129 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  130 </span><span class="spaces">  </span><span class="nottickedoff">withq v f = maybe BS.empty f v</span></span>
+<span class="lineno">  131 </span>
+<span class="lineno">  132 </span>findVolumes :: (MonadHasIdentity c m, MonadDB c m) =&gt; VolumeFilter -&gt; m [Volume]
+<span class="lineno">  133 </span><span class="decl"><span class="nottickedoff">findVolumes pf = do</span>
+<span class="lineno">  134 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
+<span class="lineno">  135 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ unsafeModifyQuery $(selectQuery (selectVolume 'ident) &quot;&quot;)</span>
+<span class="lineno">  136 </span><span class="spaces">    </span><span class="nottickedoff">(&lt;&gt; volumeFilter pf)</span></span>
+<span class="lineno">  137 </span>
+<span class="lineno">  138 </span>updateVolumeIndex :: MonadDB c m =&gt; m ()
+<span class="lineno">  139 </span><span class="decl"><span class="nottickedoff">updateVolumeIndex =</span>
+<span class="lineno">  140 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute_ &quot;SELECT volume_text_refresh()&quot;</span></span>
+<span class="lineno">  141 </span>
+<span class="lineno">  142 </span>data VolumePublicAccessLevel = PublicAccessFull | PublicAccessRestricted | PublicAccessNone deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">  143 </span>
+<span class="lineno">  144 </span>instance Show VolumePublicAccessLevel where
+<span class="lineno">  145 </span>  <span class="decl"><span class="nottickedoff">show PublicAccessFull = &quot;full&quot;</span>
+<span class="lineno">  146 </span><span class="spaces">  </span><span class="nottickedoff">show PublicAccessRestricted = &quot;restricted&quot;</span>
+<span class="lineno">  147 </span><span class="spaces">  </span><span class="nottickedoff">show PublicAccessNone = &quot;none&quot;</span></span>
+<span class="lineno">  148 </span>
+<span class="lineno">  149 </span>volumePublicAccessSummary :: [VolumeAccess] -&gt; VolumePublicAccessLevel
+<span class="lineno">  150 </span><span class="decl"><span class="nottickedoff">volumePublicAccessSummary vas =</span>
+<span class="lineno">  151 </span><span class="spaces">  </span><span class="nottickedoff">maybe</span>
+<span class="lineno">  152 </span><span class="spaces">    </span><span class="nottickedoff">PublicAccessNone</span>
+<span class="lineno">  153 </span><span class="spaces">    </span><span class="nottickedoff">(\va -&gt;</span>
+<span class="lineno">  154 </span><span class="spaces">       </span><span class="nottickedoff">case volumeAccessChildren va of</span>
+<span class="lineno">  155 </span><span class="spaces">         </span><span class="nottickedoff">PermissionNONE -&gt; PublicAccessNone</span>
+<span class="lineno">  156 </span><span class="spaces">         </span><span class="nottickedoff">PermissionPUBLIC -&gt;</span>
+<span class="lineno">  157 </span><span class="spaces">           </span><span class="nottickedoff">let</span>
+<span class="lineno">  158 </span><span class="spaces">             </span><span class="nottickedoff">accessPolicy = volumeAccessPolicyWithDefault (volumeAccessChildren va) (volumeAccessShareFull va)</span>
+<span class="lineno">  159 </span><span class="spaces">           </span><span class="nottickedoff">in</span>
+<span class="lineno">  160 </span><span class="spaces">             </span><span class="nottickedoff">case accessPolicy of</span>
+<span class="lineno">  161 </span><span class="spaces">               </span><span class="nottickedoff">PublicRestricted -&gt; PublicAccessRestricted</span>
+<span class="lineno">  162 </span><span class="spaces">               </span><span class="nottickedoff">PermLevelDefault -&gt; PublicAccessFull</span>
+<span class="lineno">  163 </span><span class="spaces">         </span><span class="nottickedoff">_ -&gt; PublicAccessFull)</span>
+<span class="lineno">  164 </span><span class="spaces">    </span><span class="nottickedoff">mPublicAccess</span>
+<span class="lineno">  165 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  166 </span><span class="spaces">    </span><span class="nottickedoff">mPublicAccess = find (\va -&gt; (partyId . partyRow . volumeAccessParty) va == nobodyId) vas -- nobodyParty forms a cycle</span>
+<span class="lineno">  167 </span><span class="spaces">    </span><span class="nottickedoff">nobodyId = Id (-1)</span></span>
+<span class="lineno">  168 </span>
+
+</pre>
+</body>
+</html>

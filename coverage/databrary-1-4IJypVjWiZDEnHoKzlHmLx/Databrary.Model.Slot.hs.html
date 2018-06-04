@@ -1,0 +1,54 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, RecordWildCards, ViewPatterns, TemplateHaskell, QuasiQuotes, DataKinds #-}
+<span class="lineno">    2 </span>module Databrary.Model.Slot
+<span class="lineno">    3 </span>  ( module Databrary.Model.Slot.Types
+<span class="lineno">    4 </span>  , lookupSlot
+<span class="lineno">    5 </span>  , auditSlotDownload
+<span class="lineno">    6 </span>  , slotJSON
+<span class="lineno">    7 </span>  ) where
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import Database.PostgreSQL.Typed (pgSQL)
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   12 </span>import Databrary.Service.DB
+<span class="lineno">   13 </span>import Databrary.Model.Id
+<span class="lineno">   14 </span>import Databrary.Model.Identity
+<span class="lineno">   15 </span>import Databrary.Model.Audit
+<span class="lineno">   16 </span>import Databrary.Model.Segment
+<span class="lineno">   17 </span>import Databrary.Model.Container
+<span class="lineno">   18 </span>import Databrary.Model.Slot.Types
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>useTDB
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>lookupSlot :: (MonadDB c m, MonadHasIdentity c m) =&gt; Id Slot -&gt; m (Maybe Slot)
+<span class="lineno">   23 </span><span class="decl"><span class="istickedoff">lookupSlot (Id (SlotId c s)) =</span>
+<span class="lineno">   24 </span><span class="spaces">  </span><span class="istickedoff">fmap (`Slot` s) &lt;$&gt; lookupContainer c</span></span>
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>auditSlotDownload :: MonadAudit c m =&gt; Bool -&gt; Slot -&gt; m ()
+<span class="lineno">   27 </span><span class="decl"><span class="nottickedoff">auditSlotDownload success Slot{ slotContainer = c, slotSegment = seg } = do</span>
+<span class="lineno">   28 </span><span class="spaces">  </span><span class="nottickedoff">ai &lt;- getAuditIdentity</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute1' [pgSQL|$INSERT INTO audit.slot (audit_action, audit_user, audit_ip, container, segment) VALUES</span>
+<span class="lineno">   30 </span><span class="spaces">    </span><span class="nottickedoff">(${if success then AuditActionOpen else AuditActionAttempt}, ${auditWho ai}, ${auditIp ai}, ${containerId $ containerRow c}, ${seg})|]</span></span>
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>slotJSON :: JSON.ToObject o =&gt; Slot -&gt; JSON.Record (Id Container) o
+<span class="lineno">   33 </span><span class="decl"><span class="nottickedoff">slotJSON Slot{..} = containerJSON False slotContainer -- probably add bool to slotJSON</span>
+<span class="lineno">   34 </span><span class="spaces">  </span><span class="nottickedoff">`JSON.foldObjectIntoRec` (segmentJSON slotSegment)</span></span>
+
+</pre>
+</body>
+</html>

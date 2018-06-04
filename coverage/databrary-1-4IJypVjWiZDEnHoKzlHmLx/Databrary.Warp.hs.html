@@ -1,0 +1,60 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE CPP, OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Warp
+<span class="lineno">    3 </span>  ( runWarp
+<span class="lineno">    4 </span>  ) where
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>import Control.Applicative ((&lt;|&gt;))
+<span class="lineno">    7 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">    8 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">    9 </span>import Data.Time (getCurrentTime)
+<span class="lineno">   10 </span>import Data.Version (showVersion)
+<span class="lineno">   11 </span>import qualified Network.Wai as Wai
+<span class="lineno">   12 </span>import qualified Network.Wai.Handler.Warp as Warp
+<span class="lineno">   13 </span>import qualified Network.Wai.Handler.WarpTLS as WarpTLS
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Paths_databrary (version)
+<span class="lineno">   16 </span>import qualified Databrary.Store.Config as C
+<span class="lineno">   17 </span>import Databrary.Service.Types
+<span class="lineno">   18 </span>import Databrary.Service.Log
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>runWarp :: C.Config -&gt; Service -&gt; Wai.Application -&gt; IO ()
+<span class="lineno">   21 </span><span class="decl"><span class="nottickedoff">runWarp conf rc app =</span>
+<span class="lineno">   22 </span><span class="spaces">  </span><span class="nottickedoff">run (conf C.! &quot;ssl.key&quot;) (certs $ conf C.! &quot;ssl.cert&quot;)</span>
+<span class="lineno">   23 </span><span class="spaces">    </span><span class="nottickedoff">( Warp.setPort (conf C.! &quot;port&quot;)</span>
+<span class="lineno">   24 </span><span class="spaces">    </span><span class="nottickedoff">$ Warp.setTimeout 300</span>
+<span class="lineno">   25 </span><span class="spaces"></span><span class="nottickedoff">#ifndef DEVEL</span>
+<span class="lineno">   26 </span><span class="spaces">    </span><span class="nottickedoff">$ Warp.setFdCacheDuration 300</span>
+<span class="lineno">   27 </span><span class="spaces">    </span><span class="nottickedoff">$ Warp.setFileInfoCacheDuration 300</span>
+<span class="lineno">   28 </span><span class="spaces"></span><span class="nottickedoff">#endif</span>
+<span class="lineno">   29 </span><span class="spaces">    </span><span class="nottickedoff">$ Warp.setServerName (BSC.pack $ &quot;databrary/&quot; ++ showVersion version)</span>
+<span class="lineno">   30 </span><span class="spaces">    </span><span class="nottickedoff">$ Warp.setOnException (\req e -&gt; do</span>
+<span class="lineno">   31 </span><span class="spaces">      </span><span class="nottickedoff">t &lt;- getCurrentTime</span>
+<span class="lineno">   32 </span><span class="spaces">      </span><span class="nottickedoff">msg &lt;- mapM (\q -&gt; requestLog t q Nothing $ Warp.exceptionResponseForDebug e) req</span>
+<span class="lineno">   33 </span><span class="spaces">      </span><span class="nottickedoff">logMsg t (maybe id (\m -&gt; (&lt;&gt;) (m &lt;&gt; &quot;\n&quot;)) msg $ toLogStr $ show e) (serviceLogs rc))</span>
+<span class="lineno">   34 </span><span class="spaces">    </span><span class="nottickedoff">$ Warp.setHTTP2Disabled</span>
+<span class="lineno">   35 </span><span class="spaces">    </span><span class="nottickedoff">$ Warp.defaultSettings)</span>
+<span class="lineno">   36 </span><span class="spaces">    </span><span class="nottickedoff">app</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="nottickedoff">certs c = C.config c &lt;|&gt; return &lt;$&gt; C.config c</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="nottickedoff">run (Just k) (Just (cert:chain)) = WarpTLS.runTLS (WarpTLS.tlsSettingsChain cert chain k)</span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="nottickedoff">run _ _ = Warp.runSettings</span></span>
+
+</pre>
+</body>
+</html>
