@@ -170,26 +170,21 @@
       white-space pre-wrap
 
 .spreadsheet-tab-name
-  margin 0 20px
   font-size 1.1em
   color neutral12
+  border-radius b3 b3 0 0
+  border-top 1px solid pale
+  border-left 1px solid pale
+  border-right 1px solid pale
+  display block
+  width 100%
+  padding 4px 6px
+  text-align center
 
 .spreadsheet-head-groups
   th
     text-transform lowercase
-    &:before
-      content ''
-      border-radius b3 b3 0 0
-      border-top 1px solid pale
-      border-left 1px solid pale
-      border-right 1px solid pale
-      position absolute
-      top 0
-      bottom 0
-      left 0
-      right 0
-      margin-top b8
-      z-index -1
+    padding 0
 
     &.col-materials
       min-width 240px
