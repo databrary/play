@@ -151,6 +151,7 @@ volumePublicAccessSummary vas =
   maybe
     PublicAccessNone
     (\va ->
+       -- simulate access 
        case volumeAccessChildren va of
          PermissionNONE -> PublicAccessNone
          PermissionPUBLIC ->
@@ -164,7 +165,7 @@ volumePublicAccessSummary vas =
          _ -> PublicAccessFull)
     mPublicAccess
   where
-    -- can't use equality on parties because Party is a circular,
+    -- can't use equality on parties because Party is a circular type
     mPublicAccess = find (\va -> (getPartyId . volumeAccessParty) va == nobodyId) vas
     nobodyId = getPartyId nobodyParty
 

@@ -53,6 +53,14 @@ instance Has Permission Volume where
   view = extractPermissionIgnorePolicy . volumeRolePolicy
 deriveLiftMany [''VolumeRow, ''Volume]
 
+-- this section needs:
+--    Maybe Bool -> a
+
+-- other page needs:
+--    Maybe Bool -> PublicPolicy
+
+
+
 volumeAccessPolicyWithDefault :: Permission -> Maybe Bool -> VolumeRolePolicy
 volumeAccessPolicyWithDefault perm1 mShareFull =
   case perm1 of
