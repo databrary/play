@@ -60,11 +60,8 @@ postVolumeAccess = action POST (pathJSON >/> pathId </> pathVolumeAccessTarget) 
     mShareFull <-
       if (ap, individual) `elem` [(getPartyId nobodyParty, PermissionPUBLIC), (getPartyId rootParty, PermissionSHARED)]
       then do
-        if individual == PermissionSHARED -- TODO: remove me, temporary until front end updated
-        then pure (Just False)
-        else do
-          _ <- "share_full" .:> (deformCheck "Required" (not . (== FormDatumNone)) =<< deform) -- convulated way of requiring
-          Just <$> ("share_full" .:> deform)
+        _ <- "share_full" .:> (deformCheck "Required" (not . (== FormDatumNone)) =<< deform) -- convulated way of requiring
+        Just <$> ("share_full" .:> deform)
       else pure Nothing 
     return a
       { volumeAccessIndividual = individual
