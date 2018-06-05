@@ -5,6 +5,8 @@ ALTER TABLE "volume_access" ADD CONSTRAINT "volume_access_check_full3"
 -- expanding full2 for party 0 would be too complicated
 
 CREATE OR REPLACE VIEW "volume_access_view" ("volume", "party", "access", "share_full") AS
+-- considering access provided to a party on a volume by multiple sources,
+--  select the highest access provided from the sources
 WITH
 -- vap = volume access with computed permission for each child
 vap AS (
