@@ -68,6 +68,7 @@ jsURL js req =
     unjs (x : q) = second (x :) $ unjs q
 
 -- | A regex of user agents we do not support.
+-- Duplicated over in Databrary.Servant.
 browserBlacklist :: Regex.Regex
 browserBlacklist = Regex.makeRegex
   ("^Mozilla/.* \\(.*\\<(MSIE [0-9]\\.[0-9]|AppleWebKit/.* Version/[0-5]\\..* Safari/)" :: String)

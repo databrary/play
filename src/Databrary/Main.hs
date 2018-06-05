@@ -18,7 +18,7 @@ import qualified Databrary.Store.Config as Conf
 import Databrary.Service.Init (withService)
 import Databrary.Web.Rules (generateWebFiles)
 import Databrary.Action (actionRouteApp, WaiRouteApp(..))
-import Databrary.Action.Servant (servantApp)
+import Databrary.Servant (servantApp)
 import Databrary.Routes (routeMapInvertible, routeMapWai)
 import Databrary.Warp (runWarp)
 

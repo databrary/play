@@ -59,7 +59,6 @@ library
     Databrary.Action.Route
     Databrary.Action.Response
     Databrary.Action.Request
-    Databrary.Action.Servant
     Databrary.Has
     Databrary.Context
     Databrary.EZID.Volume
@@ -195,6 +194,7 @@ library
     Databrary.View.Html
     Databrary.View.Transcode
     Databrary.Files
+    Databrary.Servant
     Databrary.Store.Upload
     Databrary.Store.AssetSegment
     Databrary.Store.Service
