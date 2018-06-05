@@ -131,6 +131,10 @@ app.controller 'site/search', [
             this.text
 
     $scope.formats = _.filter(constants.format, (f) -> !f.transcodable || f.id < 0)
+    $scope.customSortformat= (format) ->
+      if format.id == -800
+        return -1
+      format.name
 
     ageSliderValue = [0,0]
     ageLogOffset = 16
