@@ -40,7 +40,7 @@
         </div>
         <div class="search-filter">
           Contains files of type
-          <select ng-model="fields.format_id" ng-options="'\\'+f.id as f.name+' ('+f.extension+')' for f in ::formats | orderBy:'mimetype' track by f.id||f.substr(1)" ng-change="searchVolumes()">
+          <select ng-model="fields.format_id" ng-options="'\\'+f.id as f.name+' ('+f.extension+')' for f in ::formats | orderBy: customSortformat track by f.id||f.substr(1)" ng-change="searchVolumes()">
             <option value="">Any</option>
           </select>
         </div>
