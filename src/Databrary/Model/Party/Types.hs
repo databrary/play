@@ -50,21 +50,12 @@ data Account = Account
   , accountParty :: Party
   }
 
--- makeHasRec ''PartyRow ['partyId]
--- instance Has (Id Party) PartyRow where
---   view = partyId
--- makeHasRec ''Party ['partyRow]
--- instance Has PartyRow Party where
---   view = partyRow
 instance Has (Id Party) Party where
   view = getPartyId
 getPartyId :: Party -> Id Party
 getPartyId = partyId . partyRow
--- makeHasRec ''Account ['accountParty]
 instance Has Party Account where
   view = accountParty
--- instance Has PartyRow Account where
---  view = (partyRow . accountParty)
 instance Has (Id Party) Account where
   view = (getPartyId . accountParty)
 
@@ -84,13 +75,10 @@ data SiteAuth = SiteAuth
   , siteAccess :: Access -- ^ Still figuring out what an 'Access' is.
   }
 
--- makeHasRec ''SiteAuth ['siteAccount, 'siteAccess]
 instance Has Account SiteAuth where
   view = siteAccount
 instance Has Party SiteAuth where
   view = (view . siteAccount)
--- instance Has PartyRow SiteAuth where
---  view = (view . siteAccount)
 instance Has (Id Party) SiteAuth where
   view = (view . siteAccount)
 instance Has Access SiteAuth where

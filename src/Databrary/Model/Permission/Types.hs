@@ -114,10 +114,17 @@ instance Monoid Access where
 
 deriveLiftMany [''Permission, ''Access]
 
+-- | A PublicPolicy represents a set of rules that customize the public viewer role
+-- for a given volume. Restricted is the only current policy. It signifies
+-- hiding all data, except high level summary information and highlights.
+-- The word policy is a reference to the term used in attribute-based access control.
 data PublicPolicy = PublicRestrictedPolicy | PublicNoPolicy deriving (Show, Eq)
 
+-- | A SharedPolicy is the same as PublicPolicy currently, but applied to the shared
+-- viewer role.
 data SharedPolicy = SharedRestrictedPolicy | SharedNoPolicy deriving (Show, Eq)
 
+-- | A user's effective access to a given volume.
 data VolumeRolePolicy =
     RoleNone
   | RolePublicViewer PublicPolicy
@@ -131,6 +138,8 @@ deriveLift ''PublicPolicy
 deriveLift ''SharedPolicy
 deriveLift ''VolumeRolePolicy
 
+-- | Transition function used until all call sites take into Policy
+-- value into consideration.
 extractPermissionIgnorePolicy :: VolumeRolePolicy -> Permission
 extractPermissionIgnorePolicy rp =
   case rp of

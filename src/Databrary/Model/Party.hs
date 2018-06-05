@@ -1,9 +1,6 @@
 {-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, RecordWildCards, DataKinds #-}
 module Databrary.Model.Party
   ( module Databrary.Model.Party.Types
-  -- , nobodyParty
-  -- , rootParty
-  -- , staffParty
   , partyName
   , partyEmail
   , lookupParty
