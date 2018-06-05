@@ -26,8 +26,6 @@ getShareFullDefault targetParty individualAccessLevel =
     then nobodyPublicLegacyDefault
     else generalDefault
   where
-    -- getPartyId :: Party -> Id Party
-    -- getPartyId = partyId . partyRow
     nobodyId :: Id Party
     nobodyId = (getPartyId . accountParty . siteAccount) nobodySiteAuth
     nobodyPublicLegacyDefault = Just True
