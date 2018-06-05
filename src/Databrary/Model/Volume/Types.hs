@@ -4,6 +4,7 @@ module Databrary.Model.Volume.Types
   , Volume(..)
   , VolumeOwner
   , blankVolume
+  , toPolicyDefaulting
   , volumeAccessPolicyWithDefault
   , coreVolumeId
   ) where
@@ -53,13 +54,18 @@ instance Has Permission Volume where
   view = extractPermissionIgnorePolicy . volumeRolePolicy
 deriveLiftMany [''VolumeRow, ''Volume]
 
--- this section needs:
---    Maybe Bool -> a
-
--- other page needs:
---    Maybe Bool -> PublicPolicy
-
-
+-- | Convert shareFull value read from db into a policy
+-- value, applying a default if needed.
+toPolicyDefaulting :: Maybe Bool -> a -> a -> a
+toPolicyDefaulting mShareFull noPolicy restrictedPolicy =
+    let
+        -- in the rare circumstance that a volume access
+        -- entry in db improperly contains null for public/shared group,
+        -- arbitrarily use True to follow old convention before sharefull
+        -- was introduced.
+        shareFull = fromMaybe True mShareFull
+    in
+        if shareFull then noPolicy else restrictedPolicy
 
 volumeAccessPolicyWithDefault :: Permission -> Maybe Bool -> VolumeRolePolicy
 volumeAccessPolicyWithDefault perm1 mShareFull =
@@ -67,11 +73,9 @@ volumeAccessPolicyWithDefault perm1 mShareFull =
     PermissionNONE ->
       RoleNone
     PermissionPUBLIC ->
-      let shareFull = fromMaybe True mShareFull -- assume true because historically volumes were public full
-      in RolePublicViewer (if shareFull then PublicNoPolicy else PublicRestrictedPolicy)
+      RolePublicViewer (toPolicyDefaulting mShareFull PublicNoPolicy PublicRestrictedPolicy)
     PermissionSHARED ->
-      let shareFull = fromMaybe True mShareFull -- assume true because historically volumes were public full
-      in RoleSharedViewer (if shareFull then SharedNoPolicy else SharedRestrictedPolicy)
+      RoleSharedViewer (toPolicyDefaulting mShareFull SharedNoPolicy SharedRestrictedPolicy)
     PermissionREAD ->
       RoleReader
     PermissionEDIT ->

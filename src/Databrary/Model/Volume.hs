@@ -151,21 +151,15 @@ volumePublicAccessSummary vas =
   maybe
     PublicAccessNone
     (\va ->
-       -- simulate access 
        case volumeAccessChildren va of
          PermissionNONE -> PublicAccessNone
          PermissionPUBLIC ->
-           let
-             rolePolicy = volumeAccessPolicyWithDefault (volumeAccessChildren va) (volumeAccessShareFull va)
-           in
-             case rolePolicy of
-               RolePublicViewer PublicRestrictedPolicy -> PublicAccessRestricted
-               RolePublicViewer PublicNoPolicy -> PublicAccessFull
-               _ -> PublicAccessFull -- should never happen; expose smaller default function
+           case toPolicyDefaulting (volumeAccessShareFull va) PublicNoPolicy PublicRestrictedPolicy of
+             PublicRestrictedPolicy -> PublicAccessRestricted
+             PublicNoPolicy -> PublicAccessFull
          _ -> PublicAccessFull)
     mPublicAccess
   where
     -- can't use equality on parties because Party is a circular type
     mPublicAccess = find (\va -> (getPartyId . volumeAccessParty) va == nobodyId) vas
     nobodyId = getPartyId nobodyParty
-
