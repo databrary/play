@@ -1,32 +1,40 @@
 ALTER TABLE "volume_access" DROP CONSTRAINT "volume_access_check_full1";
+-- expanding full2 for party 0 would be too complicated
 ALTER TABLE "volume_access" DROP CONSTRAINT "volume_access_check_full2";
 ALTER TABLE "volume_access" ADD CONSTRAINT "volume_access_check_full3"
   CHECK ( party = -1 OR party = 0 OR share_full is null );
--- expanding full2 for party 0 would be too complicated
 
 CREATE OR REPLACE VIEW "volume_access_view" ("volume", "party", "access", "share_full") AS
 -- considering access provided to a party on a volume by multiple sources,
 --  select the highest access provided from the sources
 WITH
--- vap = volume access with computed permission for each child
+-- vap = parent party's volume access extended down
+--  to some descendant child, using the appropriately capped
+--  permission from the descending chain.
 vap AS (
-  SELECT volume
-       , parent
-       , child
-       -- either
-       --  1. provide permission granted to children of this parent on this volume, when this is most restrictive
-       --  2. when permission to children on this volume is granted with a low level typically associated with the nobody or databrary group,
-       --       then use the child's site permission
-       --  3. when permission to children on this volume is granted with a higher level typically associated with a specific user,
-       --       then use the child's permission on the parent's data
-       , LEAST(children, CASE WHEN children <= 'SHARED' THEN site ELSE member END) as result_perm
-       -- share_full policy value is unconditionally transferred down, as is, from parent to children
-       , share_full
-  FROM volume_access
-    JOIN authorize_view ON party = parent
+  SELECT acc.volume
+       , aut.parent
+       , aut.child
+       , LEAST(acc.children,
+               -- Below might be a shorcut to approximate parent = group 0
+               --   or group 1, since PUBLIC is used with group -1 and SHARED
+               --   is used with group 0. Needs confirmation.
+               CASE WHEN acc.children <= 'SHARED'
+               -- Use child's inherited permission to the data this antecdent group
+               --  can reach
+               THEN aut.site
+               -- Use permission directly delegated to child on data the parent (a person)
+               --  can reach
+               ELSE aut.member END)
+           as result_perm
+       -- share_full policy value is unconditionally transferred down, as is,
+       -- from parent to descendant
+       , acc.share_full
+  FROM volume_access acc
+    JOIN authorize_view aut ON party = parent
 ), 
 -- vap_max = parent, child combination representing the parent
---   who is providing the highest permission to child for a given volume
+--   who is providing the highest permission to a child for a given volume
 vap_max AS (
   SELECT volume
        , max(parent) as mparent -- arbitrary tie breaker
