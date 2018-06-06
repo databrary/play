@@ -709,8 +709,10 @@ app.factory('modelService', [
             if (m == null)
               if (on)
                 v.metrics[c] = d;
-              else
+              else {
+                console.log(v.metrics[c]);
                 delete v.metrics[c];
+              }
             else {
               v.metrics[c].remove(m);
               if (on) {
