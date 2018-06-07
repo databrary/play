@@ -28,8 +28,29 @@ import Databrary.Model.Funding.Types
 import Databrary.Model.Funding.SQL
 
 lookupFunder :: MonadDB c m => Id Funder -> m (Maybe Funder)
-lookupFunder fi =
-  dbQuery1 $(selectQuery selectFunder "$WHERE funder.fundref_id = ${fi}")
+lookupFunder fi = do
+  let _tenv_a6LTf = unknownPGTypeEnv
+  -- dbQuery1 (selectQuery selectFunder "$WHERE funder.fundref_id = ${fi}")
+  mRow <- mapRunPrepQuery1
+      ((\ _p_a6LTg ->
+                       (Data.String.fromString
+                          "SELECT funder.fundref_id,funder.name FROM funder WHERE funder.fundref_id = $1",
+                        [pgEncodeParameter
+                          _tenv_a6LTf (PGTypeProxy :: PGTypeName "bigint") _p_a6LTg],
+                        [pgBinaryColumn _tenv_a6LTf (PGTypeProxy :: PGTypeName "bigint"),
+                         pgBinaryColumn _tenv_a6LTf (PGTypeProxy :: PGTypeName "text")]))
+         fi)
+               (\ [_cfundref_id_a6LTh, _cname_a6LTi]
+                  -> (pgDecodeColumnNotNull
+                        _tenv_a6LTf
+                        (PGTypeProxy :: PGTypeName "bigint")
+                        _cfundref_id_a6LTh, 
+                      pgDecodeColumnNotNull
+                        _tenv_a6LTf (PGTypeProxy :: PGTypeName "text") _cname_a6LTi))
+  pure
+    (fmap
+      (\ (vid_a6LT4, vname_a6LT5) -> Funder vid_a6LT4 vname_a6LT5)
+      mRow)
 
 findFunders :: MonadDB c m => T.Text -> m [Funder]
 findFunders q =
