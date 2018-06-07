@@ -387,7 +387,35 @@ changeVolumeCitation vol citem = do
 
 changeVolumeLinks :: (MonadAudit c m) => Volume -> [Citation] -> m ()
 changeVolumeLinks vol links = do
+  let _tenv_a8AOq = unknownPGTypeEnv
   ident <- getAuditIdentity
   dbTransaction $ do
-    _ <- dbExecute $(deleteVolumeLink 'ident 'vol)
+    _ <- dbExecute -- (deleteVolumeLink 'ident 'vol)
+      (mapQuery2
+        ((\ _p_a8AOr _p_a8AOs _p_a8AOt ->
+                    (Data.ByteString.concat
+                       [Data.String.fromString
+                          "WITH audit_row AS (DELETE FROM volume_link WHERE volume=",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a8AOq
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a8AOr,
+                        Data.String.fromString
+                          " RETURNING *) INSERT INTO audit.volume_link SELECT CURRENT_TIMESTAMP, ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a8AOq
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a8AOs,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a8AOq
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                          _p_a8AOt,
+                        Data.String.fromString
+                          ", 'remove'::audit.action, * FROM audit_row"]))
+        (volumeId $ volumeRow vol) (auditWho ident) (auditIp ident))
+            (\ [] -> ()))
     mapM_ (\link -> dbExecute $(insertVolumeLink 'ident 'vol 'link)) links
