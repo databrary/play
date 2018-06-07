@@ -620,9 +620,36 @@ lookupOrigSlotAssetSegment (Id (SlotId ci seg)) ai = do
       mRow)
 
 lookupAssetSlotSegment :: MonadDB c m => AssetSlot -> Segment -> m (Maybe AssetSegment)
-lookupAssetSlotSegment a s =
-  (segmentEmpty seg) `unlessReturn` (as <$>
-    dbQuery1 $(selectQuery excerptRow "$WHERE asset = ${view a :: Id Asset} AND segment @> ${seg}"))
+lookupAssetSlotSegment a s = do
+  let _tenv_acOEp = unknownPGTypeEnv
+  -- (segmentEmpty seg) `unlessReturn` (as <$>
+    -- dbQuery1 (selectQuery excerptRow "$WHERE asset = ${view a :: Id Asset} AND segment @> ${seg}")
+  mRow <- mapRunPrepQuery1
+      ((\ _p_acOEq _p_acOEr ->
+                       (Data.String.fromString
+                          "SELECT excerpt.segment,excerpt.release FROM excerpt WHERE asset = $1 AND segment @> $2",
+
+                       [pgEncodeParameter
+                          _tenv_acOEp (PGTypeProxy :: PGTypeName "integer") _p_acOEq,
+                        pgEncodeParameter
+                          _tenv_acOEp (PGTypeProxy :: PGTypeName "segment") _p_acOEr],
+                       [pgBinaryColumn _tenv_acOEp (PGTypeProxy :: PGTypeName "segment"),
+                        pgBinaryColumn _tenv_acOEp (PGTypeProxy :: PGTypeName "release")]))
+         (view a :: Id Asset) seg)
+               (\ [_csegment_acOEs, _crelease_acOEt]
+                  -> (pgDecodeColumnNotNull
+                        _tenv_acOEp (PGTypeProxy :: PGTypeName "segment") _csegment_acOEs, 
+                      pgDecodeColumn
+                        _tenv_acOEp
+                        (PGTypeProxy :: PGTypeName "release")
+                        _crelease_acOEt))
+  let mExcTup =
+        fmap
+          (\ (vsegment_acOEb, vrelease_acOEc)
+             -> excerptTuple
+                  vsegment_acOEb vrelease_acOEc)
+          mRow
+  (segmentEmpty seg) `unlessReturn` (pure (as mExcTup))
   where
   as = makeExcerpt a s
   seg = assetSegment $ as Nothing
