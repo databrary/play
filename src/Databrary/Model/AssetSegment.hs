@@ -13,7 +13,7 @@ module Databrary.Model.AssetSegment
 
 import Control.Applicative (pure, empty)
 import Data.Monoid ((<>))
-import Database.PostgreSQL.Typed (pgSQL)
+-- import Database.PostgreSQL.Typed (pgSQL)
 import Database.PostgreSQL.Typed.Query
 import Database.PostgreSQL.Typed.Types
 import qualified Data.ByteString
@@ -763,6 +763,7 @@ auditAssetSegmentDownload :: MonadAudit c m => Bool -> AssetSegment -> m ()
 auditAssetSegmentDownload success AssetSegment{ segmentAsset = AssetSlot{ slotAsset = a, assetSlot = as }, assetSegment = seg } = do  
   ai <- getAuditIdentity
   let _tenv_a9v9T = unknownPGTypeEnv
+  let _tenv_acOUJ = unknownPGTypeEnv
   maybe
     (dbExecute1'
        {- [pgSQL|INSERT INTO audit.asset (audit_action, audit_user, audit_ip, id, volume, format, release) VALUES
@@ -823,8 +824,33 @@ auditAssetSegmentDownload success AssetSegment{ segmentAsset = AssetSlot{ slotAs
       (formatId $ assetFormat $ assetRow a)
       (assetRelease $ assetRow a))
             (\[] -> ())))
-    (\s -> dbExecute1' [pgSQL|$INSERT INTO audit.slot_asset (audit_action, audit_user, audit_ip, container, segment, asset) VALUES
-      (${act}, ${auditWho ai}, ${auditIp ai}, ${containerId $ containerRow $ slotContainer s}, ${seg}, ${assetId $ assetRow a})|])
+    (\s -> -- dbExecute1' [pgSQL|$INSERT INTO audit.slot_asset (audit_action, audit_user, audit_ip, container, segment, asset) VALUES
+      -- (${act}, ${auditWho ai}, ${auditIp ai}, ${containerId $ containerRow $ slotContainer s}, ${seg}, ${assetId $ assetRow a})|])
+      (mapRunPrepExecute1'
+        ((\ _p_acOUK _p_acOUL _p_acOUM _p_acOUN _p_acOUO _p_acOUP ->
+                    (Data.String.fromString
+                       "INSERT INTO audit.slot_asset (audit_action, audit_user, audit_ip, container, segment, asset) VALUES\n\
+                       \      ($1, $2, $3, $4, $5, $6)",
+                    [pgEncodeParameter
+                       _tenv_acOUJ (PGTypeProxy :: PGTypeName "audit.action") _p_acOUK,
+                     pgEncodeParameter
+                       _tenv_acOUJ (PGTypeProxy :: PGTypeName "integer") _p_acOUL,
+                     pgEncodeParameter
+                       _tenv_acOUJ (PGTypeProxy :: PGTypeName "inet") _p_acOUM,
+                     pgEncodeParameter
+                       _tenv_acOUJ (PGTypeProxy :: PGTypeName "integer") _p_acOUN,
+                     pgEncodeParameter
+                       _tenv_acOUJ (PGTypeProxy :: PGTypeName "segment") _p_acOUO,
+                     pgEncodeParameter
+                       _tenv_acOUJ (PGTypeProxy :: PGTypeName "integer") _p_acOUP],
+                    []))
+      act
+      (auditWho ai)
+      (auditIp ai)
+      (containerId $ containerRow $ slotContainer s)
+      seg
+      (assetId $ assetRow a))
+            (\[] -> ())))
     as
   where act | success = AuditActionOpen
             | otherwise = AuditActionAttempt
