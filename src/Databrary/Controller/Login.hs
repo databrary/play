@@ -64,10 +64,10 @@ viewLogin = action GET ("user" >/> "login") $ \() -> viewLoginAction
 
 viewLoginAction :: Action
 viewLoginAction = withAuth $ do
-  angular
-  maybeIdentity
-    (peeks $ blankForm . htmlLogin)
-    (const $ peeks $ otherRouteResponse [] viewParty (HTML, TargetProfile))
+    angular
+    maybeIdentity
+        (peeks (blankForm . htmlLogin))
+        (const (peeks (otherRouteResponse [] viewParty (HTML, TargetProfile))))
 
 checkPassword :: BS.ByteString -> SiteAuth -> Bool
 checkPassword p = any (`BCrypt.validatePassword` p) . accountPasswd

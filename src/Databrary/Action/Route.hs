@@ -25,13 +25,16 @@ import Databrary.HTTP.Route
 import Databrary.HTTP.Path.Parser
 import Databrary.Action.Run
 
+-- | A 'R.RouteAction' (library code) that holds an 'Action' (Databrary code).
+-- The type parameter a represents the values that get captured in a route
+-- description (like /foo/:int would capture an Int).
 type ActionRoute a = R.RouteAction a Action
 
 actionURL :: Maybe Request -> R.RouteAction r a -> r -> Query -> BSB.Builder
-actionURL req r a q
-  | R.requestMethod rr == GET = routeURL req rr q
+actionURL mreq route routeParams query
+  | R.requestMethod rr == GET = routeURL mreq rr query
   | otherwise = error $ "actionURL: " ++ show rr
-  where rr = R.requestActionRoute r a
+  where rr = R.requestActionRoute route routeParams
 
 actionURI :: Maybe Request -> R.RouteAction r a -> r -> Query -> URI
 actionURI req r a q
@@ -42,8 +45,14 @@ actionURI req r a q
 actionMethod :: R.RouteAction r a -> r -> Method
 actionMethod r = R.requestMethod . R.requestActionRoute r
 
-action :: Method -> PathParser r -> (r -> a) -> R.RouteAction r a
-action m p a = R.routePath p R.>* R.routeMethod m `R.RouteAction` a
+-- | A shortcut for specifying route actions.
+action
+    :: Method -- ^ HTTP method to handle
+    -> PathParser r -- ^ Path to handle (r holds the captured elements)
+    -> (r -> a) -- ^ Action to build the response (a)
+    -> R.RouteAction r a -- ^ The complete, built route/action specifier.
+action method path act =
+    R.routePath path R.>* R.routeMethod method `R.RouteAction` act
 
 multipartAction :: R.RouteAction q a -> R.RouteAction q a
 multipartAction (R.RouteAction r a) =

@@ -21,7 +21,7 @@ import Databrary.Model.Asset.Types
 import Databrary.Model.Asset.SQL
 import Databrary.Model.AssetSlot.Types
 import Databrary.Model.AssetSlot.SQL
-import Databrary.Model.AssetSegment.Types
+import Databrary.Model.AssetSegment.Types hiding (makeExcerpt)
 
 makeExcerpt :: Segment -> Maybe Release -> AssetSlot -> Excerpt
 makeExcerpt s r a = newExcerpt a s r

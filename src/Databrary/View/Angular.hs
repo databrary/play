@@ -32,7 +32,7 @@ versionedWebURL :: BS.ByteString -> BS.ByteString -> H.AttributeValue
 versionedWebURL version p = actionValue webFile (Just $ StaticPath p) ([(version,Nothing)] :: Query)
 
 htmlAngular :: BS.ByteString -> [WebFilePath] -> [WebFilePath] -> BSB.Builder -> RequestContext -> H.Html
-htmlAngular assetsVersion cssDeps jsDeps nojs auth = H.docTypeHtml H.! ngAttribute "app" "databraryModule" $ do
+htmlAngular assetsVersion cssDeps jsDeps nojs reqCtx = H.docTypeHtml H.! ngAttribute "app" "databraryModule" $ do
   H.head $ do
     htmlHeader Nothing def
     H.noscript $
@@ -67,8 +67,8 @@ htmlAngular assetsVersion cssDeps jsDeps nojs auth = H.docTypeHtml H.! ngAttribu
       H.preEscapedString "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src= 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f); })(window,document,'script','dataLayer','GTM-NW6PSFL');"
     H.script $ do
       H.preEscapedString "window.$play={user:"
-      unsafeBuilder $ JSON.fromEncoding $ JSON.recordEncoding $ identityJSON (view auth)
-      forM_ (serviceDown (view auth)) $ \msg -> do
+      unsafeBuilder $ JSON.fromEncoding $ JSON.recordEncoding $ identityJSON (view reqCtx)
+      forM_ (serviceDown (view reqCtx)) $ \msg -> do
         H.preEscapedString ",down:"
         H.unsafeLazyByteString $ JSON.encode msg
       H.preEscapedString "};"

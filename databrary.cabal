@@ -59,6 +59,7 @@ library
     Databrary.Action.Route
     Databrary.Action.Response
     Databrary.Action.Request
+    Databrary.Action.Servant
     Databrary.Has
     Databrary.Context
     Databrary.EZID.Volume
@@ -120,7 +121,6 @@ library
     Databrary.Model.Notification
     Databrary.Model.Funding.Types
     Databrary.Model.Funding.FundRef
-    Databrary.Model.Funding.SQL
     Databrary.Model.Comment.Types
     Databrary.Model.Release.Types
     Databrary.Model.Release.SQL
@@ -146,7 +146,6 @@ library
     Databrary.Model.Record
     Databrary.Model.Citation.CrossRef
     Databrary.Model.Citation.Types
-    Databrary.Model.Citation.SQL
     Databrary.Model.Stats.Types
     Databrary.Model.AssetRevision.Types
     Databrary.Model.VolumeState
@@ -165,7 +164,6 @@ library
     Databrary.Model.Format.Types
     Databrary.Model.Transcode
     Databrary.Model.AssetSegment.Types
-    Databrary.Model.AssetSegment.SQL
     Databrary.Model.AssetRevision
     Databrary.Model.Offset
     Databrary.Model.Volume.Types
@@ -375,7 +373,14 @@ library
     stringsearch >= 0.3.6.6
                 
   default-language: Haskell2010
-  default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
+  default-extensions:
+    ConstraintKinds,
+    FlexibleContexts,
+    FlexibleInstances,
+    LambdaCase,
+    MultiParamTypeClasses,
+    PatternGuards,
+    ScopedTypeVariables
 
   if flag(devel)
     cpp-options: -DDEVEL

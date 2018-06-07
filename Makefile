@@ -6,7 +6,7 @@ NIX_OPTIONS := --option binary-caches "https://cache.nixos.org http://devdatabra
 
 # These below intentionally use '='to pick up following changes to NIX_OPTIONS
 nix-build-args = $(NIX_OPTIONS) --drv-link $(PWD)/derivation --cores 4 -A databrary
-nix-shell-args = $(NIX_OPTIONS) --pure
+nix-shell-args = $(NIX_OPTIONS) #--pure Commented for now because git DNE
 
 ifdef BUILDDEV
 nix-build-args += --keep-failed

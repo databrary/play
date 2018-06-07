@@ -31,8 +31,15 @@ determineIdentity :: (MonadHas Secret c m, MonadHasRequest c m, MonadDB c m) => 
 determineIdentity =
   maybe NotLoggedIn Identified <$> (flatMapM lookupSession =<< getSignedCookie "session")
 
-maybeIdentity :: (MonadHasIdentity c m) => m a -> (Session -> m a) -> m a
-maybeIdentity u i = extractFromIdentifiedSessOrDefault u i =<< peek
+-- | Takes default action and a monadic function. If the Identity within the
+-- monadic context is 'Identified', apply the function to the 'Session' held
+-- within. Otherwise, run the default action.
+maybeIdentity
+    :: (MonadHasIdentity c m)
+    => m a -- ^ Default action
+    -> (Session -> m a) -- ^ Monadic function
+    -> m a -- ^ Result
+maybeIdentity z f = extractFromIdentifiedSessOrDefault z f =<< peek
 
 identityJSON :: JSON.ToObject o => Identity -> JSON.Record (Id Party) o
 identityJSON i = partyJSON (view i) `JSON.foldObjectIntoRec`

@@ -2,7 +2,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Databrary.Context
   ( ActionContext(..)
-  , ContextM
+  , ActionContextM
   , runContextM
   , BackgroundContext(..)
   , BackgroundContextM
@@ -38,7 +38,7 @@ import Databrary.Web.Types
 -- fully initialized, "command line" access to the system.
 data ActionContext = ActionContext
   { contextService :: !Service -- ^ All initialized services; "the imperative shell"
-  , contextTimestamp :: !Timestamp -- ^ When the ContextM action is running (i.e., NOW)
+  , contextTimestamp :: !Timestamp -- ^ When the ActionContextM action is running (i.e., NOW)
   , contextResourceState :: !InternalState -- ^ Optimization for MonadResource
   , contextDB :: !DBConn -- ^ The specific connection chosen for the running action?
   }
@@ -76,13 +76,12 @@ instance Has InternalState ActionContext where
 instance Has DBConn ActionContext where
   view = contextDB
 
--- | FIXME: New name?
-type ContextM a = ReaderT ActionContext IO a
+type ActionContextM a = ReaderT ActionContext IO a
 
 -- | Perform an atomic action without an identity with a guaranteed database
 -- connection and a fixed version of 'now'.
 runContextM
-    :: ContextM a
+    :: ActionContextM a
     -> Service
     -> IO a
 runContextM action rc = do
@@ -118,5 +117,5 @@ instance Has Access BackgroundContext where
 
 type BackgroundContextM a = ReaderT BackgroundContext IO a
 
-withBackgroundContextM :: BackgroundContextM a -> ContextM a
+withBackgroundContextM :: BackgroundContextM a -> ActionContextM a
 withBackgroundContextM = withReaderT BackgroundContext

@@ -7,20 +7,20 @@ module Databrary.HTTP.Parse
 
 import Control.Monad (when, unless)
 import Control.Monad.IO.Class (liftIO)
-import qualified Data.Aeson as JSON
-import qualified Data.Attoparsec.ByteString as AP
-import qualified Data.ByteString as BS
 import Data.IORef (newIORef, readIORef, writeIORef)
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as TE
-import qualified Data.Text.Encoding.Error as TE
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Internal.Lazy as TL (chunk)
 import Data.Word (Word64)
 import Network.HTTP.Types (requestEntityTooLarge413, unsupportedMediaType415, hContentType)
 import Network.Wai
 import Network.Wai.Parse
 import System.IO (Handle)
+import qualified Data.Aeson as JSON
+import qualified Data.Attoparsec.ByteString as AP
+import qualified Data.ByteString as BS
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
+import qualified Data.Text.Encoding.Error as TE
+import qualified Data.Text.Internal.Lazy as TL (chunk)
+import qualified Data.Text.Lazy as TL
 
 import Databrary.Has (peek, peeks)
 import Databrary.Action.Types
