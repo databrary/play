@@ -23,12 +23,13 @@ import Databrary.Model.AssetSlot.Types
 import Databrary.Model.AssetSlot.SQL
 import Databrary.Model.AssetSegment.Types
 
+{-
 excerptTuple :: Segment -> Maybe Release -> (Segment, Maybe Release)
 excerptTuple = (,)
-
+-}
 excerptRow :: Selector -- ^ @('Segment', Maybe 'Release')@
 excerptRow = selectColumns 'excerptTuple "excerpt" ["segment", "release"]
-
+{-
 makeExcerpt :: AssetSlot -> Segment -> Maybe (Segment, Maybe Release) -> AssetSegment
 makeExcerpt a s = newAssetSegment a s . fmap (uncurry $ newExcerpt a)
 
@@ -36,7 +37,7 @@ makeAssetSegment :: Segment -> Maybe Segment -> Maybe (Segment, Maybe Release) -
 makeAssetSegment as ss e a c = makeExcerpt sa ss' e where
   sa = makeSlotAsset a c as
   ss' = fromMaybe emptySegment ss -- should not happen
-
+-}
 selectAssetContainerAssetSegment :: TH.Name -- ^ @'Segment'@
   -> Selector -- ^ @'Asset' -> 'Container' -> 'AssetSegment'@
 selectAssetContainerAssetSegment seg = selectJoin 'makeAssetSegment
@@ -49,8 +50,8 @@ selectAssetContainerAssetSegment seg = selectJoin 'makeAssetSegment
     excerptRow
   ]
 
-makeContainerAssetSegment :: (Asset -> Container -> AssetSegment) -> AssetRow -> Container -> AssetSegment
-makeContainerAssetSegment f ar c = f (Asset ar $ containerVolume c) c
+-- makeContainerAssetSegment :: (Asset -> Container -> AssetSegment) -> AssetRow -> Container -> AssetSegment
+-- makeContainerAssetSegment f ar c = f (Asset ar $ containerVolume c) c
 
 selectContainerAssetSegment :: TH.Name -- ^ @'Segment'@
   -> Selector -- ^ @'Container' -> 'AssetSegment'@
@@ -73,8 +74,8 @@ selectAssetAssetSegment seg = selectJoin 'makeAssetAssetSegment
   ]
 -}
 
-makeVolumeAssetSegment :: (Asset -> Container -> AssetSegment) -> AssetRow -> (Volume -> Container) -> Volume -> AssetSegment
-makeVolumeAssetSegment f ar cf v = f (Asset ar v) (cf v)
+-- makeVolumeAssetSegment :: (Asset -> Container -> AssetSegment) -> AssetRow -> (Volume -> Container) -> Volume -> AssetSegment
+-- makeVolumeAssetSegment f ar cf v = f (Asset ar v) (cf v)
 
 selectVolumeAssetSegment :: TH.Name -- ^ @'Segment'@
   -> Selector -- ^ @'Volume' -> 'AssetSegment'@

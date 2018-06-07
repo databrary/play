@@ -39,11 +39,193 @@ import Databrary.Model.Asset.Types
 import Databrary.Model.AssetSlot
 import Databrary.Model.AssetSegment.Types
 import Databrary.Model.AssetSegment.SQL
+import Databrary.Model.Volume.SQL
+import Databrary.Model.Asset.SQL
 
 lookupAssetSegment :: (MonadHasIdentity c m, MonadDB c m) => Segment -> Id Asset -> m (Maybe AssetSegment)
 lookupAssetSegment seg ai = do
+  let _tenv_acO5F = unknownPGTypeEnv
   ident :: Identity <- peek
-  dbQuery1 $(selectQuery (selectAssetSegment 'ident 'seg) "$WHERE slot_asset.asset = ${ai} AND slot_asset.segment && ${seg}")
+  -- dbQuery1 $(selectQuery (selectAssetSegment 'ident 'seg) "$WHERE slot_asset.asset = ${ai} AND slot_asset.segment && ${seg}")
+  mRow <- mapRunPrepQuery1
+      ((\ _p_acO5G _p_acO5H _p_acO5I _p_acO5J _p_acO5K _p_acO5L _p_acO5M ->
+                       (Data.String.fromString
+                          "SELECT slot_asset.segment,asset_segment.segment,excerpt.segment,excerpt.release,asset.id,asset.format,asset.release,asset.duration,asset.name,asset.sha1,asset.size,container.id,container.top,container.name,container.date,slot_release.release,volume.id,volume.name,volume.body,volume.alias,volume.doi,volume_creation(volume.id),volume_owners.owners,volume_permission.permission,volume_permission.share_full FROM slot_asset CROSS JOIN LATERAL (VALUES (slot_asset.segment * $1)) AS asset_segment (segment) LEFT JOIN excerpt ON slot_asset.asset = excerpt.asset AND asset_segment.segment <@ excerpt.segment JOIN asset ON slot_asset.asset = asset.id JOIN container LEFT JOIN slot_release ON container.id = slot_release.container AND slot_release.segment = '(,)' ON slot_asset.container = container.id AND asset.volume = container.volume JOIN volume LEFT JOIN volume_owners ON volume.id = volume_owners.volume JOIN LATERAL   (VALUES      ( CASE WHEN $2              THEN enum_last(NULL::permission)              ELSE volume_access_check(volume.id, $3) END      , CASE WHEN $4              THEN null              ELSE (select share_full                    from volume_access_view                    where volume = volume.id and party = $5                    limit 1) END )   ) AS volume_permission (permission, share_full) ON volume_permission.permission >= 'PUBLIC'::permission ON asset.volume = volume.id WHERE slot_asset.asset = $6 AND slot_asset.segment && $7",
+                       [pgEncodeParameter
+                          _tenv_acO5F (PGTypeProxy :: PGTypeName "segment") _p_acO5G,
+                        pgEncodeParameter
+                          _tenv_acO5F (PGTypeProxy :: PGTypeName "boolean") _p_acO5H,
+                        pgEncodeParameter
+                          _tenv_acO5F (PGTypeProxy :: PGTypeName "integer") _p_acO5I,
+                        pgEncodeParameter
+                          _tenv_acO5F (PGTypeProxy :: PGTypeName "boolean") _p_acO5J,
+                        pgEncodeParameter
+                          _tenv_acO5F (PGTypeProxy :: PGTypeName "integer") _p_acO5K,
+                        pgEncodeParameter
+                          _tenv_acO5F (PGTypeProxy :: PGTypeName "integer") _p_acO5L,
+                        pgEncodeParameter
+                          _tenv_acO5F (PGTypeProxy :: PGTypeName "segment") _p_acO5M],
+                       [pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "segment"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "segment"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "segment"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "release"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "integer"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "smallint"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "release"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "interval"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "text"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "bytea"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "bigint"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "integer"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "boolean"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "text"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "date"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "release"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "integer"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "text"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "text"),
+                        pgBinaryColumn
+                          _tenv_acO5F (PGTypeProxy :: PGTypeName "character varying"),
+                        pgBinaryColumn
+                          _tenv_acO5F (PGTypeProxy :: PGTypeName "character varying"),
+                        pgBinaryColumn
+                          _tenv_acO5F (PGTypeProxy :: PGTypeName "timestamp with time zone"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "text[]"),
+                        pgBinaryColumn
+                          _tenv_acO5F (PGTypeProxy :: PGTypeName "permission"),
+                        pgBinaryColumn _tenv_acO5F (PGTypeProxy :: PGTypeName "boolean")]))
+         seg
+         (identitySuperuser ident)
+         (view ident :: Id Party)
+         (identitySuperuser ident)
+         (view ident :: Id Party)
+         ai
+         seg)
+               (\
+                  [_csegment_acO5N,
+                   _csegment_acO5O,
+                   _csegment_acO5P,
+                   _crelease_acO5Q,
+                   _cid_acO5R,
+                   _cformat_acO5S,
+                   _crelease_acO5T,
+                   _cduration_acO5U,
+                   _cname_acO5V,
+                   _csha1_acO5W,
+                   _csize_acO5X,
+                   _cid_acO5Y,
+                   _ctop_acO5Z,
+                   _cname_acO60,
+                   _cdate_acO61,
+                   _crelease_acO62,
+                   _cid_acO63,
+                   _cname_acO64,
+                   _cbody_acO65,
+                   _calias_acO66,
+                   _cdoi_acO67,
+                   _cvolume_creation_acO68,
+                   _cowners_acO69,
+                   _cpermission_acO6a,
+                   _cshare_full_acO6b]
+                  -> (pgDecodeColumnNotNull
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "segment") _csegment_acO5N, 
+                      pgDecodeColumn
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "segment") _csegment_acO5O, 
+                      pgDecodeColumnNotNull
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "segment") _csegment_acO5P, 
+                      pgDecodeColumn
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "release") _crelease_acO5Q, 
+                      pgDecodeColumnNotNull
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "integer") _cid_acO5R, 
+                      pgDecodeColumnNotNull
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "smallint") _cformat_acO5S, 
+                      pgDecodeColumn
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "release") _crelease_acO5T, 
+                      pgDecodeColumn
+                        _tenv_acO5F
+                        (PGTypeProxy :: PGTypeName "interval")
+                        _cduration_acO5U, 
+                      pgDecodeColumn
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "text") _cname_acO5V, 
+                      pgDecodeColumn
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "bytea") _csha1_acO5W, 
+                      pgDecodeColumn
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "bigint") _csize_acO5X, 
+                      pgDecodeColumnNotNull
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "integer") _cid_acO5Y, 
+                      pgDecodeColumnNotNull
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "boolean") _ctop_acO5Z, 
+                      pgDecodeColumn
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "text") _cname_acO60, 
+                      pgDecodeColumn
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "date") _cdate_acO61, 
+                      pgDecodeColumnNotNull
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "release") _crelease_acO62, 
+                      pgDecodeColumnNotNull
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "integer") _cid_acO63, 
+                      pgDecodeColumnNotNull
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "text") _cname_acO64, 
+                      pgDecodeColumn
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "text") _cbody_acO65, 
+                      pgDecodeColumn
+                        _tenv_acO5F
+                        (PGTypeProxy :: PGTypeName "character varying")
+                        _calias_acO66, 
+                      pgDecodeColumn
+                        _tenv_acO5F
+                        (PGTypeProxy :: PGTypeName "character varying")
+                        _cdoi_acO67, 
+                      pgDecodeColumn
+                        _tenv_acO5F
+                        (PGTypeProxy :: PGTypeName "timestamp with time zone")
+                        _cvolume_creation_acO68, 
+                      pgDecodeColumnNotNull
+                        _tenv_acO5F (PGTypeProxy :: PGTypeName "text[]") _cowners_acO69, 
+                      pgDecodeColumn
+                        _tenv_acO5F
+                        (PGTypeProxy :: PGTypeName "permission")
+                        _cpermission_acO6a, 
+                      pgDecodeColumn
+                        _tenv_acO5F
+                        (PGTypeProxy :: PGTypeName "boolean")
+                        _cshare_full_acO6b))
+  pure
+    (fmap
+      (\ (vsegment_acO3q, vsegment_acO3r, vsegment_acO3s, vrelease_acO3u,
+          vid_acO3v, vformat_acO3w, vrelease_acO3x, vduration_acO3y,
+          vname_acO3z, vc_acO3A, vsize_acO3B, vid_acO3C, vtop_acO3D,
+          vname_acO3E, vdate_acO3F, vrelease_acO3G, vid_acO3H, vname_acO3J,
+          vbody_acO3K, valias_acO3L, vdoi_acO3M, vc_acO3N, vowners_acO3O,
+          vpermission_acO3P, vfull_acO3Q)
+         -> ($)
+              (makeVolumeAssetSegment
+                 (makeAssetSegment
+                    vsegment_acO3q
+                    vsegment_acO3r
+                    (do { cm_acO3T <- vsegment_acO3s;
+                          Just
+                            (excerptTuple
+                               cm_acO3T vrelease_acO3u) }))
+                 (Databrary.Model.Asset.SQL.makeAssetRow
+                    vid_acO3v
+                    vformat_acO3w
+                    vrelease_acO3x
+                    vduration_acO3y
+                    vname_acO3z
+                    vc_acO3A
+                    vsize_acO3B)
+                 (Container
+                    (ContainerRow vid_acO3C vtop_acO3D vname_acO3E vdate_acO3F)
+                    vrelease_acO3G))
+              (Databrary.Model.Volume.SQL.makeVolume
+                 (Databrary.Model.Volume.SQL.setCreation
+                    (VolumeRow
+                       vid_acO3H vname_acO3J vbody_acO3K valias_acO3L vdoi_acO3M)
+                    vc_acO3N)
+                 vowners_acO3O
+                 (Databrary.Model.Volume.SQL.makePermInfo
+                    vpermission_acO3P vfull_acO3Q)))
+      mRow)
 
 lookupSlotAssetSegment :: (MonadHasIdentity c m, MonadDB c m) => Id Slot -> Id Asset -> m (Maybe AssetSegment)
 lookupSlotAssetSegment (Id (SlotId ci seg)) ai = do

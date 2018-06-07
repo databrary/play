@@ -11,6 +11,11 @@ module Databrary.Model.AssetSegment.Types
   , Excerpt(..)
   , newExcerpt
   , excerptInSegment
+  , excerptTuple
+  , makeExcerpt
+  , makeAssetSegment
+  , makeContainerAssetSegment
+  , makeVolumeAssetSegment
   ) where
 
 import Data.Foldable (fold)
@@ -31,6 +36,7 @@ import Databrary.Model.Slot.Types
 import Databrary.Model.Format
 import Databrary.Model.Asset.Types
 import Databrary.Model.AssetSlot.Types
+import Databrary.Model.AssetSlot.SQL
 
 data AssetSegment = AssetSegment
   { segmentAsset :: AssetSlot
@@ -157,3 +163,20 @@ instance Has (Id Container) Excerpt where
   view = view . excerptAsset
 instance Has Segment Excerpt where
   view = view . excerptAsset
+
+excerptTuple :: Segment -> Maybe Release -> (Segment, Maybe Release)
+excerptTuple = (,)
+
+makeExcerpt :: AssetSlot -> Segment -> Maybe (Segment, Maybe Release) -> AssetSegment
+makeExcerpt a s = newAssetSegment a s . fmap (uncurry $ newExcerpt a)
+
+makeAssetSegment :: Segment -> Maybe Segment -> Maybe (Segment, Maybe Release) -> Asset -> Container -> AssetSegment
+makeAssetSegment as ss e a c = makeExcerpt sa ss' e where
+  sa = makeSlotAsset a c as
+  ss' = fromMaybe emptySegment ss -- should not happen
+
+makeContainerAssetSegment :: (Asset -> Container -> AssetSegment) -> AssetRow -> Container -> AssetSegment
+makeContainerAssetSegment f ar c = f (Asset ar $ containerVolume c) c
+
+makeVolumeAssetSegment :: (Asset -> Container -> AssetSegment) -> AssetRow -> (Volume -> Container) -> Volume -> AssetSegment
+makeVolumeAssetSegment f ar cf v = f (Asset ar v) (cf v)
