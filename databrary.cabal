@@ -146,7 +146,6 @@ library
     Databrary.Model.Record
     Databrary.Model.Citation.CrossRef
     Databrary.Model.Citation.Types
-    Databrary.Model.Citation.SQL
     Databrary.Model.Stats.Types
     Databrary.Model.AssetRevision.Types
     Databrary.Model.VolumeState
