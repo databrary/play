@@ -25,8 +25,8 @@ citationRow = selectColumns 'Citation "volume_citation" ["head", "url", "year"]
 selectVolumeCitation :: Selector -- ^ @Maybe 'T.Text' -> 'Citation'@
 selectVolumeCitation = citationRow
 
-makeVolumeCitation :: Volume -> Maybe (Maybe T.Text -> Citation) -> (Volume, Maybe Citation)
-makeVolumeCitation v cf = (v, cf <*> Just (Just (volumeName $ volumeRow v)))
+-- makeVolumeCitation :: Volume -> Maybe (Maybe T.Text -> Citation) -> (Volume, Maybe Citation)
+-- makeVolumeCitation v cf = (v, cf <*> Just (Just (volumeName $ volumeRow v)))
 
 selectCitation :: TH.Name -- ^ @'Identity'@
   -> Selector -- ^ @('Volume', Maybe 'Citation')@
