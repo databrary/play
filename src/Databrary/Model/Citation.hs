@@ -23,7 +23,7 @@ import Databrary.Model.Identity.Types
 import Databrary.Model.Party.Types
 import Databrary.Model.Volume.Types
 import Databrary.Model.Citation.Types
-import Databrary.Model.Citation.SQL
+-- import Databrary.Model.Citation.SQL
 import Databrary.Model.Volume.SQL
 
 lookupVolumeCitation :: (MonadDB c m) => Volume -> m (Maybe Citation)
@@ -388,6 +388,7 @@ changeVolumeCitation vol citem = do
 changeVolumeLinks :: (MonadAudit c m) => Volume -> [Citation] -> m ()
 changeVolumeLinks vol links = do
   let _tenv_a8AOq = unknownPGTypeEnv
+  let _tenv_a8ATJ = unknownPGTypeEnv
   ident <- getAuditIdentity
   dbTransaction $ do
     _ <- dbExecute -- (deleteVolumeLink 'ident 'vol)
@@ -418,4 +419,51 @@ changeVolumeLinks vol links = do
                           ", 'remove'::audit.action, * FROM audit_row"]))
         (volumeId $ volumeRow vol) (auditWho ident) (auditIp ident))
             (\ [] -> ()))
-    mapM_ (\link -> dbExecute $(insertVolumeLink 'ident 'vol 'link)) links
+    mapM_
+      (\link ->
+         dbExecute
+           -- (insertVolumeLink 'ident 'vol 'link)
+          (mapQuery2
+           ((\ _p_a8ATK _p_a8ATL _p_a8ATM _p_a8ATN _p_a8ATO ->
+                    (Data.ByteString.concat
+                       [Data.String.fromString
+                          "WITH audit_row AS (INSERT INTO volume_link (volume,head,url) VALUES (",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a8ATJ
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a8ATK,
+                        Data.String.fromString ",",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a8ATJ
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                          _p_a8ATL,
+                        Data.String.fromString ",",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a8ATJ
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                          _p_a8ATM,
+                        Data.String.fromString
+                          ") RETURNING *) INSERT INTO audit.volume_link SELECT CURRENT_TIMESTAMP, ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a8ATJ
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a8ATN,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a8ATJ
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                          _p_a8ATO,
+                        Data.String.fromString ", 'add'::audit.action, * FROM audit_row"]))
+      (volumeId $ volumeRow vol)
+      (citationHead link)
+      (citationURL link)
+      (auditWho ident)
+      (auditIp ident))
+            (\[] -> ()))
+      )
+      links
