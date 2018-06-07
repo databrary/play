@@ -25,7 +25,7 @@ import Databrary.Model.SQL
 import Databrary.Model.Id.Types
 import Databrary.Model.Volume.Types
 import Databrary.Model.Funding.Types
-import Databrary.Model.Funding.SQL
+-- import Databrary.Model.Funding.SQL
 
 lookupFunder :: MonadDB c m => Id Funder -> m (Maybe Funder)
 lookupFunder fi = do
@@ -99,8 +99,35 @@ addFunder f =
            (\[] -> ()))
 
 lookupVolumeFunding :: (MonadDB c m) => Volume -> m [Funding]
-lookupVolumeFunding vol =
-  dbQuery $(selectQuery selectVolumeFunding "$WHERE volume_funding.volume = ${volumeId $ volumeRow vol}")
+lookupVolumeFunding vol = do
+  -- dbQuery (selectQuery selectVolumeFunding "$WHERE volume_funding.volume = ${volumeId $ volumeRow vol}")
+  let _tenv_a6M6b = unknownPGTypeEnv
+  rows <- mapRunPrepQuery
+      ((\ _p_a6M6c ->
+                       (Data.String.fromString
+                          "SELECT volume_funding.awards,funder.fundref_id,funder.name FROM volume_funding JOIN funder ON volume_funding.funder = funder.fundref_id WHERE volume_funding.volume = $1",
+                       [pgEncodeParameter
+                          _tenv_a6M6b (PGTypeProxy :: PGTypeName "integer") _p_a6M6c],
+                       [pgBinaryColumn _tenv_a6M6b (PGTypeProxy :: PGTypeName "text[]"),
+                        pgBinaryColumn _tenv_a6M6b (PGTypeProxy :: PGTypeName "bigint"),
+                        pgBinaryColumn _tenv_a6M6b (PGTypeProxy :: PGTypeName "text")]))
+         (volumeId $ volumeRow vol))
+               (\ [_cawards_a6M6d, _cfundref_id_a6M6e, _cname_a6M6f]
+                  -> (pgDecodeColumnNotNull
+                        _tenv_a6M6b (PGTypeProxy :: PGTypeName "text[]") _cawards_a6M6d, 
+                      pgDecodeColumnNotNull
+                        _tenv_a6M6b
+                        (PGTypeProxy :: PGTypeName "bigint")
+                        _cfundref_id_a6M6e, 
+                      pgDecodeColumnNotNull
+                        _tenv_a6M6b (PGTypeProxy :: PGTypeName "text") _cname_a6M6f))
+  pure
+    (fmap
+      (\ (vawards_a6M5m, vid_a6M5n, vname_a6M5o)
+         -> ($)
+              (makeFunding vawards_a6M5m)
+              (Funder vid_a6M5n vname_a6M5o))
+      rows)
 
 changeVolumeFunding :: MonadDB c m => Volume -> Funding -> m Bool
 changeVolumeFunding v Funding{..} =
