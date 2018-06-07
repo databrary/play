@@ -121,7 +121,6 @@ library
     Databrary.Model.Notification
     Databrary.Model.Funding.Types
     Databrary.Model.Funding.FundRef
-    Databrary.Model.Funding.SQL
     Databrary.Model.Comment.Types
     Databrary.Model.Release.Types
     Databrary.Model.Release.SQL
