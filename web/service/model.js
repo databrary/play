@@ -706,19 +706,31 @@ app.factory('modelService', [
         .then(function (res) {
           var d = res.data;
           if ('metrics' in v) {
-            if (m == null)
-              if (on)
-                v.metrics[c] = d;
+            if (m == null) {
+              if (on) {
+                if (sessionStorage.getItem('designChoices')) {
+                  var designArray = sessionStorage.getItem('designChoices').split(',');
+                  designArray.forEach(function(x, index) {
+                    designArray[index] = parseInt(designArray[index]);
+                  });
+                  v.metrics[c] = designArray;
+                  sessionStorage.removeItem('designChoices');
+                } else {
+                  v.metrics[c] = d;
+                }
+              }
               else {
-                console.log(v.metrics[c]);
+                sessionStorage.setItem('designChoices', v.metrics[c].toString());
                 delete v.metrics[c];
               }
-            else {
+            } else {
+              console.log(v.metrics[c]);
               v.metrics[c].remove(m);
               if (on) {
+                console.log('hi');
                 Array.prototype.push.apply(v.metrics[c], d);
                 v.metrics[c].sort(function (a, b) { return a - b; });
-              }
+              } 
             }
           }
           return d;
