@@ -164,7 +164,6 @@ library
     Databrary.Model.Format.Types
     Databrary.Model.Transcode
     Databrary.Model.AssetSegment.Types
-    Databrary.Model.AssetSegment.SQL
     Databrary.Model.AssetRevision
     Databrary.Model.Offset
     Databrary.Model.Volume.Types

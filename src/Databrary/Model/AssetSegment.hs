@@ -24,7 +24,7 @@ import Databrary.Ops
 import Databrary.Has (peek, view)
 import qualified Databrary.JSON as JSON
 import Databrary.Service.DB
-import Databrary.Model.SQL
+-- import Databrary.Model.SQL
 import Databrary.Model.Audit
 import Databrary.Model.Id
 import Databrary.Model.Party.Types
@@ -38,7 +38,7 @@ import Databrary.Model.Format.Types
 import Databrary.Model.Asset.Types
 import Databrary.Model.AssetSlot
 import Databrary.Model.AssetSegment.Types
-import Databrary.Model.AssetSegment.SQL
+-- import Databrary.Model.AssetSegment.SQL
 import Databrary.Model.Volume.SQL
 import Databrary.Model.Asset.SQL
 
@@ -656,12 +656,104 @@ lookupAssetSlotSegment a s = do
 
 lookupSlotSegmentThumb :: MonadDB c m => Slot -> m (Maybe AssetSegment)
 lookupSlotSegmentThumb (Slot c s) = do
+  {-
   dbQuery1 $ assetSegmentInterp 0.25 . ($ c) <$> $(selectQuery (selectContainerAssetSegment 's) "$\
     \JOIN format ON asset.format = format.id \
     \WHERE slot_asset.container = ${containerId $ containerRow c} AND slot_asset.segment && ${s} \
       \AND COALESCE(asset.release, ${containerRelease c}) >= ${readRelease (view c)}::release \
       \AND (asset.duration IS NOT NULL AND format.mimetype LIKE 'video/%' OR format.mimetype LIKE 'image/%') \
     \LIMIT 1")
+  -}
+  let _tenv_acOGE = unknownPGTypeEnv
+  mRow <- mapRunPrepQuery1
+      ((\ _p_acOGF _p_acOGG _p_acOGH _p_acOGI _p_acOGJ ->
+                       (Data.String.fromString
+                          "SELECT slot_asset.segment,asset_segment.segment,excerpt.segment,excerpt.release,asset.id,asset.format,asset.release,asset.duration,asset.name,asset.sha1,asset.size FROM slot_asset CROSS JOIN LATERAL (VALUES (slot_asset.segment * $1)) AS asset_segment (segment) LEFT JOIN excerpt ON slot_asset.asset = excerpt.asset AND asset_segment.segment <@ excerpt.segment JOIN asset ON slot_asset.asset = asset.id JOIN format ON asset.format = format.id WHERE slot_asset.container = $2 AND slot_asset.segment && $3 AND COALESCE(asset.release, $4) >= $5::release AND (asset.duration IS NOT NULL AND format.mimetype LIKE 'video/%' OR format.mimetype LIKE 'image/%') LIMIT 1",
+                       [pgEncodeParameter
+                          _tenv_acOGE (PGTypeProxy :: PGTypeName "segment") _p_acOGF,
+                        pgEncodeParameter
+                          _tenv_acOGE (PGTypeProxy :: PGTypeName "integer") _p_acOGG,
+                        pgEncodeParameter
+                          _tenv_acOGE (PGTypeProxy :: PGTypeName "segment") _p_acOGH,
+                        pgEncodeParameter
+                          _tenv_acOGE (PGTypeProxy :: PGTypeName "release") _p_acOGI,
+                        pgEncodeParameter
+                          _tenv_acOGE (PGTypeProxy :: PGTypeName "release") _p_acOGJ],
+                       [pgBinaryColumn _tenv_acOGE (PGTypeProxy :: PGTypeName "segment"),
+                        pgBinaryColumn _tenv_acOGE (PGTypeProxy :: PGTypeName "segment"),
+                        pgBinaryColumn _tenv_acOGE (PGTypeProxy :: PGTypeName "segment"),
+                        pgBinaryColumn _tenv_acOGE (PGTypeProxy :: PGTypeName "release"),
+                        pgBinaryColumn _tenv_acOGE (PGTypeProxy :: PGTypeName "integer"),
+                        pgBinaryColumn _tenv_acOGE (PGTypeProxy :: PGTypeName "smallint"),
+                        pgBinaryColumn _tenv_acOGE (PGTypeProxy :: PGTypeName "release"),
+                        pgBinaryColumn _tenv_acOGE (PGTypeProxy :: PGTypeName "interval"),
+                        pgBinaryColumn _tenv_acOGE (PGTypeProxy :: PGTypeName "text"),
+                        pgBinaryColumn _tenv_acOGE (PGTypeProxy :: PGTypeName "bytea"),
+                        pgBinaryColumn _tenv_acOGE (PGTypeProxy :: PGTypeName "bigint")]))
+         s
+         (containerId $ containerRow c)
+         s
+         (containerRelease c)
+         (readRelease (view c)))
+               (\
+                  [_csegment_acOGK,
+                   _csegment_acOGL,
+                   _csegment_acOGM,
+                   _crelease_acOGN,
+                   _cid_acOGP,
+                   _cformat_acOGQ,
+                   _crelease_acOGR,
+                   _cduration_acOGS,
+                   _cname_acOGT,
+                   _csha1_acOGU,
+                   _csize_acOGV]
+                  -> (pgDecodeColumnNotNull
+                        _tenv_acOGE (PGTypeProxy :: PGTypeName "segment") _csegment_acOGK, 
+                      pgDecodeColumn
+                        _tenv_acOGE (PGTypeProxy :: PGTypeName "segment") _csegment_acOGL, 
+                      pgDecodeColumnNotNull
+                        _tenv_acOGE (PGTypeProxy :: PGTypeName "segment") _csegment_acOGM, 
+                      pgDecodeColumn
+                        _tenv_acOGE (PGTypeProxy :: PGTypeName "release") _crelease_acOGN, 
+                      pgDecodeColumnNotNull
+                        _tenv_acOGE (PGTypeProxy :: PGTypeName "integer") _cid_acOGP, 
+                      pgDecodeColumnNotNull
+                        _tenv_acOGE (PGTypeProxy :: PGTypeName "smallint") _cformat_acOGQ, 
+                      pgDecodeColumn
+                        _tenv_acOGE (PGTypeProxy :: PGTypeName "release") _crelease_acOGR, 
+                      pgDecodeColumn
+                        _tenv_acOGE
+                        (PGTypeProxy :: PGTypeName "interval")
+                        _cduration_acOGS, 
+                      pgDecodeColumn
+                        _tenv_acOGE (PGTypeProxy :: PGTypeName "text") _cname_acOGT, 
+                      pgDecodeColumn
+                        _tenv_acOGE (PGTypeProxy :: PGTypeName "bytea") _csha1_acOGU, 
+                      pgDecodeColumn
+                        _tenv_acOGE (PGTypeProxy :: PGTypeName "bigint") _csize_acOGV))
+  let mMkConSeg =
+        fmap
+          (\ (vsegment_acOG1, vsegment_acOG3, vsegment_acOG4, vrelease_acOG5,
+              vid_acOG6, vformat_acOG7, vrelease_acOG8, vduration_acOG9,
+              vname_acOGb, vc_acOGc, vsize_acOGd)
+             -> makeContainerAssetSegment
+                  (makeAssetSegment
+                     vsegment_acOG1
+                     vsegment_acOG3
+                     (do { cm_acOGf <- vsegment_acOG4;
+                           Just
+                             (excerptTuple
+                                cm_acOGf vrelease_acOG5) }))
+                  (Databrary.Model.Asset.SQL.makeAssetRow
+                     vid_acOG6
+                     vformat_acOG7
+                     vrelease_acOG8
+                     vduration_acOG9
+                     vname_acOGb
+                     vc_acOGc
+                     vsize_acOGd))
+          mRow
+  pure (fmap (assetSegmentInterp 0.25 . ($ c)) mMkConSeg)
 
 mapQuery :: ByteString -> ([PGValue] -> a) -> PGSimpleQuery a
 mapQuery qry mkResult =
