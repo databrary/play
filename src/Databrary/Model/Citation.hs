@@ -249,6 +249,8 @@ lookupVolumeLinks vol = do
 changeVolumeCitation :: (MonadAudit c m) => Volume -> Maybe Citation -> m Bool
 changeVolumeCitation vol citem = do
   let _tenv_a8AGN = unknownPGTypeEnv
+      _tenv_a8AHA = unknownPGTypeEnv
+      _tenv_a8AL6 = unknownPGTypeEnv
   ident <- getAuditIdentity
   (0 <) <$> maybe
     (dbExecute -- (deleteVolumeCitation 'ident 'vol))
@@ -280,8 +282,107 @@ changeVolumeCitation vol citem = do
          (volumeId $ volumeRow vol) (auditWho ident) (auditIp ident))
             (\ [] -> ())))
     (\cite -> fst <$> updateOrInsert
-      $(updateVolumeCitation 'ident 'vol 'cite)
-      $(insertVolumeCitation 'ident 'vol 'cite))
+      -- (updateVolumeCitation 'ident 'vol 'cite)
+      (mapQuery2
+        ((\ _p_a8AHB _p_a8AHC _p_a8AHD _p_a8AHE _p_a8AHF _p_a8AHG ->
+                    (Data.ByteString.concat
+                       [Data.String.fromString
+                          "WITH audit_row AS (UPDATE volume_citation SET head=",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a8AHA
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                          _p_a8AHB,
+                        Data.String.fromString ",url=",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a8AHA
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                          _p_a8AHC,
+                        Data.String.fromString ",year=",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a8AHA
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "smallint")
+                          _p_a8AHD,
+                        Data.String.fromString " WHERE volume=",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a8AHA
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a8AHE,
+                        Data.String.fromString
+                          " RETURNING *) INSERT INTO audit.volume_citation SELECT CURRENT_TIMESTAMP, ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a8AHA
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a8AHF,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a8AHA
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                          _p_a8AHG,
+                        Data.String.fromString
+                          ", 'change'::audit.action, * FROM audit_row"]))
+      (citationHead cite)
+      (citationURL cite)
+      (citationYear cite)
+      (volumeId $ volumeRow vol)
+      (auditWho ident)
+      (auditIp ident))
+            (\ [] -> ()))
+      -- (insertVolumeCitation 'ident 'vol 'cite))
+      (mapQuery2
+        ((\ _p_a8AL7 _p_a8AL8 _p_a8AL9 _p_a8ALa _p_a8ALb _p_a8ALc ->
+                        (Data.ByteString.concat
+                           [Data.String.fromString
+                              "WITH audit_row AS (INSERT INTO volume_citation (volume,head,url,year) VALUES (",
+                            Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                              _tenv_a8AL6
+                              (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                 Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                              _p_a8AL7,
+                            Data.String.fromString ",",
+                            Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                              _tenv_a8AL6
+                              (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                 Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                              _p_a8AL8,
+                            Data.String.fromString ",",
+                            Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                              _tenv_a8AL6
+                              (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                 Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                              _p_a8AL9,
+                            Data.String.fromString ",",
+                            Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                              _tenv_a8AL6
+                              (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                 Database.PostgreSQL.Typed.Types.PGTypeName "smallint")
+                              _p_a8ALa,
+                            Data.String.fromString
+                              ") RETURNING *) INSERT INTO audit.volume_citation SELECT CURRENT_TIMESTAMP, ",
+                            Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                              _tenv_a8AL6
+                              (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                 Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                              _p_a8ALb,
+                            Data.String.fromString ", ",
+                            Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                              _tenv_a8AL6
+                              (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                                 Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                              _p_a8ALc,
+                            Data.String.fromString ", 'add'::audit.action, * FROM audit_row"]))
+          (volumeId $ volumeRow vol)
+          (citationHead cite)
+          (citationURL cite)
+          (citationYear cite)
+          (auditWho ident)
+          (auditIp ident))
+                (\[] -> ())))
     citem
 
 changeVolumeLinks :: (MonadAudit c m) => Volume -> [Citation] -> m ()
