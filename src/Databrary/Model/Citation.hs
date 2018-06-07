@@ -208,8 +208,43 @@ lookupVolumesCitations = do
       rows)
 
 lookupVolumeLinks :: (MonadDB c m) => Volume -> m [Citation]
-lookupVolumeLinks vol =
-  dbQuery $(selectQuery selectVolumeLink "$WHERE volume_link.volume = ${volumeId $ volumeRow vol}")
+lookupVolumeLinks vol = do
+  -- dbQuery (selectQuery selectVolumeLink "$WHERE volume_link.volume = ${volumeId $ volumeRow vol}")
+  let _tenv_a8AF4 = unknownPGTypeEnv
+  rows <- mapRunPrepQuery
+      ((\ _p_a8AF5 ->
+                       (Data.String.fromString
+                          "SELECT volume_link.head,volume_link.url FROM volume_link WHERE volume_link.volume = $1",
+                       [Database.PostgreSQL.Typed.Types.pgEncodeParameter
+                          _tenv_a8AF4
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a8AF5],
+                       [Database.PostgreSQL.Typed.Types.pgBinaryColumn
+                          _tenv_a8AF4
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "text"),
+                        Database.PostgreSQL.Typed.Types.pgBinaryColumn
+                          _tenv_a8AF4
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "text")]))
+         (volumeId $ volumeRow vol))
+               (\ [_chead_a8AF6, _curl_a8AF7]
+                  -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a8AF4
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _chead_a8AF6, 
+                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                        _tenv_a8AF4
+                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
+                        _curl_a8AF7))
+  pure
+    (fmap
+      (\ (vhead_a8AEb, vurl_a8AEc)
+         -> Citation vhead_a8AEb vurl_a8AEc Nothing Nothing)
+      rows)
 
 changeVolumeCitation :: (MonadAudit c m) => Volume -> Maybe Citation -> m Bool
 changeVolumeCitation vol citem = do
