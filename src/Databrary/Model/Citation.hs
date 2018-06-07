@@ -248,9 +248,37 @@ lookupVolumeLinks vol = do
 
 changeVolumeCitation :: (MonadAudit c m) => Volume -> Maybe Citation -> m Bool
 changeVolumeCitation vol citem = do
+  let _tenv_a8AGN = unknownPGTypeEnv
   ident <- getAuditIdentity
   (0 <) <$> maybe
-    (dbExecute $(deleteVolumeCitation 'ident 'vol))
+    (dbExecute -- (deleteVolumeCitation 'ident 'vol))
+      (mapQuery2
+        ((\ _p_a8AGO _p_a8AGP _p_a8AGQ -> 
+                    (Data.ByteString.concat
+                       [Data.String.fromString
+                          "WITH audit_row AS (DELETE FROM volume_citation WHERE volume=",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a8AGN
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a8AGO,
+                        Data.String.fromString
+                          " RETURNING *) INSERT INTO audit.volume_citation SELECT CURRENT_TIMESTAMP, ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a8AGN
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "integer")
+                          _p_a8AGP,
+                        Data.String.fromString ", ",
+                        Database.PostgreSQL.Typed.Types.pgEscapeParameter
+                          _tenv_a8AGN
+                          (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                             Database.PostgreSQL.Typed.Types.PGTypeName "inet")
+                          _p_a8AGQ,
+                        Data.String.fromString
+                          ", 'remove'::audit.action, * FROM audit_row"]))
+         (volumeId $ volumeRow vol) (auditWho ident) (auditIp ident))
+            (\ [] -> ())))
     (\cite -> fst <$> updateOrInsert
       $(updateVolumeCitation 'ident 'vol 'cite)
       $(insertVolumeCitation 'ident 'vol 'cite))
