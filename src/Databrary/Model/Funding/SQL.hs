@@ -1,5 +1,8 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Databrary.Model.Funding.SQL
+  where
+{-
+module Databrary.Model.Funding.SQL
   ( selectFunder
   , selectVolumeFunding
   ) where
@@ -27,3 +30,4 @@ selectVolumeFunding = selectJoin '($)
   [ fundingRow
   , joinOn "volume_funding.funder = funder.fundref_id" selectFunder
   ]
+-}
