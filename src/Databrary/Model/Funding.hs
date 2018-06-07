@@ -53,8 +53,29 @@ lookupFunder fi = do
       mRow)
 
 findFunders :: MonadDB c m => T.Text -> m [Funder]
-findFunders q =
-  dbQuery $(selectQuery selectFunder "$WHERE funder.name ILIKE '%' || ${q} || '%'")
+findFunders q = do
+  -- dbQuery (selectQuery selectFunder "$WHERE funder.name ILIKE '%' || ${q} || '%'")
+  let _tenv_a6M0j = unknownPGTypeEnv
+  rows <- mapRunPrepQuery
+      ((\ _p_a6M0k ->
+                       (Data.String.fromString
+                          "SELECT funder.fundref_id,funder.name FROM funder WHERE funder.name ILIKE '%' || $1 || '%'",
+                       [pgEncodeParameter
+                          _tenv_a6M0j (PGTypeProxy :: PGTypeName "text") _p_a6M0k],
+                       [pgBinaryColumn _tenv_a6M0j (PGTypeProxy :: PGTypeName "bigint"),
+                        pgBinaryColumn _tenv_a6M0j (PGTypeProxy :: PGTypeName "text")]))
+         q)
+               (\ [_cfundref_id_a6M0l, _cname_a6M0m]
+                  -> (pgDecodeColumnNotNull
+                        _tenv_a6M0j
+                        (PGTypeProxy :: PGTypeName "bigint")
+                        _cfundref_id_a6M0l, 
+                      pgDecodeColumnNotNull
+                        _tenv_a6M0j (PGTypeProxy :: PGTypeName "text") _cname_a6M0m))
+  pure
+   (fmap
+      (\ (vid_a6LZT, vname_a6LZU) -> Funder vid_a6LZT vname_a6LZU)
+      rows)
 
 addFunder :: MonadDB c m => Funder -> m ()
 addFunder f =
