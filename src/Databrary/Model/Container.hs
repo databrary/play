@@ -285,7 +285,7 @@ removeContainer c = do
 
 getContainerDate :: Container -> Maybe MaskedDate
 getContainerDate c =
-  maskDateIf (not (canReadData getContainerRelease getContainerVolumePermission c))
+  maskDateIf (not (canReadData2 getContainerRelease getContainerVolumeRole c))
     <$> containerDate (containerRow c)
 
 formatContainerDate :: Container -> Maybe String

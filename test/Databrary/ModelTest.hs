@@ -188,7 +188,7 @@ test_10 = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "Then the lab B AI can't add volume acccess"
     -- Implementation of getVolume as used by postVolumeAccess
     Just volForAI2 <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) aiCtxt2
-    volumePermission volForAI2 @?= PermissionSHARED
+    volumeRolePolicy volForAI2 @?= RoleSharedViewer SharedRestrictedPolicy
 
 ----- container ----
 test_11 :: TestTree

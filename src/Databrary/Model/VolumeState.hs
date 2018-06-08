@@ -24,7 +24,7 @@ lookupVolumeState :: (MonadDB c m) => Volume -> m [VolumeState]
 lookupVolumeState v = do
   let _tenv_a7xjl = unknownPGTypeEnv
   rows <- 
-    -- (selectQuery selectVolumeState "$WHERE volume = ${volumeId $ volumeRow v} AND (public OR ${volumePermission v >= PermissionEDIT})")
+    -- (selectQuery selectVolumeState "$WHERE volume = ${volumeId $ volumeRow v} AND (public OR ${(extractPermissionIgnorePolicy . volumeRolePolicy) v >= PermissionEDIT})")
      mapRunPrepQuery
       ((\ _p_a7xjm _p_a7xjn ->
                        (Data.String.fromString
@@ -37,7 +37,7 @@ lookupVolumeState v = do
                           _tenv_a7xjl (PGTypeProxy :: PGTypeName "character varying"),
                         pgBinaryColumn _tenv_a7xjl (PGTypeProxy :: PGTypeName "jsonb"),
                         pgBinaryColumn _tenv_a7xjl (PGTypeProxy :: PGTypeName "boolean")]))
-         (volumeId $ volumeRow v) ((volumePermission v) >= PermissionEDIT))
+         (volumeId $ volumeRow v) ((extractPermissionIgnorePolicy . volumeRolePolicy) v >= PermissionEDIT))
                (\ [_ckey_a7xjo, _cvalue_a7xjp, _cpublic_a7xjq]
                   -> (pgDecodeColumnNotNull
                         _tenv_a7xjl

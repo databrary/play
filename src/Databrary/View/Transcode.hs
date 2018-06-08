@@ -7,7 +7,7 @@ import Control.Monad (when, forM_)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as HA
 
-import Databrary.Has (view)
+-- import Databrary.Has (view)
 import Databrary.Model.Transcode
 import Databrary.Model.Asset
 import Databrary.Model.Party
@@ -48,7 +48,7 @@ htmlTranscodes tl req = htmlTemplate req (Just "transcodes") $ \js -> do
           H.string $ show $ assetId $ assetRow $ transcodeAsset t
         H.td $ foldMap (H.string . show) transcodeStart
         H.td $ do
-          let p = view transcodeOwner
+          let p = (partyRow . accountParty . siteAccount) transcodeOwner
           H.a H.! actionLink viewParty (HTML, TargetParty (partyId p)) js $
             H.text $ partyName p
         H.td $ H.a H.! actionLink viewAsset (HTML, assetId $ assetRow $ transcodeOrig t) js $

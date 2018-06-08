@@ -58,7 +58,7 @@ postVolumeAccess = action POST (pathJSON >/> pathId </> pathVolumeAccessTarget) 
       >>= deformCheck "You are not authorized to share data." ((||) (ru || accessSite u >= PermissionEDIT) . (PermissionNONE ==)))
     sort <- "sort" .:> deformNonEmpty deform
     mShareFull <-
-      if ap == ((partyId . partyRow) nobodyParty) && individual == PermissionPUBLIC
+      if (ap, individual) `elem` [(getPartyId nobodyParty, PermissionPUBLIC), (getPartyId rootParty, PermissionSHARED)]
       then do
         _ <- "share_full" .:> (deformCheck "Required" (not . (== FormDatumNone)) =<< deform) -- convulated way of requiring
         Just <$> ("share_full" .:> deform)

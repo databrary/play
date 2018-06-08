@@ -59,5 +59,5 @@ makeTranscodeRow s f t p l u a =
 makeOrigTranscode :: (AssetRevision -> Transcode) -> AssetRow -> Asset -> Transcode
 makeOrigTranscode f a o = f $ AssetRevision (Asset a $ assetVolume o) o
 
-makeTranscode :: (Asset -> Transcode) -> AssetRow -> (Permission -> VolumeAccessPolicy -> Volume) -> Transcode
-makeTranscode t o vp = t $ Asset o $ vp PermissionADMIN PermLevelDefault
+makeTranscode :: (Asset -> Transcode) -> AssetRow -> (VolumeRolePolicy -> Volume) -> Transcode
+makeTranscode t o vp = t $ Asset o $ vp RoleAdmin

@@ -227,7 +227,7 @@ removeRecordMeasure m = do
 -- | Enforce release on record somehow???
 getRecordMeasures :: Record -> Measures
 getRecordMeasures r =
-    case readRelease ((volumePermission . recordVolume) r) of  -- reads better with case than maybe
+    case readRelease ((extractPermissionIgnorePolicy . volumeRolePolicy . recordVolume) r) of  -- reads better with case than maybe
         Nothing ->
           []
         Just rel ->
