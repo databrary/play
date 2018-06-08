@@ -708,26 +708,56 @@ app.factory('modelService', [
           if ('metrics' in v) {
             if (m == null) {
               if (on) {
-                if (sessionStorage.getItem('designChoices')) {
-                  var designArray = sessionStorage.getItem('designChoices').split(',');
+                if (sessionStorage.getItem('designChoices' + c)) {
+                  var designArray = sessionStorage.getItem('designChoices' + c).split(',');
                   designArray.forEach(function(x, index) {
                     designArray[index] = parseInt(designArray[index]);
                   });
                   v.metrics[c] = designArray;
-                  sessionStorage.removeItem('designChoices');
+                  var defaultArray = [];
+                  switch (c) {
+                    case 1:
+                      defaultArray = [1, 4, 11, 7, 5, 12, 6];
+                      break;
+                    case 2:
+                      defaultArray = [16];
+                      break;
+                    case 3:
+                      defaultArray = [21];
+                      break;
+                    case 4:
+                      defaultArray = [23];
+                      break;
+                    case 5:
+                      defaultArray = [26];
+                      break;
+                    case 6:
+                      defaultArray = [30, 29];
+                      break;
+                    case 7:
+                      defaultArray = [35, 34, 33, 36];
+                  }
+                  v.metrics[c].forEach(function(x, index) {
+                    if (!defaultArray.includes(v.metrics[c][index])){
+                      v.setVolumeMetrics(c, v.metrics[c][index], on);
+                    } 
+                  });
+                  defaultArray.forEach(function(x, index) {
+                    if (!v.metrics[c].includes(defaultArray[index])){
+                      v.setVolumeMetrics(c, defaultArray[index]);
+                    } 
+                  });
                 } else {
                   v.metrics[c] = d;
                 }
               }
               else {
-                sessionStorage.setItem('designChoices', v.metrics[c].toString());
+                sessionStorage.setItem('designChoices' + c, v.metrics[c].toString());
                 delete v.metrics[c];
               }
             } else {
-              console.log(v.metrics[c]);
               v.metrics[c].remove(m);
               if (on) {
-                console.log('hi');
                 Array.prototype.push.apply(v.metrics[c], d);
                 v.metrics[c].sort(function (a, b) { return a - b; });
               } 
