@@ -10,8 +10,15 @@ app.directive 'volumeDesign', [
       volume = $scope.volume
       form = $scope.volumeDesign
 
+      clickOn = 0;
       $element.on 'click', (e) ->
-        angular.element(e.target).not('input').closest('li.clickable').find('input').trigger 'click'
+        if clickOn == 0
+          angular.element(e.target).not('input').closest('li.clickable').find('input').trigger 'click'
+          angular.element(e.target).not('input').closest('li.clickable').find('input').trigger 'click'
+          clickOn = 1
+          console.log(clickOn)
+        else 
+          angular.element(e.target).not('input').closest('li.clickable').find('input').trigger 'click'
         return
 
       $scope.select = (c) ->
