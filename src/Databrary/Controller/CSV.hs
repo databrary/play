@@ -26,6 +26,7 @@ import Databrary.Model.RecordSlot
 import Databrary.Model.Metric
 import Databrary.Model.Measure
 import Databrary.Model.VolumeMetric
+import Databrary.Service.DB
 import Databrary.Store.Filename
 import Databrary.Store.CSV
 import Databrary.HTTP
@@ -97,7 +98,7 @@ dataRow hl@((c,m):hl') rll@(~rl@(r:_):rll') = case compare c rc of
   where rc = recordCategory $ recordRow r
 dataRow _ _ = []
 
-volumeCSV :: Volume -> [(Container, [RecordSlot])] -> Handler [[BS.ByteString]]
+volumeCSV :: (MonadDB c m) => Volume -> [(Container, [RecordSlot])] -> m [[BS.ByteString]]
 volumeCSV vol crsl = do
   mets <- map getMetric' <$> lookupVolumeMetrics vol
   -- FIXME if volume metrics can be reordered
