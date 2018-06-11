@@ -9,16 +9,18 @@ app.directive 'volumeDesign', [
     link: ($scope, $element, $attrs, wizard) ->
       volume = $scope.volume
       form = $scope.volumeDesign
+      selectedArray =  []
 
-      clickOn = 0;
       $element.on 'click', (e) ->
-        if clickOn == 0
-          angular.element(e.target).not('input').closest('li.clickable').find('input').trigger 'click'
-          angular.element(e.target).not('input').closest('li.clickable').find('input').trigger 'click'
-          clickOn = 1
-          console.log(clickOn)
-        else 
-          angular.element(e.target).not('input').closest('li.clickable').find('input').trigger 'click'
+        inputEl = angular.element(e.target).not('input').closest('li.clickable').find('input')
+        if inputEl.attr('class')
+          inputElclass = inputEl.attr('class').substring(inputEl.attr('class').indexOf('class')+5, inputEl.attr('class').indexOf('class')+6)
+        if selectedArray.includes(inputElclass)
+          inputEl.trigger 'click'
+          inputEl.trigger 'click'
+          selectedArray.splice(selectedArray.indexOf(inputElclass), 1)
+        else
+          inputEl.trigger 'click'
         return
 
       $scope.select = (c) ->
@@ -37,8 +39,16 @@ app.directive 'volumeDesign', [
         form.category = {}
         for c of volume.metrics
           form.category[c] = true
+          selectedArray.push(c)
         $scope.select($scope.selected?.id || $location.search().key)
         return
+
+      reinit = () ->
+        form.category = {}
+        for c of volume.metrics
+          form.category[c] = true
+        $scope.select($scope.selected?.id || $location.search().key)
+
       init()
 
       $scope.change = (c, m) ->
@@ -46,11 +56,11 @@ app.directive 'volumeDesign', [
         messages.clear(form)
         form.$setSubmitted()
         volume.setVolumeMetrics(c, m, if m? then form.metric[m] else form.category[c]).then(() ->
-            init()
+            reinit()
             form.$setPristine()
             return
           , (res) ->
-            init()
+            reinit()
             form.$setUnsubmitted()
             messages.addError
               body: 'Error changing volume design'
