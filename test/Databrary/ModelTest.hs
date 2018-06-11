@@ -5,13 +5,18 @@ import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Reader
 import Data.Aeson
+import qualified Data.ByteString.Builder as BSB
+import qualified Data.ByteString.Lazy.Char8 as BSLC
 import Data.Maybe
+import Data.Monoid ((<>))
+import qualified Data.Text as T
 import Data.Time
 import Hedgehog.Gen as Gen
 import Test.Tasty
 import Test.Tasty.HUnit
 
 import Databrary.Has
+import Databrary.Controller.CSV (volumeCSV)
 import Databrary.Model.Audit (MonadAudit)
 import Databrary.Model.Authorize
 import Databrary.Model.Category
@@ -26,12 +31,14 @@ import Databrary.Model.Permission
 import Databrary.Model.Release
 import Databrary.Model.Record
 import Databrary.Model.Record.TypesTest
+import Databrary.Model.RecordSlot
 import Databrary.Model.Slot
 import Databrary.Model.Volume
 import Databrary.Model.Volume.TypesTest
 import Databrary.Model.VolumeAccess
 import Databrary.Model.VolumeAccess.TypesTest
 import Databrary.Service.DB (DBConn, MonadDB)
+import Databrary.Store.CSV (buildCSV)
 import TestHarness as Test
 
 test_1 :: TestTree
@@ -260,6 +267,36 @@ test_14 = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "Then the public can't see the restricted measures like birthdate"
     (participantMetricBirthdate `notElem` (fmap measureMetric . getRecordMeasures) rcrdForAnon) @? "Expected birthdate to be removed"
 
+------ miscellaneous -----
+test_15 :: TestTree
+test_15 = Test.stepsWithTransaction "" $ \step cn2 -> do
+    step "Given a public volume with one container"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    -- TODO: should be lookup auth on rootParty
+    (vol, cntr) <- runReaderT
+         (do
+              v <- addVolumeSetPublic aiAcct
+              c <- makeAddContainer v (Just ReleasePUBLIC) Nothing
+              Just v' <- lookupVolume ((volumeId . volumeRow) v)
+              Just s <- lookupSlotByContainerId c
+              pure (v', slotContainer s))
+         aiCtxt
+    step "When the public downloads the volume as a zip"
+    -- Implementation of zipVolume
+    -- TODO: expand to test zipVolume up to zipActs
+    csv <- runWithNoIdent cn2
+        (do
+            _:cr <- lookupVolumeContainersRecords vol
+            rows <- volumeCSV vol cr
+            pure (buildCSV rows))
+    step "Then zip contains a CSV summarizing the volume"
+    BSB.toLazyByteString csv
+      @?=
+        ("session-id,session-name,session-date,session-release\n"
+         <> (BSLC.pack . show . containerId . containerRow) cntr <> ","
+          <> (BSLC.pack . Data.Maybe.maybe "" T.unpack . containerName . containerRow) cntr <> ","
+          <> ",\n")
+
 ------------------------------------------------------ end of tests ---------------------------------
 
 accessIsEq :: Access -> Permission -> Permission -> Assertion
@@ -272,6 +309,13 @@ setVolumePrivate :: (MonadAudit c m) => Volume -> m ()
 setVolumePrivate v = do
     nobodyVa <- liftIO (mkGroupVolAccess PermissionNONE Nothing nobodyParty v)
     rootVa <- liftIO (mkGroupVolAccess PermissionNONE Nothing rootParty v)
+    void (changeVolumeAccess nobodyVa)
+    void (changeVolumeAccess rootVa)
+
+setVolumePublic :: (MonadAudit c m) => Volume -> m ()
+setVolumePublic v = do
+    nobodyVa <- liftIO (mkGroupVolAccess PermissionPUBLIC (Just True) nobodyParty v)
+    rootVa <- liftIO (mkGroupVolAccess PermissionSHARED (Just True) rootParty v)
     void (changeVolumeAccess nobodyVa)
     void (changeVolumeAccess rootVa)
 
@@ -333,6 +377,14 @@ addVolumeSetPrivate a = do
     v' <- addVolume v -- note: skipping irrelevant change volume citation
     setDefaultVolumeAccessesForCreated (accountParty a) v'
     setVolumePrivate v'
+    pure v'
+
+addVolumeSetPublic :: (MonadAudit c m) => Account -> m Volume
+addVolumeSetPublic a = do
+    v <- (liftIO . Gen.sample) genVolumeCreateSimple
+    v' <- addVolume v -- note: skipping irrelevant change volume citation
+    setDefaultVolumeAccessesForCreated (accountParty a) v'
+    setVolumePublic v'
     pure v'
 
 mkParticipantRecord :: Volume -> IO Record

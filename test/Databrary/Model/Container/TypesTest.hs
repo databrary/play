@@ -48,7 +48,7 @@ genCreateContainerRow =
    -- some redundancy with blankContainer
     ContainerRow
         <$> (pure . error) "container id created after save"
-        <*> Gen.bool
+        <*> pure False -- Gen.bool -- TODO: when is top valid?
         <*> Gen.maybe genContainerName
         <*> Gen.maybe genContainerTestDay
 
