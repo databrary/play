@@ -23,7 +23,7 @@ span.spaces    { background: white }
 <span class="lineno">    7 </span>import qualified Text.Blaze.Html5 as H
 <span class="lineno">    8 </span>import qualified Text.Blaze.Html5.Attributes as HA
 <span class="lineno">    9 </span>
-<span class="lineno">   10 </span>import Databrary.Has (view)
+<span class="lineno">   10 </span>-- import Databrary.Has (view)
 <span class="lineno">   11 </span>import Databrary.Model.Transcode
 <span class="lineno">   12 </span>import Databrary.Model.Asset
 <span class="lineno">   13 </span>import Databrary.Model.Party
@@ -64,7 +64,7 @@ span.spaces    { background: white }
 <span class="lineno">   48 </span><span class="spaces">          </span><span class="nottickedoff">H.string $ show $ assetId $ assetRow $ transcodeAsset t</span>
 <span class="lineno">   49 </span><span class="spaces">        </span><span class="nottickedoff">H.td $ foldMap (H.string . show) transcodeStart</span>
 <span class="lineno">   50 </span><span class="spaces">        </span><span class="nottickedoff">H.td $ do</span>
-<span class="lineno">   51 </span><span class="spaces">          </span><span class="nottickedoff">let p = view transcodeOwner</span>
+<span class="lineno">   51 </span><span class="spaces">          </span><span class="nottickedoff">let p = (partyRow . accountParty . siteAccount) transcodeOwner</span>
 <span class="lineno">   52 </span><span class="spaces">          </span><span class="nottickedoff">H.a H.! actionLink viewParty (HTML, TargetParty (partyId p)) js $</span>
 <span class="lineno">   53 </span><span class="spaces">            </span><span class="nottickedoff">H.text $ partyName p</span>
 <span class="lineno">   54 </span><span class="spaces">        </span><span class="nottickedoff">H.td $ H.a H.! actionLink viewAsset (HTML, assetId $ assetRow $ transcodeOrig t) js $</span>

@@ -98,20 +98,20 @@ span.spaces    { background: white }
 <span class="lineno">   82 </span><span class="decl"><span class="nottickedoff">getAsset getOrig p checkDataPerm i = do</span>
 <span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">mAssetSlot &lt;- (if getOrig then lookupOrigAssetSlot else lookupAssetSlot) i</span>
 <span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">slot &lt;- maybeAction mAssetSlot</span>
-<span class="lineno">   85 </span><span class="spaces">  </span><span class="nottickedoff">void (checkPermission2 (fst . getAssetSlotVolumePermission2) p slot)</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="nottickedoff">void (checkPermission2 (extractPermissionIgnorePolicy . getAssetSlotVolumePermission2) p slot)</span>
 <span class="lineno">   86 </span><span class="spaces">  </span><span class="nottickedoff">when checkDataPerm $ do</span>
 <span class="lineno">   87 </span><span class="spaces">    </span><span class="nottickedoff">-- TODO: delete</span>
 <span class="lineno">   88 </span><span class="spaces">    </span><span class="nottickedoff">liftIO $ print (&quot;checking data perm&quot;, &quot;assetSlot&quot;, slot)</span>
 <span class="lineno">   89 </span><span class="spaces">    </span><span class="nottickedoff">liftIO $ print (&quot;checking data perm&quot;, &quot;seg rlses&quot;, getAssetSlotRelease2 slot,</span>
 <span class="lineno">   90 </span><span class="spaces">                    </span><span class="nottickedoff">&quot;vol prm&quot;, getAssetSlotVolumePermission2 slot)</span>
-<span class="lineno">   91 </span><span class="spaces">    </span><span class="nottickedoff">liftIO $ print (&quot;result perm&quot;, dataPermission3 getAssetSlotRelease2 getAssetSlotVolumePermission2 slot)</span>
+<span class="lineno">   91 </span><span class="spaces">    </span><span class="nottickedoff">liftIO $ print (&quot;result perm&quot;, dataPermission4 getAssetSlotRelease2 getAssetSlotVolumePermission2 slot)</span>
 <span class="lineno">   92 </span><span class="spaces">    </span><span class="nottickedoff">void (userCanReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 slot)</span>
 <span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">pure slot</span></span>
 <span class="lineno">   94 </span>
 <span class="lineno">   95 </span>assetJSONField :: AssetSlot -&gt; BS.ByteString -&gt; Maybe BS.ByteString -&gt; Handler (Maybe JSON.Encoding)
 <span class="lineno">   96 </span><span class="decl"><span class="nottickedoff">assetJSONField a &quot;container&quot; _ =</span>
 <span class="lineno">   97 </span><span class="spaces">  </span><span class="nottickedoff">return $ JSON.recordEncoding . containerJSON False . slotContainer &lt;$&gt; assetSlot a -- containerJSON should consult volume</span>
-<span class="lineno">   98 </span><span class="spaces"></span><span class="nottickedoff">assetJSONField a &quot;creation&quot; _ | ((fst . getAssetSlotVolumePermission2) a) &gt;= PermissionEDIT = do</span>
+<span class="lineno">   98 </span><span class="spaces"></span><span class="nottickedoff">assetJSONField a &quot;creation&quot; _ | ((extractPermissionIgnorePolicy . getAssetSlotVolumePermission2) a) &gt;= PermissionEDIT = do</span>
 <span class="lineno">   99 </span><span class="spaces">  </span><span class="nottickedoff">(t, n) &lt;- assetCreation $ slotAsset a</span>
 <span class="lineno">  100 </span><span class="spaces">  </span><span class="nottickedoff">return $ Just $ JSON.pairs $</span>
 <span class="lineno">  101 </span><span class="spaces">       </span><span class="nottickedoff">&quot;date&quot; `JSON.kvObjectOrEmpty` t</span>
@@ -355,7 +355,7 @@ span.spaces    { background: white }
 <span class="lineno">  339 </span><span class="spaces">  </span><span class="nottickedoff">let as = assetSegmentInterp 0.25 $ newAssetSegment a seg Nothing</span>
 <span class="lineno">  340 </span><span class="spaces">  </span><span class="nottickedoff">if formatIsImage (view as)</span>
 <span class="lineno">  341 </span><span class="spaces">    </span><span class="nottickedoff">&amp;&amp; assetBacked (view as)</span>
-<span class="lineno">  342 </span><span class="spaces">    </span><span class="nottickedoff">&amp;&amp; canReadData getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as</span>
+<span class="lineno">  342 </span><span class="spaces">    </span><span class="nottickedoff">&amp;&amp; canReadData2 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as</span>
 <span class="lineno">  343 </span><span class="spaces">    </span><span class="nottickedoff">then peeks $ otherRouteResponse [] downloadAsset (view as, assetSegment as)</span>
 <span class="lineno">  344 </span><span class="spaces">    </span><span class="nottickedoff">else peeks $ otherRouteResponse [] formatIcon (view as)</span></span>
 

@@ -39,7 +39,7 @@ span.spaces    { background: white }
 <span class="lineno">   23 </span>import Data.Maybe (fromMaybe)
 <span class="lineno">   24 </span>import Data.Monoid ((&lt;&gt;))
 <span class="lineno">   25 </span>
-<span class="lineno">   26 </span>import Databrary.Has (peek, view)
+<span class="lineno">   26 </span>import Databrary.Has (peek)
 <span class="lineno">   27 </span>import qualified Databrary.JSON as JSON
 <span class="lineno">   28 </span>import Databrary.Service.DB
 <span class="lineno">   29 </span>import Databrary.Model.SQL
@@ -111,7 +111,7 @@ span.spaces    { background: white }
 <span class="lineno">   95 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlyfalse">partyId (partyRow child) == partyId (partyRow parent)</span> = <span class="nottickedoff">return $ authorization $ selfAuthorize child</span></span>
 <span class="lineno">   96 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = do</span>
 <span class="lineno">   97 </span><span class="spaces">    </span><span class="istickedoff">auth &lt;- peek</span>
-<span class="lineno">   98 </span><span class="spaces">    </span><span class="istickedoff">if <span class="tickonlyfalse">partyId (view auth) == partyId (partyRow child) &amp;&amp; <span class="nottickedoff">partyId (partyRow parent) == partyId (partyRow rootParty)</span></span></span>
+<span class="lineno">   98 </span><span class="spaces">    </span><span class="istickedoff">if <span class="tickonlyfalse">((getPartyId . accountParty . siteAccount) auth) == partyId (partyRow child) &amp;&amp; <span class="nottickedoff">partyId (partyRow parent) == partyId (partyRow rootParty)</span></span></span>
 <span class="lineno">   99 </span><span class="spaces">      </span><span class="istickedoff">then <span class="nottickedoff">return $ Authorization (siteAccess auth) child parent</span> -- short circuit to get already fetched value in siteauthx</span>
 <span class="lineno">  100 </span><span class="spaces">      </span><span class="istickedoff">else fromMaybe <span class="nottickedoff">(Authorization mempty child parent)</span> &lt;$&gt; -- if not valid entry found, assume no access</span>
 <span class="lineno">  101 </span><span class="spaces">        </span><span class="istickedoff">dbQuery1 ((\a -&gt; a <span class="nottickedoff">child</span> <span class="nottickedoff">parent</span>) &lt;$&gt; $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery authorizationRow &quot;!$WHERE authorize_view.child = ${partyId $ partyRow child} AND authorize_view.parent = ${partyId $ partyRow parent}&quot;</span></span></span></span></span></span></span></span></span></span></span></span>))</span></span>

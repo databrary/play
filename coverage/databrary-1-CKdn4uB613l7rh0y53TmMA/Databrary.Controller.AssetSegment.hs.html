@@ -72,13 +72,13 @@ span.spaces    { background: white }
 <span class="lineno">   56 </span><span class="decl"><span class="nottickedoff">getAssetSegment getOrig p checkDataPerm mv s a = do</span>
 <span class="lineno">   57 </span><span class="spaces">  </span><span class="nottickedoff">mAssetSeg &lt;- (if getOrig then lookupOrigSlotAssetSegment else lookupSlotAssetSegment) s a</span>
 <span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">assetSeg &lt;- maybeAction ((maybe id (\v -&gt; mfilter $ (v ==) . view) mv) mAssetSeg)</span>
-<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">void (checkPermission2 (fst . getAssetSegmentVolumePermission2) p assetSeg)</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">void (checkPermission2 (extractPermissionIgnorePolicy . getAssetSegmentVolumePermission2) p assetSeg)</span>
 <span class="lineno">   60 </span><span class="spaces">  </span><span class="nottickedoff">when checkDataPerm $ do</span>
 <span class="lineno">   61 </span><span class="spaces">    </span><span class="nottickedoff">-- TODO: delete</span>
 <span class="lineno">   62 </span><span class="spaces">    </span><span class="nottickedoff">liftIO $ print (&quot;checking data perm&quot;, &quot;as&quot;, assetSeg)</span>
 <span class="lineno">   63 </span><span class="spaces">    </span><span class="nottickedoff">liftIO $ print (&quot;checking data perm&quot;, &quot;seg rlses&quot;, getAssetSegmentRelease2 assetSeg,</span>
 <span class="lineno">   64 </span><span class="spaces">                    </span><span class="nottickedoff">&quot;vol prm&quot;, getAssetSegmentVolumePermission2 assetSeg)</span>
-<span class="lineno">   65 </span><span class="spaces">    </span><span class="nottickedoff">liftIO $ print (&quot;result perm&quot;, dataPermission3 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)</span>
+<span class="lineno">   65 </span><span class="spaces">    </span><span class="nottickedoff">liftIO $ print (&quot;result perm&quot;, dataPermission4 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)</span>
 <span class="lineno">   66 </span><span class="spaces">    </span><span class="nottickedoff">void (userCanReadData getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)</span>
 <span class="lineno">   67 </span><span class="spaces">  </span><span class="nottickedoff">pure assetSeg</span></span>
 <span class="lineno">   68 </span>
@@ -152,7 +152,7 @@ span.spaces    { background: white }
 <span class="lineno">  136 </span><span class="spaces">  </span><span class="nottickedoff">let as' = assetSegmentInterp 0.25 as</span>
 <span class="lineno">  137 </span><span class="spaces">  </span><span class="nottickedoff">if formatIsImage (view as')</span>
 <span class="lineno">  138 </span><span class="spaces">    </span><span class="nottickedoff">&amp;&amp; assetBacked (view as)</span>
-<span class="lineno">  139 </span><span class="spaces">    </span><span class="nottickedoff">&amp;&amp; canReadData getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as'</span>
+<span class="lineno">  139 </span><span class="spaces">    </span><span class="nottickedoff">&amp;&amp; canReadData2 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as'</span>
 <span class="lineno">  140 </span><span class="spaces">    </span><span class="nottickedoff">then peeks $ otherRouteResponse [] downloadAssetSegment (slotId $ view as', assetId $ assetRow $ view as')</span>
 <span class="lineno">  141 </span><span class="spaces">    </span><span class="nottickedoff">else peeks $ otherRouteResponse [] formatIcon (view as)</span></span>
 

@@ -90,7 +90,7 @@ span.spaces    { background: white }
 <span class="lineno">   74 </span>  <span class="decl"><span class="nottickedoff">view = view . segmentAsset</span></span>
 <span class="lineno">   75 </span>instance Has (Id Volume) AssetSegment where
 <span class="lineno">   76 </span>  <span class="decl"><span class="nottickedoff">view = view . segmentAsset</span></span>
-<span class="lineno">   77 </span>getAssetSegmentVolumePermission2 :: AssetSegment -&gt; (Permission, VolumeAccessPolicy)
+<span class="lineno">   77 </span>getAssetSegmentVolumePermission2 :: AssetSegment -&gt; VolumeRolePolicy
 <span class="lineno">   78 </span><span class="decl"><span class="nottickedoff">getAssetSegmentVolumePermission2 = getAssetSlotVolumePermission2 . segmentAsset</span></span>
 <span class="lineno">   79 </span>
 <span class="lineno">   80 </span>instance Has Slot AssetSegment where

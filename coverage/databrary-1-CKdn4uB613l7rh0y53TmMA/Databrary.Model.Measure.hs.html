@@ -243,7 +243,7 @@ span.spaces    { background: white }
 <span class="lineno">  227 </span>-- | Enforce release on record somehow???
 <span class="lineno">  228 </span>getRecordMeasures :: Record -&gt; Measures
 <span class="lineno">  229 </span><span class="decl"><span class="istickedoff">getRecordMeasures r =</span>
-<span class="lineno">  230 </span><span class="spaces">    </span><span class="istickedoff">case readRelease ((volumePermission . recordVolume) r) of  -- reads better with case than maybe</span>
+<span class="lineno">  230 </span><span class="spaces">    </span><span class="istickedoff">case readRelease ((extractPermissionIgnorePolicy . volumeRolePolicy . recordVolume) r) of  -- reads better with case than maybe</span>
 <span class="lineno">  231 </span><span class="spaces">        </span><span class="istickedoff">Nothing -&gt;</span>
 <span class="lineno">  232 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">[]</span></span>
 <span class="lineno">  233 </span><span class="spaces">        </span><span class="istickedoff">Just rel -&gt;</span>

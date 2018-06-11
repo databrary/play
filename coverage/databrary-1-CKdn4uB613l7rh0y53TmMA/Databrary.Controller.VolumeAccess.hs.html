@@ -74,7 +74,7 @@ span.spaces    { background: white }
 <span class="lineno">   58 </span><span class="spaces">      </span><span class="nottickedoff">&gt;&gt;= deformCheck &quot;You are not authorized to share data.&quot; ((||) (ru || accessSite u &gt;= PermissionEDIT) . (PermissionNONE ==)))</span>
 <span class="lineno">   59 </span><span class="spaces">    </span><span class="nottickedoff">sort &lt;- &quot;sort&quot; .:&gt; deformNonEmpty deform</span>
 <span class="lineno">   60 </span><span class="spaces">    </span><span class="nottickedoff">mShareFull &lt;-</span>
-<span class="lineno">   61 </span><span class="spaces">      </span><span class="nottickedoff">if ap == ((partyId . partyRow) nobodyParty) &amp;&amp; individual == PermissionPUBLIC</span>
+<span class="lineno">   61 </span><span class="spaces">      </span><span class="nottickedoff">if (ap, individual) `elem` [(getPartyId nobodyParty, PermissionPUBLIC), (getPartyId rootParty, PermissionSHARED)]</span>
 <span class="lineno">   62 </span><span class="spaces">      </span><span class="nottickedoff">then do</span>
 <span class="lineno">   63 </span><span class="spaces">        </span><span class="nottickedoff">_ &lt;- &quot;share_full&quot; .:&gt; (deformCheck &quot;Required&quot; (not . (== FormDatumNone)) =&lt;&lt; deform) -- convulated way of requiring</span>
 <span class="lineno">   64 </span><span class="spaces">        </span><span class="nottickedoff">Just &lt;$&gt; (&quot;share_full&quot; .:&gt; deform)</span>

@@ -22,122 +22,69 @@ span.spaces    { background: white }
 <span class="lineno">    6 </span>  , permissionPRIVATE
 <span class="lineno">    7 </span>  , readPermission
 <span class="lineno">    8 </span>  , readRelease
-<span class="lineno">    9 </span>  , dataPermission3
-<span class="lineno">   10 </span>  , canReadData
+<span class="lineno">    9 </span>  , dataPermission4
+<span class="lineno">   10 </span>  , canReadData2
 <span class="lineno">   11 </span>  , accessJSON
-<span class="lineno">   12 </span>  -- testing only
-<span class="lineno">   13 </span>  , testdataPermission3
-<span class="lineno">   14 </span>  ) where
+<span class="lineno">   12 </span>  ) where
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import Data.Monoid ((&lt;&gt;))
 <span class="lineno">   15 </span>
-<span class="lineno">   16 </span>import Data.Monoid ((&lt;&gt;))
-<span class="lineno">   17 </span>
-<span class="lineno">   18 </span>import qualified Databrary.JSON as JSON
-<span class="lineno">   19 </span>import Databrary.Model.Release.Types
-<span class="lineno">   20 </span>import Databrary.Model.Permission.Types
-<span class="lineno">   21 </span>
-<span class="lineno">   22 </span>-- |Level at which things become visible.
-<span class="lineno">   23 </span>permissionVIEW :: Permission
-<span class="lineno">   24 </span><span class="decl"><span class="nottickedoff">permissionVIEW = PermissionPUBLIC</span></span>
-<span class="lineno">   25 </span>
-<span class="lineno">   26 </span>-- |Alias for READ. Grants full access to private data, bypassing consent permissions.
-<span class="lineno">   27 </span>permissionPRIVATE :: Permission
-<span class="lineno">   28 </span><span class="decl"><span class="istickedoff">permissionPRIVATE = PermissionREAD</span></span>
-<span class="lineno">   29 </span>
-<span class="lineno">   30 </span>-- |The necessary permission level to read a data object with the given release.
-<span class="lineno">   31 </span>-- Equivalent to the SQL function read_permission.
-<span class="lineno">   32 </span>readPermission :: Release -&gt; Permission
-<span class="lineno">   33 </span><span class="decl"><span class="istickedoff">readPermission ReleasePUBLIC   = <span class="nottickedoff">PermissionPUBLIC</span></span>
-<span class="lineno">   34 </span><span class="spaces"></span><span class="istickedoff">readPermission ReleaseSHARED   = <span class="nottickedoff">PermissionSHARED</span></span>
-<span class="lineno">   35 </span><span class="spaces"></span><span class="istickedoff">readPermission ReleaseEXCERPTS = <span class="nottickedoff">PermissionSHARED</span></span>
-<span class="lineno">   36 </span><span class="spaces"></span><span class="istickedoff">readPermission ReleasePRIVATE  = permissionPRIVATE</span></span>
-<span class="lineno">   37 </span>
-<span class="lineno">   38 </span>-- |The most restrictive data release level that the current user may access under the given permission.
-<span class="lineno">   39 </span>-- Equivalent to the SQL function read_release.  Inverse of 'readPermission' module meaning of @Nothing@.
-<span class="lineno">   40 </span>readRelease :: Permission -&gt; Maybe Release
-<span class="lineno">   41 </span><span class="decl"><span class="istickedoff">readRelease PermissionNONE   = Nothing</span>
-<span class="lineno">   42 </span><span class="spaces"></span><span class="istickedoff">readRelease PermissionPUBLIC = Just ReleasePUBLIC</span>
-<span class="lineno">   43 </span><span class="spaces"></span><span class="istickedoff">readRelease PermissionSHARED = <span class="nottickedoff">Just ReleaseSHARED</span></span>
-<span class="lineno">   44 </span><span class="spaces"></span><span class="istickedoff">readRelease _                = <span class="nottickedoff">Just ReleasePRIVATE</span></span></span>
-<span class="lineno">   45 </span>
-<span class="lineno">   46 </span>-- |The effective permission for data objects with the given attributes, effectively collapsing ineffective permissions NONE.
-<span class="lineno">   47 </span>releasePermission :: Release -&gt; Permission -&gt; Permission
-<span class="lineno">   48 </span><span class="decl"><span class="istickedoff">releasePermission effectiveReleaseOnData currentUserAllowedPermissionOnVolume</span>
-<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlyfalse">currentUserAllowedPermissionOnVolume &gt;= readPermission effectiveReleaseOnData</span> = <span class="nottickedoff">currentUserAllowedPermissionOnVolume</span></span>
-<span class="lineno">   50 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = PermissionNONE</span></span>
-<span class="lineno">   51 </span>
-<span class="lineno">   52 </span>-- START future testing code
-<span class="lineno">   53 </span>runDataPermission3 :: (Release, Release) -&gt; (Permission, VolumeAccessPolicy) -&gt; Permission
-<span class="lineno">   54 </span><span class="decl"><span class="nottickedoff">runDataPermission3 (relPub, relPriv) (perm, policy) =</span>
-<span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">dataPermission3 (const (EffectiveRelease {effRelPublic = relPub, effRelPrivate = relPriv})) (const (perm, policy)) ()</span></span>
-<span class="lineno">   56 </span>
-<span class="lineno">   57 </span>-- &lt;volume shared level&gt;AS&lt;current user's access to that volume&gt;
-<span class="lineno">   58 </span>fullySharedAsPublic, partiallySharedAsPublic, fullyOrPartiallyOrDatabrarySharedAsDatabraryMember :: (Permission, VolumeAccessPolicy)
-<span class="lineno">   59 </span>privateOrDatabrarySharedAsPublic, privateAsDatabraryMember :: (Permission, VolumeAccessPolicy)
-<span class="lineno">   60 </span>privateAsVolumeAffiliate, privateAsOwner :: (Permission, VolumeAccessPolicy)
-<span class="lineno">   61 </span><span class="decl"><span class="nottickedoff">fullySharedAsPublic = (PermissionPUBLIC, PermLevelDefault)</span></span>
-<span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">partiallySharedAsPublic = (PermissionPUBLIC, PublicRestricted)</span></span>
-<span class="lineno">   63 </span><span class="decl"><span class="nottickedoff">fullyOrPartiallyOrDatabrarySharedAsDatabraryMember = (PermissionSHARED, PermLevelDefault)</span></span>
-<span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">privateOrDatabrarySharedAsPublic = (PermissionNONE, PermLevelDefault)</span></span>
-<span class="lineno">   65 </span><span class="decl"><span class="nottickedoff">privateAsDatabraryMember = (PermissionNONE, PermLevelDefault)</span></span>
-<span class="lineno">   66 </span><span class="decl"><span class="nottickedoff">privateAsVolumeAffiliate = (PermissionEDIT, PermLevelDefault)</span></span>
-<span class="lineno">   67 </span><span class="decl"><span class="nottickedoff">privateAsOwner = (PermissionADMIN, PermLevelDefault)</span></span>
-<span class="lineno">   68 </span>
-<span class="lineno">   69 </span>publiclyReleasedExcerpt :: (Release, Release)
-<span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">publiclyReleasedExcerpt = (ReleasePUBLIC, ReleasePUBLIC)</span></span>
-<span class="lineno">   71 </span>
-<span class="lineno">   72 </span>publiclyReleasedAsset, databraryReleasedAssetOrExcerpt, excerptsReleasedAssetOrExcerpt, privatelyReleasedAssetOrExcerpt :: (Release, Release)
-<span class="lineno">   73 </span><span class="decl"><span class="nottickedoff">publiclyReleasedAsset = (ReleasePUBLIC, ReleasePRIVATE)</span></span>
-<span class="lineno">   74 </span><span class="decl"><span class="nottickedoff">excerptsReleasedAssetOrExcerpt = (ReleaseEXCERPTS, ReleasePRIVATE)</span></span>  -- is it possible to set an excerpt to &quot;excerpts' release level?
-<span class="lineno">   75 </span><span class="decl"><span class="nottickedoff">databraryReleasedAssetOrExcerpt = (ReleaseSHARED, ReleasePRIVATE)</span></span>  -- is this shared or private?
-<span class="lineno">   76 </span><span class="decl"><span class="nottickedoff">privatelyReleasedAssetOrExcerpt = (ReleasePRIVATE, ReleasePRIVATE)</span></span>
-<span class="lineno">   77 </span>
-<span class="lineno">   78 </span>testdataPermission3 :: [(Permission, Permission)]
-<span class="lineno">   79 </span><span class="decl"><span class="nottickedoff">testdataPermission3 =</span>
-<span class="lineno">   80 </span><span class="spaces">  </span><span class="nottickedoff">[ (runDataPermission3 publiclyReleasedExcerpt fullySharedAsPublic, PermissionPUBLIC)</span>
-<span class="lineno">   81 </span><span class="spaces">  </span><span class="nottickedoff">, (runDataPermission3 publiclyReleasedExcerpt partiallySharedAsPublic, PermissionPUBLIC)</span>
-<span class="lineno">   82 </span><span class="spaces">  </span><span class="nottickedoff">, (runDataPermission3 publiclyReleasedExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)</span>
-<span class="lineno">   83 </span><span class="spaces"></span><span class="nottickedoff"></span>
-<span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">, (runDataPermission3 publiclyReleasedAsset fullySharedAsPublic, PermissionPUBLIC)</span>
-<span class="lineno">   85 </span><span class="spaces">  </span><span class="nottickedoff">, (runDataPermission3 publiclyReleasedAsset partiallySharedAsPublic, PermissionNONE)</span>
-<span class="lineno">   86 </span><span class="spaces">  </span><span class="nottickedoff">, (runDataPermission3 publiclyReleasedAsset fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)</span>
-<span class="lineno">   87 </span><span class="spaces"></span><span class="nottickedoff"></span>
-<span class="lineno">   88 </span><span class="spaces">  </span><span class="nottickedoff">, (runDataPermission3 databraryReleasedAssetOrExcerpt fullySharedAsPublic, PermissionNONE)</span>
-<span class="lineno">   89 </span><span class="spaces">  </span><span class="nottickedoff">, (runDataPermission3 databraryReleasedAssetOrExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)</span>
-<span class="lineno">   90 </span><span class="spaces"></span><span class="nottickedoff"></span>
-<span class="lineno">   91 </span><span class="spaces">  </span><span class="nottickedoff">, (runDataPermission3 excerptsReleasedAssetOrExcerpt fullySharedAsPublic, PermissionNONE) -- because perm public &lt; perm shared</span>
-<span class="lineno">   92 </span><span class="spaces">  </span><span class="nottickedoff">, (runDataPermission3 excerptsReleasedAssetOrExcerpt partiallySharedAsPublic, PermissionNONE)</span>
-<span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">, (runDataPermission3 excerptsReleasedAssetOrExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionSHARED)</span>
-<span class="lineno">   94 </span><span class="spaces"></span><span class="nottickedoff"></span>
-<span class="lineno">   95 </span><span class="spaces">  </span><span class="nottickedoff">, (runDataPermission3 privatelyReleasedAssetOrExcerpt fullySharedAsPublic, PermissionNONE)</span>
-<span class="lineno">   96 </span><span class="spaces">  </span><span class="nottickedoff">, (runDataPermission3 privatelyReleasedAssetOrExcerpt partiallySharedAsPublic, PermissionNONE)</span>
-<span class="lineno">   97 </span><span class="spaces">  </span><span class="nottickedoff">, (runDataPermission3 privatelyReleasedAssetOrExcerpt fullyOrPartiallyOrDatabrarySharedAsDatabraryMember, PermissionNONE)</span>
-<span class="lineno">   98 </span><span class="spaces">  </span><span class="nottickedoff">, (runDataPermission3 privatelyReleasedAssetOrExcerpt privateOrDatabrarySharedAsPublic, PermissionNONE)</span>
-<span class="lineno">   99 </span><span class="spaces">  </span><span class="nottickedoff">, (runDataPermission3 privatelyReleasedAssetOrExcerpt privateAsDatabraryMember, PermissionNONE)</span>
-<span class="lineno">  100 </span><span class="spaces">  </span><span class="nottickedoff">, (runDataPermission3 privatelyReleasedAssetOrExcerpt privateAsVolumeAffiliate, PermissionEDIT)</span>
-<span class="lineno">  101 </span><span class="spaces">  </span><span class="nottickedoff">, (runDataPermission3 privatelyReleasedAssetOrExcerpt privateAsOwner, PermissionADMIN)</span>
-<span class="lineno">  102 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
-<span class="lineno">  103 </span>-- END future testing code
-<span class="lineno">  104 </span>
-<span class="lineno">  105 </span>
-<span class="lineno">  106 </span>dataPermission3 :: (a -&gt; EffectiveRelease) -&gt; (a -&gt; (Permission, VolumeAccessPolicy)) -&gt; a -&gt; Permission
-<span class="lineno">  107 </span><span class="decl"><span class="istickedoff">dataPermission3 getObjEffectiveRelease getCurrentUserPermLevel obj =</span>
-<span class="lineno">  108 </span><span class="spaces">  </span><span class="istickedoff">let</span>
-<span class="lineno">  109 </span><span class="spaces">   </span><span class="istickedoff">effRelease = getObjEffectiveRelease obj</span>
-<span class="lineno">  110 </span><span class="spaces">  </span><span class="istickedoff">in </span>
-<span class="lineno">  111 </span><span class="spaces">    </span><span class="istickedoff">case getCurrentUserPermLevel obj of</span>
-<span class="lineno">  112 </span><span class="spaces">      </span><span class="istickedoff">(p@PermissionPUBLIC, PublicRestricted) -&gt; releasePermission (effRelPrivate effRelease) p</span>
-<span class="lineno">  113 </span><span class="spaces">      </span><span class="istickedoff">-- other levels that behave more like private (options: none, shared, read, edit, admin) ? </span>
-<span class="lineno">  114 </span><span class="spaces">      </span><span class="istickedoff">(p, _) -&gt; <span class="nottickedoff">releasePermission (effRelPublic effRelease) p</span></span></span>
-<span class="lineno">  115 </span>
-<span class="lineno">  116 </span>canReadData :: (a -&gt; EffectiveRelease) -&gt; (a -&gt; (Permission, VolumeAccessPolicy)) -&gt; a -&gt; Bool
-<span class="lineno">  117 </span><span class="decl"><span class="istickedoff">canReadData getObjEffectiveRelease getCurrentUserPermLevel obj =</span>
-<span class="lineno">  118 </span><span class="spaces">  </span><span class="istickedoff">dataPermission3 getObjEffectiveRelease getCurrentUserPermLevel obj &gt; PermissionNONE</span></span>
-<span class="lineno">  119 </span>
-<span class="lineno">  120 </span>
-<span class="lineno">  121 </span>accessJSON :: JSON.ToObject o =&gt; Access -&gt; o
-<span class="lineno">  122 </span><span class="decl"><span class="nottickedoff">accessJSON Access{..} =</span>
-<span class="lineno">  123 </span><span class="spaces">     </span><span class="nottickedoff">&quot;site&quot; JSON..= accessSite'</span>
-<span class="lineno">  124 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;member&quot; JSON..= accessMember'</span></span>
+<span class="lineno">   16 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   17 </span>import Databrary.Model.Release.Types
+<span class="lineno">   18 </span>import Databrary.Model.Permission.Types
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>-- |Level at which things become visible.
+<span class="lineno">   21 </span>permissionVIEW :: Permission
+<span class="lineno">   22 </span><span class="decl"><span class="nottickedoff">permissionVIEW = PermissionPUBLIC</span></span>
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>-- |Alias for READ. Grants full access to private data, bypassing consent permissions.
+<span class="lineno">   25 </span>permissionPRIVATE :: Permission
+<span class="lineno">   26 </span><span class="decl"><span class="istickedoff">permissionPRIVATE = PermissionREAD</span></span>
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>-- |The necessary permission level to read a data object with the given release.
+<span class="lineno">   29 </span>-- Equivalent to the SQL function read_permission.
+<span class="lineno">   30 </span>readPermission :: Release -&gt; Permission
+<span class="lineno">   31 </span><span class="decl"><span class="istickedoff">readPermission ReleasePUBLIC   = PermissionPUBLIC</span>
+<span class="lineno">   32 </span><span class="spaces"></span><span class="istickedoff">readPermission ReleaseSHARED   = PermissionSHARED</span>
+<span class="lineno">   33 </span><span class="spaces"></span><span class="istickedoff">readPermission ReleaseEXCERPTS = PermissionSHARED</span>
+<span class="lineno">   34 </span><span class="spaces"></span><span class="istickedoff">readPermission ReleasePRIVATE  = permissionPRIVATE</span></span>
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>-- |The most restrictive data release level that the current user may access under the given permission.
+<span class="lineno">   37 </span>-- Equivalent to the SQL function read_release.  Inverse of 'readPermission' module meaning of @Nothing@.
+<span class="lineno">   38 </span>readRelease :: Permission -&gt; Maybe Release
+<span class="lineno">   39 </span><span class="decl"><span class="istickedoff">readRelease PermissionNONE   = Nothing</span>
+<span class="lineno">   40 </span><span class="spaces"></span><span class="istickedoff">readRelease PermissionPUBLIC = Just ReleasePUBLIC</span>
+<span class="lineno">   41 </span><span class="spaces"></span><span class="istickedoff">readRelease PermissionSHARED = <span class="nottickedoff">Just ReleaseSHARED</span></span>
+<span class="lineno">   42 </span><span class="spaces"></span><span class="istickedoff">readRelease _                = <span class="nottickedoff">Just ReleasePRIVATE</span></span></span>
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>-- |The effective permission for data objects with the given attributes, effectively collapsing ineffective permissions NONE.
+<span class="lineno">   45 </span>releasePermission :: Release -&gt; Permission -&gt; Permission
+<span class="lineno">   46 </span><span class="decl"><span class="istickedoff">releasePermission effectiveReleaseOnData currentUserAllowedPermissionOnVolume</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">| currentUserAllowedPermissionOnVolume &gt;= readPermission effectiveReleaseOnData = currentUserAllowedPermissionOnVolume</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = PermissionNONE</span></span>
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>dataPermission4 :: (a -&gt; EffectiveRelease) -&gt; (a -&gt; VolumeRolePolicy) -&gt; a -&gt; Permission
+<span class="lineno">   51 </span><span class="decl"><span class="istickedoff">dataPermission4 getObjEffectiveRelease getCurrentUserVolumeRole obj =</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="istickedoff">let</span>
+<span class="lineno">   53 </span><span class="spaces">   </span><span class="istickedoff">effRelease = getObjEffectiveRelease obj</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="istickedoff">in </span>
+<span class="lineno">   55 </span><span class="spaces">    </span><span class="istickedoff">case getCurrentUserVolumeRole obj of</span>
+<span class="lineno">   56 </span><span class="spaces">      </span><span class="istickedoff">RolePublicViewer PublicRestrictedPolicy -&gt;</span>
+<span class="lineno">   57 </span><span class="spaces">        </span><span class="istickedoff">releasePermission (effRelPrivate effRelease) PermissionPUBLIC</span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="istickedoff">RoleSharedViewer SharedRestrictedPolicy -&gt;</span>
+<span class="lineno">   59 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">releasePermission (effRelPrivate effRelease) PermissionSHARED</span></span>
+<span class="lineno">   60 </span><span class="spaces">      </span><span class="istickedoff">-- other levels that behave more like private (options: none, shared, read, edit, admin) ?</span>
+<span class="lineno">   61 </span><span class="spaces">      </span><span class="istickedoff">rp -&gt;</span>
+<span class="lineno">   62 </span><span class="spaces">         </span><span class="istickedoff">releasePermission (effRelPublic effRelease) (extractPermissionIgnorePolicy rp)</span></span>
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>canReadData2 :: (a -&gt; EffectiveRelease) -&gt; (a -&gt; VolumeRolePolicy) -&gt; a -&gt; Bool
+<span class="lineno">   65 </span><span class="decl"><span class="istickedoff">canReadData2 getObjEffectiveRelease getCurrentUserVolumeRole obj =</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="istickedoff">dataPermission4 getObjEffectiveRelease getCurrentUserVolumeRole obj &gt; PermissionNONE</span></span>
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>accessJSON :: JSON.ToObject o =&gt; Access -&gt; o
+<span class="lineno">   69 </span><span class="decl"><span class="nottickedoff">accessJSON Access{..} =</span>
+<span class="lineno">   70 </span><span class="spaces">     </span><span class="nottickedoff">&quot;site&quot; JSON..= accessSite'</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;member&quot; JSON..= accessMember'</span></span>
 
 </pre>
 </body>

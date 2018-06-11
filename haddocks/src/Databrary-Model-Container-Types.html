@@ -11,7 +11,7 @@
 <a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Container</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
 <a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-conid'>ContainerRow</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
 <a name="line-4"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Container</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
-<a name="line-5"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>getContainerVolumePermission</span>
+<a name="line-5"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>getContainerVolumeRole</span>
 <a name="line-6"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>getContainerRelease</span>
 <a name="line-7"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-8"></a>
@@ -41,8 +41,8 @@
 <a name="line-32"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>containerVolume</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Volume</span>
 <a name="line-33"></a>  <span class='hs-layout'>}</span>
 <a name="line-34"></a>
-<a name="line-35"></a><a name="getContainerVolumePermission"></a><span class='hs-definition'>getContainerVolumePermission</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Container</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>Permission</span><span class='hs-layout'>,</span> <span class='hs-conid'>VolumeAccessPolicy</span><span class='hs-layout'>)</span>
-<a name="line-36"></a><span class='hs-definition'>getContainerVolumePermission</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>volumePermissionPolicy</span> <span class='hs-varop'>.</span> <span class='hs-varid'>containerVolume</span>
+<a name="line-35"></a><a name="getContainerVolumeRole"></a><span class='hs-definition'>getContainerVolumeRole</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Container</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>VolumeRolePolicy</span>
+<a name="line-36"></a><span class='hs-definition'>getContainerVolumeRole</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>volumeRolePolicy</span> <span class='hs-varop'>.</span> <span class='hs-varid'>containerVolume</span>
 <a name="line-37"></a>
 <a name="line-38"></a><a name="getContainerRelease"></a><span class='hs-definition'>getContainerRelease</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Container</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>EffectiveRelease</span>
 <a name="line-39"></a><span class='hs-definition'>getContainerRelease</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span>  

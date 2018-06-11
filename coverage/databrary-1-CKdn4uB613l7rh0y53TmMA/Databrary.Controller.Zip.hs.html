@@ -160,7 +160,7 @@ span.spaces    { background: white }
 <span class="lineno">  144 </span>
 <span class="lineno">  145 </span>checkAsset :: AssetSlot -&gt; Bool
 <span class="lineno">  146 </span><span class="decl"><span class="nottickedoff">checkAsset a =</span>
-<span class="lineno">  147 </span><span class="spaces">  </span><span class="nottickedoff">canReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 a &amp;&amp; assetBacked (view a)</span></span>
+<span class="lineno">  147 </span><span class="spaces">  </span><span class="nottickedoff">canReadData2 getAssetSlotRelease2 getAssetSlotVolumePermission2 a &amp;&amp; assetBacked (view a)</span></span>
 <span class="lineno">  148 </span>
 <span class="lineno">  149 </span>containerZipEntryCorrectAssetSlots2 :: Bool -&gt; BS.ByteString -&gt; Container -&gt; Handler (ZIP.ZipArchive (), Bool)
 <span class="lineno">  150 </span><span class="decl"><span class="nottickedoff">containerZipEntryCorrectAssetSlots2 isOrig prefix c = do</span>

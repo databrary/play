@@ -40,7 +40,7 @@ span.spaces    { background: white }
 <span class="lineno">   24 </span><span class="decl"><span class="nottickedoff">lookupVolumeState v = do</span>
 <span class="lineno">   25 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a7xjl = unknownPGTypeEnv</span>
 <span class="lineno">   26 </span><span class="spaces">  </span><span class="nottickedoff">rows &lt;- </span>
-<span class="lineno">   27 </span><span class="spaces">    </span><span class="nottickedoff">-- (selectQuery selectVolumeState &quot;$WHERE volume = ${volumeId $ volumeRow v} AND (public OR ${volumePermission v &gt;= PermissionEDIT})&quot;)</span>
+<span class="lineno">   27 </span><span class="spaces">    </span><span class="nottickedoff">-- (selectQuery selectVolumeState &quot;$WHERE volume = ${volumeId $ volumeRow v} AND (public OR ${(extractPermissionIgnorePolicy . volumeRolePolicy) v &gt;= PermissionEDIT})&quot;)</span>
 <span class="lineno">   28 </span><span class="spaces">     </span><span class="nottickedoff">mapRunPrepQuery</span>
 <span class="lineno">   29 </span><span class="spaces">      </span><span class="nottickedoff">((\ _p_a7xjm _p_a7xjn -&gt;</span>
 <span class="lineno">   30 </span><span class="spaces">                       </span><span class="nottickedoff">(Data.String.fromString</span>
@@ -53,7 +53,7 @@ span.spaces    { background: white }
 <span class="lineno">   37 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a7xjl (PGTypeProxy :: PGTypeName &quot;character varying&quot;),</span>
 <span class="lineno">   38 </span><span class="spaces">                        </span><span class="nottickedoff">pgBinaryColumn _tenv_a7xjl (PGTypeProxy :: PGTypeName &quot;jsonb&quot;),</span>
 <span class="lineno">   39 </span><span class="spaces">                        </span><span class="nottickedoff">pgBinaryColumn _tenv_a7xjl (PGTypeProxy :: PGTypeName &quot;boolean&quot;)]))</span>
-<span class="lineno">   40 </span><span class="spaces">         </span><span class="nottickedoff">(volumeId $ volumeRow v) ((volumePermission v) &gt;= PermissionEDIT))</span>
+<span class="lineno">   40 </span><span class="spaces">         </span><span class="nottickedoff">(volumeId $ volumeRow v) ((extractPermissionIgnorePolicy . volumeRolePolicy) v &gt;= PermissionEDIT))</span>
 <span class="lineno">   41 </span><span class="spaces">               </span><span class="nottickedoff">(\ [_ckey_a7xjo, _cvalue_a7xjp, _cpublic_a7xjq]</span>
 <span class="lineno">   42 </span><span class="spaces">                  </span><span class="nottickedoff">-&gt; (pgDecodeColumnNotNull</span>
 <span class="lineno">   43 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a7xjl</span>

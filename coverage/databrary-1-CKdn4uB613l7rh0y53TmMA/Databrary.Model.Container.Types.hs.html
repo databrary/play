@@ -18,7 +18,7 @@ span.spaces    { background: white }
 <span class="lineno">    2 </span>module Databrary.Model.Container.Types
 <span class="lineno">    3 </span>  ( ContainerRow(..)
 <span class="lineno">    4 </span>  , Container(..)
-<span class="lineno">    5 </span>  , getContainerVolumePermission
+<span class="lineno">    5 </span>  , getContainerVolumeRole
 <span class="lineno">    6 </span>  , getContainerRelease
 <span class="lineno">    7 </span>  ) where
 <span class="lineno">    8 </span>
@@ -48,8 +48,8 @@ span.spaces    { background: white }
 <span class="lineno">   32 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">containerVolume</span></span></span> :: Volume
 <span class="lineno">   33 </span>  }
 <span class="lineno">   34 </span>
-<span class="lineno">   35 </span>getContainerVolumePermission :: Container -&gt; (Permission, VolumeAccessPolicy)
-<span class="lineno">   36 </span><span class="decl"><span class="istickedoff">getContainerVolumePermission = volumePermissionPolicy . containerVolume</span></span>
+<span class="lineno">   35 </span>getContainerVolumeRole :: Container -&gt; VolumeRolePolicy
+<span class="lineno">   36 </span><span class="decl"><span class="istickedoff">getContainerVolumeRole = volumeRolePolicy . containerVolume</span></span>
 <span class="lineno">   37 </span>
 <span class="lineno">   38 </span>getContainerRelease :: Container -&gt; EffectiveRelease
 <span class="lineno">   39 </span><span class="decl"><span class="istickedoff">getContainerRelease c =  </span>

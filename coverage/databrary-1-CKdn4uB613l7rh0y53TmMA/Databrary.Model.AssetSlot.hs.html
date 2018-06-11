@@ -359,7 +359,7 @@ span.spaces    { background: white }
 <span class="lineno">  343 </span><span class="decl"><span class="nottickedoff">assetSlotName a =</span>
 <span class="lineno">  344 </span><span class="spaces">  </span><span class="nottickedoff">guard</span>
 <span class="lineno">  345 </span><span class="spaces">    </span><span class="nottickedoff">(any (containerTop . containerRow . slotContainer) (assetSlot a)</span>
-<span class="lineno">  346 </span><span class="spaces">     </span><span class="nottickedoff">|| canReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 a)</span>
+<span class="lineno">  346 </span><span class="spaces">     </span><span class="nottickedoff">|| canReadData2 getAssetSlotRelease2 getAssetSlotVolumePermission2 a)</span>
 <span class="lineno">  347 </span><span class="spaces">  </span><span class="nottickedoff">&gt;&gt; assetName (assetRow $ slotAsset a)</span></span>
 <span class="lineno">  348 </span>
 <span class="lineno">  349 </span>assetSlotJSON :: JSON.ToObject o =&gt; Bool -&gt; AssetSlot -&gt; JSON.Record (Id Asset) o
@@ -370,7 +370,7 @@ span.spaces    { background: white }
 <span class="lineno">  354 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;permission&quot; JSON..= p</span>
 <span class="lineno">  355 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;size&quot; `JSON.kvObjectOrEmpty` (z `useWhen` (p &gt; PermissionNONE &amp;&amp; any (0 &lt;=) z)))</span>
 <span class="lineno">  356 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
-<span class="lineno">  357 </span><span class="spaces">  </span><span class="nottickedoff">p = dataPermission3 getAssetSlotRelease2 getAssetSlotVolumePermission2 as</span>
+<span class="lineno">  357 </span><span class="spaces">  </span><span class="nottickedoff">p = dataPermission4 getAssetSlotRelease2 getAssetSlotVolumePermission2 as</span>
 <span class="lineno">  358 </span><span class="spaces">  </span><span class="nottickedoff">z = assetSize $ assetRow slotAsset</span></span>
 <span class="lineno">  359 </span>
 <span class="lineno">  360 </span>{-

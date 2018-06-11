@@ -109,7 +109,7 @@ span.spaces    { background: white }
 <span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">clip &lt;$&gt; liftM2 age (decodeMeasure (PGTypeProxy :: PGTypeName &quot;date&quot;) =&lt;&lt; getMeasure birthdateMetric (recordMeasures slotRecord)) (containerDate $ containerRow $ slotContainer recordSlot)</span>
 <span class="lineno">   94 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
 <span class="lineno">   95 </span><span class="spaces">  </span><span class="nottickedoff">clip a</span>
-<span class="lineno">   96 </span><span class="spaces">    </span><span class="nottickedoff">| not (canReadData getRecordSlotRelease getRecordSlotVolumePermission rs) = a `min` ageLimit</span>
+<span class="lineno">   96 </span><span class="spaces">    </span><span class="nottickedoff">| not (canReadData2 getRecordSlotRelease getRecordSlotVolumePermission rs) = a `min` ageLimit</span>
 <span class="lineno">   97 </span><span class="spaces">    </span><span class="nottickedoff">| otherwise = a</span></span>
 <span class="lineno">   98 </span>
 <span class="lineno">   99 </span>recordSlotJSON :: JSON.ToObject o =&gt; Bool -&gt; RecordSlot -&gt; JSON.Record (Id Record) o

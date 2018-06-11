@@ -75,8 +75,8 @@ span.spaces    { background: white }
 <span class="lineno">   59 </span>makeOrigTranscode :: (AssetRevision -&gt; Transcode) -&gt; AssetRow -&gt; Asset -&gt; Transcode
 <span class="lineno">   60 </span><span class="decl"><span class="nottickedoff">makeOrigTranscode f a o = f $ AssetRevision (Asset a $ assetVolume o) o</span></span>
 <span class="lineno">   61 </span>
-<span class="lineno">   62 </span>makeTranscode :: (Asset -&gt; Transcode) -&gt; AssetRow -&gt; (Permission -&gt; VolumeAccessPolicy -&gt; Volume) -&gt; Transcode
-<span class="lineno">   63 </span><span class="decl"><span class="nottickedoff">makeTranscode t o vp = t $ Asset o $ vp PermissionADMIN PermLevelDefault</span></span>
+<span class="lineno">   62 </span>makeTranscode :: (Asset -&gt; Transcode) -&gt; AssetRow -&gt; (VolumeRolePolicy -&gt; Volume) -&gt; Transcode
+<span class="lineno">   63 </span><span class="decl"><span class="nottickedoff">makeTranscode t o vp = t $ Asset o $ vp RoleAdmin</span></span>
 
 </pre>
 </body>

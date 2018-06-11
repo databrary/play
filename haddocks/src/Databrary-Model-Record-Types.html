@@ -127,8 +127,8 @@
 <a name="line-118"></a><a name="instance%20Has%20Release%20Record"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Release</span> <span class='hs-conid'>Record</span> <span class='hs-keyword'>where</span>
 <a name="line-119"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>recordRelease</span><span class='hs-layout'>)</span>
 <a name="line-120"></a>
-<a name="line-121"></a><a name="getRecordVolumePermission"></a><span class='hs-definition'>getRecordVolumePermission</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Record</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>Permission</span><span class='hs-layout'>,</span> <span class='hs-conid'>VolumeAccessPolicy</span><span class='hs-layout'>)</span>
-<a name="line-122"></a><span class='hs-definition'>getRecordVolumePermission</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>volumePermissionPolicy</span> <span class='hs-varop'>.</span> <span class='hs-varid'>recordVolume</span>
+<a name="line-121"></a><a name="getRecordVolumePermission"></a><span class='hs-definition'>getRecordVolumePermission</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Record</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>VolumeRolePolicy</span>
+<a name="line-122"></a><span class='hs-definition'>getRecordVolumePermission</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>volumeRolePolicy</span> <span class='hs-varop'>.</span> <span class='hs-varid'>recordVolume</span>
 <a name="line-123"></a>
 <a name="line-124"></a><a name="instance%20Has%20Record%20Measure"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Record</span> <span class='hs-conid'>Measure</span> <span class='hs-keyword'>where</span>
 <a name="line-125"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>measureRecord</span>
