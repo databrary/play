@@ -85,7 +85,7 @@ type ConfigMap = HM.HashMap BS.ByteString Value
 data Config = Config
   { configPath :: !Path
   , configMap :: !ConfigMap
-  } deriving (Typeable, Show)
+  } deriving (Typeable) -- , Show)
 
 topConfig :: ConfigMap -> Config
 topConfig = Config (Path [])
