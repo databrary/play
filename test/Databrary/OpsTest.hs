@@ -5,16 +5,18 @@ import Test.Tasty.HUnit
 
 import Databrary.Ops
 
-unit_thenUse :: Assertion
-unit_thenUse = do
-    -- example
+-- doctest style examples
+unit_Ops_examples :: Assertion
+unit_Ops_examples = do
+    -- TODO: delete Ops module
     True `thenUse` ("abc" :: String) @?= Just "abc"
     False `thenUse` ("abc" :: String) @?= Nothing
-
-unit_useWhen :: Assertion
-unit_useWhen = do
-    -- example
     ("abc" :: String) `useWhen` True @?= Just "abc"
+    True `unlessUse` (10 :: Integer) @?= Nothing
+    True `thenReturn` (Just (20 :: Integer)) @?= Just (Just 20)
+    True `unlessReturn` (Just (20 :: Integer)) @?= Just Nothing
+    fromMaybeM ["abc" :: String] (Just "efg") @?= ["efg"]
+    flatMapM (\v -> [Just v]) (Just ("abc" :: String))  @?= [Just "abc"]
 
 test_all :: [TestTree]
 test_all =
