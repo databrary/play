@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Blaze.ByteString.Builder.Html.Word
-  ( wordHtmlEscaped
-  , fromHtmlEscapedWord
-  , fromHtmlEscapedWordList
-  , fromHtmlEscapedByteString
+  (-- wordHtmlEscaped
+  -- , fromHtmlEscapedWord
+  -- , fromHtmlEscapedWordList
+    fromHtmlEscapedByteString
   , fromHtmlEscapedLazyByteString
-  , fromHtmlEscapedText
-  , fromHtmlEscapedLazyText
+  -- , fromHtmlEscapedText
+  -- , fromHtmlEscapedLazyText
   ) where
 
 import qualified Data.ByteString as BS
@@ -15,10 +15,10 @@ import qualified Data.ByteString.Builder.Prim as P
 import Data.ByteString.Internal (c2w)
 import qualified Data.ByteString.Lazy as BSL
 import Data.Word (Word8)
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as TE
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Encoding as TLE
+-- import qualified Data.Text as T
+-- import qualified Data.Text.Encoding as TE
+-- import qualified Data.Text.Lazy as TL
+-- import qualified Data.Text.Lazy.Encoding as TLE
 
 wordHtmlEscaped :: P.BoundedPrim Word8
 wordHtmlEscaped =
@@ -38,11 +38,13 @@ wordHtmlEscaped =
   fixed6 x = P.liftFixedToBounded $ const x P.>$<
     P.char8 P.>*< P.char8 P.>*< P.char8 P.>*< P.char8 P.>*< P.char8 P.>*< P.char8
 
+{-
 fromHtmlEscapedWord :: Word8 -> B.Builder
 fromHtmlEscapedWord = P.primBounded wordHtmlEscaped
 
 fromHtmlEscapedWordList :: [Word8] -> B.Builder
 fromHtmlEscapedWordList = P.primMapListBounded wordHtmlEscaped
+-}
 
 fromHtmlEscapedByteString :: BS.ByteString -> B.Builder
 fromHtmlEscapedByteString = P.primMapByteStringBounded wordHtmlEscaped
@@ -50,9 +52,10 @@ fromHtmlEscapedByteString = P.primMapByteStringBounded wordHtmlEscaped
 fromHtmlEscapedLazyByteString :: BSL.ByteString -> B.Builder
 fromHtmlEscapedLazyByteString = P.primMapLazyByteStringBounded wordHtmlEscaped
 
+{-
 fromHtmlEscapedText :: T.Text -> B.Builder
 fromHtmlEscapedText = TE.encodeUtf8BuilderEscaped wordHtmlEscaped
 
 fromHtmlEscapedLazyText :: TL.Text -> B.Builder
 fromHtmlEscapedLazyText = TLE.encodeUtf8BuilderEscaped wordHtmlEscaped
-
+-}

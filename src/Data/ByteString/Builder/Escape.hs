@@ -1,6 +1,9 @@
-module Data.ByteString.Builder.Escape where
+module Data.ByteString.Builder.Escape
+  ( escapeLazyByteStringCharsWith
+  , escapeTextWith
+  ) where
 
-import qualified Data.ByteString as S
+-- import qualified Data.ByteString as S
 import qualified Data.ByteString.Lazy as L
 import Data.ByteString.Builder (Builder)
 import Data.ByteString.Builder.Prim
@@ -15,6 +18,7 @@ word8EscapedWith e c = condB c (liftFixedToBounded $ (,) e >$< word8 >*< word8) 
 char8EscapedWith :: Char -> [Char] -> BoundedPrim Word8
 char8EscapedWith e c = word8EscapedWith (c2w e) (`elem` w) where w = map c2w c
 
+{-
 escapeByteStringWith :: Word8 -> (Word8 -> Bool) -> S.ByteString -> Builder
 escapeByteStringWith e c = primMapByteStringBounded (word8EscapedWith e c)
 
@@ -23,6 +27,7 @@ escapeLazyByteStringWith e c = primMapLazyByteStringBounded (word8EscapedWith e 
 
 escapeByteStringCharsWith :: Char -> [Char] -> S.ByteString -> Builder
 escapeByteStringCharsWith e c = primMapByteStringBounded (char8EscapedWith e c)
+-}
 
 escapeLazyByteStringCharsWith :: Char -> [Char] -> L.ByteString -> Builder
 escapeLazyByteStringCharsWith e c = primMapLazyByteStringBounded (char8EscapedWith e c)
