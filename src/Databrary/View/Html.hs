@@ -3,14 +3,11 @@ module Databrary.View.Html
   ( unsafeBuilder
   , lazyByteStringHtml
   , byteStringHtml
-  , builderHtml
-  , unsafeBuilderValue
-  , lazyByteStringValue
   , byteStringValue
   , builderValue
-  , actionValue
   , actionLink
   , Query
+  , actionValue
   , actionForm
   , (!?)
   ) where
@@ -39,8 +36,8 @@ lazyByteStringHtml = unsafeBuilder . fromHtmlEscapedLazyByteString
 byteStringHtml :: BS.ByteString -> H.Markup
 byteStringHtml = unsafeBuilder . fromHtmlEscapedByteString
 
-builderHtml :: BSB.Builder -> H.Markup
-builderHtml = lazyByteStringHtml . BSB.toLazyByteString
+-- builderHtml :: BSB.Builder -> H.Markup
+-- builderHtml = lazyByteStringHtml . BSB.toLazyByteString
 
 unsafeBuilderValue :: BSB.Builder -> H.AttributeValue
 unsafeBuilderValue = H.unsafeLazyByteStringValue . BSB.toLazyByteString

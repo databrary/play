@@ -471,6 +471,8 @@ test-suite discovered
     , array
     , attoparsec
     , base
+    , blaze-html
+    -- , blaze-markup
     , bytestring
     , containers
     , cookie
@@ -573,6 +575,7 @@ test-suite discovered
     , Databrary.Store.FilenameTest
     , Databrary.Store.ProbeTest
     , Databrary.StringUtilTest
+    , Databrary.View.HtmlTest
     , Data.Csv.ContribTest
     , Data.RangeSet.ParseTest
     , TestHarness
