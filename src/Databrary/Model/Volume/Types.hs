@@ -4,7 +4,7 @@ module Databrary.Model.Volume.Types
   , Volume(..)
   , VolumeOwner
   , blankVolume
-  , volumePermissionPolicy
+  , toPolicyDefaulting
   , volumeAccessPolicyWithDefault
   , coreVolumeId
   ) where
@@ -15,7 +15,7 @@ import qualified Data.Text as T
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import Language.Haskell.TH.Lift (deriveLiftMany)
 
-import Databrary.Has (Has(..)) -- makeHasRec)
+import Databrary.Has (Has(..))
 import Databrary.Model.Time
 import Databrary.Model.Kind
 import Databrary.Model.Permission.Types
@@ -39,40 +39,49 @@ data Volume = Volume
   { volumeRow :: !VolumeRow
   , volumeCreation :: Timestamp
   , volumeOwners :: [VolumeOwner]
-  , volumePermission :: Permission
-  , volumeAccessPolicy :: VolumeAccessPolicy
+  , volumeRolePolicy :: VolumeRolePolicy
   }
   deriving (Show, Eq)
 
 instance Kinded Volume where
   kindOf _ = "volume"
 
--- makeHasRec ''VolumeRow ['volumeId]
 instance Has (Id Volume) VolumeRow where
   view = volumeId
--- makeHasRec ''Volume ['volumeRow, 'volumePermission]
--- instance Has VolumeRow Volume where
---   view = volumeRow
 instance Has (Id Volume) Volume where
   view = (view . volumeRow)
 instance Has Permission Volume where
-  view = volumePermission
+  view = extractPermissionIgnorePolicy . volumeRolePolicy
 deriveLiftMany [''VolumeRow, ''Volume]
 
-volumePermissionPolicy :: Volume -> (Permission, VolumeAccessPolicy)
-volumePermissionPolicy Volume{..} =
-  ( volumePermission
-  , volumeAccessPolicy )
+-- | Convert shareFull value read from db into a policy
+-- value, applying a default if needed.
+toPolicyDefaulting :: Maybe Bool -> a -> a -> a
+toPolicyDefaulting mShareFull noPolicy restrictedPolicy =
+    let
+        -- in the rare circumstance that a volume access
+        -- entry in db improperly contains null for public/shared group,
+        -- arbitrarily use True to follow old convention before sharefull
+        -- was introduced.
+        shareFull = fromMaybe True mShareFull
+    in
+        if shareFull then noPolicy else restrictedPolicy
 
-volumeAccessPolicyWithDefault :: Permission -> Maybe Bool -> VolumeAccessPolicy
+volumeAccessPolicyWithDefault :: Permission -> Maybe Bool -> VolumeRolePolicy
 volumeAccessPolicyWithDefault perm1 mShareFull =
   case perm1 of
+    PermissionNONE ->
+      RoleNone
     PermissionPUBLIC ->
-      let shareFull = fromMaybe True mShareFull -- assume true because historically volumes were public full
-      in if shareFull then PermLevelDefault else PublicRestricted
-    _ ->
-      PermLevelDefault
-
+      RolePublicViewer (toPolicyDefaulting mShareFull PublicNoPolicy PublicRestrictedPolicy)
+    PermissionSHARED ->
+      RoleSharedViewer (toPolicyDefaulting mShareFull SharedNoPolicy SharedRestrictedPolicy)
+    PermissionREAD ->
+      RoleReader
+    PermissionEDIT ->
+      RoleEditor
+    PermissionADMIN ->
+      RoleAdmin
 
 blankVolume :: Volume
 blankVolume = Volume
@@ -85,8 +94,7 @@ blankVolume = Volume
     }
   , volumeCreation = posixSecondsToUTCTime 1357900000
   , volumeOwners = []
-  , volumePermission = PermissionNONE
-  , volumeAccessPolicy = PermLevelDefault
+  , volumeRolePolicy = RoleNone
   }
 
 coreVolumeId :: Id Volume

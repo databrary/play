@@ -65,7 +65,7 @@ setDefaultVolumeAccessesForCreated owner v = do
             VolumeAccess PermissionPUBLIC PermissionPUBLIC Nothing volumeCreatePublicShareFullDefault nobodyParty v
     _ <-
         changeVolumeAccess $
-            VolumeAccess PermissionSHARED PermissionSHARED Nothing (getShareFullDefault rootParty PermissionSHARED) rootParty v
+            VolumeAccess PermissionSHARED PermissionSHARED Nothing volumeCreatePublicShareFullDefault rootParty v
     pure ()
 
 changeVolumeAccess :: (MonadAudit c m) => VolumeAccess -> m Bool

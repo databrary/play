@@ -71,8 +71,7 @@ volumeExample =
               volumeRow = row
             , volumeCreation = UTCTime (fromGregorian 2018 1 2) (secondsToDiffTime 0)
             , volumeOwners = [] -- [(Id 2, "Smith, John")]
-            , volumePermission = PermissionPUBLIC
-            , volumeAccessPolicy = PermLevelDefault
+            , volumeRolePolicy = RolePublicViewer PublicNoPolicy
             }
 
 unit_lookupVolume_example :: Assertion
@@ -97,8 +96,7 @@ unit_lookupVolume_example = do
                                   , (Id 3, "Steiger, Lisa")
                                   , (Id 7, "Tesla, Testarosa")
                                   ]
-                 , volumePermission = PermissionPUBLIC
-                 , volumeAccessPolicy = PermLevelDefault
+                 , volumeRolePolicy = RolePublicViewer PublicNoPolicy
                  }
         )
 

@@ -23,7 +23,7 @@ import Data.Int (Int64)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 
-import Databrary.Has (peek, view)
+import Databrary.Has (peek)
 import qualified Databrary.JSON as JSON
 import Databrary.Service.DB
 import Databrary.Model.SQL
@@ -95,7 +95,7 @@ lookupAuthorization child parent
   | partyId (partyRow child) == partyId (partyRow parent) = return $ authorization $ selfAuthorize child
   | otherwise = do
     auth <- peek
-    if partyId (view auth) == partyId (partyRow child) && partyId (partyRow parent) == partyId (partyRow rootParty)
+    if ((getPartyId . accountParty . siteAccount) auth) == partyId (partyRow child) && partyId (partyRow parent) == partyId (partyRow rootParty)
       then return $ Authorization (siteAccess auth) child parent -- short circuit to get already fetched value in siteauthx
       else fromMaybe (Authorization mempty child parent) <$> -- if not valid entry found, assume no access
         dbQuery1 ((\a -> a child parent) <$> $(selectQuery authorizationRow "!$WHERE authorize_view.child = ${partyId $ partyRow child} AND authorize_view.parent = ${partyId $ partyRow parent}"))

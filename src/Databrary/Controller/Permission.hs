@@ -31,9 +31,9 @@ checkPermission2 getCurrentUserPermLevel requestingAccessAtPermLevel obj = do
     result resp
   return obj
 
-userCanReadData :: (a -> EffectiveRelease) -> (a -> (Permission, VolumeAccessPolicy)) -> a -> Handler a
+userCanReadData :: (a -> EffectiveRelease) -> (a -> VolumeRolePolicy) -> a -> Handler a
 userCanReadData getObjEffectiveRelease getCurrentUserPermLevel obj = do
-  unless (canReadData getObjEffectiveRelease getCurrentUserPermLevel obj) $ do
+  unless (canReadData2 getObjEffectiveRelease getCurrentUserPermLevel obj) $ do
     resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)
     result resp
   return obj

@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
 module Databrary.Model.Volume.SQL
   ( selectVolumeRow
-  , selectPermissionVolume
+  -- , selectPermissionVolume
   , selectVolume
   , updateVolume
   , insertVolume
@@ -26,25 +26,26 @@ parseOwner :: T.Text -> VolumeOwner
 parseOwner t = (Id $ read $ T.unpack i, T.tail n) where
   (i, n) = T.breakOn ":" t
 
-setCreation :: VolumeRow -> Maybe Timestamp -> [VolumeOwner] -> Permission -> VolumeAccessPolicy -> Volume
-setCreation r mCreate owners perm policy =
-  Volume r (fromMaybe (volumeCreation blankVolume) mCreate) owners perm policy
+setCreation :: VolumeRow -> Maybe Timestamp -> [VolumeOwner] -> VolumeRolePolicy -> Volume
+setCreation r mCreate owners rolePolicy =
+  Volume r (fromMaybe (volumeCreation blankVolume) mCreate) owners rolePolicy
 
-makePermInfo :: Maybe Permission -> Maybe Bool -> (Permission, VolumeAccessPolicy)
+makePermInfo :: Maybe Permission -> Maybe Bool -> VolumeRolePolicy
 makePermInfo mPerm mShareFull =
-  let perm = fromMaybe PermissionNONE mPerm
-  in (perm, volumeAccessPolicyWithDefault perm mShareFull)
+  let
+      perm = fromMaybe PermissionNONE mPerm
+  in
+      volumeAccessPolicyWithDefault perm mShareFull
 
 makeVolume
-  :: ([VolumeOwner] -> Permission -> VolumeAccessPolicy -> a)
+  :: ([VolumeOwner] -> VolumeRolePolicy -> a)
   -> Maybe [Maybe T.Text]
-  -> (Permission, VolumeAccessPolicy)
+  -> VolumeRolePolicy
   -> a
-makeVolume vol own (perm, policy) =
+makeVolume vol own rolePolicy =
   vol
     (maybe [] (map (parseOwner . fromMaybe (error "NULL volume.owner"))) own)
-    perm
-    policy
+    rolePolicy
 
 selectVolumeRow :: Selector -- ^ @'VolumeRow'@
 selectVolumeRow = selectColumns 'VolumeRow "volume" ["id", "name", "body", "alias", "doi"]
@@ -61,11 +62,6 @@ selectVolume i = selectJoin 'makeVolume
   , maybeJoinOn "volume.id = volume_owners.volume" -- join in Maybe [Maybe Text] of owners
     $ selectColumn "volume_owners" "owners"
   , joinOn "volume_permission.permission >= 'PUBLIC'::permission" -- join in Maybe Permission
-  {-
-      (selector
-        ("LATERAL (VALUES (CASE WHEN ${identitySuperuser " ++ is ++ "} THEN enum_last(NULL::permission) ELSE volume_access_check(volume.id, ${view " ++ is ++ " :: Id Party}) END)) AS volume_permission (permission)")
-        (SelectColumn "volume_permission" "permission"))
-  -}
       (selector
         ("LATERAL \
          \  (VALUES \

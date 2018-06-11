@@ -343,7 +343,7 @@ assetSlotName :: AssetSlot -> Maybe T.Text
 assetSlotName a =
   guard
     (any (containerTop . containerRow . slotContainer) (assetSlot a)
-     || canReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 a)
+     || canReadData2 getAssetSlotRelease2 getAssetSlotVolumePermission2 a)
   >> assetName (assetRow $ slotAsset a)
 
 assetSlotJSON :: JSON.ToObject o => Bool -> AssetSlot -> JSON.Record (Id Asset) o
@@ -354,7 +354,7 @@ assetSlotJSON publicRestricted as@AssetSlot{..} = assetJSON publicRestricted slo
   <> "permission" JSON..= p
   <> "size" `JSON.kvObjectOrEmpty` (z `useWhen` (p > PermissionNONE && any (0 <=) z)))
   where
-  p = dataPermission3 getAssetSlotRelease2 getAssetSlotVolumePermission2 as
+  p = dataPermission4 getAssetSlotRelease2 getAssetSlotVolumePermission2 as
   z = assetSize $ assetRow slotAsset
 
 {-

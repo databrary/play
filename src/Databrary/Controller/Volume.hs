@@ -135,8 +135,9 @@ leftJoin p (a:al) b = uncurry (:) $ (,) a *** leftJoin p al $ span (p a) b
 
 volumeIsPublicRestricted :: Volume -> Bool
 volumeIsPublicRestricted v =
-  case volumePermissionPolicy v of
-    (PermissionPUBLIC, PublicRestricted) -> True
+  case volumeRolePolicy v of
+    RolePublicViewer PublicRestrictedPolicy -> True
+    RoleSharedViewer SharedRestrictedPolicy -> True
     _ -> False
 
 volumeJSONField :: Volume -> BS.ByteString -> Maybe BS.ByteString -> StateT VolumeCache Handler (Maybe JSON.Encoding)

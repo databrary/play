@@ -2,7 +2,7 @@
 module Databrary.Model.Container.Types
   ( ContainerRow(..)
   , Container(..)
-  , getContainerVolumePermission
+  , getContainerVolumeRole
   , getContainerRelease
   ) where
 
@@ -32,8 +32,8 @@ data Container = Container
   , containerVolume :: Volume
   }
 
-getContainerVolumePermission :: Container -> (Permission, VolumeAccessPolicy)
-getContainerVolumePermission = volumePermissionPolicy . containerVolume
+getContainerVolumeRole :: Container -> VolumeRolePolicy
+getContainerVolumeRole = volumeRolePolicy . containerVolume
 
 getContainerRelease :: Container -> EffectiveRelease
 getContainerRelease c =  

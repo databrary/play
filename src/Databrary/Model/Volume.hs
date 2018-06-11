@@ -48,8 +48,7 @@ coreVolume = -- TODO: load on startup in lookups service module
                 (TM.ModifiedJulianDay 56303)
                 (TM.picosecondsToDiffTime 37600000000000000))
             []
-            PermissionPUBLIC
-            PermLevelDefault
+            (RolePublicViewer PublicNoPolicy)
 
 lookupVolume :: (MonadDB c m, MonadHasIdentity c m) => Id Volume -> m (Maybe Volume)
 lookupVolume vi = do
@@ -64,10 +63,10 @@ changeVolume v = do
 addVolume :: MonadAudit c m => Volume -> m Volume
 addVolume bv = do
   ident <- getAuditIdentity
-  dbQuery1' $ fmap (\v -> v [] PermissionADMIN PermLevelDefault) $(insertVolume 'ident 'bv)
+  dbQuery1' $ fmap (\v -> v [] RoleAdmin) $(insertVolume 'ident 'bv)
 
 getVolumeAlias :: Volume -> Maybe T.Text
-getVolumeAlias v = guard (volumePermission v >= PermissionREAD) >> volumeAlias (volumeRow v)
+getVolumeAlias v = guard ((extractPermissionIgnorePolicy . volumeRolePolicy) v >= PermissionREAD) >> volumeAlias (volumeRow v)
 
 auditVolumeDownload :: MonadAudit c m => Bool -> Volume -> m ()
 auditVolumeDownload success vol = do
@@ -88,7 +87,7 @@ volumeJSON v@Volume{..} mAccesses =
     <> "alias" `JSON.kvObjectOrEmpty` getVolumeAlias v
     <> "creation" JSON..= volumeCreation
     <> "owners" JSON..= map (\(i, n) -> JSON.Object $ "id" JSON..= i <> "name" JSON..= n) volumeOwners
-    <> "permission" JSON..= volumePermission
+    <> "permission" JSON..= extractPermissionIgnorePolicy volumeRolePolicy
     <> "publicsharefull" JSON..= volumeAccessPolicyJSON v
     <> "publicaccess" `JSON.kvObjectOrEmpty` fmap (show . volumePublicAccessSummary) mAccesses)
 
@@ -97,9 +96,10 @@ volumeJSONSimple v = volumeJSON v Nothing
 
 volumeAccessPolicyJSON :: Volume -> Maybe Bool
 volumeAccessPolicyJSON v =
-  case volumePermissionPolicy v of
-    (PermissionPUBLIC, PublicRestricted) -> Just False
-    (PermissionPUBLIC, PermLevelDefault) -> Just True
+  case volumeRolePolicy v of
+    RolePublicViewer PublicRestrictedPolicy -> Just False
+    RoleSharedViewer SharedRestrictedPolicy -> Just False
+    RolePublicViewer PublicNoPolicy -> Just True
     _ -> Nothing
 
 data VolumeFilter = VolumeFilter
@@ -154,15 +154,12 @@ volumePublicAccessSummary vas =
        case volumeAccessChildren va of
          PermissionNONE -> PublicAccessNone
          PermissionPUBLIC ->
-           let
-             accessPolicy = volumeAccessPolicyWithDefault (volumeAccessChildren va) (volumeAccessShareFull va)
-           in
-             case accessPolicy of
-               PublicRestricted -> PublicAccessRestricted
-               PermLevelDefault -> PublicAccessFull
+           case toPolicyDefaulting (volumeAccessShareFull va) PublicNoPolicy PublicRestrictedPolicy of
+             PublicRestrictedPolicy -> PublicAccessRestricted
+             PublicNoPolicy -> PublicAccessFull
          _ -> PublicAccessFull)
     mPublicAccess
   where
-    mPublicAccess = find (\va -> (partyId . partyRow . volumeAccessParty) va == nobodyId) vas -- nobodyParty forms a cycle
-    nobodyId = Id (-1)
-
+    -- can't use equality on parties because Party is a circular type
+    mPublicAccess = find (\va -> (getPartyId . volumeAccessParty) va == nobodyId) vas
+    nobodyId = getPartyId nobodyParty

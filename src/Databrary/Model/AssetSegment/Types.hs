@@ -80,7 +80,7 @@ instance Has Volume AssetSegment where
   view = view . segmentAsset
 instance Has (Id Volume) AssetSegment where
   view = view . segmentAsset
-getAssetSegmentVolumePermission2 :: AssetSegment -> (Permission, VolumeAccessPolicy)
+getAssetSegmentVolumePermission2 :: AssetSegment -> VolumeRolePolicy
 getAssetSegmentVolumePermission2 = getAssetSlotVolumePermission2 . segmentAsset
 
 instance Has Slot AssetSegment where
