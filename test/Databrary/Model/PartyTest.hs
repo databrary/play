@@ -16,10 +16,11 @@ import Hedgehog.Gen as Gen
 import Test.Tasty.HUnit
 
 -- import Databrary.Has
+import Databrary.Model.Factories
 import Databrary.Model.Id
 import Databrary.Model.Identity
 import Databrary.Model.Party
-import Databrary.Model.Party.TypesTest
+-- import Databrary.Model.Party.TypesTest
 import Databrary.Model.Permission
 -- import Databrary.Model.Token
 import Databrary.Service.DB

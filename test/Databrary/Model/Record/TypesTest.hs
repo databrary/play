@@ -3,49 +3,16 @@ module Databrary.Model.Record.TypesTest where
 
 import qualified Data.ByteString as BS
 import Data.Time (fromGregorian)
-import Hedgehog
-import qualified Hedgehog.Gen as Gen
+-- import Hedgehog
+-- import qualified Hedgehog.Gen as Gen
 -- import Test.Tasty
 
-import Databrary.Model.Category
+-- import Databrary.Model.Category
 import Databrary.Model.Category.TypesTest
 import Databrary.Model.Id.Types
-import Databrary.Model.Metric
+-- import Databrary.Model.Metric
 import Databrary.Model.Record.Types
-import Databrary.Model.Volume.Types
-
--- TODO: expand these to really generate random measure values
-genBirthdateMeasure :: Gen (Metric, BS.ByteString)
-genBirthdateMeasure =
-    pure (participantMetricBirthdate, "1990-01-02")
-
-genGenderMeasure :: Gen (Metric, BS.ByteString)
-genGenderMeasure =
-    pure (participantMetricGender, "Male")
-
-genParticipantMetricValue :: Gen (Metric, BS.ByteString)
-genParticipantMetricValue =
-    Gen.choice [genBirthdateMeasure, genGenderMeasure]
-
-genCreateMeasure :: Gen Measure
-genCreateMeasure = do
-    (mtrc, val) <- genParticipantMetricValue
-    Measure
-        <$> (pure . error) "measure record not set yet"
-        <*> pure mtrc
-        <*> pure val
-
-genCategory :: Gen Category
-genCategory = Gen.element allCategories
-
-genCreateRecord :: Volume -> Gen Record
-genCreateRecord vol = do
-    -- repeats some logic from blankRecord
-    Record
-        <$> (RecordRow <$> (pure . error) "Id set after saved" <*> genCategory)
-        <*> pure []
-        <*> Gen.maybe Gen.enumBounded
-        <*> pure vol
+-- import Databrary.Model.Volume.Types
 
 participantRecordAll :: ParticipantRecord
 participantRecordAll =
