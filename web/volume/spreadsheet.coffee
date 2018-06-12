@@ -1398,6 +1398,7 @@ app.directive 'spreadsheet', [
         $scope.setKey = (key) ->
           setKey(key)
           fill()
+          sessionStorage.setItem 'spreadsheetFolder', key
           return
 
         $scope.state =
@@ -1540,12 +1541,20 @@ app.directive 'spreadsheet', [
       state = storage.getValue('spreadsheet-state')
       state = undefined unless state?.volume == $scope.volume.id
       $scope.state.restore($attrs.key || $location.search().key, state)
-      # show the first tab on angular load
-      $scope.setKey($scope.views[0].id)
+      # show the first tab on angular load or show the tab in the sessionSotrage
+      folderTab = sessionStorage.getItem('spreadsheetFolder')
+      if folderTab
+        $scope.setKey(folderTab)
+      else
+        $scope.setKey($scope.views[0].id)
+      console.log(folderTab)
       $scope.$on 'refreshParent', ->
         $scope.volume.get(records: true).then ((res) ->
           $scope.volume.records = res.records
-          $scope.setKey($scope.views[0].id)
+          if folderTab
+            $scope.setKey(folderTab)
+          else
+            $scope.setKey($scope.views[0].id)
           return
         ), (res) ->
           messages.addError
