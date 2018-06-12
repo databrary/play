@@ -3,10 +3,12 @@ module Databrary.Model.OffsetTest where
 
 import Data.Aeson
 import Data.Aeson.Types
+{-
 import Data.Fixed
 import Hedgehog
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
+-}
 -- import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -27,6 +29,3 @@ unit_Offset_readshow_inverts = do
     let offset = "11:22:33.0"
     (show . (read :: String -> Offset)) offset @?= offset
 
-genOffset :: Milli -> Gen Offset
-genOffset totalLength =
-    Offset <$> Gen.realFrac_ (Range.constant 0 totalLength)
