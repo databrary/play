@@ -62,8 +62,3 @@ testMetric1 =
     , metricDescription = Nothing -- where does this come from?
     , metricRequired = Nothing -- where does this come from?
   }
-
-test_all :: [TestTree]
-test_all =
-    [
-    ]

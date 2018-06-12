@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Model.Volume.TypesTest where
-
+{-
 import qualified Data.ByteString as BS
 import Data.Maybe (fromMaybe)
 import Data.Semigroup
@@ -85,3 +85,4 @@ genVolumeCreateSimple = do
             , volumeAlias = mAlias
             }
        })
+-}

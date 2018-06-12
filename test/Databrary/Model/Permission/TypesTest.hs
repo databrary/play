@@ -1,8 +1,6 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Model.Permission.TypesTest where
 
-import Test.Tasty
-
 import Databrary.Model.Permission.Types
 
 {- PermissionNONE | PermissionPUBLIC | PermissionSHARED | PermissionREAD | PermissionEDIT |
@@ -16,8 +14,3 @@ accessPublic = Access { accessSite' = PermissionPUBLIC, accessMember' = Permissi
 
 accessNone :: Access -- correct?
 accessNone = Access { accessSite' = PermissionNONE, accessMember' = PermissionNONE }
-
-test_all :: [TestTree]
-test_all =
-    [
-    ]

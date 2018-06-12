@@ -3,8 +3,8 @@ module Databrary.Model.GeoNamesTest where
 
 import Data.Aeson
 import Data.Aeson.Types
-import Hedgehog
-import Hedgehog.Gen as Gen
+-- import Hedgehog
+-- import Hedgehog.Gen as Gen
 -- import Hedgehog.Range as Range
 -- import Test.Tasty
 import Test.Tasty.HUnit
@@ -34,9 +34,3 @@ _unit_lookupGeoName = do
     hc <- initHTTPClient
     mGeo <- lookupGeoName (Id 6252001) hc
     mGeo @?= Just geoNameUS
-
-genGeoName :: Gen GeoName
-genGeoName = do
-    -- TODO: better generator, longer list from a csv file?
-    (i, nm) <- Gen.element [(3041565, "Andorra"), (3351879, "Angola")]
-    pure (GeoName (Id i) nm)
