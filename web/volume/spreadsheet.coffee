@@ -1547,7 +1547,6 @@ app.directive 'spreadsheet', [
         $scope.setKey(folderTab)
       else
         $scope.setKey($scope.views[0].id)
-      console.log(folderTab)
       $scope.$on 'refreshParent', ->
         $scope.volume.get(records: true).then ((res) ->
           $scope.volume.records = res.records
