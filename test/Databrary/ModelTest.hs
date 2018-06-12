@@ -36,7 +36,7 @@ import Databrary.Model.RecordSlot
 import Databrary.Model.Slot
 import Databrary.Model.Volume
 import Databrary.Model.VolumeAccess
-import Databrary.Model.VolumeAccess.TypesTest
+-- import Databrary.Model.VolumeAccess.TypesTest
 import Databrary.Service.DB (DBConn, MonadDB)
 import Databrary.Store.CSV (buildCSV)
 import TestHarness as Test

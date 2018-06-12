@@ -20,7 +20,7 @@ import Databrary.Model.Container
 import Databrary.Model.Format
 import Databrary.Model.GeoNames
 import Databrary.Model.Id
-import Databrary.Model.Identity.Types
+-- import Databrary.Model.Identity.Types
 import Databrary.Model.Metric
 import Databrary.Model.Offset
 import Databrary.Model.Party.Types
@@ -29,6 +29,7 @@ import Databrary.Model.Record.Types
 -- import Databrary.Model.Release.Types
 import Databrary.Model.Time
 import Databrary.Model.Volume.Types
+import Databrary.Model.VolumeAccess.Types
 
 ----- general utilities ------
 genDate :: Gen Date
@@ -133,6 +134,7 @@ genInstitutionUrl :: Gen (Maybe URI)
 genInstitutionUrl =
     Just <$> pure ((fromJust . parseURI) "https://www.nyu.edu")
 
+{-
 genInstitutionPartyRow :: Gen PartyRow
 genInstitutionPartyRow = do
     PartyRow
@@ -142,6 +144,7 @@ genInstitutionPartyRow = do
         <*> pure Nothing -- only for researchers, not institutions
         <*> pure Nothing
         <*> genInstitutionUrl
+-}
 
 genAccountEmail :: Gen BS.ByteString
 genAccountEmail = pure "adam.smith@nyu.edu"
@@ -165,14 +168,14 @@ genAccountSimple = do
          p = blankParty { partyRow = pr, partyAccount = Just a }
          a = blankAccount { accountParty = p, accountEmail = email }
      in pure a)
-
+{-
 genInstitutionParty :: Gen Party
 genInstitutionParty = do
    let gPerm = pure PermissionPUBLIC
        gAccess = pure Nothing
    -- what are the typical values for access and permission for an institution?
    Party <$> genInstitutionPartyRow <*> pure Nothing <*> gPerm <*> gAccess
-
+-}
 genCreateInstitutionParty :: Gen Party
 genCreateInstitutionParty = do
    let bp = blankParty
@@ -187,7 +190,7 @@ genCreateInstitutionParty = do
                , partyURL = url
                }
            })
-
+{-
 genSiteAuthSimple :: Gen SiteAuth
 genSiteAuthSimple = do
     p <- genPartySimple
@@ -211,6 +214,7 @@ genInitialIdentOpenRoutes =
 genReIdentified :: Gen Identity
 genReIdentified =
     ReIdentified <$> genSiteAuthSimple -- TODO: come up with a better site auth generator
+-}
 -- token
 -- authorize
 
@@ -283,9 +287,29 @@ genVolumeCreateSimple = do
             , volumeAlias = mAlias
             }
        })
--- vol acc
 
--- container
+-- vol acc
+genGroupPermission :: Party -> Gen (Permission, Maybe Bool)
+genGroupPermission p
+  | partyRow p == partyRow rootParty =
+        Gen.element [(PermissionNONE, Nothing), (PermissionSHARED, Just False), (PermissionSHARED, Just True)]
+  | partyRow p == partyRow nobodyParty =
+        Gen.element [(PermissionNONE, Nothing), (PermissionPUBLIC, Just False), (PermissionPUBLIC, Just True)]
+  | otherwise = error "only known group parties that should get volume access are root party and nobody party"
+
+genGroupVolumeAccess :: Maybe Party -> Volume -> Gen VolumeAccess
+genGroupVolumeAccess mGroup vol = do
+    group <- maybe (Gen.element [nobodyParty, rootParty]) pure mGroup
+    (perm, mShareFull) <- genGroupPermission group
+    VolumeAccess
+       <$> pure perm
+       <*> pure perm
+       <*> Gen.maybe (Gen.integral (Range.constant 1 20)) -- TODO: what does this field mean?
+       <*> pure mShareFull
+       <*> pure group
+       <*> pure vol
+
+-- container / slot
 genContainerTestDay :: Gen Day
 genContainerTestDay =
     fromGregorian
@@ -330,7 +354,6 @@ genCreateContainer =
         <$> genCreateContainerRow
         <*> Gen.maybe Gen.enumBounded
         <*> (pure . error) "container volume not specified"
--- slot
 
 -- asset
 -- assetslot

@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Model.VolumeAccess.TypesTest where
-
+{-
 -- import qualified Data.ByteString as BS
 -- import Data.Time (fromGregorian)
 import Hedgehog
@@ -33,3 +33,4 @@ genGroupVolumeAccess mGroup vol = do
        <*> pure mShareFull
        <*> pure group
        <*> pure vol
+-}
