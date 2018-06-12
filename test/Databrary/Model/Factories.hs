@@ -54,35 +54,46 @@ genGeneralURI = do
 ----- value objects ------
 
 -- id -- usually have db generate db
--- date, maskeddate
+
+-- maskeddate
 genMaskedDate :: Gen MaskedDate
 genMaskedDate = do
     dt <- genDate
     mask <- Gen.bool
     pure (maskDateIf mask dt)
+
 -- geoname
 genGeoName :: Gen GeoName
 genGeoName = do
     -- TODO: better generator, longer list from a csv file?
     (i, nm) <- Gen.element [(3041565, "Andorra"), (3351879, "Angola")]
     pure (GeoName (Id i) nm)
+
 -- orcid
+
 -- url
 ----- gen doi value
 ----- gen hdl value
 ----- gen doi url
 ----- gen hdl url
+
 -- release
+
 -- permission
+
 -- offset
 genOffset :: Milli -> Gen Offset
 genOffset totalLength =
     Offset <$> Gen.realFrac_ (Range.constant 0 totalLength)
+
 -- segment
+
+-- age
 genAge :: Gen Age
 genAge =
   let maxAgeTypicallyStudied = 14
   in Age <$> Gen.integral (Range.constant 0 (maxAgeTypicallyStudied*365))
+
 -- format
 genFormat :: Gen Format
 genFormat = Gen.element allFormats
@@ -95,7 +106,7 @@ genNotAVFormat = Gen.element (filter formatNotAV allFormats)
 
 genTranscodeOutputFormat :: Gen Format
 genTranscodeOutputFormat = Gen.element (catMaybes (fmap formatTranscodable allFormats))
--- metric
+
 -- category
 genCategory :: Gen Category
 genCategory = Gen.element allCategories
@@ -363,7 +374,7 @@ genCreateContainer =
 -- transcode
 
 -- vol metric
--- measure
+-- measure / metric
 ----- TODO: expand these to really generate random measure values
 genBirthdateMeasure :: Gen (Metric, BS.ByteString)
 genBirthdateMeasure =
