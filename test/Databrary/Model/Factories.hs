@@ -1,10 +1,11 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Model.Factories where
 
+import Data.Maybe
 import Data.Fixed
 import Data.Monoid ((<>))
 -- import Data.Text (Text)
--- import Data.Time
+import Data.Time
 import Hedgehog
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
@@ -12,14 +13,30 @@ import Network.URI
 -- import Test.Tasty.HUnit
 
 import Databrary.Model.Age
+import Databrary.Model.Format
 import Databrary.Model.Offset
+import Databrary.Model.Time
 
 ----- general utilities ------
 
 
 ----- value objects ------
 
--- id
+-- id -- usually have db generate db
+-- date, maskeddate
+genDate :: Gen Date
+genDate =
+      fromGregorian
+          <$> Gen.integral (Range.constant 1990 2015)
+          <*> Gen.integral (Range.constant 1 12)
+          <*> Gen.integral (Range.constant 1 28)
+
+genMaskedDate :: Gen MaskedDate
+genMaskedDate = do
+    dt <- genDate
+    mask <- Gen.bool
+    pure (maskDateIf mask dt)
+
 -- release
 -- permission
 -- orcid
@@ -50,6 +67,17 @@ genAge =
   let maxAgeTypicallyStudied = 14
   in Age <$> Gen.integral (Range.constant 0 (maxAgeTypicallyStudied*365))
 -- format
+genFormat :: Gen Format
+genFormat = Gen.element allFormats
+
+genAVFormat :: Gen Format
+genAVFormat = Gen.element (filter formatIsAV allFormats)
+
+genNotAVFormat :: Gen Format
+genNotAVFormat = Gen.element (filter formatNotAV allFormats)
+
+genTranscodeOutputFormat :: Gen Format
+genTranscodeOutputFormat = Gen.element (catMaybes (fmap formatTranscodable allFormats))
 -- metric
 -- category
 -- ...

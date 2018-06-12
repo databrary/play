@@ -3,9 +3,9 @@ where
 
 import Data.Aeson
 import Data.Time
-import Hedgehog
-import Hedgehog.Gen as Gen
-import Hedgehog.Range as Range
+-- import Hedgehog
+-- import Hedgehog.Gen as Gen
+-- import Hedgehog.Range as Range
 -- import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -38,16 +38,4 @@ unit_toJSON_MaskedDate = do
     -- typical
     encode (maskDateIf False (fromGregorian 2017 1 2)) @?= "\"2017-01-02\""
 
-genDate :: Gen Date
-genDate =
-      fromGregorian
-          <$> Gen.integral (Range.constant 1990 2015)
-          <*> Gen.integral (Range.constant 1 12)
-          <*> Gen.integral (Range.constant 1 28)
-
-genMaskedDate :: Gen MaskedDate
-genMaskedDate = do
-    dt <- genDate
-    mask <- Gen.bool
-    pure (maskDateIf mask dt)
 
