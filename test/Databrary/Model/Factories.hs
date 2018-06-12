@@ -38,6 +38,16 @@ genDate =
           <$> Gen.integral (Range.constant 1990 2015)
           <*> Gen.integral (Range.constant 1 12)
           <*> Gen.integral (Range.constant 1 28)
+{-
+genVolumeCreationTime :: Gen UTCTime
+genVolumeCreationTime =
+    UTCTime
+          <$> (fromGregorian
+                   <$> Gen.integral (Range.constant 2000 2018)
+                   <*> Gen.integral (Range.constant 1 12)
+                   <*> Gen.integral (Range.constant 1 28))
+          <*> (secondsToDiffTime <$> Gen.integral (Range.constant 0 86399))
+-}
 
 genGeneralURI :: Gen URI
 genGeneralURI = do
@@ -79,8 +89,6 @@ genGeoName = do
 
 -- release
 
--- permission
-
 -- offset
 genOffset :: Milli -> Gen Offset
 genOffset totalLength =
@@ -112,7 +120,9 @@ genCategory :: Gen Category
 genCategory = Gen.element allCategories
 
 -- ...
+
 -- funder
+
 -- tag
 
 ----- entities ------ 
@@ -145,18 +155,6 @@ genInstitutionUrl :: Gen (Maybe URI)
 genInstitutionUrl =
     Just <$> pure ((fromJust . parseURI) "https://www.nyu.edu")
 
-{-
-genInstitutionPartyRow :: Gen PartyRow
-genInstitutionPartyRow = do
-    PartyRow
-        <$> genPartyId
-        <*> genPartySortName
-        <*> Gen.maybe (pure "The")
-        <*> pure Nothing -- only for researchers, not institutions
-        <*> pure Nothing
-        <*> genInstitutionUrl
--}
-
 genAccountEmail :: Gen BS.ByteString
 genAccountEmail = pure "adam.smith@nyu.edu"
 
@@ -170,6 +168,7 @@ genPartySimple = do
         a2 = a { accountParty = p2 }
     in pure p2)
 
+-- TODO: get rid of this and genPartySimplex
 genAccountSimple :: Gen Account
 genAccountSimple = do
     firstName <- genPartyPreName
@@ -179,14 +178,7 @@ genAccountSimple = do
          p = blankParty { partyRow = pr, partyAccount = Just a }
          a = blankAccount { accountParty = p, accountEmail = email }
      in pure a)
-{-
-genInstitutionParty :: Gen Party
-genInstitutionParty = do
-   let gPerm = pure PermissionPUBLIC
-       gAccess = pure Nothing
-   -- what are the typical values for access and permission for an institution?
-   Party <$> genInstitutionPartyRow <*> pure Nothing <*> gPerm <*> gAccess
--}
+
 genCreateInstitutionParty :: Gen Party
 genCreateInstitutionParty = do
    let bp = blankParty
@@ -202,16 +194,8 @@ genCreateInstitutionParty = do
                }
            })
 {-
-genSiteAuthSimple :: Gen SiteAuth
-genSiteAuthSimple = do
-    p <- genPartySimple
-    ac <- Access <$> pure PermissionSHARED <*> pure PermissionSHARED
-    SiteAuth
-        <$> (pure . fromJust . partyAccount) p
-        <*> Just <$> (Gen.utf8 (Range.constant 6 20) Gen.ascii)
-        <*> pure ac
 -- identity
-genInitialIdentNeedAuthRoutes :: Gen Identity
+genInitialIdentNeedAuthRoutes :: SiteAuth -> Gen Identity
 genInitialIdentNeedAuthRoutes =
     Gen.choice
         [ pure NotLoggedIn
@@ -222,14 +206,22 @@ genInitialIdentOpenRoutes :: Gen Identity
 genInitialIdentOpenRoutes =
     pure IdentityNotNeeded
 
-genReIdentified :: Gen Identity
+genReIdentified :: SiteAuth -> Gen Identity
 genReIdentified =
     ReIdentified <$> genSiteAuthSimple -- TODO: come up with a better site auth generator
 -}
--- token
--- authorize
 
--- volume
+-- token
+---- genCreateUpload :: Volume -> Gen Upload
+---- genSendFileChunk :: File -> Gen Chunk
+
+-- authorize
+---- genCreateAuthorizeReq :: Party -> Party -> Gen Authorize
+
+
+
+
+-- volume / citation
 genVolumeName :: Gen Text  -- Verify this and next two with real data profile
 genVolumeName = Gen.text (Range.constant 0 200) Gen.alphaNum
 
@@ -240,49 +232,10 @@ genVolumeAlias :: Gen Text
 genVolumeAlias = Gen.text (Range.constant 0 60) Gen.alphaNum
 
 {-
-genVolumeId :: Gen (Id Volume)
-genVolumeId = Id <$> Gen.integral (Range.constant 1 10000)
-
 genVolumeDOI :: Gen BS.ByteString
 genVolumeDOI = pure "10.17910/B7159Q" -- TODO: good generator for this?
-
-genVolumeRowSimple :: Gen VolumeRow
-genVolumeRowSimple =
-    VolumeRow
-        <$> genVolumeId
-        <*> genVolumeName
-        <*> Gen.maybe genVolumeBody
-        <*> Gen.maybe genVolumeAlias
-        <*> Gen.maybe genVolumeDOI
-
-genVolumeOwner :: Gen VolumeOwner
-genVolumeOwner = do
-    pr <- partyRow <$> genPartySimple
-    pure (partyId pr, partySortName pr <> ", " <> (fromMaybe "" . partyPreName) pr)
-
-genVolumeCreationTime :: Gen UTCTime
-genVolumeCreationTime =
-    UTCTime
-          <$> (fromGregorian
-                   <$> Gen.integral (Range.constant 2000 2018)
-                   <*> Gen.integral (Range.constant 1 12)
-                   <*> Gen.integral (Range.constant 1 28))
-          <*> (secondsToDiffTime <$> Gen.integral (Range.constant 0 86399))
-
-genVolumeRolePolicy :: Gen VolumeRolePolicy
-genVolumeRolePolicy = do
-    perm <- Gen.enumBounded
-    mShareFull <- Gen.maybe (Gen.bool)
-    pure (volumeAccessPolicyWithDefault perm mShareFull)
-
-genVolumeSimple :: Gen Volume
-genVolumeSimple = do
-    Volume
-        <$> genVolumeRowSimple
-        <*> genVolumeCreationTime
-        <*> Gen.list (Range.constant 1 3) genVolumeOwner
-        <*> genVolumeRolePolicy
 -}
+
 -- Note: keep this in sync with changes in Controller.createVolume
 genVolumeCreateSimple :: Gen Volume
 genVolumeCreateSimple = do
@@ -320,6 +273,8 @@ genGroupVolumeAccess mGroup vol = do
        <*> pure group
        <*> pure vol
 
+
+
 -- container / slot
 genContainerTestDay :: Gen Day
 genContainerTestDay =
@@ -330,24 +285,6 @@ genContainerTestDay =
 
 genContainerName :: Gen Text
 genContainerName = Gen.text (Range.constant 0 80) Gen.alphaNum
-
-{-
-genContainerRowSimple :: Gen ContainerRow
-genContainerRowSimple =
-    -- TODO: differentiate between session and container generator
-    ContainerRow
-        <$> (Id <$> Gen.integral (Range.constant 1 20000))
-        <*> Gen.bool
-        <*> (Just <$> genContainerName)
-        <*> (Just <$> genContainerTestDay)
-
-genContainerSimple :: Gen Container
-genContainerSimple =
-    Container
-        <$> genContainerRowSimple
-        <*> (pure . Just) ReleaseSHARED
-        <*> genVolumeSimple
--}
 
 genCreateContainerRow :: Gen ContainerRow
 genCreateContainerRow =
@@ -366,14 +303,19 @@ genCreateContainer =
         <*> Gen.maybe Gen.enumBounded
         <*> (pure . error) "container volume not specified"
 
--- asset
--- assetslot
--- assetsegment
--- assetrevision
--- excerpt
--- transcode
+-- asset / assetslot / assetsegment / assetrevision
+---- genCreateAsset :: Volume -> Gen Asset
+---- genCreateSlotAsset :: Slot -> Gen Asset
 
--- vol metric
+-- excerpt
+---- genCreateExcerpt :: Asset -> Gen Excerpt
+
+-- transcode
+---- genTranscodeCallback :: ...
+---- genCreateTranscode :: Asset -> ...
+
+
+
 -- measure / metric
 ----- TODO: expand these to really generate random measure values
 genBirthdateMeasure :: Gen (Metric, BS.ByteString)
@@ -404,15 +346,30 @@ genCreateRecord vol = do
         <*> pure []
         <*> Gen.maybe Gen.enumBounded
         <*> pure vol
+----- genAddVolumeCategory
+----- genAddVolumeMetric
 -- recordslot
+----- genCreateRecordSlot :: Slot -> Record -> Gen RecordSlot
 
--- citation
+
+
 -- funding
+----- genCreateVolumeFunding :: Gen Funding
+-- links
+----- genVolumeLink :: Volume -> Gen Citation
+
+
 
 -- notification
 -- audit
 -- ingest
 -- vol state
+---- genCreateVolumeState :: Volume -> Gen VolumeState
+----    generate key value pair and is public
 -- activity
 -- stats
--- comment, tag use
+-- comment
+----- genCreateComment :: Slot -> Maybe Parent -> Comment
+-- tag use
+----- genCreateTagUse
+----- genCreateKeywordUse
