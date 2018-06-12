@@ -3,9 +3,6 @@ module Databrary.Model.AgeTest where
 
 import Data.Aeson
 import Data.Time
-import Hedgehog
-import Hedgehog.Gen as Gen
-import Hedgehog.Range as Range
 import Test.Tasty.HUnit
 
 import Databrary.Model.Age
@@ -38,8 +35,3 @@ unit_yearsAge =
 unit_ageTime :: Assertion
 unit_ageTime =
     ageTime (Age 1) @?= 60*60*24
-
-genAge :: Gen Age
-genAge =
-  let maxAgeTypicallyStudied = 14
-  in Age <$> Gen.integral (Range.constant 0 (maxAgeTypicallyStudied*365))
