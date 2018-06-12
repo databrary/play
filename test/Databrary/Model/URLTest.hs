@@ -1,10 +1,6 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Databrary.Model.URLTest where
 
-import Data.Monoid ((<>))
-import Hedgehog
-import Hedgehog.Gen as Gen
-import Hedgehog.Range as Range
 import Network.URI
 import Test.Tasty.HUnit
 
@@ -33,23 +29,3 @@ unit_urlLink :: Assertion
 unit_urlLink = do
     -- example
     (fmap urlLink . parseURI) "hdl:rest" @?= parseURI "http://hdl.handle.net/rest"
-
--- gen doi value
-
--- gen hdl value
-
--- gen doi url
-
--- gen hdl url
-
-genGeneralURI :: Gen URI
-genGeneralURI = do
-    domain <- Gen.string (Range.constant 1 20) Gen.alphaNum
-    pathSeg1 <- Gen.string (Range.constant 1 20) Gen.alphaNum -- TODO: generate multiple segs, allowed chars?
-    scheme1 <- Gen.element ["http", "https"]
-    pure
-        (nullURI {
-              uriScheme = scheme1
-            , uriAuthority = Just (URIAuth "" ("www." <> domain <> ".com") "") -- TODO: choose on prefix and suffix?
-            , uriPath = "/" <> pathSeg1
-            })
