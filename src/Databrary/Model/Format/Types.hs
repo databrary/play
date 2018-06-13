@@ -21,7 +21,7 @@ type instance IdType Format = Int16
 data Format = Format
   { formatId :: Id Format
   , formatMimeType :: BS.ByteString
-  , formatExtension :: [BS.ByteString]
+  , formatExtension :: [BS.ByteString] -- TODO: nonempty list
   , formatName :: T.Text
   }
   deriving (Show)

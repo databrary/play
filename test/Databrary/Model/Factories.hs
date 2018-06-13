@@ -15,6 +15,7 @@ import Network.URI
 -- import Test.Tasty.HUnit
 
 import Databrary.Model.Age
+import Databrary.Model.Asset
 import Databrary.Model.Category
 import Databrary.Model.Container
 import Databrary.Model.Format
@@ -27,6 +28,7 @@ import Databrary.Model.Party.Types
 import Databrary.Model.Permission
 import Databrary.Model.Record.Types
 -- import Databrary.Model.Release.Types
+import Databrary.Model.Slot.Types
 import Databrary.Model.Time
 import Databrary.Model.Volume.Types
 import Databrary.Model.VolumeAccess.Types
@@ -212,8 +214,6 @@ genReIdentified =
 -}
 
 -- token
----- genCreateUpload :: Volume -> Gen Upload
----- genSendFileChunk :: File -> Gen Chunk
 
 -- authorize
 ---- genCreateAuthorizeReq :: Party -> Party -> Gen Authorize
@@ -297,22 +297,83 @@ genCreateContainerRow =
 
 genCreateContainer :: Gen Container
 genCreateContainer =
-   -- some redundancy with blankContainer
-   Container
+    -- some redundancy with blankContainer
+    Container
         <$> genCreateContainerRow
         <*> Gen.maybe Gen.enumBounded
         <*> (pure . error) "container volume not specified"
 
--- asset / assetslot / assetsegment / assetrevision
----- genCreateAsset :: Volume -> Gen Asset
----- genCreateSlotAsset :: Slot -> Gen Asset
+-- upload / asset / assetslot / assetsegment / assetrevision
+
+genUploadFileName :: Format -> Gen Text
+genUploadFileName fmt = do
+    let ext = (TE.decodeUtf8 . head . formatExtension) fmt
+    prefix <- Gen.text (Range.constant 0 80) Gen.alphaNum -- include spaces?
+    pure (prefix <> "." <> ext)
+
+---- genCreateUpload :: Volume -> Gen Upload
+---- genSendFileChunk :: File -> Gen Chunk
+---- genFileContents :: Format -> Gen BS.ByteString
+
+genCreateAssetAfterUpload :: Volume -> Gen (Asset, BS.ByteString)
+genCreateAssetAfterUpload vol = do -- modeled after processAsset (AssetTargetVolume ..) w/name,container,upload,maybe release
+    -- TODO: who should create the asset?
+    let ba = blankAsset vol
+    fmt <- pure (getFormat' (Id 2)) -- csv; TODO: general format + file contents
+    mName <- Just <$> genUploadFileName fmt
+    mRel <- Gen.maybe Gen.enumBounded
+    contents <- pure "col1,col2\n123,456\n"
+    -- duration, sha1, size remain nothing from blankAsset
+    pure
+        (ba {
+             assetRow = (assetRow ba) {
+                  assetFormat = fmt
+                , assetRelease = mRel
+                , assetName = mName
+                }
+            }
+        , contents)
+
+-- TODO: this assumes that the asset has been updated with real name
+genCreateSlotAssetAfterUpload :: Asset -> Slot -> Gen Asset
+genCreateSlotAssetAfterUpload _ _ = do  -- modeled after processAsset (AssetTargetVolume ..) w/name,container,upload, maybe release
+    -- assetNoSlot (blankAsset v)
+    -- lookupVolContainer -> slotContainer -> build up segment into slot
+    -- fix asset slot duration
+    --   assetName = read name
+    -- 
+    pure undefined
+
+-- transcode
+---- genCreateTranscode :: Asset -> ...
+-- probe <- fileuploadprobe upfile
+-- trans <- model.add transcode
+--    (asset with duration, no sha1 and no size; name is upload name; has rel and fmt)
+--    fullSegment
+--    defaultTranscodeOptions
+--    probe
+-- starttranscode trans
+--      update trans
+--      find matching
+--        if nothing
+--           ctlTranscode
+--           on complete, update transcode
+--           uses run transcode
+
+-- the script eventually uses postback to remoteTranscode
+--    lookupTranscode
+--    collectTranscode with submitted exit code, sha1, logs
+--      updateTranscode
+--      maketempfile
+--      ctlTranscode w/tempfile
+--      updatetranscode
+--      avprobe tempfile
+--      a <- changeAsset w/sha1, dur, tempfile
+--      changeAssetSlotDuration a
+
 
 -- excerpt
 ---- genCreateExcerpt :: Asset -> Gen Excerpt
-
--- transcode
----- genTranscodeCallback :: ...
----- genCreateTranscode :: Asset -> ...
 
 
 

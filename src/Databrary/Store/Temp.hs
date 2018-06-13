@@ -15,7 +15,7 @@ import System.Posix.FilePath (RawFilePath)
 import System.Posix.Files.ByteString (removeLink, rename)
 import System.Posix.Temp.ByteString (mkstemp)
 
-import Databrary.Has (peeks, focusIO)
+import Databrary.Has (peeks, focusIO, MonadHas)
 import Databrary.Store.Types
 import Databrary.Action.Types
 
@@ -30,7 +30,7 @@ makeTempFileAs d g rs = bracket
   (hClose . snd . snd)
   (\(k, (f, h)) -> TempFile k f <$ g h)
 
-makeTempFile :: (Handle -> IO ()) -> Handler TempFile
+makeTempFile :: (MonadStorage c m, MonadHas InternalState c m) => (Handle -> IO ()) -> m TempFile
 makeTempFile f = do
   tmp <- peeks storageTemp
   focusIO $ makeTempFileAs tmp f
