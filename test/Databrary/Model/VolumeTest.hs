@@ -35,7 +35,7 @@ _unit_findVolumes :: Assertion
 _unit_findVolumes = do
     let ident = NotLoggedIn
     cn <- loadPGDatabase >>= pgConnect
-    let ctxt = TestContext { ctxConn = cn, ctxIdentity = ident }
+    let ctxt = TestContext { ctxConn = Just cn, ctxIdentity = Just ident }
     vs <- runReaderT (findVolumes volumeFilter1) ctxt
     length vs @?= 2
 
@@ -78,7 +78,7 @@ unit_lookupVolume_example :: Assertion
 unit_lookupVolume_example = do
     cn <- loadPGDatabase >>= pgConnect
     let ident = NotLoggedIn
-    let ctxt = TestContext { ctxConn = cn, ctxIdentity = ident }
+    let ctxt = TestContext { ctxConn = Just cn, ctxIdentity = Just ident }
     mVol <- runReaderT (lookupVolume (Id 1)) ctxt
     mVol @?=
        Just
@@ -115,7 +115,7 @@ _unit_addVolume_example = do
              let ident = NotLoggedIn
                  pid :: Id Party
                  pid = Id 300
-             let ctxt = TestContext { ctxConn = cn, ctxIdentity = ident, ctxPartyId = pid, ctxRequest = defaultRequest }
+             let ctxt = TestContext { ctxConn = Just cn, ctxIdentity = Just ident, ctxPartyId = Just pid, ctxRequest = Just defaultRequest }
              v <- runReaderT (addVolume volumeExample) ctxt
              v @?= volumeExample)
 

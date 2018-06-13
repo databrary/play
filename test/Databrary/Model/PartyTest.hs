@@ -35,7 +35,10 @@ unit_Party_examples = do
         a <- Gen.sample genAccountSimple -- mkAccount "smith" "john" "john@smith.com"
         let ident = IdentityNotNeeded
             pid = Id (-1)
-            ctxt = TestContext { ctxConn = cn, ctxIdentity = ident, ctxPartyId = pid, ctxRequest = defaultRequest }
+            ctxt =
+              TestContext {
+                    ctxConn = Just cn, ctxIdentity = Just ident, ctxPartyId = Just pid, ctxRequest = Just defaultRequest
+                  }
         Just auth2 <-
             runReaderT
               (do
@@ -60,8 +63,8 @@ unit_Party_examples = do
                      Just auth <- lookupSiteAuthByEmail False "test@databrary.org"
                      let pid = Id 7
                          ident = fakeIdentSessFromAuth auth True
-                     pure (TestContext { ctxConn = cn, ctxIdentity = ident, ctxPartyId = pid, ctxRequest = defaultRequest }))
-                TestContext { ctxConn = cn }
+                     pure (TestContext { ctxConn = Just cn, ctxIdentity = Just ident, ctxPartyId = Just pid, ctxRequest = Just defaultRequest }))
+                TestContext { ctxConn = Just cn }
         p <- Gen.sample genCreateInstitutionParty
         Just p' <-
             runReaderT
@@ -85,7 +88,7 @@ runLookupParty pid ident expected =
 runLookupParty' :: (Show a, Eq a) => Id Party -> Identity -> (Party -> a) -> Maybe a -> Assertion
 runLookupParty' pid ident f expected = do
     cn <- loadPGDatabase >>= pgConnect
-    let ctxt = TestContext { ctxConn = cn, ctxIdentity = ident }
+    let ctxt = TestContext { ctxConn = Just cn, ctxIdentity = Just ident }
     --
     mParty <- runReaderT (lookupParty pid :: ReaderT TestContext IO (Maybe Party)) ctxt
     fmap f mParty @?= expected
@@ -105,7 +108,7 @@ unit_lookupParty = do
 unit_lookupSiteAuthByEmail :: Assertion
 unit_lookupSiteAuthByEmail = do
     cn <- loadPGDatabase >>= pgConnect
-    let ctxt = TestContext { ctxConn = cn }
+    let ctxt = TestContext { ctxConn = Just cn }
     mAuth <- runReaderT (lookupSiteAuthByEmail False "test@databrary.org") ctxt
     isJust mAuth @? "should find the well known test user's site auth by email"
     mAuth' <- runReaderT (lookupSiteAuthByEmail False "doesntexist@databrary.org") ctxt
@@ -123,7 +126,7 @@ unit_addAccount = withinTestTransaction (\cn -> do
     a' <-
       runReaderT
         (addAccount a)
-        (TestContext { ctxConn = cn, ctxIdentity = ident, ctxPartyId = pid, ctxRequest = defaultRequest })
+        (TestContext { ctxConn = Just cn, ctxIdentity = Just ident, ctxPartyId = Just pid, ctxRequest = Just defaultRequest })
     accountEmail a' @?=
       accountEmail a)
 

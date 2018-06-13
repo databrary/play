@@ -29,7 +29,7 @@ import TestHarness
 unit_Funding_examples :: Assertion
 unit_Funding_examples =
     withinTestTransaction (\cn -> do
-        let ctxt = TestContext { ctxConn = cn }
+        let ctxt = TestContext { ctxConn = Just cn }
             fndr = Funder (Id 1) "The Big Fund"
         matches <-
             runReaderT

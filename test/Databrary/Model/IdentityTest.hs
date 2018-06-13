@@ -14,7 +14,7 @@ unit_Identity_examples :: Assertion
 unit_Identity_examples = do
     -- guts of retrieving a site auth, used for creating a session upon login
     cn <- connectTestDb
-    let ctxt = TestContext { ctxConn = cn }
+    let ctxt = TestContext { ctxConn = Just cn }
     Just auth <- runReaderT (lookupSiteAuthByEmail False "test@databrary.org") ctxt
     let p = (accountParty . siteAccount) auth
     partyRow p @?=
