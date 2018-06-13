@@ -45,8 +45,12 @@ app.directive('authGrantForm', [
       //
 
       form.save = function () {
+        var parentArray = [];
+        party.parents.forEach(function(item){
+          parentArray.push(item.party.id);
+        });
         messages.clear(form);
-        if(!(form.data.site === 0 && form.data.member === 0)) {
+        if(!(form.data.site === 0 && form.data.member === 0) && !(party.authorization === 5 && parentArray.includes(0))) {
           var accessData = "";
           if (form.data.site !==0) {
             accessData = "Databrary data.";
