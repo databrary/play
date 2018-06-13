@@ -28,6 +28,7 @@ import Databrary.Model.Party.Types
 import Databrary.Model.Permission
 import Databrary.Model.Record.Types
 -- import Databrary.Model.Release.Types
+import Databrary.Model.Slot.Types
 import Databrary.Model.Time
 import Databrary.Model.Volume.Types
 import Databrary.Model.VolumeAccess.Types
@@ -312,8 +313,10 @@ genUploadFileName fmt = do
 
 ---- genCreateUpload :: Volume -> Gen Upload
 ---- genSendFileChunk :: File -> Gen Chunk
+---- genFileContents :: Format -> Gen BS.ByteString
+
 genCreateAssetAfterUpload :: Volume -> Gen (Asset, BS.ByteString)
-genCreateAssetAfterUpload vol = do -- modeled after processAsset (AssetTargetVolume ..) w/name,container,upload
+genCreateAssetAfterUpload vol = do -- modeled after processAsset (AssetTargetVolume ..) w/name,container,upload,maybe release
     -- TODO: who should create the asset?
     let ba = blankAsset vol
     fmt <- pure (getFormat' (Id 2)) -- csv; TODO: general format + file contents
@@ -331,15 +334,46 @@ genCreateAssetAfterUpload vol = do -- modeled after processAsset (AssetTargetVol
             }
         , contents)
 
----- genCreateSlotAsset :: Slot -> Gen Asset
-    -- modeled after changeAssetSlot in process asset
-
--- excerpt
----- genCreateExcerpt :: Asset -> Gen Excerpt
+-- TODO: this assumes that the asset has been updated with real name
+genCreateSlotAssetAfterUpload :: Asset -> Slot -> Gen Asset
+genCreateSlotAssetAfterUpload _ _ = do  -- modeled after processAsset (AssetTargetVolume ..) w/name,container,upload, maybe release
+    -- assetNoSlot (blankAsset v)
+    -- lookupVolContainer -> slotContainer -> build up segment into slot
+    -- fix asset slot duration
+    --   assetName = read name
+    -- 
+    pure undefined
 
 -- transcode
 ---- genCreateTranscode :: Asset -> ...
----- genTranscodeCallback :: ...
+-- probe <- fileuploadprobe upfile
+-- trans <- model.add transcode
+--    (asset with duration, no sha1 and no size; name is upload name; has rel and fmt)
+--    fullSegment
+--    defaultTranscodeOptions
+--    probe
+-- starttranscode trans
+--      update trans
+--      find matching
+--        if nothing
+--           ctlTranscode
+--           on complete, update transcode
+--           uses run transcode
+
+-- the script eventually uses postback to remoteTranscode
+--    lookupTranscode
+--    collectTranscode with submitted exit code, sha1, logs
+--      updateTranscode
+--      maketempfile
+--      ctlTranscode w/tempfile
+--      updatetranscode
+--      avprobe tempfile
+--      a <- changeAsset w/sha1, dur, tempfile
+--      changeAssetSlotDuration a
+
+
+-- excerpt
+---- genCreateExcerpt :: Asset -> Gen Excerpt
 
 
 

@@ -10,6 +10,7 @@ module Databrary.Store.Transcode
 import Control.Concurrent (ThreadId)
 import Control.Monad (guard, unless, void)
 import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Trans.Resource (InternalState)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Char8 as BSC
@@ -21,15 +22,19 @@ import Text.Read (readMaybe)
 import qualified Web.Route.Invertible as R
 
 import Databrary.Ops
-import Databrary.Has (view, peek, peeks, focusIO)
+import Databrary.Has (view, peek, peeks, focusIO, MonadHas)
+import Databrary.Service.DB (MonadDB)
 import Databrary.Service.Log
 import Databrary.HTTP.Route (routeURL)
+import Databrary.Model.Audit (MonadAudit)
 import Databrary.Model.Segment
 import Databrary.Model.Asset
 import Databrary.Model.AssetSlot
 import Databrary.Model.Format
+import Databrary.Model.Time
 import Databrary.Model.Transcode
 import Databrary.Files
+import Databrary.Service.Types (Secret)
 import Databrary.Store.Types
 import Databrary.Store.Temp
 import Databrary.Store.Asset
@@ -41,7 +46,7 @@ import Databrary.Action.Run
 
 import {-# SOURCE #-} Databrary.Controller.Transcode
 
-ctlTranscode :: Transcode -> TranscodeArgs -> Handler (ExitCode, String, String)
+ctlTranscode :: (MonadDB c m, MonadHas Timestamp c m, MonadLog c m, MonadStorage c m) => Transcode -> TranscodeArgs -> m (ExitCode, String, String)
 ctlTranscode tc args = do
   t <- peek
   Just ctl <- peeks storageTranscoder
@@ -53,7 +58,7 @@ ctlTranscode tc args = do
   focusIO $ logMsg t ("transcode " ++ unwords args' ++ ": " ++ case c of { ExitSuccess -> "" ; ExitFailure i -> ": exit " ++ show i ++ "\n" } ++ o ++ e)
   return r
 
-transcodeArgs :: Transcode -> Handler TranscodeArgs
+transcodeArgs :: (MonadStorage c m, MonadHas Secret c m, MonadAudit c m) => Transcode -> m TranscodeArgs
 transcodeArgs t@Transcode{..} = do
   Just f <- getAssetFile (transcodeOrig t)
   req <- peek
@@ -70,7 +75,7 @@ transcodeArgs t@Transcode{..} = do
   rng = segmentRange transcodeSegment
   lb = lowerBound rng
 
-startTranscode :: Transcode -> Handler (Maybe TranscodePID)
+startTranscode :: (MonadStorage c m, MonadHas Secret c m, MonadAudit c m, MonadHas Timestamp c m, MonadLog c m) => Transcode -> m (Maybe TranscodePID)
 startTranscode tc = do
   tc' <- updateTranscode tc lock Nothing
   unless (transcodeProcess tc' == lock) $ fail $ "startTranscode " ++ show (transcodeId tc)
@@ -102,7 +107,7 @@ forkTranscode tc = focusIO $ \ctx ->
       (\e -> logMsg (view ctx) ("forkTranscode: " ++ show e) (view ctx))
       (const $ return ()))
 
-stopTranscode :: Transcode -> Handler Transcode
+stopTranscode :: (MonadDB c m, MonadHas Timestamp c m, MonadLog c m, MonadStorage c m) => Transcode -> m Transcode
 stopTranscode tc@Transcode{ transcodeProcess = Just pid } | pid >= 0 = do
   tc' <- updateTranscode tc Nothing (Just "aborted")
   (r, out, err) <- ctlTranscode tc ["-k", show pid]
@@ -111,7 +116,9 @@ stopTranscode tc@Transcode{ transcodeProcess = Just pid } | pid >= 0 = do
   return tc'
 stopTranscode tc = return tc
 
-collectTranscode :: Transcode -> Int -> Maybe BS.ByteString -> String -> Handler ()
+collectTranscode
+  :: (MonadHas AV c m, MonadDB c m, MonadHas InternalState c m, MonadLog c m, MonadStorage c m, MonadHas Timestamp c m, MonadAudit c m)
+  => Transcode -> Int -> Maybe BS.ByteString -> String -> m ()
 collectTranscode tc 0 sha1 logs = do
   tc' <- updateTranscode tc (Just (-2)) (Just logs)
   f <- makeTempFile (const $ return ())

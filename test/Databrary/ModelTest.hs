@@ -5,6 +5,7 @@ import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Reader
 import Data.Aeson
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Lazy.Char8 as BSLC
 import Data.Maybe
@@ -17,6 +18,7 @@ import Test.Tasty.HUnit
 
 import Databrary.Has
 import Databrary.Controller.CSV (volumeCSV)
+-- import Databrary.Model.Asset
 import Databrary.Model.Audit (MonadAudit)
 import Databrary.Model.Authorize
 import Databrary.Model.Category
@@ -232,6 +234,42 @@ test_12 = Test.stepsWithTransaction "" $ \step cn2 -> do
 
 someDay :: Integer -> Day
 someDay yr = fromGregorian yr 1 2
+
+----- asset ---------
+test_12a :: TestTree
+test_12a = Test.stepsWithTransaction "" $ \step cn2 -> do
+    step "Given a partially shared volume"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    -- TODO: should be lookup auth on rootParty
+    vol <- runReaderT (addVolumeSetPublic aiAcct) aiCtxt
+    step "When a publicly released asset is added"
+    -- Implementation of getSlot PUBLIC
+    _ <- runReaderT
+        (do
+              (a, contents) <- Gen.sample (genCreateAssetAfterUpload vol)
+              -- save contents to tmpdir
+              let path = "/tmp/test1.csv"
+              liftIO (BS.writeFile path contents)
+              -- let rpath = "/tmp/test1.csv" -- TODO: convert from filepath to rawfilepath
+              -- override release to be public
+              -- addAsset a (Just rpath) -- TODO: add hasstorage to test context
+              pure a
+              -- change asset
+              -- gen assetslot
+              -- change assetslot
+              -- lookup assetslot
+              )
+        aiCtxt
+    -- Just slotForAnon <- runWithNoIdent cn2 (lookupSlotByContainerId cid)
+    step "Then one can retrieve the asset"
+    {-
+    -- get assetsegment
+    --  -- > check asset name, format, contents, release, size, duration, slot segment, container size
+    -}
+
+-- same as above, but for video file that undergoes conversion
+---- needs secret, timestamp, log as well as storage
+
 
 ----- record ---
 test_13 :: TestTree
