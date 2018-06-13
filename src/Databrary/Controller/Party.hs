@@ -143,7 +143,7 @@ processParty api p = do
     csrfForm
     name <- "sortname" .:> (deformRequired =<< deform)
     prename <- "prename" .:> deformNonEmpty deform
-    orcid <- "orcid" .:> deformNonEmpty (deformRead blankORCID)
+    mOrcid <- "orcid" .:> deformNonEmpty (deformRead blankORCID)
     affiliation <- "affiliation" .:> deformNonEmpty deform
     url <- "url" .:> deformNonEmpty deform
     (avatar :: (Maybe (Maybe (FileInfo TempFile, Format)))) <- "avatar" .:> do
@@ -161,7 +161,7 @@ processParty api p = do
       { partyRow = (partyRow bp)
         { partySortName = name
         , partyPreName = prename
-        , partyORCID = orcid
+        , partyORCID = mOrcid
         , partyAffiliation = affiliation
         , partyURL = url
         }

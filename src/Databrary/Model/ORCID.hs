@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, DataKinds #-}
 module Databrary.Model.ORCID
-  ( ORCID
+  ( ORCID(..)
   , blankORCID
   , orcidURL
   ) where
@@ -17,7 +17,7 @@ import qualified Text.ParserCombinators.ReadP as RP
 import qualified Text.ParserCombinators.ReadPrec as RP (lift)
 import Text.Read (Read(readPrec))
 
-newtype ORCID = ORCID { orcid :: BSC.ByteString } deriving (Eq)
+newtype ORCID = ORCID { orcid :: BSC.ByteString } -- deriving (Eq)
 
 instance PGParameter "bpchar" ORCID where
   pgEncode t = pgEncode t . orcid
