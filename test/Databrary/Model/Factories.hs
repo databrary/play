@@ -30,6 +30,7 @@ import Databrary.Model.Record.Types
 -- import Databrary.Model.Release.Types
 import Databrary.Model.Slot.Types
 import Databrary.Model.Time
+import Databrary.Model.TypeOrphans ()
 import Databrary.Model.Volume.Types
 import Databrary.Model.VolumeAccess.Types
 

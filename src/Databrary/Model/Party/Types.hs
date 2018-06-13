@@ -34,7 +34,7 @@ data PartyRow = PartyRow
   , partyORCID :: Maybe ORCID
   , partyAffiliation :: Maybe T.Text
   , partyURL :: Maybe URI
-  } deriving (Eq, Show)
+  } -- deriving (Show) -- (Eq)
 
 -- | Represents users, institutions, labs, *and* groups.
 data Party = Party

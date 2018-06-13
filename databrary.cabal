@@ -560,6 +560,7 @@ test-suite discovered
     , Databrary.Model.Tag.TypesTest
     , Databrary.Model.TimeTest
     , Databrary.Model.Token.TypesTest
+    , Databrary.Model.TypeOrphans
     , Databrary.Model.URLTest
     , Databrary.Model.VolumeTest
     , Databrary.Model.VolumeAccessTest
