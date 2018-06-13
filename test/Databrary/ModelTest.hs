@@ -268,8 +268,8 @@ test_12a = Test.stepsWithTransaction "" $ \step cn2 -> do
     -}
 
 -- same as above, but for video file that undergoes conversion
----- needs secret, timestamp, log as well as storage
-
+---- starting needs log as well as storage
+---- callback needs av, internalstate as well
 
 ----- record ---
 test_13 :: TestTree

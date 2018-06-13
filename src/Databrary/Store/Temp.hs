@@ -17,7 +17,7 @@ import System.Posix.Temp.ByteString (mkstemp)
 
 import Databrary.Has (peeks, focusIO, MonadHas)
 import Databrary.Store.Types
-import Databrary.Action.Types
+-- import Databrary.Action.Types
 
 data TempFile = TempFile
   { tempFileRelease :: ReleaseKey

@@ -360,15 +360,15 @@ genCreateSlotAssetAfterUpload _ _ = do  -- modeled after processAsset (AssetTarg
 --           on complete, update transcode
 --           uses run transcode
 
--- the script eventually uses postback to remoteTranscode
+-- the script eventually uses postback to remoteTranscode (during tests, ignore postback, but simulate its actions)
 --    lookupTranscode
---    collectTranscode with submitted exit code, sha1, logs
+--    collectTranscode with submitted exit code, sha1, logs (need to recreate sha1 using sha1sum command)
 --      updateTranscode
 --      maketempfile
 --      ctlTranscode w/tempfile
 --      updatetranscode
 --      avprobe tempfile
---      a <- changeAsset w/sha1, dur, tempfile
+--      a <- changeAsset w/sha1, (dur probe), tempfile
 --      changeAssetSlotDuration a
 
 
