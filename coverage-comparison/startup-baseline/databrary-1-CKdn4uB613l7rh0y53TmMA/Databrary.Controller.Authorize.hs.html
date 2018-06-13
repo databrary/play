@@ -1,0 +1,217 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Controller.Authorize
+<span class="lineno">    3 </span>  ( viewAuthorize
+<span class="lineno">    4 </span>  , postAuthorize
+<span class="lineno">    5 </span>  , deleteAuthorize
+<span class="lineno">    6 </span>  , postAuthorizeNotFound
+<span class="lineno">    7 </span>  ) where
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import Control.Applicative ((&lt;|&gt;))
+<span class="lineno">   10 </span>import Control.Monad (when, liftM3, mfilter, forM_)
+<span class="lineno">   11 </span>import Data.Function (on)
+<span class="lineno">   12 </span>import Data.Maybe (fromMaybe, isNothing, mapMaybe)
+<span class="lineno">   13 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   14 </span>import qualified Data.Text as T
+<span class="lineno">   15 </span>import qualified Data.Text.Encoding as TE
+<span class="lineno">   16 </span>import qualified Data.Text.Lazy as TL
+<span class="lineno">   17 </span>import Data.Time (UTCTime(..), fromGregorian, addGregorianYearsRollOver)
+<span class="lineno">   18 </span>import Network.HTTP.Types (noContent204)
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>import Databrary.Ops
+<span class="lineno">   21 </span>import Databrary.Has (peek, peeks)
+<span class="lineno">   22 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   23 </span>import Databrary.Service.DB (MonadDB)
+<span class="lineno">   24 </span>import Databrary.Service.Mail
+<span class="lineno">   25 </span>import Databrary.Static.Service
+<span class="lineno">   26 </span>import Databrary.Model.Audit (MonadAudit)
+<span class="lineno">   27 </span>-- import Databrary.Model.Id.Types
+<span class="lineno">   28 </span>import Databrary.Model.Party
+<span class="lineno">   29 </span>import Databrary.Model.Permission
+<span class="lineno">   30 </span>import Databrary.Model.Identity
+<span class="lineno">   31 </span>import Databrary.Model.Notification.Types
+<span class="lineno">   32 </span>import Databrary.Model.Authorize
+<span class="lineno">   33 </span>import Databrary.HTTP.Path.Parser
+<span class="lineno">   34 </span>import Databrary.HTTP.Form.Deform
+<span class="lineno">   35 </span>import Databrary.Action
+<span class="lineno">   36 </span>import Databrary.Controller.Paths
+<span class="lineno">   37 </span>import Databrary.Controller.Form
+<span class="lineno">   38 </span>import Databrary.Controller.Party
+<span class="lineno">   39 </span>import Databrary.Controller.Notification
+<span class="lineno">   40 </span>import Databrary.View.Authorize
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>-- Every route in this module asserts the requesting user has ADMIN permissions over the primary (first) party
+<span class="lineno">   43 </span>--  referenced in the request. The requesting user must have ADMIN permissions because they are viewing/editing
+<span class="lineno">   44 </span>--  the primary party's authorization relationships. Typically the requesting user will be the primary party,
+<span class="lineno">   45 </span>--  but the requesting user can also be an admin that the primary party has delegated control to.
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>viewAuthorize :: ActionRoute (API, PartyTarget, AuthorizeTarget)
+<span class="lineno">   48 </span><span class="decl"><span class="istickedoff">viewAuthorize = action <span class="nottickedoff">GET</span> (pathAPI &lt;/&gt;&gt; pathPartyTarget &lt;/&gt; <span class="nottickedoff">pathAuthorizeTarget</span>) $ \(api, i, AuthorizeTarget app oi) -&gt; <span class="nottickedoff">withAuth $ do</span></span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">p &lt;- getParty (Just PermissionADMIN) i</span></span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">o &lt;- maybeAction =&lt;&lt; lookupParty oi</span></span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">let (child, parent) = if app then (p, o) else (o, p)</span></span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">(_, c') &lt;- findOrMakeRequest child parent</span></span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">case api of</span></span>
+<span class="lineno">   54 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">JSON -&gt; return $ okResponse [] $ JSON.pairs $ authorizeJSON c'</span></span>
+<span class="lineno">   55 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">HTML</span></span>
+<span class="lineno">   56 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">| app -&gt; return $ okResponse [] (&quot;&quot; :: T.Text) -- TODO</span></span>
+<span class="lineno">   57 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">-- If the request is viewing an authorize from parent to child, then present edit form</span></span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">| otherwise -&gt; peeks $ blankForm . htmlAuthorizeForm c'</span></span></span>
+<span class="lineno">   59 </span>
+<span class="lineno">   60 </span>partyDelegates :: (MonadDB c m, MonadHasIdentity c m) =&gt; Party -&gt; m [Account]
+<span class="lineno">   61 </span><span class="decl"><span class="nottickedoff">partyDelegates u = do</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">l &lt;- deleg u</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">if null l</span>
+<span class="lineno">   64 </span><span class="spaces">    </span><span class="nottickedoff">then deleg rootParty</span>
+<span class="lineno">   65 </span><span class="spaces">    </span><span class="nottickedoff">else return l</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   67 </span><span class="spaces">  </span><span class="nottickedoff">deleg p = mapMaybe partyAccount . (p :)</span>
+<span class="lineno">   68 </span><span class="spaces">    </span><span class="nottickedoff">. map (authorizeChild . authorization)</span>
+<span class="lineno">   69 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; lookupAuthorizedChildren p (Just PermissionADMIN)</span></span>
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>removeAuthorizeNotify :: Maybe Authorize -&gt; Handler ()
+<span class="lineno">   72 </span><span class="decl"><span class="nottickedoff">removeAuthorizeNotify priorAuth =</span>
+<span class="lineno">   73 </span><span class="spaces">    </span><span class="nottickedoff">let noReplacementAuthorization = Nothing</span>
+<span class="lineno">   74 </span><span class="spaces">    </span><span class="nottickedoff">in updateAuthorize priorAuth noReplacementAuthorization</span></span>
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>-- | Remove (when only first argument provided) or create/swap in new version of authorization, triggering notifications.
+<span class="lineno">   77 </span>-- Do nothing when neither an old or new auth has been provided.
+<span class="lineno">   78 </span>updateAuthorize :: Maybe Authorize -&gt; Maybe Authorize -&gt; Handler ()
+<span class="lineno">   79 </span><span class="decl"><span class="nottickedoff">updateAuthorize priorAuth newOrUpdatedAuth</span>
+<span class="lineno">   80 </span><span class="spaces">  </span><span class="nottickedoff">| Just priorElseNewCore &lt;- authorization &lt;$&gt; (priorAuth &lt;|&gt; newOrUpdatedAuth :: Maybe Authorize) = do</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="nottickedoff">maybe</span>
+<span class="lineno">   82 </span><span class="spaces">    </span><span class="nottickedoff">(mapM_ removeAuthorize priorAuth)</span>
+<span class="lineno">   83 </span><span class="spaces">    </span><span class="nottickedoff">changeAuthorize</span>
+<span class="lineno">   84 </span><span class="spaces">    </span><span class="nottickedoff">newOrUpdatedAuth</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="nottickedoff">when (on (/=) (foldMap $ authorizeAccess . authorization) newOrUpdatedAuth priorAuth) $ do</span>
+<span class="lineno">   86 </span><span class="spaces">    </span><span class="nottickedoff">let perm = accessSite &lt;$&gt; newOrUpdatedAuth</span>
+<span class="lineno">   87 </span><span class="spaces">    </span><span class="nottickedoff">dl &lt;- partyDelegates $ authorizeParent priorElseNewCore</span>
+<span class="lineno">   88 </span><span class="spaces">    </span><span class="nottickedoff">forM_ dl $ \t -&gt;</span>
+<span class="lineno">   89 </span><span class="spaces">      </span><span class="nottickedoff">createNotification (blankNotification t NoticeAuthorizeChildGranted)</span>
+<span class="lineno">   90 </span><span class="spaces">        </span><span class="nottickedoff">{ notificationParty = Just $ partyRow $ authorizeChild priorElseNewCore</span>
+<span class="lineno">   91 </span><span class="spaces">        </span><span class="nottickedoff">, notificationPermission = perm</span>
+<span class="lineno">   92 </span><span class="spaces">        </span><span class="nottickedoff">}</span>
+<span class="lineno">   93 </span><span class="spaces">    </span><span class="nottickedoff">forM_ (partyAccount $ authorizeChild priorElseNewCore) $ \t -&gt;</span>
+<span class="lineno">   94 </span><span class="spaces">      </span><span class="nottickedoff">createNotification (blankNotification t NoticeAuthorizeGranted)</span>
+<span class="lineno">   95 </span><span class="spaces">        </span><span class="nottickedoff">{ notificationParty = Just $ partyRow $ authorizeParent priorElseNewCore</span>
+<span class="lineno">   96 </span><span class="spaces">        </span><span class="nottickedoff">, notificationPermission = perm</span>
+<span class="lineno">   97 </span><span class="spaces">        </span><span class="nottickedoff">}</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="nottickedoff">updateAuthorizeNotifications priorAuth</span>
+<span class="lineno">   99 </span><span class="spaces">      </span><span class="nottickedoff">$ fromMaybe (Authorize priorElseNewCore{ authorizeAccess = mempty } Nothing) newOrUpdatedAuth</span>
+<span class="lineno">  100 </span><span class="spaces"></span><span class="nottickedoff">updateAuthorize ~Nothing ~Nothing = return ()</span></span>
+<span class="lineno">  101 </span>
+<span class="lineno">  102 </span>createAuthorize :: (MonadAudit c m) =&gt; Authorize -&gt; m ()
+<span class="lineno">  103 </span><span class="decl"><span class="nottickedoff">createAuthorize = changeAuthorize</span></span>
+<span class="lineno">  104 </span>
+<span class="lineno">  105 </span>-- | Either create a new authorization request from PartyTarget child to a parent or
+<span class="lineno">  106 </span>-- update/create/reject with validation errors an authorization request to the PartyTarget parent from a child
+<span class="lineno">  107 </span>postAuthorize :: ActionRoute (API, PartyTarget, AuthorizeTarget)
+<span class="lineno">  108 </span><span class="decl"><span class="istickedoff">postAuthorize = action <span class="nottickedoff">POST</span> (pathAPI &lt;/&gt;&gt; pathPartyTarget &lt;/&gt; <span class="nottickedoff">pathAuthorizeTarget</span>) $ \arg@(api, i, AuthorizeTarget app oi) -&gt; <span class="nottickedoff">withAuth $ do</span></span>
+<span class="lineno">  109 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">p &lt;- getParty (Just PermissionADMIN) i</span></span>
+<span class="lineno">  110 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">o &lt;- maybeAction . mfilter isNobodyParty =&lt;&lt; lookupParty oi -- Don't allow applying to or authorization request from nobody</span></span>
+<span class="lineno">  111 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">let (child, parent) = if app then (p, o) else (o, p)</span></span>
+<span class="lineno">  112 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">(c, c') &lt;- findOrMakeRequest child parent</span></span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">resultingAuthorize &lt;- if app</span></span>
+<span class="lineno">  114 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">-- The request involves a child party applying for authorization from a parent party</span></span>
+<span class="lineno">  115 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">then do</span></span>
+<span class="lineno">  116 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">when (isNothing c) $ do -- if there is no pending request or existing authorization</span></span>
+<span class="lineno">  117 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">createAuthorize c'</span></span>
+<span class="lineno">  118 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">dl &lt;- partyDelegates o</span></span>
+<span class="lineno">  119 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">forM_ dl $ \t -&gt;</span></span>
+<span class="lineno">  120 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">createNotification (blankNotification t NoticeAuthorizeChildRequest)</span></span>
+<span class="lineno">  121 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">{ notificationParty = Just $ partyRow o }</span></span>
+<span class="lineno">  122 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">forM_ (partyAccount p) $ \t -&gt;</span></span>
+<span class="lineno">  123 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">createNotification (blankNotification t NoticeAuthorizeRequest)</span></span>
+<span class="lineno">  124 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">{ notificationParty = Just $ partyRow o }</span></span>
+<span class="lineno">  125 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">-- make either the newly created request or the existing found request the result value</span></span>
+<span class="lineno">  126 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">-- of this block</span></span>
+<span class="lineno">  127 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">return $ Just c'</span></span>
+<span class="lineno">  128 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">-- The request involves a parent party either creating or acting upon an existing authorization request from a child party</span></span>
+<span class="lineno">  129 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">else do</span></span>
+<span class="lineno">  130 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">su &lt;- peeks identityAdmin</span></span>
+<span class="lineno">  131 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">now &lt;- peek</span></span>
+<span class="lineno">  132 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">let maxexp = addGregorianYearsRollOver 2 $ utctDay now -- TODO: use timestamp from actioncontext instead of now?</span></span>
+<span class="lineno">  133 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">minexp = fromGregorian 2000 1 1</span></span>
+<span class="lineno">  134 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">-- the new version of this authorization (possibly first) should either be ...</span></span>
+<span class="lineno">  135 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">a &lt;- runForm ((api == HTML) `thenUse` (htmlAuthorizeForm c')) $ do</span></span>
+<span class="lineno">  136 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">csrfForm</span></span>
+<span class="lineno">  137 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">delete &lt;- &quot;delete&quot; .:&gt; deform</span></span>
+<span class="lineno">  138 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">-- 1. Nothing (causing deletion if there was a request or old auth)</span></span>
+<span class="lineno">  139 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">delete `unlessReturn` (do</span></span>
+<span class="lineno">  140 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">site &lt;- &quot;site&quot; .:&gt; deform</span></span>
+<span class="lineno">  141 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">member &lt;- &quot;member&quot; .:&gt; deform</span></span>
+<span class="lineno">  142 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">expires &lt;-</span></span>
+<span class="lineno">  143 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">&quot;expires&quot; .:&gt;</span></span>
+<span class="lineno">  144 </span><span class="spaces">              </span><span class="istickedoff"><span class="nottickedoff">(deformCheck &quot;Expiration must be within two years.&quot; (all (\e -&gt; su || e &gt; minexp &amp;&amp; e &lt;= maxexp))</span></span>
+<span class="lineno">  145 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">=&lt;&lt; (&lt;|&gt; (su `unlessUse` maxexp)) &lt;$&gt; deformNonEmpty deform)</span></span>
+<span class="lineno">  146 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">-- 2. A Just with the new or updated approved authorization</span></span>
+<span class="lineno">  147 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">return $ makeAuthorize (Access site member) (fmap with1210Utc expires) child parent)</span></span>
+<span class="lineno">  148 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">-- Perform the indicated change decided above in the value of &quot;a&quot;</span></span>
+<span class="lineno">  149 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">updateAuthorize c a</span></span>
+<span class="lineno">  150 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">return a</span></span>
+<span class="lineno">  151 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">case api of</span></span>
+<span class="lineno">  152 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">-- respond with a copy of the updated authorization, if any</span></span>
+<span class="lineno">  153 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">JSON -&gt; return $ okResponse [] $ JSON.pairs $ foldMap authorizeJSON resultingAuthorize &lt;&gt; &quot;party&quot; JSON..=: partyJSON o</span></span>
+<span class="lineno">  154 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">HTML -&gt; peeks $ otherRouteResponse [] viewAuthorize arg</span></span></span>
+<span class="lineno">  155 </span>
+<span class="lineno">  156 </span>-- | Find an active authorization request or approval between child and parent parties.
+<span class="lineno">  157 </span>-- Also, build an authorization request or present the current authorization value.
+<span class="lineno">  158 </span>findOrMakeRequest :: (MonadDB c m) =&gt; Party -&gt; Party -&gt; m (Maybe Authorize, Authorize)
+<span class="lineno">  159 </span><span class="decl"><span class="nottickedoff">findOrMakeRequest child parent = do</span>
+<span class="lineno">  160 </span><span class="spaces">  </span><span class="nottickedoff">c &lt;- lookupAuthorize ActiveAuthorizations child parent -- TODO: conditionally use ActiveAuth based on permissionParty?</span>
+<span class="lineno">  161 </span><span class="spaces">  </span><span class="nottickedoff">pure (c, mkAuthorizeRequest child parent `fromMaybe` c)</span></span>
+<span class="lineno">  162 </span>
+<span class="lineno">  163 </span>-- | If present, delete either a prior request for authorization. The authorization to delete can be specified
+<span class="lineno">  164 </span>-- from the child perspective (child party is pathPartyTarget) or the parent perspective (parent party is pathPartyTarget).
+<span class="lineno">  165 </span>-- Inform all relevant parties that the authorization has been deleted.
+<span class="lineno">  166 </span>deleteAuthorize :: ActionRoute (API, PartyTarget, AuthorizeTarget)
+<span class="lineno">  167 </span><span class="decl"><span class="istickedoff">deleteAuthorize = action <span class="nottickedoff">DELETE</span> (pathAPI &lt;/&gt;&gt; pathPartyTarget &lt;/&gt; <span class="nottickedoff">pathAuthorizeTarget</span>) $ \arg@(api, i, AuthorizeTarget apply oi) -&gt; <span class="nottickedoff">withAuth $ do</span></span>
+<span class="lineno">  168 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">p &lt;- getParty (Just PermissionADMIN) i</span></span>
+<span class="lineno">  169 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">(o :: Party) &lt;- do</span></span>
+<span class="lineno">  170 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">mAuthorizeTargetParty &lt;- lookupParty oi</span></span>
+<span class="lineno">  171 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">maybeAction mAuthorizeTargetParty</span></span>
+<span class="lineno">  172 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">let (child, parent) = if apply then (p, o) else (o, p)</span></span>
+<span class="lineno">  173 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">mAuth &lt;- lookupAuthorize AllAuthorizations child parent</span></span>
+<span class="lineno">  174 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">removeAuthorizeNotify mAuth</span></span>
+<span class="lineno">  175 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">case api of</span></span>
+<span class="lineno">  176 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">JSON -&gt; return $ okResponse [] $ JSON.pairs $ &quot;party&quot; JSON..=: partyJSON o</span></span>
+<span class="lineno">  177 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">HTML -&gt; peeks $ otherRouteResponse [] viewAuthorize arg</span></span></span>
+<span class="lineno">  178 </span>
+<span class="lineno">  179 </span>-- | During registration and when requesting additional sponsors, if the target parent party doesn't exist in
+<span class="lineno">  180 </span>-- Databrary yet, this route enables a user to submit some information on which target parent (AI or institution)
+<span class="lineno">  181 </span>-- they are seeking, to trigger an email to the Databrary site admins, with the hope that the site admins are able
+<span class="lineno">  182 </span>-- to manually get the intended parties into Databrary.
+<span class="lineno">  183 </span>postAuthorizeNotFound :: ActionRoute (PartyTarget)
+<span class="lineno">  184 </span><span class="decl"><span class="istickedoff">postAuthorizeNotFound = action <span class="nottickedoff">POST</span> (pathJSON &gt;/&gt; <span class="nottickedoff">pathPartyTarget &lt;/&lt; &quot;notfound&quot;</span>) $ \i -&gt; <span class="nottickedoff">withAuth $ do</span></span>
+<span class="lineno">  185 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">p &lt;- getParty (Just PermissionADMIN) i</span></span>
+<span class="lineno">  186 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">agent &lt;- peeks $ fmap accountEmail . partyAccount</span></span>
+<span class="lineno">  187 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">(name, perm, info) &lt;- runForm Nothing $ liftM3 (,,)</span></span>
+<span class="lineno">  188 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(&quot;name&quot; .:&gt; deform)</span></span>
+<span class="lineno">  189 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(&quot;permission&quot; .:&gt; deform)</span></span>
+<span class="lineno">  190 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(&quot;info&quot; .:&gt; deformNonEmpty deform)</span></span>
+<span class="lineno">  191 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">authaddr &lt;- peeks staticAuthorizeAddr</span></span>
+<span class="lineno">  192 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">title &lt;- peeks $ authorizeSiteTitle perm</span></span>
+<span class="lineno">  193 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">sendMail [Left authaddr] []</span></span>
+<span class="lineno">  194 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(&quot;Databrary authorization request from &quot; &lt;&gt; partyName (partyRow p))</span></span>
+<span class="lineno">  195 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">$ TL.fromChunks [partyName $ partyRow p, &quot; &lt;&quot;, foldMap TE.decodeLatin1 agent, &quot;&gt;&quot;, mbt $ partyAffiliation $ partyRow p, &quot; has requested to be authorized as an &quot;, title, &quot; by &quot;, name, mbt info, &quot;.\n&quot;]</span></span>
+<span class="lineno">  196 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">return $ emptyResponse noContent204 []</span></span>
+<span class="lineno">  197 </span><span class="spaces">  </span><span class="istickedoff">where <span class="nottickedoff">mbt = maybe &quot;&quot; $ \t -&gt; &quot; (&quot; &lt;&gt; t &lt;&gt; &quot;)&quot;</span></span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, GADTs #-}
+<span class="lineno">    2 </span>module Databrary.Web.Routes
+<span class="lineno">    3 </span>  ( -- RequestValues(..)
+<span class="lineno">    4 </span>  -- , routeActionValues
+<span class="lineno">    5 </span>  -- ,
+<span class="lineno">    6 </span>    generateRoutesJS
+<span class="lineno">    7 </span>  -- , jsRoute
+<span class="lineno">    8 </span>  ) where
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>-- import Control.Applicative ((&lt;|&gt;))
+<span class="lineno">   11 </span>-- import qualified Data.ByteString as BS
+<span class="lineno">   12 </span>import qualified Data.ByteString.Builder as B
+<span class="lineno">   13 </span>-- import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   14 </span>import System.IO (withBinaryFile, IOMode(WriteMode), hPutStr, hPutStrLn, hFlush)
+<span class="lineno">   15 </span>-- import qualified Web.Route.Invertible as R
+<span class="lineno">   16 </span>-- import qualified Web.Route.Invertible.Internal as R
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>-- import Databrary.JSON (quoteByteString)
+<span class="lineno">   19 </span>-- import Databrary.HTTP.Path
+<span class="lineno">   20 </span>-- import Databrary.HTTP.Path.JS
+<span class="lineno">   21 </span>import Databrary.Web.Types
+<span class="lineno">   22 </span>import Databrary.Web.Generate
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>-- import {-# SOURCE #-} Databrary.Routes.JS
+<span class="lineno">   25 </span>import Databrary.Routes.JS
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>{-
+<span class="lineno">   28 </span>data RequestValues = RequestValues
+<span class="lineno">   29 </span>  { requestValuesMethod :: Maybe R.Method
+<span class="lineno">   30 </span>  , requestValuesPath :: PathValues
+<span class="lineno">   31 </span>  }
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>instance Monoid RequestValues where
+<span class="lineno">   34 </span>  mempty = RequestValues Nothing []
+<span class="lineno">   35 </span>  mappend (RequestValues m1 p1) (RequestValues m2 p2) = RequestValues (m1 &lt;|&gt; m2) (p1 ++ p2)
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>routePredicateValues :: R.RoutePredicate a -&gt; a -&gt; RequestValues
+<span class="lineno">   38 </span>routePredicateValues (R.RoutePath p) v = RequestValues Nothing (R.pathValues p v)
+<span class="lineno">   39 </span>routePredicateValues (R.RouteMethod m) () = RequestValues (Just m) []
+<span class="lineno">   40 </span>routePredicateValues _ _ = mempty
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>routeActionValues :: R.RouteAction r a -&gt; r -&gt; RequestValues
+<span class="lineno">   43 </span>routeActionValues = R.foldRoute routePredicateValues . R.actionRoute
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>jsRoute :: BS.ByteString -&gt; R.RouteAction r a -&gt; r -&gt; B.Builder
+<span class="lineno">   46 </span>jsRoute n r v = B.char8 '\n' &lt;&gt; quoteByteString '&quot;' n
+<span class="lineno">   47 </span>  &lt;&gt; B.string8 &quot;:{&quot; &lt;&gt; foldMap (\m' -&gt; &quot;method:\&quot;&quot; &lt;&gt; B.byteString (R.renderParameter m') &lt;&gt; &quot;\&quot;,&quot;) m
+<span class="lineno">   48 </span>  &lt;&gt; B.string8 &quot;route:&quot; &lt;&gt; jsPath p &lt;&gt; B.string8 &quot;},&quot;
+<span class="lineno">   49 </span>  where RequestValues m p = routeActionValues r v
+<span class="lineno">   50 </span>-}
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>generateRoutesJS :: WebGenerator
+<span class="lineno">   53 </span><span class="decl"><span class="nottickedoff">generateRoutesJS = staticWebGenerate $ \f -&gt;</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">withBinaryFile f WriteMode $ \h -&gt; do</span>
+<span class="lineno">   55 </span><span class="spaces">    </span><span class="nottickedoff">hPutStrLn h &quot;'use strict';&quot;</span>
+<span class="lineno">   56 </span><span class="spaces">    </span><span class="nottickedoff">hPutStr h &quot;app.constant('routeData',{&quot;</span>
+<span class="lineno">   57 </span><span class="spaces">    </span><span class="nottickedoff">mapM_ (\r -&gt; do</span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="nottickedoff">hFlush h           -- need this</span>
+<span class="lineno">   59 </span><span class="spaces">      </span><span class="nottickedoff">B.hPutBuilder h r) -- or this hangs</span>
+<span class="lineno">   60 </span><span class="spaces">      </span><span class="nottickedoff">jsRoutes</span>
+<span class="lineno">   61 </span><span class="spaces">    </span><span class="nottickedoff">hPutStrLn h &quot;});&quot;</span></span>
+
+</pre>
+</body>
+</html>

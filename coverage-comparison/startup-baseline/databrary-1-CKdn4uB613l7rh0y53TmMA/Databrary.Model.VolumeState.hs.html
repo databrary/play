@@ -1,0 +1,177 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell, QuasiQuotes, RecordWildCards, DataKinds #-}
+<span class="lineno">    2 </span>module Databrary.Model.VolumeState
+<span class="lineno">    3 </span>  ( module Databrary.Model.VolumeState.Types
+<span class="lineno">    4 </span>  , lookupVolumeState
+<span class="lineno">    5 </span>  , changeVolumeState
+<span class="lineno">    6 </span>  , removeVolumeState
+<span class="lineno">    7 </span>  ) where
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import Control.Monad (void)
+<span class="lineno">   10 </span>import Database.PostgreSQL.Typed.Query
+<span class="lineno">   11 </span>import Database.PostgreSQL.Typed.Types
+<span class="lineno">   12 </span>import qualified Data.ByteString
+<span class="lineno">   13 </span>import Data.ByteString (ByteString)
+<span class="lineno">   14 </span>import qualified Data.String
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import Databrary.Service.DB
+<span class="lineno">   17 </span>import Databrary.Model.SQL
+<span class="lineno">   18 </span>import Databrary.Model.Permission.Types
+<span class="lineno">   19 </span>import Databrary.Model.Volume.Types
+<span class="lineno">   20 </span>import Databrary.Model.VolumeState.Types
+<span class="lineno">   21 </span>-- import Databrary.Model.VolumeState.SQL
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>lookupVolumeState :: (MonadDB c m) =&gt; Volume -&gt; m [VolumeState]
+<span class="lineno">   24 </span><span class="decl"><span class="nottickedoff">lookupVolumeState v = do</span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a7xjl = unknownPGTypeEnv</span>
+<span class="lineno">   26 </span><span class="spaces">  </span><span class="nottickedoff">rows &lt;- </span>
+<span class="lineno">   27 </span><span class="spaces">    </span><span class="nottickedoff">-- (selectQuery selectVolumeState &quot;$WHERE volume = ${volumeId $ volumeRow v} AND (public OR ${(extractPermissionIgnorePolicy . volumeRolePolicy) v &gt;= PermissionEDIT})&quot;)</span>
+<span class="lineno">   28 </span><span class="spaces">     </span><span class="nottickedoff">mapRunPrepQuery</span>
+<span class="lineno">   29 </span><span class="spaces">      </span><span class="nottickedoff">((\ _p_a7xjm _p_a7xjn -&gt;</span>
+<span class="lineno">   30 </span><span class="spaces">                       </span><span class="nottickedoff">(Data.String.fromString</span>
+<span class="lineno">   31 </span><span class="spaces">                          </span><span class="nottickedoff">&quot;SELECT volume_state.key,volume_state.value,volume_state.public FROM volume_state WHERE volume = $1 AND (public OR $2)&quot;,</span>
+<span class="lineno">   32 </span><span class="spaces">                       </span><span class="nottickedoff">[pgEncodeParameter</span>
+<span class="lineno">   33 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a7xjl (PGTypeProxy :: PGTypeName &quot;integer&quot;) _p_a7xjm,</span>
+<span class="lineno">   34 </span><span class="spaces">                        </span><span class="nottickedoff">pgEncodeParameter</span>
+<span class="lineno">   35 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a7xjl (PGTypeProxy :: PGTypeName &quot;boolean&quot;) _p_a7xjn],</span>
+<span class="lineno">   36 </span><span class="spaces">                       </span><span class="nottickedoff">[pgBinaryColumn</span>
+<span class="lineno">   37 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a7xjl (PGTypeProxy :: PGTypeName &quot;character varying&quot;),</span>
+<span class="lineno">   38 </span><span class="spaces">                        </span><span class="nottickedoff">pgBinaryColumn _tenv_a7xjl (PGTypeProxy :: PGTypeName &quot;jsonb&quot;),</span>
+<span class="lineno">   39 </span><span class="spaces">                        </span><span class="nottickedoff">pgBinaryColumn _tenv_a7xjl (PGTypeProxy :: PGTypeName &quot;boolean&quot;)]))</span>
+<span class="lineno">   40 </span><span class="spaces">         </span><span class="nottickedoff">(volumeId $ volumeRow v) ((extractPermissionIgnorePolicy . volumeRolePolicy) v &gt;= PermissionEDIT))</span>
+<span class="lineno">   41 </span><span class="spaces">               </span><span class="nottickedoff">(\ [_ckey_a7xjo, _cvalue_a7xjp, _cpublic_a7xjq]</span>
+<span class="lineno">   42 </span><span class="spaces">                  </span><span class="nottickedoff">-&gt; (pgDecodeColumnNotNull</span>
+<span class="lineno">   43 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a7xjl</span>
+<span class="lineno">   44 </span><span class="spaces">                        </span><span class="nottickedoff">(PGTypeProxy :: PGTypeName &quot;character varying&quot;)</span>
+<span class="lineno">   45 </span><span class="spaces">                        </span><span class="nottickedoff">_ckey_a7xjo, </span>
+<span class="lineno">   46 </span><span class="spaces">                      </span><span class="nottickedoff">pgDecodeColumnNotNull</span>
+<span class="lineno">   47 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a7xjl (PGTypeProxy :: PGTypeName &quot;jsonb&quot;) _cvalue_a7xjp, </span>
+<span class="lineno">   48 </span><span class="spaces">                      </span><span class="nottickedoff">pgDecodeColumnNotNull</span>
+<span class="lineno">   49 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a7xjl (PGTypeProxy :: PGTypeName &quot;boolean&quot;) _cpublic_a7xjq))</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">pure</span>
+<span class="lineno">   51 </span><span class="spaces">    </span><span class="nottickedoff">(fmap</span>
+<span class="lineno">   52 </span><span class="spaces">      </span><span class="nottickedoff">(\ (vkey_a7xhf, vvalue_a7xhg, vpublic_a7xhh)</span>
+<span class="lineno">   53 </span><span class="spaces">         </span><span class="nottickedoff">-&gt; VolumeState vkey_a7xhf vvalue_a7xhg vpublic_a7xhh v)</span>
+<span class="lineno">   54 </span><span class="spaces">      </span><span class="nottickedoff">rows)</span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>mapQuery :: ByteString -&gt; ([PGValue] -&gt; a) -&gt; PGSimpleQuery a
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">mapQuery qry mkResult =</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">fmap mkResult (rawPGSimpleQuery qry)</span></span>
+<span class="lineno">   59 </span>
+<span class="lineno">   60 </span>changeVolumeState :: (MonadDB c m) =&gt; VolumeState -&gt; m ()
+<span class="lineno">   61 </span><span class="decl"><span class="nottickedoff">changeVolumeState VolumeState{..} = do</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a5HPz = unknownPGTypeEnv</span>
+<span class="lineno">   63 </span><span class="spaces">      </span><span class="nottickedoff">_tenv_a5FNg = unknownPGTypeEnv</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">void $ updateOrInsert</span>
+<span class="lineno">   65 </span><span class="spaces">    </span><span class="nottickedoff">-- [pgSQL|UPDATE volume_state SET value = ${volumeStateValue}, public = ${volumeStatePublic} WHERE volume = ${volumeId $ volumeRow stateVolume} AND key = ${volumeStateKey}|]</span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="nottickedoff">(mapQuery</span>
+<span class="lineno">   67 </span><span class="spaces">        </span><span class="nottickedoff">((\ _p_a5FNh _p_a5FNi _p_a5FNj _p_a5FNk -&gt;</span>
+<span class="lineno">   68 </span><span class="spaces">                    </span><span class="nottickedoff">(Data.ByteString.concat</span>
+<span class="lineno">   69 </span><span class="spaces">                       </span><span class="nottickedoff">[Data.String.fromString &quot;UPDATE volume_state SET value = &quot;,</span>
+<span class="lineno">   70 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">   71 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a5FNg</span>
+<span class="lineno">   72 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">   73 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;jsonb&quot;)</span>
+<span class="lineno">   74 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a5FNh,</span>
+<span class="lineno">   75 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot;, public = &quot;,</span>
+<span class="lineno">   76 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">   77 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a5FNg</span>
+<span class="lineno">   78 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">   79 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;boolean&quot;)</span>
+<span class="lineno">   80 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a5FNi,</span>
+<span class="lineno">   81 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot; WHERE volume = &quot;,</span>
+<span class="lineno">   82 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">   83 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a5FNg</span>
+<span class="lineno">   84 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">   85 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">   86 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a5FNj,</span>
+<span class="lineno">   87 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot; AND key = &quot;,</span>
+<span class="lineno">   88 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">   89 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a5FNg</span>
+<span class="lineno">   90 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">   91 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
+<span class="lineno">   92 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a5FNk]))</span>
+<span class="lineno">   93 </span><span class="spaces">         </span><span class="nottickedoff">volumeStateValue</span>
+<span class="lineno">   94 </span><span class="spaces">         </span><span class="nottickedoff">volumeStatePublic</span>
+<span class="lineno">   95 </span><span class="spaces">         </span><span class="nottickedoff">(volumeId $ volumeRow stateVolume)</span>
+<span class="lineno">   96 </span><span class="spaces">         </span><span class="nottickedoff">volumeStateKey)</span>
+<span class="lineno">   97 </span><span class="spaces">        </span><span class="nottickedoff">(\[] -&gt; ()))</span>
+<span class="lineno">   98 </span><span class="spaces">    </span><span class="nottickedoff">-- [pgSQL|INSERT INTO volume_state (volume, key, value, public) VALUES (${volumeId $ volumeRow stateVolume}, ${volumeStateKey}, ${volumeStateValue}, ${volumeStatePublic})|]</span>
+<span class="lineno">   99 </span><span class="spaces">    </span><span class="nottickedoff">(mapQuery</span>
+<span class="lineno">  100 </span><span class="spaces">       </span><span class="nottickedoff">((\ _p_a5HPA _p_a5HPB _p_a5HPC _p_a5HPD -&gt;</span>
+<span class="lineno">  101 </span><span class="spaces">                    </span><span class="nottickedoff">(Data.ByteString.concat</span>
+<span class="lineno">  102 </span><span class="spaces">                       </span><span class="nottickedoff">[Data.String.fromString</span>
+<span class="lineno">  103 </span><span class="spaces">                          </span><span class="nottickedoff">&quot;INSERT INTO volume_state (volume, key, value, public) VALUES (&quot;,</span>
+<span class="lineno">  104 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  105 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a5HPz</span>
+<span class="lineno">  106 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  107 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  108 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a5HPA,</span>
+<span class="lineno">  109 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot;, &quot;,</span>
+<span class="lineno">  110 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  111 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a5HPz</span>
+<span class="lineno">  112 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  113 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;character varying&quot;)</span>
+<span class="lineno">  114 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a5HPB,</span>
+<span class="lineno">  115 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot;, &quot;,</span>
+<span class="lineno">  116 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  117 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a5HPz</span>
+<span class="lineno">  118 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  119 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;jsonb&quot;)</span>
+<span class="lineno">  120 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a5HPC,</span>
+<span class="lineno">  121 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot;, &quot;,</span>
+<span class="lineno">  122 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  123 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a5HPz</span>
+<span class="lineno">  124 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  125 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;boolean&quot;)</span>
+<span class="lineno">  126 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a5HPD,</span>
+<span class="lineno">  127 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot;)&quot;]))</span>
+<span class="lineno">  128 </span><span class="spaces">         </span><span class="nottickedoff">(volumeId $ volumeRow stateVolume)</span>
+<span class="lineno">  129 </span><span class="spaces">         </span><span class="nottickedoff">volumeStateKey</span>
+<span class="lineno">  130 </span><span class="spaces">         </span><span class="nottickedoff">volumeStateValue</span>
+<span class="lineno">  131 </span><span class="spaces">         </span><span class="nottickedoff">volumeStatePublic)</span>
+<span class="lineno">  132 </span><span class="spaces">       </span><span class="nottickedoff">(\[] -&gt; ()))</span></span>
+<span class="lineno">  133 </span>
+<span class="lineno">  134 </span>
+<span class="lineno">  135 </span>removeVolumeState :: (MonadDB c m) =&gt; Volume -&gt; VolumeStateKey -&gt; m Bool
+<span class="lineno">  136 </span><span class="decl"><span class="nottickedoff">removeVolumeState v k = do</span>
+<span class="lineno">  137 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a5N5m = unknownPGTypeEnv</span>
+<span class="lineno">  138 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute1 -- [pgSQL|DELETE FROM volume_state WHERE volume = ${volumeId $ volumeRow v} AND key = ${k}|]</span>
+<span class="lineno">  139 </span><span class="spaces">   </span><span class="nottickedoff">(mapQuery</span>
+<span class="lineno">  140 </span><span class="spaces">     </span><span class="nottickedoff">((\ _p_a5N5n _p_a5N5o -&gt;</span>
+<span class="lineno">  141 </span><span class="spaces">                    </span><span class="nottickedoff">(Data.ByteString.concat</span>
+<span class="lineno">  142 </span><span class="spaces">                       </span><span class="nottickedoff">[Data.String.fromString &quot;DELETE FROM volume_state WHERE volume = &quot;,</span>
+<span class="lineno">  143 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  144 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a5N5m</span>
+<span class="lineno">  145 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  146 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  147 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a5N5n,</span>
+<span class="lineno">  148 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot; AND key = &quot;,</span>
+<span class="lineno">  149 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  150 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a5N5m</span>
+<span class="lineno">  151 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  152 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
+<span class="lineno">  153 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a5N5o]))</span>
+<span class="lineno">  154 </span><span class="spaces">      </span><span class="nottickedoff">(volumeId $ volumeRow v) k)</span>
+<span class="lineno">  155 </span><span class="spaces">     </span><span class="nottickedoff">(\[] -&gt; ()))</span></span>
+<span class="lineno">  156 </span>
+<span class="lineno">  157 </span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TemplateHaskell, RecordWildCards #-}
+<span class="lineno">    2 </span>module Databrary.Service.Init
+<span class="lineno">    3 </span>  ( withService
+<span class="lineno">    4 </span>  ) where
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>import Control.Exception (bracket)
+<span class="lineno">    7 </span>import Control.Monad (when, void)
+<span class="lineno">    8 </span>import Data.IORef (newIORef)
+<span class="lineno">    9 </span>import Data.Time.Clock (getCurrentTime)
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import Databrary.Ops
+<span class="lineno">   12 </span>import qualified Databrary.Store.Config as C
+<span class="lineno">   13 </span>import Databrary.Service.DB (initDB, finiDB, runDBM)
+<span class="lineno">   14 </span>import Databrary.Service.Entropy (initEntropy)
+<span class="lineno">   15 </span>import Databrary.HTTP.Client (initHTTPClient)
+<span class="lineno">   16 </span>import Databrary.Store.Service (initStorage)
+<span class="lineno">   17 </span>import Databrary.Store.AV (initAV)
+<span class="lineno">   18 </span>import Databrary.Service.Passwd (initPasswd)
+<span class="lineno">   19 </span>import Databrary.Service.Log (initLogs, finiLogs)
+<span class="lineno">   20 </span>import Databrary.Service.Messages (loadMessages)
+<span class="lineno">   21 </span>import Databrary.Web.Service (initWeb)
+<span class="lineno">   22 </span>import Databrary.Static.Service (initStatic)
+<span class="lineno">   23 </span>import Databrary.Ingest.Service (initIngest)
+<span class="lineno">   24 </span>import Databrary.Model.Stats
+<span class="lineno">   25 </span>import Databrary.Solr.Service (initSolr, finiSolr)
+<span class="lineno">   26 </span>import Databrary.EZID.Service (initEZID)
+<span class="lineno">   27 </span>import Databrary.Service.Notification
+<span class="lineno">   28 </span>import Databrary.Service.Periodic (forkPeriodic)
+<span class="lineno">   29 </span>import Databrary.Service.Types
+<span class="lineno">   30 </span>import Databrary.Controller.Notification (forkNotifier)
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>-- | Initialize a Service from a Config
+<span class="lineno">   33 </span>initService
+<span class="lineno">   34 </span>    :: Bool -- ^ Run in foreground?
+<span class="lineno">   35 </span>    -&gt; C.Config
+<span class="lineno">   36 </span>    -&gt; IO Service
+<span class="lineno">   37 </span><span class="decl"><span class="istickedoff">initService fg conf = do</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="istickedoff">time &lt;- getCurrentTime</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">logs &lt;- initLogs (conf C.! (if <span class="tickonlytrue">fg</span> then &quot;log&quot; else <span class="nottickedoff">&quot;log.bg&quot;</span>))</span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="istickedoff">entropy &lt;- initEntropy</span>
+<span class="lineno">   41 </span><span class="spaces">  </span><span class="istickedoff">passwd &lt;- initPasswd</span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="istickedoff">messages &lt;- loadMessages</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="istickedoff">db &lt;- initDB (conf C.! &quot;db&quot;)</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="istickedoff">storage &lt;- initStorage (conf C.! &quot;store&quot;)</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="istickedoff">av &lt;- initAV</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="istickedoff">web &lt;- initWeb</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">httpc &lt;- initHTTPClient</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">static &lt;- initStatic (conf C.! &quot;static&quot;)</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff">solr &lt;- initSolr <span class="nottickedoff">fg</span> (conf C.! &quot;solr&quot;)</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="istickedoff">ezid &lt;- initEZID (conf C.! &quot;ezid&quot;)</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff">ingest &lt;- initIngest</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="istickedoff">notify &lt;- initNotifications (conf C.! &quot;notification&quot;)</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="istickedoff">stats &lt;- if <span class="tickonlytrue">fg</span> then runDBM db lookupSiteStats else <span class="nottickedoff">return (error &quot;siteStats&quot;)</span></span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="istickedoff">statsref &lt;- newIORef <span class="nottickedoff">stats</span></span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="istickedoff">let rc = Service</span>
+<span class="lineno">   56 </span><span class="spaces">        </span><span class="istickedoff">{ serviceStartTime = time</span>
+<span class="lineno">   57 </span><span class="spaces">        </span><span class="istickedoff">, serviceSecret = Secret $ conf C.! &quot;secret&quot;</span>
+<span class="lineno">   58 </span><span class="spaces">        </span><span class="istickedoff">, serviceEntropy = entropy</span>
+<span class="lineno">   59 </span><span class="spaces">        </span><span class="istickedoff">, servicePasswd = passwd</span>
+<span class="lineno">   60 </span><span class="spaces">        </span><span class="istickedoff">, serviceLogs = logs</span>
+<span class="lineno">   61 </span><span class="spaces">        </span><span class="istickedoff">, serviceMessages = messages</span>
+<span class="lineno">   62 </span><span class="spaces">        </span><span class="istickedoff">, serviceDB = db</span>
+<span class="lineno">   63 </span><span class="spaces">        </span><span class="istickedoff">, serviceStorage = storage</span>
+<span class="lineno">   64 </span><span class="spaces">        </span><span class="istickedoff">, serviceAV = av</span>
+<span class="lineno">   65 </span><span class="spaces">        </span><span class="istickedoff">, serviceWeb = web</span>
+<span class="lineno">   66 </span><span class="spaces">        </span><span class="istickedoff">, serviceHTTPClient = httpc</span>
+<span class="lineno">   67 </span><span class="spaces">        </span><span class="istickedoff">, serviceStatic = static</span>
+<span class="lineno">   68 </span><span class="spaces">        </span><span class="istickedoff">, serviceStats = statsref</span>
+<span class="lineno">   69 </span><span class="spaces">        </span><span class="istickedoff">, serviceIngest = ingest</span>
+<span class="lineno">   70 </span><span class="spaces">        </span><span class="istickedoff">, serviceSolr = solr</span>
+<span class="lineno">   71 </span><span class="spaces">        </span><span class="istickedoff">, serviceEZID = ezid</span>
+<span class="lineno">   72 </span><span class="spaces">        </span><span class="istickedoff">, servicePeriodic = Nothing</span>
+<span class="lineno">   73 </span><span class="spaces">        </span><span class="istickedoff">, serviceNotification = notify</span>
+<span class="lineno">   74 </span><span class="spaces">        </span><span class="istickedoff">, serviceDown = conf C.! &quot;store.DOWN&quot;</span>
+<span class="lineno">   75 </span><span class="spaces">        </span><span class="istickedoff">}</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="istickedoff">periodic &lt;- fg `thenReturn` (forkPeriodic rc)</span>
+<span class="lineno">   77 </span><span class="spaces">  </span><span class="istickedoff">when fg $ void $ forkNotifier rc</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="istickedoff">return $! rc</span>
+<span class="lineno">   79 </span><span class="spaces">    </span><span class="istickedoff">{ servicePeriodic = periodic</span>
+<span class="lineno">   80 </span><span class="spaces">    </span><span class="istickedoff">}</span></span>
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>-- | Close up Solr, database, and logs
+<span class="lineno">   83 </span>finiService :: Service -&gt; IO ()
+<span class="lineno">   84 </span><span class="decl"><span class="istickedoff">finiService Service{..} = do</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="istickedoff">finiSolr serviceSolr</span>
+<span class="lineno">   86 </span><span class="spaces">  </span><span class="istickedoff">finiDB serviceDB</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="istickedoff">finiLogs serviceLogs</span></span>
+<span class="lineno">   88 </span>
+<span class="lineno">   89 </span>-- | Bracket an action that uses a Service, governed by a Config.
+<span class="lineno">   90 </span>withService
+<span class="lineno">   91 </span>    :: Bool -- ^ Run in foreground?
+<span class="lineno">   92 </span>    -&gt; C.Config -- ^ Config for the Service
+<span class="lineno">   93 </span>    -&gt; (Service -&gt; IO a) -- ^ Action to run
+<span class="lineno">   94 </span>    -&gt; IO a -- ^ Result of action
+<span class="lineno">   95 </span><span class="decl"><span class="istickedoff">withService fg c = bracket (initService fg c) finiService</span></span>
+
+</pre>
+</body>
+</html>

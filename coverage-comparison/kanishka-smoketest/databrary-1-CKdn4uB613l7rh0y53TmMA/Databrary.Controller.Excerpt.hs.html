@@ -1,0 +1,80 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Controller.Excerpt
+<span class="lineno">    3 </span>  ( postExcerpt
+<span class="lineno">    4 </span>  , deleteExcerpt
+<span class="lineno">    5 </span>  ) where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import Control.Monad (unless, when)
+<span class="lineno">    8 </span>import Data.Maybe (isNothing)
+<span class="lineno">    9 </span>import qualified Data.Text as T
+<span class="lineno">   10 </span>import Network.HTTP.Types (conflict409)
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import Databrary.Has
+<span class="lineno">   13 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   14 </span>import Databrary.Model.Id
+<span class="lineno">   15 </span>import Databrary.Model.Permission
+<span class="lineno">   16 </span>import Databrary.Model.Release (EffectiveRelease(..))
+<span class="lineno">   17 </span>import Databrary.Model.Slot
+<span class="lineno">   18 </span>import Databrary.Model.Asset
+<span class="lineno">   19 </span>import Databrary.Model.AssetSegment
+<span class="lineno">   20 </span>import Databrary.Model.Excerpt
+<span class="lineno">   21 </span>import Databrary.Model.Notification.Types
+<span class="lineno">   22 </span>import Databrary.HTTP.Form.Deform
+<span class="lineno">   23 </span>import Databrary.HTTP.Path.Parser
+<span class="lineno">   24 </span>import Databrary.Action
+<span class="lineno">   25 </span>import Databrary.Controller.Permission
+<span class="lineno">   26 </span>import Databrary.Controller.Paths
+<span class="lineno">   27 </span>import Databrary.Controller.Form
+<span class="lineno">   28 </span>import Databrary.Controller.Notification
+<span class="lineno">   29 </span>import Databrary.Controller.AssetSegment
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>pathExcerpt :: PathParser (Id Slot, Id Asset)
+<span class="lineno">   32 </span><span class="decl"><span class="istickedoff">pathExcerpt = pathJSON &gt;/&gt; pathSlotId &lt;/&gt; pathId &lt;/&lt; <span class="nottickedoff">&quot;excerpt&quot;</span></span></span>
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>postExcerpt :: ActionRoute (Id Slot, Id Asset)
+<span class="lineno">   35 </span><span class="decl"><span class="istickedoff">postExcerpt = action <span class="nottickedoff">POST</span> pathExcerpt $ \(si, ai) -&gt; <span class="nottickedoff">withAuth $ do</span></span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">as &lt;- getAssetSegment False PermissionEDIT False Nothing si ai</span></span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">e &lt;- runForm Nothing $ do</span></span>
+<span class="lineno">   38 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">csrfForm</span></span>
+<span class="lineno">   39 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">Excerpt as &lt;$&gt; (&quot;release&quot; .:&gt; deformNonEmpty deform)</span></span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">r &lt;- changeExcerpt e</span></span>
+<span class="lineno">   41 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">unless r $ result $</span></span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">response conflict409 [] (&quot;The requested excerpt overlaps an existing excerpt.&quot; :: T.Text)</span></span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">let notice t = createVolumeNotification (view e) $ \n -&gt; (n t)</span></span>
+<span class="lineno">   44 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">{ notificationContainerId = Just $ view e</span></span>
+<span class="lineno">   45 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">, notificationSegment = Just $ view e</span></span>
+<span class="lineno">   46 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">, notificationAssetId = Just $ view e</span></span>
+<span class="lineno">   47 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">, notificationRelease = excerptRelease e</span></span>
+<span class="lineno">   48 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">}</span></span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">when (isNothing $ assetExcerpt as) $</span></span>
+<span class="lineno">   50 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">notice NoticeExcerptVolume</span></span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">when (any ((effRelPublic . getAssetSegmentRelease2) as &lt;) $ excerptRelease e) $</span></span>
+<span class="lineno">   52 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">notice NoticeReleaseExcerpt</span></span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">return $ okResponse [] $ JSON.pairs $ assetSegmentJSON (if r then as{ assetExcerpt = Just e } else as)</span></span></span>
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>deleteExcerpt :: ActionRoute (Id Slot, Id Asset)
+<span class="lineno">   56 </span><span class="decl"><span class="istickedoff">deleteExcerpt = action <span class="nottickedoff">DELETE</span> pathExcerpt $ \(si, ai) -&gt; <span class="nottickedoff">withAuth $ do</span></span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">guardVerfHeader</span></span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">as &lt;- getAssetSegment False PermissionEDIT False Nothing si ai</span></span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">r &lt;- removeExcerpt as</span></span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">return $ okResponse [] $ JSON.pairs $ assetSegmentJSON (if r then as{ assetExcerpt = Nothing } else as)</span></span></span>
+
+</pre>
+</body>
+</html>

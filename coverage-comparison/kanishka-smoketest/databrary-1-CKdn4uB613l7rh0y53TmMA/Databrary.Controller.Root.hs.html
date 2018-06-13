@@ -1,0 +1,79 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE CPP, OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Controller.Root
+<span class="lineno">    3 </span>  ( viewRoot
+<span class="lineno">    4 </span>  , viewRootHandler
+<span class="lineno">    5 </span>  , viewConstantsHandler
+<span class="lineno">    6 </span>  , viewRobotsTxtHandler
+<span class="lineno">    7 </span>  , notFoundResponseHandler
+<span class="lineno">    8 </span>  ) where
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import Control.Monad (when)
+<span class="lineno">   11 </span>import qualified Data.Aeson.Types as JSON
+<span class="lineno">   12 </span>import qualified Data.ByteString as BS
+<span class="lineno">   13 </span>import Data.Maybe (isNothing)
+<span class="lineno">   14 </span>import Data.Text (Text)
+<span class="lineno">   15 </span>import Network.HTTP.Types (notFound404)
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>import Databrary.Has
+<span class="lineno">   18 </span>-- import qualified Databrary.JSON as JSON
+<span class="lineno">   19 </span>import Databrary.Service.Types
+<span class="lineno">   20 </span>import Databrary.Action
+<span class="lineno">   21 </span>import Databrary.Controller.Angular
+<span class="lineno">   22 </span>import Databrary.View.Root
+<span class="lineno">   23 </span>import Databrary.Web.Constants
+<span class="lineno">   24 </span>import Databrary.View.Error (htmlNotFound)
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>-- TODO: remove when View.Template actionLink replaced
+<span class="lineno">   27 </span>viewRoot :: ActionRoute API
+<span class="lineno">   28 </span><span class="decl"><span class="istickedoff">viewRoot = action GET pathAPI $ \api -&gt; <span class="nottickedoff">viewRootHandler api []</span></span></span>
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>-- NEW HANDLERS
+<span class="lineno">   31 </span>{-
+<span class="lineno">   32 </span>getApiOrFail :: [(BS.ByteString, BS.ByteString)] -&gt; Handler API
+<span class="lineno">   33 </span>getApiOrFail params =
+<span class="lineno">   34 </span>  case params of
+<span class="lineno">   35 </span>    [] -&gt; pure HTML
+<span class="lineno">   36 </span>    (&quot;api&quot;, &quot;api&quot;):_ -&gt; pure JSON
+<span class="lineno">   37 </span>    _ -&gt; undefined -- TODO: action m error
+<span class="lineno">   38 </span>-}
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>viewRootHandler :: API -&gt; [(BS.ByteString, BS.ByteString)] -&gt; Action
+<span class="lineno">   41 </span><span class="decl"><span class="istickedoff">viewRootHandler api _ = -- TOOD: ensure GET</span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="istickedoff">withAuth $ do</span>
+<span class="lineno">   43 </span><span class="spaces">    </span><span class="istickedoff">down &lt;- peeks serviceDown</span>
+<span class="lineno">   44 </span><span class="spaces">    </span><span class="istickedoff">when (api == HTML &amp;&amp; isNothing down) angular</span>
+<span class="lineno">   45 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">case api of</span></span>
+<span class="lineno">   46 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">JSON -&gt; return $ okResponse [] JSON.emptyObject</span></span>
+<span class="lineno">   47 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">HTML -&gt; peeks $ okResponse [] . maybe htmlRoot htmlDown down</span></span></span>
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>viewConstantsHandler :: [(BS.ByteString, BS.ByteString)] -&gt; Action
+<span class="lineno">   50 </span><span class="decl"><span class="nottickedoff">viewConstantsHandler _ = -- TODO: ensure GET</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">withoutAuth $ return $ okResponse [] $ JSON.pairs constantsJSON</span></span>
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>viewRobotsTxtHandler :: [(BS.ByteString, BS.ByteString)] -&gt; Action
+<span class="lineno">   54 </span><span class="decl"><span class="nottickedoff">viewRobotsTxtHandler _ =  -- TODO: ensure GET</span>
+<span class="lineno">   55 </span><span class="spaces">    </span><span class="nottickedoff">withoutAuth $ return $ okResponse [] (&quot;&quot; :: Text)</span></span>
+<span class="lineno">   56 </span>    -- NOTE: DEVEL/SANDBOX behavior wasn't copied here
+<span class="lineno">   57 </span>
+<span class="lineno">   58 </span>notFoundResponseHandler :: [(BS.ByteString, BS.ByteString)] -&gt; Action
+<span class="lineno">   59 </span><span class="decl"><span class="nottickedoff">notFoundResponseHandler _ = withoutAuth $ peeks $ response notFound404 [] . htmlNotFound</span></span>
+
+</pre>
+</body>
+</html>

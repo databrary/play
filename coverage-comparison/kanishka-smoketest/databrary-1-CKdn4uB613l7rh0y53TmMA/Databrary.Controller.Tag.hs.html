@@ -1,0 +1,90 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Controller.Tag
+<span class="lineno">    3 </span>  ( queryTags
+<span class="lineno">    4 </span>  , postTag
+<span class="lineno">    5 </span>  , deleteTag
+<span class="lineno">    6 </span>  ) where
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>import Control.Monad (unless)
+<span class="lineno">    9 </span>import qualified Data.Text as T
+<span class="lineno">   10 </span>import Network.HTTP.Types (conflict409)
+<span class="lineno">   11 </span>import qualified Web.Route.Invertible as R
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>import Databrary.Has
+<span class="lineno">   14 </span>import Databrary.Ops
+<span class="lineno">   15 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   16 </span>import Databrary.Model.Permission
+<span class="lineno">   17 </span>import Databrary.Model.Id
+<span class="lineno">   18 </span>import Databrary.Model.Container
+<span class="lineno">   19 </span>import Databrary.Model.Slot
+<span class="lineno">   20 </span>import Databrary.Model.Tag
+<span class="lineno">   21 </span>import Databrary.Model.Notification.Types
+<span class="lineno">   22 </span>import Databrary.Solr.Tag
+<span class="lineno">   23 </span>import Databrary.HTTP.Form.Deform
+<span class="lineno">   24 </span>import Databrary.HTTP.Path.Parser
+<span class="lineno">   25 </span>import Databrary.Action.Run
+<span class="lineno">   26 </span>import Databrary.Action
+<span class="lineno">   27 </span>import Databrary.Controller.Paths
+<span class="lineno">   28 </span>import Databrary.Controller.Form
+<span class="lineno">   29 </span>import Databrary.Controller.Permission
+<span class="lineno">   30 </span>import Databrary.Controller.Slot
+<span class="lineno">   31 </span>import Databrary.Controller.Notification
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>_tagNameForm :: DeformHandler f TagName
+<span class="lineno">   34 </span><span class="decl"><span class="nottickedoff">_tagNameForm = deformMaybe' &quot;Invalid tag name.&quot; . validateTag =&lt;&lt; deform</span></span>
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>queryTags :: ActionRoute (Maybe TagName)
+<span class="lineno">   37 </span><span class="decl"><span class="istickedoff">queryTags = action GET (pathJSON &gt;/&gt; &quot;tags&quot; &gt;/&gt; pathMaybe R.parameter) $ \t -&gt; withoutAuth $</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="istickedoff">okResponse [] . JSON.toEncoding &lt;$&gt; termTags t 16</span></span>
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>tagResponse :: API -&gt; TagUse -&gt; Handler Response
+<span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">tagResponse JSON t = okResponse [] . JSON.recordEncoding . tagCoverageJSON &lt;$&gt; lookupTagCoverage (useTag t) (containerSlot $ slotContainer $ tagSlot t)</span>
+<span class="lineno">   42 </span><span class="spaces"></span><span class="nottickedoff">tagResponse HTML t = peeks $ otherRouteResponse [] (viewSlot False) (HTML, (Just (view t), slotId (tagSlot t)))</span></span>
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>postTag :: ActionRoute (API, Id Slot, TagId)
+<span class="lineno">   45 </span><span class="decl"><span class="istickedoff">postTag = action <span class="nottickedoff">POST</span> (pathAPI &lt;/&gt;&gt; pathSlotId &lt;/&gt; pathTagId) $ \(api, si, TagId kw tn) -&gt; <span class="nottickedoff">withAuth $ do</span></span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">guardVerfHeader</span></span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">u &lt;- authAccount</span></span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">s &lt;- getSlot (if kw then PermissionEDIT else PermissionSHARED) Nothing si</span></span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">t &lt;- addTag tn</span></span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">let tu = TagUse t kw u s</span></span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">r &lt;- addTagUse tu</span></span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">unless r $ result $</span></span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">response conflict409 [] (&quot;The requested tag overlaps your existing tag.&quot; :: T.Text)</span></span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">top &lt;- containerIsVolumeTop (slotContainer s)</span></span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">createVolumeNotification (view tu) $ \n -&gt; (n NoticeTagVolume)</span></span>
+<span class="lineno">   56 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">{ notificationContainerId = top `unlessUse` (view tu)</span></span>
+<span class="lineno">   57 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">, notificationSegment = Just $ view tu</span></span>
+<span class="lineno">   58 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">, notificationTag = Just $ view tu</span></span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">}</span></span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">tagResponse api tu</span></span></span>
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>deleteTag :: ActionRoute (API, Id Slot, TagId)
+<span class="lineno">   63 </span><span class="decl"><span class="istickedoff">deleteTag = action <span class="nottickedoff">DELETE</span> (pathAPI &lt;/&gt;&gt; pathSlotId &lt;/&gt; pathTagId) $ \(api, si, TagId kw tn) -&gt; <span class="nottickedoff">withAuth $ do</span></span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">guardVerfHeader</span></span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">u &lt;- authAccount</span></span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">s &lt;- getSlot (if kw then PermissionEDIT else PermissionSHARED) Nothing si</span></span>
+<span class="lineno">   67 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">t &lt;- maybeAction =&lt;&lt; lookupTag tn</span></span>
+<span class="lineno">   68 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">let tu = TagUse t kw u s</span></span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">_r &lt;- removeTagUse tu</span></span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">tagResponse api tu</span></span></span>
+
+</pre>
+</body>
+</html>

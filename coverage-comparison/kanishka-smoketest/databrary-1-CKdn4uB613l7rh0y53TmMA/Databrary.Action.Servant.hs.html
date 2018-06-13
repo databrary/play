@@ -1,0 +1,78 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    2 </span>{-# LANGUAGE DeriveGeneric #-}
+<span class="lineno">    3 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    4 </span>{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+<span class="lineno">    5 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    7 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    8 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">    9 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>-- | Utilities for serving a Servant API with Action handlers.
+<span class="lineno">   12 </span>module Databrary.Action.Servant
+<span class="lineno">   13 </span>    (
+<span class="lineno">   14 </span>    -- * Building the application
+<span class="lineno">   15 </span>      servantApp
+<span class="lineno">   16 </span>    ) where
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import Servant
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>import Databrary.API
+<span class="lineno">   21 </span>import Databrary.Action (ActionRouteApp (..))
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>-- | Create a server to serve the ServantAPI.
+<span class="lineno">   24 </span>servantServer :: ActionRouteApp -&gt; Server ServantAPI
+<span class="lineno">   25 </span><span class="decl"><span class="istickedoff">servantServer (ActionRouteApp app) = <span class="nottickedoff">preferAngularServer</span> :&lt;|&gt; Tagged app</span></span>
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>preferAngularServer :: Server PreferAngularAPI
+<span class="lineno">   28 </span><span class="decl"><span class="nottickedoff">preferAngularServer _ _ = emptyServer</span></span>
+<span class="lineno">   29 </span>-- Up next: Serve routes that prefer Angular.
+<span class="lineno">   30 </span>-- preferAngularServer :: Server PreferAngularAPI
+<span class="lineno">   31 </span>-- preferAngularServer u j =
+<span class="lineno">   32 </span>--     -- userLogin
+<span class="lineno">   33 </span>--     :&lt;|&gt; foo
+<span class="lineno">   34 </span>--     :&lt;|&gt; bar
+<span class="lineno">   35 </span>--   where
+<span class="lineno">   36 </span>--     angular' = preferAngular u j
+<span class="lineno">   37 </span>--     userLogin = angular' (pure &quot;no angular, no&quot;)
+<span class="lineno">   38 </span>--
+<span class="lineno">   39 </span>-- enableAngular :: Maybe Text -&gt; Maybe Int -&gt; Bool
+<span class="lineno">   40 </span>-- enableAngular _ jsOpt = maybe True (/= 0) jsOpt
+<span class="lineno">   41 </span>--
+<span class="lineno">   42 </span>-- preferAngular mUserAgent mJsParam fallback =
+<span class="lineno">   43 </span>--     if enableAngular mUserAgent mJsParam
+<span class="lineno">   44 </span>--     then pure &quot;I am an Angular!&quot;
+<span class="lineno">   45 </span>--     else fallback
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>-- | Boilerplate. This will go away when Servant adopts type application.
+<span class="lineno">   48 </span>servantAPI :: Proxy ServantAPI
+<span class="lineno">   49 </span><span class="decl"><span class="istickedoff">servantAPI = Proxy</span></span>
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>-- | The lowest level of the Databrary 'web framework'. It simply builds a Wai
+<span class="lineno">   52 </span>-- Application out of the 'servantServer' description.
+<span class="lineno">   53 </span>--
+<span class="lineno">   54 </span>-- Since Servant does not control most routes yet, this function delegates the
+<span class="lineno">   55 </span>-- rest to the original ActionRoute-based app.
+<span class="lineno">   56 </span>servantApp :: ActionRouteApp -&gt; Application
+<span class="lineno">   57 </span><span class="decl"><span class="istickedoff">servantApp arApp =</span>
+<span class="lineno">   58 </span><span class="spaces">    </span><span class="istickedoff">serve servantAPI (servantServer arApp)</span></span>
+
+</pre>
+</body>
+</html>

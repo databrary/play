@@ -1,0 +1,82 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Model.Citation.CrossRef
+<span class="lineno">    3 </span>  ( lookupCitation
+<span class="lineno">    4 </span>  -- for testing
+<span class="lineno">    5 </span>  , uriHDL
+<span class="lineno">    6 </span>  ) where
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>import Control.Applicative (optional)
+<span class="lineno">    9 </span>import Control.Exception (handle)
+<span class="lineno">   10 </span>import Control.Monad.Trans.Class (lift)
+<span class="lineno">   11 </span>import Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
+<span class="lineno">   12 </span>import qualified Data.Attoparsec.ByteString as P
+<span class="lineno">   13 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">   14 </span>import Data.Maybe (fromJust)
+<span class="lineno">   15 </span>import qualified Data.Text.Lazy as TL
+<span class="lineno">   16 </span>import qualified Data.Text.Lazy.Encoding as TLE
+<span class="lineno">   17 </span>import qualified Network.HTTP.Client as HC
+<span class="lineno">   18 </span>import qualified Network.URI as URI
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>import Databrary.Ops
+<span class="lineno">   21 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   22 </span>import Databrary.HTTP.Client
+<span class="lineno">   23 </span>import Databrary.Model.URL
+<span class="lineno">   24 </span>import Databrary.Model.Citation.Types
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>crossRefUrl :: HC.Request
+<span class="lineno">   27 </span><span class="decl"><span class="nottickedoff">crossRefUrl = (fromJust $ HC.parseRequest &quot;http://data.crossref.org/&quot;)</span>
+<span class="lineno">   28 </span><span class="spaces">  </span><span class="nottickedoff">{ HC.cookieJar = Nothing</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="nottickedoff">}</span></span>
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>crossRefReq :: String -&gt; HC.Request
+<span class="lineno">   32 </span><span class="decl"><span class="nottickedoff">crossRefReq h = crossRefUrl { HC.path = BSC.pack $ '/' : URI.escapeURIString URI.isUnescapedInURIComponent h }</span></span>
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>uriHDL :: URI.URI -&gt; Maybe String
+<span class="lineno">   35 </span><span class="decl"><span class="nottickedoff">uriHDL u</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="nottickedoff">| URI.uriScheme u == &quot;hdl:&quot; = Just $ URI.uriPath u ++ URI.uriQuery u</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = Nothing</span></span>
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>parseCitation :: JSON.Value -&gt; JSON.Parser Citation
+<span class="lineno">   40 </span><span class="decl"><span class="nottickedoff">parseCitation = JSON.withObject &quot;citation&quot; $ \o -&gt;</span>
+<span class="lineno">   41 </span><span class="spaces">  </span><span class="nottickedoff">Citation</span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; o JSON..:? &quot;head&quot; JSON..!= &quot;&quot;</span>
+<span class="lineno">   43 </span><span class="spaces">    </span><span class="nottickedoff">&lt;*&gt; (Just &lt;$&gt; (o JSON..: &quot;DOI&quot; &gt;&gt;= parseDOI))</span>
+<span class="lineno">   44 </span><span class="spaces">    </span><span class="nottickedoff">&lt;*&gt; optional (o JSON..: &quot;issued&quot; &gt;&gt;= (JSON..: &quot;date-parts&quot;) &gt;&gt;= (`JSON.lookupAtParse` 0) &gt;&gt;= (`JSON.lookupAtParse` 0))</span>
+<span class="lineno">   45 </span><span class="spaces">    </span><span class="nottickedoff">&lt;*&gt; o JSON..:? &quot;title&quot;</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="nottickedoff">parseDOI d = (hdlURL d) `useWhen` (validHDL d)</span></span>
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>lookupCitation :: URI.URI -&gt; HTTPClient -&gt; IO (Maybe Citation)
+<span class="lineno">   50 </span><span class="decl"><span class="nottickedoff">lookupCitation uri hcm = runMaybeT $ do</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">req &lt;- may $ crossRefReq &lt;$&gt; uriHDL uri</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">j &lt;- MaybeT $ httpMaybe $</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="nottickedoff">HC.withResponse (requestAcceptContent &quot;application/vnd.citationstyles.csl+json&quot; req) hcm</span>
+<span class="lineno">   54 </span><span class="spaces">      </span><span class="nottickedoff">(fmap P.maybeResult . httpParse JSON.json)</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">cite &lt;- may $ JSON.parseMaybe parseCitation j</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">-- empirically this is UTF-8, but does not say so:</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="nottickedoff">lift $ handle</span>
+<span class="lineno">   58 </span><span class="spaces">    </span><span class="nottickedoff">(\(_ :: HC.HttpException) -&gt; return cite) -- this actually happens fairly often</span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="nottickedoff">$ (\h -&gt; cite{ citationHead = TL.toStrict $ TLE.decodeUtf8 $ HC.responseBody h }) &lt;$&gt;</span>
+<span class="lineno">   60 </span><span class="spaces">      </span><span class="nottickedoff">HC.httpLbs (requestAcceptContent &quot;text/x-bibliography;style=apa&quot; req) hcm</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">may = MaybeT . return</span></span>
+
+</pre>
+</body>
+</html>

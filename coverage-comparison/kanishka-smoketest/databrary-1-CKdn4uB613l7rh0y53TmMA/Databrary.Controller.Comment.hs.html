@@ -1,0 +1,77 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Controller.Comment
+<span class="lineno">    3 </span>  ( postComment
+<span class="lineno">    4 </span>  ) where
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>import Control.Monad (forM_, when)
+<span class="lineno">    7 </span>import Control.Monad.Trans.Class (lift)
+<span class="lineno">    8 </span>import Data.Function (on)
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import Databrary.Ops
+<span class="lineno">   11 </span>import Databrary.Has
+<span class="lineno">   12 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   13 </span>import Databrary.Model.Permission
+<span class="lineno">   14 </span>import Databrary.Model.Id
+<span class="lineno">   15 </span>import Databrary.Model.Container
+<span class="lineno">   16 </span>import Databrary.Model.Slot
+<span class="lineno">   17 </span>import Databrary.Model.Notification.Types
+<span class="lineno">   18 </span>import Databrary.Model.Party.Types
+<span class="lineno">   19 </span>import Databrary.Model.Comment
+<span class="lineno">   20 </span>import Databrary.HTTP.Form.Deform
+<span class="lineno">   21 </span>import Databrary.HTTP.Path.Parser
+<span class="lineno">   22 </span>import Databrary.Action
+<span class="lineno">   23 </span>import Databrary.Controller.Paths
+<span class="lineno">   24 </span>import Databrary.Controller.Permission
+<span class="lineno">   25 </span>import Databrary.Controller.Form
+<span class="lineno">   26 </span>import Databrary.Controller.Slot
+<span class="lineno">   27 </span>import Databrary.Controller.Notification
+<span class="lineno">   28 </span>import Databrary.View.Form (FormHtml)
+<span class="lineno">   29 </span>-- import Databrary.View.Comment
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>postComment :: ActionRoute (Id Slot)
+<span class="lineno">   32 </span><span class="decl"><span class="istickedoff">postComment = action <span class="nottickedoff">POST</span> (pathJSON &gt;/&gt; pathSlotId &lt;/&lt; &quot;comment&quot;) $ \si -&gt; <span class="nottickedoff">withAuth $ do</span></span>
+<span class="lineno">   33 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">u &lt;- authAccount</span></span>
+<span class="lineno">   34 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">s &lt;- getSlot PermissionSHARED Nothing si</span></span>
+<span class="lineno">   35 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">(c, p) &lt;- runForm (Nothing :: Maybe (RequestContext -&gt; FormHtml a)) $ do</span></span>
+<span class="lineno">   36 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">csrfForm</span></span>
+<span class="lineno">   37 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">text &lt;- &quot;text&quot; .:&gt; (deformRequired =&lt;&lt; deform)</span></span>
+<span class="lineno">   38 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">parent &lt;- &quot;parent&quot; .:&gt; deformNonEmpty (deformMaybe' &quot;comment not found&quot; =&lt;&lt; lift . lookupComment =&lt;&lt; deform)</span></span>
+<span class="lineno">   39 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">return ((blankComment u s)</span></span>
+<span class="lineno">   40 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">{ commentText = text</span></span>
+<span class="lineno">   41 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">, commentParents = maybe [] (return . commentId) parent</span></span>
+<span class="lineno">   42 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">}, parent)</span></span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">c' &lt;- addComment c</span></span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">top &lt;- containerIsVolumeTop (slotContainer s)</span></span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">forM_ p $ \r -&gt; when (on (/=) (partyId . partyRow . accountParty) (commentWho r) u) $</span></span>
+<span class="lineno">   46 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">createNotification (blankNotification (commentWho r) NoticeCommentReply)</span></span>
+<span class="lineno">   47 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">{ notificationContainerId = top `unlessUse` (view c')</span></span>
+<span class="lineno">   48 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">, notificationSegment = Just $ view c'</span></span>
+<span class="lineno">   49 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">, notificationCommentId = Just $ view c'</span></span>
+<span class="lineno">   50 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">}</span></span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">createVolumeNotification (view c') $ \n -&gt; (n NoticeCommentVolume)</span></span>
+<span class="lineno">   52 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">{ notificationContainerId = top `unlessUse` (view c')</span></span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">, notificationSegment = Just $ view c'</span></span>
+<span class="lineno">   54 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">, notificationCommentId = Just $ view c'</span></span>
+<span class="lineno">   55 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">}</span></span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">return $ okResponse [] $ JSON.recordEncoding $ commentJSON c'</span></span></span>
+<span class="lineno">   57 </span>  -- HTML -&gt; peeks $ otherRouteResponse [] (viewSlot False) (api, (Just (view c'), slotId (commentSlot c')))
+
+</pre>
+</body>
+</html>

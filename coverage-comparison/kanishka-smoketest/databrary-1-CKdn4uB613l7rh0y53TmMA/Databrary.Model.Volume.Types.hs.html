@@ -1,0 +1,121 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies, RecordWildCards #-}
+<span class="lineno">    2 </span>module Databrary.Model.Volume.Types
+<span class="lineno">    3 </span>  ( VolumeRow(..)
+<span class="lineno">    4 </span>  , Volume(..)
+<span class="lineno">    5 </span>  , VolumeOwner
+<span class="lineno">    6 </span>  , blankVolume
+<span class="lineno">    7 </span>  , toPolicyDefaulting
+<span class="lineno">    8 </span>  , volumeAccessPolicyWithDefault
+<span class="lineno">    9 </span>  , coreVolumeId
+<span class="lineno">   10 </span>  ) where
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import qualified Data.ByteString as BS
+<span class="lineno">   13 </span>import Data.Maybe (fromMaybe)
+<span class="lineno">   14 </span>import qualified Data.Text as T
+<span class="lineno">   15 </span>import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
+<span class="lineno">   16 </span>import Language.Haskell.TH.Lift (deriveLiftMany)
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import Databrary.Has (Has(..))
+<span class="lineno">   19 </span>import Databrary.Model.Time
+<span class="lineno">   20 </span>import Databrary.Model.Kind
+<span class="lineno">   21 </span>import Databrary.Model.Permission.Types
+<span class="lineno">   22 </span>import Databrary.Model.Id.Types
+<span class="lineno">   23 </span>import Databrary.Model.Party.Types
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>type instance IdType Volume = Int32
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>data VolumeRow = VolumeRow
+<span class="lineno">   28 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">volumeId</span></span></span> :: Id Volume
+<span class="lineno">   29 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">volumeName</span></span></span> :: T.Text
+<span class="lineno">   30 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">volumeBody</span></span></span> :: Maybe T.Text
+<span class="lineno">   31 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">volumeAlias</span></span></span> :: Maybe T.Text
+<span class="lineno">   32 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">volumeDOI</span></span></span> :: Maybe BS.ByteString
+<span class="lineno">   33 </span>  }
+<span class="lineno">   34 </span>  deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>type VolumeOwner = (Id Party, T.Text)
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>data Volume = Volume
+<span class="lineno">   39 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">volumeRow</span></span></span> :: !VolumeRow
+<span class="lineno">   40 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">volumeCreation</span></span></span> :: Timestamp
+<span class="lineno">   41 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">volumeOwners</span></span></span> :: [VolumeOwner]
+<span class="lineno">   42 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">volumeRolePolicy</span></span></span> :: VolumeRolePolicy
+<span class="lineno">   43 </span>  }
+<span class="lineno">   44 </span>  deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>instance Kinded Volume where
+<span class="lineno">   47 </span>  <span class="decl"><span class="istickedoff">kindOf _ = &quot;volume&quot;</span></span>
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>instance Has (Id Volume) VolumeRow where
+<span class="lineno">   50 </span>  <span class="decl"><span class="nottickedoff">view = volumeId</span></span>
+<span class="lineno">   51 </span>instance Has (Id Volume) Volume where
+<span class="lineno">   52 </span>  <span class="decl"><span class="nottickedoff">view = (view . volumeRow)</span></span>
+<span class="lineno">   53 </span>instance Has Permission Volume where
+<span class="lineno">   54 </span>  <span class="decl"><span class="istickedoff">view = extractPermissionIgnorePolicy . volumeRolePolicy</span></span>
+<span class="lineno">   55 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLiftMany [''VolumeRow, ''Volume]</span></span></span></span></span>
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>-- | Convert shareFull value read from db into a policy
+<span class="lineno">   58 </span>-- value, applying a default if needed.
+<span class="lineno">   59 </span>toPolicyDefaulting :: Maybe Bool -&gt; a -&gt; a -&gt; a
+<span class="lineno">   60 </span><span class="decl"><span class="istickedoff">toPolicyDefaulting mShareFull noPolicy restrictedPolicy =</span>
+<span class="lineno">   61 </span><span class="spaces">    </span><span class="istickedoff">let</span>
+<span class="lineno">   62 </span><span class="spaces">        </span><span class="istickedoff">-- in the rare circumstance that a volume access</span>
+<span class="lineno">   63 </span><span class="spaces">        </span><span class="istickedoff">-- entry in db improperly contains null for public/shared group,</span>
+<span class="lineno">   64 </span><span class="spaces">        </span><span class="istickedoff">-- arbitrarily use True to follow old convention before sharefull</span>
+<span class="lineno">   65 </span><span class="spaces">        </span><span class="istickedoff">-- was introduced.</span>
+<span class="lineno">   66 </span><span class="spaces">        </span><span class="istickedoff">shareFull = fromMaybe <span class="nottickedoff">True</span> mShareFull</span>
+<span class="lineno">   67 </span><span class="spaces">    </span><span class="istickedoff">in</span>
+<span class="lineno">   68 </span><span class="spaces">        </span><span class="istickedoff">if shareFull then noPolicy else restrictedPolicy</span></span>
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>volumeAccessPolicyWithDefault :: Permission -&gt; Maybe Bool -&gt; VolumeRolePolicy
+<span class="lineno">   71 </span><span class="decl"><span class="istickedoff">volumeAccessPolicyWithDefault perm1 mShareFull =</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="istickedoff">case perm1 of</span>
+<span class="lineno">   73 </span><span class="spaces">    </span><span class="istickedoff">PermissionNONE -&gt;</span>
+<span class="lineno">   74 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">RoleNone</span></span>
+<span class="lineno">   75 </span><span class="spaces">    </span><span class="istickedoff">PermissionPUBLIC -&gt;</span>
+<span class="lineno">   76 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">RolePublicViewer (toPolicyDefaulting mShareFull PublicNoPolicy PublicRestrictedPolicy)</span></span>
+<span class="lineno">   77 </span><span class="spaces">    </span><span class="istickedoff">PermissionSHARED -&gt;</span>
+<span class="lineno">   78 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">RoleSharedViewer (toPolicyDefaulting mShareFull SharedNoPolicy SharedRestrictedPolicy)</span></span>
+<span class="lineno">   79 </span><span class="spaces">    </span><span class="istickedoff">PermissionREAD -&gt;</span>
+<span class="lineno">   80 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">RoleReader</span></span>
+<span class="lineno">   81 </span><span class="spaces">    </span><span class="istickedoff">PermissionEDIT -&gt;</span>
+<span class="lineno">   82 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">RoleEditor</span></span>
+<span class="lineno">   83 </span><span class="spaces">    </span><span class="istickedoff">PermissionADMIN -&gt;</span>
+<span class="lineno">   84 </span><span class="spaces">      </span><span class="istickedoff">RoleAdmin</span></span>
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>blankVolume :: Volume
+<span class="lineno">   87 </span><span class="decl"><span class="istickedoff">blankVolume = Volume</span>
+<span class="lineno">   88 </span><span class="spaces">  </span><span class="istickedoff">{ volumeRow = VolumeRow</span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="istickedoff">{ volumeId = <span class="nottickedoff">error &quot;blankVolume&quot;</span></span>
+<span class="lineno">   90 </span><span class="spaces">    </span><span class="istickedoff">, volumeName = <span class="nottickedoff">&quot;&quot;</span></span>
+<span class="lineno">   91 </span><span class="spaces">    </span><span class="istickedoff">, volumeAlias = <span class="nottickedoff">Nothing</span></span>
+<span class="lineno">   92 </span><span class="spaces">    </span><span class="istickedoff">, volumeBody = <span class="nottickedoff">Nothing</span></span>
+<span class="lineno">   93 </span><span class="spaces">    </span><span class="istickedoff">, volumeDOI = <span class="nottickedoff">Nothing</span></span>
+<span class="lineno">   94 </span><span class="spaces">    </span><span class="istickedoff">}</span>
+<span class="lineno">   95 </span><span class="spaces">  </span><span class="istickedoff">, volumeCreation = posixSecondsToUTCTime 1357900000</span>
+<span class="lineno">   96 </span><span class="spaces">  </span><span class="istickedoff">, volumeOwners = <span class="nottickedoff">[]</span></span>
+<span class="lineno">   97 </span><span class="spaces">  </span><span class="istickedoff">, volumeRolePolicy = <span class="nottickedoff">RoleNone</span></span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="istickedoff">}</span></span>
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>coreVolumeId :: Id Volume
+<span class="lineno">  101 </span><span class="decl"><span class="nottickedoff">coreVolumeId = Id 0</span></span>
+
+</pre>
+</body>
+</html>

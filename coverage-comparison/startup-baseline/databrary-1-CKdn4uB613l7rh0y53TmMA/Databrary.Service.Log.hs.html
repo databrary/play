@@ -1,0 +1,136 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Service.Log
+<span class="lineno">    3 </span>  ( Logs
+<span class="lineno">    4 </span>  , MonadLog
+<span class="lineno">    5 </span>  , initLogs
+<span class="lineno">    6 </span>  , finiLogs
+<span class="lineno">    7 </span>  , LogStr
+<span class="lineno">    8 </span>  , toLogStr
+<span class="lineno">    9 </span>  , requestLog
+<span class="lineno">   10 </span>  , logMsg
+<span class="lineno">   11 </span>  , logAccess
+<span class="lineno">   12 </span>  ) where
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import Control.Monad.IO.Class (MonadIO)
+<span class="lineno">   15 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">   16 </span>import Data.Maybe (fromMaybe, catMaybes)
+<span class="lineno">   17 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   18 </span>import Data.Time.Clock (getCurrentTime, diffUTCTime)
+<span class="lineno">   19 </span>import Data.Time.Format (formatTime, defaultTimeLocale)
+<span class="lineno">   20 </span>import Data.Time.LocalTime (ZonedTime, utcToLocalZonedTime)
+<span class="lineno">   21 </span>import qualified Network.HTTP.Types as HTTP
+<span class="lineno">   22 </span>import qualified Network.Socket as Net
+<span class="lineno">   23 </span>import qualified Network.Wai as Wai
+<span class="lineno">   24 </span>import System.Log.FastLogger
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>import Databrary.Has (MonadHas)
+<span class="lineno">   27 </span>import qualified Databrary.Store.Config as C
+<span class="lineno">   28 </span>import Databrary.Model.Time
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>data Logs = Logs
+<span class="lineno">   31 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">loggerMessages</span></span></span>, <span class="nottickedoff"><span class="decl"><span class="nottickedoff">loggerAccess</span></span></span> :: Maybe LoggerSet
+<span class="lineno">   32 </span>  }
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>type MonadLog c m = (MonadHas Logs c m, MonadIO m)
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>initLog :: FilePath -&gt; C.Config -&gt; IO (Maybe LoggerSet)
+<span class="lineno">   37 </span><span class="decl"><span class="istickedoff">initLog def conf = do</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="istickedoff">case file of</span>
+<span class="lineno">   39 </span><span class="spaces">    </span><span class="istickedoff">&quot;&quot; -&gt; <span class="nottickedoff">return Nothing</span></span>
+<span class="lineno">   40 </span><span class="spaces">    </span><span class="istickedoff">&quot;stdout&quot; -&gt; Just &lt;$&gt; newStdoutLoggerSet buf</span>
+<span class="lineno">   41 </span><span class="spaces">    </span><span class="istickedoff">&quot;stderr&quot; -&gt; Just &lt;$&gt; newStderrLoggerSet buf</span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">do</span></span>
+<span class="lineno">   43 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">check file</span></span>
+<span class="lineno">   44 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">mapM_ (rotate . FileLogSpec file size) (num :: Maybe Int)</span></span>
+<span class="lineno">   45 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">Just &lt;$&gt; newFileLoggerSet buf file</span></span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">file = fromMaybe <span class="nottickedoff">def</span> $ conf C.! &quot;file&quot;</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">buf = fromMaybe defaultBufSize $ conf C.! &quot;buf&quot;</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">num = conf C.! &quot;rotate&quot;</span></span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">size = fromMaybe (1024*1024) $ conf C.! &quot;size&quot;</span></span></span>
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>initLogs :: C.Config -&gt; IO Logs
+<span class="lineno">   53 </span><span class="decl"><span class="istickedoff">initLogs conf = Logs</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="istickedoff">&lt;$&gt; initLog <span class="nottickedoff">&quot;stderr&quot;</span> (conf C.! &quot;messages&quot;)</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="istickedoff">&lt;*&gt; initLog <span class="nottickedoff">&quot;stdout&quot;</span> (conf C.! &quot;access&quot;)</span></span>
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>finiLogs :: Logs -&gt; IO ()
+<span class="lineno">   58 </span><span class="decl"><span class="istickedoff">finiLogs (Logs lm la) =</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="istickedoff">mapM_ flushLogStr $ catMaybes [lm, la]</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>str :: ToLogStr a =&gt; a -&gt; LogStr
+<span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">str = toLogStr</span></span>
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>char :: Char -&gt; LogStr
+<span class="lineno">   65 </span><span class="decl"><span class="nottickedoff">char = str . BSC.singleton</span></span>
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>pad :: ToLogStr a =&gt; Int -&gt; a -&gt; LogStr
+<span class="lineno">   68 </span><span class="decl"><span class="nottickedoff">pad n m</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="nottickedoff">| n &lt; 0 = s &lt;&gt; p</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = p &lt;&gt; s</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="nottickedoff">s = str m</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">p = str $ BSC.replicate (abs n - logStrLength s) ' '</span></span>
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>quote :: Show a =&gt; Maybe a -&gt; LogStr
+<span class="lineno">   76 </span><span class="decl"><span class="nottickedoff">quote = maybe (char '-') (str . show)</span></span> -- FIXME, inefficient
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>time :: ZonedTime -&gt; LogStr
+<span class="lineno">   79 </span><span class="decl"><span class="nottickedoff">time = str . formatTime defaultTimeLocale &quot;%F %X&quot;</span></span>
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>infixr 6 &amp;
+<span class="lineno">   82 </span>(&amp;) :: LogStr -&gt; LogStr -&gt; LogStr
+<span class="lineno">   83 </span><span class="decl"><span class="nottickedoff">x &amp; y = x &lt;&gt; char ' ' &lt;&gt; y</span></span>
+<span class="lineno">   84 </span>
+<span class="lineno">   85 </span>logStr :: LoggerSet -&gt; Timestamp -&gt; LogStr -&gt; IO ()
+<span class="lineno">   86 </span><span class="decl"><span class="nottickedoff">logStr l t s = do</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="nottickedoff">zt &lt;- utcToLocalZonedTime t</span>
+<span class="lineno">   88 </span><span class="spaces">  </span><span class="nottickedoff">pushLogStr l $ time zt &amp; s &lt;&gt; char '\n'</span></span>
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>requestLog :: Timestamp -&gt; Wai.Request -&gt; Maybe String -&gt; Wai.Response -&gt; IO LogStr
+<span class="lineno">   91 </span><span class="decl"><span class="nottickedoff">requestLog qt q u r = do</span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="nottickedoff">(Just h, Nothing) &lt;- Net.getNameInfo [Net.NI_NUMERICHOST] True False $ Wai.remoteHost q</span>
+<span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">rt &lt;- getCurrentTime</span>
+<span class="lineno">   94 </span><span class="spaces">  </span><span class="nottickedoff">return</span>
+<span class="lineno">   95 </span><span class="spaces">    </span><span class="nottickedoff">$ pad (-15) h</span>
+<span class="lineno">   96 </span><span class="spaces">    </span><span class="nottickedoff">&amp; pad 3 (show $ HTTP.statusCode $ Wai.responseStatus r)</span>
+<span class="lineno">   97 </span><span class="spaces">    </span><span class="nottickedoff">&amp; pad 4 (fromMaybe &quot;-&quot; u)</span>
+<span class="lineno">   98 </span><span class="spaces">    </span><span class="nottickedoff">&amp; pad 4 (show (floor $ 1000 * rt `diffUTCTime` qt :: Integer))</span>
+<span class="lineno">   99 </span><span class="spaces">    </span><span class="nottickedoff">&amp; str (Wai.requestMethod q)</span>
+<span class="lineno">  100 </span><span class="spaces">    </span><span class="nottickedoff">&amp; str (Wai.rawPathInfo q) &lt;&gt; str (Wai.rawQueryString q)</span>
+<span class="lineno">  101 </span><span class="spaces">    </span><span class="nottickedoff">&amp; quote (lookup &quot;location&quot; rh)</span>
+<span class="lineno">  102 </span><span class="spaces">    </span><span class="nottickedoff">&amp; quote (lookup &quot;referer&quot; qh)</span>
+<span class="lineno">  103 </span><span class="spaces">    </span><span class="nottickedoff">&amp; quote (lookup &quot;user-agent&quot; qh)</span>
+<span class="lineno">  104 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  105 </span><span class="spaces">  </span><span class="nottickedoff">qh = Wai.requestHeaders q</span>
+<span class="lineno">  106 </span><span class="spaces">  </span><span class="nottickedoff">rh = Wai.responseHeaders r</span></span>
+<span class="lineno">  107 </span>
+<span class="lineno">  108 </span>logMsg :: ToLogStr a =&gt; Timestamp -&gt; a -&gt; Logs -&gt; IO ()
+<span class="lineno">  109 </span><span class="decl"><span class="nottickedoff">logMsg t m Logs{ loggerMessages = Just l } = do</span>
+<span class="lineno">  110 </span><span class="spaces">  </span><span class="nottickedoff">logStr l t $ str m</span>
+<span class="lineno">  111 </span><span class="spaces"></span><span class="nottickedoff">logMsg _ _ _ = return ()</span></span>
+<span class="lineno">  112 </span>
+<span class="lineno">  113 </span>logAccess :: Timestamp -&gt; Wai.Request -&gt; Maybe String -&gt; Wai.Response -&gt; Logs -&gt; IO ()
+<span class="lineno">  114 </span><span class="decl"><span class="nottickedoff">logAccess qt q u r Logs{ loggerAccess = Just l } =</span>
+<span class="lineno">  115 </span><span class="spaces">  </span><span class="nottickedoff">logStr l qt =&lt;&lt; requestLog qt q u r</span>
+<span class="lineno">  116 </span><span class="spaces"></span><span class="nottickedoff">logAccess _ _ _ _ _ = return ()</span></span>
+
+</pre>
+</body>
+</html>

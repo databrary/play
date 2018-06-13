@@ -1,0 +1,29 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
+<span class="lineno">    2 </span>module Databrary.Model.PermissionUtil
+<span class="lineno">    3 </span>  ( maskRestrictedString 
+<span class="lineno">    4 </span>  ) where
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>import qualified Data.String as ST
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>maskRestrictedString :: ST.IsString a =&gt; a -&gt; a
+<span class="lineno">    9 </span><span class="decl"><span class="nottickedoff">maskRestrictedString s = (const (ST.fromString &quot;&quot;)) s</span></span>
+
+</pre>
+</body>
+</html>

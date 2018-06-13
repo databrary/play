@@ -1,0 +1,171 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, DeriveDataTypeable, DataKinds #-}
+<span class="lineno">    2 </span>{-# OPTIONS_GHC -fno-warn-orphans #-}
+<span class="lineno">    3 </span>module Databrary.Model.Permission.Types
+<span class="lineno">    4 </span>  ( Permission(..)
+<span class="lineno">    5 </span>  , Access(..), accessPermission'
+<span class="lineno">    6 </span>  , accessSite, accessMember, accessPermission
+<span class="lineno">    7 </span>  , PublicPolicy(..)
+<span class="lineno">    8 </span>  , SharedPolicy(..)
+<span class="lineno">    9 </span>  , VolumeRolePolicy(..)
+<span class="lineno">   10 </span>  , extractPermissionIgnorePolicy
+<span class="lineno">   11 </span>  ) where
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>import Language.Haskell.TH.Lift (deriveLift, deriveLiftMany)
+<span class="lineno">   14 </span>import qualified Data.Typeable.Internal
+<span class="lineno">   15 </span>import qualified GHC.Arr
+<span class="lineno">   16 </span>import qualified Database.PostgreSQL.Typed.Types
+<span class="lineno">   17 </span>import qualified Database.PostgreSQL.Typed.Dynamic
+<span class="lineno">   18 </span>import qualified Database.PostgreSQL.Typed.Enum
+<span class="lineno">   19 </span>import qualified Data.Aeson.Types
+<span class="lineno">   20 </span>import qualified Data.ByteString
+<span class="lineno">   21 </span>import qualified Data.ByteString.Char8
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>import Databrary.Has (Has(..))
+<span class="lineno">   24 </span>import Databrary.Model.Enum
+<span class="lineno">   25 </span>import qualified Databrary.Model.Kind
+<span class="lineno">   26 </span>import qualified Databrary.HTTP.Form.Deform
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>-- makeDBEnum &quot;permission&quot; &quot;Permission&quot;
+<span class="lineno">   29 </span>-- TODO: db coherence
+<span class="lineno">   30 </span>data Permission
+<span class="lineno">   31 </span>  = PermissionNONE |
+<span class="lineno">   32 </span>    PermissionPUBLIC |
+<span class="lineno">   33 </span>    PermissionSHARED |
+<span class="lineno">   34 </span>    PermissionREAD |
+<span class="lineno">   35 </span>    PermissionEDIT |
+<span class="lineno">   36 </span>    PermissionADMIN
+<span class="lineno">   37 </span>  deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>,
+<span class="lineno">   38 </span>            <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Ord</span></span></span></span></span></span></span></span></span></span>,
+<span class="lineno">   39 </span>            <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Enum</span></span></span></span></span></span></span></span></span></span></span></span>,
+<span class="lineno">   40 </span>            <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">GHC.Arr.Ix</span></span></span></span></span></span>,
+<span class="lineno">   41 </span>            <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Bounded</span></span></span></span>,
+<span class="lineno">   42 </span>            Data.Typeable.Internal.Typeable)
+<span class="lineno">   43 </span>instance Show Permission where
+<span class="lineno">   44 </span>  <span class="decl"><span class="istickedoff">show PermissionNONE = &quot;NONE&quot;</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="istickedoff">show PermissionPUBLIC = <span class="nottickedoff">&quot;PUBLIC&quot;</span></span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="istickedoff">show PermissionSHARED = <span class="nottickedoff">&quot;SHARED&quot;</span></span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">show PermissionREAD = <span class="nottickedoff">&quot;READ&quot;</span></span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">show PermissionEDIT = <span class="nottickedoff">&quot;EDIT&quot;</span></span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff">show PermissionADMIN = <span class="nottickedoff">&quot;ADMIN&quot;</span></span></span>
+<span class="lineno">   50 </span>instance Database.PostgreSQL.Typed.Types.PGType &quot;permission&quot;
+<span class="lineno">   51 </span>instance Database.PostgreSQL.Typed.Types.PGParameter &quot;permission&quot; Permission where
+<span class="lineno">   52 </span>  <span class="decl"><span class="istickedoff">pgEncode _ PermissionNONE</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="istickedoff">= Data.ByteString.pack [78, 79, 78, 69]</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="istickedoff">pgEncode _ PermissionPUBLIC</span>
+<span class="lineno">   55 </span><span class="spaces">    </span><span class="istickedoff">= Data.ByteString.pack [80, 85, 66, 76, 73, 67]</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="istickedoff">pgEncode _ PermissionSHARED</span>
+<span class="lineno">   57 </span><span class="spaces">    </span><span class="istickedoff">= Data.ByteString.pack [83, 72, 65, 82, 69, 68]</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="istickedoff">pgEncode _ PermissionREAD</span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="istickedoff">= <span class="nottickedoff">Data.ByteString.pack [82, 69, 65, 68]</span></span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="istickedoff">pgEncode _ PermissionEDIT</span>
+<span class="lineno">   61 </span><span class="spaces">    </span><span class="istickedoff">= Data.ByteString.pack [69, 68, 73, 84]</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="istickedoff">pgEncode _ PermissionADMIN</span>
+<span class="lineno">   63 </span><span class="spaces">    </span><span class="istickedoff">= Data.ByteString.pack [65, 68, 77, 73, 78]</span></span>
+<span class="lineno">   64 </span>instance Database.PostgreSQL.Typed.Types.PGColumn &quot;permission&quot; Permission where
+<span class="lineno">   65 </span>  <span class="decl"><span class="istickedoff">pgDecode _ x_a42l2</span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="istickedoff">= case Data.ByteString.unpack x_a42l2 of</span>
+<span class="lineno">   67 </span><span class="spaces">        </span><span class="istickedoff">[78, 79, 78, 69] -&gt; <span class="nottickedoff">PermissionNONE</span></span>
+<span class="lineno">   68 </span><span class="spaces">        </span><span class="istickedoff">[80, 85, 66, 76, 73, 67] -&gt; PermissionPUBLIC</span>
+<span class="lineno">   69 </span><span class="spaces">        </span><span class="istickedoff">[83, 72, 65, 82, 69, 68] -&gt; <span class="nottickedoff">PermissionSHARED</span></span>
+<span class="lineno">   70 </span><span class="spaces">        </span><span class="istickedoff">[82, 69, 65, 68] -&gt; <span class="nottickedoff">PermissionREAD</span></span>
+<span class="lineno">   71 </span><span class="spaces">        </span><span class="istickedoff">[69, 68, 73, 84] -&gt; <span class="nottickedoff">PermissionEDIT</span></span>
+<span class="lineno">   72 </span><span class="spaces">        </span><span class="istickedoff">[65, 68, 77, 73, 78] -&gt; PermissionADMIN</span>
+<span class="lineno">   73 </span><span class="spaces">        </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">error</span></span>
+<span class="lineno">   74 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">(&quot;pgDecode permission: &quot;</span></span>
+<span class="lineno">   75 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">++ (Data.ByteString.Char8.unpack x_a42l2))</span></span></span>
+<span class="lineno">   76 </span>instance Database.PostgreSQL.Typed.Dynamic.PGRep &quot;permission&quot; Permission
+<span class="lineno">   77 </span>instance Database.PostgreSQL.Typed.Enum.PGEnum Permission
+<span class="lineno">   78 </span>instance Databrary.Model.Kind.Kinded Permission where
+<span class="lineno">   79 </span>  <span class="decl"><span class="nottickedoff">kindOf _ = &quot;permission&quot;</span></span>
+<span class="lineno">   80 </span>instance DBEnum Permission
+<span class="lineno">   81 </span>instance Data.Aeson.Types.ToJSON Permission where
+<span class="lineno">   82 </span>  <span class="decl"><span class="istickedoff">toJSON</span>
+<span class="lineno">   83 </span><span class="spaces">    </span><span class="istickedoff">= (Data.Aeson.Types.toJSON . fromEnum)</span></span>
+<span class="lineno">   84 </span>instance Data.Aeson.Types.FromJSON Permission where  -- not used
+<span class="lineno">   85 </span>  <span class="decl"><span class="nottickedoff">parseJSON = parseJSONEnum</span></span>
+<span class="lineno">   86 </span>instance Databrary.HTTP.Form.Deform.Deform f_a42l3 Permission where
+<span class="lineno">   87 </span>  <span class="decl"><span class="istickedoff">deform = enumForm</span></span>
+<span class="lineno">   88 </span>
+<span class="lineno">   89 </span>instance Monoid Permission where
+<span class="lineno">   90 </span>  <span class="decl"><span class="istickedoff">mempty = PermissionNONE</span></span>
+<span class="lineno">   91 </span>  <span class="decl"><span class="istickedoff">mappend = max</span></span>
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>-- | TODO: Figure out what this thing represents
+<span class="lineno">   94 </span>data Access = Access
+<span class="lineno">   95 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">accessSite'</span></span></span> :: !Permission -- ^ ??
+<span class="lineno">   96 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">accessMember'</span></span></span> :: !Permission -- ^ ??
+<span class="lineno">   97 </span>  } deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>)
+<span class="lineno">   98 </span>
+<span class="lineno">   99 </span>accessPermission' :: Access -&gt; Permission
+<span class="lineno">  100 </span><span class="decl"><span class="nottickedoff">accessPermission' (Access s m) = min s m</span></span>
+<span class="lineno">  101 </span>
+<span class="lineno">  102 </span>accessSite, accessMember, accessPermission :: Has Access a =&gt; a -&gt; Permission
+<span class="lineno">  103 </span><span class="decl"><span class="istickedoff">accessSite = accessSite' . view</span></span>
+<span class="lineno">  104 </span><span class="decl"><span class="istickedoff">accessMember = accessMember' . view</span></span>
+<span class="lineno">  105 </span><span class="decl"><span class="nottickedoff">accessPermission = accessPermission' . view</span></span>
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>instance Bounded Access where
+<span class="lineno">  108 </span>  <span class="decl"><span class="nottickedoff">minBound = Access minBound minBound</span></span>
+<span class="lineno">  109 </span>  <span class="decl"><span class="istickedoff">maxBound = Access maxBound maxBound</span></span>
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>instance Monoid Access where
+<span class="lineno">  112 </span>  <span class="decl"><span class="istickedoff">mempty = Access mempty mempty</span></span>
+<span class="lineno">  113 </span>  <span class="decl"><span class="istickedoff">mappend (Access s1 m1) (Access s2 m2) = Access (mappend s1 s2) (mappend m1 m2)</span></span>
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLiftMany [''Permission, ''Access]</span></span></span></span></span>
+<span class="lineno">  116 </span>
+<span class="lineno">  117 </span>-- | A PublicPolicy represents a set of rules that customize the public viewer role
+<span class="lineno">  118 </span>-- for a given volume. Restricted is the only current policy. It signifies
+<span class="lineno">  119 </span>-- hiding all data, except high level summary information and highlights.
+<span class="lineno">  120 </span>-- The word policy is a reference to the term used in attribute-based access control.
+<span class="lineno">  121 </span>data PublicPolicy = PublicRestrictedPolicy | PublicNoPolicy deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">  122 </span>
+<span class="lineno">  123 </span>-- | A SharedPolicy is the same as PublicPolicy currently, but applied to the shared
+<span class="lineno">  124 </span>-- viewer role.
+<span class="lineno">  125 </span>data SharedPolicy = SharedRestrictedPolicy | SharedNoPolicy deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">  126 </span>
+<span class="lineno">  127 </span>-- | A user's effective access to a given volume.
+<span class="lineno">  128 </span>data VolumeRolePolicy =
+<span class="lineno">  129 </span>    RoleNone
+<span class="lineno">  130 </span>  | RolePublicViewer PublicPolicy
+<span class="lineno">  131 </span>  | RoleSharedViewer SharedPolicy
+<span class="lineno">  132 </span>  | RoleReader
+<span class="lineno">  133 </span>  | RoleEditor
+<span class="lineno">  134 </span>  | RoleAdmin
+<span class="lineno">  135 </span>  deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">  136 </span>
+<span class="lineno">  137 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLift ''PublicPolicy</span></span></span>
+<span class="lineno">  138 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLift ''SharedPolicy</span></span></span>
+<span class="lineno">  139 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLift ''VolumeRolePolicy</span></span></span>
+<span class="lineno">  140 </span>
+<span class="lineno">  141 </span>-- | Transition function used until all call sites take into Policy
+<span class="lineno">  142 </span>-- value into consideration.
+<span class="lineno">  143 </span>extractPermissionIgnorePolicy :: VolumeRolePolicy -&gt; Permission
+<span class="lineno">  144 </span><span class="decl"><span class="istickedoff">extractPermissionIgnorePolicy rp =</span>
+<span class="lineno">  145 </span><span class="spaces">  </span><span class="istickedoff">case rp of</span>
+<span class="lineno">  146 </span><span class="spaces">      </span><span class="istickedoff">RoleNone -&gt; <span class="nottickedoff">PermissionNONE</span></span>
+<span class="lineno">  147 </span><span class="spaces">      </span><span class="istickedoff">RolePublicViewer _ -&gt; PermissionPUBLIC</span>
+<span class="lineno">  148 </span><span class="spaces">      </span><span class="istickedoff">RoleSharedViewer _ -&gt; <span class="nottickedoff">PermissionSHARED</span></span>
+<span class="lineno">  149 </span><span class="spaces">      </span><span class="istickedoff">RoleReader -&gt; <span class="nottickedoff">PermissionREAD</span></span>
+<span class="lineno">  150 </span><span class="spaces">      </span><span class="istickedoff">RoleEditor -&gt; <span class="nottickedoff">PermissionEDIT</span></span>
+<span class="lineno">  151 </span><span class="spaces">      </span><span class="istickedoff">RoleAdmin -&gt; PermissionADMIN</span></span>
+
+</pre>
+</body>
+</html>

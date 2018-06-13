@@ -1,0 +1,113 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Controller.VolumeAccess
+<span class="lineno">    3 </span>  (--  viewVolumeAccess
+<span class="lineno">    4 </span>    postVolumeAccess
+<span class="lineno">    5 </span>  ) where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>-- import Control.Monad.IO.Class (liftIO)
+<span class="lineno">    8 </span>import Control.Monad (when, forM_)
+<span class="lineno">    9 </span>import Data.Function (on)
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>-- import Databrary.Ops
+<span class="lineno">   12 </span>import Databrary.Has
+<span class="lineno">   13 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   14 </span>import Databrary.Model.Id
+<span class="lineno">   15 </span>import Databrary.Model.Permission
+<span class="lineno">   16 </span>import Databrary.Model.Identity
+<span class="lineno">   17 </span>import Databrary.Model.Volume
+<span class="lineno">   18 </span>import Databrary.Model.VolumeAccess
+<span class="lineno">   19 </span>import Databrary.Model.Party
+<span class="lineno">   20 </span>import Databrary.Model.Notification.Types
+<span class="lineno">   21 </span>import Databrary.HTTP.Form (FormDatum(..))
+<span class="lineno">   22 </span>import Databrary.HTTP.Form.Deform
+<span class="lineno">   23 </span>import Databrary.HTTP.Path.Parser
+<span class="lineno">   24 </span>import Databrary.Action
+<span class="lineno">   25 </span>import Databrary.Controller.Paths
+<span class="lineno">   26 </span>import Databrary.Controller.Form
+<span class="lineno">   27 </span>import Databrary.Controller.Volume
+<span class="lineno">   28 </span>import Databrary.Controller.Notification
+<span class="lineno">   29 </span>-- import Databrary.View.VolumeAccess
+<span class="lineno">   30 </span>import Databrary.View.Form (FormHtml)
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>{- obsolete
+<span class="lineno">   33 </span>viewVolumeAccess :: ActionRoute (Id Volume, VolumeAccessTarget)
+<span class="lineno">   34 </span>viewVolumeAccess = action GET (pathHTML &gt;/&gt; pathId &lt;/&gt; pathVolumeAccessTarget) $ \(vi, VolumeAccessTarget ap) -&gt; withAuth $ do
+<span class="lineno">   35 </span>  v &lt;- getVolume PermissionADMIN vi
+<span class="lineno">   36 </span>  a &lt;- maybeAction =&lt;&lt; lookupVolumeAccessParty v ap
+<span class="lineno">   37 </span>  peeks $ blankForm . htmlVolumeAccessForm a
+<span class="lineno">   38 </span>-}
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>postVolumeAccess :: ActionRoute ((Id Volume, VolumeAccessTarget))
+<span class="lineno">   41 </span><span class="decl"><span class="istickedoff">postVolumeAccess = action POST (pathJSON &gt;/&gt; pathId &lt;/&gt; pathVolumeAccessTarget) $ \(vi, VolumeAccessTarget ap) -&gt; withAuth $ do</span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="istickedoff">v &lt;- getVolume (if <span class="tickonlyfalse">ap == partyId (partyRow staffParty)</span> then <span class="nottickedoff">PermissionEDIT</span> else PermissionADMIN) vi</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- maybeAction =&lt;&lt; lookupVolumeAccessParty v ap</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="istickedoff">u &lt;- peek</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="istickedoff">let su = identityAdmin u</span>
+<span class="lineno">   46 </span><span class="spaces">      </span><span class="istickedoff">ru = unId ap &gt; 0</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">a' &lt;- runForm <span class="nottickedoff">(Nothing :: Maybe (RequestContext -&gt; FormHtml a))</span> $ do</span>
+<span class="lineno">   48 </span><span class="spaces">    </span><span class="istickedoff">csrfForm</span>
+<span class="lineno">   49 </span><span class="spaces">    </span><span class="istickedoff">delete &lt;- &quot;delete&quot; .:&gt; deform</span>
+<span class="lineno">   50 </span><span class="spaces">    </span><span class="istickedoff">let del</span>
+<span class="lineno">   51 </span><span class="spaces">          </span><span class="istickedoff">| <span class="tickonlyfalse">delete</span> = <span class="nottickedoff">return PermissionNONE</span></span>
+<span class="lineno">   52 </span><span class="spaces">          </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = deform</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="istickedoff">individual &lt;- &quot;individual&quot; .:&gt; (del</span>
+<span class="lineno">   54 </span><span class="spaces">      </span><span class="istickedoff">&gt;&gt;= deformCheck <span class="nottickedoff">&quot;Cannot share full access.&quot;</span> ((||) ru . (PermissionSHARED &gt;=))</span>
+<span class="lineno">   55 </span><span class="spaces">      </span><span class="istickedoff">&gt;&gt;= deformCheck <span class="nottickedoff">&quot;Cannot remove your ownership.&quot;</span> ((||) (su || not (volumeAccessProvidesADMIN a)) . <span class="nottickedoff">(PermissionADMIN &lt;=)</span>))</span>
+<span class="lineno">   56 </span><span class="spaces">    </span><span class="istickedoff">children &lt;- &quot;children&quot; .:&gt; (del</span>
+<span class="lineno">   57 </span><span class="spaces">      </span><span class="istickedoff">&gt;&gt;= deformCheck <span class="nottickedoff">&quot;Inherited access must not exceed individual.&quot;</span> (individual &gt;=)</span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="istickedoff">&gt;&gt;= deformCheck <span class="nottickedoff">&quot;You are not authorized to share data.&quot;</span> ((||) (ru || accessSite u &gt;= PermissionEDIT) . <span class="nottickedoff">(PermissionNONE ==)</span>))</span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="istickedoff">sort &lt;- &quot;sort&quot; .:&gt; deformNonEmpty <span class="nottickedoff">deform</span></span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="istickedoff">mShareFull &lt;-</span>
+<span class="lineno">   61 </span><span class="spaces">      </span><span class="istickedoff">if <span class="tickonlyfalse">(ap, individual) `elem` [(getPartyId nobodyParty, PermissionPUBLIC), (getPartyId rootParty, <span class="nottickedoff">PermissionSHARED</span>)]</span></span>
+<span class="lineno">   62 </span><span class="spaces">      </span><span class="istickedoff">then <span class="nottickedoff">do</span></span>
+<span class="lineno">   63 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">_ &lt;- &quot;share_full&quot; .:&gt; (deformCheck &quot;Required&quot; (not . (== FormDatumNone)) =&lt;&lt; deform) -- convulated way of requiring</span></span>
+<span class="lineno">   64 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">Just &lt;$&gt; (&quot;share_full&quot; .:&gt; deform)</span></span>
+<span class="lineno">   65 </span><span class="spaces">      </span><span class="istickedoff">else pure Nothing </span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="istickedoff">return a</span>
+<span class="lineno">   67 </span><span class="spaces">      </span><span class="istickedoff">{ volumeAccessIndividual = individual</span>
+<span class="lineno">   68 </span><span class="spaces">      </span><span class="istickedoff">, volumeAccessChildren = children</span>
+<span class="lineno">   69 </span><span class="spaces">      </span><span class="istickedoff">, volumeAccessSort = sort</span>
+<span class="lineno">   70 </span><span class="spaces">      </span><span class="istickedoff">, volumeAccessShareFull = mShareFull</span>
+<span class="lineno">   71 </span><span class="spaces">      </span><span class="istickedoff">}</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="istickedoff">-- liftIO $ print (&quot;vol access full&quot;, volumeAccessShareFull a')</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- changeVolumeAccess a'</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="istickedoff">if <span class="tickonlyfalse">ap == partyId (partyRow rootParty) &amp;&amp; <span class="nottickedoff">on (/=) volumeAccessChildren a' a</span></span></span>
+<span class="lineno">   75 </span><span class="spaces">    </span><span class="istickedoff">then <span class="nottickedoff">do</span></span>
+<span class="lineno">   76 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">createVolumeNotification v $ \n -&gt; (n NoticeVolumeSharing)</span></span>
+<span class="lineno">   77 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">{ notificationPermission = Just $ volumeAccessChildren a'</span></span>
+<span class="lineno">   78 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">}</span></span>
+<span class="lineno">   79 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">broadcastNotification (volumeAccessChildren a' &gt;= PermissionSHARED) $ \n -&gt; (n NoticeSharedVolume)</span></span>
+<span class="lineno">   80 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">{ notificationVolume = Just $ volumeRow v</span></span>
+<span class="lineno">   81 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">}</span></span>
+<span class="lineno">   82 </span><span class="spaces">    </span><span class="istickedoff">else when (ru &amp;&amp; <span class="nottickedoff">on (/=) volumeAccessIndividual a' a</span>) $ <span class="nottickedoff">do</span></span>
+<span class="lineno">   83 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">createVolumeNotification v $ \n -&gt; (n NoticeVolumeAccessOther)</span></span>
+<span class="lineno">   84 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">{ notificationParty = Just $ partyRow $ volumeAccessParty a'</span></span>
+<span class="lineno">   85 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">, notificationPermission = Just $ volumeAccessIndividual a'</span></span>
+<span class="lineno">   86 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">}</span></span>
+<span class="lineno">   87 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">when (ap /= view u) $ forM_ (partyAccount (volumeAccessParty a')) $ \t -&gt;</span></span>
+<span class="lineno">   88 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">createNotification (blankNotification t NoticeVolumeAccess)</span></span>
+<span class="lineno">   89 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">{ notificationVolume = Just $ volumeRow v</span></span>
+<span class="lineno">   90 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">, notificationPermission = Just $ volumeAccessIndividual a'</span></span>
+<span class="lineno">   91 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">}</span></span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="istickedoff">return $ okResponse [] $ JSON.pairs $ volumeAccessPartyJSON (if <span class="tickonlytrue">r</span> then a' else <span class="nottickedoff">a</span>)</span></span>
+<span class="lineno">   93 </span>  -- HTML -&gt; peeks $ otherRouteResponse [] viewVolumeAccess arg
+
+</pre>
+</body>
+</html>

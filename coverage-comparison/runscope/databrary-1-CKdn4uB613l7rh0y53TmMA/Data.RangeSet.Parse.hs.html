@@ -1,0 +1,71 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+<span class="lineno">    2 </span>module Data.RangeSet.Parse
+<span class="lineno">    3 </span>  ( showRangeSet
+<span class="lineno">    4 </span>  , parseRangeSet
+<span class="lineno">    5 </span>  ) where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import Control.Applicative (optional)
+<span class="lineno">    8 </span>import Data.Maybe (fromMaybe)
+<span class="lineno">    9 </span>import qualified Data.RangeSet.List as R
+<span class="lineno">   10 </span>import qualified Text.ParserCombinators.ReadP as RP
+<span class="lineno">   11 </span>import qualified Text.ParserCombinators.ReadPrec as RP (lift, readPrec_to_P, minPrec)
+<span class="lineno">   12 </span>import Text.Read (readMaybe, readPrec)
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>newtype RangeList a = RangeList { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unRangeList</span></span></span> :: [(a,a)] } deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid</span></span></span></span></span></span>)
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>rangeSetList :: R.RSet a -&gt; RangeList a
+<span class="lineno">   17 </span><span class="decl"><span class="nottickedoff">rangeSetList = RangeList . R.toRangeList</span></span>
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>rangeListSet :: (Ord a, Enum a) =&gt; RangeList a -&gt; R.RSet a
+<span class="lineno">   20 </span><span class="decl"><span class="nottickedoff">rangeListSet = R.fromRangeList . unRangeList</span></span>
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>instance (Show a, Eq a, Bounded a) =&gt; Show (RangeList a) where
+<span class="lineno">   23 </span>  <span class="decl"><span class="nottickedoff">showsPrec _ = sl . unRangeList where</span>
+<span class="lineno">   24 </span><span class="spaces">    </span><span class="nottickedoff">sl [] = id</span>
+<span class="lineno">   25 </span><span class="spaces">    </span><span class="nottickedoff">sl [r] = sr r</span>
+<span class="lineno">   26 </span><span class="spaces">    </span><span class="nottickedoff">sl (r:l) = sr r . showChar ',' . sl l</span>
+<span class="lineno">   27 </span><span class="spaces">    </span><span class="nottickedoff">sr (a,b)</span>
+<span class="lineno">   28 </span><span class="spaces">      </span><span class="nottickedoff">| a == b = shows a</span>
+<span class="lineno">   29 </span><span class="spaces">      </span><span class="nottickedoff">| otherwise = (if a == minBound then id else shows a)</span>
+<span class="lineno">   30 </span><span class="spaces">        </span><span class="nottickedoff">. showChar '-' .</span>
+<span class="lineno">   31 </span><span class="spaces">        </span><span class="nottickedoff">(if b == maxBound then id else shows b)</span></span>
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>showRangeSet :: (Show a, Eq a, Bounded a) =&gt; R.RSet a -&gt; String
+<span class="lineno">   34 </span><span class="decl"><span class="nottickedoff">showRangeSet = show . rangeSetList</span></span>
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>readP :: Read a =&gt; RP.ReadP a
+<span class="lineno">   37 </span><span class="decl"><span class="nottickedoff">readP = RP.readPrec_to_P readPrec RP.minPrec</span></span>
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>instance (Read a, Bounded a) =&gt; Read (RangeList a) where
+<span class="lineno">   40 </span>  <span class="decl"><span class="nottickedoff">readPrec = RP.lift $ RangeList &lt;$&gt; RP.sepBy rr (RP.char ',') where</span>
+<span class="lineno">   41 </span><span class="spaces">    </span><span class="nottickedoff">ru = do</span>
+<span class="lineno">   42 </span><span class="spaces">      </span><span class="nottickedoff">_ &lt;- RP.char '-'</span>
+<span class="lineno">   43 </span><span class="spaces">      </span><span class="nottickedoff">RP.option maxBound readP</span>
+<span class="lineno">   44 </span><span class="spaces">    </span><span class="nottickedoff">rr = do</span>
+<span class="lineno">   45 </span><span class="spaces">      </span><span class="nottickedoff">l &lt;- optional readP</span>
+<span class="lineno">   46 </span><span class="spaces">      </span><span class="nottickedoff">let lb = fromMaybe minBound l</span>
+<span class="lineno">   47 </span><span class="spaces">      </span><span class="nottickedoff">ub &lt;- maybe ru (`RP.option` ru) l</span>
+<span class="lineno">   48 </span><span class="spaces">      </span><span class="nottickedoff">return (lb, ub)</span></span>
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>parseRangeSet :: (Ord a, Enum a, Bounded a, Read a) =&gt; String -&gt; Maybe (R.RSet a)
+<span class="lineno">   51 </span><span class="decl"><span class="nottickedoff">parseRangeSet = fmap rangeListSet . readMaybe</span></span>
+
+</pre>
+</body>
+</html>

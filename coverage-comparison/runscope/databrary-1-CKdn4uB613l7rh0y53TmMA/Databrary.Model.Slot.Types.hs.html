@@ -1,0 +1,95 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies #-}
+<span class="lineno">    2 </span>module Databrary.Model.Slot.Types
+<span class="lineno">    3 </span>  ( SlotId(..)
+<span class="lineno">    4 </span>  , Slot(..)
+<span class="lineno">    5 </span>  , slotId
+<span class="lineno">    6 </span>  , containerSlotId
+<span class="lineno">    7 </span>  , containerSlot
+<span class="lineno">    8 </span>  , getSlotReleaseMaybe
+<span class="lineno">    9 </span>  ) where
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import Databrary.Has (Has(..))
+<span class="lineno">   12 </span>import Databrary.Model.Id
+<span class="lineno">   13 </span>import Databrary.Model.Kind
+<span class="lineno">   14 </span>import Databrary.Model.Segment
+<span class="lineno">   15 </span>import Databrary.Model.Container.Types
+<span class="lineno">   16 </span>import Databrary.Model.Permission.Types
+<span class="lineno">   17 </span>import Databrary.Model.Release.Types
+<span class="lineno">   18 </span>import Databrary.Model.Volume.Types
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>data SlotId = SlotId
+<span class="lineno">   21 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">slotContainerId</span></span></span> :: !(Id Container)
+<span class="lineno">   22 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">slotSegmentId</span></span></span> :: !Segment
+<span class="lineno">   23 </span>  } deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>)
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>type instance IdType Slot = SlotId
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>containerSlotId :: Id Container -&gt; Id Slot
+<span class="lineno">   28 </span><span class="decl"><span class="nottickedoff">containerSlotId c = Id $ SlotId c fullSegment</span></span>
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>data Slot = Slot
+<span class="lineno">   31 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">slotContainer</span></span></span> :: !Container
+<span class="lineno">   32 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">slotSegment</span></span></span> :: !Segment
+<span class="lineno">   33 </span>  }
+<span class="lineno">   34 </span>instance Show Slot where 
+<span class="lineno">   35 </span>  <span class="decl"><span class="istickedoff">show _ = &quot;Slot&quot;</span></span>
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>slotId :: Slot -&gt; Id Slot
+<span class="lineno">   38 </span><span class="decl"><span class="nottickedoff">slotId (Slot c s) = Id $ SlotId (containerId (containerRow c)) s</span></span>
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>containerSlot :: Container -&gt; Slot
+<span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">containerSlot c = Slot c fullSegment</span></span>
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>instance Kinded Slot where
+<span class="lineno">   44 </span>  <span class="decl"><span class="istickedoff">kindOf _ = &quot;slot&quot;</span></span>
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>-- makeHasRec ''SlotId ['slotContainerId, 'slotSegmentId]
+<span class="lineno">   47 </span>-- makeHasRec ''Slot ['slotContainer, 'slotSegment]
+<span class="lineno">   48 </span>-- instance Has (Id Container) SlotId where
+<span class="lineno">   49 </span>--   view = slotContainerId
+<span class="lineno">   50 </span>-- instance Has Segment SlotId where
+<span class="lineno">   51 </span>--   view = slotSegmentId
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>instance Has Container Slot where
+<span class="lineno">   54 </span>  <span class="decl"><span class="nottickedoff">view = slotContainer</span></span>
+<span class="lineno">   55 </span>-- instance Has Databrary.Model.Volume.Types.VolumeRow Slot where
+<span class="lineno">   56 </span>--   view = (view . slotContainer)
+<span class="lineno">   57 </span>instance Has (Id Databrary.Model.Volume.Types.Volume) Slot where
+<span class="lineno">   58 </span>  <span class="decl"><span class="nottickedoff">view = (view . slotContainer)</span></span>
+<span class="lineno">   59 </span>instance Has Databrary.Model.Permission.Types.Permission Slot where
+<span class="lineno">   60 </span>  <span class="decl"><span class="nottickedoff">view = (view . slotContainer)</span></span>
+<span class="lineno">   61 </span>instance Has Databrary.Model.Volume.Types.Volume Slot where
+<span class="lineno">   62 </span>  <span class="decl"><span class="nottickedoff">view = (view . slotContainer)</span></span>
+<span class="lineno">   63 </span>-- instance Has Databrary.Model.Release.Types.Release Slot where
+<span class="lineno">   64 </span>--   view = (view . slotContainer)
+<span class="lineno">   65 </span>instance Has (Maybe Databrary.Model.Release.Types.Release) Slot where
+<span class="lineno">   66 </span>  <span class="decl"><span class="nottickedoff">view = (view . slotContainer)</span></span>
+<span class="lineno">   67 </span>instance Has (Id Container) Slot where
+<span class="lineno">   68 </span>  <span class="decl"><span class="nottickedoff">view = (view . slotContainer)</span></span>
+<span class="lineno">   69 </span>-- instance Has ContainerRow Slot where
+<span class="lineno">   70 </span>--   view = (view . slotContainer)
+<span class="lineno">   71 </span>instance Has Segment Slot where
+<span class="lineno">   72 </span>  <span class="decl"><span class="nottickedoff">view = slotSegment</span></span>
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>getSlotReleaseMaybe :: Slot -&gt; Maybe Release
+<span class="lineno">   75 </span><span class="decl"><span class="nottickedoff">getSlotReleaseMaybe = containerRelease . slotContainer</span></span>
+
+</pre>
+</body>
+</html>

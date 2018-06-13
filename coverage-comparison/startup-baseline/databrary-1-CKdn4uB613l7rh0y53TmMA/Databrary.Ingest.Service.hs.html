@@ -1,0 +1,44 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>module Databrary.Ingest.Service
+<span class="lineno">    2 </span>  ( IngestStatus(..)
+<span class="lineno">    3 </span>  , Ingest(..)
+<span class="lineno">    4 </span>  , initIngest
+<span class="lineno">    5 </span>  ) where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import Control.Concurrent (ThreadId)
+<span class="lineno">    8 </span>import Control.Concurrent.MVar (MVar, newMVar)
+<span class="lineno">    9 </span>import Data.Int (Int32)
+<span class="lineno">   10 </span>import qualified Data.Text as T
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>data IngestStatus
+<span class="lineno">   13 </span>  = IngestInactive
+<span class="lineno">   14 </span>  | IngestActive ThreadId
+<span class="lineno">   15 </span>  | IngestCompleted [Int32]
+<span class="lineno">   16 </span>  | IngestFailed [T.Text]
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>newtype Ingest = Ingest
+<span class="lineno">   19 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">ingestStatus</span></span></span> :: MVar IngestStatus
+<span class="lineno">   20 </span>  }
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>initIngest :: IO Ingest
+<span class="lineno">   23 </span><span class="decl"><span class="istickedoff">initIngest = Ingest &lt;$&gt; newMVar <span class="nottickedoff">IngestInactive</span></span></span>
+<span class="lineno">   24 </span>
+
+</pre>
+</body>
+</html>

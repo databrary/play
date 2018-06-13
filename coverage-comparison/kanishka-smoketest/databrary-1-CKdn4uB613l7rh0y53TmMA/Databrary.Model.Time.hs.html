@@ -1,0 +1,81 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    2 </span>{-# OPTIONS_GHC -fno-warn-orphans #-}
+<span class="lineno">    3 </span>module Databrary.Model.Time
+<span class="lineno">    4 </span>  ( Date
+<span class="lineno">    5 </span>  , Timestamp
+<span class="lineno">    6 </span>  , dateYear
+<span class="lineno">    7 </span>  , MaskedDate
+<span class="lineno">    8 </span>  , maskDateIf
+<span class="lineno">    9 </span>  , maskedYear
+<span class="lineno">   10 </span>  ) where
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import qualified Data.Aeson as JSON
+<span class="lineno">   13 </span>import Data.Fixed (Fixed(..))
+<span class="lineno">   14 </span>import Data.Time (Day(..), UTCTime(..), DiffTime, toGregorian, fromGregorian)
+<span class="lineno">   15 </span>import Data.Time.Format (FormatTime(..), formatTime, dateFmt)
+<span class="lineno">   16 </span>import Language.Haskell.TH.Lift (deriveLiftMany)
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>-- | Synomym for a Day
+<span class="lineno">   19 </span>type Date = Day
+<span class="lineno">   20 </span>-- | Synonym for a UTCTime
+<span class="lineno">   21 </span>type Timestamp = UTCTime
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLiftMany [''Fixed, ''DiffTime, ''Day, ''UTCTime]</span></span></span></span></span></span></span></span></span>
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>data MaskedDate
+<span class="lineno">   26 </span>  = MaskedDate !Int
+<span class="lineno">   27 </span>  | UnmaskedDate !Date
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>-- | Extract year part of a date value
+<span class="lineno">   30 </span>dateYear :: Date -&gt; Int
+<span class="lineno">   31 </span><span class="decl"><span class="nottickedoff">dateYear d = fromInteger y where (y,_,_) = toGregorian d</span></span>
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>-- | Mask a date value by only keeping the year portion
+<span class="lineno">   34 </span>maskDate :: Date -&gt; MaskedDate
+<span class="lineno">   35 </span><span class="decl"><span class="nottickedoff">maskDate = MaskedDate . dateYear</span></span>
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>-- | Lift a raw date value into a MaskedDate (either actually masked or unmasked)
+<span class="lineno">   38 </span>maskDateIf :: Bool -&gt; Date -&gt; MaskedDate
+<span class="lineno">   39 </span><span class="decl"><span class="istickedoff">maskDateIf True = <span class="nottickedoff">maskDate</span></span>
+<span class="lineno">   40 </span><span class="spaces"></span><span class="istickedoff">maskDateIf False = UnmaskedDate</span></span>
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>-- | Extract year from a potentially masked date value
+<span class="lineno">   43 </span>maskedYear :: MaskedDate -&gt; Int
+<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">maskedYear (MaskedDate y) = y</span>
+<span class="lineno">   45 </span><span class="spaces"></span><span class="nottickedoff">maskedYear (UnmaskedDate d) = dateYear d</span></span>
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>-- | Provide behavior to hook into general date formatting utilities
+<span class="lineno">   48 </span>instance FormatTime MaskedDate where
+<span class="lineno">   49 </span>  <span class="decl"><span class="istickedoff">formatCharacter 'D' = <span class="nottickedoff">Just (\locale _ -&gt; formatTime locale &quot;%m/%d/%y&quot;)</span></span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="istickedoff">formatCharacter 'F' = <span class="nottickedoff">Just (\locale _ -&gt; formatTime locale &quot;%Y-%m-%d&quot;)</span></span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff">formatCharacter 'x' = <span class="nottickedoff">Just (\locale _ -&gt; formatTime locale (dateFmt locale))</span></span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="istickedoff">formatCharacter c = f &lt;$&gt; formatCharacter c where</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="istickedoff">f g l o (UnmaskedDate d) = g <span class="nottickedoff">l</span> o d</span>
+<span class="lineno">   54 </span><span class="spaces">    </span><span class="istickedoff">f g l o (MaskedDate y)</span>
+<span class="lineno">   55 </span><span class="spaces">      </span><span class="istickedoff">| <span class="nottickedoff">c `elem` &quot;YyCGgf&quot;</span> = <span class="nottickedoff">r</span></span>
+<span class="lineno">   56 </span><span class="spaces">      </span><span class="istickedoff">| <span class="nottickedoff">otherwise</span> = <span class="nottickedoff">map (const 'X') r</span></span>
+<span class="lineno">   57 </span><span class="spaces">      </span><span class="istickedoff">where <span class="nottickedoff">r = g l o $ fromGregorian (toInteger y) 11 21</span></span></span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>instance JSON.ToJSON MaskedDate where
+<span class="lineno">   60 </span>  <span class="decl"><span class="nottickedoff">toJSON (MaskedDate y) = JSON.toJSON y</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">toJSON (UnmaskedDate d) = JSON.toJSON d</span></span>
+
+</pre>
+</body>
+</html>
