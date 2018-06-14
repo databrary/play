@@ -53,6 +53,7 @@ import Databrary.Model.AssetRevision
 import Databrary.Model.Transcode
 import Databrary.Model.Notification
 import Databrary.Files hiding ((</>))
+import Databrary.Store.AV (AV)
 import Databrary.Store.Types
 import Databrary.Store.Asset
 import Databrary.Store.Upload
@@ -165,7 +166,7 @@ data FileUpload = FileUpload
 deformLookup :: (Monad m, Deform f a) => FormErrorMessage -> (a -> m (Maybe b)) -> DeformT f m (Maybe b)
 deformLookup e l = mapM (deformMaybe' e <=< lift . l) =<< deformNonEmpty deform
 
-detectUpload :: FileUploadFile -> DeformHandler TempFile FileUpload
+detectUpload :: (MonadHas AV c m, MonadStorage c m) => FileUploadFile -> DeformT TempFile m FileUpload
 detectUpload u = do
   liftIO $ print "detectUpload..."
   either deformError' (return . FileUpload u)
