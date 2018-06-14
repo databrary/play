@@ -30,7 +30,9 @@ import Databrary.Model.Record.Types
 -- import Databrary.Model.Release.Types
 import Databrary.Model.Slot.Types
 import Databrary.Model.Time
-import Databrary.Model.TypeOrphans ()
+import Databrary.Model.Transcode
+import Databrary.Model.TypeOrphans
+import Databrary.Model.Slot.Types
 import Databrary.Model.Volume.Types
 import Databrary.Model.VolumeAccess.Types
 
@@ -345,6 +347,9 @@ genCreateSlotAssetAfterUpload _ _ = do  -- modeled after processAsset (AssetTarg
     -- 
     pure undefined
 
+-- mkTranscodeFromInputAsset :: Asset -> a -> Transcode
+-- mkTranscodeFromInputAsset orig probe =
+--     undefined
 -- transcode
 ---- genCreateTranscode :: Asset -> ...
 -- probe <- fileuploadprobe upfile
@@ -354,12 +359,6 @@ genCreateSlotAssetAfterUpload _ _ = do  -- modeled after processAsset (AssetTarg
 --    defaultTranscodeOptions
 --    probe
 -- starttranscode trans
---      update trans
---      find matching
---        if nothing
---           ctlTranscode
---           on complete, update transcode
---           uses run transcode
 
 -- the script eventually uses postback to remoteTranscode (during tests, ignore postback, but simulate its actions)
 --    lookupTranscode
