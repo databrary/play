@@ -1,0 +1,58 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">    2 </span>module Databrary.Controller.Metric
+<span class="lineno">    3 </span>  ( postVolumeMetric
+<span class="lineno">    4 </span>  , deleteVolumeMetric
+<span class="lineno">    5 </span>  ) where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import Control.Invertible.Monoidal ((&gt;|&lt;))
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   10 </span>import Databrary.Model.Id
+<span class="lineno">   11 </span>import Databrary.Model.Permission
+<span class="lineno">   12 </span>import Databrary.Model.Volume
+<span class="lineno">   13 </span>import Databrary.Model.Category
+<span class="lineno">   14 </span>import Databrary.Model.Metric
+<span class="lineno">   15 </span>import Databrary.Model.VolumeMetric
+<span class="lineno">   16 </span>import Databrary.HTTP.Path.Parser
+<span class="lineno">   17 </span>import Databrary.Action.Route
+<span class="lineno">   18 </span>import Databrary.Action
+<span class="lineno">   19 </span>import Databrary.Controller.Paths
+<span class="lineno">   20 </span>import Databrary.Controller.Volume
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>postVolumeMetric :: ActionRoute (Id Volume, Either (Id Category) (Id Metric))
+<span class="lineno">   23 </span><span class="decl"><span class="istickedoff">postVolumeMetric = action PUT (pathJSON &gt;/&gt; pathId &lt;/&gt; (pathId &gt;|&lt; pathId)) $ \(vi, cm) -&gt; withAuth $ do</span>
+<span class="lineno">   24 </span><span class="spaces">  </span><span class="istickedoff">v &lt;- getVolume PermissionEDIT vi</span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="istickedoff">(addedMetrics :: [Id Metric]) &lt;-</span>
+<span class="lineno">   26 </span><span class="spaces">      </span><span class="istickedoff">either</span>
+<span class="lineno">   27 </span><span class="spaces">          </span><span class="istickedoff">(\catId -&gt; addVolumeCategory v catId)</span>
+<span class="lineno">   28 </span><span class="spaces">          </span><span class="istickedoff">(\metricId' -&gt; do</span>
+<span class="lineno">   29 </span><span class="spaces">              </span><span class="istickedoff">metricAdded &lt;- addVolumeMetric v metricId'</span>
+<span class="lineno">   30 </span><span class="spaces">              </span><span class="istickedoff">return $ if <span class="tickonlytrue">metricAdded</span> then [metricId'] else <span class="nottickedoff">[]</span>)</span>
+<span class="lineno">   31 </span><span class="spaces">          </span><span class="istickedoff">cm</span>
+<span class="lineno">   32 </span><span class="spaces">  </span><span class="istickedoff">return $ okResponse [] $ JSON.toEncoding addedMetrics</span></span>
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>deleteVolumeMetric :: ActionRoute (Id Volume, Either (Id Category) (Id Metric))
+<span class="lineno">   35 </span><span class="decl"><span class="istickedoff">deleteVolumeMetric = action DELETE (pathJSON &gt;/&gt; pathId &lt;/&gt; (pathId &gt;|&lt; pathId)) $ \(vi, cm) -&gt; withAuth $ do</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="istickedoff">v &lt;- getVolume PermissionEDIT vi</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- either <span class="nottickedoff">(removeVolumeCategory v)</span> (fmap fromEnum . removeVolumeMetric v) cm</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="istickedoff">return $ okResponse [] $ JSON.toEncoding r</span></span>
+
+</pre>
+</body>
+</html>

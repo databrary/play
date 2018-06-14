@@ -1,0 +1,146 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TypeOperators #-}
+<span class="lineno">    2 </span>module Databrary.Controller.Paths
+<span class="lineno">    3 </span>  ( pathId
+<span class="lineno">    4 </span>  , PartyTarget(..)
+<span class="lineno">    5 </span>  , pathPartyTarget
+<span class="lineno">    6 </span>  , AuthorizeTarget(..)
+<span class="lineno">    7 </span>  , pathAuthorizeTarget
+<span class="lineno">    8 </span>  , VolumeAccessTarget(..)
+<span class="lineno">    9 </span>  , pathVolumeAccessTarget
+<span class="lineno">   10 </span>  , pathSegment
+<span class="lineno">   11 </span>  , pathSlotId
+<span class="lineno">   12 </span>  , TagId(..)
+<span class="lineno">   13 </span>  , pathTagId
+<span class="lineno">   14 </span>  ) where
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import qualified Data.Invertible as I
+<span class="lineno">   17 </span>import Data.String (fromString)
+<span class="lineno">   18 </span>import qualified Web.Route.Invertible as R
+<span class="lineno">   19 </span>import Web.Route.Invertible (Parameter, PathString)
+<span class="lineno">   20 </span>-- import Servant
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>import Databrary.Model.Kind
+<span class="lineno">   23 </span>import Databrary.Model.Id.Types
+<span class="lineno">   24 </span>import Databrary.Model.Party.Types
+<span class="lineno">   25 </span>import Databrary.Model.Container.Types
+<span class="lineno">   26 </span>import Databrary.Model.Segment
+<span class="lineno">   27 </span>import Databrary.Model.Slot.Types
+<span class="lineno">   28 </span>import Databrary.Model.Tag.Types
+<span class="lineno">   29 </span>-- import Databrary.HTTP.Path
+<span class="lineno">   30 </span>import Databrary.HTTP.Path.Parser
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>type PathParameter = Parameter PathString
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>idIso :: IdType a I.&lt;-&gt; Id a
+<span class="lineno">   35 </span><span class="decl"><span class="istickedoff">idIso = -- [I.biCase|a &lt;-&gt; Id a|]</span>
+<span class="lineno">   36 </span><span class="spaces">    </span><span class="istickedoff">((\a      -&gt; Id a)</span>
+<span class="lineno">   37 </span><span class="spaces">     </span><span class="istickedoff">R.:&lt;-&gt;:</span>
+<span class="lineno">   38 </span><span class="spaces">     </span><span class="istickedoff">(\(Id a) -&gt; a))</span></span>
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>pathIdWith :: forall a . (Kinded a) =&gt; PathParser (IdType a) -&gt; PathParser (Id a)
+<span class="lineno">   41 </span><span class="decl"><span class="istickedoff">pathIdWith p = fromString (kindOf <span class="nottickedoff">(undefined :: a)</span>) &gt;/&gt; idIso &gt;$&lt; p</span></span>
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>pathId :: forall a . (PathParameter (IdType a), Kinded a) =&gt; PathParser (Id a)
+<span class="lineno">   44 </span><span class="decl"><span class="istickedoff">pathId = pathIdWith R.parameter</span></span>
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>-- | The target party for some action?
+<span class="lineno">   47 </span>data PartyTarget
+<span class="lineno">   48 </span>  = TargetProfile -- ^ Actor's own party
+<span class="lineno">   49 </span>  | TargetParty (Id Party) -- ^ Someone else's party
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>-- | Typical examples of pathPartyTarget:
+<span class="lineno">   52 </span>-- /profile becomes TargetProfile
+<span class="lineno">   53 </span>-- /party/10 becomes TargetParty (Id 10)
+<span class="lineno">   54 </span>pathPartyTarget :: R.Path PartyTarget
+<span class="lineno">   55 </span><span class="decl"><span class="istickedoff">pathPartyTarget = -- [I.biCase|</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="istickedoff">--   Left () &lt;-&gt; TargetProfile</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="istickedoff">--   Right i &lt;-&gt; TargetParty i</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="istickedoff">--  |]</span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="istickedoff">((\p -&gt; case p of</span>
+<span class="lineno">   60 </span><span class="spaces">        </span><span class="istickedoff">Left ()       -&gt; TargetProfile</span>
+<span class="lineno">   61 </span><span class="spaces">        </span><span class="istickedoff">Right i       -&gt; TargetParty i)</span>
+<span class="lineno">   62 </span><span class="spaces">     </span><span class="istickedoff">R.:&lt;-&gt;:</span>
+<span class="lineno">   63 </span><span class="spaces">     </span><span class="istickedoff">(\r -&gt; case r of</span>
+<span class="lineno">   64 </span><span class="spaces">        </span><span class="istickedoff">TargetProfile -&gt; Left ()</span>
+<span class="lineno">   65 </span><span class="spaces">        </span><span class="istickedoff">TargetParty i -&gt; <span class="nottickedoff">Right i</span>))</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="istickedoff">&gt;$&lt; (&quot;profile&quot; |/| pathId)</span></span>
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>-- | This is a trailing part of connection between two parties. For a given party, the second
+<span class="lineno">   69 </span>-- party mentioned as the target here is either the parent that the child is applying to such as
+<span class="lineno">   70 </span>-- ((TargetParty currentUserAsChildId), (AuthorizeTarget True parentId))
+<span class="lineno">   71 </span>-- or the child that the parent has authorized
+<span class="lineno">   72 </span>-- ((TargetParty currentUserAsParentId), (AuthorizeTarget False childId))
+<span class="lineno">   73 </span>data AuthorizeTarget = AuthorizeTarget
+<span class="lineno">   74 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">authorizeApply</span></span></span> :: Bool -- ^ Whether this authorize action is referring to applying from a child to a parent
+<span class="lineno">   75 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">authorizeTarget</span></span></span> :: Id Party
+<span class="lineno">   76 </span>  }
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>pathAuthorizeTarget :: PathParser AuthorizeTarget
+<span class="lineno">   79 </span><span class="decl"><span class="istickedoff">pathAuthorizeTarget = -- [I.biCase|(a, t) &lt;-&gt; AuthorizeTarget a t|]</span>
+<span class="lineno">   80 </span><span class="spaces">  </span><span class="istickedoff">((\(a, t)                -&gt; AuthorizeTarget a t)</span>
+<span class="lineno">   81 </span><span class="spaces">   </span><span class="istickedoff">R.:&lt;-&gt;:</span>
+<span class="lineno">   82 </span><span class="spaces">   </span><span class="istickedoff"><span class="nottickedoff">(\(AuthorizeTarget a t) -&gt; (a, t))</span>)</span>
+<span class="lineno">   83 </span><span class="spaces">    </span><span class="istickedoff">&gt;$&lt;</span>
+<span class="lineno">   84 </span><span class="spaces">      </span><span class="istickedoff">(I.isRight &gt;$&lt; (&quot;authorize&quot; |/| &quot;apply&quot;)</span>
+<span class="lineno">   85 </span><span class="spaces">       </span><span class="istickedoff">&lt;/&gt; idIso &gt;$&lt; R.parameter)</span></span>
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>newtype VolumeAccessTarget = VolumeAccessTarget
+<span class="lineno">   88 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">volumeAccessTarget</span></span></span> :: Id Party
+<span class="lineno">   89 </span>  }
+<span class="lineno">   90 </span>
+<span class="lineno">   91 </span>pathVolumeAccessTarget :: PathParser VolumeAccessTarget
+<span class="lineno">   92 </span><span class="decl"><span class="istickedoff">pathVolumeAccessTarget =</span>
+<span class="lineno">   93 </span><span class="spaces">  </span><span class="istickedoff">&quot;access&quot;</span>
+<span class="lineno">   94 </span><span class="spaces">  </span><span class="istickedoff">&gt;/&gt; -- [I.biCase|i &lt;-&gt; VolumeAccessTarget (Id i)|]</span>
+<span class="lineno">   95 </span><span class="spaces">    </span><span class="istickedoff">((\i                           -&gt; VolumeAccessTarget (Id i))</span>
+<span class="lineno">   96 </span><span class="spaces">     </span><span class="istickedoff">R.:&lt;-&gt;:</span>
+<span class="lineno">   97 </span><span class="spaces">     </span><span class="istickedoff"><span class="nottickedoff">(\(VolumeAccessTarget (Id i)) -&gt; i)</span>)</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="istickedoff">&gt;$&lt; R.parameter</span></span>
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>slotIdIso :: (Id Container, Segment) I.&lt;-&gt; SlotId
+<span class="lineno">  101 </span><span class="decl"><span class="istickedoff">slotIdIso = -- [I.biCase|(c, s) &lt;-&gt; SlotId c s|]</span>
+<span class="lineno">  102 </span><span class="spaces">    </span><span class="istickedoff">((\(c, s)       -&gt; SlotId c s)</span>
+<span class="lineno">  103 </span><span class="spaces">     </span><span class="istickedoff">R.:&lt;-&gt;:</span>
+<span class="lineno">  104 </span><span class="spaces">     </span><span class="istickedoff">(\(SlotId c s) -&gt; (c, s)))</span></span>
+<span class="lineno">  105 </span>
+<span class="lineno">  106 </span>pathSegment :: PathParser Segment
+<span class="lineno">  107 </span><span class="decl"><span class="istickedoff">pathSegment = fullSegment =/= R.parameter</span></span>
+<span class="lineno">  108 </span>
+<span class="lineno">  109 </span>pathSlot :: PathParser SlotId
+<span class="lineno">  110 </span><span class="decl"><span class="istickedoff">pathSlot = slotIdIso &gt;$&lt; (idIso &gt;$&lt; R.parameter &lt;/&gt; pathSegment)</span></span>
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span>pathSlotId :: PathParser (Id Slot)
+<span class="lineno">  113 </span><span class="decl"><span class="istickedoff">pathSlotId = pathIdWith pathSlot</span></span>
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span>data TagId = TagId
+<span class="lineno">  116 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tagIdKeyword</span></span></span> :: Bool
+<span class="lineno">  117 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tagIdName</span></span></span> :: TagName
+<span class="lineno">  118 </span>  }
+<span class="lineno">  119 </span>
+<span class="lineno">  120 </span>pathTagId :: PathParser TagId
+<span class="lineno">  121 </span><span class="decl"><span class="istickedoff">pathTagId = -- [I.biCase|(b, t) &lt;-&gt; TagId b t|]</span>
+<span class="lineno">  122 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">((\(b, t)      -&gt; TagId b t)</span></span>
+<span class="lineno">  123 </span><span class="spaces">   </span><span class="istickedoff"><span class="nottickedoff">R.:&lt;-&gt;:</span></span>
+<span class="lineno">  124 </span><span class="spaces">   </span><span class="istickedoff"><span class="nottickedoff">(\(TagId b t) -&gt; (b, t)))</span></span>
+<span class="lineno">  125 </span><span class="spaces">  </span><span class="istickedoff">&gt;$&lt;</span>
+<span class="lineno">  126 </span><span class="spaces">  </span><span class="istickedoff">(<span class="nottickedoff">I.isRight</span> &gt;$&lt; (&quot;tag&quot; |/| &quot;keyword&quot;) &lt;/&gt; R.parameter)</span></span>
+
+</pre>
+</body>
+</html>

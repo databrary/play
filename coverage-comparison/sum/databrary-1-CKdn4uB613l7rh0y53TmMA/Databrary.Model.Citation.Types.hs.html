@@ -1,0 +1,64 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
+<span class="lineno">    2 </span>module Databrary.Model.Citation.Types
+<span class="lineno">    3 </span>  ( Citation(..)
+<span class="lineno">    4 </span>  ) where
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>import Control.Applicative ((&lt;|&gt;))
+<span class="lineno">    7 </span>import Data.Int (Int16)
+<span class="lineno">    8 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">    9 </span>import qualified Data.Text as T
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   12 </span>import Databrary.Model.URL (URI)
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>data Citation = Citation
+<span class="lineno">   15 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">citationHead</span></span></span> :: T.Text
+<span class="lineno">   16 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">citationURL</span></span></span> :: Maybe URI
+<span class="lineno">   17 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">citationYear</span></span></span> :: Maybe Int16
+<span class="lineno">   18 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">citationTitle</span></span></span> :: Maybe T.Text
+<span class="lineno">   19 </span>  }
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>instance Monoid Citation where
+<span class="lineno">   22 </span>  <span class="decl"><span class="nottickedoff">mempty = Citation</span>
+<span class="lineno">   23 </span><span class="spaces">    </span><span class="nottickedoff">{ citationHead = T.empty</span>
+<span class="lineno">   24 </span><span class="spaces">    </span><span class="nottickedoff">, citationURL = Nothing</span>
+<span class="lineno">   25 </span><span class="spaces">    </span><span class="nottickedoff">, citationYear = Nothing</span>
+<span class="lineno">   26 </span><span class="spaces">    </span><span class="nottickedoff">, citationTitle = Nothing</span>
+<span class="lineno">   27 </span><span class="spaces">    </span><span class="nottickedoff">}</span></span>
+<span class="lineno">   28 </span>  <span class="decl"><span class="nottickedoff">mappend a b = Citation</span>
+<span class="lineno">   29 </span><span class="spaces">    </span><span class="nottickedoff">{ citationHead = if T.null (citationHead a) then citationHead b else citationHead a</span>
+<span class="lineno">   30 </span><span class="spaces">    </span><span class="nottickedoff">, citationURL = citationURL a &lt;|&gt; citationURL b</span>
+<span class="lineno">   31 </span><span class="spaces">    </span><span class="nottickedoff">, citationYear = citationYear a &lt;|&gt; citationYear b</span>
+<span class="lineno">   32 </span><span class="spaces">    </span><span class="nottickedoff">, citationTitle = citationTitle a &lt;|&gt; citationTitle b</span>
+<span class="lineno">   33 </span><span class="spaces">    </span><span class="nottickedoff">}</span></span>
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>citationJSON :: JSON.ToObject o =&gt; Citation -&gt; o
+<span class="lineno">   36 </span><span class="decl"><span class="nottickedoff">citationJSON Citation{..} =</span>
+<span class="lineno">   37 </span><span class="spaces">     </span><span class="nottickedoff">&quot;head&quot; JSON..= citationHead</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;title&quot; `JSON.kvObjectOrEmpty` citationTitle</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;url&quot; `JSON.kvObjectOrEmpty` citationURL</span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;year&quot; `JSON.kvObjectOrEmpty` citationYear</span></span>
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>instance JSON.ToJSON Citation where
+<span class="lineno">   43 </span>  <span class="decl"><span class="nottickedoff">toJSON = JSON.object . citationJSON</span></span>
+<span class="lineno">   44 </span>  <span class="decl"><span class="nottickedoff">toEncoding = JSON.pairs . citationJSON</span></span>
+
+</pre>
+</body>
+</html>

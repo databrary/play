@@ -1,0 +1,142 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Store.AssetSegment
+<span class="lineno">    3 </span>  ( assetSegmentTag
+<span class="lineno">    4 </span>  , getAssetSegmentStore
+<span class="lineno">    5 </span>  ) where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import Control.Monad (unless, liftM2, when)
+<span class="lineno">    8 </span>import Control.Monad.IO.Class (liftIO)
+<span class="lineno">    9 </span>import qualified Data.ByteString as BS
+<span class="lineno">   10 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">   11 </span>import Data.ByteString.Lazy.Internal (defaultChunkSize)
+<span class="lineno">   12 </span>import Data.Fixed (showFixed, Milli)
+<span class="lineno">   13 </span>import Data.Maybe (isJust, fromMaybe, fromJust)
+<span class="lineno">   14 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   15 </span>import Data.Word (Word16)
+<span class="lineno">   16 </span>import qualified Data.Streaming.Process as P
+<span class="lineno">   17 </span>import qualified Database.PostgreSQL.Typed.Range as Range
+<span class="lineno">   18 </span>import System.IO (Handle, hClose)
+<span class="lineno">   19 </span>import System.Posix.FilePath (takeDirectory)
+<span class="lineno">   20 </span>import System.Posix.Files.ByteString (setFileMode, fileExist)
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>import Databrary.Ops
+<span class="lineno">   23 </span>import Databrary.Has
+<span class="lineno">   24 </span>import Databrary.Files
+<span class="lineno">   25 </span>import Databrary.Model.Offset
+<span class="lineno">   26 </span>import Databrary.Model.Format
+<span class="lineno">   27 </span>import Databrary.Model.Asset
+<span class="lineno">   28 </span>import Databrary.Model.AssetSlot
+<span class="lineno">   29 </span>import Databrary.Model.AssetSegment
+<span class="lineno">   30 </span>import Databrary.Store.Types
+<span class="lineno">   31 </span>import Databrary.Store.Asset
+<span class="lineno">   32 </span>import Databrary.Store.Temp
+<span class="lineno">   33 </span>import Databrary.Store.AV
+<span class="lineno">   34 </span>import Databrary.Action.Types
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>assetSegmentTag :: AssetSegment -&gt; Maybe Word16 -&gt; String
+<span class="lineno">   37 </span><span class="decl"><span class="istickedoff">assetSegmentTag as sz = m ':' ((assetSegmentFull as) `unlessUse` s) ++ m '@' (show &lt;$&gt; sz) where</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="istickedoff">m = maybe &quot;&quot; . (:)</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">c = assetSegmentRange as</span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="istickedoff">s = maybe <span class="nottickedoff">(b (Range.lowerBound c) ++ '-' : b (Range.upperBound c))</span> (show . offsetMillis) (Range.getPoint c)</span>
+<span class="lineno">   41 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">b = maybe &quot;&quot; (show . offsetMillis) . Range.bound</span></span></span>
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>assetSegmentFile :: AssetSegment -&gt; Maybe Word16 -&gt; Maybe RawFilePath
+<span class="lineno">   44 </span><span class="decl"><span class="istickedoff">assetSegmentFile as sz = (&lt;&gt; BSC.pack (assetSegmentTag as sz)) &lt;$&gt; assetFile (slotAsset $ segmentAsset as)</span></span>
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>type Stream = BS.ByteString -&gt; IO ()
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>stream :: Stream -&gt; Handle -&gt; IO ()
+<span class="lineno">   49 </span><span class="decl"><span class="nottickedoff">stream s h = loop where</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">loop = do</span>
+<span class="lineno">   51 </span><span class="spaces">    </span><span class="nottickedoff">b &lt;- BS.hGetSome h defaultChunkSize</span>
+<span class="lineno">   52 </span><span class="spaces">    </span><span class="nottickedoff">s b</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="nottickedoff">unless (BS.null b) $ loop</span></span>
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>genVideoClip :: AV -&gt; RawFilePath -&gt; Maybe (Range.Range Offset) -&gt; Maybe Word16 -&gt; Either Stream RawFilePath -&gt; IO ()
+<span class="lineno">   56 </span><span class="decl"><span class="istickedoff">genVideoClip _ src (Just clip) _ dst | Nothing &lt;- Range.getPoint clip = <span class="nottickedoff">do</span></span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">srcfp &lt;- unRawFilePath src</span></span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">dstfp &lt;- case dst of</span></span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">Left _ -&gt; return &quot;-&quot;</span></span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">Right rp -&gt; unRawFilePath rp</span></span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">print (&quot;about to slice video file&quot;)</span></span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">let upperBoundArgs = maybe [] (\u -&gt; [&quot;-t&quot;, sb $ u - lb]) ub</span></span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">print (&quot;ffmpeg&quot;,&quot;-y&quot;, &quot;-accurate_seek&quot;, &quot;-ss&quot;, sb lb, &quot;-i&quot;, srcfp, upperBoundArgs, &quot;-codec copy&quot;</span></span>
+<span class="lineno">   64 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">, &quot;-f mp4&quot;)</span></span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">P.withCheckedProcess (P.proc &quot;ffmpeg&quot; $</span></span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">[ &quot;-y&quot;, &quot;-accurate_seek&quot;</span></span>
+<span class="lineno">   67 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">, &quot;-loglevel&quot;, &quot;error&quot;</span></span>
+<span class="lineno">   68 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">, &quot;-threads&quot;, &quot;1&quot;</span></span>
+<span class="lineno">   69 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">, &quot;-ss&quot;, sb lb</span></span>
+<span class="lineno">   70 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">, &quot;-i&quot;, srcfp ]</span></span>
+<span class="lineno">   71 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">++ maybe [] (\u -&gt; [&quot;-t&quot;, sb $ u - lb]) ub ++</span></span>
+<span class="lineno">   72 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">[ &quot;-codec&quot;, &quot;copy&quot;</span></span>
+<span class="lineno">   73 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">, &quot;-f&quot;, &quot;mp4&quot;</span></span>
+<span class="lineno">   74 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">, dstfp ])</span></span>
+<span class="lineno">   75 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">{ P.std_out = P.CreatePipe</span></span>
+<span class="lineno">   76 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">, P.close_fds = True</span></span>
+<span class="lineno">   77 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">}</span></span>
+<span class="lineno">   78 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(\P.ClosedStream h P.Inherited -&gt;</span></span>
+<span class="lineno">   79 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">either stream (const hClose) dst h)</span></span>
+<span class="lineno">   80 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">lb = fromMaybe 0 $ Range.bound $ Range.lowerBound clip</span></span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">ub = Range.bound $ Range.upperBound clip</span></span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">sb = (showFixed True :: Milli -&gt; String) . offsetMilli</span></span>
+<span class="lineno">   84 </span><span class="spaces"></span><span class="istickedoff">genVideoClip av src frame sz dst =</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="istickedoff">avFrame src (offsetDiffTime &lt;$&gt; (Range.getPoint =&lt;&lt; frame)) sz Nothing (rightJust dst) av</span>
+<span class="lineno">   86 </span><span class="spaces">    </span><span class="istickedoff">&gt;&gt;= mapM_ <span class="nottickedoff">(\b -&gt; send b &gt;&gt; send BS.empty)</span></span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="istickedoff">where <span class="nottickedoff">send = either id (const $ const $ return ()) dst</span></span></span>
+<span class="lineno">   88 </span>
+<span class="lineno">   89 </span>getAssetSegmentStore :: AssetSegment -&gt; Maybe Word16 -&gt; Handler (Either (Stream -&gt; IO ()) RawFilePath)
+<span class="lineno">   90 </span><span class="decl"><span class="istickedoff">getAssetSegmentStore as sz</span>
+<span class="lineno">   91 </span><span class="spaces">  </span><span class="istickedoff">| aimg &amp;&amp; <span class="nottickedoff">isJust sz</span> || not (assetSegmentFull as) &amp;&amp; isJust (assetDuration $ assetRow a) &amp;&amp; isJust (formatSample afmt) = do</span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="istickedoff">liftIO $ print &quot;need to slice off a segment&quot;</span>
+<span class="lineno">   93 </span><span class="spaces">  </span><span class="istickedoff">Just af &lt;- getAssetFile a</span>
+<span class="lineno">   94 </span><span class="spaces">  </span><span class="istickedoff">av &lt;- peek</span>
+<span class="lineno">   95 </span><span class="spaces">  </span><span class="istickedoff">store &lt;- peek</span>
+<span class="lineno">   96 </span><span class="spaces">  </span><span class="istickedoff">rs &lt;- peek</span>
+<span class="lineno">   97 </span><span class="spaces">  </span><span class="istickedoff">let cache = storageCache store</span>
+<span class="lineno">   98 </span><span class="spaces">      </span><span class="istickedoff">cf = liftM2 (&lt;/&gt;) cache $ assetSegmentFile as sz</span>
+<span class="lineno">   99 </span><span class="spaces">      </span><span class="istickedoff">gen = genVideoClip av af (aimg `unlessUse` clip) sz</span>
+<span class="lineno">  100 </span><span class="spaces">  </span><span class="istickedoff">liftIO $ maybe</span>
+<span class="lineno">  101 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(return $ Left $ gen . Left)</span> -- cache disabled or segment file missing(how could it be missing?)</span>
+<span class="lineno">  102 </span><span class="spaces">    </span><span class="istickedoff">(\f -&gt; do -- cache enabled</span>
+<span class="lineno">  103 </span><span class="spaces">      </span><span class="istickedoff">print (&quot;attempt to fetch prior cached slice or generate and cache slice&quot;)</span>
+<span class="lineno">  104 </span><span class="spaces">      </span><span class="istickedoff">fe &lt;- fileExist f</span>
+<span class="lineno">  105 </span><span class="spaces">      </span><span class="istickedoff">when fe <span class="nottickedoff">(print &quot;found a cached slice, reusing!&quot;)</span></span>
+<span class="lineno">  106 </span><span class="spaces">      </span><span class="istickedoff">unless fe $ do</span>
+<span class="lineno">  107 </span><span class="spaces">        </span><span class="istickedoff">tf &lt;- makeTempFileAs (maybe <span class="nottickedoff">(storageTemp store)</span> (&lt;/&gt; &quot;tmp/&quot;) cache) (const $ return <span class="nottickedoff">()</span>) rs</span>
+<span class="lineno">  108 </span><span class="spaces">        </span><span class="istickedoff">print (&quot;generating cached slice at&quot;, tempFilePath tf)</span>
+<span class="lineno">  109 </span><span class="spaces">        </span><span class="istickedoff">gen (Right (tempFilePath tf))</span>
+<span class="lineno">  110 </span><span class="spaces">        </span><span class="istickedoff">_ &lt;- createDir (takeDirectory f) 0o770</span>
+<span class="lineno">  111 </span><span class="spaces">        </span><span class="istickedoff">setFileMode (tempFilePath tf) 0o640</span>
+<span class="lineno">  112 </span><span class="spaces">        </span><span class="istickedoff">renameTempFile tf f <span class="nottickedoff">rs</span></span>
+<span class="lineno">  113 </span><span class="spaces">      </span><span class="istickedoff">return $ Right f)</span>
+<span class="lineno">  114 </span><span class="spaces">    </span><span class="istickedoff">cf</span>
+<span class="lineno">  115 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = do</span>
+<span class="lineno">  116 </span><span class="spaces">  </span><span class="istickedoff">liftIO $ print &quot;can serve full file, unsliced&quot;</span>
+<span class="lineno">  117 </span><span class="spaces">  </span><span class="istickedoff">Right . fromJust &lt;$&gt; getAssetFile a</span>
+<span class="lineno">  118 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  119 </span><span class="spaces">  </span><span class="istickedoff">a = slotAsset $ segmentAsset as</span>
+<span class="lineno">  120 </span><span class="spaces">  </span><span class="istickedoff">afmt = assetFormat $ assetRow a</span>
+<span class="lineno">  121 </span><span class="spaces">  </span><span class="istickedoff">aimg = afmt == imageFormat</span>
+<span class="lineno">  122 </span><span class="spaces">  </span><span class="istickedoff">clip = assetSegmentRange as</span></span>
+
+</pre>
+</body>
+</html>

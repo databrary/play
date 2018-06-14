@@ -1,0 +1,57 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.View.Container
+<span class="lineno">    3 </span>  ( releaseTitle
+<span class="lineno">    4 </span>  --, htmlContainerEdit
+<span class="lineno">    5 </span>  ) where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">    8 </span>-- import Data.Foldable (fold)
+<span class="lineno">    9 </span>-- import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   10 </span>import qualified Data.Text as T
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import qualified Databrary.Store.Config as C
+<span class="lineno">   13 </span>-- import Databrary.Model.Volume.Types
+<span class="lineno">   14 </span>-- import Databrary.Model.Container.Types
+<span class="lineno">   15 </span>-- import Databrary.Model.Slot.Types
+<span class="lineno">   16 </span>import Databrary.Model.Release.Types
+<span class="lineno">   17 </span>import Databrary.Service.Messages
+<span class="lineno">   18 </span>-- import Databrary.Action.Types
+<span class="lineno">   19 </span>-- import Databrary.Action
+<span class="lineno">   20 </span>-- import Databrary.View.Form
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>--import {-# SOURCE #-} Databrary.Controller.Container
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>releaseTitle :: Maybe Release -&gt; Messages -&gt; T.Text
+<span class="lineno">   25 </span><span class="decl"><span class="nottickedoff">releaseTitle rel = getMessage $ C.Path [&quot;release&quot;, maybe &quot;UNRELEASED&quot; (BSC.pack . show) rel, &quot;title&quot;]</span></span>
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>{-
+<span class="lineno">   28 </span>htmlContainerForm :: Maybe Container -&gt; FormHtml f
+<span class="lineno">   29 </span>htmlContainerForm cont = do
+<span class="lineno">   30 </span>  field &quot;name&quot; $ inputText (containerName . containerRow =&lt;&lt; cont)
+<span class="lineno">   31 </span>  field &quot;date&quot; $ inputDate (containerDate . containerRow =&lt;&lt; cont)
+<span class="lineno">   32 </span>  field &quot;release&quot; $ inputEnum False (containerRelease =&lt;&lt; cont)
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>htmlContainerEdit :: Either Volume Container -&gt; RequestContext -&gt; FormHtml f
+<span class="lineno">   35 </span>htmlContainerEdit (Left v)  = htmlForm &quot;Create container&quot; createContainer (volumeId $ volumeRow v) (htmlContainerForm Nothing) (const mempty)
+<span class="lineno">   36 </span>htmlContainerEdit (Right c) = htmlForm (&quot;Edit container &quot; &lt;&gt; fold (containerName $ containerRow c)) postContainer (containerSlotId $ containerId $ containerRow c) (htmlContainerForm $ Just c) (const mempty)
+<span class="lineno">   37 </span>-}
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE TypeSynonymInstances, DeriveDataTypeable, OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Action.Response
+<span class="lineno">    3 </span>  ( Response
+<span class="lineno">    4 </span>  , ResponseData(..)
+<span class="lineno">    5 </span>  , emptyResponse
+<span class="lineno">    6 </span>  , okResponse
+<span class="lineno">    7 </span>  , result
+<span class="lineno">    8 </span>  , unsafeResult
+<span class="lineno">    9 </span>  , runResult
+<span class="lineno">   10 </span>  , proxyResponse
+<span class="lineno">   11 </span>  ) where
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>import Conduit (Source, (.|))
+<span class="lineno">   14 </span>import Control.Exception (Exception, throwIO, throw, handle)
+<span class="lineno">   15 </span>import Control.Monad (join)
+<span class="lineno">   16 </span>import Control.Monad.IO.Class (MonadIO, liftIO)
+<span class="lineno">   17 </span>import Data.Typeable (Typeable)
+<span class="lineno">   18 </span>import Network.HTTP.Types (ResponseHeaders, Status, ok200, hContentType)
+<span class="lineno">   19 </span>import Network.Wai
+<span class="lineno">   20 </span>    ( Response
+<span class="lineno">   21 </span>    , responseBuilder
+<span class="lineno">   22 </span>    , responseLBS
+<span class="lineno">   23 </span>    , StreamingBody
+<span class="lineno">   24 </span>    , responseStream
+<span class="lineno">   25 </span>    , FilePart(..)
+<span class="lineno">   26 </span>    , responseFile
+<span class="lineno">   27 </span>    , responseStatus
+<span class="lineno">   28 </span>    )
+<span class="lineno">   29 </span>import System.Posix.Types (FileOffset)
+<span class="lineno">   30 </span>import qualified Conduit as CND
+<span class="lineno">   31 </span>import qualified Data.Binary.Builder as DBB
+<span class="lineno">   32 </span>import qualified Data.ByteString as BS
+<span class="lineno">   33 </span>import qualified Data.ByteString.Builder as BSB
+<span class="lineno">   34 </span>import qualified Data.ByteString.Lazy as BSL
+<span class="lineno">   35 </span>import qualified Data.Text as T
+<span class="lineno">   36 </span>import qualified Data.Text.Encoding as TE
+<span class="lineno">   37 </span>import qualified Data.Text.Lazy as TL
+<span class="lineno">   38 </span>import qualified Data.Text.Lazy.Encoding as TLE
+<span class="lineno">   39 </span>import qualified Network.HTTP.Client as HC
+<span class="lineno">   40 </span>import qualified Text.Blaze.Html as Html
+<span class="lineno">   41 </span>import qualified Text.Blaze.Html.Renderer.Utf8 as Html
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>-- | This class captures Databrary's mechanism for creating 'Response's from the
+<span class="lineno">   46 </span>-- values actually returned by handlers.
+<span class="lineno">   47 </span>--
+<span class="lineno">   48 </span>-- It is rather general. A value can be turned into a response either by
+<span class="lineno">   49 </span>-- modifying headers or by using one of Wai's Response composers (e.g.
+<span class="lineno">   50 </span>-- 'responseBuilder'). There are some rather esoteric instances.
+<span class="lineno">   51 </span>--
+<span class="lineno">   52 </span>-- Similar mechanisms in Servant or Yesod generally restrict themselves to
+<span class="lineno">   53 </span>-- building response *data* out of return values, without explicit mention of
+<span class="lineno">   54 </span>-- 'Response'. See e.g.
+<span class="lineno">   55 </span>-- &lt;http://hackage.haskell.org/package/http-api-data-0.3.8.1/docs/Web-HttpApiData.html&gt;
+<span class="lineno">   56 </span>--
+<span class="lineno">   57 </span>-- Servant also has
+<span class="lineno">   58 </span>-- &lt;http://hackage.haskell.org/package/servant-0.13.0.1/docs/Servant-API-ContentTypes.html#t:MimeRender MimeRender&gt;,
+<span class="lineno">   59 </span>-- which describes how to create a ByteString for use in creating Responses.
+<span class="lineno">   60 </span>class ResponseData r where
+<span class="lineno">   61 </span>  response :: Status -&gt; ResponseHeaders -&gt; r -&gt; Response
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>instance ResponseData BSB.Builder where
+<span class="lineno">   64 </span>  <span class="decl"><span class="istickedoff">response = responseBuilder</span></span>
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>instance ResponseData BSL.ByteString where
+<span class="lineno">   67 </span>  <span class="decl"><span class="istickedoff">response = responseLBS</span></span>
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>instance ResponseData BS.ByteString where
+<span class="lineno">   70 </span>  <span class="decl"><span class="istickedoff">response s h = responseBuilder s h . BSB.byteString</span></span>
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>instance ResponseData (Source (CND.ResourceT IO) BS.ByteString) where
+<span class="lineno">   73 </span>    <span class="decl"><span class="nottickedoff">response s h src =</span>
+<span class="lineno">   74 </span><span class="spaces">        </span><span class="nottickedoff">responseStream s h</span>
+<span class="lineno">   75 </span><span class="spaces">            </span><span class="nottickedoff">(\send _ -&gt; do</span>
+<span class="lineno">   76 </span><span class="spaces">                </span><span class="nottickedoff">CND.runConduitRes</span>
+<span class="lineno">   77 </span><span class="spaces">                    </span><span class="nottickedoff">(src</span>
+<span class="lineno">   78 </span><span class="spaces">                    </span><span class="nottickedoff">.| (CND.mapM_C</span>
+<span class="lineno">   79 </span><span class="spaces">                        </span><span class="nottickedoff">(\bs -&gt; CND.lift (send (DBB.fromByteString bs))))))</span></span>
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>instance ResponseData StreamingBody where
+<span class="lineno">   82 </span>  <span class="decl"><span class="nottickedoff">response = responseStream</span></span>
+<span class="lineno">   83 </span>
+<span class="lineno">   84 </span>instance ResponseData ((BS.ByteString -&gt; IO ()) -&gt; IO ()) where
+<span class="lineno">   85 </span>  <span class="decl"><span class="nottickedoff">response s h f = responseStream s h (\w l -&gt; f (\b -&gt; if BS.null b then l else w (BSB.byteString b)))</span></span>
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>instance ResponseData (FilePath, Maybe FilePart) where
+<span class="lineno">   88 </span>  <span class="decl"><span class="istickedoff">response s h (f, p) = responseFile s h f p</span></span>
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>instance ResponseData (FilePath, FilePart) where
+<span class="lineno">   91 </span>  <span class="decl"><span class="nottickedoff">response s h (f, p) = response s h (f, Just p)</span></span>
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>instance ResponseData (FilePath, Maybe FileOffset) where
+<span class="lineno">   94 </span>  <span class="decl"><span class="istickedoff">response s h (f, z) = response s h (f, <span class="nottickedoff">join (FilePart 0) . toInteger</span> &lt;$&gt; z)</span></span>
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>instance ResponseData String where
+<span class="lineno">   97 </span>  <span class="decl"><span class="nottickedoff">response s h =</span>
+<span class="lineno">   98 </span><span class="spaces">    </span><span class="nottickedoff">response s ((hContentType, &quot;text/plain;charset=utf-8&quot;) : h) . BSB.stringUtf8</span></span>
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>instance ResponseData T.Text where
+<span class="lineno">  101 </span>  <span class="decl"><span class="nottickedoff">response s h =</span>
+<span class="lineno">  102 </span><span class="spaces">    </span><span class="nottickedoff">response s ((hContentType, &quot;text/plain;charset=utf-8&quot;) : h) . TE.encodeUtf8Builder</span></span>
+<span class="lineno">  103 </span>
+<span class="lineno">  104 </span>instance ResponseData TL.Text where
+<span class="lineno">  105 </span>  <span class="decl"><span class="nottickedoff">response s h =</span>
+<span class="lineno">  106 </span><span class="spaces">    </span><span class="nottickedoff">response s ((hContentType, &quot;text/plain;charset=utf-8&quot;) : h) . TLE.encodeUtf8Builder</span></span>
+<span class="lineno">  107 </span>
+<span class="lineno">  108 </span>instance ResponseData JSON.Value where
+<span class="lineno">  109 </span>  <span class="decl"><span class="istickedoff">response s h =</span>
+<span class="lineno">  110 </span><span class="spaces">    </span><span class="istickedoff">response s ((hContentType, &quot;application/json&quot;) : h) . JSON.encode</span></span>
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span>instance ResponseData JSON.Encoding where
+<span class="lineno">  113 </span>  <span class="decl"><span class="istickedoff">response s h =</span>
+<span class="lineno">  114 </span><span class="spaces">    </span><span class="istickedoff">response s ((hContentType, &quot;application/json&quot;) : h) . JSON.fromEncoding</span></span>
+<span class="lineno">  115 </span>
+<span class="lineno">  116 </span>instance ResponseData JSON.Series where
+<span class="lineno">  117 </span>  <span class="decl"><span class="istickedoff">response s h =</span>
+<span class="lineno">  118 </span><span class="spaces">    </span><span class="istickedoff">response s h . JSON.pairs</span></span>
+<span class="lineno">  119 </span>
+<span class="lineno">  120 </span>instance (JSON.ToJSON k, JSON.ToObject o, ResponseData o) =&gt; ResponseData (JSON.Record k o) where
+<span class="lineno">  121 </span>  <span class="decl"><span class="istickedoff">response s h =</span>
+<span class="lineno">  122 </span><span class="spaces">    </span><span class="istickedoff">response s h . JSON.recordObject</span></span>
+<span class="lineno">  123 </span>
+<span class="lineno">  124 </span>instance ResponseData Html.Html where
+<span class="lineno">  125 </span>  <span class="decl"><span class="istickedoff">response s h =</span>
+<span class="lineno">  126 </span><span class="spaces">    </span><span class="istickedoff">response s ((hContentType, &quot;text/html;charset=utf-8&quot;) : h) . Html.renderHtmlBuilder</span></span>
+<span class="lineno">  127 </span>
+<span class="lineno">  128 </span>emptyResponse :: Status -&gt; ResponseHeaders -&gt; Response
+<span class="lineno">  129 </span><span class="decl"><span class="istickedoff">emptyResponse s h = response s h BS.empty</span></span>
+<span class="lineno">  130 </span>
+<span class="lineno">  131 </span>okResponse :: ResponseData r =&gt; ResponseHeaders -&gt; r -&gt; Response
+<span class="lineno">  132 </span><span class="decl"><span class="istickedoff">okResponse = response ok200</span></span>
+<span class="lineno">  133 </span>
+<span class="lineno">  134 </span>-- | A wrapper for the short-circuiting machinery (see 'result').
+<span class="lineno">  135 </span>newtype Result = Result { <span class="istickedoff"><span class="decl"><span class="istickedoff">resultResponse</span></span></span> :: Response } deriving (Typeable)
+<span class="lineno">  136 </span>instance Show Result where
+<span class="lineno">  137 </span>  <span class="decl"><span class="nottickedoff">showsPrec p (Result r) = showParen (p &gt; 10)</span>
+<span class="lineno">  138 </span><span class="spaces">    </span><span class="nottickedoff">$ showString &quot;Result &quot; . showsPrec 11 (responseStatus r)</span></span>
+<span class="lineno">  139 </span>instance Exception Result
+<span class="lineno">  140 </span>
+<span class="lineno">  141 </span>-- | Short circuit immediately, returning the given Reponse.
+<span class="lineno">  142 </span>--
+<span class="lineno">  143 </span>-- FIXME: Rather than implementing this using exceptions, could we either use a
+<span class="lineno">  144 </span>-- left-biased Alternative or simply use a better procedural style?
+<span class="lineno">  145 </span>result :: MonadIO m =&gt; Response -&gt; m a
+<span class="lineno">  146 </span><span class="decl"><span class="istickedoff">result = liftIO . throwIO . Result</span></span>
+<span class="lineno">  147 </span>
+<span class="lineno">  148 </span>-- | Short circuit from within non-monadic code. Not recommended, and hardly
+<span class="lineno">  149 </span>-- ever used.
+<span class="lineno">  150 </span>unsafeResult :: Response -&gt; a
+<span class="lineno">  151 </span><span class="decl"><span class="nottickedoff">unsafeResult = throw . Result</span></span>
+<span class="lineno">  152 </span>
+<span class="lineno">  153 </span>-- | Run some action that may short circut using 'result' or 'unsafeResult'.
+<span class="lineno">  154 </span>runResult :: IO Response -&gt; IO Response
+<span class="lineno">  155 </span><span class="decl"><span class="istickedoff">runResult = handle (return . resultResponse)</span></span>
+<span class="lineno">  156 </span>
+<span class="lineno">  157 </span>proxyResponse :: HC.Response BSL.ByteString -&gt; Response
+<span class="lineno">  158 </span><span class="decl"><span class="nottickedoff">proxyResponse r = responseLBS</span>
+<span class="lineno">  159 </span><span class="spaces">  </span><span class="nottickedoff">(HC.responseStatus r)</span>
+<span class="lineno">  160 </span><span class="spaces">  </span><span class="nottickedoff">(filter ((/= &quot;transfer-encoding&quot;) . fst) $ HC.responseHeaders r)</span>
+<span class="lineno">  161 </span><span class="spaces">  </span><span class="nottickedoff">(HC.responseBody r)</span></span>
+
+</pre>
+</body>
+</html>

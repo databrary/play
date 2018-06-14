@@ -1,0 +1,61 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Solr.Tag
+<span class="lineno">    3 </span>  ( termTags
+<span class="lineno">    4 </span>  ) where
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>import Control.Monad ((&gt;=&gt;))
+<span class="lineno">    7 </span>import qualified Data.Aeson.Types as JSON
+<span class="lineno">    8 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">    9 </span>import Data.Maybe (fromMaybe)
+<span class="lineno">   10 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   11 </span>import qualified Data.Text.Encoding as TE
+<span class="lineno">   12 </span>import qualified Network.HTTP.Client as HC
+<span class="lineno">   13 </span>import Network.HTTP.Types.URI (renderSimpleQuery)
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Databrary.Ops
+<span class="lineno">   16 </span>import Databrary.Has
+<span class="lineno">   17 </span>import Databrary.Service.DB
+<span class="lineno">   18 </span>import Databrary.HTTP.Client
+<span class="lineno">   19 </span>import Databrary.Model.Tag
+<span class="lineno">   20 </span>import Databrary.Solr.Service
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>parseTags :: JSON.Value -&gt; JSON.Parser [TagName]
+<span class="lineno">   23 </span><span class="decl"><span class="istickedoff">parseTags = JSON.withObject <span class="nottickedoff">&quot;terms&quot;</span> $</span>
+<span class="lineno">   24 </span><span class="spaces">  </span><span class="istickedoff">(JSON..: &quot;terms&quot;) &gt;=&gt; (JSON..: &quot;tag_name&quot;) &gt;=&gt; tf where</span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="istickedoff">tf [] = return []</span>
+<span class="lineno">   26 </span><span class="spaces">  </span><span class="istickedoff">tf (JSON.String n:JSON.Number _c:l) = <span class="nottickedoff">(TagName (TE.encodeUtf8 n) :) &lt;$&gt; tf l</span></span>
+<span class="lineno">   27 </span><span class="spaces">  </span><span class="istickedoff">tf _ = <span class="nottickedoff">fail &quot;mismatched terms&quot;</span></span></span>
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>termTags :: (MonadSolr c m, MonadDB c m) =&gt; Maybe TagName -&gt; Int -&gt; m [TagName]
+<span class="lineno">   30 </span><span class="decl"><span class="istickedoff">termTags pre count = do</span>
+<span class="lineno">   31 </span><span class="spaces">  </span><span class="istickedoff">req &lt;- peeks solrRequest</span>
+<span class="lineno">   32 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- focusIO $ httpRequestJSON req</span>
+<span class="lineno">   33 </span><span class="spaces">    </span><span class="istickedoff">{ HC.path = HC.path req &lt;&gt; &quot;terms&quot;</span>
+<span class="lineno">   34 </span><span class="spaces">    </span><span class="istickedoff">, HC.queryString = renderSimpleQuery True $</span>
+<span class="lineno">   35 </span><span class="spaces">      </span><span class="istickedoff">maybe id <span class="nottickedoff">((:) . (,) &quot;terms.prefix&quot; . tagNameBS)</span> pre</span>
+<span class="lineno">   36 </span><span class="spaces">      </span><span class="istickedoff">[ (&quot;terms.fl&quot;, &quot;tag_name&quot;)</span>
+<span class="lineno">   37 </span><span class="spaces">      </span><span class="istickedoff">, (&quot;terms.limit&quot;, BSC.pack $ show count)</span>
+<span class="lineno">   38 </span><span class="spaces">      </span><span class="istickedoff">]</span>
+<span class="lineno">   39 </span><span class="spaces">    </span><span class="istickedoff">}</span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="istickedoff">fromMaybeM <span class="nottickedoff">(map tagName &lt;$&gt; findTags (fromMaybe (TagName &quot;&quot;) pre) count)</span> $</span>
+<span class="lineno">   41 </span><span class="spaces">    </span><span class="istickedoff">JSON.parseMaybe parseTags =&lt;&lt; r</span></span>
+
+</pre>
+</body>
+</html>
