@@ -284,8 +284,35 @@ test_12a = Test.stepsWithTransaction "" $ \step cn2 -> do
     -- TODO: bracket with delete file
 
 -- same as above, but for video file that undergoes conversion
----- starting needs log as well as storage
+---- starting needs log as well as storage <<<
 ---- callback needs av, internalstate as well
+test_12b :: TestTree
+test_12b = Test.stepsWithTransaction "" $ \step cn2 -> do
+    step "Given a partially shared volume"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    -- TODO: should be lookup auth on rootParty
+    vol <- runReaderT (addVolumeSetPublic aiAcct) aiCtxt
+    step "When a publicly released video asset is added"
+    aiCtxt2 <- withStorage aiCtxt
+    foundAsset <- runReaderT
+        (do
+              (a, contents) <- Gen.sample (genCreateAssetAfterUpload vol)
+              let a' = a { assetRow = (assetRow a) { assetRelease = Just ReleasePUBLIC } }
+              let path = "/tmp/test1.csv" -- save contents to tmpdir  <<< CHANGE TO VIDEO FILE
+              liftIO (BS.writeFile path contents)
+              let rpath = "/tmp/test1.csv" -- TODO: convert from filepath to rawfilepath
+              -- override release to be public
+              savedAsset <- addAsset a' (Just rpath)
+              pure savedAsset
+              -- change asset
+              -- gen assetslot
+              -- change assetslot
+              -- lookup assetslot or container w/contents
+              )
+        aiCtxt2
+    -- Just slotForAnon <- runWithNoIdent cn2 (lookupSlotByContainerId cid)
+    step "Then one can retrieve the asset"
+    (assetRelease . assetRow) foundAsset @?= Just ReleasePUBLIC
 
 ----- record ---
 test_13 :: TestTree
