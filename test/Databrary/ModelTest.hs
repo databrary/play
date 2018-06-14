@@ -7,6 +7,7 @@ import Control.Monad.Trans.Reader
 import Data.Aeson
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
+import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy.Char8 as BSLC
 import Data.Maybe
 import Data.Monoid ((<>))
@@ -25,6 +26,7 @@ import Databrary.Model.Category
 import Databrary.Model.Container
 -- import Databrary.Model.Container.TypesTest
 import Databrary.Model.Factories
+import Databrary.Model.Format
 import Databrary.Model.Identity (MonadHasIdentity)
 import Databrary.Model.Measure
 import Databrary.Model.Metric
@@ -35,13 +37,20 @@ import Databrary.Model.Release
 import Databrary.Model.Record
 -- import Databrary.Model.Record.TypesTest
 import Databrary.Model.RecordSlot
+import Databrary.Model.Segment
 import Databrary.Model.Slot
+import Databrary.Model.Transcode
 import Databrary.Model.Volume
 import Databrary.Model.VolumeAccess
 -- import Databrary.Model.VolumeAccess.TypesTest
 import Databrary.Service.DB (DBConn, MonadDB)
+import Databrary.Service.Types (Secret(..))
 import Databrary.Store.CSV (buildCSV)
 -- import Databrary.Store.Asset
+-- import Databrary.Store.AV
+import Databrary.Store.Probe
+import Databrary.Store.Transcode
+import Paths_databrary (getDataFileName)
 import TestHarness as Test
 
 test_1 :: TestTree
@@ -265,7 +274,6 @@ test_12a = Test.stepsWithTransaction "" $ \step cn2 -> do
               let path = "/tmp/test1.csv" -- save contents to tmpdir
               liftIO (BS.writeFile path contents)
               let rpath = "/tmp/test1.csv" -- TODO: convert from filepath to rawfilepath
-              -- override release to be public
               savedAsset <- addAsset a' (Just rpath)
               pure savedAsset
               -- change asset
@@ -284,8 +292,42 @@ test_12a = Test.stepsWithTransaction "" $ \step cn2 -> do
     -- TODO: bracket with delete file
 
 -- same as above, but for video file that undergoes conversion
----- starting needs log as well as storage
+---- starting needs log as well as storage <<<
 ---- callback needs av, internalstate as well
+test_12b :: TestTree
+test_12b = Test.stepsWithTransaction "" $ \step cn2 -> do
+    step "Given a partially shared volume"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    -- TODO: should be lookup auth on rootParty
+    vol <- runReaderT (addVolumeSetPublic aiAcct) aiCtxt
+    step "When a publicly released video asset is added"
+    aiCtxt2 <- withStorage aiCtxt
+    aiCtxt3 <- withAV aiCtxt2
+    let aiCtxt4 = withTimestamp (UTCTime (fromGregorian 2017 5 6) (secondsToDiffTime 0)) aiCtxt3
+    aiCtxt5 <- withLogs aiCtxt4
+    foundAsset <- runReaderT
+        (do
+              (a, _) <- Gen.sample (genCreateAssetAfterUpload vol)
+              let a' = a { assetRow = (assetRow a) { assetRelease = Just ReleasePUBLIC, assetFormat = (fromJust . getFormatByExtension) "webm" } }
+              rpath <- liftIO (BSC.pack <$> getDataFileName "test/data/small.webm") -- TODO: touch timestamp to trigger new file
+              Right probe <- probeFile "small.webm" rpath
+              savedAsset <- addAsset a' (Just rpath)
+              let assetWithName = savedAsset { assetRow = (assetRow savedAsset) { assetName = Just "small.webm" } }
+              -- gen assetslot
+              -- change assetslot
+              trans <- addTranscode assetWithName fullSegment defaultTranscodeOptions probe
+              _ <- startTranscode trans
+              -- lookuptranscode
+              -- collect transcode (needs asset slot created above)
+              pure (transcodeAsset trans)
+              
+              -- lookup assetslot or container w/contents
+              )
+        (aiCtxt5 { ctxSecret = Just (Secret "abc") })
+    -- Just slotForAnon <- runWithNoIdent cn2 (lookupSlotByContainerId cid)
+    step "Then one can retrieve the asset"
+    (assetRelease . assetRow) foundAsset @?= Just ReleasePUBLIC
+    (assetName . assetRow) foundAsset @?= Just "small.webm"
 
 ----- record ---
 test_13 :: TestTree

@@ -2,6 +2,9 @@ module TestHarness
     (
       TestContext ( .. )
     , withStorage
+    , withAV
+    , withTimestamp
+    , withLogs
     , mkDbContext
     , runContextReaderT
     , withinTestTransaction
@@ -48,9 +51,11 @@ import Databrary.Model.Identity
 import Databrary.Model.Party
 -- import Databrary.Model.Party.TypesTest
 import Databrary.Model.Permission
+import Databrary.Model.Time
 import Databrary.Model.Token
 import Databrary.Service.DB
 import Databrary.Service.Entropy
+import Databrary.Service.Log
 import Databrary.Service.Types
 import Databrary.Store.AV
 import Databrary.Store.Config as C (load, (!))
@@ -97,6 +102,8 @@ data TestContext = TestContext
     , ctxIdentity :: Maybe Identity
     , ctxSiteAuth :: Maybe SiteAuth
     , ctxAV :: Maybe AV
+    , ctxTimestamp :: Maybe Timestamp
+    , ctxLogs :: Maybe Logs
     }
 
 blankContext :: TestContext
@@ -110,6 +117,8 @@ blankContext = TestContext
     , ctxIdentity = Nothing
     , ctxSiteAuth = Nothing
     , ctxAV = Nothing
+    , ctxTimestamp = Nothing
+    , ctxLogs = Nothing
     }
 
 addCntxt :: TestContext -> TestContext -> TestContext
@@ -124,6 +133,8 @@ addCntxt c1 c2 =
         , ctxIdentity = ctxIdentity c1 <|> ctxIdentity c2
         , ctxSiteAuth = ctxSiteAuth c1 <|> ctxSiteAuth c2
         , ctxAV = ctxAV c1 <|> ctxAV c2
+        , ctxTimestamp = ctxTimestamp c1 <|> ctxTimestamp c2
+        , ctxLogs = ctxLogs c1 <|> ctxLogs c2
        }
 
 instance Has Identity TestContext where
@@ -147,6 +158,12 @@ instance Has AV TestContext where
 instance Has Storage TestContext where
     view = fromJust . ctxStorage
 
+instance Has Timestamp TestContext where
+    view = fromJust . ctxTimestamp
+
+instance Has Logs TestContext where
+    view = fromJust . ctxLogs
+
 -- Needed for types, but unused so far
 
 -- prefer using SiteAuth instead of Identity for test contexts
@@ -164,14 +181,31 @@ instance Has Access TestContext where
 
 withStorage :: TestContext -> IO TestContext
 withStorage ctxt = do
-    c <- mkStorageContext
-    pure (addCntxt ctxt c)
+    addCntxt ctxt <$> mkStorageContext
 
 mkStorageContext :: IO TestContext
 mkStorageContext = do
     conf <- load "databrary.conf"
     stor <- initStorage (conf C.! "store")
     pure (blankContext { ctxStorage = Just stor })
+
+withAV :: TestContext -> IO TestContext
+withAV ctxt = do
+    addCntxt ctxt <$> mkAVContext
+
+withTimestamp :: Timestamp -> TestContext -> TestContext
+withTimestamp ts ctxt =
+    addCntxt ctxt (blankContext { ctxTimestamp = Just ts })
+
+withLogs :: TestContext -> IO TestContext
+withLogs ctxt = do
+    logs <- initLogs mempty
+    pure (addCntxt ctxt (blankContext { ctxLogs = Just logs }))
+
+mkAVContext :: IO TestContext
+mkAVContext = do
+    av <- initAV
+    pure (blankContext { ctxAV = Just av })
 
 -- | Convenience for building a context with only a db connection
 mkDbContext :: DBConn -> TestContext
