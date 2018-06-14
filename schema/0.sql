@@ -964,7 +964,7 @@ INSERT INTO party (id, prename, sortname, affiliation) VALUES (6, 'Rick', 'Gilmo
 INSERT INTO party (id, prename, sortname, affiliation) VALUES (7, 'Testarosa', 'Tesla', 'Carnegie Melon');
 SELECT setval('party_id_seq', 7);
 
-INSERT INTO account (id, email, password) VALUES (1, 'admin@databrary.org', '$2a$12$mMp6Qflw72NkK/x.8xgni.Z/S8ajjWezMoylHI0Yo0nkAq5J/Dm5y');
+INSERT INTO account (id, email, password) VALUES (1, 'admin@databrary.org', '$2b$12$EqM7gziee86vJZLNInxFgeU7pnZWSm3G7aHuH6NH8mUI/nqTTCRvy');
 INSERT INTO account (id, email, openid) VALUES (3, 'lisa@databrary.org', NULL);
 INSERT INTO account (id, email, password) VALUES (7, 'test@databrary.org', '$2b$12$EqM7gziee86vJZLNInxFgeU7pnZWSm3G7aHuH6NH8mUI/nqTTCRvy');
 
