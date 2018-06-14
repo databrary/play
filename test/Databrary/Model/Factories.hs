@@ -318,7 +318,7 @@ genUploadFileName fmt = do
 
 genCreateAssetAfterUpload :: Volume -> Gen (Asset, BS.ByteString)
 genCreateAssetAfterUpload vol = do -- modeled after processAsset (AssetTargetVolume ..) w/name,container,upload,maybe release
-    -- TODO: who should create the asset?
+    -- TODO: who should create the asset file?
     let ba = blankAsset vol
     fmt <- pure (getFormat' (Id 2)) -- csv; TODO: general format + file contents
     mName <- Just <$> genUploadFileName fmt

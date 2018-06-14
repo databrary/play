@@ -122,6 +122,11 @@ in
     # Link node_modules into the current directory
     ln -sf ${nodePackages.shell.nodeDependencies}/lib/node_modules
   '';
+  preCheck = ''
+    # repeated from ghci-databrary
+    mkdir -p cache/tmp stage tmp trans upload
+    cp -R install/store-seed store
+  '';
   postInstall = ''
     databrary_datadir=. $out/bin/databrary -w
   '';

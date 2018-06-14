@@ -18,7 +18,7 @@ import Test.Tasty.HUnit
 
 import Databrary.Has
 import Databrary.Controller.CSV (volumeCSV)
--- import Databrary.Model.Asset
+import Databrary.Model.Asset
 import Databrary.Model.Audit (MonadAudit)
 import Databrary.Model.Authorize
 import Databrary.Model.Category
@@ -41,6 +41,7 @@ import Databrary.Model.VolumeAccess
 -- import Databrary.Model.VolumeAccess.TypesTest
 import Databrary.Service.DB (DBConn, MonadDB)
 import Databrary.Store.CSV (buildCSV)
+-- import Databrary.Store.Asset
 import TestHarness as Test
 
 test_1 :: TestTree
@@ -65,13 +66,13 @@ test_1 = Test.stepsWithTransaction "" $ \step cn2 -> do
     accessMember' acc @?= PermissionADMIN
 
 setIdentityNotNeeded :: TestContext -> TestContext
-setIdentityNotNeeded c = c { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1) }
+setIdentityNotNeeded c = c { ctxIdentity = Just IdentityNotNeeded, ctxPartyId = Just (Id (-1)) }
 
 setSiteAuthFromIdent :: TestContext -> TestContext
-setSiteAuthFromIdent c = c { ctxSiteAuth = view (ctxIdentity c) }
+setSiteAuthFromIdent c = c { ctxSiteAuth = Just (view ((fromJust . ctxIdentity) c)) }
 
 setDefaultRequest :: TestContext -> TestContext
-setDefaultRequest c = c { ctxRequest = defaultRequest }
+setDefaultRequest c = c { ctxRequest = Just defaultRequest }
 
 ----- site authorize granting -----
 test_2 :: TestTree
@@ -93,7 +94,7 @@ test_3 = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "When the superadmin grants an authorized investigator with edit access on their parent institution"
     (_, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     step "Then we expect the authorized investigator to effectively have edit db site access"
-    siteAccess (ctxSiteAuth aiCtxt) @?= Access { accessSite' = PermissionEDIT, accessMember' = PermissionNONE }
+    siteAccess ((fromJust . ctxSiteAuth) aiCtxt) @?= Access { accessSite' = PermissionEDIT, accessMember' = PermissionNONE }
 
 test_4 :: TestTree
 test_4 = Test.stepsWithTransaction "" $ \step cn2 -> do
@@ -236,6 +237,19 @@ someDay :: Integer -> Day
 someDay yr = fromGregorian yr 1 2
 
 ----- asset ---------
+{-
+_test_storage :: TestTree
+_test_storage = Test.stepsWithTransaction "" $ \step cn2 -> do
+    (_, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    aiCtxt2 <- withStorage aiCtxt
+    res <- runReaderT
+        (do
+              Just asset <- lookupAsset (Id 1)
+              getAssetFile asset)
+        aiCtxt2
+    res @?= Just "./store/3d/da3931202cbe06a9e4bbb5f0873c879121ef0a"
+-}
+
 test_12a :: TestTree
 test_12a = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "Given a partially shared volume"
@@ -243,29 +257,31 @@ test_12a = Test.stepsWithTransaction "" $ \step cn2 -> do
     -- TODO: should be lookup auth on rootParty
     vol <- runReaderT (addVolumeSetPublic aiAcct) aiCtxt
     step "When a publicly released asset is added"
-    -- Implementation of getSlot PUBLIC
-    _ <- runReaderT
+    aiCtxt2 <- withStorage aiCtxt
+    foundAsset <- runReaderT
         (do
               (a, contents) <- Gen.sample (genCreateAssetAfterUpload vol)
-              -- save contents to tmpdir
-              let path = "/tmp/test1.csv"
+              let a' = a { assetRow = (assetRow a) { assetRelease = Just ReleasePUBLIC } }
+              let path = "/tmp/test1.csv" -- save contents to tmpdir
               liftIO (BS.writeFile path contents)
-              -- let rpath = "/tmp/test1.csv" -- TODO: convert from filepath to rawfilepath
+              let rpath = "/tmp/test1.csv" -- TODO: convert from filepath to rawfilepath
               -- override release to be public
-              -- addAsset a (Just rpath) -- TODO: add hasstorage to test context
-              pure a
+              savedAsset <- addAsset a' (Just rpath)
+              pure savedAsset
               -- change asset
               -- gen assetslot
               -- change assetslot
-              -- lookup assetslot
+              -- lookup assetslot or container w/contents
               )
-        aiCtxt
+        aiCtxt2
     -- Just slotForAnon <- runWithNoIdent cn2 (lookupSlotByContainerId cid)
     step "Then one can retrieve the asset"
+    (assetRelease . assetRow) foundAsset @?= Just ReleasePUBLIC
     {-
     -- get assetsegment
     --  -- > check asset name, format, contents, release, size, duration, slot segment, container size
     -}
+    -- TODO: bracket with delete file
 
 -- same as above, but for video file that undergoes conversion
 ---- starting needs log as well as storage
@@ -368,7 +384,10 @@ mkGroupVolAccess perm mShareFull prty vol = do
              })
 
 runWithNoIdent :: DBConn -> ReaderT TestContext IO a -> IO a
-runWithNoIdent cn rdr = runReaderT rdr ((mkDbContext cn) { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded })
+runWithNoIdent cn rdr =
+    runReaderT
+        rdr
+        ((mkDbContext cn) { ctxIdentity = Just IdentityNotNeeded, ctxPartyId = Just (Id (-1)), ctxSiteAuth = Just (view IdentityNotNeeded) })
 
 addAuthorizedInvestigatorWithInstitution' :: DBConn -> IO (Account, TestContext)
 addAuthorizedInvestigatorWithInstitution' c =

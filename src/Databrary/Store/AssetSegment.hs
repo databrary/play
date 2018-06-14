@@ -6,6 +6,7 @@ module Databrary.Store.AssetSegment
 
 import Control.Monad (unless, liftM2, when)
 import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Trans.Resource (InternalState)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
 import Data.ByteString.Lazy.Internal (defaultChunkSize)
@@ -86,7 +87,8 @@ genVideoClip av src frame sz dst =
     >>= mapM_ (\b -> send b >> send BS.empty)
   where send = either id (const $ const $ return ()) dst
 
-getAssetSegmentStore :: AssetSegment -> Maybe Word16 -> Handler (Either (Stream -> IO ()) RawFilePath)
+getAssetSegmentStore
+  :: (MonadStorage c m, MonadHas AV c m, MonadHas InternalState c m) => AssetSegment -> Maybe Word16 -> m (Either (Stream -> IO ()) RawFilePath)
 getAssetSegmentStore as sz
   | aimg && isJust sz || not (assetSegmentFull as) && isJust (assetDuration $ assetRow a) && isJust (formatSample afmt) = do
   liftIO $ print "need to slice off a segment"

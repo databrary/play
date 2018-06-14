@@ -1,6 +1,7 @@
 module TestHarness
     (
       TestContext ( .. )
+    , withStorage
     , mkDbContext
     , runContextReaderT
     , withinTestTransaction
@@ -24,6 +25,7 @@ module TestHarness
     )
     where
 
+import Control.Applicative
 import Control.Exception (bracket)
 import Control.Rematch
 import Control.Rematch.Run
@@ -51,6 +53,20 @@ import Databrary.Service.DB
 import Databrary.Service.Entropy
 import Databrary.Service.Types
 import Databrary.Store.AV
+import Databrary.Store.Config as C (load, (!))
+import Databrary.Store.Service
+-- import Databrary.Store.Types
+
+-- Runtime dependencies
+--   database started tests run
+--   /databrary.conf has db credentials
+--   database has seed data from 0.sql present
+--   data file /test/data/small.webm present
+--   TODO: desire to have passwd dict file in path
+--   store directories present in /
+--   /transcode, /transctl present
+--   solr started using /solr-6.6.0 binaries w/core and config in /solr; databrary_logs created
+--   ffmpeg exe on path
 
 -- | Sloppily taken from hunit-rematch because author is too lazy
 -- to update dependency bounds on hackage. Use fetch from his github later.
@@ -67,60 +83,103 @@ expect a matcher = case res of
 -- runtime for tests is just as good as compile time for library, any bottoms
 -- encountered will be a "good crash".
 data TestContext = TestContext
-    { ctxRequest :: Wai.Request
+    { ctxRequest :: Maybe Wai.Request
     -- ^ for MonadHasRequest
-    , ctxSecret :: Secret
-    , ctxEntropy :: Entropy
+    , ctxSecret :: Maybe Secret
+    , ctxEntropy :: Maybe Entropy
     -- ^ Both for MonadSign
-    , ctxPartyId :: Id Party
+    , ctxPartyId :: Maybe (Id Party)
     -- ^ for MonadAudit
-    , ctxConn :: DBConn
+    , ctxConn :: Maybe DBConn
     -- ^ for MonadDB
-    , ctxIdentity :: Identity
-    , ctxSiteAuth :: SiteAuth
-    , ctxAV :: AV
+    , ctxStorage :: Maybe Storage
+    -- ^ for MonadStorage
+    , ctxIdentity :: Maybe Identity
+    , ctxSiteAuth :: Maybe SiteAuth
+    , ctxAV :: Maybe AV
     }
 
+blankContext :: TestContext
+blankContext = TestContext
+    { ctxRequest = Nothing
+    , ctxSecret = Nothing
+    , ctxEntropy = Nothing
+    , ctxPartyId = Nothing
+    , ctxConn = Nothing
+    , ctxStorage = Nothing
+    , ctxIdentity = Nothing
+    , ctxSiteAuth = Nothing
+    , ctxAV = Nothing
+    }
+
+addCntxt :: TestContext -> TestContext -> TestContext
+addCntxt c1 c2 =
+    c1 {
+          ctxRequest = ctxRequest c1 <|> ctxRequest c2
+        , ctxSecret = ctxSecret c1 <|> ctxSecret c2
+        , ctxEntropy = ctxEntropy c1 <|> ctxEntropy c2
+        , ctxPartyId = ctxPartyId c1 <|> ctxPartyId c2
+        , ctxConn = ctxConn c1 <|> ctxConn c2
+        , ctxStorage = ctxStorage c1 <|> ctxStorage c2
+        , ctxIdentity = ctxIdentity c1 <|> ctxIdentity c2
+        , ctxSiteAuth = ctxSiteAuth c1 <|> ctxSiteAuth c2
+        , ctxAV = ctxAV c1 <|> ctxAV c2
+       }
+
 instance Has Identity TestContext where
-    view = ctxIdentity
+    view = fromJust . ctxIdentity
 
 instance Has DBConn TestContext where
-    view = ctxConn
+    view = fromJust . ctxConn
 
 instance Has Wai.Request TestContext where
-    view = ctxRequest
+    view = fromJust . ctxRequest
 
 instance Has Secret TestContext where
-    view = ctxSecret
+    view = fromJust . ctxSecret
 
 instance Has Entropy TestContext where
-    view = ctxEntropy
+    view = fromJust . ctxEntropy
+
+instance Has AV TestContext where
+    view = fromJust . ctxAV
+
+instance Has Storage TestContext where
+    view = fromJust . ctxStorage
 
 -- Needed for types, but unused so far
 
 -- prefer using SiteAuth instead of Identity for test contexts
 instance Has SiteAuth TestContext where
-    view = ctxSiteAuth
+    view = fromJust . ctxSiteAuth
 
 instance Has Party TestContext where
     view = undefined
 
 instance Has (Id Party) TestContext where
-    view = ctxPartyId
+    view = fromJust . ctxPartyId
 
 instance Has Access TestContext where
-    view = view . ctxIdentity
+    view = view . fromJust . ctxIdentity
 
-instance Has AV TestContext where
-    view = ctxAV
+withStorage :: TestContext -> IO TestContext
+withStorage ctxt = do
+    c <- mkStorageContext
+    pure (addCntxt ctxt c)
+
+mkStorageContext :: IO TestContext
+mkStorageContext = do
+    conf <- load "databrary.conf"
+    stor <- initStorage (conf C.! "store")
+    pure (blankContext { ctxStorage = Just stor })
 
 -- | Convenience for building a context with only a db connection
 mkDbContext :: DBConn -> TestContext
-mkDbContext c = TestContext { ctxConn = c }
+mkDbContext c = blankContext { ctxConn = Just c }
 
 -- | Convenience for runReaderT where context consists of db connection only
 runContextReaderT :: DBConn -> ReaderT TestContext IO a -> IO a
-runContextReaderT cn rdrActions = runReaderT rdrActions (TestContext { ctxConn = cn })
+runContextReaderT cn rdrActions = runReaderT rdrActions (blankContext { ctxConn = Just cn })
 
 -- | Execute a test within a DB connection that rolls back at the end.
 withinTestTransaction :: (PGConnection -> IO a) -> IO a
@@ -150,14 +209,14 @@ makeSuperAdminContext cn adminEmail =
              Just auth <- lookupSiteAuthByEmail False adminEmail
              let pid = (partyId . partyRow . accountParty . siteAccount) auth
                  ident = fakeIdentSessFromAuth auth True
-             pure (TestContext {
-                        ctxConn = cn
-                      , ctxIdentity = ident
-                      , ctxSiteAuth = view ident
-                      , ctxPartyId = pid
-                      , ctxRequest = Wai.defaultRequest
+             pure (blankContext {
+                        ctxConn = Just cn
+                      , ctxIdentity = Just ident
+                      , ctxSiteAuth = Just (view ident)
+                      , ctxPartyId = Just pid
+                      , ctxRequest = Just Wai.defaultRequest
                       }))
-        TestContext { ctxConn = cn }
+        blankContext { ctxConn = Just cn }
 
 fakeIdentSessFromAuth :: SiteAuth -> Bool -> Identity
 fakeIdentSessFromAuth a su =
@@ -180,7 +239,8 @@ addAuthorizedInstitution adminCtxt = do
 -- TODO: recieve expiration date (expiration dates might not be used...)  -- register as anon + approve as site admin
 addAuthorizedInvestigator :: TestContext -> Party -> IO Account
 addAuthorizedInvestigator adminCtxt instParty = do
-    let ctxtNoIdent = adminCtxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
+    let ctxtNoIdent =
+          adminCtxt { ctxIdentity = Just IdentityNotNeeded, ctxPartyId = Just (Id (-1)), ctxSiteAuth = Just (view IdentityNotNeeded) }
     a <- Gen.sample genAccountSimple
     aiAccount <-
         runReaderT
@@ -206,7 +266,8 @@ addAuthorizedInvestigatorWithInstitution cn adminEmail = do
     instParty <- addAuthorizedInstitution ctxt
     aiAcct <- addAuthorizedInvestigator ctxt instParty
 
-    let ctxtNoIdent = ctxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded } -- login as AI, bld cntxt
+    -- login as AI, bld cntxt
+    let ctxtNoIdent = ctxt { ctxIdentity = Just IdentityNotNeeded, ctxPartyId = Just (Id (-1)), ctxSiteAuth = Just (view IdentityNotNeeded) }
     Just aiAuth <- runReaderT (lookupSiteAuthByEmail False (accountEmail aiAcct)) ctxtNoIdent
     let aiCtxt = switchIdentity ctxt aiAuth False
     pure (aiAcct, aiCtxt)
@@ -214,7 +275,8 @@ addAuthorizedInvestigatorWithInstitution cn adminEmail = do
 -- TODO: receive expiration date    -- register as anon + approve as ai
 addAffiliate :: TestContext -> Party -> Permission -> Permission -> IO Account
 addAffiliate aiCntxt aiParty site member = do
-    let ctxtNoIdent = aiCntxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
+    let ctxtNoIdent =
+          aiCntxt { ctxIdentity = Just IdentityNotNeeded, ctxPartyId = Just (Id (-1)), ctxSiteAuth = Just (view IdentityNotNeeded) }
     a <- Gen.sample genAccountSimple
     affAccount <-
         runReaderT
@@ -240,13 +302,14 @@ addAuthorization ctxt parentParty requestParty site member = do
 
 lookupSiteAuthNoIdent :: TestContext -> BS.ByteString -> IO SiteAuth
 lookupSiteAuthNoIdent privCtxt email = do
-    let ctxtNoIdent = privCtxt { ctxIdentity = IdentityNotNeeded, ctxPartyId = Id (-1), ctxSiteAuth = view IdentityNotNeeded }
+    let ctxtNoIdent =
+          privCtxt { ctxIdentity = Just IdentityNotNeeded, ctxPartyId = Just (Id (-1)), ctxSiteAuth = Just (view IdentityNotNeeded) }
     fromJust <$> runReaderT (lookupSiteAuthByEmail False email) ctxtNoIdent
 
 switchIdentity :: TestContext -> SiteAuth -> Bool -> TestContext
 switchIdentity baseCtxt auth su = do
     baseCtxt {
-          ctxIdentity = fakeIdentSessFromAuth auth su
-        , ctxPartyId = (partyId . partyRow . accountParty . siteAccount) auth
-        , ctxSiteAuth = auth
+          ctxIdentity = Just (fakeIdentSessFromAuth auth su)
+        , ctxPartyId = Just ((partyId . partyRow . accountParty . siteAccount) auth)
+        , ctxSiteAuth = Just auth
     }

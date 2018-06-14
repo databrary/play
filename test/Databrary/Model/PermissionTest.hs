@@ -17,11 +17,11 @@ unit_readRelease_example = do
 unit_accessMember :: Assertion
 unit_accessMember = do
     -- example
-    accessMember (TestContext { ctxIdentity = NotLoggedIn }) @?= PermissionNONE
+    accessMember (TestContext { ctxIdentity = Just NotLoggedIn }) @?= PermissionNONE
     -- typical
     -- accessMember (TestContext { ctxIdentity = mkSession ... }) @?= PermissionNONE
     -- edge case
-    accessMember (TestContext { ctxIdentity = IdentityNotNeeded }) @?= PermissionNONE
+    accessMember (TestContext { ctxIdentity = Just IdentityNotNeeded }) @?= PermissionNONE
 
 runDataPermission4 :: (Release, Release) -> VolumeRolePolicy -> Permission
 runDataPermission4 (relPub, relPriv) rolePolicy =
@@ -73,4 +73,3 @@ unit_dataPermission4_combinations = do
   runDataPermission4 privatelyReleasedAssetOrExcerpt privateAsDatabraryMember @?= PermissionNONE
   runDataPermission4 privatelyReleasedAssetOrExcerpt privateAsVolumeAffiliate @?= PermissionEDIT
   runDataPermission4 privatelyReleasedAssetOrExcerpt privateAsOwner @?= PermissionADMIN
-

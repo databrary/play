@@ -26,12 +26,15 @@ import System.IO (withBinaryFile, IOMode(ReadMode))
 
 import Paths_databrary
 import Databrary.Ops
-import Databrary.Has (Has, view, focusIO)
+import Databrary.Has (Has, view, focusIO, MonadHas)
 import qualified Databrary.JSON as J
 import Databrary.Files hiding ((</>))
+import Databrary.Store.AV (AV)
 import Databrary.Store.Stage
 import Databrary.Store.Probe
 import Databrary.Store.Transcode
+import Databrary.Store.Types (MonadStorage)
+import Databrary.Model.Audit (MonadAudit)
 import Databrary.Model.Time
 import Databrary.Model.Kind
 import Databrary.Model.Id.Types
@@ -50,9 +53,12 @@ import Databrary.Model.AssetSlot
 import Databrary.Model.AssetRevision
 import Databrary.Model.Transcode
 import Databrary.Model.Ingest
-import Databrary.Action.Types
+import Databrary.Model.Party (SiteAuth)
+-- import Databrary.Action.Types
+import Databrary.Service.Log (MonadLog)
+import Databrary.Service.Types (Secret)
 
-type IngestM a = JE.ParseT T.Text Handler a
+-- type IngestM a = JE.ParseT T.Text Handler a -- TODO: bring back as constraint alias
 
 loadSchema :: ExceptT [T.Text] IO (J.Value -> [JS.Failure])
 loadSchema = do
@@ -64,31 +70,31 @@ loadSchema = do
   where
     eitherJSON = J.parseEither J.parseJSON
 
-throwPE :: T.Text -> IngestM a
+throwPE :: (Monad m) => T.Text -> JE.ParseT T.Text m a
 throwPE = JE.throwCustomError
 
-inObj :: forall a b . (Kinded a, Has (Id a) a, Show (IdType a)) => a -> IngestM b -> IngestM b
+inObj :: forall a b m. (Kinded a, Has (Id a) a, Show (IdType a), Monad m) => a -> JE.ParseT T.Text m b -> JE.ParseT T.Text m b
 inObj o = JE.mapError (<> (" for " <> kindOf o <> T.pack (' ' : show (view o :: Id a))))
 
-noKey :: T.Text -> IngestM ()
+noKey :: (Monad m) => T.Text -> JE.ParseT T.Text m ()
 noKey k = void $ JE.keyMay k $ throwPE "unhandled value"
 
-asKey :: IngestM IngestKey
+asKey :: (Monad m) => JE.ParseT T.Text m IngestKey
 asKey = JE.asText
 
-asDate :: IngestM Date
+asDate :: (Monad m) => JE.ParseT T.Text m Date
 asDate = JE.withString (maybe (Left "expecting %F") Right . parseTimeM True defaultTimeLocale "%F")
 
-asRelease :: IngestM (Maybe Release)
+asRelease :: (Monad m) => JE.ParseT T.Text m (Maybe Release)
 asRelease = JE.perhaps JE.fromAesonParser
 
-asCategory :: IngestM Category
+asCategory :: (Monad m) => JE.ParseT T.Text m Category
 asCategory =
   JE.withIntegral (err . getCategory . Id) `catchError` \_ -> do
     JE.withText (\n -> err $ find ((n ==) . categoryName) allCategories)
   where err = maybe (Left "category not found") Right
 
-asSegment :: IngestM Segment
+asSegment :: (Monad m) => JE.ParseT T.Text m Segment
 asSegment = JE.fromAesonParser
 
 data StageFile = StageFile
@@ -96,7 +102,7 @@ data StageFile = StageFile
   , stageFileAbs :: !FilePath
   }
 
-asStageFile :: FilePath -> IngestM StageFile
+asStageFile :: (MonadStorage c m) => FilePath -> JE.ParseT T.Text m StageFile
 asStageFile b = do
   r <- (b </>) <$> JE.asString
   a <- fromMaybeM (throwPE "stage file not found") <=< lift $ focusIO $ \a -> do
@@ -105,7 +111,8 @@ asStageFile b = do
     mapM unRawFilePath stageFileRaw
   return $ StageFile r a
 
-ingestJSON :: Volume -> J.Value -> Bool -> Bool -> Handler (Either [T.Text] [Container])
+ingestJSON :: (MonadStorage c m, MonadAudit c m, MonadHas AV c m, MonadHas Secret c m, MonadHas Timestamp c m, MonadLog c m, MonadHas SiteAuth c m)
+  => Volume -> J.Value -> Bool -> Bool -> m (Either [T.Text] [Container])
 ingestJSON vol jdata run overwrite = runExceptT $ do
   schema <- mapExceptT liftIO loadSchema
   let errs = schema jdata
@@ -114,12 +121,13 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
   then ExceptT $ left (JE.displayError id) <$> JE.parseValueM volume jdata
   else return []
     where
-  check :: (Eq a, Show a) => a -> a -> IngestM (Maybe a)
+  check :: (Eq a, Show a, Monad m) => a -> a -> JE.ParseT T.Text m (Maybe a)
   check cur new
     | cur == new = return Nothing
     | not overwrite = throwPE $ "conflicting value: " <> T.pack (show new) <> " <> " <> T.pack (show cur)
     | otherwise = return $ Just new
-  volume :: IngestM [Container]
+  volume :: (MonadStorage c m, MonadAudit c m, MonadHas AV c m, MonadHas Secret c m, MonadHas Timestamp c m, MonadLog c m, MonadHas SiteAuth c m)
+    => JE.ParseT T.Text m [Container]
   volume = do
     dir <- JE.keyOrDefault "directory" "" $ stageFileRel <$> asStageFile ""
     _ <- JE.keyMay "name" $ do
@@ -127,7 +135,8 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
       forM_ name $ \n -> lift $ changeVolume vol{ volumeRow = (volumeRow vol){ volumeName = n } }
     top <- lift (lookupVolumeTopContainer vol)
     JE.key "containers" $ JE.eachInArray (container top dir)
-  container :: Container -> String -> IngestM Container
+  container :: (MonadStorage c m, MonadAudit c m, MonadHas AV c m, MonadHas Secret c m, MonadHas Timestamp c m, MonadLog c m, MonadHas SiteAuth c m)
+    => Container -> String -> JE.ParseT T.Text m Container
   container topc dir = do
     cid <- JE.keyMay "id" $ Id <$> JE.asIntegral
     key <- JE.key "key" $ asKey
@@ -205,7 +214,7 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
             o <- lift $ changeAssetSlot $ AssetSlot a $ Just ss
             unless o $ throwPE "asset link failed"
       return c
-  record :: IngestM Record
+  record :: (MonadAudit c m) => JE.ParseT T.Text m Record
   record = do
     -- handle record shell
     (rid :: Maybe (Id Record)) <- JE.keyMay "id" $ Id <$> JE.asIntegral -- insert = nothing, update = just id
@@ -259,7 +268,8 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
           $ \measureDatumVal -> (lift . changeRecordMeasure) (Measure r metric measureDatumVal) -- save measure data
     -- return record
     return r
-  asset :: String -> IngestM (Asset, Maybe Probe)
+  asset :: (MonadStorage c m, MonadAudit c m, MonadHas AV c m, MonadHas Secret c m, MonadHas Timestamp c m, MonadLog c m, MonadHas SiteAuth c m)
+    => String -> JE.ParseT T.Text m (Asset, Maybe Probe)
   asset dir = do
     sa <- fromMaybeM
       (JE.key "file" $ do
