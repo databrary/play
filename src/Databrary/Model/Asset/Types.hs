@@ -48,7 +48,7 @@ instance Has (Id Asset) AssetRow where
 instance Has Format AssetRow where
   view = assetFormat
 instance Has (Id Format) AssetRow where
-  view = (view . assetFormat)
+  view = (formatId . assetFormat)
 -- instance Has (Maybe Release) AssetRow where
 --   view = assetRelease
 -- instance Has Release AssetRow where

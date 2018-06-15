@@ -12,7 +12,6 @@ import qualified Data.Text as T
 import Instances.TH.Lift ()
 import Language.Haskell.TH.Lift (deriveLift)
 
-import Databrary.Has (Has(..))
 import Databrary.Model.Kind
 import Databrary.Model.Id.Types
 
@@ -24,7 +23,7 @@ data Format = Format
   , formatExtension :: [BS.ByteString] -- TODO: nonempty list
   , formatName :: T.Text
   }
-  deriving (Show)
+  -- deriving (Show)
 
 instance Kinded Format where
   kindOf _ = "format"
@@ -35,10 +34,6 @@ instance Eq Format where
 
 instance Ord Format where
   compare = comparing formatId
-
--- makeHasRec ''Format ['formatId]
-instance Has (Id Format) Format where
-  view = formatId
 
 deriveLift ''Format
 
