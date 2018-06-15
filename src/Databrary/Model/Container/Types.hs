@@ -24,7 +24,7 @@ data ContainerRow = ContainerRow
   , containerTop :: Bool
   , containerName :: Maybe T.Text
   , containerDate :: Maybe Date
-  } deriving (Eq, Show)
+  } -- deriving (Eq, Show)
 
 data Container = Container
   { containerRow :: !ContainerRow
