@@ -31,12 +31,12 @@ data AssetRow = AssetRow
   , assetSHA1 :: Maybe BS.ByteString
   , assetSize :: Maybe Int64
   }
-  deriving (Show)
+  -- deriving (Show)
 data Asset = Asset
   { assetRow :: !AssetRow
   , assetVolume :: Volume
   }
-  deriving (Show)
+  -- deriving (Show)
 
 instance Kinded Asset where
   kindOf _ = "asset"

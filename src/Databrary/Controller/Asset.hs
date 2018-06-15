@@ -86,10 +86,10 @@ getAsset getOrig p checkDataPerm i = do
   void (checkPermission2 (extractPermissionIgnorePolicy . getAssetSlotVolumePermission2) p slot)
   when checkDataPerm $ do
     -- TODO: delete
-    liftIO $ print ("checking data perm", "assetSlot", slot)
-    liftIO $ print ("checking data perm", "seg rlses", getAssetSlotRelease2 slot,
-                    "vol prm", getAssetSlotVolumePermission2 slot)
-    liftIO $ print ("result perm", dataPermission4 getAssetSlotRelease2 getAssetSlotVolumePermission2 slot)
+    -- liftIO $ print ("checking data perm", "assetSlot", slot)
+    -- liftIO $ print ("checking data perm", "seg rlses", getAssetSlotRelease2 slot,
+    --                 "vol prm", getAssetSlotVolumePermission2 slot)
+    -- liftIO $ print ("result perm", dataPermission4 getAssetSlotRelease2 getAssetSlotVolumePermission2 slot)
     void (userCanReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 slot)
   pure slot
 

@@ -59,10 +59,10 @@ getAssetSegment getOrig p checkDataPerm mv s a = do
   void (checkPermission2 (extractPermissionIgnorePolicy . getAssetSegmentVolumePermission2) p assetSeg)
   when checkDataPerm $ do
     -- TODO: delete
-    liftIO $ print ("checking data perm", "as", assetSeg)
-    liftIO $ print ("checking data perm", "seg rlses", getAssetSegmentRelease2 assetSeg,
-                    "vol prm", getAssetSegmentVolumePermission2 assetSeg)
-    liftIO $ print ("result perm", dataPermission4 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
+    -- liftIO $ print ("checking data perm", "as", assetSeg)
+    -- liftIO $ print ("checking data perm", "seg rlses", getAssetSegmentRelease2 assetSeg,
+    --                 "vol prm", getAssetSegmentVolumePermission2 assetSeg)
+    -- liftIO $ print ("result perm", dataPermission4 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
     void (userCanReadData getAssetSegmentRelease2 getAssetSegmentVolumePermission2 assetSeg)
   pure assetSeg
 
@@ -92,10 +92,10 @@ viewAssetSegment getOrig = action GET (pathAPI </>>> pathMaybe pathId </>> pathS
 
 serveAssetSegment :: Bool -> AssetSegment -> Handler Response
 serveAssetSegment dl as = do
-  liftIO $ print ("download?", dl)
-  liftIO $ print ("asset seg?", as)
+  -- liftIO $ print ("download?", dl)
+  -- liftIO $ print ("asset seg?", as)
   sz <- peeks $ readMaybe . BSC.unpack <=< join . listToMaybe . lookupQueryParameters "size"
-  liftIO $ print ("determined size", sz)
+  -- liftIO $ print ("determined size", sz)
   when dl $ auditAssetSegmentDownload True as
   store :: RawFilePath <- maybeAction =<< getAssetFile a
   (hd :: ResponseHeaders, part :: Maybe FileOffset) <-
