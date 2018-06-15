@@ -6,7 +6,7 @@ import Database.PostgreSQL.Typed.Inet (PGInet(..))
 
 import Databrary.Model.Audit.Types
 import Databrary.Model.Id.Types
-import Databrary.Model.TypeOrphans ()
+-- import Databrary.Model.TypeOrphans ()
 
 auditIdentity1 :: AuditIdentity
 auditIdentity1 =
