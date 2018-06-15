@@ -43,31 +43,18 @@ containerSlot c = Slot c fullSegment
 instance Kinded Slot where
   kindOf _ = "slot"
 
--- makeHasRec ''SlotId ['slotContainerId, 'slotSegmentId]
--- makeHasRec ''Slot ['slotContainer, 'slotSegment]
--- instance Has (Id Container) SlotId where
---   view = slotContainerId
--- instance Has Segment SlotId where
---   view = slotSegmentId
-
 instance Has Container Slot where
   view = slotContainer
--- instance Has Databrary.Model.Volume.Types.VolumeRow Slot where
---   view = (view . slotContainer)
 instance Has (Id Databrary.Model.Volume.Types.Volume) Slot where
   view = (view . slotContainer)
 instance Has Databrary.Model.Permission.Types.Permission Slot where
   view = (view . slotContainer)
 instance Has Databrary.Model.Volume.Types.Volume Slot where
   view = (view . slotContainer)
--- instance Has Databrary.Model.Release.Types.Release Slot where
---   view = (view . slotContainer)
 instance Has (Maybe Databrary.Model.Release.Types.Release) Slot where
   view = (view . slotContainer)
 instance Has (Id Container) Slot where
   view = (view . slotContainer)
--- instance Has ContainerRow Slot where
---   view = (view . slotContainer)
 instance Has Segment Slot where
   view = slotSegment
 
