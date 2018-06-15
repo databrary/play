@@ -8,6 +8,7 @@ import Databrary.Model.AssetSlot.Types
 import Databrary.Model.Metric.Types
 import Databrary.Model.ORCID
 import Databrary.Model.Party.Types
+import Databrary.Model.Volume.Types
 
 deriving instance Eq ORCID
 
@@ -25,3 +26,10 @@ deriving instance Show AssetSegment
 
 deriving instance Eq ParticipantFieldMapping2
 deriving instance Show ParticipantFieldMapping2
+
+deriving instance Eq Volume
+deriving instance Show Volume
+
+deriving instance Eq VolumeRow
+deriving instance Show VolumeRow
+
