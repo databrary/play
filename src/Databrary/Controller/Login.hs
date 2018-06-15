@@ -62,6 +62,7 @@ loginHandler api method _
 viewLogin :: ActionRoute ()
 viewLogin = action GET ("user" >/> "login") $ \() -> viewLoginAction
 
+-- | The action for handling GET for user/login
 viewLoginAction :: Action
 viewLoginAction = withAuth $ do
     angular
@@ -75,6 +76,7 @@ checkPassword p = any (`BCrypt.validatePassword` p) . accountPasswd
 postLogin :: ActionRoute API
 postLogin = action POST (pathAPI </< "user" </< "login") $ postLoginAction
 
+-- | The action for handling POST for user/login
 postLoginAction :: API -> Action
 postLoginAction = \api -> withoutAuth $ do
   (Just auth, su) <- runForm ((api == HTML) `thenUse` htmlLogin) $ do

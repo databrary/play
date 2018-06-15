@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Controller.Activity
   ( viewSiteActivityHandler
-  , viewSiteActivity -- remove when view not using it
   , viewPartyActivity
   , viewVolumeActivity
   , viewContainerActivity
@@ -35,10 +34,6 @@ import Databrary.Controller.Angular
 import Databrary.Controller.Party
 import Databrary.Controller.Volume
 import Databrary.Controller.Container
--- import Databrary.View.Activity
-
-viewSiteActivity :: ActionRoute ()
-viewSiteActivity = action GET (pathJSON >/> "activity") $ \() -> viewSiteActivityHandler
 
 viewSiteActivityHandler :: Action -- TODO: GET only
 viewSiteActivityHandler = withAuth $ do

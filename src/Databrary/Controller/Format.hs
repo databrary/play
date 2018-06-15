@@ -17,6 +17,7 @@ import Databrary.Controller.Web
 import Databrary.Controller.Angular
 import Databrary.View.Format
 
+-- NOROUTE: Not in routeMapInvertivle; only used for otherRouteResponse
 formatIcon :: ActionRoute Format
 formatIcon = (pf I.:<->: fp) `R.mapActionRoute` webFile where
   fp f = Just $ staticPath
