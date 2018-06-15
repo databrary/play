@@ -24,7 +24,7 @@ data ContainerRow = ContainerRow
   , containerTop :: Bool
   , containerName :: Maybe T.Text
   , containerDate :: Maybe Date
-  } deriving (Eq, Show)
+  } -- deriving (Eq, Show)
 
 data Container = Container
   { containerRow :: !ContainerRow
@@ -45,24 +45,17 @@ getContainerRelease c =
 instance Kinded Container where
   kindOf _ = "container"
 
--- makeHasRec ''ContainerRow ['containerId]
--- makeHasRec ''Container ['containerRow, 'containerRelease, 'containerVolume]
 instance Has (Id Container) ContainerRow where
   view = containerId
 
--- instance Has ContainerRow Container where
---   view = containerRow
 instance Has (Id Container) Container where
   view = (view . containerRow)
 instance Has (Maybe Release) Container where
   view = containerRelease
--- instance Has Release Container where
---   view = (view . containerRelease)
 instance Has Volume Container where
   view = containerVolume
 instance Has Permission Container where
   view = (view . containerVolume)
 instance Has (Id Volume) Container where
   view = (view . containerVolume)
--- instance Has VolumeRow Container where
---   view = (view . containerVolume)
+

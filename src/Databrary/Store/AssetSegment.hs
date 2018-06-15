@@ -32,7 +32,7 @@ import Databrary.Store.Types
 import Databrary.Store.Asset
 import Databrary.Store.Temp
 import Databrary.Store.AV
-import Databrary.Action.Types
+-- import Databrary.Action.Types
 
 assetSegmentTag :: AssetSegment -> Maybe Word16 -> String
 assetSegmentTag as sz = m ':' ((assetSegmentFull as) `unlessUse` s) ++ m '@' (show <$> sz) where
