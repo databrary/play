@@ -2,6 +2,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 module Databrary.Model.TypeOrphans where
 
+import Databrary.Model.Age
 import Databrary.Model.Asset.Types
 import Databrary.Model.AssetSegment.Types
 import Databrary.Model.AssetSlot.Types
@@ -12,6 +13,8 @@ import Databrary.Model.Party.Types
 import Databrary.Model.Permission.Types
 import Databrary.Model.Release.Types
 import Databrary.Model.Volume.Types
+
+deriving instance Show Age
 
 deriving instance Show Access
 

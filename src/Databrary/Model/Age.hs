@@ -15,7 +15,7 @@ import Databrary.Model.Time
 newtype Age =
   Age {
       ageDays :: Int -- ^ Totals days constituting age. E.g. 1.5 years old = 548 days
-    } deriving (Eq, Ord, Num, Show)
+    } deriving (Eq, Ord) -- (Num, Show)
 
 instance JSON.ToJSON Age where
   toJSON (Age days) = JSON.Number $ fromIntegral days

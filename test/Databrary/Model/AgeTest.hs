@@ -6,6 +6,7 @@ import Data.Time
 import Test.Tasty.HUnit
 
 import Databrary.Model.Age
+import Databrary.Model.TypeOrphans ()
 
 unit_age_toJSON :: Assertion
 unit_age_toJSON =
