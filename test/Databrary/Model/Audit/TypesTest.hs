@@ -3,10 +3,10 @@ module Databrary.Model.Audit.TypesTest where
 
 import Data.Time as Time
 import Database.PostgreSQL.Typed.Inet (PGInet(..))
-import Test.Tasty
 
 import Databrary.Model.Audit.Types
 import Databrary.Model.Id.Types
+import Databrary.Model.TypeOrphans ()
 
 auditIdentity1 :: AuditIdentity
 auditIdentity1 =
@@ -22,8 +22,3 @@ audit1 =
         , auditIdentity = auditIdentity1
         , auditAction = AuditActionOpen
         }
-
-test_all :: [TestTree]
-test_all =
-    [
-    ]
