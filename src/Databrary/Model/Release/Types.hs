@@ -81,4 +81,4 @@ data EffectiveRelease =
        EffectiveRelease {
            effRelPublic :: !Release
          , effRelPrivate :: !Release
-         } deriving (Eq, Show)
+         } -- deriving (Eq, Show)

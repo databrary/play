@@ -10,6 +10,7 @@ import Databrary.Model.Format.Types
 import Databrary.Model.ORCID
 import Databrary.Model.Party.Types
 import Databrary.Model.Permission.Types
+import Databrary.Model.Release.Types
 import Databrary.Model.Volume.Types
 
 deriving instance Show Access
@@ -23,6 +24,9 @@ deriving instance Show AssetSegment
 
 deriving instance Eq ParticipantFieldMapping2
 deriving instance Show ParticipantFieldMapping2
+
+deriving instance Eq EffectiveRelease
+deriving instance Show EffectiveRelease
 
 deriving instance Show Format
 
