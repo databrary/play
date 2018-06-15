@@ -6,7 +6,7 @@ module Databrary.Model.VolumeAccess.Types
 
 import Data.Int (Int16)
 
-import Databrary.Has (Has(..))
+-- import Databrary.Has (Has(..))
 import Databrary.Model.Id.Types
 import Databrary.Model.Permission.Types
 import Databrary.Model.Volume.Types
@@ -31,6 +31,7 @@ getShareFullDefault targetParty individualAccessLevel =
     nobodyPublicLegacyDefault = Just True
     generalDefault = Nothing
 
+{-
 instance Has Volume VolumeAccess where
   view = volumeAccessVolume
 instance Has (Id Volume) VolumeAccess where
@@ -39,3 +40,4 @@ instance Has Party VolumeAccess where
   view = volumeAccessParty
 instance Has (Id Party) VolumeAccess where
   view = (view . volumeAccessParty)
+-}

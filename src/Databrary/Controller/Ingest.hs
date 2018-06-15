@@ -106,20 +106,20 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
           csrfForm
           fileInfo :: (FileInfo TL.Text) <- "file" .:> deform
           return fileInfo
-    liftIO (print ("after extract form"))
+    -- liftIO (print ("after extract form"))
     let uploadFileContents' = (BSL.toStrict . TLE.encodeUtf8 . removeBomPrefixText . fileContent) csvFileInfo
-    liftIO (print "uploaded contents below")
-    liftIO (print uploadFileContents')
+    -- liftIO (print "uploaded contents below")
+    -- liftIO (print uploadFileContents')
     case parseCsvWithHeader uploadFileContents' of
         Left err -> do
-            liftIO (print ("csv parse error", err))
+            -- liftIO (print ("csv parse error", err))
             pure (response badRequest400 [] err)
         Right (hdrs, records) -> do
             metrics <- lookupVolumeParticipantMetrics v
-            liftIO (print ("before check determine", show hdrs))
+            -- liftIO (print ("before check determine", show hdrs))
             case checkDetermineMapping metrics ((fmap TE.decodeUtf8 . getHeaders) hdrs) uploadFileContents' of
                 Left err -> do
-                    liftIO (print ("failed to determine mapping", err))
+                    -- liftIO (print ("failed to determine mapping", err))
                     -- if column check failed, then don't save csv file and response is error
                     pure (response badRequest400 [] err)
                 Right participantFieldMapping -> do
@@ -174,7 +174,7 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
                 Left err ->
                     pure (response badRequest400 [] err) -- mapping of inactive metrics or missing metric
                 Right mpngs -> do
-                    liftIO $ print ("upload id", csvUploadId, "mapping", mpngs)
+                    -- liftIO $ print ("upload id", csvUploadId, "mapping", mpngs)
                     case attemptParseRows mpngs uploadFileContents of
                         Left err ->   -- invalid value in row
                             pure (response badRequest400 [] err)

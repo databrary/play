@@ -34,7 +34,7 @@ type instance IdType Record = Int32
 data RecordRow = RecordRow
   { recordId :: Id Record
   , recordCategory :: Category
-  } deriving (Show, Eq)
+  } deriving ({-Show, -} Eq)
 
 data Record = Record
   { recordRow :: !RecordRow

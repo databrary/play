@@ -2,7 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Databrary.Model.Permission
   ( module Databrary.Model.Permission.Types
-  , permissionVIEW
+  -- , permissionVIEW
   , permissionPRIVATE
   , readPermission
   , readRelease
@@ -17,9 +17,9 @@ import qualified Databrary.JSON as JSON
 import Databrary.Model.Release.Types
 import Databrary.Model.Permission.Types
 
--- |Level at which things become visible.
-permissionVIEW :: Permission
-permissionVIEW = PermissionPUBLIC
+-- |Level at which things become visible. ; TODO: use this somewhere?
+-- permissionVIEW :: Permission
+-- permissionVIEW = PermissionPUBLIC
 
 -- |Alias for READ. Grants full access to private data, bypassing consent permissions.
 permissionPRIVATE :: Permission

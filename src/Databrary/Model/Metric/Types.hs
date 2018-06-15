@@ -127,4 +127,4 @@ lookupField :: Metric -> ParticipantFieldMapping2 -> Maybe Text
 lookupField m (ParticipantFieldMapping2 mp) = Map.lookup m mp
 
 newtype ParticipantFieldMapping2 = ParticipantFieldMapping2 { pfmGetMapping :: (Map Metric Text) }
-    deriving (Eq, Show)
+    -- deriving (Eq, Show)

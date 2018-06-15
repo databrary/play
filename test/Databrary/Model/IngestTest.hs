@@ -14,6 +14,7 @@ import Databrary.Model.Record
 import Databrary.Model.Ingest
 import Databrary.Model.Metric.TypesTest
 import Databrary.Model.Record.TypesTest
+import Databrary.Model.TypeOrphans ()
 
 test_all :: [TestTree]
 test_all =

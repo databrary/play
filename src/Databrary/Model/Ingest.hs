@@ -444,7 +444,7 @@ data HeaderMappingEntry =
     HeaderMappingEntry {
           hmeCsvField :: Text
         , hmeMetric :: Metric -- only participant metrics
-    } deriving (Show, Eq, Ord)
+    } deriving ({- Show, -} Eq, Ord)
 
 instance FromJSON HeaderMappingEntry where
     parseJSON =
