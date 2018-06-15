@@ -42,8 +42,6 @@ instance Has SiteAuth Identity where
 
 instance Has Party Identity where
   view = view . (view :: Identity -> SiteAuth)
-instance Has Account Identity where
-  view = view . (view :: Identity -> SiteAuth)
 instance Has (Id Party) Identity where
   view = view . (view :: Identity -> SiteAuth)
 instance Has Access Identity where

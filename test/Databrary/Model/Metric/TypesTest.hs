@@ -2,7 +2,6 @@
 module Databrary.Model.Metric.TypesTest where
 
 import Data.Text (Text)
-import Test.Tasty
 
 import Databrary.Model.Release.Types
 import Databrary.Model.Id.Types

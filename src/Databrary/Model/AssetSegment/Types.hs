@@ -37,7 +37,7 @@ data AssetSegment = AssetSegment
   , assetSegment :: !Segment
   , assetExcerpt :: Maybe Excerpt
   }
-  deriving (Show)
+  -- deriving (Show)
 
 assetAssumedSegment :: AssetSlot -> Segment
 assetAssumedSegment a

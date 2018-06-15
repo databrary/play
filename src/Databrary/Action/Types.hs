@@ -92,7 +92,7 @@ instance Has Databrary.Model.Permission.Types.Access RequestContext where
 instance Has (Databrary.Model.Id.Types.Id Databrary.Model.Party.Types.Party) RequestContext where
   view = (view . requestIdentity)
 instance Has Databrary.Model.Party.Types.Account RequestContext where
-  view = (view . requestIdentity)
+   view = (siteAccount . view . requestIdentity)
 instance Has Databrary.Model.Party.Types.Party RequestContext where
   view = (view . requestIdentity)
 instance Has Databrary.Model.Party.Types.SiteAuth RequestContext where
