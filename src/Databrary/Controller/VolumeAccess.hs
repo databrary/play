@@ -37,7 +37,7 @@ viewVolumeAccess = action GET (pathHTML >/> pathId </> pathVolumeAccessTarget) $
   peeks $ blankForm . htmlVolumeAccessForm a
 -}
 
-postVolumeAccess :: ActionRoute ((Id Volume, VolumeAccessTarget))
+postVolumeAccess :: ActionRoute (Id Volume, VolumeAccessTarget)
 postVolumeAccess = action POST (pathJSON >/> pathId </> pathVolumeAccessTarget) $ \(vi, VolumeAccessTarget ap) -> withAuth $ do
   v <- getVolume (if ap == partyId (partyRow staffParty) then PermissionEDIT else PermissionADMIN) vi
   a <- maybeAction =<< lookupVolumeAccessParty v ap

@@ -37,6 +37,7 @@ getApiOrFail params =
     _ -> undefined -- TODO: action m error
 -}
 
+-- FIXME: JSON response ignores serviceDown
 viewRootHandler :: API -> [(BS.ByteString, BS.ByteString)] -> Action
 viewRootHandler api _ = -- TOOD: ensure GET
   withAuth $ do
