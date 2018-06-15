@@ -94,7 +94,7 @@ instance Monoid Permission where
 data Access = Access
   { accessSite' :: !Permission -- ^ ??
   , accessMember' :: !Permission -- ^ ??
-  } deriving (Eq, Show)
+  } deriving (Eq) -- , Show)
 
 accessPermission' :: Access -> Permission
 accessPermission' (Access s m) = min s m
@@ -118,11 +118,11 @@ deriveLiftMany [''Permission, ''Access]
 -- for a given volume. Restricted is the only current policy. It signifies
 -- hiding all data, except high level summary information and highlights.
 -- The word policy is a reference to the term used in attribute-based access control.
-data PublicPolicy = PublicRestrictedPolicy | PublicNoPolicy deriving (Show, Eq)
+data PublicPolicy = PublicRestrictedPolicy | PublicNoPolicy -- deriving (Show, Eq)
 
 -- | A SharedPolicy is the same as PublicPolicy currently, but applied to the shared
 -- viewer role.
-data SharedPolicy = SharedRestrictedPolicy | SharedNoPolicy deriving (Show, Eq)
+data SharedPolicy = SharedRestrictedPolicy | SharedNoPolicy -- deriving (Show, Eq)
 
 -- | A user's effective access to a given volume.
 data VolumeRolePolicy =
@@ -132,7 +132,7 @@ data VolumeRolePolicy =
   | RoleReader
   | RoleEditor
   | RoleAdmin
-  deriving (Show, Eq)
+  -- deriving (Show, Eq)
 
 deriveLift ''PublicPolicy
 deriveLift ''SharedPolicy

@@ -11,6 +11,7 @@ import Databrary.Model.Id.Types
 import Databrary.Model.Release.Types
 import Databrary.Model.Segment (fullSegment)
 import Databrary.Model.Slot.Types
+import Databrary.Model.TypeOrphans
 import Databrary.Model.Volume.Types
 
 -- See

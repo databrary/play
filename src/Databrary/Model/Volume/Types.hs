@@ -31,7 +31,7 @@ data VolumeRow = VolumeRow
   , volumeAlias :: Maybe T.Text
   , volumeDOI :: Maybe BS.ByteString
   }
-  deriving (Show, Eq)
+  -- deriving (Show, Eq)
 
 type VolumeOwner = (Id Party, T.Text)
 
@@ -41,7 +41,7 @@ data Volume = Volume
   , volumeOwners :: [VolumeOwner]
   , volumeRolePolicy :: VolumeRolePolicy
   }
-  deriving (Show, Eq)
+  -- deriving (Show, Eq)
 
 instance Kinded Volume where
   kindOf _ = "volume"
