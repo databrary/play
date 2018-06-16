@@ -6,6 +6,7 @@ import Databrary.Model.Age
 import Databrary.Model.Asset.Types
 import Databrary.Model.AssetSegment.Types
 import Databrary.Model.AssetSlot.Types
+import Databrary.Model.Funding.Types
 import Databrary.Model.Metric.Types
 import Databrary.Model.Format.Types
 import Databrary.Model.ORCID
@@ -32,6 +33,12 @@ deriving instance Eq EffectiveRelease
 deriving instance Show EffectiveRelease
 
 deriving instance Show Format
+
+deriving instance Eq Funder
+deriving instance Show Funder
+
+-- deriving instance Eq Funding
+-- deriving instance Show Funding
 
 deriving instance Eq ORCID
 

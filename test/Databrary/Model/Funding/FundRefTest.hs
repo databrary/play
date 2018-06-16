@@ -6,6 +6,7 @@ import Test.Tasty.HUnit
 import Databrary.Model.Funding.FundRef
 import Databrary.Model.Funding.Types
 import Databrary.Model.Id.Types
+import Databrary.Model.TypeOrphans ()
 
 funder1 :: Funder
 funder1 = Funder { funderId = Id 1, funderName = "fund1" }
