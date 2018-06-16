@@ -31,9 +31,10 @@ data Slot = Slot
   { slotContainer :: !Container
   , slotSegment :: !Segment
   }
+{-
 instance Show Slot where 
   show _ = "Slot"
-
+-}
 slotId :: Slot -> Id Slot
 slotId (Slot c s) = Id $ SlotId (containerId (containerRow c)) s
 

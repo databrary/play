@@ -8,7 +8,7 @@ import Data.Typeable (Typeable)
 data Period
   = PeriodDaily
   | PeriodWeekly
-  deriving (Typeable, Eq, Ord, Enum, Show)
+  deriving (Eq, Ord, Show) -- (Typeable, Eq, Ord, Enum, Show)
 
 instance Exception Period where
   toException = asyncExceptionToException
