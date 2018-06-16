@@ -6,11 +6,12 @@ import Databrary.Model.Age
 import Databrary.Model.Asset.Types
 import Databrary.Model.AssetSegment.Types
 import Databrary.Model.AssetSlot.Types
+import Databrary.Model.Format.Types
 import Databrary.Model.Funding.Types
 import Databrary.Model.GeoNames
 import Databrary.Model.Metric.Types
-import Databrary.Model.Format.Types
 import Databrary.Model.ORCID
+import Databrary.Model.Paginate
 import Databrary.Model.Party.Types
 import Databrary.Model.Permission.Types
 import Databrary.Model.Release.Types
@@ -45,6 +46,9 @@ deriving instance Eq GeoName
 deriving instance Show GeoName
 
 deriving instance Eq ORCID
+
+deriving instance Eq Paginate
+deriving instance Show Paginate
 
 deriving instance Eq PartyRow
 deriving instance Show PartyRow

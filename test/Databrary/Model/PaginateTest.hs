@@ -7,6 +7,7 @@ import Hedgehog.Gen as Gen
 import Test.Tasty.HUnit
 
 import Databrary.Model.Paginate
+import Databrary.Model.TypeOrphans ()
 
 unit_paginate_succ :: Assertion
 unit_paginate_succ = do
