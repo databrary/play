@@ -72,6 +72,7 @@ import Databrary.Store.Service
 --   /transcode, /transctl present
 --   solr started using /solr-6.6.0 binaries w/core and config in /solr; databrary_logs created
 --   ffmpeg exe on path
+--   active internet connection for live http calls like geoname lookup to function
 
 -- | Sloppily taken from hunit-rematch because author is too lazy
 -- to update dependency bounds on hackage. Use fetch from his github later.

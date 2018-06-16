@@ -7,6 +7,7 @@ import Databrary.Model.Asset.Types
 import Databrary.Model.AssetSegment.Types
 import Databrary.Model.AssetSlot.Types
 import Databrary.Model.Funding.Types
+import Databrary.Model.GeoNames
 import Databrary.Model.Metric.Types
 import Databrary.Model.Format.Types
 import Databrary.Model.ORCID
@@ -39,6 +40,9 @@ deriving instance Show Funder
 
 -- deriving instance Eq Funding
 -- deriving instance Show Funding
+
+deriving instance Eq GeoName
+deriving instance Show GeoName
 
 deriving instance Eq ORCID
 
