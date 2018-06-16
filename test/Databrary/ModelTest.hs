@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, FlexibleContexts #-}
 module Databrary.ModelTest where
 
+import Control.Concurrent (threadDelay)
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Reader
@@ -13,7 +14,7 @@ import Data.Maybe
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Data.Time
-import Hedgehog.Gen as Gen
+import qualified Hedgehog.Gen as Gen
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -295,7 +296,7 @@ test_12a = Test.stepsWithTransaction "" $ \step cn2 -> do
 ---- starting needs log as well as storage <<<
 ---- callback needs av, internalstate as well
 test_12b :: TestTree
-test_12b = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_12b = Test.stepsWithResourceAndTransaction "" $ \step ist cn2 -> do
     step "Given a partially shared volume"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     -- TODO: should be lookup auth on rootParty
@@ -305,6 +306,7 @@ test_12b = Test.stepsWithTransaction "" $ \step cn2 -> do
     aiCtxt3 <- withAV aiCtxt2
     let aiCtxt4 = withTimestamp (UTCTime (fromGregorian 2017 5 6) (secondsToDiffTime 0)) aiCtxt3
     aiCtxt5 <- withLogs aiCtxt4
+    let aiCtxt6 = withInternalStateVal ist aiCtxt5
     foundAsset <- runReaderT
         (do
               (a, _) <- Gen.sample (genCreateAssetAfterUpload vol)
@@ -317,13 +319,16 @@ test_12b = Test.stepsWithTransaction "" $ \step cn2 -> do
               -- change assetslot
               trans <- addTranscode assetWithName fullSegment defaultTranscodeOptions probe
               _ <- startTranscode trans
-              -- lookuptranscode
-              -- collect transcode (needs asset slot created above)
+              Just t <- lookupTranscode (transcodeId trans)  -- TODO: without auth; reauth after
+              -- TODO (needs asset slot created above); needs sha1; how deal with determining exit code?
+              -- liftIO (threadDelay 3000)
+              liftIO (print "before collect------------")
+              -- collectTranscode t 0 Nothing ""  -- failing during avprobe
               pure (transcodeAsset trans)
               
               -- lookup assetslot or container w/contents
               )
-        (aiCtxt5 { ctxSecret = Just (Secret "abc") })
+        (aiCtxt6 { ctxSecret = Just (Secret "abc") })
     -- Just slotForAnon <- runWithNoIdent cn2 (lookupSlotByContainerId cid)
     step "Then one can retrieve the asset"
     (assetRelease . assetRow) foundAsset @?= Just ReleasePUBLIC

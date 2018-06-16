@@ -5,10 +5,12 @@ module TestHarness
     , withAV
     , withTimestamp
     , withLogs
+    , withInternalStateVal
     , mkDbContext
     , runContextReaderT
     , withinTestTransaction
     , stepsWithTransaction
+    , stepsWithResourceAndTransaction
     , connectTestDb
     , makeSuperAdminContext
     , fakeIdentSessFromAuth
@@ -33,6 +35,7 @@ import Control.Exception (bracket)
 import Control.Rematch
 import Control.Rematch.Run
 import Control.Monad.Trans.Reader
+import Control.Monad.Trans.Resource (InternalState, runResourceT, withInternalState)
 import Data.Maybe
 import Data.Time
 import Database.PostgreSQL.Typed.Protocol
@@ -100,6 +103,7 @@ data TestContext = TestContext
     -- ^ for MonadDB
     , ctxStorage :: Maybe Storage
     -- ^ for MonadStorage
+    , ctxInternalState :: Maybe InternalState
     , ctxIdentity :: Maybe Identity
     , ctxSiteAuth :: Maybe SiteAuth
     , ctxAV :: Maybe AV
@@ -115,6 +119,7 @@ blankContext = TestContext
     , ctxPartyId = Nothing
     , ctxConn = Nothing
     , ctxStorage = Nothing
+    , ctxInternalState = Nothing
     , ctxIdentity = Nothing
     , ctxSiteAuth = Nothing
     , ctxAV = Nothing
@@ -131,6 +136,7 @@ addCntxt c1 c2 =
         , ctxPartyId = ctxPartyId c1 <|> ctxPartyId c2
         , ctxConn = ctxConn c1 <|> ctxConn c2
         , ctxStorage = ctxStorage c1 <|> ctxStorage c2
+        , ctxInternalState = ctxInternalState c1 <|> ctxInternalState c2
         , ctxIdentity = ctxIdentity c1 <|> ctxIdentity c2
         , ctxSiteAuth = ctxSiteAuth c1 <|> ctxSiteAuth c2
         , ctxAV = ctxAV c1 <|> ctxAV c2
@@ -158,6 +164,9 @@ instance Has AV TestContext where
 
 instance Has Storage TestContext where
     view = fromJust . ctxStorage
+
+instance Has InternalState TestContext where
+    view = fromJust . ctxInternalState
 
 instance Has Timestamp TestContext where
     view = fromJust . ctxTimestamp
@@ -208,6 +217,10 @@ mkAVContext = do
     av <- initAV
     pure (blankContext { ctxAV = Just av })
 
+withInternalStateVal :: InternalState -> TestContext -> TestContext
+withInternalStateVal ist ctxt =
+    addCntxt ctxt (blankContext { ctxInternalState = Just ist })
+
 -- | Convenience for building a context with only a db connection
 mkDbContext :: DBConn -> TestContext
 mkDbContext c = blankContext { ctxConn = Just c }
@@ -215,6 +228,13 @@ mkDbContext c = blankContext { ctxConn = Just c }
 -- | Convenience for runReaderT where context consists of db connection only
 runContextReaderT :: DBConn -> ReaderT TestContext IO a -> IO a
 runContextReaderT cn rdrActions = runReaderT rdrActions (blankContext { ctxConn = Just cn })
+
+-- | Run an action that uses a db connection and also needs to use internal state/resourcet.
+-- TODO: make this cleaner.
+withinResourceAndTransaction :: (InternalState -> PGConnection -> IO a) -> IO a
+withinResourceAndTransaction act =
+    runResourceT $ withInternalState $ \ist ->
+        withinTestTransaction (act ist)
 
 -- | Execute a test within a DB connection that rolls back at the end.
 withinTestTransaction :: (PGConnection -> IO a) -> IO a
@@ -226,6 +246,12 @@ withinTestTransaction act =
               pure cn)
          (\cn -> pgRollback cn >> pgDisconnect cn)
          act
+
+-- | Combine 'testCaseSteps' and 'withinResourceandTransaction'
+stepsWithResourceAndTransaction
+    :: TestName -> ((String -> IO ()) -> InternalState -> PGConnection -> IO ()) -> TestTree
+stepsWithResourceAndTransaction name f =
+    testCaseSteps name (\step -> withinResourceAndTransaction (f step))
 
 -- | Combine 'testCaseSteps' and 'withinTestTransaction'
 stepsWithTransaction
