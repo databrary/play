@@ -133,7 +133,7 @@ span.spaces    { background: white }
 <span class="lineno">  117 </span>  <span class="decl"><span class="istickedoff">toJSON = String . TE.decodeUtf8</span></span> -- questionable
 <span class="lineno">  118 </span>
 <span class="lineno">  119 </span>instance ToJSONKey BS.ByteString where
-<span class="lineno">  120 </span>  <span class="decl"><span class="nottickedoff">toJSONKey = toJSONKeyText TE.decodeUtf8</span></span>
+<span class="lineno">  120 </span>  <span class="decl"><span class="istickedoff">toJSONKey = toJSONKeyText TE.decodeUtf8</span></span>
 <span class="lineno">  121 </span>
 <span class="lineno">  122 </span>instance FromJSON BS.ByteString where
 <span class="lineno">  123 </span>  <span class="decl"><span class="nottickedoff">parseJSON = fmap TE.encodeUtf8 . parseJSON</span></span>

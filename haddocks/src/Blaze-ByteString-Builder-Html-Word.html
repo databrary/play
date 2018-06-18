@@ -9,13 +9,13 @@
 <body>
 <pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE OverloadedStrings #-}</span>
 <a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Blaze</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-varop'>.</span><span class='hs-conid'>Builder</span><span class='hs-varop'>.</span><span class='hs-conid'>Html</span><span class='hs-varop'>.</span><span class='hs-conid'>Word</span>
-<a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>wordHtmlEscaped</span>
-<a name="line-4"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>fromHtmlEscapedWord</span>
-<a name="line-5"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>fromHtmlEscapedWordList</span>
-<a name="line-6"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>fromHtmlEscapedByteString</span>
+<a name="line-3"></a>  <span class='hs-layout'>(</span><span class='hs-comment'>-- wordHtmlEscaped</span>
+<a name="line-4"></a>  <span class='hs-comment'>-- , fromHtmlEscapedWord</span>
+<a name="line-5"></a>  <span class='hs-comment'>-- , fromHtmlEscapedWordList</span>
+<a name="line-6"></a>    <span class='hs-varid'>fromHtmlEscapedByteString</span>
 <a name="line-7"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>fromHtmlEscapedLazyByteString</span>
-<a name="line-8"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>fromHtmlEscapedText</span>
-<a name="line-9"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>fromHtmlEscapedLazyText</span>
+<a name="line-8"></a>  <span class='hs-comment'>-- , fromHtmlEscapedText</span>
+<a name="line-9"></a>  <span class='hs-comment'>-- , fromHtmlEscapedLazyText</span>
 <a name="line-10"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-11"></a>
 <a name="line-12"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>BS</span>
@@ -24,10 +24,10 @@
 <a name="line-15"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span> <span class='hs-layout'>(</span><span class='hs-varid'>c2w</span><span class='hs-layout'>)</span>
 <a name="line-16"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-varop'>.</span><span class='hs-conid'>Lazy</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>BSL</span>
 <a name="line-17"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Word</span> <span class='hs-layout'>(</span><span class='hs-conid'>Word8</span><span class='hs-layout'>)</span>
-<a name="line-18"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>T</span>
-<a name="line-19"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Encoding</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>TE</span>
-<a name="line-20"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Lazy</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>TL</span>
-<a name="line-21"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-conid'>Encoding</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>TLE</span>
+<a name="line-18"></a><span class='hs-comment'>-- import qualified Data.Text as T</span>
+<a name="line-19"></a><span class='hs-comment'>-- import qualified Data.Text.Encoding as TE</span>
+<a name="line-20"></a><span class='hs-comment'>-- import qualified Data.Text.Lazy as TL</span>
+<a name="line-21"></a><span class='hs-comment'>-- import qualified Data.Text.Lazy.Encoding as TLE</span>
 <a name="line-22"></a>
 <a name="line-23"></a><a name="wordHtmlEscaped"></a><span class='hs-definition'>wordHtmlEscaped</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>P</span><span class='hs-varop'>.</span><span class='hs-conid'>BoundedPrim</span> <span class='hs-conid'>Word8</span>
 <a name="line-24"></a><span class='hs-definition'>wordHtmlEscaped</span> <span class='hs-keyglyph'>=</span>
@@ -47,23 +47,26 @@
 <a name="line-38"></a>  <span class='hs-varid'>fixed6</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>P</span><span class='hs-varop'>.</span><span class='hs-varid'>liftFixedToBounded</span> <span class='hs-varop'>$</span> <span class='hs-varid'>const</span> <span class='hs-varid'>x</span> <span class='hs-conid'>P</span><span class='hs-varop'>.&gt;$&lt;</span>
 <a name="line-39"></a>    <span class='hs-conid'>P</span><span class='hs-varop'>.</span><span class='hs-varid'>char8</span> <span class='hs-conid'>P</span><span class='hs-varop'>.&gt;*&lt;</span> <span class='hs-conid'>P</span><span class='hs-varop'>.</span><span class='hs-varid'>char8</span> <span class='hs-conid'>P</span><span class='hs-varop'>.&gt;*&lt;</span> <span class='hs-conid'>P</span><span class='hs-varop'>.</span><span class='hs-varid'>char8</span> <span class='hs-conid'>P</span><span class='hs-varop'>.&gt;*&lt;</span> <span class='hs-conid'>P</span><span class='hs-varop'>.</span><span class='hs-varid'>char8</span> <span class='hs-conid'>P</span><span class='hs-varop'>.&gt;*&lt;</span> <span class='hs-conid'>P</span><span class='hs-varop'>.</span><span class='hs-varid'>char8</span> <span class='hs-conid'>P</span><span class='hs-varop'>.&gt;*&lt;</span> <span class='hs-conid'>P</span><span class='hs-varop'>.</span><span class='hs-varid'>char8</span>
 <a name="line-40"></a>
-<a name="line-41"></a><a name="fromHtmlEscapedWord"></a><span class='hs-definition'>fromHtmlEscapedWord</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Word8</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>B</span><span class='hs-varop'>.</span><span class='hs-conid'>Builder</span>
-<a name="line-42"></a><span class='hs-definition'>fromHtmlEscapedWord</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>P</span><span class='hs-varop'>.</span><span class='hs-varid'>primBounded</span> <span class='hs-varid'>wordHtmlEscaped</span>
-<a name="line-43"></a>
-<a name="line-44"></a><a name="fromHtmlEscapedWordList"></a><span class='hs-definition'>fromHtmlEscapedWordList</span> <span class='hs-keyglyph'>::</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Word8</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>B</span><span class='hs-varop'>.</span><span class='hs-conid'>Builder</span>
-<a name="line-45"></a><span class='hs-definition'>fromHtmlEscapedWordList</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>P</span><span class='hs-varop'>.</span><span class='hs-varid'>primMapListBounded</span> <span class='hs-varid'>wordHtmlEscaped</span>
-<a name="line-46"></a>
-<a name="line-47"></a><a name="fromHtmlEscapedByteString"></a><span class='hs-definition'>fromHtmlEscapedByteString</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>B</span><span class='hs-varop'>.</span><span class='hs-conid'>Builder</span>
-<a name="line-48"></a><span class='hs-definition'>fromHtmlEscapedByteString</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>P</span><span class='hs-varop'>.</span><span class='hs-varid'>primMapByteStringBounded</span> <span class='hs-varid'>wordHtmlEscaped</span>
-<a name="line-49"></a>
-<a name="line-50"></a><a name="fromHtmlEscapedLazyByteString"></a><span class='hs-definition'>fromHtmlEscapedLazyByteString</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>BSL</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>B</span><span class='hs-varop'>.</span><span class='hs-conid'>Builder</span>
-<a name="line-51"></a><span class='hs-definition'>fromHtmlEscapedLazyByteString</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>P</span><span class='hs-varop'>.</span><span class='hs-varid'>primMapLazyByteStringBounded</span> <span class='hs-varid'>wordHtmlEscaped</span>
-<a name="line-52"></a>
-<a name="line-53"></a><a name="fromHtmlEscapedText"></a><span class='hs-definition'>fromHtmlEscapedText</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>T</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>B</span><span class='hs-varop'>.</span><span class='hs-conid'>Builder</span>
-<a name="line-54"></a><span class='hs-definition'>fromHtmlEscapedText</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>TE</span><span class='hs-varop'>.</span><span class='hs-varid'>encodeUtf8BuilderEscaped</span> <span class='hs-varid'>wordHtmlEscaped</span>
-<a name="line-55"></a>
-<a name="line-56"></a><a name="fromHtmlEscapedLazyText"></a><span class='hs-definition'>fromHtmlEscapedLazyText</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>TL</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>B</span><span class='hs-varop'>.</span><span class='hs-conid'>Builder</span>
-<a name="line-57"></a><span class='hs-definition'>fromHtmlEscapedLazyText</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>TLE</span><span class='hs-varop'>.</span><span class='hs-varid'>encodeUtf8BuilderEscaped</span> <span class='hs-varid'>wordHtmlEscaped</span>
+<a name="line-41"></a><span class='hs-comment'>{-
+<a name="line-42"></a>fromHtmlEscapedWord :: Word8 -&gt; B.Builder
+<a name="line-43"></a>fromHtmlEscapedWord = P.primBounded wordHtmlEscaped
+<a name="line-44"></a>
+<a name="line-45"></a>fromHtmlEscapedWordList :: [Word8] -&gt; B.Builder
+<a name="line-46"></a>fromHtmlEscapedWordList = P.primMapListBounded wordHtmlEscaped
+<a name="line-47"></a>-}</span>
+<a name="line-48"></a>
+<a name="line-49"></a><a name="fromHtmlEscapedByteString"></a><span class='hs-definition'>fromHtmlEscapedByteString</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>B</span><span class='hs-varop'>.</span><span class='hs-conid'>Builder</span>
+<a name="line-50"></a><span class='hs-definition'>fromHtmlEscapedByteString</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>P</span><span class='hs-varop'>.</span><span class='hs-varid'>primMapByteStringBounded</span> <span class='hs-varid'>wordHtmlEscaped</span>
+<a name="line-51"></a>
+<a name="line-52"></a><a name="fromHtmlEscapedLazyByteString"></a><span class='hs-definition'>fromHtmlEscapedLazyByteString</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>BSL</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>B</span><span class='hs-varop'>.</span><span class='hs-conid'>Builder</span>
+<a name="line-53"></a><span class='hs-definition'>fromHtmlEscapedLazyByteString</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>P</span><span class='hs-varop'>.</span><span class='hs-varid'>primMapLazyByteStringBounded</span> <span class='hs-varid'>wordHtmlEscaped</span>
+<a name="line-54"></a>
+<a name="line-55"></a><span class='hs-comment'>{-
+<a name="line-56"></a>fromHtmlEscapedText :: T.Text -&gt; B.Builder
+<a name="line-57"></a>fromHtmlEscapedText = TE.encodeUtf8BuilderEscaped wordHtmlEscaped
 <a name="line-58"></a>
+<a name="line-59"></a>fromHtmlEscapedLazyText :: TL.Text -&gt; B.Builder
+<a name="line-60"></a>fromHtmlEscapedLazyText = TLE.encodeUtf8BuilderEscaped wordHtmlEscaped
+<a name="line-61"></a>-}</span>
 </pre></body>
 </html>

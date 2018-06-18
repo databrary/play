@@ -15,7 +15,7 @@
 <a name="line-6"></a>
 <a name="line-7"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Int</span> <span class='hs-layout'>(</span><span class='hs-conid'>Int16</span><span class='hs-layout'>)</span>
 <a name="line-8"></a>
-<a name="line-9"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-conid'>Has</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-9"></a><span class='hs-comment'>-- import Databrary.Has (Has(..))</span>
 <a name="line-10"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Id</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
 <a name="line-11"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Permission</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
 <a name="line-12"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Volume</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
@@ -40,13 +40,15 @@
 <a name="line-31"></a>    <span class='hs-varid'>nobodyPublicLegacyDefault</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Just</span> <span class='hs-conid'>True</span>
 <a name="line-32"></a>    <span class='hs-varid'>generalDefault</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
 <a name="line-33"></a>
-<a name="line-34"></a><a name="instance%20Has%20Volume%20VolumeAccess"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Volume</span> <span class='hs-conid'>VolumeAccess</span> <span class='hs-keyword'>where</span>
-<a name="line-35"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>volumeAccessVolume</span>
-<a name="line-36"></a><a name="instance%20Has%20(Id%20Volume)%20VolumeAccess"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Volume</span><span class='hs-layout'>)</span> <span class='hs-conid'>VolumeAccess</span> <span class='hs-keyword'>where</span>
-<a name="line-37"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Has</span><span class='hs-varop'>.</span><span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>volumeAccessVolume</span><span class='hs-layout'>)</span>
-<a name="line-38"></a><a name="instance%20Has%20Party%20VolumeAccess"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Party</span> <span class='hs-conid'>VolumeAccess</span> <span class='hs-keyword'>where</span>
-<a name="line-39"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>volumeAccessParty</span>
-<a name="line-40"></a><a name="instance%20Has%20(Id%20Party)%20VolumeAccess"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Party</span><span class='hs-layout'>)</span> <span class='hs-conid'>VolumeAccess</span> <span class='hs-keyword'>where</span>
-<a name="line-41"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>volumeAccessParty</span><span class='hs-layout'>)</span>
+<a name="line-34"></a><span class='hs-comment'>{-
+<a name="line-35"></a>instance Has Volume VolumeAccess where
+<a name="line-36"></a>  view = volumeAccessVolume
+<a name="line-37"></a>instance Has (Id Volume) VolumeAccess where
+<a name="line-38"></a>  view = (Databrary.Has.view . volumeAccessVolume)
+<a name="line-39"></a>instance Has Party VolumeAccess where
+<a name="line-40"></a>  view = volumeAccessParty
+<a name="line-41"></a>instance Has (Id Party) VolumeAccess where
+<a name="line-42"></a>  view = (view . volumeAccessParty)
+<a name="line-43"></a>-}</span>
 </pre></body>
 </html>

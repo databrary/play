@@ -48,7 +48,7 @@
 <a name="line-39"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>slotAsset</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Asset</span>
 <a name="line-40"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>assetSlot</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>Slot</span>
 <a name="line-41"></a>  <span class='hs-layout'>}</span>
-<a name="line-42"></a>  <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Show</span><span class='hs-layout'>)</span>
+<a name="line-42"></a>  <span class='hs-comment'>-- deriving (Show)</span>
 <a name="line-43"></a>
 <a name="line-44"></a><a name="assetSlotId"></a><span class='hs-definition'>assetSlotId</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>AssetSlot</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Id</span> <span class='hs-conid'>AssetSlot</span>
 <a name="line-45"></a><span class='hs-definition'>assetSlotId</span> <span class='hs-layout'>(</span><span class='hs-conid'>AssetSlot</span> <span class='hs-varid'>a</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Id</span> <span class='hs-varop'>$</span> <span class='hs-conid'>AssetSlotId</span> <span class='hs-layout'>(</span><span class='hs-varid'>assetId</span> <span class='hs-varop'>$</span> <span class='hs-varid'>assetRow</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>slotId</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>

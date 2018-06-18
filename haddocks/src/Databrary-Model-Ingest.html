@@ -453,7 +453,7 @@
 <a name="line-444"></a>    <span class='hs-conid'>HeaderMappingEntry</span> <span class='hs-layout'>{</span>
 <a name="line-445"></a>          <span class='hs-varid'>hmeCsvField</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Text</span>
 <a name="line-446"></a>        <span class='hs-layout'>,</span> <span class='hs-varid'>hmeMetric</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Metric</span> <span class='hs-comment'>-- only participant metrics</span>
-<a name="line-447"></a>    <span class='hs-layout'>}</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Show</span><span class='hs-layout'>,</span> <span class='hs-conid'>Eq</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ord</span><span class='hs-layout'>)</span>
+<a name="line-447"></a>    <span class='hs-layout'>}</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-comment'>{- Show, -}</span> <span class='hs-conid'>Eq</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ord</span><span class='hs-layout'>)</span>
 <a name="line-448"></a>
 <a name="line-449"></a><a name="instance%20FromJSON%20HeaderMappingEntry"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>FromJSON</span> <span class='hs-conid'>HeaderMappingEntry</span> <span class='hs-keyword'>where</span>
 <a name="line-450"></a>    <span class='hs-varid'>parseJSON</span> <span class='hs-keyglyph'>=</span>

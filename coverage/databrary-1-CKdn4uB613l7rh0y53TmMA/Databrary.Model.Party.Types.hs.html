@@ -50,7 +50,7 @@ span.spaces    { background: white }
 <span class="lineno">   34 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">partyORCID</span></span></span> :: Maybe ORCID
 <span class="lineno">   35 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">partyAffiliation</span></span></span> :: Maybe T.Text
 <span class="lineno">   36 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">partyURL</span></span></span> :: Maybe URI
-<span class="lineno">   37 </span>  } deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>)
+<span class="lineno">   37 </span>  } -- deriving (Show) -- (Eq)
 <span class="lineno">   38 </span>
 <span class="lineno">   39 </span>-- | Represents users, institutions, labs, *and* groups.
 <span class="lineno">   40 </span>data Party = Party

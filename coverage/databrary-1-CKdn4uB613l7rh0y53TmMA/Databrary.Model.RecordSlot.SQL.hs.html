@@ -97,8 +97,8 @@ span.spaces    { background: white }
 <span class="lineno">   81 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
 <span class="lineno">   82 </span>
 <span class="lineno">   83 </span>makeVolumeSlotMaybeRecord :: (Volume -&gt; Container) -&gt; Maybe (Container -&gt; RecordSlot) -&gt; Volume -&gt; (Container, Maybe RecordSlot)
-<span class="lineno">   84 </span><span class="decl"><span class="nottickedoff">makeVolumeSlotMaybeRecord cf Nothing v = (cf v, Nothing)</span>
-<span class="lineno">   85 </span><span class="spaces"></span><span class="nottickedoff">makeVolumeSlotMaybeRecord cf (Just rf) v = (c, Just (rf c)) where c = cf v</span></span>
+<span class="lineno">   84 </span><span class="decl"><span class="istickedoff">makeVolumeSlotMaybeRecord cf Nothing v = (cf <span class="nottickedoff">v</span>, Nothing)</span>
+<span class="lineno">   85 </span><span class="spaces"></span><span class="istickedoff">makeVolumeSlotMaybeRecord cf (Just rf) v = <span class="nottickedoff">(c, Just (rf c))</span> where <span class="nottickedoff">c = cf v</span></span></span>
 <span class="lineno">   86 </span>
 <span class="lineno">   87 </span>selectVolumeSlotMaybeRecord :: Selector -- ^ @'Volume' -&gt; ('Container, Maybe 'RecordSlot)@
 <span class="lineno">   88 </span><span class="decl"><span class="nottickedoff">selectVolumeSlotMaybeRecord = selectJoin 'makeVolumeSlotMaybeRecord</span>

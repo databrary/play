@@ -53,26 +53,27 @@ span.spaces    { background: white }
 <span class="lineno">   37 </span>    _ -&gt; undefined -- TODO: action m error
 <span class="lineno">   38 </span>-}
 <span class="lineno">   39 </span>
-<span class="lineno">   40 </span>viewRootHandler :: API -&gt; [(BS.ByteString, BS.ByteString)] -&gt; Action
-<span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">viewRootHandler api _ = -- TOOD: ensure GET</span>
-<span class="lineno">   42 </span><span class="spaces">  </span><span class="nottickedoff">withAuth $ do</span>
-<span class="lineno">   43 </span><span class="spaces">    </span><span class="nottickedoff">down &lt;- peeks serviceDown</span>
-<span class="lineno">   44 </span><span class="spaces">    </span><span class="nottickedoff">when (api == HTML &amp;&amp; isNothing down) angular</span>
-<span class="lineno">   45 </span><span class="spaces">    </span><span class="nottickedoff">case api of</span>
-<span class="lineno">   46 </span><span class="spaces">      </span><span class="nottickedoff">JSON -&gt; return $ okResponse [] JSON.emptyObject</span>
-<span class="lineno">   47 </span><span class="spaces">      </span><span class="nottickedoff">HTML -&gt; peeks $ okResponse [] . maybe htmlRoot htmlDown down</span></span>
-<span class="lineno">   48 </span>
-<span class="lineno">   49 </span>viewConstantsHandler :: [(BS.ByteString, BS.ByteString)] -&gt; Action
-<span class="lineno">   50 </span><span class="decl"><span class="nottickedoff">viewConstantsHandler _ = -- TODO: ensure GET</span>
-<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">withoutAuth $ return $ okResponse [] $ JSON.pairs constantsJSON</span></span>
-<span class="lineno">   52 </span>
-<span class="lineno">   53 </span>viewRobotsTxtHandler :: [(BS.ByteString, BS.ByteString)] -&gt; Action
-<span class="lineno">   54 </span><span class="decl"><span class="nottickedoff">viewRobotsTxtHandler _ =  -- TODO: ensure GET</span>
-<span class="lineno">   55 </span><span class="spaces">    </span><span class="nottickedoff">withoutAuth $ return $ okResponse [] (&quot;&quot; :: Text)</span></span>
-<span class="lineno">   56 </span>    -- NOTE: DEVEL/SANDBOX behavior wasn't copied here
-<span class="lineno">   57 </span>
-<span class="lineno">   58 </span>notFoundResponseHandler :: [(BS.ByteString, BS.ByteString)] -&gt; Action
-<span class="lineno">   59 </span><span class="decl"><span class="nottickedoff">notFoundResponseHandler _ = withoutAuth $ peeks $ response notFound404 [] . htmlNotFound</span></span>
+<span class="lineno">   40 </span>-- FIXME: JSON response ignores serviceDown
+<span class="lineno">   41 </span>viewRootHandler :: API -&gt; [(BS.ByteString, BS.ByteString)] -&gt; Action
+<span class="lineno">   42 </span><span class="decl"><span class="nottickedoff">viewRootHandler api _ = -- TOOD: ensure GET</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="nottickedoff">withAuth $ do</span>
+<span class="lineno">   44 </span><span class="spaces">    </span><span class="nottickedoff">down &lt;- peeks serviceDown</span>
+<span class="lineno">   45 </span><span class="spaces">    </span><span class="nottickedoff">when (api == HTML &amp;&amp; isNothing down) angular</span>
+<span class="lineno">   46 </span><span class="spaces">    </span><span class="nottickedoff">case api of</span>
+<span class="lineno">   47 </span><span class="spaces">      </span><span class="nottickedoff">JSON -&gt; return $ okResponse [] JSON.emptyObject</span>
+<span class="lineno">   48 </span><span class="spaces">      </span><span class="nottickedoff">HTML -&gt; peeks $ okResponse [] . maybe htmlRoot htmlDown down</span></span>
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>viewConstantsHandler :: [(BS.ByteString, BS.ByteString)] -&gt; Action
+<span class="lineno">   51 </span><span class="decl"><span class="nottickedoff">viewConstantsHandler _ = -- TODO: ensure GET</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">withoutAuth $ return $ okResponse [] $ JSON.pairs constantsJSON</span></span>
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>viewRobotsTxtHandler :: [(BS.ByteString, BS.ByteString)] -&gt; Action
+<span class="lineno">   55 </span><span class="decl"><span class="nottickedoff">viewRobotsTxtHandler _ =  -- TODO: ensure GET</span>
+<span class="lineno">   56 </span><span class="spaces">    </span><span class="nottickedoff">withoutAuth $ return $ okResponse [] (&quot;&quot; :: Text)</span></span>
+<span class="lineno">   57 </span>    -- NOTE: DEVEL/SANDBOX behavior wasn't copied here
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>notFoundResponseHandler :: [(BS.ByteString, BS.ByteString)] -&gt; Action
+<span class="lineno">   60 </span><span class="decl"><span class="nottickedoff">notFoundResponseHandler _ = withoutAuth $ peeks $ response notFound404 [] . htmlNotFound</span></span>
 
 </pre>
 </body>

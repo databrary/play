@@ -41,24 +41,24 @@ span.spaces    { background: white }
 <span class="lineno">   25 </span>import Databrary.Model.Metric
 <span class="lineno">   26 </span>
 <span class="lineno">   27 </span>lookupVolumeMetrics :: (MonadDB c m) =&gt; Volume -&gt; m [Id Metric]
-<span class="lineno">   28 </span><span class="decl"><span class="nottickedoff">lookupVolumeMetrics v = do</span>
-<span class="lineno">   29 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a80O7 = unknownPGTypeEnv</span>
-<span class="lineno">   30 </span><span class="spaces">  </span><span class="nottickedoff">-- dbQuery $(selectQuery selectVolumeMetric &quot;$WHERE volume = ${volumeId $ volumeRow v} ORDER BY metric&quot;)</span>
-<span class="lineno">   31 </span><span class="spaces">  </span><span class="nottickedoff">rows &lt;- mapRunPrepQuery</span>
-<span class="lineno">   32 </span><span class="spaces">      </span><span class="nottickedoff">((\ _p_a80O8 -&gt;</span>
-<span class="lineno">   33 </span><span class="spaces">                       </span><span class="nottickedoff">(Data.String.fromString</span>
-<span class="lineno">   34 </span><span class="spaces">                          </span><span class="nottickedoff">&quot;SELECT volume_metric.metric FROM volume_metric WHERE volume = $1 ORDER BY metric&quot;,</span>
-<span class="lineno">   35 </span><span class="spaces">                       </span><span class="nottickedoff">[pgEncodeParameter</span>
-<span class="lineno">   36 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a80O7 (PGTypeProxy :: PGTypeName &quot;integer&quot;) _p_a80O8],</span>
-<span class="lineno">   37 </span><span class="spaces">                       </span><span class="nottickedoff">[pgBinaryColumn _tenv_a80O7 (PGTypeProxy :: PGTypeName &quot;integer&quot;)]))</span>
-<span class="lineno">   38 </span><span class="spaces">         </span><span class="nottickedoff">(volumeId $ volumeRow v))</span>
-<span class="lineno">   39 </span><span class="spaces">               </span><span class="nottickedoff">(\ [_cmetric_a80O9]</span>
-<span class="lineno">   40 </span><span class="spaces">                  </span><span class="nottickedoff">-&gt; (pgDecodeColumnNotNull</span>
-<span class="lineno">   41 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a80O7 (PGTypeProxy :: PGTypeName &quot;integer&quot;) _cmetric_a80O9))</span>
-<span class="lineno">   42 </span><span class="spaces">  </span><span class="nottickedoff">pure</span>
-<span class="lineno">   43 </span><span class="spaces">    </span><span class="nottickedoff">(fmap</span>
-<span class="lineno">   44 </span><span class="spaces">      </span><span class="nottickedoff">(\ (vmetric_a80O2) -&gt; id vmetric_a80O2)</span>
-<span class="lineno">   45 </span><span class="spaces">      </span><span class="nottickedoff">rows)</span></span>
+<span class="lineno">   28 </span><span class="decl"><span class="istickedoff">lookupVolumeMetrics v = do</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="istickedoff">let <span class="nottickedoff">_tenv_a80O7 = unknownPGTypeEnv</span></span>
+<span class="lineno">   30 </span><span class="spaces">  </span><span class="istickedoff">-- dbQuery $(selectQuery selectVolumeMetric &quot;$WHERE volume = ${volumeId $ volumeRow v} ORDER BY metric&quot;)</span>
+<span class="lineno">   31 </span><span class="spaces">  </span><span class="istickedoff">rows &lt;- mapRunPrepQuery</span>
+<span class="lineno">   32 </span><span class="spaces">      </span><span class="istickedoff">((\ _p_a80O8 -&gt;</span>
+<span class="lineno">   33 </span><span class="spaces">                       </span><span class="istickedoff">(Data.String.fromString</span>
+<span class="lineno">   34 </span><span class="spaces">                          </span><span class="istickedoff">&quot;SELECT volume_metric.metric FROM volume_metric WHERE volume = $1 ORDER BY metric&quot;,</span>
+<span class="lineno">   35 </span><span class="spaces">                       </span><span class="istickedoff">[pgEncodeParameter</span>
+<span class="lineno">   36 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">_tenv_a80O7</span> <span class="nottickedoff">(PGTypeProxy :: PGTypeName &quot;integer&quot;)</span> _p_a80O8],</span>
+<span class="lineno">   37 </span><span class="spaces">                       </span><span class="istickedoff">[pgBinaryColumn <span class="nottickedoff">_tenv_a80O7</span> <span class="nottickedoff">(PGTypeProxy :: PGTypeName &quot;integer&quot;)</span>]))</span>
+<span class="lineno">   38 </span><span class="spaces">         </span><span class="istickedoff">(volumeId $ volumeRow v))</span>
+<span class="lineno">   39 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">(\ [_cmetric_a80O9]</span></span>
+<span class="lineno">   40 </span><span class="spaces">                  </span><span class="istickedoff"><span class="nottickedoff">-&gt; (pgDecodeColumnNotNull</span></span>
+<span class="lineno">   41 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a80O7 (PGTypeProxy :: PGTypeName &quot;integer&quot;) _cmetric_a80O9))</span></span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="istickedoff">pure</span>
+<span class="lineno">   43 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(fmap</span></span>
+<span class="lineno">   44 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(\ (vmetric_a80O2) -&gt; id vmetric_a80O2)</span></span>
+<span class="lineno">   45 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">rows)</span></span></span>
 <span class="lineno">   46 </span>
 <span class="lineno">   47 </span>lookupVolumeParticipantMetrics :: (MonadDB c m) =&gt; Volume -&gt; m [Metric]
 <span class="lineno">   48 </span><span class="decl"><span class="nottickedoff">lookupVolumeParticipantMetrics vol = do</span>

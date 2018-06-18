@@ -108,7 +108,7 @@ span.spaces    { background: white }
 <span class="lineno">   92 </span>instance Has (Databrary.Model.Id.Types.Id Databrary.Model.Party.Types.Party) RequestContext where
 <span class="lineno">   93 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestIdentity)</span></span>
 <span class="lineno">   94 </span>instance Has Databrary.Model.Party.Types.Account RequestContext where
-<span class="lineno">   95 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestIdentity)</span></span>
+<span class="lineno">   95 </span>   <span class="decl"><span class="nottickedoff">view = (siteAccount . view . requestIdentity)</span></span>
 <span class="lineno">   96 </span>instance Has Databrary.Model.Party.Types.Party RequestContext where
 <span class="lineno">   97 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestIdentity)</span></span>
 <span class="lineno">   98 </span>instance Has Databrary.Model.Party.Types.SiteAuth RequestContext where

@@ -16,13 +16,13 @@ span.spaces    { background: white }
 <pre>
 <span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
 <span class="lineno">    2 </span>module Blaze.ByteString.Builder.Html.Word
-<span class="lineno">    3 </span>  ( wordHtmlEscaped
-<span class="lineno">    4 </span>  , fromHtmlEscapedWord
-<span class="lineno">    5 </span>  , fromHtmlEscapedWordList
-<span class="lineno">    6 </span>  , fromHtmlEscapedByteString
+<span class="lineno">    3 </span>  (-- wordHtmlEscaped
+<span class="lineno">    4 </span>  -- , fromHtmlEscapedWord
+<span class="lineno">    5 </span>  -- , fromHtmlEscapedWordList
+<span class="lineno">    6 </span>    fromHtmlEscapedByteString
 <span class="lineno">    7 </span>  , fromHtmlEscapedLazyByteString
-<span class="lineno">    8 </span>  , fromHtmlEscapedText
-<span class="lineno">    9 </span>  , fromHtmlEscapedLazyText
+<span class="lineno">    8 </span>  -- , fromHtmlEscapedText
+<span class="lineno">    9 </span>  -- , fromHtmlEscapedLazyText
 <span class="lineno">   10 </span>  ) where
 <span class="lineno">   11 </span>
 <span class="lineno">   12 </span>import qualified Data.ByteString as BS
@@ -31,47 +31,50 @@ span.spaces    { background: white }
 <span class="lineno">   15 </span>import Data.ByteString.Internal (c2w)
 <span class="lineno">   16 </span>import qualified Data.ByteString.Lazy as BSL
 <span class="lineno">   17 </span>import Data.Word (Word8)
-<span class="lineno">   18 </span>import qualified Data.Text as T
-<span class="lineno">   19 </span>import qualified Data.Text.Encoding as TE
-<span class="lineno">   20 </span>import qualified Data.Text.Lazy as TL
-<span class="lineno">   21 </span>import qualified Data.Text.Lazy.Encoding as TLE
+<span class="lineno">   18 </span>-- import qualified Data.Text as T
+<span class="lineno">   19 </span>-- import qualified Data.Text.Encoding as TE
+<span class="lineno">   20 </span>-- import qualified Data.Text.Lazy as TL
+<span class="lineno">   21 </span>-- import qualified Data.Text.Lazy.Encoding as TLE
 <span class="lineno">   22 </span>
 <span class="lineno">   23 </span>wordHtmlEscaped :: P.BoundedPrim Word8
-<span class="lineno">   24 </span><span class="decl"><span class="nottickedoff">wordHtmlEscaped =</span>
-<span class="lineno">   25 </span><span class="spaces">  </span><span class="nottickedoff">P.condB (&gt;  c2w '&gt;' ) (P.condB (== c2w '\DEL') P.emptyB $ P.liftFixedToBounded P.word8) $</span>
-<span class="lineno">   26 </span><span class="spaces">  </span><span class="nottickedoff">P.condB (== c2w '&lt;' ) (fixed4 ('&amp;',('l',('t',';')))) $        -- &amp;lt;</span>
-<span class="lineno">   27 </span><span class="spaces">  </span><span class="nottickedoff">P.condB (== c2w '&gt;' ) (fixed4 ('&amp;',('g',('t',';')))) $        -- &amp;gt;</span>
-<span class="lineno">   28 </span><span class="spaces">  </span><span class="nottickedoff">P.condB (== c2w '&amp;' ) (fixed5 ('&amp;',('a',('m',('p',';'))))) $  -- &amp;amp;</span>
-<span class="lineno">   29 </span><span class="spaces">  </span><span class="nottickedoff">P.condB (== c2w '&quot;' ) (fixed6 ('&amp;',('q',('u',('o',('t',';')))))) $  -- &amp;quot;</span>
-<span class="lineno">   30 </span><span class="spaces">  </span><span class="nottickedoff">P.condB (== c2w '\'') (fixed5 ('&amp;',('#',('3',('9',';'))))) $  -- &amp;#39;</span>
-<span class="lineno">   31 </span><span class="spaces">  </span><span class="nottickedoff">P.condB (\c -&gt; c &gt;= c2w ' ' || c == c2w '\t' || c == c2w '\n' || c == c2w '\r')</span>
-<span class="lineno">   32 </span><span class="spaces">        </span><span class="nottickedoff">(P.liftFixedToBounded P.word8) P.emptyB</span>
-<span class="lineno">   33 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
-<span class="lineno">   34 </span><span class="spaces">  </span><span class="nottickedoff">fixed4 x = P.liftFixedToBounded $ const x P.&gt;$&lt;</span>
-<span class="lineno">   35 </span><span class="spaces">    </span><span class="nottickedoff">P.char8 P.&gt;*&lt; P.char8 P.&gt;*&lt; P.char8 P.&gt;*&lt; P.char8</span>
-<span class="lineno">   36 </span><span class="spaces">  </span><span class="nottickedoff">fixed5 x = P.liftFixedToBounded $ const x P.&gt;$&lt;</span>
-<span class="lineno">   37 </span><span class="spaces">    </span><span class="nottickedoff">P.char8 P.&gt;*&lt; P.char8 P.&gt;*&lt; P.char8 P.&gt;*&lt; P.char8 P.&gt;*&lt; P.char8</span>
-<span class="lineno">   38 </span><span class="spaces">  </span><span class="nottickedoff">fixed6 x = P.liftFixedToBounded $ const x P.&gt;$&lt;</span>
-<span class="lineno">   39 </span><span class="spaces">    </span><span class="nottickedoff">P.char8 P.&gt;*&lt; P.char8 P.&gt;*&lt; P.char8 P.&gt;*&lt; P.char8 P.&gt;*&lt; P.char8 P.&gt;*&lt; P.char8</span></span>
+<span class="lineno">   24 </span><span class="decl"><span class="istickedoff">wordHtmlEscaped =</span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="istickedoff">P.condB (&gt;  c2w '&gt;' ) (P.condB (== c2w '\DEL') P.emptyB $ P.liftFixedToBounded P.word8) $</span>
+<span class="lineno">   26 </span><span class="spaces">  </span><span class="istickedoff">P.condB (== c2w '&lt;' ) (fixed4 <span class="nottickedoff">('&amp;',('l',('t',';')))</span>) $        -- &amp;lt;</span>
+<span class="lineno">   27 </span><span class="spaces">  </span><span class="istickedoff">P.condB (== c2w '&gt;' ) (fixed4 <span class="nottickedoff">('&amp;',('g',('t',';')))</span>) $        -- &amp;gt;</span>
+<span class="lineno">   28 </span><span class="spaces">  </span><span class="istickedoff">P.condB (== c2w '&amp;' ) (fixed5 ('&amp;',('a',('m',('p',';'))))) $  -- &amp;amp;</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="istickedoff">P.condB <span class="nottickedoff">(== c2w '&quot;' )</span> (fixed6 <span class="nottickedoff">('&amp;',('q',('u',('o',('t',';')))))</span>) $  -- &amp;quot;</span>
+<span class="lineno">   30 </span><span class="spaces">  </span><span class="istickedoff">P.condB <span class="nottickedoff">(== c2w '\'')</span> (fixed5 <span class="nottickedoff">('&amp;',('#',('3',('9',';'))))</span>) $  -- &amp;#39;</span>
+<span class="lineno">   31 </span><span class="spaces">  </span><span class="istickedoff">P.condB <span class="nottickedoff">(\c -&gt; c &gt;= c2w ' ' || c == c2w '\t' || c == c2w '\n' || c == c2w '\r')</span></span>
+<span class="lineno">   32 </span><span class="spaces">        </span><span class="istickedoff">(P.liftFixedToBounded P.word8) P.emptyB</span>
+<span class="lineno">   33 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   34 </span><span class="spaces">  </span><span class="istickedoff">fixed4 x = P.liftFixedToBounded $ <span class="nottickedoff">const x</span> P.&gt;$&lt;</span>
+<span class="lineno">   35 </span><span class="spaces">    </span><span class="istickedoff">P.char8 P.&gt;*&lt; P.char8 P.&gt;*&lt; P.char8 P.&gt;*&lt; P.char8</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="istickedoff">fixed5 x = P.liftFixedToBounded $ const x P.&gt;$&lt;</span>
+<span class="lineno">   37 </span><span class="spaces">    </span><span class="istickedoff">P.char8 P.&gt;*&lt; P.char8 P.&gt;*&lt; P.char8 P.&gt;*&lt; P.char8 P.&gt;*&lt; P.char8</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="istickedoff">fixed6 x = P.liftFixedToBounded $ <span class="nottickedoff">const x</span> P.&gt;$&lt;</span>
+<span class="lineno">   39 </span><span class="spaces">    </span><span class="istickedoff">P.char8 P.&gt;*&lt; P.char8 P.&gt;*&lt; P.char8 P.&gt;*&lt; P.char8 P.&gt;*&lt; P.char8 P.&gt;*&lt; P.char8</span></span>
 <span class="lineno">   40 </span>
-<span class="lineno">   41 </span>fromHtmlEscapedWord :: Word8 -&gt; B.Builder
-<span class="lineno">   42 </span><span class="decl"><span class="nottickedoff">fromHtmlEscapedWord = P.primBounded wordHtmlEscaped</span></span>
-<span class="lineno">   43 </span>
-<span class="lineno">   44 </span>fromHtmlEscapedWordList :: [Word8] -&gt; B.Builder
-<span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">fromHtmlEscapedWordList = P.primMapListBounded wordHtmlEscaped</span></span>
-<span class="lineno">   46 </span>
-<span class="lineno">   47 </span>fromHtmlEscapedByteString :: BS.ByteString -&gt; B.Builder
-<span class="lineno">   48 </span><span class="decl"><span class="nottickedoff">fromHtmlEscapedByteString = P.primMapByteStringBounded wordHtmlEscaped</span></span>
-<span class="lineno">   49 </span>
-<span class="lineno">   50 </span>fromHtmlEscapedLazyByteString :: BSL.ByteString -&gt; B.Builder
-<span class="lineno">   51 </span><span class="decl"><span class="nottickedoff">fromHtmlEscapedLazyByteString = P.primMapLazyByteStringBounded wordHtmlEscaped</span></span>
-<span class="lineno">   52 </span>
-<span class="lineno">   53 </span>fromHtmlEscapedText :: T.Text -&gt; B.Builder
-<span class="lineno">   54 </span><span class="decl"><span class="nottickedoff">fromHtmlEscapedText = TE.encodeUtf8BuilderEscaped wordHtmlEscaped</span></span>
-<span class="lineno">   55 </span>
-<span class="lineno">   56 </span>fromHtmlEscapedLazyText :: TL.Text -&gt; B.Builder
-<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">fromHtmlEscapedLazyText = TLE.encodeUtf8BuilderEscaped wordHtmlEscaped</span></span>
+<span class="lineno">   41 </span>{-
+<span class="lineno">   42 </span>fromHtmlEscapedWord :: Word8 -&gt; B.Builder
+<span class="lineno">   43 </span>fromHtmlEscapedWord = P.primBounded wordHtmlEscaped
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>fromHtmlEscapedWordList :: [Word8] -&gt; B.Builder
+<span class="lineno">   46 </span>fromHtmlEscapedWordList = P.primMapListBounded wordHtmlEscaped
+<span class="lineno">   47 </span>-}
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>fromHtmlEscapedByteString :: BS.ByteString -&gt; B.Builder
+<span class="lineno">   50 </span><span class="decl"><span class="istickedoff">fromHtmlEscapedByteString = P.primMapByteStringBounded wordHtmlEscaped</span></span>
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>fromHtmlEscapedLazyByteString :: BSL.ByteString -&gt; B.Builder
+<span class="lineno">   53 </span><span class="decl"><span class="istickedoff">fromHtmlEscapedLazyByteString = P.primMapLazyByteStringBounded wordHtmlEscaped</span></span>
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>{-
+<span class="lineno">   56 </span>fromHtmlEscapedText :: T.Text -&gt; B.Builder
+<span class="lineno">   57 </span>fromHtmlEscapedText = TE.encodeUtf8BuilderEscaped wordHtmlEscaped
 <span class="lineno">   58 </span>
+<span class="lineno">   59 </span>fromHtmlEscapedLazyText :: TL.Text -&gt; B.Builder
+<span class="lineno">   60 </span>fromHtmlEscapedLazyText = TLE.encodeUtf8BuilderEscaped wordHtmlEscaped
+<span class="lineno">   61 </span>-}
 
 </pre>
 </body>

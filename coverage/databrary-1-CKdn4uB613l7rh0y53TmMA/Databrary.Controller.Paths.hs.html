@@ -48,16 +48,16 @@ span.spaces    { background: white }
 <span class="lineno">   32 </span>type PathParameter = Parameter PathString
 <span class="lineno">   33 </span>
 <span class="lineno">   34 </span>idIso :: IdType a I.&lt;-&gt; Id a
-<span class="lineno">   35 </span><span class="decl"><span class="nottickedoff">idIso = -- [I.biCase|a &lt;-&gt; Id a|]</span>
-<span class="lineno">   36 </span><span class="spaces">    </span><span class="nottickedoff">((\a      -&gt; Id a)</span>
-<span class="lineno">   37 </span><span class="spaces">     </span><span class="nottickedoff">R.:&lt;-&gt;:</span>
-<span class="lineno">   38 </span><span class="spaces">     </span><span class="nottickedoff">(\(Id a) -&gt; a))</span></span>
+<span class="lineno">   35 </span><span class="decl"><span class="istickedoff">idIso = -- [I.biCase|a &lt;-&gt; Id a|]</span>
+<span class="lineno">   36 </span><span class="spaces">    </span><span class="istickedoff">(<span class="nottickedoff">(\a      -&gt; Id a)</span></span>
+<span class="lineno">   37 </span><span class="spaces">     </span><span class="istickedoff">R.:&lt;-&gt;:</span>
+<span class="lineno">   38 </span><span class="spaces">     </span><span class="istickedoff">(\(Id a) -&gt; a))</span></span>
 <span class="lineno">   39 </span>
 <span class="lineno">   40 </span>pathIdWith :: forall a . (Kinded a) =&gt; PathParser (IdType a) -&gt; PathParser (Id a)
-<span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">pathIdWith p = fromString (kindOf (undefined :: a)) &gt;/&gt; idIso &gt;$&lt; p</span></span>
+<span class="lineno">   41 </span><span class="decl"><span class="istickedoff">pathIdWith p = fromString (kindOf <span class="nottickedoff">(undefined :: a)</span>) &gt;/&gt; idIso &gt;$&lt; p</span></span>
 <span class="lineno">   42 </span>
 <span class="lineno">   43 </span>pathId :: forall a . (PathParameter (IdType a), Kinded a) =&gt; PathParser (Id a)
-<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">pathId = pathIdWith R.parameter</span></span>
+<span class="lineno">   44 </span><span class="decl"><span class="istickedoff">pathId = pathIdWith R.parameter</span></span>
 <span class="lineno">   45 </span>
 <span class="lineno">   46 </span>-- | The target party for some action?
 <span class="lineno">   47 </span>data PartyTarget

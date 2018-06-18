@@ -65,18 +65,18 @@ span.spaces    { background: white }
 <span class="lineno">   49 </span>probeFile :: (MonadIO m, MonadHas AV c m) =&gt; BS.ByteString -&gt; RawFilePath -&gt; m (Either T.Text Probe)
 <span class="lineno">   50 </span><span class="decl"><span class="istickedoff">probeFile n f = runExceptT $ maybe</span>
 <span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff">(throwE $ <span class="nottickedoff">&quot;unknown or unsupported format: &quot; &lt;&gt; TE.decodeLatin1 (takeExtension n)</span>)</span>
-<span class="lineno">   52 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">(\fmt -&gt; case formatTranscodable fmt of</span></span>
-<span class="lineno">   53 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">Nothing -&gt; return $ ProbePlain fmt</span></span>
-<span class="lineno">   54 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">Just t</span></span>
-<span class="lineno">   55 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">| t == videoFormat || t == audioFormat -&gt; do</span></span>
-<span class="lineno">   56 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">av &lt;- ExceptT $ left ((&quot;could not process unsupported or corrupt media file: &quot; &lt;&gt;) . T.pack . avErrorString)</span></span>
-<span class="lineno">   57 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">&lt;$&gt; focusIO (try . avProbe f)</span></span>
-<span class="lineno">   58 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">if avProbeHas AVMediaTypeVideo av</span></span>
-<span class="lineno">   59 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">then return $ ProbeAV fmt videoFormat av</span></span>
-<span class="lineno">   60 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">else if avProbeHas AVMediaTypeAudio av</span></span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="istickedoff">(\fmt -&gt; case formatTranscodable fmt of</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt; <span class="nottickedoff">return $ ProbePlain fmt</span></span>
+<span class="lineno">   54 </span><span class="spaces">    </span><span class="istickedoff">Just t</span>
+<span class="lineno">   55 </span><span class="spaces">      </span><span class="istickedoff">| <span class="tickonlytrue">t == videoFormat || <span class="nottickedoff">t == audioFormat</span></span> -&gt; do</span>
+<span class="lineno">   56 </span><span class="spaces">        </span><span class="istickedoff">av &lt;- ExceptT $ left <span class="nottickedoff">((&quot;could not process unsupported or corrupt media file: &quot; &lt;&gt;) . T.pack . avErrorString)</span></span>
+<span class="lineno">   57 </span><span class="spaces">          </span><span class="istickedoff">&lt;$&gt; focusIO (try . avProbe f)</span>
+<span class="lineno">   58 </span><span class="spaces">        </span><span class="istickedoff">if <span class="tickonlytrue">avProbeHas AVMediaTypeVideo av</span></span>
+<span class="lineno">   59 </span><span class="spaces">          </span><span class="istickedoff">then return $ ProbeAV <span class="nottickedoff">fmt</span> videoFormat av</span>
+<span class="lineno">   60 </span><span class="spaces">          </span><span class="istickedoff">else <span class="nottickedoff">if avProbeHas AVMediaTypeAudio av</span></span>
 <span class="lineno">   61 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">then return $ ProbeAV fmt audioFormat av</span></span>
 <span class="lineno">   62 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">else throwE &quot;no supported video or audio content found&quot;</span></span>
-<span class="lineno">   63 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">| otherwise -&gt; fail &quot;unhandled format conversion&quot;)</span></span>
+<span class="lineno">   63 </span><span class="spaces">      </span><span class="istickedoff">| <span class="nottickedoff">otherwise</span> -&gt; <span class="nottickedoff">fail &quot;unhandled format conversion&quot;</span>)</span>
 <span class="lineno">   64 </span><span class="spaces">  </span><span class="istickedoff">$ getFormatByFilename n</span></span>
 <span class="lineno">   65 </span>
 <span class="lineno">   66 </span>-- TODO: make this pure

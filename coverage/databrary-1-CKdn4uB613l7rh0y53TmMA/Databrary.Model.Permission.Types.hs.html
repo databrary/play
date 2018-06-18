@@ -110,7 +110,7 @@ span.spaces    { background: white }
 <span class="lineno">   94 </span>data Access = Access
 <span class="lineno">   95 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">accessSite'</span></span></span> :: !Permission -- ^ ??
 <span class="lineno">   96 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">accessMember'</span></span></span> :: !Permission -- ^ ??
-<span class="lineno">   97 </span>  } deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>)
+<span class="lineno">   97 </span>  } deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>) -- , Show)
 <span class="lineno">   98 </span>
 <span class="lineno">   99 </span>accessPermission' :: Access -&gt; Permission
 <span class="lineno">  100 </span><span class="decl"><span class="istickedoff">accessPermission' (Access s m) = min s m</span></span>
@@ -134,11 +134,11 @@ span.spaces    { background: white }
 <span class="lineno">  118 </span>-- for a given volume. Restricted is the only current policy. It signifies
 <span class="lineno">  119 </span>-- hiding all data, except high level summary information and highlights.
 <span class="lineno">  120 </span>-- The word policy is a reference to the term used in attribute-based access control.
-<span class="lineno">  121 </span>data PublicPolicy = PublicRestrictedPolicy | PublicNoPolicy deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">  121 </span>data PublicPolicy = PublicRestrictedPolicy | PublicNoPolicy -- deriving (Show, Eq)
 <span class="lineno">  122 </span>
 <span class="lineno">  123 </span>-- | A SharedPolicy is the same as PublicPolicy currently, but applied to the shared
 <span class="lineno">  124 </span>-- viewer role.
-<span class="lineno">  125 </span>data SharedPolicy = SharedRestrictedPolicy | SharedNoPolicy deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">  125 </span>data SharedPolicy = SharedRestrictedPolicy | SharedNoPolicy -- deriving (Show, Eq)
 <span class="lineno">  126 </span>
 <span class="lineno">  127 </span>-- | A user's effective access to a given volume.
 <span class="lineno">  128 </span>data VolumeRolePolicy =
@@ -148,7 +148,7 @@ span.spaces    { background: white }
 <span class="lineno">  132 </span>  | RoleReader
 <span class="lineno">  133 </span>  | RoleEditor
 <span class="lineno">  134 </span>  | RoleAdmin
-<span class="lineno">  135 </span>  deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">  135 </span>  -- deriving (Show, Eq)
 <span class="lineno">  136 </span>
 <span class="lineno">  137 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLift ''PublicPolicy</span></span></span>
 <span class="lineno">  138 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLift ''SharedPolicy</span></span></span>

@@ -11,7 +11,7 @@
 <a name="line-2"></a><span class='hs-comment'>{-# OPTIONS_GHC -fno-warn-orphans #-}</span>
 <a name="line-3"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Permission</span>
 <a name="line-4"></a>  <span class='hs-layout'>(</span> <span class='hs-keyword'>module</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Permission</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
-<a name="line-5"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>permissionVIEW</span>
+<a name="line-5"></a>  <span class='hs-comment'>-- , permissionVIEW</span>
 <a name="line-6"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>permissionPRIVATE</span>
 <a name="line-7"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>readPermission</span>
 <a name="line-8"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>readRelease</span>
@@ -26,9 +26,9 @@
 <a name="line-17"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Release</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
 <a name="line-18"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Permission</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
 <a name="line-19"></a>
-<a name="line-20"></a><a name="permissionVIEW"></a><span class='hs-comment'>-- |Level at which things become visible.</span>
-<a name="line-21"></a><span class='hs-definition'>permissionVIEW</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Permission</span>
-<a name="line-22"></a><span class='hs-definition'>permissionVIEW</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>PermissionPUBLIC</span>
+<a name="line-20"></a><span class='hs-comment'>-- |Level at which things become visible. ; TODO: use this somewhere?</span>
+<a name="line-21"></a><span class='hs-comment'>-- permissionVIEW :: Permission</span>
+<a name="line-22"></a><span class='hs-comment'>-- permissionVIEW = PermissionPUBLIC</span>
 <a name="line-23"></a>
 <a name="line-24"></a><a name="permissionPRIVATE"></a><span class='hs-comment'>-- |Alias for READ. Grants full access to private data, bypassing consent permissions.</span>
 <a name="line-25"></a><span class='hs-definition'>permissionPRIVATE</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Permission</span>

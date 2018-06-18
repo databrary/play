@@ -31,9 +31,9 @@ span.spaces    { background: white }
 <span class="lineno">   15 </span>import System.Posix.Files.ByteString (removeLink, rename)
 <span class="lineno">   16 </span>import System.Posix.Temp.ByteString (mkstemp)
 <span class="lineno">   17 </span>
-<span class="lineno">   18 </span>import Databrary.Has (peeks, focusIO)
+<span class="lineno">   18 </span>import Databrary.Has (peeks, focusIO, MonadHas)
 <span class="lineno">   19 </span>import Databrary.Store.Types
-<span class="lineno">   20 </span>import Databrary.Action.Types
+<span class="lineno">   20 </span>-- import Databrary.Action.Types
 <span class="lineno">   21 </span>
 <span class="lineno">   22 </span>data TempFile = TempFile
 <span class="lineno">   23 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tempFileRelease</span></span></span> :: ReleaseKey
@@ -46,7 +46,7 @@ span.spaces    { background: white }
 <span class="lineno">   30 </span><span class="spaces">  </span><span class="nottickedoff">(hClose . snd . snd)</span>
 <span class="lineno">   31 </span><span class="spaces">  </span><span class="nottickedoff">(\(k, (f, h)) -&gt; TempFile k f &lt;$ g h)</span></span>
 <span class="lineno">   32 </span>
-<span class="lineno">   33 </span>makeTempFile :: (Handle -&gt; IO ()) -&gt; Handler TempFile
+<span class="lineno">   33 </span>makeTempFile :: (MonadStorage c m, MonadHas InternalState c m) =&gt; (Handle -&gt; IO ()) -&gt; m TempFile
 <span class="lineno">   34 </span><span class="decl"><span class="nottickedoff">makeTempFile f = do</span>
 <span class="lineno">   35 </span><span class="spaces">  </span><span class="nottickedoff">tmp &lt;- peeks storageTemp</span>
 <span class="lineno">   36 </span><span class="spaces">  </span><span class="nottickedoff">focusIO $ makeTempFileAs tmp f</span></span>

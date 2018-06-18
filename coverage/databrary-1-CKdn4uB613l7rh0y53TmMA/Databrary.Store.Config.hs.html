@@ -100,8 +100,8 @@ span.spaces    { background: white }
 <span class="lineno">   84 </span>
 <span class="lineno">   85 </span>data Config = Config
 <span class="lineno">   86 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">configPath</span></span></span> :: !Path
-<span class="lineno">   87 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">configMap</span></span></span> :: !ConfigMap
-<span class="lineno">   88 </span>  } deriving (Typeable, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>)
+<span class="lineno">   87 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">configMap</span></span></span> :: !ConfigMap
+<span class="lineno">   88 </span>  } deriving (Typeable) -- , Show)
 <span class="lineno">   89 </span>
 <span class="lineno">   90 </span>topConfig :: ConfigMap -&gt; Config
 <span class="lineno">   91 </span><span class="decl"><span class="istickedoff">topConfig = Config (Path [])</span></span>
@@ -115,18 +115,18 @@ span.spaces    { background: white }
 <span class="lineno">   99 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = throw $ ConflictError{ errorPath = p, errorValue1 = v1, errorValue2 = v2 }</span></span>
 <span class="lineno">  100 </span>
 <span class="lineno">  101 </span>unionConfig :: Path -&gt; ConfigMap -&gt; ConfigMap -&gt; ConfigMap
-<span class="lineno">  102 </span><span class="decl"><span class="nottickedoff">unionConfig p = HM.foldrWithKey $ \k -&gt; HM.insertWith (flip $ unionValue (pathSnoc p k)) k</span></span>
+<span class="lineno">  102 </span><span class="decl"><span class="istickedoff">unionConfig p = HM.foldrWithKey $ <span class="nottickedoff">\k -&gt; HM.insertWith (flip $ unionValue (pathSnoc p k)) k</span></span></span>
 <span class="lineno">  103 </span>
 <span class="lineno">  104 </span>-- |Merge two configs, throwing 'ConflictError' on conflicts
 <span class="lineno">  105 </span>instance Monoid Config where
-<span class="lineno">  106 </span>  <span class="decl"><span class="nottickedoff">mempty = topConfig HM.empty</span></span>
-<span class="lineno">  107 </span>  <span class="decl"><span class="nottickedoff">Config (Path p1) m1 `mappend` Config (Path p2) m2 = Config p m where</span>
-<span class="lineno">  108 </span><span class="spaces">    </span><span class="nottickedoff">(p', (p1', p2')) = cpfx p1 p2</span>
-<span class="lineno">  109 </span><span class="spaces">    </span><span class="nottickedoff">p = Path p'</span>
-<span class="lineno">  110 </span><span class="spaces">    </span><span class="nottickedoff">m = unionConfig p (nest m1 p1') (nest m2 p2')</span>
-<span class="lineno">  111 </span><span class="spaces">    </span><span class="nottickedoff">cpfx (a:al) (b:bl) | a == b = first (a :) $ cpfx al bl</span>
-<span class="lineno">  112 </span><span class="spaces">    </span><span class="nottickedoff">cpfx al bl = ([], (al, bl))</span>
-<span class="lineno">  113 </span><span class="spaces">    </span><span class="nottickedoff">nest = foldr (\k -&gt; HM.singleton k . Sub)</span></span>
+<span class="lineno">  106 </span>  <span class="decl"><span class="istickedoff">mempty = topConfig HM.empty</span></span>
+<span class="lineno">  107 </span>  <span class="decl"><span class="istickedoff">Config (Path p1) m1 `mappend` Config (Path p2) m2 = Config p m where</span>
+<span class="lineno">  108 </span><span class="spaces">    </span><span class="istickedoff">(p', (p1', p2')) = cpfx p1 p2</span>
+<span class="lineno">  109 </span><span class="spaces">    </span><span class="istickedoff">p = Path p'</span>
+<span class="lineno">  110 </span><span class="spaces">    </span><span class="istickedoff">m = unionConfig <span class="nottickedoff">p</span> (nest m1 p1') (nest m2 p2')</span>
+<span class="lineno">  111 </span><span class="spaces">    </span><span class="istickedoff">cpfx (a:al) (b:bl) | <span class="nottickedoff">a == b</span> = <span class="nottickedoff">first (a :) $ cpfx al bl</span></span>
+<span class="lineno">  112 </span><span class="spaces">    </span><span class="istickedoff">cpfx al bl = ([], (al, bl))</span>
+<span class="lineno">  113 </span><span class="spaces">    </span><span class="istickedoff">nest = foldr <span class="nottickedoff">(\k -&gt; HM.singleton k . Sub)</span></span></span>
 <span class="lineno">  114 </span>
 <span class="lineno">  115 </span>lookup :: Path -&gt; ConfigMap -&gt; Value
 <span class="lineno">  116 </span><span class="decl"><span class="istickedoff">lookup (Path []) m = <span class="nottickedoff">Sub m</span></span>
@@ -188,7 +188,7 @@ span.spaces    { background: white }
 <span class="lineno">  172 </span>
 <span class="lineno">  173 </span>instance Configurable ConfigMap where
 <span class="lineno">  174 </span>  <span class="decl"><span class="istickedoff">config (Sub m) = Just m</span>
-<span class="lineno">  175 </span><span class="spaces">  </span><span class="istickedoff">config Empty = <span class="nottickedoff">Just HM.empty</span></span>
+<span class="lineno">  175 </span><span class="spaces">  </span><span class="istickedoff">config Empty = Just HM.empty</span>
 <span class="lineno">  176 </span><span class="spaces">  </span><span class="istickedoff">config _ = <span class="nottickedoff">Nothing</span></span></span>
 <span class="lineno">  177 </span>
 <span class="lineno">  178 </span>instance Configurable Config where
@@ -234,7 +234,7 @@ span.spaces    { background: white }
 <span class="lineno">  218 </span>
 <span class="lineno">  219 </span>instance JSON.ToJSON Config where
 <span class="lineno">  220 </span>  <span class="decl"><span class="nottickedoff">toJSON = JSON.toJSON . configMap</span></span>
-<span class="lineno">  221 </span>  <span class="decl"><span class="nottickedoff">toEncoding = JSON.toEncoding . configMap</span></span>
+<span class="lineno">  221 </span>  <span class="decl"><span class="istickedoff">toEncoding = JSON.toEncoding . configMap</span></span>
 <span class="lineno">  222 </span>
 <span class="lineno">  223 </span>-- instance JSON.ToJSON ConfigMap where
 <span class="lineno">  224 </span>--   toJSON = JSON.object . map (TE.decodeUtf8 *** JSON.toJSON) . HM.toList

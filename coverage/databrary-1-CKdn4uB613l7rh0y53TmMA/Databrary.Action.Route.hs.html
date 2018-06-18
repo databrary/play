@@ -67,8 +67,8 @@ span.spaces    { background: white }
 <span class="lineno">   51 </span>    -&gt; PathParser r -- ^ Path to handle (r holds the captured elements)
 <span class="lineno">   52 </span>    -&gt; (r -&gt; a) -- ^ Action to build the response (a)
 <span class="lineno">   53 </span>    -&gt; R.RouteAction r a -- ^ The complete, built route/action specifier.
-<span class="lineno">   54 </span><span class="decl"><span class="nottickedoff">action method path act =</span>
-<span class="lineno">   55 </span><span class="spaces">    </span><span class="nottickedoff">R.routePath path R.&gt;* R.routeMethod method `R.RouteAction` act</span></span>
+<span class="lineno">   54 </span><span class="decl"><span class="istickedoff">action method path act =</span>
+<span class="lineno">   55 </span><span class="spaces">    </span><span class="istickedoff">R.routePath path R.&gt;* R.routeMethod method `R.RouteAction` act</span></span>
 <span class="lineno">   56 </span>
 <span class="lineno">   57 </span>multipartAction :: R.RouteAction q a -&gt; R.RouteAction q a
 <span class="lineno">   58 </span><span class="decl"><span class="nottickedoff">multipartAction (R.RouteAction r a) =</span>
@@ -83,7 +83,7 @@ span.spaces    { background: white }
 <span class="lineno">   67 </span><span class="decl"><span class="nottickedoff">pathHTML = R.unit</span></span>
 <span class="lineno">   68 </span>
 <span class="lineno">   69 </span>pathJSON :: PathParser ()
-<span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">pathJSON = &quot;api&quot;</span></span>
+<span class="lineno">   70 </span><span class="decl"><span class="istickedoff">pathJSON = &quot;api&quot;</span></span>
 <span class="lineno">   71 </span>
 <span class="lineno">   72 </span>pathAPI :: PathParser API
 <span class="lineno">   73 </span><span class="decl"><span class="nottickedoff">pathAPI = [I.biCase|Left () &lt;-&gt; JSON ; Right () &lt;-&gt; HTML|] R.&gt;$&lt; (pathJSON R.&gt;|&lt; pathHTML)</span></span>

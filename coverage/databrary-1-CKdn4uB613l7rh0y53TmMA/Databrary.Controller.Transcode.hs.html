@@ -64,19 +64,19 @@ span.spaces    { background: white }
 <span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">maybe (deformError &quot;Invalid hex string&quot; &gt;&gt; return BS.empty) (return . BS.pack) $ unHex b</span></span>
 <span class="lineno">   49 </span>
 <span class="lineno">   50 </span>remoteTranscode :: ActionRoute (Id Transcode)
-<span class="lineno">   51 </span><span class="decl"><span class="nottickedoff">remoteTranscode = action POST (pathJSON &gt;/&gt; pathId) $ \ti -&gt; withoutAuth $ do</span>
-<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">t &lt;- maybeAction =&lt;&lt; lookupTranscode ti</span>
-<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">withReAuth (transcodeOwner t) $ do</span>
-<span class="lineno">   54 </span><span class="spaces">    </span><span class="nottickedoff">auth &lt;- peeks $ transcodeAuth t</span>
-<span class="lineno">   55 </span><span class="spaces">    </span><span class="nottickedoff">(res, sha1, logs) &lt;- runForm Nothing $ do</span>
-<span class="lineno">   56 </span><span class="spaces">      </span><span class="nottickedoff">_ &lt;- &quot;auth&quot; .:&gt; (deformCheck &quot;Invalid authentication&quot; (constEq auth :: BS.ByteString -&gt; Bool) =&lt;&lt; deform)</span>
-<span class="lineno">   57 </span><span class="spaces">      </span><span class="nottickedoff">_ &lt;- &quot;pid&quot; .:&gt; (deformCheck &quot;PID mismatch&quot; (transcodeProcess t ==) =&lt;&lt; deformNonEmpty deform)</span>
-<span class="lineno">   58 </span><span class="spaces">      </span><span class="nottickedoff">liftM3 (,,)</span>
-<span class="lineno">   59 </span><span class="spaces">        </span><span class="nottickedoff">(&quot;res&quot; .:&gt; deform)</span>
-<span class="lineno">   60 </span><span class="spaces">        </span><span class="nottickedoff">(&quot;sha1&quot; .:&gt; optional sha1Form)</span>
-<span class="lineno">   61 </span><span class="spaces">        </span><span class="nottickedoff">(&quot;log&quot; .:&gt; deform)</span>
-<span class="lineno">   62 </span><span class="spaces">    </span><span class="nottickedoff">collectTranscode t res sha1 logs</span>
-<span class="lineno">   63 </span><span class="spaces">    </span><span class="nottickedoff">return $ okResponse [] BS.empty</span></span>
+<span class="lineno">   51 </span><span class="decl"><span class="istickedoff">remoteTranscode = action POST (pathJSON &gt;/&gt; pathId) $ \ti -&gt; <span class="nottickedoff">withoutAuth $ do</span></span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">t &lt;- maybeAction =&lt;&lt; lookupTranscode ti</span></span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">withReAuth (transcodeOwner t) $ do</span></span>
+<span class="lineno">   54 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">auth &lt;- peeks $ transcodeAuth t</span></span>
+<span class="lineno">   55 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(res, sha1, logs) &lt;- runForm Nothing $ do</span></span>
+<span class="lineno">   56 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">_ &lt;- &quot;auth&quot; .:&gt; (deformCheck &quot;Invalid authentication&quot; (constEq auth :: BS.ByteString -&gt; Bool) =&lt;&lt; deform)</span></span>
+<span class="lineno">   57 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">_ &lt;- &quot;pid&quot; .:&gt; (deformCheck &quot;PID mismatch&quot; (transcodeProcess t ==) =&lt;&lt; deformNonEmpty deform)</span></span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">liftM3 (,,)</span></span>
+<span class="lineno">   59 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">(&quot;res&quot; .:&gt; deform)</span></span>
+<span class="lineno">   60 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">(&quot;sha1&quot; .:&gt; optional sha1Form)</span></span>
+<span class="lineno">   61 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">(&quot;log&quot; .:&gt; deform)</span></span>
+<span class="lineno">   62 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">collectTranscode t res sha1 logs</span></span>
+<span class="lineno">   63 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">return $ okResponse [] BS.empty</span></span></span>
 <span class="lineno">   64 </span>
 <span class="lineno">   65 </span>viewTranscodes :: ActionRoute ()
 <span class="lineno">   66 </span><span class="decl"><span class="nottickedoff">viewTranscodes = action GET (pathHTML &gt;/&gt; &quot;admin&quot; &gt;/&gt; &quot;transcode&quot;) $ \() -&gt; viewTranscodesHandler</span></span>

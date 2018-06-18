@@ -94,7 +94,7 @@
 <a name="line-85"></a><a name="Config"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Config</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Config</span>
 <a name="line-86"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>configPath</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>Path</span>
 <a name="line-87"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>configMap</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>ConfigMap</span>
-<a name="line-88"></a>  <span class='hs-layout'>}</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Typeable</span><span class='hs-layout'>,</span> <span class='hs-conid'>Show</span><span class='hs-layout'>)</span>
+<a name="line-88"></a>  <span class='hs-layout'>}</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Typeable</span><span class='hs-layout'>)</span> <span class='hs-comment'>-- , Show)</span>
 <a name="line-89"></a>
 <a name="line-90"></a><a name="topConfig"></a><span class='hs-definition'>topConfig</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ConfigMap</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Config</span>
 <a name="line-91"></a><span class='hs-definition'>topConfig</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Config</span> <span class='hs-layout'>(</span><span class='hs-conid'>Path</span> <span class='hs-conid'>[]</span><span class='hs-layout'>)</span>

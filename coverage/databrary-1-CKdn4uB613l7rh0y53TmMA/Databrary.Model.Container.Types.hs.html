@@ -40,7 +40,7 @@ span.spaces    { background: white }
 <span class="lineno">   24 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">containerTop</span></span></span> :: Bool
 <span class="lineno">   25 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">containerName</span></span></span> :: Maybe T.Text
 <span class="lineno">   26 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">containerDate</span></span></span> :: Maybe Date
-<span class="lineno">   27 </span>  } deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>)
+<span class="lineno">   27 </span>  } -- deriving (Eq, Show)
 <span class="lineno">   28 </span>
 <span class="lineno">   29 </span>data Container = Container
 <span class="lineno">   30 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">containerRow</span></span></span> :: !ContainerRow
@@ -61,27 +61,20 @@ span.spaces    { background: white }
 <span class="lineno">   45 </span>instance Kinded Container where
 <span class="lineno">   46 </span>  <span class="decl"><span class="nottickedoff">kindOf _ = &quot;container&quot;</span></span>
 <span class="lineno">   47 </span>
-<span class="lineno">   48 </span>-- makeHasRec ''ContainerRow ['containerId]
-<span class="lineno">   49 </span>-- makeHasRec ''Container ['containerRow, 'containerRelease, 'containerVolume]
-<span class="lineno">   50 </span>instance Has (Id Container) ContainerRow where
-<span class="lineno">   51 </span>  <span class="decl"><span class="nottickedoff">view = containerId</span></span>
-<span class="lineno">   52 </span>
-<span class="lineno">   53 </span>-- instance Has ContainerRow Container where
-<span class="lineno">   54 </span>--   view = containerRow
-<span class="lineno">   55 </span>instance Has (Id Container) Container where
-<span class="lineno">   56 </span>  <span class="decl"><span class="nottickedoff">view = (view . containerRow)</span></span>
-<span class="lineno">   57 </span>instance Has (Maybe Release) Container where
-<span class="lineno">   58 </span>  <span class="decl"><span class="nottickedoff">view = containerRelease</span></span>
-<span class="lineno">   59 </span>-- instance Has Release Container where
-<span class="lineno">   60 </span>--   view = (view . containerRelease)
-<span class="lineno">   61 </span>instance Has Volume Container where
-<span class="lineno">   62 </span>  <span class="decl"><span class="nottickedoff">view = containerVolume</span></span>
-<span class="lineno">   63 </span>instance Has Permission Container where
-<span class="lineno">   64 </span>  <span class="decl"><span class="nottickedoff">view = (view . containerVolume)</span></span>
-<span class="lineno">   65 </span>instance Has (Id Volume) Container where
-<span class="lineno">   66 </span>  <span class="decl"><span class="nottickedoff">view = (view . containerVolume)</span></span>
-<span class="lineno">   67 </span>-- instance Has VolumeRow Container where
-<span class="lineno">   68 </span>--   view = (view . containerVolume)
+<span class="lineno">   48 </span>instance Has (Id Container) ContainerRow where
+<span class="lineno">   49 </span>  <span class="decl"><span class="nottickedoff">view = containerId</span></span>
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>instance Has (Id Container) Container where
+<span class="lineno">   52 </span>  <span class="decl"><span class="nottickedoff">view = (view . containerRow)</span></span>
+<span class="lineno">   53 </span>instance Has (Maybe Release) Container where
+<span class="lineno">   54 </span>  <span class="decl"><span class="nottickedoff">view = containerRelease</span></span>
+<span class="lineno">   55 </span>instance Has Volume Container where
+<span class="lineno">   56 </span>  <span class="decl"><span class="nottickedoff">view = containerVolume</span></span>
+<span class="lineno">   57 </span>instance Has Permission Container where
+<span class="lineno">   58 </span>  <span class="decl"><span class="nottickedoff">view = (view . containerVolume)</span></span>
+<span class="lineno">   59 </span>instance Has (Id Volume) Container where
+<span class="lineno">   60 </span>  <span class="decl"><span class="nottickedoff">view = (view . containerVolume)</span></span>
+<span class="lineno">   61 </span>
 
 </pre>
 </body>

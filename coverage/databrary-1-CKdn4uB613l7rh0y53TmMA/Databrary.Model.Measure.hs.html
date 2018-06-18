@@ -250,14 +250,14 @@ span.spaces    { background: white }
 <span class="lineno">  234 </span><span class="spaces">          </span><span class="istickedoff">filter (viewerCanView rel) (recordMeasures r)</span>
 <span class="lineno">  235 </span><span class="spaces">  </span><span class="istickedoff">where</span>
 <span class="lineno">  236 </span><span class="spaces">    </span><span class="istickedoff">rcrdRel :: Release</span>
-<span class="lineno">  237 </span><span class="spaces">    </span><span class="istickedoff">rcrdRel =</span>
-<span class="lineno">  238 </span><span class="spaces">        </span><span class="istickedoff">(fold . recordRelease) r -- use monoid, defaulting to PRIVATE</span>
+<span class="lineno">  237 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">rcrdRel =</span></span>
+<span class="lineno">  238 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">(fold . recordRelease) r</span> -- use monoid, defaulting to PRIVATE</span>
 <span class="lineno">  239 </span><span class="spaces">    </span><span class="istickedoff">requiredRelease :: Measure -&gt; Release</span>
 <span class="lineno">  240 </span><span class="spaces">    </span><span class="istickedoff">requiredRelease m =</span>
 <span class="lineno">  241 </span><span class="spaces">        </span><span class="istickedoff">let</span>
 <span class="lineno">  242 </span><span class="spaces">            </span><span class="istickedoff">mMsrRel = view m</span>
 <span class="lineno">  243 </span><span class="spaces">        </span><span class="istickedoff">in </span>
-<span class="lineno">  244 </span><span class="spaces">            </span><span class="istickedoff">fromMaybe rcrdRel mMsrRel</span>
+<span class="lineno">  244 </span><span class="spaces">            </span><span class="istickedoff">fromMaybe <span class="nottickedoff">rcrdRel</span> mMsrRel</span>
 <span class="lineno">  245 </span><span class="spaces">    </span><span class="istickedoff">viewerCanView :: Release -&gt; Measure -&gt; Bool</span>
 <span class="lineno">  246 </span><span class="spaces">    </span><span class="istickedoff">viewerCanView viewerDeepestAllowedRelease m =</span>
 <span class="lineno">  247 </span><span class="spaces">        </span><span class="istickedoff">viewerDeepestAllowedRelease &lt;= requiredRelease m</span></span>

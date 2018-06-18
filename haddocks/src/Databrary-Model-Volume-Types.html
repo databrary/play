@@ -40,7 +40,7 @@
 <a name="line-31"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>volumeAlias</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>T</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span>
 <a name="line-32"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>volumeDOI</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span>
 <a name="line-33"></a>  <span class='hs-layout'>}</span>
-<a name="line-34"></a>  <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Show</span><span class='hs-layout'>,</span> <span class='hs-conid'>Eq</span><span class='hs-layout'>)</span>
+<a name="line-34"></a>  <span class='hs-comment'>-- deriving (Show, Eq)</span>
 <a name="line-35"></a>
 <a name="line-36"></a><a name="VolumeOwner"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>VolumeOwner</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Party</span><span class='hs-layout'>,</span> <span class='hs-conid'>T</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-layout'>)</span>
 <a name="line-37"></a>
@@ -50,7 +50,7 @@
 <a name="line-41"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>volumeOwners</span> <span class='hs-keyglyph'>::</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>VolumeOwner</span><span class='hs-keyglyph'>]</span>
 <a name="line-42"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>volumeRolePolicy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>VolumeRolePolicy</span>
 <a name="line-43"></a>  <span class='hs-layout'>}</span>
-<a name="line-44"></a>  <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Show</span><span class='hs-layout'>,</span> <span class='hs-conid'>Eq</span><span class='hs-layout'>)</span>
+<a name="line-44"></a>  <span class='hs-comment'>-- deriving (Show, Eq)</span>
 <a name="line-45"></a>
 <a name="line-46"></a><a name="instance%20Kinded%20Volume"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Kinded</span> <span class='hs-conid'>Volume</span> <span class='hs-keyword'>where</span>
 <a name="line-47"></a>  <span class='hs-varid'>kindOf</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>=</span> <span class='hs-str'>"volume"</span>

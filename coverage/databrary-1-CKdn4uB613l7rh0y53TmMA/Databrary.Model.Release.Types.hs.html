@@ -54,14 +54,14 @@ span.spaces    { background: white }
 <span class="lineno">   38 </span><span class="spaces">  </span><span class="nottickedoff">show ReleasePUBLIC = &quot;PUBLIC&quot;</span></span>
 <span class="lineno">   39 </span>instance Database.PostgreSQL.Typed.Types.PGType &quot;release&quot;
 <span class="lineno">   40 </span>instance Database.PostgreSQL.Typed.Types.PGParameter &quot;release&quot; Release where
-<span class="lineno">   41 </span>  <span class="decl"><span class="nottickedoff">pgEncode _ ReleasePRIVATE</span>
-<span class="lineno">   42 </span><span class="spaces">    </span><span class="nottickedoff">= Data.ByteString.pack [80, 82, 73, 86, 65, 84, 69]</span>
-<span class="lineno">   43 </span><span class="spaces">  </span><span class="nottickedoff">pgEncode _ ReleaseSHARED</span>
-<span class="lineno">   44 </span><span class="spaces">    </span><span class="nottickedoff">= Data.ByteString.pack [83, 72, 65, 82, 69, 68]</span>
-<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">pgEncode _ ReleaseEXCERPTS</span>
-<span class="lineno">   46 </span><span class="spaces">    </span><span class="nottickedoff">= Data.ByteString.pack [69, 88, 67, 69, 82, 80, 84, 83]</span>
-<span class="lineno">   47 </span><span class="spaces">  </span><span class="nottickedoff">pgEncode _ ReleasePUBLIC</span>
-<span class="lineno">   48 </span><span class="spaces">    </span><span class="nottickedoff">= Data.ByteString.pack [80, 85, 66, 76, 73, 67]</span></span>
+<span class="lineno">   41 </span>  <span class="decl"><span class="istickedoff">pgEncode _ ReleasePRIVATE</span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="istickedoff">= <span class="nottickedoff">Data.ByteString.pack [80, 82, 73, 86, 65, 84, 69]</span></span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="istickedoff">pgEncode _ ReleaseSHARED</span>
+<span class="lineno">   44 </span><span class="spaces">    </span><span class="istickedoff">= <span class="nottickedoff">Data.ByteString.pack [83, 72, 65, 82, 69, 68]</span></span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="istickedoff">pgEncode _ ReleaseEXCERPTS</span>
+<span class="lineno">   46 </span><span class="spaces">    </span><span class="istickedoff">= <span class="nottickedoff">Data.ByteString.pack [69, 88, 67, 69, 82, 80, 84, 83]</span></span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">pgEncode _ ReleasePUBLIC</span>
+<span class="lineno">   48 </span><span class="spaces">    </span><span class="istickedoff">= Data.ByteString.pack [80, 85, 66, 76, 73, 67]</span></span>
 <span class="lineno">   49 </span>instance Database.PostgreSQL.Typed.Types.PGColumn &quot;release&quot; Release where
 <span class="lineno">   50 </span>  <span class="decl"><span class="nottickedoff">pgDecode _ x_a2Skv</span>
 <span class="lineno">   51 </span><span class="spaces">    </span><span class="nottickedoff">= case Data.ByteString.unpack x_a2Skv of</span>
@@ -97,7 +97,7 @@ span.spaces    { background: white }
 <span class="lineno">   81 </span>       EffectiveRelease {
 <span class="lineno">   82 </span>           <span class="istickedoff"><span class="decl"><span class="istickedoff">effRelPublic</span></span></span> :: !Release
 <span class="lineno">   83 </span>         , <span class="istickedoff"><span class="decl"><span class="istickedoff">effRelPrivate</span></span></span> :: !Release
-<span class="lineno">   84 </span>         } deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>)
+<span class="lineno">   84 </span>         } -- deriving (Eq, Show)
 
 </pre>
 </body>

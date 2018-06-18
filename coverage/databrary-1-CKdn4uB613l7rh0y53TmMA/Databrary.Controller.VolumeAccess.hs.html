@@ -53,7 +53,7 @@ span.spaces    { background: white }
 <span class="lineno">   37 </span>  peeks $ blankForm . htmlVolumeAccessForm a
 <span class="lineno">   38 </span>-}
 <span class="lineno">   39 </span>
-<span class="lineno">   40 </span>postVolumeAccess :: ActionRoute ((Id Volume, VolumeAccessTarget))
+<span class="lineno">   40 </span>postVolumeAccess :: ActionRoute (Id Volume, VolumeAccessTarget)
 <span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">postVolumeAccess = action POST (pathJSON &gt;/&gt; pathId &lt;/&gt; pathVolumeAccessTarget) $ \(vi, VolumeAccessTarget ap) -&gt; withAuth $ do</span>
 <span class="lineno">   42 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume (if ap == partyId (partyRow staffParty) then PermissionEDIT else PermissionADMIN) vi</span>
 <span class="lineno">   43 </span><span class="spaces">  </span><span class="nottickedoff">a &lt;- maybeAction =&lt;&lt; lookupVolumeAccessParty v ap</span>

@@ -460,7 +460,7 @@ span.spaces    { background: white }
 <span class="lineno">  444 </span>    HeaderMappingEntry {
 <span class="lineno">  445 </span>          <span class="istickedoff"><span class="decl"><span class="istickedoff">hmeCsvField</span></span></span> :: Text
 <span class="lineno">  446 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">hmeMetric</span></span></span> :: Metric -- only participant metrics
-<span class="lineno">  447 </span>    } deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span>)
+<span class="lineno">  447 </span>    } deriving ({- Show, -} <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span>)
 <span class="lineno">  448 </span>
 <span class="lineno">  449 </span>instance FromJSON HeaderMappingEntry where
 <span class="lineno">  450 </span>    <span class="decl"><span class="istickedoff">parseJSON =</span>

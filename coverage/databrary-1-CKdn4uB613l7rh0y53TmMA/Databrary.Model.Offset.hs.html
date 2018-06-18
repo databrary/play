@@ -60,7 +60,7 @@ span.spaces    { background: white }
 <span class="lineno">   44 </span>instance PGParameter &quot;interval&quot; Offset where
 <span class="lineno">   45 </span>  <span class="decl"><span class="nottickedoff">pgEncode t = pgEncode t . offsetDiffTime</span></span>
 <span class="lineno">   46 </span>  <span class="decl"><span class="nottickedoff">pgEncodeValue e t = pgEncodeValue e t . offsetDiffTime</span></span>
-<span class="lineno">   47 </span>  <span class="decl"><span class="nottickedoff">pgLiteral t = pgLiteral t . offsetDiffTime</span></span>
+<span class="lineno">   47 </span>  <span class="decl"><span class="istickedoff">pgLiteral t = pgLiteral <span class="nottickedoff">t</span> . offsetDiffTime</span></span>
 <span class="lineno">   48 </span>instance PGColumn &quot;interval&quot; Offset where
 <span class="lineno">   49 </span>  <span class="decl"><span class="nottickedoff">pgDecode t = diffTimeOffset . pgDecode t</span></span>
 <span class="lineno">   50 </span>  <span class="decl"><span class="nottickedoff">pgDecodeValue e t = diffTimeOffset . pgDecodeValue e t</span></span>

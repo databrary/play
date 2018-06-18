@@ -60,7 +60,7 @@ span.spaces    { background: white }
 <span class="lineno">   44 </span>
 <span class="lineno">   45 </span>instance Show (IdType a) =&gt; Show (Id a) where
 <span class="lineno">   46 </span>  <span class="decl"><span class="istickedoff">showsPrec p (Id a) = showsPrec p a</span></span>
-<span class="lineno">   47 </span>  <span class="decl"><span class="nottickedoff">show (Id a) = show a</span></span>
+<span class="lineno">   47 </span>  <span class="decl"><span class="istickedoff">show (Id a) = show a</span></span>
 <span class="lineno">   48 </span>instance Read (IdType a) =&gt; Read (Id a) where
 <span class="lineno">   49 </span>  <span class="decl"><span class="nottickedoff">readsPrec p s = map (first Id) $ readsPrec p s</span></span>
 <span class="lineno">   50 </span>  <span class="decl"><span class="nottickedoff">readPrec = Id &lt;$&gt; readPrec</span></span>

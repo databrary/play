@@ -64,7 +64,7 @@ span.spaces    { background: white }
 <span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">BS.useAsCStringLen b $ GHC.peekCStringLen enc</span></span>
 <span class="lineno">   49 </span>
 <span class="lineno">   50 </span>catchOnlyIO :: (IOError -&gt; Bool) -&gt; IO a -&gt; IO (Maybe a)
-<span class="lineno">   51 </span><span class="decl"><span class="istickedoff">catchOnlyIO c f = handleJust (guard . c) (\_ -&gt; return Nothing) $ <span class="nottickedoff">Just</span> &lt;$&gt; f</span></span>
+<span class="lineno">   51 </span><span class="decl"><span class="istickedoff">catchOnlyIO c f = handleJust (guard . c) (\_ -&gt; return Nothing) $ Just &lt;$&gt; f</span></span>
 <span class="lineno">   52 </span>
 <span class="lineno">   53 </span>catchDoesNotExist :: IO a -&gt; IO (Maybe a)
 <span class="lineno">   54 </span><span class="decl"><span class="istickedoff">catchDoesNotExist = catchOnlyIO isDoesNotExistError</span></span>

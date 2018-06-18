@@ -50,35 +50,35 @@ span.spaces    { background: white }
 <span class="lineno">   34 </span>type MonadLog c m = (MonadHas Logs c m, MonadIO m)
 <span class="lineno">   35 </span>
 <span class="lineno">   36 </span>initLog :: FilePath -&gt; C.Config -&gt; IO (Maybe LoggerSet)
-<span class="lineno">   37 </span><span class="decl"><span class="nottickedoff">initLog def conf = do</span>
-<span class="lineno">   38 </span><span class="spaces">  </span><span class="nottickedoff">case file of</span>
-<span class="lineno">   39 </span><span class="spaces">    </span><span class="nottickedoff">&quot;&quot; -&gt; return Nothing</span>
-<span class="lineno">   40 </span><span class="spaces">    </span><span class="nottickedoff">&quot;stdout&quot; -&gt; Just &lt;$&gt; newStdoutLoggerSet buf</span>
-<span class="lineno">   41 </span><span class="spaces">    </span><span class="nottickedoff">&quot;stderr&quot; -&gt; Just &lt;$&gt; newStderrLoggerSet buf</span>
-<span class="lineno">   42 </span><span class="spaces">    </span><span class="nottickedoff">_ -&gt; do</span>
-<span class="lineno">   43 </span><span class="spaces">      </span><span class="nottickedoff">check file</span>
-<span class="lineno">   44 </span><span class="spaces">      </span><span class="nottickedoff">mapM_ (rotate . FileLogSpec file size) (num :: Maybe Int)</span>
-<span class="lineno">   45 </span><span class="spaces">      </span><span class="nottickedoff">Just &lt;$&gt; newFileLoggerSet buf file</span>
-<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
-<span class="lineno">   47 </span><span class="spaces">  </span><span class="nottickedoff">file = fromMaybe def $ conf C.! &quot;file&quot;</span>
-<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">buf = fromMaybe defaultBufSize $ conf C.! &quot;buf&quot;</span>
-<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">num = conf C.! &quot;rotate&quot;</span>
-<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">size = fromMaybe (1024*1024) $ conf C.! &quot;size&quot;</span></span>
+<span class="lineno">   37 </span><span class="decl"><span class="istickedoff">initLog def conf = do</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="istickedoff">case file of</span>
+<span class="lineno">   39 </span><span class="spaces">    </span><span class="istickedoff">&quot;&quot; -&gt; <span class="nottickedoff">return Nothing</span></span>
+<span class="lineno">   40 </span><span class="spaces">    </span><span class="istickedoff">&quot;stdout&quot; -&gt; <span class="nottickedoff">Just</span> &lt;$&gt; newStdoutLoggerSet buf</span>
+<span class="lineno">   41 </span><span class="spaces">    </span><span class="istickedoff">&quot;stderr&quot; -&gt; Just &lt;$&gt; newStderrLoggerSet buf</span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">do</span></span>
+<span class="lineno">   43 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">check file</span></span>
+<span class="lineno">   44 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">mapM_ (rotate . FileLogSpec file size) (num :: Maybe Int)</span></span>
+<span class="lineno">   45 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">Just &lt;$&gt; newFileLoggerSet buf file</span></span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">file = fromMaybe def $ conf C.! &quot;file&quot;</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">buf = fromMaybe defaultBufSize $ conf C.! &quot;buf&quot;</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">num = conf C.! &quot;rotate&quot;</span></span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">size = fromMaybe (1024*1024) $ conf C.! &quot;size&quot;</span></span></span>
 <span class="lineno">   51 </span>
 <span class="lineno">   52 </span>initLogs :: C.Config -&gt; IO Logs
-<span class="lineno">   53 </span><span class="decl"><span class="nottickedoff">initLogs conf = Logs</span>
-<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">&lt;$&gt; initLog &quot;stderr&quot; (conf C.! &quot;messages&quot;)</span>
-<span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">&lt;*&gt; initLog &quot;stdout&quot; (conf C.! &quot;access&quot;)</span></span>
+<span class="lineno">   53 </span><span class="decl"><span class="istickedoff">initLogs conf = Logs</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="istickedoff">&lt;$&gt; initLog &quot;stderr&quot; (conf C.! &quot;messages&quot;)</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="istickedoff">&lt;*&gt; initLog &quot;stdout&quot; (conf C.! &quot;access&quot;)</span></span>
 <span class="lineno">   56 </span>
 <span class="lineno">   57 </span>finiLogs :: Logs -&gt; IO ()
 <span class="lineno">   58 </span><span class="decl"><span class="nottickedoff">finiLogs (Logs lm la) =</span>
 <span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">mapM_ flushLogStr $ catMaybes [lm, la]</span></span>
 <span class="lineno">   60 </span>
 <span class="lineno">   61 </span>str :: ToLogStr a =&gt; a -&gt; LogStr
-<span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">str = toLogStr</span></span>
+<span class="lineno">   62 </span><span class="decl"><span class="istickedoff">str = toLogStr</span></span>
 <span class="lineno">   63 </span>
 <span class="lineno">   64 </span>char :: Char -&gt; LogStr
-<span class="lineno">   65 </span><span class="decl"><span class="nottickedoff">char = str . BSC.singleton</span></span>
+<span class="lineno">   65 </span><span class="decl"><span class="istickedoff">char = str . BSC.singleton</span></span>
 <span class="lineno">   66 </span>
 <span class="lineno">   67 </span>pad :: ToLogStr a =&gt; Int -&gt; a -&gt; LogStr
 <span class="lineno">   68 </span><span class="decl"><span class="nottickedoff">pad n m</span>
@@ -92,16 +92,16 @@ span.spaces    { background: white }
 <span class="lineno">   76 </span><span class="decl"><span class="nottickedoff">quote = maybe (char '-') (str . show)</span></span> -- FIXME, inefficient
 <span class="lineno">   77 </span>
 <span class="lineno">   78 </span>time :: ZonedTime -&gt; LogStr
-<span class="lineno">   79 </span><span class="decl"><span class="nottickedoff">time = str . formatTime defaultTimeLocale &quot;%F %X&quot;</span></span>
+<span class="lineno">   79 </span><span class="decl"><span class="istickedoff">time = str . formatTime defaultTimeLocale &quot;%F %X&quot;</span></span>
 <span class="lineno">   80 </span>
 <span class="lineno">   81 </span>infixr 6 &amp;
 <span class="lineno">   82 </span>(&amp;) :: LogStr -&gt; LogStr -&gt; LogStr
-<span class="lineno">   83 </span><span class="decl"><span class="nottickedoff">x &amp; y = x &lt;&gt; char ' ' &lt;&gt; y</span></span>
+<span class="lineno">   83 </span><span class="decl"><span class="istickedoff">x &amp; y = x &lt;&gt; char ' ' &lt;&gt; y</span></span>
 <span class="lineno">   84 </span>
 <span class="lineno">   85 </span>logStr :: LoggerSet -&gt; Timestamp -&gt; LogStr -&gt; IO ()
-<span class="lineno">   86 </span><span class="decl"><span class="nottickedoff">logStr l t s = do</span>
-<span class="lineno">   87 </span><span class="spaces">  </span><span class="nottickedoff">zt &lt;- utcToLocalZonedTime t</span>
-<span class="lineno">   88 </span><span class="spaces">  </span><span class="nottickedoff">pushLogStr l $ time zt &amp; s &lt;&gt; char '\n'</span></span>
+<span class="lineno">   86 </span><span class="decl"><span class="istickedoff">logStr l t s = do</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="istickedoff">zt &lt;- utcToLocalZonedTime t</span>
+<span class="lineno">   88 </span><span class="spaces">  </span><span class="istickedoff">pushLogStr l $ time zt &amp; s &lt;&gt; char '\n'</span></span>
 <span class="lineno">   89 </span>
 <span class="lineno">   90 </span>requestLog :: Timestamp -&gt; Wai.Request -&gt; Maybe String -&gt; Wai.Response -&gt; IO LogStr
 <span class="lineno">   91 </span><span class="decl"><span class="nottickedoff">requestLog qt q u r = do</span>
@@ -122,9 +122,9 @@ span.spaces    { background: white }
 <span class="lineno">  106 </span><span class="spaces">  </span><span class="nottickedoff">rh = Wai.responseHeaders r</span></span>
 <span class="lineno">  107 </span>
 <span class="lineno">  108 </span>logMsg :: ToLogStr a =&gt; Timestamp -&gt; a -&gt; Logs -&gt; IO ()
-<span class="lineno">  109 </span><span class="decl"><span class="nottickedoff">logMsg t m Logs{ loggerMessages = Just l } = do</span>
-<span class="lineno">  110 </span><span class="spaces">  </span><span class="nottickedoff">logStr l t $ str m</span>
-<span class="lineno">  111 </span><span class="spaces"></span><span class="nottickedoff">logMsg _ _ _ = return ()</span></span>
+<span class="lineno">  109 </span><span class="decl"><span class="istickedoff">logMsg t m Logs{ loggerMessages = Just l } = do</span>
+<span class="lineno">  110 </span><span class="spaces">  </span><span class="istickedoff">logStr l t $ str m</span>
+<span class="lineno">  111 </span><span class="spaces"></span><span class="istickedoff">logMsg _ _ _ = <span class="nottickedoff">return ()</span></span></span>
 <span class="lineno">  112 </span>
 <span class="lineno">  113 </span>logAccess :: Timestamp -&gt; Wai.Request -&gt; Maybe String -&gt; Wai.Response -&gt; Logs -&gt; IO ()
 <span class="lineno">  114 </span><span class="decl"><span class="nottickedoff">logAccess qt q u r Logs{ loggerAccess = Just l } =</span>

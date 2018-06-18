@@ -58,40 +58,38 @@ span.spaces    { background: white }
 <span class="lineno">   42 </span>
 <span class="lineno">   43 </span>instance Has Party Identity where
 <span class="lineno">   44 </span>  <span class="decl"><span class="nottickedoff">view = view . (view :: Identity -&gt; SiteAuth)</span></span>
-<span class="lineno">   45 </span>instance Has Account Identity where
-<span class="lineno">   46 </span>  <span class="decl"><span class="nottickedoff">view = view . (view :: Identity -&gt; SiteAuth)</span></span>
-<span class="lineno">   47 </span>instance Has (Id Party) Identity where
+<span class="lineno">   45 </span>instance Has (Id Party) Identity where
+<span class="lineno">   46 </span>  <span class="decl"><span class="istickedoff">view = view . (view :: Identity -&gt; SiteAuth)</span></span>
+<span class="lineno">   47 </span>instance Has Access Identity where
 <span class="lineno">   48 </span>  <span class="decl"><span class="istickedoff">view = view . (view :: Identity -&gt; SiteAuth)</span></span>
-<span class="lineno">   49 </span>instance Has Access Identity where
-<span class="lineno">   50 </span>  <span class="decl"><span class="istickedoff">view = view . (view :: Identity -&gt; SiteAuth)</span></span>
-<span class="lineno">   51 </span>
-<span class="lineno">   52 </span>-- | Used by an action that will reference the actor's identity in order to authorize the action being performed.
-<span class="lineno">   53 </span>-- In some cases, this identity simply hasn't been established or was not resolved because the
-<span class="lineno">   54 </span>-- context indicated that an identity wasn't needed.
-<span class="lineno">   55 </span>type MonadHasIdentity c m = (MonadHas Identity c m, Has SiteAuth c, Has Party c, Has (Id Party) c, Has Access c)
-<span class="lineno">   56 </span>
-<span class="lineno">   57 </span>-- | Extract a value from part of a session for Identified, otherwise use the default value
-<span class="lineno">   58 </span>extractFromIdentifiedSessOrDefault :: a -&gt; (Session -&gt; a) -&gt; Identity -&gt; a
-<span class="lineno">   59 </span><span class="decl"><span class="istickedoff">extractFromIdentifiedSessOrDefault z f = \case</span>
-<span class="lineno">   60 </span><span class="spaces">    </span><span class="istickedoff">Identified sess -&gt; f sess</span>
-<span class="lineno">   61 </span><span class="spaces">    </span><span class="istickedoff">NotLoggedIn -&gt; z</span>
-<span class="lineno">   62 </span><span class="spaces">    </span><span class="istickedoff">IdentityNotNeeded -&gt; z</span>
-<span class="lineno">   63 </span><span class="spaces">    </span><span class="istickedoff">ReIdentified _ -&gt; z</span></span>
-<span class="lineno">   64 </span>
-<span class="lineno">   65 </span>-- | Extract the secure token for state changing action, only available for logged in session identity
-<span class="lineno">   66 </span>identityVerf :: Identity -&gt; Maybe BS.ByteString
-<span class="lineno">   67 </span><span class="decl"><span class="nottickedoff">identityVerf = extractFromIdentifiedSessOrDefault Nothing (Just . sessionVerf)</span></span>
-<span class="lineno">   68 </span>
-<span class="lineno">   69 </span>identitySuperuserFor :: (Access -&gt; Permission) -&gt; Identity -&gt; Bool
-<span class="lineno">   70 </span><span class="decl"><span class="istickedoff">identitySuperuserFor f (Identified t) = sessionSuperuser t &amp;&amp; f (view t) == PermissionADMIN</span>
-<span class="lineno">   71 </span><span class="spaces"></span><span class="istickedoff">identitySuperuserFor _ (ReIdentified _) = True</span>
-<span class="lineno">   72 </span><span class="spaces"></span><span class="istickedoff">identitySuperuserFor _ _ = False</span></span>
-<span class="lineno">   73 </span>
-<span class="lineno">   74 </span>identityAdmin :: Identity -&gt; Bool
-<span class="lineno">   75 </span><span class="decl"><span class="istickedoff">identityAdmin = identitySuperuserFor accessMember</span></span>
-<span class="lineno">   76 </span>
-<span class="lineno">   77 </span>identitySuperuser :: Identity -&gt; Bool
-<span class="lineno">   78 </span><span class="decl"><span class="istickedoff">identitySuperuser = identitySuperuserFor <span class="nottickedoff">accessPermission</span></span></span>
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>-- | Used by an action that will reference the actor's identity in order to authorize the action being performed.
+<span class="lineno">   51 </span>-- In some cases, this identity simply hasn't been established or was not resolved because the
+<span class="lineno">   52 </span>-- context indicated that an identity wasn't needed.
+<span class="lineno">   53 </span>type MonadHasIdentity c m = (MonadHas Identity c m, Has SiteAuth c, Has Party c, Has (Id Party) c, Has Access c)
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>-- | Extract a value from part of a session for Identified, otherwise use the default value
+<span class="lineno">   56 </span>extractFromIdentifiedSessOrDefault :: a -&gt; (Session -&gt; a) -&gt; Identity -&gt; a
+<span class="lineno">   57 </span><span class="decl"><span class="istickedoff">extractFromIdentifiedSessOrDefault z f = \case</span>
+<span class="lineno">   58 </span><span class="spaces">    </span><span class="istickedoff">Identified sess -&gt; f sess</span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="istickedoff">NotLoggedIn -&gt; z</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="istickedoff">IdentityNotNeeded -&gt; z</span>
+<span class="lineno">   61 </span><span class="spaces">    </span><span class="istickedoff">ReIdentified _ -&gt; z</span></span>
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>-- | Extract the secure token for state changing action, only available for logged in session identity
+<span class="lineno">   64 </span>identityVerf :: Identity -&gt; Maybe BS.ByteString
+<span class="lineno">   65 </span><span class="decl"><span class="nottickedoff">identityVerf = extractFromIdentifiedSessOrDefault Nothing (Just . sessionVerf)</span></span>
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>identitySuperuserFor :: (Access -&gt; Permission) -&gt; Identity -&gt; Bool
+<span class="lineno">   68 </span><span class="decl"><span class="istickedoff">identitySuperuserFor f (Identified t) = sessionSuperuser t &amp;&amp; f (view t) == PermissionADMIN</span>
+<span class="lineno">   69 </span><span class="spaces"></span><span class="istickedoff">identitySuperuserFor _ (ReIdentified _) = True</span>
+<span class="lineno">   70 </span><span class="spaces"></span><span class="istickedoff">identitySuperuserFor _ _ = False</span></span>
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>identityAdmin :: Identity -&gt; Bool
+<span class="lineno">   73 </span><span class="decl"><span class="istickedoff">identityAdmin = identitySuperuserFor accessMember</span></span>
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>identitySuperuser :: Identity -&gt; Bool
+<span class="lineno">   76 </span><span class="decl"><span class="istickedoff">identitySuperuser = identitySuperuserFor <span class="nottickedoff">accessPermission</span></span></span>
 
 </pre>
 </body>

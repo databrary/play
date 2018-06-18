@@ -103,7 +103,7 @@
 <a name="line-94"></a><a name="Access"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Access</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Access</span>
 <a name="line-95"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>accessSite'</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>Permission</span> <span class='hs-comment'>-- ^ ??</span>
 <a name="line-96"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>accessMember'</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>Permission</span> <span class='hs-comment'>-- ^ ??</span>
-<a name="line-97"></a>  <span class='hs-layout'>}</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Eq</span><span class='hs-layout'>,</span> <span class='hs-conid'>Show</span><span class='hs-layout'>)</span>
+<a name="line-97"></a>  <span class='hs-layout'>}</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Eq</span><span class='hs-layout'>)</span> <span class='hs-comment'>-- , Show)</span>
 <a name="line-98"></a>
 <a name="line-99"></a><a name="accessPermission'"></a><span class='hs-definition'>accessPermission'</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Access</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Permission</span>
 <a name="line-100"></a><span class='hs-definition'>accessPermission'</span> <span class='hs-layout'>(</span><span class='hs-conid'>Access</span> <span class='hs-varid'>s</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>min</span> <span class='hs-varid'>s</span> <span class='hs-varid'>m</span>
@@ -127,11 +127,11 @@
 <a name="line-118"></a><a name="PublicPolicy"></a><span class='hs-comment'>-- for a given volume. Restricted is the only current policy. It signifies</span>
 <a name="line-119"></a><a name="PublicPolicy"></a><span class='hs-comment'>-- hiding all data, except high level summary information and highlights.</span>
 <a name="line-120"></a><a name="PublicPolicy"></a><span class='hs-comment'>-- The word policy is a reference to the term used in attribute-based access control.</span>
-<a name="line-121"></a><a name="PublicPolicy"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>PublicPolicy</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>PublicRestrictedPolicy</span> <span class='hs-keyglyph'>|</span> <span class='hs-conid'>PublicNoPolicy</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Show</span><span class='hs-layout'>,</span> <span class='hs-conid'>Eq</span><span class='hs-layout'>)</span>
+<a name="line-121"></a><a name="PublicPolicy"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>PublicPolicy</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>PublicRestrictedPolicy</span> <span class='hs-keyglyph'>|</span> <span class='hs-conid'>PublicNoPolicy</span> <span class='hs-comment'>-- deriving (Show, Eq)</span>
 <a name="line-122"></a>
 <a name="line-123"></a><a name="SharedPolicy"></a><span class='hs-comment'>-- | A SharedPolicy is the same as PublicPolicy currently, but applied to the shared</span>
 <a name="line-124"></a><a name="SharedPolicy"></a><span class='hs-comment'>-- viewer role.</span>
-<a name="line-125"></a><a name="SharedPolicy"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>SharedPolicy</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>SharedRestrictedPolicy</span> <span class='hs-keyglyph'>|</span> <span class='hs-conid'>SharedNoPolicy</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Show</span><span class='hs-layout'>,</span> <span class='hs-conid'>Eq</span><span class='hs-layout'>)</span>
+<a name="line-125"></a><a name="SharedPolicy"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>SharedPolicy</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>SharedRestrictedPolicy</span> <span class='hs-keyglyph'>|</span> <span class='hs-conid'>SharedNoPolicy</span> <span class='hs-comment'>-- deriving (Show, Eq)</span>
 <a name="line-126"></a>
 <a name="line-127"></a><a name="VolumeRolePolicy"></a><span class='hs-comment'>-- | A user's effective access to a given volume.</span>
 <a name="line-128"></a><a name="VolumeRolePolicy"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>VolumeRolePolicy</span> <span class='hs-keyglyph'>=</span>
@@ -141,7 +141,7 @@
 <a name="line-132"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>RoleReader</span>
 <a name="line-133"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>RoleEditor</span>
 <a name="line-134"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>RoleAdmin</span>
-<a name="line-135"></a>  <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Show</span><span class='hs-layout'>,</span> <span class='hs-conid'>Eq</span><span class='hs-layout'>)</span>
+<a name="line-135"></a>  <span class='hs-comment'>-- deriving (Show, Eq)</span>
 <a name="line-136"></a>
 <a name="line-137"></a><a name="deriveLift"></a><span class='hs-definition'>deriveLift</span> <span class='hs-chr'>'</span><span class='hs-chr'>'</span><span class='hs-conid'>PublicPolicy</span>
 <a name="line-138"></a><span class='hs-definition'>deriveLift</span> <span class='hs-chr'>'</span><span class='hs-chr'>'</span><span class='hs-conid'>SharedPolicy</span>

@@ -9,7 +9,7 @@
 <body>
 <pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE TemplateHaskell, DataKinds #-}</span>
 <a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Databrary</span><span class='hs-varop'>.</span><span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>ORCID</span>
-<a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-conid'>ORCID</span>
+<a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-conid'>ORCID</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
 <a name="line-4"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>blankORCID</span>
 <a name="line-5"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>orcidURL</span>
 <a name="line-6"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
@@ -26,7 +26,7 @@
 <a name="line-17"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>ParserCombinators</span><span class='hs-varop'>.</span><span class='hs-conid'>ReadPrec</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>RP</span> <span class='hs-layout'>(</span><span class='hs-varid'>lift</span><span class='hs-layout'>)</span>
 <a name="line-18"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Read</span> <span class='hs-layout'>(</span><span class='hs-conid'>Read</span><span class='hs-layout'>(</span><span class='hs-varid'>readPrec</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
 <a name="line-19"></a>
-<a name="line-20"></a><a name="ORCID"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>ORCID</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ORCID</span> <span class='hs-layout'>{</span> <span class='hs-varid'>orcid</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>BSC</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-layout'>}</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Eq</span><span class='hs-layout'>)</span>
+<a name="line-20"></a><a name="ORCID"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>ORCID</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ORCID</span> <span class='hs-layout'>{</span> <span class='hs-varid'>orcid</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>BSC</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-layout'>}</span> <span class='hs-comment'>-- deriving (Eq)</span>
 <a name="line-21"></a>
 <a name="line-22"></a><a name="instance%20PGParameter%20%22bpchar%22%20ORCID"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>PGParameter</span> <span class='hs-str'>"bpchar"</span> <span class='hs-conid'>ORCID</span> <span class='hs-keyword'>where</span>
 <a name="line-23"></a>  <span class='hs-varid'>pgEncode</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>pgEncode</span> <span class='hs-varid'>t</span> <span class='hs-varop'>.</span> <span class='hs-varid'>orcid</span>

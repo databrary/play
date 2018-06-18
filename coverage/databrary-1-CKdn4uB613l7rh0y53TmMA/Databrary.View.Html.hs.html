@@ -19,73 +19,70 @@ span.spaces    { background: white }
 <span class="lineno">    3 </span>  ( unsafeBuilder
 <span class="lineno">    4 </span>  , lazyByteStringHtml
 <span class="lineno">    5 </span>  , byteStringHtml
-<span class="lineno">    6 </span>  , builderHtml
-<span class="lineno">    7 </span>  , unsafeBuilderValue
-<span class="lineno">    8 </span>  , lazyByteStringValue
-<span class="lineno">    9 </span>  , byteStringValue
-<span class="lineno">   10 </span>  , builderValue
-<span class="lineno">   11 </span>  , actionValue
-<span class="lineno">   12 </span>  , actionLink
-<span class="lineno">   13 </span>  , Query
-<span class="lineno">   14 </span>  , actionForm
-<span class="lineno">   15 </span>  , (!?)
-<span class="lineno">   16 </span>  ) where
-<span class="lineno">   17 </span>
-<span class="lineno">   18 </span>import qualified Data.ByteString as BS
-<span class="lineno">   19 </span>import qualified Data.ByteString.Builder as BSB
-<span class="lineno">   20 </span>import qualified Data.ByteString.Lazy as BSL
-<span class="lineno">   21 </span>import Network.HTTP.Types (Query, QueryLike(..))
-<span class="lineno">   22 </span>import qualified Text.Blaze.Internal as Markup
-<span class="lineno">   23 </span>import qualified Text.Blaze.Html5 as H
-<span class="lineno">   24 </span>import qualified Text.Blaze.Html5.Attributes as HA
-<span class="lineno">   25 </span>import qualified Web.Route.Invertible as R
-<span class="lineno">   26 </span>
-<span class="lineno">   27 </span>import Blaze.ByteString.Builder.Html.Word (fromHtmlEscapedByteString, fromHtmlEscapedLazyByteString)
-<span class="lineno">   28 </span>import Databrary.Action.Route
-<span class="lineno">   29 </span>import Databrary.HTTP.Route
-<span class="lineno">   30 </span>
-<span class="lineno">   31 </span>import {-# SOURCE #-} Databrary.Controller.Angular
+<span class="lineno">    6 </span>  , byteStringValue
+<span class="lineno">    7 </span>  , builderValue
+<span class="lineno">    8 </span>  , actionLink
+<span class="lineno">    9 </span>  , Query
+<span class="lineno">   10 </span>  , actionValue
+<span class="lineno">   11 </span>  , actionForm
+<span class="lineno">   12 </span>  , (!?)
+<span class="lineno">   13 </span>  ) where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import qualified Data.ByteString as BS
+<span class="lineno">   16 </span>import qualified Data.ByteString.Builder as BSB
+<span class="lineno">   17 </span>import qualified Data.ByteString.Lazy as BSL
+<span class="lineno">   18 </span>import Network.HTTP.Types (Query, QueryLike(..))
+<span class="lineno">   19 </span>import qualified Text.Blaze.Internal as Markup
+<span class="lineno">   20 </span>import qualified Text.Blaze.Html5 as H
+<span class="lineno">   21 </span>import qualified Text.Blaze.Html5.Attributes as HA
+<span class="lineno">   22 </span>import qualified Web.Route.Invertible as R
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>import Blaze.ByteString.Builder.Html.Word (fromHtmlEscapedByteString, fromHtmlEscapedLazyByteString)
+<span class="lineno">   25 </span>import Databrary.Action.Route
+<span class="lineno">   26 </span>import Databrary.HTTP.Route
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>import {-# SOURCE #-} Databrary.Controller.Angular
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>unsafeBuilder :: BSB.Builder -&gt; H.Markup
+<span class="lineno">   31 </span><span class="decl"><span class="istickedoff">unsafeBuilder = H.unsafeLazyByteString . BSB.toLazyByteString</span></span>
 <span class="lineno">   32 </span>
-<span class="lineno">   33 </span>unsafeBuilder :: BSB.Builder -&gt; H.Markup
-<span class="lineno">   34 </span><span class="decl"><span class="nottickedoff">unsafeBuilder = H.unsafeLazyByteString . BSB.toLazyByteString</span></span>
+<span class="lineno">   33 </span>lazyByteStringHtml :: BSL.ByteString -&gt; H.Markup
+<span class="lineno">   34 </span><span class="decl"><span class="istickedoff">lazyByteStringHtml = unsafeBuilder . fromHtmlEscapedLazyByteString</span></span>
 <span class="lineno">   35 </span>
-<span class="lineno">   36 </span>lazyByteStringHtml :: BSL.ByteString -&gt; H.Markup
-<span class="lineno">   37 </span><span class="decl"><span class="nottickedoff">lazyByteStringHtml = unsafeBuilder . fromHtmlEscapedLazyByteString</span></span>
+<span class="lineno">   36 </span>byteStringHtml :: BS.ByteString -&gt; H.Markup
+<span class="lineno">   37 </span><span class="decl"><span class="istickedoff">byteStringHtml = unsafeBuilder . fromHtmlEscapedByteString</span></span>
 <span class="lineno">   38 </span>
-<span class="lineno">   39 </span>byteStringHtml :: BS.ByteString -&gt; H.Markup
-<span class="lineno">   40 </span><span class="decl"><span class="nottickedoff">byteStringHtml = unsafeBuilder . fromHtmlEscapedByteString</span></span>
+<span class="lineno">   39 </span>-- builderHtml :: BSB.Builder -&gt; H.Markup
+<span class="lineno">   40 </span>-- builderHtml = lazyByteStringHtml . BSB.toLazyByteString
 <span class="lineno">   41 </span>
-<span class="lineno">   42 </span>builderHtml :: BSB.Builder -&gt; H.Markup
-<span class="lineno">   43 </span><span class="decl"><span class="nottickedoff">builderHtml = lazyByteStringHtml . BSB.toLazyByteString</span></span>
+<span class="lineno">   42 </span>unsafeBuilderValue :: BSB.Builder -&gt; H.AttributeValue
+<span class="lineno">   43 </span><span class="decl"><span class="nottickedoff">unsafeBuilderValue = H.unsafeLazyByteStringValue . BSB.toLazyByteString</span></span>
 <span class="lineno">   44 </span>
-<span class="lineno">   45 </span>unsafeBuilderValue :: BSB.Builder -&gt; H.AttributeValue
-<span class="lineno">   46 </span><span class="decl"><span class="nottickedoff">unsafeBuilderValue = H.unsafeLazyByteStringValue . BSB.toLazyByteString</span></span>
+<span class="lineno">   45 </span>lazyByteStringValue :: BSL.ByteString -&gt; H.AttributeValue
+<span class="lineno">   46 </span><span class="decl"><span class="nottickedoff">lazyByteStringValue = unsafeBuilderValue . fromHtmlEscapedLazyByteString</span></span>
 <span class="lineno">   47 </span>
-<span class="lineno">   48 </span>lazyByteStringValue :: BSL.ByteString -&gt; H.AttributeValue
-<span class="lineno">   49 </span><span class="decl"><span class="nottickedoff">lazyByteStringValue = unsafeBuilderValue . fromHtmlEscapedLazyByteString</span></span>
+<span class="lineno">   48 </span>byteStringValue :: BS.ByteString -&gt; H.AttributeValue
+<span class="lineno">   49 </span><span class="decl"><span class="nottickedoff">byteStringValue = unsafeBuilderValue . fromHtmlEscapedByteString</span></span>
 <span class="lineno">   50 </span>
-<span class="lineno">   51 </span>byteStringValue :: BS.ByteString -&gt; H.AttributeValue
-<span class="lineno">   52 </span><span class="decl"><span class="nottickedoff">byteStringValue = unsafeBuilderValue . fromHtmlEscapedByteString</span></span>
+<span class="lineno">   51 </span>builderValue :: BSB.Builder -&gt; H.AttributeValue
+<span class="lineno">   52 </span><span class="decl"><span class="nottickedoff">builderValue = lazyByteStringValue . BSB.toLazyByteString</span></span>
 <span class="lineno">   53 </span>
-<span class="lineno">   54 </span>builderValue :: BSB.Builder -&gt; H.AttributeValue
-<span class="lineno">   55 </span><span class="decl"><span class="nottickedoff">builderValue = lazyByteStringValue . BSB.toLazyByteString</span></span>
+<span class="lineno">   54 </span>actionValue :: QueryLike q =&gt; R.RouteAction r a -&gt; r -&gt; q -&gt; H.AttributeValue
+<span class="lineno">   55 </span><span class="decl"><span class="nottickedoff">actionValue r a q = builderValue $ actionURL Nothing r a $ toQuery q</span></span>
 <span class="lineno">   56 </span>
-<span class="lineno">   57 </span>actionValue :: QueryLike q =&gt; R.RouteAction r a -&gt; r -&gt; q -&gt; H.AttributeValue
-<span class="lineno">   58 </span><span class="decl"><span class="nottickedoff">actionValue r a q = builderValue $ actionURL Nothing r a $ toQuery q</span></span>
+<span class="lineno">   57 </span>actionLink :: QueryLike q =&gt; R.RouteAction r a -&gt; r -&gt; q -&gt; H.Attribute
+<span class="lineno">   58 </span><span class="decl"><span class="nottickedoff">actionLink r a = HA.href . actionValue r a</span></span>
 <span class="lineno">   59 </span>
-<span class="lineno">   60 </span>actionLink :: QueryLike q =&gt; R.RouteAction r a -&gt; r -&gt; q -&gt; H.Attribute
-<span class="lineno">   61 </span><span class="decl"><span class="nottickedoff">actionLink r a = HA.href . actionValue r a</span></span>
-<span class="lineno">   62 </span>
-<span class="lineno">   63 </span>actionForm :: Route r a -&gt; a -&gt; JSOpt -&gt; H.Html -&gt; H.Html
-<span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">actionForm r a j = H.form</span>
-<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.method (H.unsafeByteStringValue $ R.renderParameter $ R.requestMethod rr)</span>
-<span class="lineno">   66 </span><span class="spaces">  </span><span class="nottickedoff">H.!? (not $ BS.null $ R.requestContentType rr, HA.enctype $ byteStringValue $ R.requestContentType rr)</span>
-<span class="lineno">   67 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.action (builderValue $ routeURL Nothing rr (toQuery j))</span>
-<span class="lineno">   68 </span><span class="spaces">  </span><span class="nottickedoff">where rr = R.requestActionRoute r a</span></span>
-<span class="lineno">   69 </span>
-<span class="lineno">   70 </span>(!?) :: Markup.Attributable h =&gt; h -&gt; Maybe H.Attribute -&gt; h
-<span class="lineno">   71 </span><span class="decl"><span class="nottickedoff">h !? Nothing = h</span>
-<span class="lineno">   72 </span><span class="spaces"></span><span class="nottickedoff">h !? (Just a) = h H.! a</span></span>
+<span class="lineno">   60 </span>actionForm :: Route r a -&gt; a -&gt; JSOpt -&gt; H.Html -&gt; H.Html
+<span class="lineno">   61 </span><span class="decl"><span class="nottickedoff">actionForm r a j = H.form</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.method (H.unsafeByteStringValue $ R.renderParameter $ R.requestMethod rr)</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">H.!? (not $ BS.null $ R.requestContentType rr, HA.enctype $ byteStringValue $ R.requestContentType rr)</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">H.! HA.action (builderValue $ routeURL Nothing rr (toQuery j))</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">where rr = R.requestActionRoute r a</span></span>
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>(!?) :: Markup.Attributable h =&gt; h -&gt; Maybe H.Attribute -&gt; h
+<span class="lineno">   68 </span><span class="decl"><span class="nottickedoff">h !? Nothing = h</span>
+<span class="lineno">   69 </span><span class="spaces"></span><span class="nottickedoff">h !? (Just a) = h H.! a</span></span>
 
 </pre>
 </body>
