@@ -29,7 +29,7 @@ import Databrary.Model.Segment
 import Databrary.Model.Slot.Types
 import Databrary.Model.Volume.Types
 
-newtype TagName = TagName { tagNameBS :: BS.ByteString } deriving (JSON.ToJSON, JSON.FromJSON, Typeable, Show, Eq)
+newtype TagName = TagName { tagNameBS :: BS.ByteString } deriving (JSON.ToJSON, {- JSON.FromJSON, -} Typeable {-, Show, Eq -})
 
 validTag :: Regex.Regex
 validTag = Regex.makeRegex

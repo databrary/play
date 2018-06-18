@@ -34,7 +34,7 @@ type instance IdType Record = Int32
 data RecordRow = RecordRow
   { recordId :: Id Record
   , recordCategory :: Category
-  } deriving ({-Show, -} Eq)
+  } -- deriving ({-Show, -} Eq)
 
 data Record = Record
   { recordRow :: !RecordRow
@@ -53,7 +53,7 @@ data FieldUse a
     = FieldUnused -- ^ Unused/not supplied
     | FieldEmpty -- ^ Supplied, but empty
     | Field MeasureDatum a -- ^ The raw value and its converted form
-    deriving (Show, Eq, Ord, Functor)
+    -- deriving (Show, Eq, Ord, Functor)
 
 data ParticipantRecord =
     ParticipantRecord -- are some of these required?
@@ -73,7 +73,7 @@ data ParticipantRecord =
         , prdState :: FieldUse ByteString
         , prdSetting :: FieldUse ByteString
         } 
-    deriving (Show, Eq, Ord)
+    -- deriving (Show, Eq, Ord)
 
 data Measure = Measure
   { measureRecord :: Record

@@ -11,7 +11,7 @@ import Data.Int (Int32)
 data Paginate = Paginate
   { paginateOffset :: !Int32 -- ^ number of rows to skip before starting
   , paginateLimit :: !Int32 -- ^ max number of rows to retrieve after offset
-  } deriving (Eq, Ord, Show)
+  } -- deriving (Eq, Ord, Show)
 
 -- | A page must have at least one row requested, and can only request up to 129 rows in one page
 instance Bounded Paginate where

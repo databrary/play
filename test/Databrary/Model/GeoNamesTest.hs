@@ -12,6 +12,7 @@ import Test.Tasty.HUnit
 import Databrary.HTTP.Client
 import Databrary.Model.GeoNames
 import Databrary.Model.Id
+import Databrary.Model.TypeOrphans ()
 
 unit_parseGeoNameRef :: Assertion
 unit_parseGeoNameRef = do
@@ -27,10 +28,12 @@ unit_parseGeoName =
            [("geonameId", toJSON (6252001 :: Int)), ("name", "United States")])
         @?= Right geoNameUS
 
--- not run so as not to tax the service unnecessarily; TODO: change this to ignoreTest
-_unit_lookupGeoName :: Assertion
-_unit_lookupGeoName = do
+-- not run so as not to tax the service unnecessarily... actually, tests don't run that often
+unit_lookupGeoName :: Assertion
+unit_lookupGeoName = do
     -- example
     hc <- initHTTPClient
     mGeo <- lookupGeoName (Id 6252001) hc
-    mGeo @?= Just geoNameUS
+    case mGeo of
+      Nothing -> pure () -- if internet connection is not live. TODO: make error more precise
+      Just geo -> geo @?= geoNameUS

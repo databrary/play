@@ -27,7 +27,7 @@ type instance IdType GeoName = Int64
 data GeoName = GeoName
   { geoNameId :: !(Id GeoName) -- ^ identifier from geonames service
   , geoName :: !T.Text -- ^ human readable place name
-  } deriving (Eq, Show)
+  } -- deriving (Eq, Show)
 
 -- | hardcoded value for US geoname place
 geoNameUS :: GeoName
