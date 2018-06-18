@@ -1,0 +1,86 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies #-}
+<span class="lineno">    2 </span>module Databrary.Model.GeoNames
+<span class="lineno">    3 </span>  ( GeoName(..)
+<span class="lineno">    4 </span>  , geoNameUS
+<span class="lineno">    5 </span>  , parseGeoNameRef
+<span class="lineno">    6 </span>  , lookupGeoName
+<span class="lineno">    7 </span>  -- for testing
+<span class="lineno">    8 </span>  , parseGeoName
+<span class="lineno">    9 </span>  ) where
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import Control.Monad (guard)
+<span class="lineno">   12 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">   13 </span>import Data.Int (Int64)
+<span class="lineno">   14 </span>import Data.List (stripPrefix)
+<span class="lineno">   15 </span>import Data.Maybe (fromJust, fromMaybe, listToMaybe)
+<span class="lineno">   16 </span>import qualified Data.Text as T
+<span class="lineno">   17 </span>import qualified Network.HTTP.Client as HC
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   20 </span>import Databrary.HTTP.Client
+<span class="lineno">   21 </span>import Databrary.Model.Id.Types
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>-- | Geonames use Int64 for their identifiers
+<span class="lineno">   24 </span>type instance IdType GeoName = Int64
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>-- | values retrieved from geonames service. large db of place names including countries
+<span class="lineno">   27 </span>data GeoName = GeoName
+<span class="lineno">   28 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">geoNameId</span></span></span> :: !(Id GeoName) -- ^ identifier from geonames service
+<span class="lineno">   29 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">geoName</span></span></span> :: !T.Text -- ^ human readable place name
+<span class="lineno">   30 </span>  } -- derivin<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">g </span></span></span></span>(E<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">q, S</span></span></span></span>how)
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>-- | hardcoded value for US geoname place
+<span class="lineno">   33 </span>geoNameUS :: GeoName
+<span class="lineno">   34 </span><span class="decl"><span class="nottickedoff">geoNameUS = GeoName</span>
+<span class="lineno">   35 </span><span class="spaces">  </span><span class="nottickedoff">{ geoNameId = Id 6252001</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="nottickedoff">, geoName = &quot;United States&quot;</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="nottickedoff">}</span></span>
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>-- | Extract geoname identifier from a geoname place url
+<span class="lineno">   40 </span>parseGeoNameRef :: String -&gt; Maybe (Id GeoName)
+<span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">parseGeoNameRef s = listToMaybe $ do</span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="nottickedoff">(i, r) &lt;- reads $ fromMaybe s (stripPrefix &quot;http://sws.geonames.org/&quot; s)</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="nottickedoff">guard (null r || r == &quot;/&quot;)</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="nottickedoff">return $ Id i</span></span>
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>-- | Parse the json response from a geoname id based place lookup into a GeoName value
+<span class="lineno">   47 </span>parseGeoName :: JSON.Value -&gt; JSON.Parser GeoName
+<span class="lineno">   48 </span><span class="decl"><span class="nottickedoff">parseGeoName = JSON.withObject &quot;geoname&quot; $ \j -&gt; do</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">i &lt;- j JSON..: &quot;geonameId&quot;</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">n &lt;- j JSON..: &quot;name&quot;</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">return GeoName</span>
+<span class="lineno">   52 </span><span class="spaces">    </span><span class="nottickedoff">{ geoNameId = Id i</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="nottickedoff">, geoName = n</span>
+<span class="lineno">   54 </span><span class="spaces">    </span><span class="nottickedoff">}</span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>-- | Build a request including URL, for performing a geonames API lookup
+<span class="lineno">   57 </span>geoNameReq :: HC.Request
+<span class="lineno">   58 </span><span class="decl"><span class="nottickedoff">geoNameReq = (fromJust $ HC.parseRequest &quot;http://api.geonames.org/getJSON&quot;)</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">{ HC.cookieJar = Nothing }</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>-- | Perform a geoname Id based place lookup to get the corresponding place name, parsing the response into a GeoName value
+<span class="lineno">   62 </span>lookupGeoName :: Id GeoName -&gt; HTTPClient -&gt; IO (Maybe GeoName)
+<span class="lineno">   63 </span><span class="decl"><span class="nottickedoff">lookupGeoName (Id i) hcm = do</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">j &lt;- httpRequestJSON req hcm</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">return $ JSON.parseMaybe parseGeoName =&lt;&lt; j</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="nottickedoff">where req = HC.setQueryString [(&quot;geonameId&quot;, Just $ BSC.pack $ show i), (&quot;username&quot;, Just &quot;databrary&quot;)] geoNameReq</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.HTTP.File
+<span class="lineno">    3 </span>  ( fileResponse
+<span class="lineno">    4 </span>  , serveFile
+<span class="lineno">    5 </span>  ) where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import Control.Monad (when)
+<span class="lineno">    8 </span>import Control.Monad.IO.Class (liftIO)
+<span class="lineno">    9 </span>import qualified Data.ByteString as BS
+<span class="lineno">   10 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   11 </span>import Network.HTTP.Types (ResponseHeaders, hLastModified, hContentType, hCacheControl, hIfModifiedSince, notModified304, hIfRange)
+<span class="lineno">   12 </span>import System.Posix.Types (FileOffset)
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import Databrary.Ops
+<span class="lineno">   15 </span>import Databrary.Has
+<span class="lineno">   16 </span>import Databrary.Files
+<span class="lineno">   17 </span>import Databrary.HTTP.Request
+<span class="lineno">   18 </span>import Databrary.HTTP
+<span class="lineno">   19 </span>import Databrary.Action
+<span class="lineno">   20 </span>import Databrary.Model.Format
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>fileResponse :: RawFilePath -&gt; Format -&gt; Maybe BS.ByteString -&gt; BS.ByteString -&gt; Handler (ResponseHeaders, Maybe FileOffset)
+<span class="lineno">   23 </span><span class="decl"><span class="istickedoff">fileResponse file fmt save etag = do</span>
+<span class="lineno">   24 </span><span class="spaces">  </span><span class="istickedoff">(sz, mt) &lt;- maybeAction =&lt;&lt; liftIO (fileInfo file)</span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="istickedoff">let fh =</span>
+<span class="lineno">   26 </span><span class="spaces">        </span><span class="istickedoff">[ (&quot;etag&quot;, quoteHTTP etag)</span>
+<span class="lineno">   27 </span><span class="spaces">        </span><span class="istickedoff">, (hLastModified, formatHTTPTimestamp mt)</span>
+<span class="lineno">   28 </span><span class="spaces">        </span><span class="istickedoff">, (hContentType, formatMimeType fmt)</span>
+<span class="lineno">   29 </span><span class="spaces">        </span><span class="istickedoff">, (&quot;content-disposition&quot;, maybe &quot;inline&quot; (\n -&gt; &quot;attachment; filename=&quot;</span>
+<span class="lineno">   30 </span><span class="spaces">            </span><span class="istickedoff">&lt;&gt; quoteHTTP (addFormatExtension n fmt)) save)</span>
+<span class="lineno">   31 </span><span class="spaces">        </span><span class="istickedoff">, (hCacheControl, &quot;max-age=31556926, private&quot;)</span>
+<span class="lineno">   32 </span><span class="spaces">        </span><span class="istickedoff">]</span>
+<span class="lineno">   33 </span><span class="spaces">  </span><span class="istickedoff">req &lt;- peek</span>
+<span class="lineno">   34 </span><span class="spaces">  </span><span class="istickedoff">let ifnm = map <span class="nottickedoff">unquoteHTTP</span> $ (<span class="nottickedoff">splitHTTP</span> =&lt;&lt;) $ lookupRequestHeaders &quot;if-none-match&quot; req</span>
+<span class="lineno">   35 </span><span class="spaces">      </span><span class="istickedoff">notmod</span>
+<span class="lineno">   36 </span><span class="spaces">        </span><span class="istickedoff">| <span class="tickonlytrue">null ifnm</span> = any <span class="nottickedoff">(mt &lt;=)</span> $ (<span class="nottickedoff">parseHTTPTimestamp</span> =&lt;&lt;) $ lookupRequestHeader hIfModifiedSince req</span>
+<span class="lineno">   37 </span><span class="spaces">        </span><span class="istickedoff">| <span class="nottickedoff">otherwise</span> = <span class="nottickedoff">any (\m -&gt; m == &quot;*&quot; || m == etag) ifnm</span></span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="istickedoff">when notmod $ <span class="nottickedoff">result $ emptyResponse notModified304 fh</span></span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">return (fh,</span>
+<span class="lineno">   40 </span><span class="spaces">    </span><span class="istickedoff">-- allow range detection or force full file:</span>
+<span class="lineno">   41 </span><span class="spaces">    </span><span class="istickedoff">(any ((etag /=) . unquoteHTTP) (lookupRequestHeader hIfRange req)) `thenUse` <span class="nottickedoff">sz</span>)</span></span>
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>serveFile :: RawFilePath -&gt; Format -&gt; Maybe BS.ByteString -&gt; BS.ByteString -&gt; Handler Response
+<span class="lineno">   44 </span><span class="decl"><span class="istickedoff">serveFile file fmt save etag = do</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="istickedoff">(h, part) &lt;- fileResponse file fmt save etag</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="istickedoff">fp &lt;- liftIO $ unRawFilePath file</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">return $ okResponse h (fp, part)</span></span>
+
+</pre>
+</body>
+</html>

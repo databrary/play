@@ -1,0 +1,256 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, ScopedTypeVariables, TypeSynonymInstances, FlexibleInstances, RecordWildCards #-}
+<span class="lineno">    2 </span>module Databrary.Store.Config
+<span class="lineno">    3 </span>  ( Path(..)
+<span class="lineno">    4 </span>  , pathKey
+<span class="lineno">    5 </span>  , keyPath
+<span class="lineno">    6 </span>  , Value(..)
+<span class="lineno">    7 </span>  , ConfigMap
+<span class="lineno">    8 </span>  , Config
+<span class="lineno">    9 </span>  , configMap
+<span class="lineno">   10 </span>  , configPath
+<span class="lineno">   11 </span>  , load
+<span class="lineno">   12 </span>  , Configurable(..)
+<span class="lineno">   13 </span>  , (!)
+<span class="lineno">   14 </span>  ) where
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import Prelude hiding (lookup)
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import Control.Applicative ((&lt;|&gt;))
+<span class="lineno">   19 </span>import Control.Arrow (first)
+<span class="lineno">   20 </span>import Control.Exception (Exception, throw)
+<span class="lineno">   21 </span>import Control.Monad ((&lt;=&lt;))
+<span class="lineno">   22 </span>import qualified Data.Aeson.Types as JSON
+<span class="lineno">   23 </span>import qualified Data.ByteString as BS
+<span class="lineno">   24 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">   25 </span>import Data.Foldable (fold)
+<span class="lineno">   26 </span>import qualified Data.HashMap.Strict as HM
+<span class="lineno">   27 </span>import Data.Maybe (fromMaybe)
+<span class="lineno">   28 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   29 </span>import Data.String (IsString(..))
+<span class="lineno">   30 </span>import qualified Data.Text as T
+<span class="lineno">   31 </span>import qualified Data.Text.Encoding as TE
+<span class="lineno">   32 </span>import Data.Typeable (Typeable, TypeRep, typeRep)
+<span class="lineno">   33 </span>import qualified Data.Vector as V
+<span class="lineno">   34 </span>import qualified Text.Parsec as P
+<span class="lineno">   35 </span>import qualified Text.Parsec.ByteString.Lazy as P
+<span class="lineno">   36 </span>import qualified Text.Parsec.Token as PT
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>import Databrary.JSON ()
+<span class="lineno">   39 </span>import Databrary.Ops
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>type Key = BS.ByteString
+<span class="lineno">   42 </span>newtype Path = Path { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">pathList</span></span></span> :: [Key] } deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Monoid</span></span></span></span></span></span>)
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>pathKey :: Path -&gt; Key
+<span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">pathKey (Path p) = BS.intercalate (BSC.singleton '.') p</span></span>
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>keyPath :: Key -&gt; Path
+<span class="lineno">   48 </span><span class="decl"><span class="istickedoff">keyPath = Path . BSC.split '.'</span></span>
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>pathSnoc :: Path -&gt; Key -&gt; Path
+<span class="lineno">   51 </span><span class="decl"><span class="nottickedoff">pathSnoc (Path l) k = Path (l ++ [k])</span></span>
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>instance Show Path where
+<span class="lineno">   54 </span>  <span class="decl"><span class="nottickedoff">showsPrec p = showsPrec p . pathKey</span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>instance IsString Path where
+<span class="lineno">   57 </span>  <span class="decl"><span class="istickedoff">fromString = keyPath . fromString</span></span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>data ConfigError
+<span class="lineno">   60 </span>  = ParseError P.ParseError
+<span class="lineno">   61 </span>  | ConflictError
+<span class="lineno">   62 </span>    { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">errorPath</span></span></span> :: Path
+<span class="lineno">   63 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">errorValue1</span></span></span>, <span class="nottickedoff"><span class="decl"><span class="nottickedoff">errorValue2</span></span></span> :: Value
+<span class="lineno">   64 </span>    }
+<span class="lineno">   65 </span>  | ValueError
+<span class="lineno">   66 </span>    { errorPath :: Path
+<span class="lineno">   67 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">errorValue</span></span></span> :: Value
+<span class="lineno">   68 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">errorNeeded</span></span></span> :: TypeRep
+<span class="lineno">   69 </span>    }
+<span class="lineno">   70 </span>  deriving (Typeable, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>)
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>instance Exception ConfigError
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>data Value
+<span class="lineno">   75 </span>  = Empty
+<span class="lineno">   76 </span>  | Boolean !Bool
+<span class="lineno">   77 </span>  | Integer !Integer
+<span class="lineno">   78 </span>  | String !BS.ByteString
+<span class="lineno">   79 </span>  | List [Value]
+<span class="lineno">   80 </span>  | Sub !ConfigMap
+<span class="lineno">   81 </span>  deriving (Typeable, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>)
+<span class="lineno">   82 </span>
+<span class="lineno">   83 </span>type ConfigMap = HM.HashMap BS.ByteString Value
+<span class="lineno">   84 </span>
+<span class="lineno">   85 </span>data Config = Config
+<span class="lineno">   86 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">configPath</span></span></span> :: !Path
+<span class="lineno">   87 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">configMap</span></span></span> :: !ConfigMap
+<span class="lineno">   88 </span>  } deriving (Typeable) <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">-- ,</span></span></span></span> Show)
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>topConfig :: ConfigMap -&gt; Config
+<span class="lineno">   91 </span><span class="decl"><span class="istickedoff">topConfig = Config (Path [])</span></span>
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>unionValue :: Path -&gt; Value -&gt; Value -&gt; Value
+<span class="lineno">   94 </span><span class="decl"><span class="nottickedoff">unionValue _ Empty v = v</span>
+<span class="lineno">   95 </span><span class="spaces"></span><span class="nottickedoff">unionValue _ v Empty = v</span>
+<span class="lineno">   96 </span><span class="spaces"></span><span class="nottickedoff">unionValue p (Sub m1) (Sub m2) = Sub $ unionConfig p m1 m2</span>
+<span class="lineno">   97 </span><span class="spaces"></span><span class="nottickedoff">unionValue p v1 v2</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="nottickedoff">| v1 == v2 = v1</span>
+<span class="lineno">   99 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = throw $ ConflictError{ errorPath = p, errorValue1 = v1, errorValue2 = v2 }</span></span>
+<span class="lineno">  100 </span>
+<span class="lineno">  101 </span>unionConfig :: Path -&gt; ConfigMap -&gt; ConfigMap -&gt; ConfigMap
+<span class="lineno">  102 </span><span class="decl"><span class="istickedoff">unionConfig p = HM.foldrWithKey $ <span class="nottickedoff">\k -&gt; HM.insertWith (flip $ unionValue (pathSnoc p k)) k</span></span></span>
+<span class="lineno">  103 </span>
+<span class="lineno">  104 </span>-- |Merge two configs, throwing 'ConflictError' on conflicts
+<span class="lineno">  105 </span>instance Monoid Config where
+<span class="lineno">  106 </span>  <span class="decl"><span class="istickedoff">mempty = topConfig HM.empty</span></span>
+<span class="lineno">  107 </span>  <span class="decl"><span class="istickedoff">Config (Path p1) m1 `mappend` Config (Path p2) m2 = Config p m where</span>
+<span class="lineno">  108 </span><span class="spaces">    </span><span class="istickedoff">(p', (p1', p2')) = cpfx p1 p2</span>
+<span class="lineno">  109 </span><span class="spaces">    </span><span class="istickedoff">p = Path p'</span>
+<span class="lineno">  110 </span><span class="spaces">    </span><span class="istickedoff">m = unionConfig <span class="nottickedoff">p</span> (nest m1 p1') (nest m2 p2')</span>
+<span class="lineno">  111 </span><span class="spaces">    </span><span class="istickedoff">cpfx (a:al) (b:bl) | <span class="nottickedoff">a == b</span> = <span class="nottickedoff">first (a :) $ cpfx al bl</span></span>
+<span class="lineno">  112 </span><span class="spaces">    </span><span class="istickedoff">cpfx al bl = ([], (al, bl))</span>
+<span class="lineno">  113 </span><span class="spaces">    </span><span class="istickedoff">nest = foldr <span class="nottickedoff">(\k -&gt; HM.singleton k . Sub)</span></span></span>
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span>lookup :: Path -&gt; ConfigMap -&gt; Value
+<span class="lineno">  116 </span><span class="decl"><span class="istickedoff">lookup (Path []) m = <span class="nottickedoff">Sub m</span></span>
+<span class="lineno">  117 </span><span class="spaces"></span><span class="istickedoff">lookup (Path [k]) m | Just v &lt;- HM.lookup k m = v</span>
+<span class="lineno">  118 </span><span class="spaces"></span><span class="istickedoff">lookup (Path (k:l)) m | Just (Sub km) &lt;- HM.lookup k m = lookup (Path l) km</span>
+<span class="lineno">  119 </span><span class="spaces"></span><span class="istickedoff">lookup _ _ = Empty</span></span>
+<span class="lineno">  120 </span>
+<span class="lineno">  121 </span>parser :: P.Parser ConfigMap
+<span class="lineno">  122 </span><span class="decl"><span class="istickedoff">parser = whiteSpace *&gt; block <span class="nottickedoff">mempty</span> HM.empty &lt;* P.eof where</span>
+<span class="lineno">  123 </span><span class="spaces">  </span><span class="istickedoff">block p m = (block <span class="nottickedoff">p</span> =&lt;&lt; pair <span class="nottickedoff">p</span> m) &lt;|&gt; return m</span>
+<span class="lineno">  124 </span><span class="spaces">  </span><span class="istickedoff">pair p m = do</span>
+<span class="lineno">  125 </span><span class="spaces">    </span><span class="istickedoff">ks &lt;- identifier P.&lt;?&gt; <span class="nottickedoff">&quot;key&quot;</span></span>
+<span class="lineno">  126 </span><span class="spaces">    </span><span class="istickedoff">let k = BSC.pack ks</span>
+<span class="lineno">  127 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">kp = pathSnoc p k</span></span>
+<span class="lineno">  128 </span><span class="spaces">    </span><span class="istickedoff">km &lt;- case HM.lookupDefault Empty k m of</span>
+<span class="lineno">  129 </span><span class="spaces">      </span><span class="istickedoff">Empty -&gt; return Nothing</span>
+<span class="lineno">  130 </span><span class="spaces">      </span><span class="istickedoff">Sub km -&gt; return $ Just km</span>
+<span class="lineno">  131 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">fail $ &quot;Duplicate key value: &quot; ++ show kp</span></span>
+<span class="lineno">  132 </span><span class="spaces">    </span><span class="istickedoff">kv &lt;- lexeme dot *&gt; (Sub &lt;$&gt; pair <span class="nottickedoff">kp</span> (fold km)) &lt;|&gt; rhs <span class="nottickedoff">kp</span> km</span>
+<span class="lineno">  133 </span><span class="spaces">    </span><span class="istickedoff">return $ HM.insert k kv m</span>
+<span class="lineno">  134 </span><span class="spaces">  </span><span class="istickedoff">rhs p Nothing = sub <span class="nottickedoff">p</span> HM.empty &lt;|&gt;</span>
+<span class="lineno">  135 </span><span class="spaces">    </span><span class="istickedoff">lexeme (P.char '=') *&gt; val</span>
+<span class="lineno">  136 </span><span class="spaces">  </span><span class="istickedoff">rhs p (Just m) = <span class="nottickedoff">sub p m</span></span>
+<span class="lineno">  137 </span><span class="spaces">  </span><span class="istickedoff">sub p m = Sub &lt;$&gt; braces (block <span class="nottickedoff">p</span> m)</span>
+<span class="lineno">  138 </span><span class="spaces">  </span><span class="istickedoff">val = P.choice</span>
+<span class="lineno">  139 </span><span class="spaces">    </span><span class="istickedoff">[ <span class="nottickedoff">Boolean True</span> &lt;$ reserved &quot;true&quot;</span>
+<span class="lineno">  140 </span><span class="spaces">    </span><span class="istickedoff">, Boolean False &lt;$ reserved &quot;false&quot;</span>
+<span class="lineno">  141 </span><span class="spaces">    </span><span class="istickedoff">, Integer &lt;$&gt; integer</span>
+<span class="lineno">  142 </span><span class="spaces">    </span><span class="istickedoff">, String . BSC.pack &lt;$&gt; stringLiteral</span>
+<span class="lineno">  143 </span><span class="spaces">    </span><span class="istickedoff">, <span class="nottickedoff">List &lt;$&gt; brackets (commaSep val)</span></span>
+<span class="lineno">  144 </span><span class="spaces">    </span><span class="istickedoff">] P.&lt;?&gt; <span class="nottickedoff">&quot;value&quot;</span></span>
+<span class="lineno">  145 </span><span class="spaces">  </span><span class="istickedoff">PT.TokenParser{..} = PT.makeTokenParser PT.LanguageDef</span>
+<span class="lineno">  146 </span><span class="spaces">    </span><span class="istickedoff">{ PT.commentStart = &quot;&quot;</span>
+<span class="lineno">  147 </span><span class="spaces">    </span><span class="istickedoff">, PT.commentEnd = <span class="nottickedoff">&quot;&quot;</span></span>
+<span class="lineno">  148 </span><span class="spaces">    </span><span class="istickedoff">, PT.commentLine = &quot;#&quot;</span>
+<span class="lineno">  149 </span><span class="spaces">    </span><span class="istickedoff">, PT.nestedComments = <span class="nottickedoff">False</span></span>
+<span class="lineno">  150 </span><span class="spaces">    </span><span class="istickedoff">, PT.identStart = P.letter</span>
+<span class="lineno">  151 </span><span class="spaces">    </span><span class="istickedoff">, PT.identLetter = (P.alphaNum &lt;|&gt; P.oneOf &quot;-_&quot;)</span>
+<span class="lineno">  152 </span><span class="spaces">    </span><span class="istickedoff">, PT.opStart = <span class="nottickedoff">P.unexpected &quot;operator&quot;</span></span>
+<span class="lineno">  153 </span><span class="spaces">    </span><span class="istickedoff">, PT.opLetter = <span class="nottickedoff">P.unexpected &quot;operator&quot;</span></span>
+<span class="lineno">  154 </span><span class="spaces">    </span><span class="istickedoff">, PT.reservedNames = []</span>
+<span class="lineno">  155 </span><span class="spaces">    </span><span class="istickedoff">, PT.reservedOpNames = <span class="nottickedoff">[&quot;=&quot;]</span></span>
+<span class="lineno">  156 </span><span class="spaces">    </span><span class="istickedoff">, PT.caseSensitive = True</span>
+<span class="lineno">  157 </span><span class="spaces">    </span><span class="istickedoff">}</span></span>
+<span class="lineno">  158 </span>
+<span class="lineno">  159 </span>load :: FilePath -&gt; IO Config
+<span class="lineno">  160 </span><span class="decl"><span class="istickedoff">load f = either <span class="nottickedoff">(throw . ParseError)</span> (return . topConfig) =&lt;&lt; P.parseFromFile parser f</span></span>
+<span class="lineno">  161 </span>
+<span class="lineno">  162 </span>class Typeable a =&gt; Configurable a where
+<span class="lineno">  163 </span>  get :: Path -&gt; Config -&gt; a
+<span class="lineno">  164 </span>  <span class="decl"><span class="istickedoff">get p (Config cp m) = fromMaybe <span class="nottickedoff">(throw ValueError{ errorPath = cp &lt;&gt; p, errorValue = v, errorNeeded = typeRep r})</span> r where</span>
+<span class="lineno">  165 </span><span class="spaces">    </span><span class="istickedoff">v = lookup p m</span>
+<span class="lineno">  166 </span><span class="spaces">    </span><span class="istickedoff">r = config v</span></span>
+<span class="lineno">  167 </span>  config :: Value -&gt; Maybe a
+<span class="lineno">  168 </span>
+<span class="lineno">  169 </span>instance Configurable Value where
+<span class="lineno">  170 </span>  <span class="decl"><span class="nottickedoff">get p (Config _ m) = lookup p m</span></span>
+<span class="lineno">  171 </span>  <span class="decl"><span class="nottickedoff">config = Just</span></span>
+<span class="lineno">  172 </span>
+<span class="lineno">  173 </span>instance Configurable ConfigMap where
+<span class="lineno">  174 </span>  <span class="decl"><span class="istickedoff">config (Sub m) = Just m</span>
+<span class="lineno">  175 </span><span class="spaces">  </span><span class="istickedoff">config Empty = Just HM.empty</span>
+<span class="lineno">  176 </span><span class="spaces">  </span><span class="istickedoff">config _ = <span class="nottickedoff">Nothing</span></span></span>
+<span class="lineno">  177 </span>
+<span class="lineno">  178 </span>instance Configurable Config where
+<span class="lineno">  179 </span>  <span class="decl"><span class="istickedoff">get p c = Config (configPath c &lt;&gt; p) $ get p c</span></span>
+<span class="lineno">  180 </span>  <span class="decl"><span class="nottickedoff">config v = topConfig &lt;$&gt; config v</span></span>
+<span class="lineno">  181 </span>
+<span class="lineno">  182 </span>instance Configurable a =&gt; Configurable (Maybe a) where
+<span class="lineno">  183 </span>  <span class="decl"><span class="istickedoff">config Empty = Just Nothing</span>
+<span class="lineno">  184 </span><span class="spaces">  </span><span class="istickedoff">config v = Just &lt;$&gt; config v</span></span>
+<span class="lineno">  185 </span>
+<span class="lineno">  186 </span>instance Configurable Bool where
+<span class="lineno">  187 </span>  <span class="decl"><span class="istickedoff">config (Boolean b) = Just b</span>
+<span class="lineno">  188 </span><span class="spaces">  </span><span class="istickedoff">config _ = <span class="nottickedoff">Nothing</span></span></span>
+<span class="lineno">  189 </span>
+<span class="lineno">  190 </span>instance Configurable Integer where
+<span class="lineno">  191 </span>  <span class="decl"><span class="istickedoff">config (Integer i) = Just i</span>
+<span class="lineno">  192 </span><span class="spaces">  </span><span class="istickedoff">config _ = <span class="nottickedoff">Nothing</span></span></span>
+<span class="lineno">  193 </span>
+<span class="lineno">  194 </span>instance Configurable BS.ByteString where
+<span class="lineno">  195 </span>  <span class="decl"><span class="istickedoff">config (String s) = Just s</span>
+<span class="lineno">  196 </span><span class="spaces">  </span><span class="istickedoff">config _ = <span class="nottickedoff">Nothing</span></span></span>
+<span class="lineno">  197 </span>
+<span class="lineno">  198 </span>instance {-# OVERLAPPABLE #-} Configurable a =&gt; Configurable [a] where
+<span class="lineno">  199 </span>  <span class="decl"><span class="nottickedoff">config (List l) = mapM config l</span>
+<span class="lineno">  200 </span><span class="spaces">  </span><span class="nottickedoff">config _ = Nothing</span></span>
+<span class="lineno">  201 </span>
+<span class="lineno">  202 </span>instance Configurable T.Text where
+<span class="lineno">  203 </span>  <span class="decl"><span class="nottickedoff">config = rightJust . TE.decodeUtf8' &lt;=&lt; config</span></span>
+<span class="lineno">  204 </span>
+<span class="lineno">  205 </span>instance {-# OVERLAPPING #-} Configurable String where
+<span class="lineno">  206 </span>  <span class="decl"><span class="istickedoff">config v = BSC.unpack &lt;$&gt; config v</span></span>
+<span class="lineno">  207 </span>
+<span class="lineno">  208 </span>configBoundedInt :: forall a . (Integral a, Bounded a) =&gt; Value -&gt; Maybe a
+<span class="lineno">  209 </span><span class="decl"><span class="istickedoff">configBoundedInt = f &lt;=&lt; config where</span>
+<span class="lineno">  210 </span><span class="spaces">  </span><span class="istickedoff">f i = (i &gt;= toInteger (minBound :: a) &amp;&amp; i &lt;= toInteger (maxBound :: a)) `thenUse` (fromInteger i)</span></span>
+<span class="lineno">  211 </span>
+<span class="lineno">  212 </span>instance Configurable Int where
+<span class="lineno">  213 </span>  <span class="decl"><span class="istickedoff">config = configBoundedInt</span></span>
+<span class="lineno">  214 </span>
+<span class="lineno">  215 </span>infixl 9 !
+<span class="lineno">  216 </span>(!) :: Configurable a =&gt; Config -&gt; Path -&gt; a
+<span class="lineno">  217 </span><span class="decl"><span class="istickedoff">(!) = flip get</span></span>
+<span class="lineno">  218 </span>
+<span class="lineno">  219 </span>instance JSON.ToJSON Config where
+<span class="lineno">  220 </span>  <span class="decl"><span class="nottickedoff">toJSON = JSON.toJSON . configMap</span></span>
+<span class="lineno">  221 </span>  <span class="decl"><span class="nottickedoff">toEncoding = JSON.toEncoding . configMap</span></span>
+<span class="lineno">  222 </span>
+<span class="lineno">  223 </span>-- instance JSON.ToJSON ConfigMap where
+<span class="lineno">  224 </span>--   toJSON = JSON.object . map (TE.decodeUtf8 *** JSON.toJSON) . HM.toList
+<span class="lineno">  225 </span>--   toEncoding = JSON.pairs . HM.foldrWithKey (\k v -&gt; (TE.decodeUtf8 k JSON..= v &lt;&gt;)) mempty
+<span class="lineno">  226 </span>
+<span class="lineno">  227 </span>instance JSON.ToJSON Value where
+<span class="lineno">  228 </span>  <span class="decl"><span class="nottickedoff">toJSON Empty = JSON.Null</span>
+<span class="lineno">  229 </span><span class="spaces">  </span><span class="nottickedoff">toJSON (Boolean b) = JSON.Bool b</span>
+<span class="lineno">  230 </span><span class="spaces">  </span><span class="nottickedoff">toJSON (String s) = JSON.String $ TE.decodeUtf8 s</span>
+<span class="lineno">  231 </span><span class="spaces">  </span><span class="nottickedoff">toJSON (Integer i) = JSON.Number $ fromInteger i</span>
+<span class="lineno">  232 </span><span class="spaces">  </span><span class="nottickedoff">toJSON (List l) = JSON.Array $ V.fromList $ map JSON.toJSON l</span>
+<span class="lineno">  233 </span><span class="spaces">  </span><span class="nottickedoff">toJSON (Sub c) = JSON.toJSON c</span></span>
+<span class="lineno">  234 </span>  <span class="decl"><span class="nottickedoff">toEncoding (List l) = JSON.foldable l</span>
+<span class="lineno">  235 </span><span class="spaces">  </span><span class="nottickedoff">toEncoding (Sub c) = JSON.toEncoding c</span>
+<span class="lineno">  236 </span><span class="spaces">  </span><span class="nottickedoff">toEncoding v = JSON.toEncoding $ JSON.toJSON v</span></span>
+
+</pre>
+</body>
+</html>

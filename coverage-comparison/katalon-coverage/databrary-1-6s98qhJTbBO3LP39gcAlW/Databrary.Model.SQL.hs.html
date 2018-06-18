@@ -1,0 +1,79 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Model.SQL
+<span class="lineno">    3 </span>  ( selectQuery
+<span class="lineno">    4 </span>  , isUniqueViolation
+<span class="lineno">    5 </span>  , isExclusionViolation
+<span class="lineno">    6 </span>  , isForeignKeyViolation
+<span class="lineno">    7 </span>  , tryUpdateOrInsert
+<span class="lineno">    8 </span>  , updateOrInsert
+<span class="lineno">    9 </span>  ) where
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import Control.Monad (guard)
+<span class="lineno">   12 </span>import Database.PostgreSQL.Typed.Protocol (PGError(..), pgErrorCode)
+<span class="lineno">   13 </span>import Database.PostgreSQL.Typed.Query (PGQuery)
+<span class="lineno">   14 </span>import qualified Language.Haskell.TH as TH
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import Databrary.Service.DB
+<span class="lineno">   17 </span>import Databrary.Model.SQL.Select
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>selectQuery :: Selector -&gt; String -&gt; TH.ExpQ
+<span class="lineno">   20 </span><span class="decl"><span class="nottickedoff">selectQuery = selectDistinctQuery Nothing</span></span>
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>isUniqueViolation, isExclusionViolation, isForeignKeyViolation :: PGError -&gt; Bool
+<span class="lineno">   23 </span><span class="decl"><span class="nottickedoff">isUniqueViolation = (&quot;23505&quot; ==) . pgErrorCode</span></span>
+<span class="lineno">   24 </span><span class="decl"><span class="nottickedoff">isExclusionViolation e = pgErrorCode e `elem` [&quot;23505&quot;,&quot;23P01&quot;]</span></span>
+<span class="lineno">   25 </span><span class="decl"><span class="nottickedoff">isForeignKeyViolation = (&quot;23503&quot; ==) . pgErrorCode</span></span>
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>tryUpdateOrInsert :: (MonadDB c m, PGQuery q a) =&gt; (PGError -&gt; Maybe e) -&gt; q -&gt; q -&gt; m (Either e (Int, [a]))
+<span class="lineno">   28 </span><span class="decl"><span class="nottickedoff">tryUpdateOrInsert err upd ins = dbTransaction uoi where</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="nottickedoff">err' e</span>
+<span class="lineno">   30 </span><span class="spaces">    </span><span class="nottickedoff">| isUniqueViolation e = Just Nothing</span>
+<span class="lineno">   31 </span><span class="spaces">    </span><span class="nottickedoff">| otherwise = Just &lt;$&gt; err e</span>
+<span class="lineno">   32 </span><span class="spaces">  </span><span class="nottickedoff">uoi = do</span>
+<span class="lineno">   33 </span><span class="spaces">    </span><span class="nottickedoff">u &lt;- dbTryJust err $ dbRunQuery upd</span>
+<span class="lineno">   34 </span><span class="spaces">    </span><span class="nottickedoff">case u of</span>
+<span class="lineno">   35 </span><span class="spaces">      </span><span class="nottickedoff">Right (0, _) -&gt; do</span>
+<span class="lineno">   36 </span><span class="spaces">        </span><span class="nottickedoff">_ &lt;- dbExecuteSimple &quot;SAVEPOINT pre_insert&quot;</span>
+<span class="lineno">   37 </span><span class="spaces">        </span><span class="nottickedoff">i &lt;- dbTryJust err' $ dbRunQuery ins</span>
+<span class="lineno">   38 </span><span class="spaces">        </span><span class="nottickedoff">case i of</span>
+<span class="lineno">   39 </span><span class="spaces">          </span><span class="nottickedoff">Left Nothing -&gt; do</span>
+<span class="lineno">   40 </span><span class="spaces">            </span><span class="nottickedoff">_ &lt;- dbExecuteSimple &quot;ROLLBACK TO SAVEPOINT pre_insert&quot;</span>
+<span class="lineno">   41 </span><span class="spaces">            </span><span class="nottickedoff">uoi</span>
+<span class="lineno">   42 </span><span class="spaces">          </span><span class="nottickedoff">Left (Just e) -&gt; return $ Left e</span>
+<span class="lineno">   43 </span><span class="spaces">          </span><span class="nottickedoff">Right r -&gt; return $ Right r</span>
+<span class="lineno">   44 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; return u</span></span>
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>updateOrInsert :: (MonadDB c m, PGQuery q a) =&gt; q -&gt; q -&gt; m (Int, [a])
+<span class="lineno">   47 </span>-- updateOrInsert upd ins = either fail return &lt;$&gt; tryUpdateOrInsert (const Nothing) upd ins
+<span class="lineno">   48 </span><span class="decl"><span class="istickedoff">updateOrInsert upd ins = dbTransaction uoi where</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff">uoi = do</span>
+<span class="lineno">   50 </span><span class="spaces">    </span><span class="istickedoff">u@(n, _) &lt;- dbRunQuery upd</span>
+<span class="lineno">   51 </span><span class="spaces">    </span><span class="istickedoff">if <span class="tickonlyfalse">n /= 0</span></span>
+<span class="lineno">   52 </span><span class="spaces">      </span><span class="istickedoff">then <span class="nottickedoff">return u</span></span>
+<span class="lineno">   53 </span><span class="spaces">      </span><span class="istickedoff">else do</span>
+<span class="lineno">   54 </span><span class="spaces">        </span><span class="istickedoff">_ &lt;- dbExecuteSimple &quot;SAVEPOINT pre_insert&quot;</span>
+<span class="lineno">   55 </span><span class="spaces">        </span><span class="istickedoff">i &lt;- dbTryJust <span class="nottickedoff">(guard . isUniqueViolation)</span> $ dbRunQuery ins</span>
+<span class="lineno">   56 </span><span class="spaces">        </span><span class="istickedoff">either <span class="nottickedoff">(\() -&gt; do</span></span>
+<span class="lineno">   57 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">_ &lt;- dbExecuteSimple &quot;ROLLBACK TO SAVEPOINT pre_insert&quot;</span></span>
+<span class="lineno">   58 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">uoi)</span></span>
+<span class="lineno">   59 </span><span class="spaces">          </span><span class="istickedoff">return i</span></span>
+
+</pre>
+</body>
+</html>

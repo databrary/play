@@ -1,0 +1,94 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE ViewPatterns #-}
+<span class="lineno">    2 </span>module Databrary.Store.Asset
+<span class="lineno">    3 </span>  ( maxAssetSize
+<span class="lineno">    4 </span>  , assetFile
+<span class="lineno">    5 </span>  , getAssetFile
+<span class="lineno">    6 </span>  , storeAssetFile
+<span class="lineno">    7 </span>  ) where
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import Control.Monad ((&lt;=&lt;), unless)
+<span class="lineno">   10 </span>import Control.Monad.IO.Class (liftIO)
+<span class="lineno">   11 </span>import Crypto.Hash (Digest, SHA1)
+<span class="lineno">   12 </span>import Data.ByteArray (convert)
+<span class="lineno">   13 </span>import qualified Data.ByteString as BS
+<span class="lineno">   14 </span>import qualified Data.ByteString.Builder as BSB
+<span class="lineno">   15 </span>import qualified Data.ByteString.Lazy as BSL
+<span class="lineno">   16 </span>import Data.Word (Word64)
+<span class="lineno">   17 </span>import System.Posix.FilePath (takeDirectory)
+<span class="lineno">   18 </span>import System.Posix.Files.ByteString (fileSize, createLink, fileExist, getFileStatus)
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>import Databrary.Ops
+<span class="lineno">   21 </span>import Databrary.Has (peek, peeks)
+<span class="lineno">   22 </span>import Databrary.Files
+<span class="lineno">   23 </span>import Databrary.Store.Types
+<span class="lineno">   24 </span>import Databrary.Model.Asset.Types
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>maxAssetSize :: Word64
+<span class="lineno">   27 </span><span class="decl"><span class="nottickedoff">maxAssetSize = 128*1024*1024*1024</span></span>
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>assetFile :: Asset -&gt; Maybe RawFilePath
+<span class="lineno">   30 </span><span class="decl"><span class="istickedoff">assetFile = fmap sf . BS.uncons &lt;=&lt; assetSHA1 . assetRow where</span>
+<span class="lineno">   31 </span><span class="spaces">  </span><span class="istickedoff">sf (h,t) = bs (BSB.word8HexFixed h) &lt;/&gt; bs (BSB.byteStringHex t)</span>
+<span class="lineno">   32 </span><span class="spaces">  </span><span class="istickedoff">bs = BSL.toStrict . BSB.toLazyByteString</span></span>
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>getAssetFile :: MonadStorage c m =&gt; Asset -&gt; m (Maybe RawFilePath)
+<span class="lineno">   35 </span><span class="decl"><span class="istickedoff">getAssetFile a = do</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="istickedoff">s &lt;- peek</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="istickedoff">let</span>
+<span class="lineno">   38 </span><span class="spaces">    </span><span class="istickedoff">mf Nothing p = <span class="nottickedoff">return $ storageMaster s &lt;/&gt; p</span></span>
+<span class="lineno">   39 </span><span class="spaces">    </span><span class="istickedoff">mf (Just sf) p = do</span>
+<span class="lineno">   40 </span><span class="spaces">      </span><span class="istickedoff">me &lt;- fileExist m</span>
+<span class="lineno">   41 </span><span class="spaces">      </span><span class="istickedoff">if <span class="tickonlyfalse">me</span></span>
+<span class="lineno">   42 </span><span class="spaces">        </span><span class="istickedoff">then <span class="nottickedoff">return m</span></span>
+<span class="lineno">   43 </span><span class="spaces">        </span><span class="istickedoff">else do</span>
+<span class="lineno">   44 </span><span class="spaces">          </span><span class="istickedoff">fe &lt;- fileExist f</span>
+<span class="lineno">   45 </span><span class="spaces">          </span><span class="istickedoff">return $ if <span class="tickonlytrue">fe</span> then f else <span class="nottickedoff">m</span></span>
+<span class="lineno">   46 </span><span class="spaces">      </span><span class="istickedoff">where</span>
+<span class="lineno">   47 </span><span class="spaces">      </span><span class="istickedoff">m = storageMaster s &lt;/&gt; p</span>
+<span class="lineno">   48 </span><span class="spaces">      </span><span class="istickedoff">f = sf &lt;/&gt; p</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff">mapM (liftIO . mf (storageFallback s)) $ assetFile a</span></span>
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>storeAssetFile :: MonadStorage c m =&gt; Asset -&gt; RawFilePath -&gt; m Asset
+<span class="lineno">   52 </span><span class="decl"><span class="nottickedoff">storeAssetFile ba@Asset{ assetRow = bar } fp = peeks storageMaster &gt;&gt;= \sm -&gt; liftIO $ do</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">-- liftIO $ print &quot;inside storeAssetFile...&quot; --DEBUG</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">size &lt;- (fromIntegral . fileSize              &lt;$&gt; getFileStatus fp) `fromMaybeM` assetSize bar</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">-- liftIO $ print &quot;assetFile size recorded...&quot; --DEBUG</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">sha1 &lt;- ((convert :: Digest SHA1 -&gt; BS.ByteString) &lt;$&gt; hashFile fp) `fromMaybeM` assetSHA1 bar</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="nottickedoff">-- liftIO $ print &quot;assetFile sha1 recorded...&quot; --DEBUG</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">let a = ba{ assetRow = bar</span>
+<span class="lineno">   59 </span><span class="spaces">        </span><span class="nottickedoff">{ assetSize = Just size</span>
+<span class="lineno">   60 </span><span class="spaces">        </span><span class="nottickedoff">, assetSHA1 = Just sha1</span>
+<span class="lineno">   61 </span><span class="spaces">        </span><span class="nottickedoff">} }</span>
+<span class="lineno">   62 </span><span class="spaces">      </span><span class="nottickedoff">Just af = assetFile a</span>
+<span class="lineno">   63 </span><span class="spaces">      </span><span class="nottickedoff">as = sm &lt;/&gt; af</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">ase &lt;- fileExist as</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">if ase</span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="nottickedoff">then do</span>
+<span class="lineno">   67 </span><span class="spaces">      </span><span class="nottickedoff">-- liftIO $ print &quot;assetFile exists...&quot; --DEBUG</span>
+<span class="lineno">   68 </span><span class="spaces">      </span><span class="nottickedoff">sf &lt;- compareFiles fp as</span>
+<span class="lineno">   69 </span><span class="spaces">      </span><span class="nottickedoff">unless sf $ fail &quot;storage hash collision&quot;</span>
+<span class="lineno">   70 </span><span class="spaces">    </span><span class="nottickedoff">else do</span>
+<span class="lineno">   71 </span><span class="spaces">      </span><span class="nottickedoff">-- liftIO $ print &quot;assetFile does not exists...&quot; --DEBUG</span>
+<span class="lineno">   72 </span><span class="spaces">      </span><span class="nottickedoff">_ &lt;- createDir (takeDirectory as) 0o750</span>
+<span class="lineno">   73 </span><span class="spaces">      </span><span class="nottickedoff">createLink fp as</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="nottickedoff">return a</span></span>
+
+</pre>
+</body>
+</html>

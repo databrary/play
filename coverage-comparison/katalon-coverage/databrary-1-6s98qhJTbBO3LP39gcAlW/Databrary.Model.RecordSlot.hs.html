@@ -1,0 +1,129 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, RecordWildCards, DataKinds, ViewPatterns #-}
+<span class="lineno">    2 </span>module Databrary.Model.RecordSlot
+<span class="lineno">    3 </span>  ( module Databrary.Model.RecordSlot.Types
+<span class="lineno">    4 </span>  , lookupRecordSlots
+<span class="lineno">    5 </span>  , lookupSlotRecords
+<span class="lineno">    6 </span>  , lookupContainerRecords
+<span class="lineno">    7 </span>  , lookupRecordSlotRecords
+<span class="lineno">    8 </span>  , lookupVolumeContainersRecords
+<span class="lineno">    9 </span>  , lookupVolumeContainersRecordIds
+<span class="lineno">   10 </span>  , lookupVolumeRecordSlotIds
+<span class="lineno">   11 </span>  , moveRecordSlot
+<span class="lineno">   12 </span>  , removeRecordAllSlot
+<span class="lineno">   13 </span>  , recordSlotAge
+<span class="lineno">   14 </span>  , recordSlotJSON
+<span class="lineno">   15 </span>  ) where
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>import Control.Arrow (second)
+<span class="lineno">   18 </span>import Control.Monad (guard, liftM2)
+<span class="lineno">   19 </span>import Data.Function (on)
+<span class="lineno">   20 </span>import Data.Maybe (catMaybes)
+<span class="lineno">   21 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   22 </span>import qualified Database.PostgreSQL.Typed.Range as Range
+<span class="lineno">   23 </span>import Database.PostgreSQL.Typed.Types (PGTypeName(..))
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>import Databrary.Ops
+<span class="lineno">   26 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   27 </span>import Databrary.Service.DB
+<span class="lineno">   28 </span>import Databrary.Model.Id.Types
+<span class="lineno">   29 </span>import Databrary.Model.Segment
+<span class="lineno">   30 </span>import Databrary.Model.Permission
+<span class="lineno">   31 </span>import Databrary.Model.Audit
+<span class="lineno">   32 </span>import Databrary.Model.Audit.SQL
+<span class="lineno">   33 </span>import Databrary.Model.Volume.Types
+<span class="lineno">   34 </span>import Databrary.Model.Container.Types
+<span class="lineno">   35 </span>import Databrary.Model.Slot
+<span class="lineno">   36 </span>import Databrary.Model.Metric
+<span class="lineno">   37 </span>import Databrary.Model.Record
+<span class="lineno">   38 </span>import Databrary.Model.Age
+<span class="lineno">   39 </span>import Databrary.Model.Measure
+<span class="lineno">   40 </span>import Databrary.Model.SQL
+<span class="lineno">   41 </span>import Databrary.Model.RecordSlot.Types
+<span class="lineno">   42 </span>import Databrary.Model.RecordSlot.SQL
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>lookupRecordSlots :: (MonadDB c m) =&gt; Record -&gt; m [RecordSlot]
+<span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">lookupRecordSlots r =</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ ($ r) &lt;$&gt; $(selectQuery selectRecordSlotRecord &quot;$WHERE slot_record.record = ${recordId $ recordRow r}&quot;)</span></span>
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>lookupSlotRecords :: (MonadDB c m) =&gt; Slot -&gt; m [RecordSlot]
+<span class="lineno">   49 </span><span class="decl"><span class="nottickedoff">lookupSlotRecords (Slot c s) =</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ ($ c) &lt;$&gt; $(selectQuery selectContainerSlotRecord &quot;$WHERE slot_record.container = ${containerId $ containerRow c} AND slot_record.segment &amp;&amp; ${s}&quot;)</span></span>
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>lookupContainerRecords :: (MonadDB c m) =&gt; Container -&gt; m [RecordSlot]
+<span class="lineno">   53 </span><span class="decl"><span class="nottickedoff">lookupContainerRecords = lookupSlotRecords . containerSlot</span></span>
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>lookupRecordSlotRecords :: (MonadDB c m) =&gt; Record -&gt; Slot -&gt; m [RecordSlot]
+<span class="lineno">   56 </span><span class="decl"><span class="nottickedoff">lookupRecordSlotRecords r (Slot c s) =</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ ($ c) . ($ r) &lt;$&gt; $(selectQuery selectRecordContainerSlotRecord &quot;WHERE slot_record.record = ${recordId $ recordRow r} AND slot_record.container = ${containerId $ containerRow c} AND slot_record.segment &amp;&amp; ${s}&quot;)</span></span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>lookupVolumeContainersRecords :: (MonadDB c m) =&gt; Volume -&gt; m [(Container, [RecordSlot])]
+<span class="lineno">   60 </span><span class="decl"><span class="nottickedoff">lookupVolumeContainersRecords v =</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">map (second catMaybes) . groupTuplesBy ((==) `on` containerId . containerRow) &lt;$&gt;</span>
+<span class="lineno">   62 </span><span class="spaces">    </span><span class="nottickedoff">dbQuery (($ v) &lt;$&gt; $(selectQuery selectVolumeSlotMaybeRecord &quot;WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container.id, record.category NULLS FIRST, slot_record.segment, slot_record.record&quot;))</span></span>
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>lookupVolumeContainersRecordIds :: (MonadDB c m) =&gt; Volume -&gt; m [(Container, [(Segment, Id Record)])]
+<span class="lineno">   65 </span><span class="decl"><span class="istickedoff">lookupVolumeContainersRecordIds v =</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="istickedoff">map (second catMaybes) . groupTuplesBy ((==) `on` containerId . containerRow) &lt;$&gt;</span>
+<span class="lineno">   67 </span><span class="spaces">    </span><span class="istickedoff">dbQuery (($ v) &lt;$&gt; $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery selectVolumeSlotMaybeRecordId &quot;$WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container.id, slot_record.segment, slot_record.record&quot;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>))</span></span>
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>lookupVolumeRecordSlotIds :: (MonadDB c m) =&gt; Volume -&gt; m [(Record, SlotId)]
+<span class="lineno">   70 </span><span class="decl"><span class="istickedoff">lookupVolumeRecordSlotIds v =</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="istickedoff">dbQuery (($ v) &lt;$&gt; $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery selectVolumeSlotIdRecord &quot;WHERE record.volume = ${volumeId $ volumeRow v} ORDER BY container&quot;</span></span></span></span></span></span></span></span></span></span></span></span></span></span>))</span></span>
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>moveRecordSlot :: (MonadAudit c m) =&gt; RecordSlot -&gt; Segment -&gt; m Bool
+<span class="lineno">   74 </span><span class="decl"><span class="nottickedoff">moveRecordSlot rs@RecordSlot{ recordSlot = s@Slot{ slotSegment = src } } dst = do</span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="nottickedoff">either (const False) id</span>
+<span class="lineno">   77 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; case (Range.isEmpty (segmentRange src), Range.isEmpty (segmentRange dst)) of</span>
+<span class="lineno">   78 </span><span class="spaces">    </span><span class="nottickedoff">(True,  True) -&gt; return $ Right False</span>
+<span class="lineno">   79 </span><span class="spaces">    </span><span class="nottickedoff">(False, True) -&gt; Right &lt;$&gt; dbExecute1 $(deleteSlotRecord 'ident 'rs)</span>
+<span class="lineno">   80 </span><span class="spaces">    </span><span class="nottickedoff">(True,  False) -&gt; dbTryJust err $ dbExecute1 $(insertSlotRecord 'ident 'rd)</span>
+<span class="lineno">   81 </span><span class="spaces">    </span><span class="nottickedoff">(False, False) -&gt; dbTryJust err $ dbExecute1 $(updateSlotRecord 'ident 'rs 'dst)</span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">rd = rs{ recordSlot = s{ slotSegment = dst } }</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">err = guard . isExclusionViolation</span></span>
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>removeRecordAllSlot :: (MonadAudit c m) =&gt; Record -&gt; m Int
+<span class="lineno">   87 </span><span class="decl"><span class="nottickedoff">removeRecordAllSlot r = do</span>
+<span class="lineno">   88 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">   89 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute $(auditDelete 'ident &quot;slot_record&quot; &quot;record = ${recordId $ recordRow r} AND segment = '(,)'&quot; Nothing)</span></span>
+<span class="lineno">   90 </span>
+<span class="lineno">   91 </span>recordSlotAge :: RecordSlot -&gt; Maybe Age
+<span class="lineno">   92 </span><span class="decl"><span class="istickedoff">recordSlotAge rs@RecordSlot{..} =</span>
+<span class="lineno">   93 </span><span class="spaces">  </span><span class="istickedoff">clip &lt;$&gt; liftM2 age (decodeMeasure <span class="nottickedoff">(PGTypeProxy :: PGTypeName &quot;date&quot;)</span> =&lt;&lt; getMeasure birthdateMetric (recordMeasures slotRecord)) (containerDate $ containerRow $ slotContainer recordSlot)</span>
+<span class="lineno">   94 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   95 </span><span class="spaces">  </span><span class="istickedoff">clip a</span>
+<span class="lineno">   96 </span><span class="spaces">    </span><span class="istickedoff">| not (canReadData2 getRecordSlotRelease getRecordSlotVolumePermission rs) = a `min` ageLimit</span>
+<span class="lineno">   97 </span><span class="spaces">    </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = a</span></span>
+<span class="lineno">   98 </span>
+<span class="lineno">   99 </span>recordSlotJSON :: JSON.ToObject o =&gt; Bool -&gt; RecordSlot -&gt; JSON.Record (Id Record) o
+<span class="lineno">  100 </span><span class="decl"><span class="istickedoff">recordSlotJSON _ rs@RecordSlot{..} = JSON.Record (recordId $ recordRow slotRecord) $</span>
+<span class="lineno">  101 </span><span class="spaces">     </span><span class="istickedoff">segmentJSON (slotSegment recordSlot)</span>
+<span class="lineno">  102 </span><span class="spaces">  </span><span class="istickedoff">&lt;&gt; <span class="nottickedoff">&quot;age&quot;</span> `JSON.kvObjectOrEmpty` recordSlotAge rs</span></span>
+<span class="lineno">  103 </span>
+<span class="lineno">  104 </span>{-
+<span class="lineno">  105 </span>recordSlotJSONRestricted :: JSON.ToObject o =&gt; RecordSlot -&gt; JSON.Record (Id Record) o
+<span class="lineno">  106 </span>recordSlotJSONRestricted rs@RecordSlot{..} = JSON.Record (recordId $ recordRow slotRecord) $
+<span class="lineno">  107 </span>     segmentJSON (slotSegment recordSlot)
+<span class="lineno">  108 </span>  &lt;&gt; &quot;age&quot; `JSON.kvObjectOrEmpty` recordSlotAge rs -- allow age to pass through so that summary can be computed
+<span class="lineno">  109 </span>-}
+
+</pre>
+</body>
+</html>

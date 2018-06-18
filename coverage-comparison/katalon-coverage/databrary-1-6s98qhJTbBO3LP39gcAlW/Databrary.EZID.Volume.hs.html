@@ -1,0 +1,114 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE RecordWildCards, TemplateHaskell, QuasiQuotes, DataKinds #-}
+<span class="lineno">    2 </span>module Databrary.EZID.Volume
+<span class="lineno">    3 </span>  ( updateEZID
+<span class="lineno">    4 </span>  ) where
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>import Control.Arrow ((&amp;&amp;&amp;))
+<span class="lineno">    7 </span>import Control.Monad ((&lt;=&lt;))
+<span class="lineno">    8 </span>import Control.Monad.IO.Class (liftIO)
+<span class="lineno">    9 </span>import qualified Data.ByteString as BS
+<span class="lineno">   10 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">   11 </span>import Data.Function (on)
+<span class="lineno">   12 </span>import Data.List (deleteFirstsBy)
+<span class="lineno">   13 </span>import Data.Maybe (fromMaybe, mapMaybe)
+<span class="lineno">   14 </span>import Data.Time.Clock (utctDay, getCurrentTime)
+<span class="lineno">   15 </span>import Database.PostgreSQL.Typed.Query (pgSQL)
+<span class="lineno">   16 </span>import qualified Network.Wai as Wai
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import Databrary.Has
+<span class="lineno">   19 </span>import Databrary.Service.DB
+<span class="lineno">   20 </span>import Databrary.Service.Log
+<span class="lineno">   21 </span>import Databrary.Context
+<span class="lineno">   22 </span>import Databrary.Model.Time
+<span class="lineno">   23 </span>import Databrary.Model.Permission
+<span class="lineno">   24 </span>import Databrary.Model.Identity
+<span class="lineno">   25 </span>import Databrary.Model.Id
+<span class="lineno">   26 </span>import Databrary.Model.Volume
+<span class="lineno">   27 </span>import Databrary.Model.VolumeAccess
+<span class="lineno">   28 </span>import Databrary.Model.Citation
+<span class="lineno">   29 </span>import Databrary.Model.Container
+<span class="lineno">   30 </span>import Databrary.Model.Slot
+<span class="lineno">   31 </span>import Databrary.Model.Funding
+<span class="lineno">   32 </span>import Databrary.Model.Tag
+<span class="lineno">   33 </span>import Databrary.Action.Route
+<span class="lineno">   34 </span>import Databrary.Controller.Volume
+<span class="lineno">   35 </span>import Databrary.EZID.API
+<span class="lineno">   36 </span>import Databrary.EZID.DataCite
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>useTDB
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>volumeDOISuffix :: Id Volume -&gt; BS.ByteString
+<span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">volumeDOISuffix i = BSC.pack $ '.' : show i</span></span>
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>volumeEZID :: (MonadDB c m, MonadHasIdentity c m) =&gt; Volume -&gt; Maybe Citation -&gt; m EZIDMeta
+<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">volumeEZID v@Volume{ volumeRow = VolumeRow{..}, ..} cite = do</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">top &lt;- lookupVolumeTopContainer v</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">own &lt;- lookupVolumeAccess v PermissionADMIN</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="nottickedoff">fund &lt;- lookupVolumeFunding v</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">link &lt;- lookupVolumeLinks v</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">key &lt;- lookupSlotKeywords (containerSlot top)</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">return EZIDPublic</span>
+<span class="lineno">   51 </span><span class="spaces">    </span><span class="nottickedoff">{ ezidTarget = actionURI (Just Wai.defaultRequest) viewVolume (HTML, volumeId) []</span>
+<span class="lineno">   52 </span><span class="spaces">    </span><span class="nottickedoff">, ezidDataCite = DataCite</span>
+<span class="lineno">   53 </span><span class="spaces">      </span><span class="nottickedoff">{ dataCiteDOI = volumeDOI</span>
+<span class="lineno">   54 </span><span class="spaces">      </span><span class="nottickedoff">, dataCiteTitle = volumeName</span>
+<span class="lineno">   55 </span><span class="spaces">      </span><span class="nottickedoff">, dataCiteAuthors = map volumeAccessParty own</span>
+<span class="lineno">   56 </span><span class="spaces">      </span><span class="nottickedoff">, dataCiteYear = dateYear (utctDay volumeCreation)</span>
+<span class="lineno">   57 </span><span class="spaces">      </span><span class="nottickedoff">, dataCiteDescription = volumeBody</span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="nottickedoff">, dataCiteFunders = fund</span>
+<span class="lineno">   59 </span><span class="spaces">      </span><span class="nottickedoff">, dataCitePublication = citationURL =&lt;&lt; cite</span>
+<span class="lineno">   60 </span><span class="spaces">      </span><span class="nottickedoff">, dataCiteReferences = mapMaybe citationURL link</span>
+<span class="lineno">   61 </span><span class="spaces">      </span><span class="nottickedoff">, dataCiteSubjects = map (tagNameBS . tagName) key</span>
+<span class="lineno">   62 </span><span class="spaces">      </span><span class="nottickedoff">}</span>
+<span class="lineno">   63 </span><span class="spaces">    </span><span class="nottickedoff">}</span></span>
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>lookupVolumeDOIs :: MonadDB c m =&gt; m [(Id Volume, BS.ByteString)]
+<span class="lineno">   66 </span><span class="decl"><span class="nottickedoff">lookupVolumeDOIs = dbQuery [pgSQL|!SELECT id, doi FROM volume WHERE doi IS NOT NULL|]</span></span>
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>addVolumeDOI :: MonadDB c m =&gt; Id Volume -&gt; BS.ByteString -&gt; m Bool
+<span class="lineno">   69 </span><span class="decl"><span class="nottickedoff">addVolumeDOI v d = dbExecute1 [pgSQL|UPDATE volume SET doi = ${d} WHERE id = ${v} AND doi IS NULL|]</span></span>
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>updateVolume :: Volume -&gt; Maybe Citation -&gt; EZIDM Bool
+<span class="lineno">   72 </span><span class="decl"><span class="nottickedoff">updateVolume v = maybe</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">(maybe (return False) (addVolumeDOI $ volumeId $ volumeRow v) &lt;=&lt; ezidCreate (volumeDOISuffix $ volumeId $ volumeRow v))</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="nottickedoff">ezidModify</span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="nottickedoff">(volumeDOI $ volumeRow v)</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="nottickedoff">&lt;=&lt; volumeEZID v</span></span>
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>removeVolume :: Id Volume -&gt; BS.ByteString -&gt; EZIDM Bool
+<span class="lineno">   79 </span><span class="decl"><span class="nottickedoff">removeVolume _ d = ezidModify d EZIDUnavailable</span></span>
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>updateEZID :: BackgroundContextM (Maybe Bool)
+<span class="lineno">   82 </span><span class="decl"><span class="istickedoff">updateEZID = runEZIDM $ <span class="nottickedoff">do</span></span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">r &lt;- ezidStatus</span></span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">if r</span></span>
+<span class="lineno">   85 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">then do</span></span>
+<span class="lineno">   86 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">vl &lt;- lookupVolumesCitations</span></span>
+<span class="lineno">   87 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">mapM_ (uncurry updateVolume) vl</span></span>
+<span class="lineno">   88 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">dl &lt;- lookupVolumeDOIs</span></span>
+<span class="lineno">   89 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">mapM_ (uncurry removeVolume) $</span></span>
+<span class="lineno">   90 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">deleteFirstsBy (on (==) fst) dl (map ((volumeId &amp;&amp;&amp; fromMaybe BS.empty . volumeDOI) . volumeRow . fst) vl)</span></span>
+<span class="lineno">   91 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">else do</span></span>
+<span class="lineno">   92 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">t &lt;- liftIO getCurrentTime</span></span>
+<span class="lineno">   93 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">focusIO $ logMsg t &quot;ezid is down&quot;</span></span>
+<span class="lineno">   94 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">return r</span></span></span>
+
+</pre>
+</body>
+</html>

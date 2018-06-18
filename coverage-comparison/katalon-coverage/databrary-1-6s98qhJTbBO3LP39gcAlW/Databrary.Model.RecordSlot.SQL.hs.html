@@ -1,0 +1,166 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Model.RecordSlot.SQL
+<span class="lineno">    3 </span>  ( selectRecordContainerSlotRecord
+<span class="lineno">    4 </span>  , selectContainerSlotRecord
+<span class="lineno">    5 </span>  , selectRecordSlotRecord
+<span class="lineno">    6 </span>  , selectVolumeSlotRecord
+<span class="lineno">    7 </span>  , selectVolumeSlotIdRecord
+<span class="lineno">    8 </span>  , selectVolumeSlotMaybeRecord
+<span class="lineno">    9 </span>  , selectVolumeSlotMaybeRecordId
+<span class="lineno">   10 </span>  , selectSlotRecord
+<span class="lineno">   11 </span>  , insertSlotRecord
+<span class="lineno">   12 </span>  , updateSlotRecord
+<span class="lineno">   13 </span>  , deleteSlotRecord
+<span class="lineno">   14 </span>  ) where
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import qualified Language.Haskell.TH as TH
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import Databrary.Has (view)
+<span class="lineno">   19 </span>import Databrary.Model.Id.Types
+<span class="lineno">   20 </span>import Databrary.Model.Segment
+<span class="lineno">   21 </span>import Databrary.Model.Volume.Types
+<span class="lineno">   22 </span>import Databrary.Model.Record.Types
+<span class="lineno">   23 </span>import Databrary.Model.Record.SQL
+<span class="lineno">   24 </span>import Databrary.Model.Container.Types
+<span class="lineno">   25 </span>import Databrary.Model.Container.SQL
+<span class="lineno">   26 </span>import Databrary.Model.Slot.Types
+<span class="lineno">   27 </span>import Databrary.Model.SQL.Select
+<span class="lineno">   28 </span>import Databrary.Model.Audit.SQL
+<span class="lineno">   29 </span>import Databrary.Model.Volume.SQL
+<span class="lineno">   30 </span>import Databrary.Model.RecordSlot.Types
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>slotRecordRow :: Selector -- ^ @'Segment'@
+<span class="lineno">   33 </span><span class="decl"><span class="nottickedoff">slotRecordRow = selectColumn &quot;slot_record&quot; &quot;segment&quot;</span></span>
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>makeSlotRecord :: Segment -&gt; Record -&gt; Container -&gt; RecordSlot
+<span class="lineno">   36 </span><span class="decl"><span class="nottickedoff">makeSlotRecord seg r c = RecordSlot r (Slot c seg)</span></span>
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>selectRecordContainerSlotRecord :: Selector -- ^ @'Record' -&gt; 'Container' -&gt; 'RecordSlot'@
+<span class="lineno">   39 </span><span class="decl"><span class="nottickedoff">selectRecordContainerSlotRecord = selectMap (TH.VarE 'makeSlotRecord `TH.AppE`) slotRecordRow</span></span>
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>makeContainerSlotRecord :: (Record -&gt; Container -&gt; RecordSlot) -&gt; (Volume -&gt; Record) -&gt; Container -&gt; RecordSlot
+<span class="lineno">   42 </span><span class="decl"><span class="nottickedoff">makeContainerSlotRecord f rf c = f (rf (view c)) c</span></span>
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>selectContainerSlotRecord :: Selector -- ^ @'Container' -&gt; 'RecordSlot'@
+<span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">selectContainerSlotRecord = selectJoin 'makeContainerSlotRecord</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">[ selectRecordContainerSlotRecord</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;slot_record.record = record.id&quot;</span>
+<span class="lineno">   48 </span><span class="spaces">    </span><span class="nottickedoff">selectVolumeRecord -- XXX volumes match?</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>makeRecordSlotRecord :: (Record -&gt; Container -&gt; RecordSlot) -&gt; (Volume -&gt; Container) -&gt; Record -&gt; RecordSlot
+<span class="lineno">   52 </span><span class="decl"><span class="nottickedoff">makeRecordSlotRecord f cf r = f r (cf (view r))</span></span>
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>selectRecordSlotRecord :: Selector -- ^ @'Record' -&gt; 'RecordSlot'@
+<span class="lineno">   55 </span><span class="decl"><span class="nottickedoff">selectRecordSlotRecord = selectJoin 'makeRecordSlotRecord</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">[ selectRecordContainerSlotRecord</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;slot_record.container = container.id&quot;</span>
+<span class="lineno">   58 </span><span class="spaces">    </span><span class="nottickedoff">selectVolumeContainer -- XXX volumes match?</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>makeVolumeSlotRecord :: (Record -&gt; Container -&gt; RecordSlot) -&gt; (Volume -&gt; Record) -&gt; (Volume -&gt; Container) -&gt; Volume -&gt; RecordSlot
+<span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">makeVolumeSlotRecord f rf cf v = f (rf v) (cf v)</span></span>
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>selectVolumeSlotRecord :: Selector -- ^ @'Volume' -&gt; 'RecordSlot'@
+<span class="lineno">   65 </span><span class="decl"><span class="nottickedoff">selectVolumeSlotRecord = selectJoin 'makeVolumeSlotRecord</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="nottickedoff">[ selectRecordContainerSlotRecord</span>
+<span class="lineno">   67 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;slot_record.record = record.id&quot;</span>
+<span class="lineno">   68 </span><span class="spaces">    </span><span class="nottickedoff">selectVolumeRecord</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;slot_record.container = container.id AND record.volume = container.volume&quot;</span>
+<span class="lineno">   70 </span><span class="spaces">    </span><span class="nottickedoff">selectVolumeContainer</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>makeVolumeSlotIdRecord :: SlotId -&gt; (Volume -&gt; Record) -&gt; Volume -&gt; (Record, SlotId)
+<span class="lineno">   74 </span><span class="decl"><span class="istickedoff">makeVolumeSlotIdRecord s rf v = (rf v, s)</span></span>
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>selectVolumeSlotIdRecord :: Selector -- ^ @'Volume' -&gt; ('Record', 'SlotId')@
+<span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">selectVolumeSlotIdRecord = selectJoin 'makeVolumeSlotIdRecord</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="nottickedoff">[ selectColumns 'SlotId &quot;slot_record&quot; [&quot;container&quot;, &quot;segment&quot;]</span>
+<span class="lineno">   79 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;slot_record.record = record.id&quot;</span>
+<span class="lineno">   80 </span><span class="spaces">    </span><span class="nottickedoff">selectVolumeRecord --- XXX volumes match?</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">   82 </span>
+<span class="lineno">   83 </span>makeVolumeSlotMaybeRecord :: (Volume -&gt; Container) -&gt; Maybe (Container -&gt; RecordSlot) -&gt; Volume -&gt; (Container, Maybe RecordSlot)
+<span class="lineno">   84 </span><span class="decl"><span class="nottickedoff">makeVolumeSlotMaybeRecord cf Nothing v = (cf v, Nothing)</span>
+<span class="lineno">   85 </span><span class="spaces"></span><span class="nottickedoff">makeVolumeSlotMaybeRecord cf (Just rf) v = (c, Just (rf c)) where c = cf v</span></span>
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>selectVolumeSlotMaybeRecord :: Selector -- ^ @'Volume' -&gt; ('Container, Maybe 'RecordSlot)@
+<span class="lineno">   88 </span><span class="decl"><span class="nottickedoff">selectVolumeSlotMaybeRecord = selectJoin 'makeVolumeSlotMaybeRecord</span>
+<span class="lineno">   89 </span><span class="spaces">  </span><span class="nottickedoff">[ selectVolumeContainer</span>
+<span class="lineno">   90 </span><span class="spaces">  </span><span class="nottickedoff">, maybeJoinOn &quot;container.id = slot_record.container AND container.volume = record.volume&quot;</span>
+<span class="lineno">   91 </span><span class="spaces">    </span><span class="nottickedoff">selectContainerSlotRecord</span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">   93 </span>
+<span class="lineno">   94 </span>segmentRecordIdTuple :: Segment -&gt; Id Record -&gt; (Segment, Id Record)
+<span class="lineno">   95 </span><span class="decl"><span class="istickedoff">segmentRecordIdTuple = (,)</span></span>
+<span class="lineno">   96 </span>
+<span class="lineno">   97 </span>makeVolumeContainerTuple :: (Volume -&gt; Container) -&gt; a -&gt; Volume -&gt; (Container, a)
+<span class="lineno">   98 </span><span class="decl"><span class="istickedoff">makeVolumeContainerTuple cf a v = (cf v, a)</span></span>
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>selectVolumeSlotMaybeRecordId :: Selector -- ^ @'Volume' -&gt; ('Container', Maybe ('Segment', 'Id' 'Record'))@
+<span class="lineno">  101 </span><span class="decl"><span class="nottickedoff">selectVolumeSlotMaybeRecordId = selectJoin 'makeVolumeContainerTuple</span>
+<span class="lineno">  102 </span><span class="spaces">  </span><span class="nottickedoff">[ selectVolumeContainer</span>
+<span class="lineno">  103 </span><span class="spaces">  </span><span class="nottickedoff">, maybeJoinOn &quot;container.id = slot_record.container&quot;</span>
+<span class="lineno">  104 </span><span class="spaces">    </span><span class="nottickedoff">$ selectColumns 'segmentRecordIdTuple &quot;slot_record&quot; [&quot;segment&quot;, &quot;record&quot;]</span>
+<span class="lineno">  105 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>selectSlotRecord :: TH.Name -- ^ @'Identity'@
+<span class="lineno">  108 </span>  -&gt; Selector -- ^ @'RecordSlot'@
+<span class="lineno">  109 </span><span class="decl"><span class="nottickedoff">selectSlotRecord ident = selectJoin '($)</span>
+<span class="lineno">  110 </span><span class="spaces">  </span><span class="nottickedoff">[ selectVolumeSlotRecord</span>
+<span class="lineno">  111 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;record.volume = volume.id&quot;</span>
+<span class="lineno">  112 </span><span class="spaces">    </span><span class="nottickedoff">$ selectVolume ident</span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span>slotRecordVals :: String -- ^ @'RecordSlot'@
+<span class="lineno">  116 </span>  -&gt; [(String, String)]
+<span class="lineno">  117 </span><span class="decl"><span class="nottickedoff">slotRecordVals o =</span>
+<span class="lineno">  118 </span><span class="spaces">  </span><span class="nottickedoff">[ (&quot;record&quot;, &quot;${recordId $ recordRow $ slotRecord &quot; ++ o ++ &quot;}&quot;)</span>
+<span class="lineno">  119 </span><span class="spaces">  </span><span class="nottickedoff">, (&quot;container&quot;, &quot;${containerId $ containerRow $ slotContainer $ recordSlot &quot; ++ o ++ &quot;}&quot;)</span>
+<span class="lineno">  120 </span><span class="spaces">  </span><span class="nottickedoff">, (&quot;segment&quot;, &quot;${slotSegment $ recordSlot &quot; ++ o ++ &quot;}&quot;)</span>
+<span class="lineno">  121 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">  122 </span>
+<span class="lineno">  123 </span>insertSlotRecord :: TH.Name -- ^ @'AuditIdentity'@
+<span class="lineno">  124 </span>  -&gt; TH.Name -- ^ @'RecordSlot'@
+<span class="lineno">  125 </span>  -&gt; TH.ExpQ
+<span class="lineno">  126 </span><span class="decl"><span class="nottickedoff">insertSlotRecord ident o = auditInsert ident &quot;slot_record&quot;</span>
+<span class="lineno">  127 </span><span class="spaces">  </span><span class="nottickedoff">(slotRecordVals os)</span>
+<span class="lineno">  128 </span><span class="spaces">  </span><span class="nottickedoff">Nothing</span>
+<span class="lineno">  129 </span><span class="spaces">  </span><span class="nottickedoff">where os = nameRef o</span></span>
+<span class="lineno">  130 </span>
+<span class="lineno">  131 </span>updateSlotRecord :: TH.Name -- ^ @'AuditIdentity'@
+<span class="lineno">  132 </span>  -&gt; TH.Name -- ^ @'RecordSlot'@
+<span class="lineno">  133 </span>  -&gt; TH.Name -- ^ @'Segment'@
+<span class="lineno">  134 </span>  -&gt; TH.ExpQ
+<span class="lineno">  135 </span><span class="decl"><span class="nottickedoff">updateSlotRecord ident o ds = auditUpdate ident &quot;slot_record&quot;</span>
+<span class="lineno">  136 </span><span class="spaces">  </span><span class="nottickedoff">[ (&quot;segment&quot;, &quot;${&quot; ++ nameRef ds ++ &quot;}&quot;) ]</span>
+<span class="lineno">  137 </span><span class="spaces">  </span><span class="nottickedoff">(whereEq $ slotRecordVals $ nameRef o)</span>
+<span class="lineno">  138 </span><span class="spaces">  </span><span class="nottickedoff">Nothing</span></span>
+<span class="lineno">  139 </span>
+<span class="lineno">  140 </span>deleteSlotRecord :: TH.Name -- ^ @'AuditIdentity'@
+<span class="lineno">  141 </span>  -&gt; TH.Name -- ^ @'RecordSlot'@
+<span class="lineno">  142 </span>  -&gt; TH.ExpQ
+<span class="lineno">  143 </span><span class="decl"><span class="nottickedoff">deleteSlotRecord ident o = auditDelete ident &quot;slot_record&quot;</span>
+<span class="lineno">  144 </span><span class="spaces">  </span><span class="nottickedoff">(&quot;record = ${recordId $ recordRow $ slotRecord &quot; ++ os ++ &quot;} AND container = ${containerId $ containerRow $ slotContainer $ recordSlot &quot; ++ os ++ &quot;} AND segment &lt;@ ${slotSegment $ recordSlot &quot; ++ os ++ &quot;}&quot;)</span>
+<span class="lineno">  145 </span><span class="spaces">  </span><span class="nottickedoff">Nothing</span>
+<span class="lineno">  146 </span><span class="spaces">  </span><span class="nottickedoff">where os = nameRef o</span></span>
+
+</pre>
+</body>
+</html>

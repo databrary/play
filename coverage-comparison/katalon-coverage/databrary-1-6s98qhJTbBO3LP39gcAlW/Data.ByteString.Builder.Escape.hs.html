@@ -1,0 +1,56 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>module Data.ByteString.Builder.Escape
+<span class="lineno">    2 </span>  ( escapeLazyByteStringCharsWith
+<span class="lineno">    3 </span>  , escapeTextWith
+<span class="lineno">    4 </span>  ) where
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>-- import qualified Data.ByteString as S
+<span class="lineno">    7 </span>import qualified Data.ByteString.Lazy as L
+<span class="lineno">    8 </span>import Data.ByteString.Builder (Builder)
+<span class="lineno">    9 </span>import Data.ByteString.Builder.Prim
+<span class="lineno">   10 </span>import Data.ByteString.Internal (c2w)
+<span class="lineno">   11 </span>import Data.Text (Text)
+<span class="lineno">   12 </span>import Data.Text.Encoding (encodeUtf8BuilderEscaped)
+<span class="lineno">   13 </span><span class="decl"><span class="istickedoff">import Data.Word (Word8)                                                                                 </span>
+<span class="lineno">   14 </span><span class="spaces"></span><span class="istickedoff"></span></span>
+<span class="lineno">   15 </span>word8EscapedWith :: Word8 -&gt; (Word8 -&gt; Bool) -&gt; BoundedPrim Word8
+<span class="lineno">   16 </span><span class="decl"><span class="istickedoff">word8EscapedWith e c = condB c (liftFixedToBounded $ (,) e &gt;$&lt; word8 &gt;*&lt; word8</span></span>) (liftFixedToBounded word8)
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>char8EscapedWith :: Char -&gt; [Char] -&gt; BoundedPrim Word8
+<span class="lineno">   19 </span><span class="decl"><span class="nottickedoff">char8EscapedWith e c = word8EscapedWith (c2w e) (`elem` w) where w = map c</span></span>2w c
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>{-
+<span class="lineno">   22 </span><span class="decl"><span class="nottickedoff">escapeByteStringWith :: Word8 -&gt; (Word8 -&gt; Bool) -&gt; S.ByteString -&gt; Builder      </span>
+<span class="lineno">   23 </span><span class="spaces"></span><span class="nottickedoff"></span></span>escapeByteStringWith e c = primMapByteStringBounded (word8EscapedWith e c)
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span><span class="decl"><span class="nottickedoff">escapeLazyByteStringWith :: Word8 -&gt; (Word8 -&gt; Bool) -&gt; L.ByteString -&gt; Builder</span></span>
+<span class="lineno">   26 </span>escapeLazyByteStringWith e c = primMapLazyByteStringBounded (word8EscapedWith e c)
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span><span class="decl"><span class="istickedoff">escapeByteStringCharsWith :: Char -&gt; [Char] -&gt; S.ByteString -&gt; Builder                </span>
+<span class="lineno">   29 </span><span class="spaces"></span><span class="istickedoff"></span></span>escapeByteStringCharsWith e c = primMapByteStringBounded (char8EscapedWith e c)
+<span class="lineno">   30 </span>-}
+<span class="lineno">   31 </span><span class="decl"><span class="nottickedoff">                                                                   </span>
+<span class="lineno">   32 </span><span class="spaces"></span><span class="nottickedoff"></span></span>escapeLazyByteStringCharsWith :: Char -&gt; [Char] -&gt; L.ByteString -&gt; Builder
+<span class="lineno">   33 </span>escapeLazyByteStringCharsWith e c = primMapLazyByteStringBounded (char8EscapedWith e c)
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>escapeTextWith :: Char -&gt; [Char] -&gt; Text -&gt; Builder
+<span class="lineno">   36 </span>escapeTextWith e c = encodeUtf8BuilderEscaped (char8EscapedWith e c)
+
+</pre>
+</body>
+</html>

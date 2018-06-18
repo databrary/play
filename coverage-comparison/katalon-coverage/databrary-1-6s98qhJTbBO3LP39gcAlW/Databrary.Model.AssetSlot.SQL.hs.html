@@ -1,0 +1,175 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Model.AssetSlot.SQL
+<span class="lineno">    3 </span>  ( slotAssetRow
+<span class="lineno">    4 </span>  , makeSlotAsset
+<span class="lineno">    5 </span>  , selectContainerSlotAsset
+<span class="lineno">    6 </span>  -- , selectOrigContainerSlotAsset 
+<span class="lineno">    7 </span>  , selectAssetSlotAsset
+<span class="lineno">    8 </span>  , selectVolumeSlotAsset
+<span class="lineno">    9 </span>  , selectVolumeSlotIdAsset
+<span class="lineno">   10 </span>  -- , selectSlotAsset
+<span class="lineno">   11 </span>  , selectAssetSlot
+<span class="lineno">   12 </span>  -- , insertSlotAsset
+<span class="lineno">   13 </span>  -- , updateSlotAsset
+<span class="lineno">   14 </span>  -- , deleteSlotAsset
+<span class="lineno">   15 </span>  ) where
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>import Data.Maybe (fromMaybe)
+<span class="lineno">   18 </span>import qualified Language.Haskell.TH as TH
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>import Databrary.Has (view)
+<span class="lineno">   21 </span>import Databrary.Model.Segment
+<span class="lineno">   22 </span>import Databrary.Model.Volume.Types
+<span class="lineno">   23 </span>import Databrary.Model.Asset.Types
+<span class="lineno">   24 </span>import Databrary.Model.Asset.SQL
+<span class="lineno">   25 </span>import Databrary.Model.Container.Types
+<span class="lineno">   26 </span>import Databrary.Model.Container.SQL
+<span class="lineno">   27 </span>import Databrary.Model.Slot.Types
+<span class="lineno">   28 </span>import Databrary.Model.SQL.Select
+<span class="lineno">   29 </span>import Databrary.Model.Volume.SQL
+<span class="lineno">   30 </span>import Databrary.Model.AssetSlot.Types
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>slotAssetRow :: Selector -- ^ @'Segment'@
+<span class="lineno">   33 </span><span class="decl"><span class="nottickedoff">slotAssetRow = selectColumn &quot;slot_asset&quot; &quot;segment&quot;</span></span>
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>makeSlotAsset :: Asset -&gt; Container -&gt; Segment -&gt; AssetSlot
+<span class="lineno">   36 </span><span class="decl"><span class="istickedoff">makeSlotAsset a c s = AssetSlot a (Just (Slot c s))</span></span>
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>_selectAssetContainerSlotAsset :: Selector -- ^ @'Asset' -&gt; 'Container' -&gt; 'AssetSlot'@
+<span class="lineno">   39 </span><span class="decl"><span class="nottickedoff">_selectAssetContainerSlotAsset = selectMap (TH.VarE 'makeSlotAsset `TH.AppE`) slotAssetRow</span></span>
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>makeContainerSlotAsset :: Segment -&gt; AssetRow -&gt; Container -&gt; AssetSlot
+<span class="lineno">   42 </span><span class="decl"><span class="nottickedoff">makeContainerSlotAsset s ar c = makeSlotAsset (Asset ar $ view c) c s</span></span>
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>selectContainerSlotAsset :: Selector -- ^ @'Container' -&gt; 'AssetSlot'@
+<span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">selectContainerSlotAsset = selectJoin 'makeContainerSlotAsset</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">[ slotAssetRow</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;slot_asset.asset = asset.id&quot; selectAssetRow -- XXX volumes match?</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>{-
+<span class="lineno">   51 </span>selectOrigContainerSlotAsset :: Selector -- ^ @'Container' -&gt; 'AssetSlot'@
+<span class="lineno">   52 </span>selectOrigContainerSlotAsset = selectJoin 'makeContainerSlotAsset
+<span class="lineno">   53 </span>  [ slotAssetRow
+<span class="lineno">   54 </span>  , joinOn &quot;slot_asset.asset = asset.id&quot; selectAssetRow -- XXX volumes match?
+<span class="lineno">   55 </span>  ]
+<span class="lineno">   56 </span>-}
+<span class="lineno">   57 </span>
+<span class="lineno">   58 </span>makeVolumeSlotIdAsset :: SlotId -&gt; AssetRow -&gt; Volume -&gt; (Asset, SlotId)
+<span class="lineno">   59 </span><span class="decl"><span class="istickedoff">makeVolumeSlotIdAsset s ar v = (Asset ar v, s)</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>selectVolumeSlotIdAsset :: Selector -- ^ @'Volume' -&gt; ('Asset', 'SlotId')@
+<span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">selectVolumeSlotIdAsset = selectJoin 'makeVolumeSlotIdAsset</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">[ selectColumns 'SlotId &quot;slot_asset&quot; [&quot;container&quot;, &quot;segment&quot;]</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;slot_asset.asset = asset.id&quot;</span>
+<span class="lineno">   65 </span><span class="spaces">    </span><span class="nottickedoff">selectAssetRow -- XXX volumes match?</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>makeAssetSlotAsset :: Segment -&gt; (Volume -&gt; Container) -&gt; Asset -&gt; AssetSlot
+<span class="lineno">   69 </span><span class="decl"><span class="nottickedoff">makeAssetSlotAsset s cf a = makeSlotAsset a (cf (view a)) s</span></span>
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>selectAssetSlotAsset :: Selector -- ^ @'Asset' -&gt; 'AssetSlot'@
+<span class="lineno">   72 </span><span class="decl"><span class="nottickedoff">selectAssetSlotAsset = selectJoin 'makeAssetSlotAsset</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">[ slotAssetRow</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;slot_asset.container = container.id&quot;</span>
+<span class="lineno">   75 </span><span class="spaces">    </span><span class="nottickedoff">selectVolumeContainer -- XXX volumes match?</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>makeVolumeSlotAsset :: Segment -&gt; AssetRow -&gt; (Volume -&gt; Container) -&gt; Volume -&gt; AssetSlot
+<span class="lineno">   79 </span><span class="decl"><span class="nottickedoff">makeVolumeSlotAsset s ar cf v = makeSlotAsset (Asset ar v) (cf v) s</span></span>
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>selectVolumeSlotAsset :: Selector -- ^ @'Volume' -&gt; 'AssetSlot'@
+<span class="lineno">   82 </span><span class="decl"><span class="nottickedoff">selectVolumeSlotAsset = selectJoin 'makeVolumeSlotAsset</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">[ slotAssetRow</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;slot_asset.asset = asset.id&quot;</span>
+<span class="lineno">   85 </span><span class="spaces">    </span><span class="nottickedoff">selectAssetRow</span>
+<span class="lineno">   86 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;slot_asset.container = container.id AND asset.volume = container.volume&quot;</span>
+<span class="lineno">   87 </span><span class="spaces">    </span><span class="nottickedoff">selectVolumeContainer</span>
+<span class="lineno">   88 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>{-
+<span class="lineno">   91 </span>selectSlotAsset :: TH.Name -- ^ @'Identity'@
+<span class="lineno">   92 </span>  -&gt; Selector -- ^ @'AssetSlot'@
+<span class="lineno">   93 </span>selectSlotAsset ident = selectJoin '($)
+<span class="lineno">   94 </span>  [ selectVolumeSlotAsset
+<span class="lineno">   95 </span>  , joinOn &quot;asset.volume = volume.id&quot;
+<span class="lineno">   96 </span>    $ selectVolume ident
+<span class="lineno">   97 </span>  ]
+<span class="lineno">   98 </span>-}
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>makeVolumeAssetSlot :: AssetRow -&gt; Maybe (Asset -&gt; AssetSlot) -&gt; Volume -&gt; AssetSlot
+<span class="lineno">  101 </span><span class="decl"><span class="nottickedoff">makeVolumeAssetSlot ar sf = fromMaybe assetNoSlot sf . Asset ar</span></span>
+<span class="lineno">  102 </span>
+<span class="lineno">  103 </span>selectVolumeAssetSlot :: Selector -- ^ @'Volume' -&gt; 'AssetSlot'@
+<span class="lineno">  104 </span><span class="decl"><span class="nottickedoff">selectVolumeAssetSlot = selectJoin 'makeVolumeAssetSlot</span>
+<span class="lineno">  105 </span><span class="spaces">  </span><span class="nottickedoff">[ selectAssetRow</span>
+<span class="lineno">  106 </span><span class="spaces">  </span><span class="nottickedoff">, maybeJoinOn &quot;asset.id = slot_asset.asset AND asset.volume = container.volume&quot;</span>
+<span class="lineno">  107 </span><span class="spaces">    </span><span class="nottickedoff">selectAssetSlotAsset</span>
+<span class="lineno">  108 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">  109 </span>
+<span class="lineno">  110 </span>selectAssetSlot :: TH.Name -- ^ @'Identity'@
+<span class="lineno">  111 </span>  -&gt; Selector -- ^ @'AssetSlot'@
+<span class="lineno">  112 </span><span class="decl"><span class="nottickedoff">selectAssetSlot ident = selectJoin '($)</span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="nottickedoff">[ selectVolumeAssetSlot</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="nottickedoff">, joinOn &quot;asset.volume = volume.id&quot;</span>
+<span class="lineno">  115 </span><span class="spaces">    </span><span class="nottickedoff">$ selectVolume ident</span>
+<span class="lineno">  116 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
+<span class="lineno">  117 </span>
+<span class="lineno">  118 </span>{-
+<span class="lineno">  119 </span>slotAssetKeys :: String -- ^ @'AssetSlot'@
+<span class="lineno">  120 </span>  -&gt; [(String, String)]
+<span class="lineno">  121 </span>slotAssetKeys as =
+<span class="lineno">  122 </span>  [ (&quot;asset&quot;, &quot;${assetId $ assetRow $ slotAsset &quot; ++ as ++ &quot;}&quot;) ]
+<span class="lineno">  123 </span>
+<span class="lineno">  124 </span>slotAssetSets :: String -- ^ @'AssetSlot'@
+<span class="lineno">  125 </span>  -&gt; [(String, String)]
+<span class="lineno">  126 </span>slotAssetSets as =
+<span class="lineno">  127 </span>  [ (&quot;container&quot;, &quot;${containerId . containerRow . slotContainer &lt;$&gt; assetSlot &quot; ++ as ++ &quot;}&quot;)
+<span class="lineno">  128 </span>  , (&quot;segment&quot;, &quot;${slotSegment &lt;$&gt; assetSlot &quot; ++ as ++ &quot;}&quot;)
+<span class="lineno">  129 </span>  ]
+<span class="lineno">  130 </span>
+<span class="lineno">  131 </span>insertSlotAsset :: TH.Name -- ^ @'AuditIdentity'@
+<span class="lineno">  132 </span>  -&gt; TH.Name -- ^ @'AssetSlot'@
+<span class="lineno">  133 </span>  -&gt; TH.ExpQ
+<span class="lineno">  134 </span>insertSlotAsset ident o = auditInsert ident &quot;slot_asset&quot;
+<span class="lineno">  135 </span>  (slotAssetKeys os ++ slotAssetSets os)
+<span class="lineno">  136 </span>  Nothing
+<span class="lineno">  137 </span>  where os = nameRef o
+<span class="lineno">  138 </span>
+<span class="lineno">  139 </span>updateSlotAsset :: TH.Name -- ^ @'AuditIdentity'@
+<span class="lineno">  140 </span>  -&gt; TH.Name -- ^ @'AssetSlot'@
+<span class="lineno">  141 </span>  -&gt; TH.ExpQ
+<span class="lineno">  142 </span>updateSlotAsset ident o = auditUpdate ident &quot;slot_asset&quot;
+<span class="lineno">  143 </span>  (slotAssetSets os)
+<span class="lineno">  144 </span>  (whereEq $ slotAssetKeys os)
+<span class="lineno">  145 </span>  Nothing
+<span class="lineno">  146 </span>  where os = nameRef o
+<span class="lineno">  147 </span>
+<span class="lineno">  148 </span>deleteSlotAsset :: TH.Name -- ^ @'AuditIdentity'@
+<span class="lineno">  149 </span>  -&gt; TH.Name -- ^ @'AssetSlot'@
+<span class="lineno">  150 </span>  -&gt; TH.ExpQ
+<span class="lineno">  151 </span>deleteSlotAsset ident o = auditDelete ident &quot;slot_asset&quot;
+<span class="lineno">  152 </span>  (whereEq $ slotAssetKeys os)
+<span class="lineno">  153 </span>  Nothing
+<span class="lineno">  154 </span>  where os = nameRef o
+<span class="lineno">  155 </span>-}
+
+</pre>
+</body>
+</html>

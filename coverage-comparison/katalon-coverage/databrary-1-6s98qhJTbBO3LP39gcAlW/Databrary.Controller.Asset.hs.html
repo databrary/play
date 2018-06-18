@@ -1,0 +1,365 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Controller.Asset
+<span class="lineno">    3 </span>  ( getAsset
+<span class="lineno">    4 </span>  -- , getOrigAsset
+<span class="lineno">    5 </span>  , assetJSONField
+<span class="lineno">    6 </span>  , viewAsset
+<span class="lineno">    7 </span>  , AssetTarget(..)
+<span class="lineno">    8 </span>  , postAsset
+<span class="lineno">    9 </span>  -- , viewAssetEdit
+<span class="lineno">   10 </span>  , createAsset
+<span class="lineno">   11 </span>  -- , viewAssetCreate
+<span class="lineno">   12 </span>  , createSlotAsset
+<span class="lineno">   13 </span>  -- , viewSlotAssetCreate
+<span class="lineno">   14 </span>  , deleteAsset
+<span class="lineno">   15 </span>  , downloadAsset
+<span class="lineno">   16 </span>  , downloadOrigAsset
+<span class="lineno">   17 </span>  , thumbAsset
+<span class="lineno">   18 </span>  , assetDownloadName
+<span class="lineno">   19 </span>  ) where
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>import Control.Applicative ((&lt;|&gt;))
+<span class="lineno">   22 </span>import Control.Monad ((&lt;=&lt;), void, guard, when)
+<span class="lineno">   23 </span>import Control.Monad.Trans.Class (lift)
+<span class="lineno">   24 </span>import qualified Data.ByteString as BS
+<span class="lineno">   25 </span>import Data.Maybe (fromMaybe, isNothing, isJust, maybeToList)
+<span class="lineno">   26 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   27 </span>import qualified Data.Text as T
+<span class="lineno">   28 </span>import qualified Data.Text.Encoding as TE
+<span class="lineno">   29 </span>import qualified Database.PostgreSQL.Typed.Range as Range
+<span class="lineno">   30 </span>import Network.HTTP.Types (conflict409)
+<span class="lineno">   31 </span>import qualified Network.Wai as Wai
+<span class="lineno">   32 </span>import Network.Wai.Parse (FileInfo(..))
+<span class="lineno">   33 </span>import qualified System.FilePath.Posix as FPP (makeValid)
+<span class="lineno">   34 </span>import qualified System.FilePath.Windows as FPW (makeValid)
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>import Databrary.Ops
+<span class="lineno">   37 </span>import Databrary.Has
+<span class="lineno">   38 </span>import qualified Databrary.JSON as JSON
+<span class="lineno">   39 </span>import Databrary.Model.Segment
+<span class="lineno">   40 </span>import Databrary.Model.Permission
+<span class="lineno">   41 </span>import Databrary.Model.Release
+<span class="lineno">   42 </span>import Databrary.Model.Id
+<span class="lineno">   43 </span>import Databrary.Model.Volume
+<span class="lineno">   44 </span>import Databrary.Model.Container
+<span class="lineno">   45 </span>import Databrary.Model.Token
+<span class="lineno">   46 </span>import Databrary.Model.Format
+<span class="lineno">   47 </span>import Databrary.Model.Asset
+<span class="lineno">   48 </span>import Databrary.Model.Slot
+<span class="lineno">   49 </span>import Databrary.Model.AssetSlot
+<span class="lineno">   50 </span>import Databrary.Model.AssetSegment
+<span class="lineno">   51 </span>import Databrary.Model.Excerpt
+<span class="lineno">   52 </span>import Databrary.Model.AssetRevision
+<span class="lineno">   53 </span>import Databrary.Model.Transcode
+<span class="lineno">   54 </span>import Databrary.Model.Notification
+<span class="lineno">   55 </span>import Databrary.Files hiding ((&lt;/&gt;))
+<span class="lineno">   56 </span>import Databrary.Store.AV (AV)
+<span class="lineno">   57 </span>import Databrary.Store.Types
+<span class="lineno">   58 </span>import Databrary.Store.Asset
+<span class="lineno">   59 </span>import Databrary.Store.Upload
+<span class="lineno">   60 </span>import Databrary.Store.Temp
+<span class="lineno">   61 </span>import Databrary.Store.Transcode
+<span class="lineno">   62 </span>import Databrary.Store.AV (avProbeLength)
+<span class="lineno">   63 </span>import Databrary.Store.Probe
+<span class="lineno">   64 </span>import Databrary.HTTP.Request
+<span class="lineno">   65 </span>import Databrary.HTTP.Form.Errors
+<span class="lineno">   66 </span>import Databrary.HTTP.Form.Deform
+<span class="lineno">   67 </span>import Databrary.HTTP.Path.Parser
+<span class="lineno">   68 </span>import Databrary.Action
+<span class="lineno">   69 </span>import Databrary.Controller.Paths
+<span class="lineno">   70 </span>import Databrary.Controller.Permission
+<span class="lineno">   71 </span>import Databrary.Controller.Form
+<span class="lineno">   72 </span>import Databrary.Controller.Volume
+<span class="lineno">   73 </span>import Databrary.Controller.Slot
+<span class="lineno">   74 </span>import Databrary.Controller.Format
+<span class="lineno">   75 </span>import Databrary.Controller.Notification
+<span class="lineno">   76 </span>import {-# SOURCE #-} Databrary.Controller.AssetSegment
+<span class="lineno">   77 </span>-- import Databrary.View.Asset
+<span class="lineno">   78 </span>import Databrary.View.Form (FormHtml)
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>import Control.Monad.IO.Class
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span><span class="decl"><span class="nottickedoff">getAsset :: Bool -&gt; Permission -&gt; Bool -&gt; Id Asset -&gt; Handler AssetSlot</span>
+<span class="lineno">   83 </span><span class="spaces"></span><span class="nottickedoff">getAsset getOrig p checkDataPerm i = do</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">mAssetSlot &lt;- (if getOrig then lookupOrigAssetSlot else lookupAssetSlot) i</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="nottickedoff">slot &lt;- maybeAction mAssetSlot</span>
+<span class="lineno">   86 </span><span class="spaces">  </span><span class="nottickedoff">void (checkPermission2 (extractPermissionIgnorePolicy . getAssetSlotVolumePermission2) p slot)</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="nottickedoff">when checkDataPerm $ do</span>
+<span class="lineno">   88 </span><span class="spaces">    </span><span class="nottickedoff">-- TODO: delete</span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="nottickedoff">-- liftIO $ print (&quot;checking data perm&quot;, &quot;assetSlot&quot;, slot)</span>
+<span class="lineno">   90 </span><span class="spaces">    </span><span class="nottickedoff">-- liftIO $ print (&quot;checking data perm&quot;, &quot;seg rlses&quot;, getAssetSlotRelease2 slot,</span>
+<span class="lineno">   91 </span><span class="spaces">    </span><span class="nottickedoff">--                 &quot;vol prm&quot;, getAssetSlotVolumePermission2 slot)</span>
+<span class="lineno">   92 </span><span class="spaces">    </span><span class="nottickedoff">-- liftIO $ print (&quot;result perm&quot;, dataPermission4 getAssetSlotRelease2 getAssetSlotVolumePermission2 slot)</span>
+<span class="lineno">   93 </span><span class="spaces">    </span><span class="nottickedoff">void (u</span></span>serCanReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 slot)
+<span class="lineno">   94 </span>  pure slot
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span><span class="decl"><span class="nottickedoff">assetJSONField :: AssetSlot -&gt; BS.ByteString -&gt; Maybe BS.ByteString -&gt; Handler (Maybe JSON.Encoding)</span>
+<span class="lineno">   97 </span><span class="spaces"></span><span class="nottickedoff">assetJSONField a &quot;container&quot; _ =</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="nottickedoff">return $ JSON.recordEncoding . containerJSON False . slotContainer &lt;$&gt; assetSlot a -- containerJSON should consult volume</span>
+<span class="lineno">   99 </span><span class="spaces"></span><span class="nottickedoff">assetJSONField a &quot;creation&quot; _ | ((extractPermissionIgnorePolicy . getAssetSlotVolumePermission2) a) &gt;= PermissionEDIT = do</span>
+<span class="lineno">  100 </span><span class="spaces">  </span><span class="nottickedoff">(t, n) &lt;- assetCreation $ slotAsset a</span>
+<span class="lineno">  101 </span><span class="spaces">  </span><span class="nottickedoff">return $ Just $ JSON.pairs $</span>
+<span class="lineno">  102 </span><span class="spaces">       </span><span class="nottickedoff">&quot;date&quot; `JSON.kvObjectOrEmpty` t</span>
+<span class="lineno">  103 </span><span class="spaces">    </span><span class="nottickedoff">&lt;&gt; &quot;name&quot; `JSON.kvObjectOrEmpty` n</span>
+<span class="lineno">  104 </span><span class="spaces"></span><span class="nottickedoff">assetJSONField a &quot;excerpts&quot; _ =</span>
+<span class="lineno">  105 </span><span class="spaces">  </span><span class="nottickedoff">Just . JSON.mapObjects excerptJSON </span></span>&lt;$&gt; lookupAssetExcerpts a
+<span class="lineno">  106 </span>assetJSONField _ _ _ = return Nothing
+<span class="lineno">  107 </span>
+<span class="lineno">  108 </span><span class="decl"><span class="nottickedoff">assetJSONQuery :: AssetSlot -&gt; JSON.Query -&gt; Handler (JSON.Record (Id Asset) JSON.Series)                   </span>
+<span class="lineno">  109 </span><span class="spaces"></span><span class="nottickedoff"></span></span>assetJSONQuery o q = (assetSlotJSON False o `JSON.foldObjectIntoRec`) &lt;$&gt; JSON.jsonQuery (assetJSONField o) q
+<span class="lineno">  110 </span>-- public restricted should consult volume
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span><span class="decl"><span class="istickedoff">assetDownloadName :: Bool -&gt; Bool -&gt; AssetRow -&gt; [T.Text]</span>
+<span class="lineno">  113 </span><span class="spaces"></span><span class="istickedoff">assetDownloadName addPrefix trimFormat a =</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="istickedoff">let</span>
+<span class="lineno">  115 </span><span class="spaces">    </span><span class="istickedoff">assetNa<span class="tickonlyfalse">me' =    </span></span>
+<span class="lineno">  116 </span><span class="spaces">        </span><span class="istickedoff"><span class="tickonlyfalse"></span>if trimFormat</span>
+<span class="lineno">  117 </span><span class="spaces">        </span><span class="istickedoff">-- or<span class="nottickedoff">iginal uploaded files have the extension embedded in the name                          </span></span>
+<span class="lineno">  118 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff"></span>then fmap (TE.decodeUtf8 . dropFormatExtension (assetFormat a) . TE.encodeUtf8) (assetName a)</span>
+<span class="lineno">  119 </span><span class="spaces">        </span><span class="istickedoff">else assetName a</span>
+<span class="lineno">  120 </span><span class="spaces">    </span><span class="istickedoff">scrubbedAssetName :: Maybe T.Text</span>
+<span class="lineno">  121 </span><span class="spaces">    </span><span class="istickedoff">scrubbedAssetName =</span>
+<span class="lineno">  122 </span><span class="spaces">        </span><span class="istickedoff">fmap scrubAssetName assetName'</span>
+<span class="lineno">  123 </span><span class="spaces">  </span><span class="istickedoff">in</span>
+<span class="lineno">  124 </span><span class="spaces">    </span><span class="istickedoff">if addPrefix</span>
+<span class="lineno">  125 </span><span class="spaces">    </span><span class="istickedoff">then <span class="nottickedoff">T.pack (show $ assetId a) : m</span></span></span>aybeToList scrubbedAssetName
+<span class="lineno">  126 </span>    else maybeToList scrubbedAssetName
+<span class="lineno">  127 </span>
+<span class="lineno">  128 </span><span class="decl"><span class="istickedoff">scrubAssetName :: T.Text -&gt; T.Text                               </span>
+<span class="lineno">  129 </span><span class="spaces"></span><span class="istickedoff"></span></span>scrubAssetName = T.pack . FPW.makeValid . FPP.makeValid . T.unpack
+<span class="lineno">  130 </span>
+<span class="lineno">  131 </span><span class="decl"><span class="istickedoff">viewAsset :: Action<span class="nottickedoff">Rou</span>te (API, Id Asset)</span>
+<span class="lineno">  132 </span><span class="spaces"></span><span class="istickedoff">viewAsset =<span class="nottickedoff"> action GET (pathAPI &lt;/&gt; pathId) $ \(a</span>pi, i) -&gt; withAuth $ do</span>
+<span class="lineno">  133 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">asset &lt;- getAsset False PermissionPUBLIC True i</span></span>
+<span class="lineno">  134 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">case api of</span></span>
+<span class="lineno">  135 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">JSON -&gt; okResponse [] &lt;$&gt; (assetJSONQuery asset =&lt;&lt; peeks Wai.queryString)</span></span>
+<span class="lineno">  136 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">HTML</span></span>
+<span class="lineno">  137 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">| Just s &lt;- assetSlot asset -&gt; peeks $ otherRouteResponse [] (viewAssetSegment False) (api, </span></span></span>Just (view asset), slotId s, assetId $ assetRow $ slotAsset asset)
+<span class="lineno">  138 </span>      | otherwise -&gt; return $ okResponse [] $ T.pack $ show $ assetId $ assetRow $ slotAsset asset -- TODO
+<span class="lineno">  139 </span>
+<span class="lineno">  140 </span>data AssetTarget
+<span class="lineno">  141 </span>  = AssetTargetVolume Volume
+<span class="lineno">  142 </span>  | AssetTargetSlot Slot
+<span class="lineno">  143 </span>  | AssetTargetAsset AssetSlot
+<span class="lineno">  144 </span>
+<span class="lineno">  145 </span>data FileUploadFile
+<span class="lineno">  146 </span>  = FileUploadForm (FileInfo TempFile)
+<span class="lineno">  147 </span>  | FileUploadToken Upload
+<span class="lineno">  148 </span>
+<span class="lineno">  149 </span><span class="decl"><span class="nottickedoff">fileUploadName :: FileUploadFile -&gt; BS.ByteString</span>
+<span class="lineno">  150 </span><span class="spaces"></span><span class="nottickedoff">fileUploadName (FileUploadForm f) = fileName f      </span>
+<span class="lineno">  151 </span><span class="spaces"></span><span class="nottickedoff"></span></span>fileUploadName (FileUploadToken u) = uploadFilename u
+<span class="lineno">  152 </span>
+<span class="lineno">  153 </span><span class="decl"><span class="nottickedoff">fileUploadPath :: FileUploadFile -&gt; Storage -&gt; RawFilePath</span>
+<span class="lineno">  154 </span><span class="spaces"></span><span class="nottickedoff">fileUploadPath (FileUploadForm f) _ = tempFilePath $ </span></span>fileContent f
+<span class="lineno">  155 </span>fileUploadPath (FileUploadToken u) s = uploadFile u s
+<span class="lineno">  156 </span>
+<span class="lineno">  157 </span><span class="decl"><span class="nottickedoff">fileUploadRemove :: FileUploadFile -&gt; Handler ()</span>
+<span class="lineno">  158 </span><span class="spaces"></span><span class="nottickedoff">fileUploadRemove (FileUploadForm f) = focusIO $ releaseTempF</span></span>ile $ fileContent f
+<span class="lineno">  159 </span>fileUploadRemove (FileUploadToken u) = void $ removeUpload u
+<span class="lineno">  160 </span>
+<span class="lineno">  161 </span>data<span class="nottickedoff"><span class="decl"><span class="nottickedoff"> FileUpload = </span></span></span>FileUpload
+<span class="lineno">  162 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">fileUploadFile </span></span></span>:: FileUploadFile
+<span class="lineno">  163 </span>  , fileUploadProbe :: Probe
+<span class="lineno">  164 </span>  }
+<span class="lineno">  165 </span>
+<span class="lineno">  166 </span><span class="decl"><span class="nottickedoff">deformLookup :: (Monad m, Deform f a) =&gt; FormErrorMessage -&gt; (a -&gt; m (Maybe b))</span></span> -&gt; DeformT f m (Maybe b)
+<span class="lineno">  167 </span>deformLookup e l = mapM (deformMaybe' e &lt;=&lt; lift . l) =&lt;&lt; deformNonEmpty deform
+<span class="lineno">  168 </span>
+<span class="lineno">  169 </span><span class="decl"><span class="nottickedoff">detectUpload :: (MonadHas AV c m, MonadStorage c m) =&gt; FileUploadFile -&gt; DeformT TempFile m FileUpload</span>
+<span class="lineno">  170 </span><span class="spaces"></span><span class="nottickedoff">detectUpload u = do</span>
+<span class="lineno">  171 </span><span class="spaces">  </span><span class="nottickedoff">liftIO $ print &quot;detectUpload...&quot;</span>
+<span class="lineno">  172 </span><span class="spaces">  </span><span class="nottickedoff">either deformError' (return . FileUpload u)                          </span>
+<span class="lineno">  173 </span><span class="spaces">    </span><span class="nottickedoff"></span></span>=&lt;&lt; lift (probeFile (fileUploadName u) =&lt;&lt; peeks (fileUploadPath u))
+<span class="lineno">  174 </span>
+<span class="lineno">  175 </span><span class="decl"><span class="nottickedoff">processAsset :: AssetTarget -&gt; Handler Response</span>
+<span class="lineno">  176 </span><span class="spaces"></span><span class="nottickedoff">processAsset target = do</span>
+<span class="lineno">  177 </span><span class="spaces">  </span><span class="nottickedoff">let as@AssetSlot{ slotAsset = a, assetSlot = s } = case target of</span>
+<span class="lineno">  178 </span><span class="spaces">        </span><span class="nottickedoff">AssetTargetVolume t -&gt; assetNoSlot $ blankAsset t</span>
+<span class="lineno">  179 </span><span class="spaces">        </span><span class="nottickedoff">AssetTargetSlot t -&gt; AssetSlot (blankAsset (view t)) (Just t)</span>
+<span class="lineno">  180 </span><span class="spaces">        </span><span class="nottickedoff">AssetTargetAsset t -&gt; t</span>
+<span class="lineno">  181 </span><span class="spaces">  </span><span class="nottickedoff">(as', up') &lt;- runFormFiles [(&quot;file&quot;, maxAssetSize)] (Nothing :: Maybe (RequestContext -&gt; FormHtml a)) $ do</span>
+<span class="lineno">  182 </span><span class="spaces">    </span><span class="nottickedoff">liftIO $ putStrLn &quot;runFormFiles...&quot;--DEBUG</span>
+<span class="lineno">  183 </span><span class="spaces">    </span><span class="nottickedoff">csrfForm</span>
+<span class="lineno">  184 </span><span class="spaces">    </span><span class="nottickedoff">(file :: Maybe (FileInfo TempFile)) &lt;- &quot;file&quot; .:&gt; deform</span>
+<span class="lineno">  185 </span><span class="spaces">    </span><span class="nottickedoff">liftIO $ putStrLn &quot;deformed file...&quot; --DEBUG</span>
+<span class="lineno">  186 </span><span class="spaces">    </span><span class="nottickedoff">upload &lt;- &quot;upload&quot; .:&gt; deformLookup &quot;Uploaded file not found.&quot; lookupUpload</span>
+<span class="lineno">  187 </span><span class="spaces">    </span><span class="nottickedoff">liftIO $ putStrLn &quot;upload file...&quot; --DEBUG</span>
+<span class="lineno">  188 </span><span class="spaces">    </span><span class="nottickedoff">upfile &lt;- case (file, upload) of</span>
+<span class="lineno">  189 </span><span class="spaces">      </span><span class="nottickedoff">(Just f, Nothing) -&gt; return $ Just $ FileUploadForm f</span>
+<span class="lineno">  190 </span><span class="spaces">      </span><span class="nottickedoff">(Nothing, Just u) -&gt; return $ Just $ FileUploadToken u</span>
+<span class="lineno">  191 </span><span class="spaces">      </span><span class="nottickedoff">(Nothing, Nothing)</span>
+<span class="lineno">  192 </span><span class="spaces">        </span><span class="nottickedoff">| AssetTargetAsset _ &lt;- target -&gt; return Nothing</span>
+<span class="lineno">  193 </span><span class="spaces">        </span><span class="nottickedoff">| otherwise -&gt; Nothing &lt;$ deformError &quot;File or upload required.&quot;</span>
+<span class="lineno">  194 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; Nothing &lt;$ deformError &quot;Conflicting uploaded files found.&quot;</span>
+<span class="lineno">  195 </span><span class="spaces">    </span><span class="nottickedoff">up &lt;- mapM detectUpload upfile</span>
+<span class="lineno">  196 </span><span class="spaces">    </span><span class="nottickedoff">liftIO $ putStrLn &quot;upfile cased...&quot; --DEBUG</span>
+<span class="lineno">  197 </span><span class="spaces">    </span><span class="nottickedoff">let fmt = maybe (assetFormat $ assetRow a) (probeFormat . fileUploadProbe) up</span>
+<span class="lineno">  198 </span><span class="spaces">    </span><span class="nottickedoff">liftIO $ putStrLn &quot;format upload probe...&quot; --DEBUG</span>
+<span class="lineno">  199 </span><span class="spaces">    </span><span class="nottickedoff">name &lt;- &quot;name&quot; .:&gt; maybe (assetName $ assetRow a) (TE.decodeUtf8 . dropFormatExtension fmt &lt;$&gt;) &lt;$&gt; deformOptional (deformNonEmpty deform)</span>
+<span class="lineno">  200 </span><span class="spaces">    </span><span class="nottickedoff">liftIO $ putStrLn &quot;renamed asset...&quot; --DEBUG</span>
+<span class="lineno">  201 </span><span class="spaces">    </span><span class="nottickedoff">classification &lt;- &quot;classification&quot; .:&gt; fromMaybe (assetRelease $ assetRow a) &lt;$&gt; deformOptional (deformNonEmpty deform)</span>
+<span class="lineno">  202 </span><span class="spaces">    </span><span class="nottickedoff">liftIO $ putStrLn &quot;classification deformed...&quot; --DEBUG</span>
+<span class="lineno">  203 </span><span class="spaces">    </span><span class="nottickedoff">slot &lt;-</span>
+<span class="lineno">  204 </span><span class="spaces">      </span><span class="nottickedoff">&quot;container&quot; .:&gt; (&lt;|&gt; slotContainer &lt;$&gt; s) &lt;$&gt; deformLookup &quot;Container not found.&quot; (lookupVolumeContainer (assetVolume a))</span>
+<span class="lineno">  205 </span><span class="spaces">      </span><span class="nottickedoff">&gt;&gt;= mapM (\c -&gt; &quot;position&quot; .:&gt; do</span>
+<span class="lineno">  206 </span><span class="spaces">        </span><span class="nottickedoff">let seg = slotSegment &lt;$&gt; s</span>
+<span class="lineno">  207 </span><span class="spaces">            </span><span class="nottickedoff">dur = maybe (assetDuration $ assetRow a) (probeLength . fileUploadProbe) up</span>
+<span class="lineno">  208 </span><span class="spaces">        </span><span class="nottickedoff">p &lt;- fromMaybe (lowerBound . segmentRange =&lt;&lt; seg) &lt;$&gt; deformOptional (deformNonEmpty deform)</span>
+<span class="lineno">  209 </span><span class="spaces">        </span><span class="nottickedoff">Slot c . maybe fullSegment</span>
+<span class="lineno">  210 </span><span class="spaces">          </span><span class="nottickedoff">(\l -&gt; Segment $ Range.bounded l (l + fromMaybe 0 ((segmentLength =&lt;&lt; seg) &lt;|&gt; dur)))</span>
+<span class="lineno">  211 </span><span class="spaces">          </span><span class="nottickedoff">&lt;$&gt; orElseM p (mapM (lift . probeAutoPosition c . Just . fileUploadProbe) (guard (isNothing s &amp;&amp; isJust dur) &gt;&gt; up)))</span>
+<span class="lineno">  212 </span><span class="spaces">    </span><span class="nottickedoff">liftIO $ putStrLn &quot;slot assigned...&quot; --DEBUG</span>
+<span class="lineno">  213 </span><span class="spaces">    </span><span class="nottickedoff">return</span>
+<span class="lineno">  214 </span><span class="spaces">      </span><span class="nottickedoff">( as</span>
+<span class="lineno">  215 </span><span class="spaces">        </span><span class="nottickedoff">{ slotAsset = a</span>
+<span class="lineno">  216 </span><span class="spaces">          </span><span class="nottickedoff">{ assetRow = (assetRow a)</span>
+<span class="lineno">  217 </span><span class="spaces">            </span><span class="nottickedoff">{ assetName = name</span>
+<span class="lineno">  218 </span><span class="spaces">            </span><span class="nottickedoff">, assetRelease = classification</span>
+<span class="lineno">  219 </span><span class="spaces">            </span><span class="nottickedoff">, assetFormat = fmt</span>
+<span class="lineno">  220 </span><span class="spaces">            </span><span class="nottickedoff">}</span>
+<span class="lineno">  221 </span><span class="spaces">          </span><span class="nottickedoff">}</span>
+<span class="lineno">  222 </span><span class="spaces">        </span><span class="nottickedoff">, assetSlot = slot</span>
+<span class="lineno">  223 </span><span class="spaces">        </span><span class="nottickedoff">}</span>
+<span class="lineno">  224 </span><span class="spaces">      </span><span class="nottickedoff">, up</span>
+<span class="lineno">  225 </span><span class="spaces">      </span><span class="nottickedoff">)</span>
+<span class="lineno">  226 </span><span class="spaces">  </span><span class="nottickedoff">as'' &lt;- maybe (return as') (\up@FileUpload{ fileUploadFile = upfile } -&gt; do</span>
+<span class="lineno">  227 </span><span class="spaces">    </span><span class="nottickedoff">a' &lt;- addAsset (slotAsset as')</span>
+<span class="lineno">  228 </span><span class="spaces">      </span><span class="nottickedoff">{ assetRow = (assetRow $ slotAsset as')</span>
+<span class="lineno">  229 </span><span class="spaces">        </span><span class="nottickedoff">{ assetName = Just $ TE.decodeUtf8 $ fileUploadName upfile</span>
+<span class="lineno">  230 </span><span class="spaces">        </span><span class="nottickedoff">, assetDuration = Nothing</span>
+<span class="lineno">  231 </span><span class="spaces">        </span><span class="nottickedoff">, assetSize = Nothing</span>
+<span class="lineno">  232 </span><span class="spaces">        </span><span class="nottickedoff">, assetSHA1 = Nothing</span>
+<span class="lineno">  233 </span><span class="spaces">        </span><span class="nottickedoff">}</span>
+<span class="lineno">  234 </span><span class="spaces">      </span><span class="nottickedoff">} . Just =&lt;&lt; peeks (fileUploadPath upfile)</span>
+<span class="lineno">  235 </span><span class="spaces">    </span><span class="nottickedoff">fileUploadRemove upfile</span>
+<span class="lineno">  236 </span><span class="spaces">    </span><span class="nottickedoff">td &lt;- checkAlreadyTranscoded a' (fileUploadProbe up)</span>
+<span class="lineno">  237 </span><span class="spaces">    </span><span class="nottickedoff">te &lt;- peeks transcodeEnabled</span>
+<span class="lineno">  238 </span><span class="spaces">    </span><span class="nottickedoff">t &lt;- case fileUploadProbe up of</span>
+<span class="lineno">  239 </span><span class="spaces">      </span><span class="nottickedoff">ProbeAV{ probeAV = av } | td -&gt;</span>
+<span class="lineno">  240 </span><span class="spaces">        </span><span class="nottickedoff">return a'{ assetRow = (assetRow a'){ assetDuration = avProbeLength av } }</span>
+<span class="lineno">  241 </span><span class="spaces">      </span><span class="nottickedoff">probe@ProbeAV{} | te -&gt; do</span>
+<span class="lineno">  242 </span><span class="spaces">        </span><span class="nottickedoff">t &lt;- addTranscode a' fullSegment defaultTranscodeOptions probe</span>
+<span class="lineno">  243 </span><span class="spaces">        </span><span class="nottickedoff">_ &lt;- forkTranscode t</span>
+<span class="lineno">  244 </span><span class="spaces">        </span><span class="nottickedoff">return $ transcodeAsset t</span>
+<span class="lineno">  245 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; return a'</span>
+<span class="lineno">  246 </span><span class="spaces">    </span><span class="nottickedoff">case target of</span>
+<span class="lineno">  247 </span><span class="spaces">      </span><span class="nottickedoff">AssetTargetAsset _ -&gt; replaceAsset a t</span>
+<span class="lineno">  248 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; return ()</span>
+<span class="lineno">  249 </span><span class="spaces">    </span><span class="nottickedoff">return $ fixAssetSlotDuration as'</span>
+<span class="lineno">  250 </span><span class="spaces">      </span><span class="nottickedoff">{ slotAsset = t</span>
+<span class="lineno">  251 </span><span class="spaces">        </span><span class="nottickedoff">{ assetRow = (assetRow t)</span>
+<span class="lineno">  252 </span><span class="spaces">          </span><span class="nottickedoff">{ assetName = assetName $ assetRow $ slotAsset as'</span>
+<span class="lineno">  253 </span><span class="spaces">          </span><span class="nottickedoff">}</span>
+<span class="lineno">  254 </span><span class="spaces">        </span><span class="nottickedoff">}</span>
+<span class="lineno">  255 </span><span class="spaces">      </span><span class="nottickedoff">})</span>
+<span class="lineno">  256 </span><span class="spaces">    </span><span class="nottickedoff">up'</span>
+<span class="lineno">  257 </span><span class="spaces">  </span><span class="nottickedoff">a' &lt;- changeAsset (slotAsset as'') Nothing</span>
+<span class="lineno">  258 </span><span class="spaces">  </span><span class="nottickedoff">liftIO $ putStrLn &quot;changed asset...&quot; --DEBUG</span>
+<span class="lineno">  259 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- changeAssetSlot as''</span>
+<span class="lineno">  260 </span><span class="spaces">  </span><span class="nottickedoff">liftIO $ putStrLn &quot;change asset slot...&quot; --DEBUG</span>
+<span class="lineno">  261 </span><span class="spaces">  </span><span class="nottickedoff">when (assetRelease (assetRow a') == Just ReleasePUBLIC &amp;&amp; assetRelease (assetRow a) /= Just ReleasePUBLIC) $</span>
+<span class="lineno">  262 </span><span class="spaces">    </span><span class="nottickedoff">createVolumeNotification (assetVolume a') $ \n -&gt; (n NoticeReleaseAsset)</span>
+<span class="lineno">  263 </span><span class="spaces">      </span><span class="nottickedoff">{ notificationContainerId = containerId . containerRow . slotContainer &lt;$&gt; assetSlot as''</span>
+<span class="lineno">  264 </span><span class="spaces">      </span><span class="nottickedoff">, notificationSegment = slotSegment &lt;$&gt; assetSlot as''</span>
+<span class="lineno">  265 </span><span class="spaces">      </span><span class="nottickedoff">, notificationAssetId = Just $ assetId $ assetRow a'</span>
+<span class="lineno">  266 </span><span class="spaces">      </span><span class="nottickedoff">, notificationRelease = assetRelease $ assetRow a'</span>
+<span class="lineno">  267 </span><span class="spaces">      </span><span class="nottickedoff">}</span>
+<span class="lineno">  268 </span><span class="spaces">  </span><span class="nottickedoff">(do</span>
+<span class="lineno">  269 </span><span class="spaces">      </span><span class="nottickedoff">liftIO $ putStrLn &quot;JSON ok response...&quot; --DEBUG                        </span>
+<span class="lineno">  270 </span><span class="spaces">      </span><span class="nottickedoff"></span></span>return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON False as'') -- publicrestrict false because EDIT
+<span class="lineno">  271 </span>  -- HTML -&gt; do
+<span class="lineno">  272 </span>  --    liftIO $ putStrLn &quot;returning HTML other route reponse...&quot; --DEBUG
+<span class="lineno">  273 </span>  --    peeks $ otherRouteResponse [] viewAsset (api, assetId $ assetRow $ slotAsset as'')
+<span class="lineno">  274 </span>
+<span class="lineno">  275 </span><span class="decl"><span class="istickedoff">postAsset :: ActionRoute (Id Asset)</span>
+<span class="lineno">  276 </span><span class="spaces"></span><span class="istickedoff">postAsset =<span class="nottickedoff"> multipartAction $ action POST (pathJS</span>ON &gt;/&gt; pathId) $ \(ai) -&gt; withAuth $ do</span>
+<span class="lineno">  277 </span><span class="spaces">  </span><span class="istickedoff">asset<span class="nottickedoff"> &lt;- getAsset False PermissionEDIT</span> False ai</span>
+<span class="lineno">  278 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">r &lt;- assetIsReplaced (slotAsset asset)</span></span>
+<span class="lineno">  279 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">when r $ result $                                                          </span></span>
+<span class="lineno">  280 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff"></span>response conf<span class="nottickedoff">lict409 [] (&quot;This file</span></span></span> has already been replaced.&quot; :: T.Text)
+<span class="lineno">  281 </span>  processAsset $ AssetTargetAsset asset
+<span class="lineno">  282 </span>
+<span class="lineno">  283 </span>{-
+<span class="lineno">  284 </span>viewAssetEdit :: ActionRoute (Id Asset)
+<span class="lineno">  285 </span>viewAssetEdit = action GET (pathHTML &gt;/&gt; pathId &lt;/&lt; &quot;edit&quot;) $ \ai -&gt; withAuth $ do
+<span class="lineno">  286 </span>  asset &lt;- getAsset False PermissionEDIT False ai
+<span class="lineno">  287 </span>  peeks $ blankForm . htmlAssetEdit (AssetTargetAsset asset)
+<span class="lineno">  288 </span>-}
+<span class="lineno">  289 </span>
+<span class="lineno">  290 </span><span class="decl"><span class="istickedoff">createAsset :: ActionRoute (Id Volume)</span>
+<span class="lineno">  291 </span><span class="spaces"></span><span class="istickedoff">cr<span class="nottickedoff">eateAsset = multipartAction $ action POST (pa</span>thJSON &gt;/&gt; pathId &lt;/&lt; &quot;asset&quot;) $ \vi -&gt; withAuth $ do</span>
+<span class="lineno">  292 </span><span class="spaces">  </span><span class="istickedoff">liftI<span class="nottickedoff">O $ print &quot;getting volume p</span>ermission...&quot;</span>
+<span class="lineno">  293 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi   </span></span>
+<span class="lineno">  294 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff"></span><span class="nottickedoff">liftIO $ print &quot;processing asset..</span></span></span>.&quot;
+<span class="lineno">  295 </span>  processAsset $ AssetTargetVolume v
+<span class="lineno">  296 </span>
+<span class="lineno">  297 </span>{-
+<span class="lineno">  298 </span>viewAssetCreate :: ActionRoute (Id Volume)
+<span class="lineno">  299 </span>viewAssetCreate = action GET (pathHTML &gt;/&gt; pathId &lt;/&lt; &quot;asset&quot;) $ \vi -&gt; withAuth $ do
+<span class="lineno">  300 </span>  v &lt;- getVolume PermissionEDIT vi
+<span class="lineno">  301 </span>  peeks $ blankForm . htmlAssetEdit (AssetTargetVolume v)
+<span class="lineno">  302 </span>-}
+<span class="lineno">  303 </span>
+<span class="lineno">  304 </span><span class="decl"><span class="istickedoff">createSlotAsset :: ActionRoute (Id Slot)</span>
+<span class="lineno">  305 </span><span class="spaces"></span><span class="istickedoff">createS<span class="nottickedoff">lotAsset = multipartAction $ acti</span>on POST (pathJSON &gt;/&gt; pathSlotId &lt;/&lt; &quot;asset&quot;) $ \(si) -&gt; withAuth $ do</span>
+<span class="lineno">  306 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">v &lt;- getSlot PermissionEDIT Noth</span></span></span>ing si
+<span class="lineno">  307 </span>  processAsset $ AssetTargetSlot v
+<span class="lineno">  308 </span>
+<span class="lineno">  309 </span>{-
+<span class="lineno">  310 </span>viewSlotAssetCreate :: ActionRoute (Id Slot)
+<span class="lineno">  311 </span>viewSlotAssetCreate = action GET (pathHTML &gt;/&gt; pathSlotId &lt;/&lt; &quot;asset&quot;) $ \si -&gt; withAuth $ do
+<span class="lineno">  312 </span>  s &lt;- getSlot PermissionEDIT Nothing si
+<span class="lineno">  313 </span>  peeks $ blankForm . htmlAssetEdit (AssetTargetSlot s)
+<span class="lineno">  314 </span>-}
+<span class="lineno">  315 </span>
+<span class="lineno">  316 </span><span class="decl"><span class="istickedoff">deleteAsset :: Action<span class="nottickedoff">Route </span>(Id Asset)</span>
+<span class="lineno">  317 </span><span class="spaces"></span><span class="istickedoff">de<span class="nottickedoff">leteAsset = act</span>ion DELETE (pathJSON &gt;/&gt; pathId) $ \ai -&gt; withAuth $ do</span>
+<span class="lineno">  318 </span><span class="spaces">  </span><span class="istickedoff">guardVerf<span class="nottickedoff">Header                               </span></span>
+<span class="lineno">  319 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff"></span>asse<span class="nottickedoff">t &lt;- getAsset False PermissionEDIT Fa</span>lse ai</span>
+<span class="lineno">  320 </span><span class="spaces">  </span><span class="istickedoff">let a<span class="nottickedoff">sset' = asset{ assetSl</span>ot = Nothing }</span>
+<span class="lineno">  321 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">_ &lt;- changeAssetSlot asset'                                             </span></span>
+<span class="lineno">  322 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff"></span></span></span>return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON False asset' -- publicRestricted false because EDIT
+<span class="lineno">  323 </span>  --  HTML -&gt; peeks $ otherRouteResponse [] viewAsset (api, assetId $ assetRow $ slotAsset asset')
+<span class="lineno">  324 </span>
+<span class="lineno">  325 </span><span class="decl"><span class="istickedoff">downloadAsset :: Action<span class="nottickedoff">Rou</span>te (Id Asset,<span class="nottickedoff"> Segment)                </span></span>
+<span class="lineno">  326 </span><span class="spaces"></span><span class="istickedoff"><span class="nottickedoff"></span>downloa<span class="nottickedoff">dAsset = action GET (pathId &lt;/&gt; pathSeg</span>ment &lt;/&lt; &quot;download&quot;) $ \(ai, seg) -&gt; withAuth $ do</span>
+<span class="lineno">  327 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- getAs<span class="nottickedoff">set False PermissionPUBLIC True ai   </span></span>
+<span class="lineno">  328 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff"></span><span class="nottickedoff">inline &lt;- peeks $ lookupQueryParameters &quot;inline&quot;              </span></span>
+<span class="lineno">  329 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff"></span></span></span>serveAssetSegment (null inline) $ newAssetSegment a seg Nothing
+<span class="lineno">  330 </span>
+<span class="lineno">  331 </span><span class="decl"><span class="istickedoff">downloadOrigAsset :: Action<span class="nottickedoff">Rou</span>te (Id Asset,<span class="nottickedoff"> Segment)                    </span></span>
+<span class="lineno">  332 </span><span class="spaces"></span><span class="istickedoff"><span class="nottickedoff"></span>downloa<span class="nottickedoff">dOrigAsset = action GET (pathId &lt;/&gt; pa</span>thSegment &lt;/&lt; &quot;downloadOrig&quot;) $ \(ai, seg) -&gt; withAuth $ do</span>
+<span class="lineno">  333 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- getAs<span class="nottickedoff">set True PermissionPUBLIC True ai    </span></span>
+<span class="lineno">  334 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff"></span><span class="nottickedoff">inline &lt;- peeks $ lookupQueryParameters &quot;inline&quot;              </span></span>
+<span class="lineno">  335 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff"></span></span></span>serveAssetSegment (null inline) $ newAssetSegment a seg Nothing
+<span class="lineno">  336 </span>
+<span class="lineno">  337 </span><span class="decl"><span class="istickedoff">thumbAsset :: Action<span class="nottickedoff">Rou</span>te (Id Asset,<span class="nottickedoff"> Segment)             </span></span>
+<span class="lineno">  338 </span><span class="spaces"></span><span class="istickedoff"><span class="nottickedoff"></span>thumbAs<span class="nottickedoff">set = action GET (pathId &lt;/&gt; pathSegment</span> &lt;/&lt; &quot;thumb&quot;) $ \(ai, seg) -&gt; withAuth $ do</span>
+<span class="lineno">  339 </span><span class="spaces">  </span><span class="istickedoff">a &lt;-<span class="nottickedoff"> getAsset False PermissionPUBLIC False ai                  </span></span>
+<span class="lineno">  340 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff"></span><span class="nottickedoff">let as = assetSegmentInterp 0.25 $ newAssetSegment a seg Nothing</span></span>
+<span class="lineno">  341 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">if formatIsImage (view as)</span></span>
+<span class="lineno">  342 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">&amp;&amp; assetBacked (view as)</span></span>
+<span class="lineno">  343 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">&amp;&amp; canReadData2 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as</span></span>
+<span class="lineno">  344 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">then peeks $ otherRouteResponse [] downloadAsset (view </span></span></span>as, assetSegment as)
+<span class="lineno">  345 </span>    else peeks $ otherRouteResponse [] formatIcon (view as)
+
+</pre>
+</body>
+</html>

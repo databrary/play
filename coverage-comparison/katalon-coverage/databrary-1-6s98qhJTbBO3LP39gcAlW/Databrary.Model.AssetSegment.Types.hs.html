@@ -1,0 +1,179 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>module Databrary.Model.AssetSegment.Types
+<span class="lineno">    2 </span>  ( AssetSegment(..)
+<span class="lineno">    3 </span>  , getAssetSegmentRelease2
+<span class="lineno">    4 </span>  , getAssetSegmentVolumePermission2
+<span class="lineno">    5 </span>  , getAssetSegmentVolume
+<span class="lineno">    6 </span>  , newAssetSegment
+<span class="lineno">    7 </span>  , assetFullSegment
+<span class="lineno">    8 </span>  , assetSlotSegment
+<span class="lineno">    9 </span>  , assetSegmentFull
+<span class="lineno">   10 </span>  , assetSegmentRange
+<span class="lineno">   11 </span>  , Excerpt(..)
+<span class="lineno">   12 </span>  , newExcerpt
+<span class="lineno">   13 </span>  , excerptInSegment
+<span class="lineno">   14 </span>  ) where
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import Data.Foldable (fold)
+<span class="lineno">   17 </span>import Data.Maybe (fromMaybe)
+<span class="lineno">   18 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   19 </span>import qualified Database.PostgreSQL.Typed.Range as Range
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>import Databrary.Ops
+<span class="lineno">   22 </span>import Databrary.Has (Has(..))
+<span class="lineno">   23 </span>import Databrary.Model.Offset
+<span class="lineno">   24 </span>import Databrary.Model.Segment
+<span class="lineno">   25 </span>import Databrary.Model.Id.Types
+<span class="lineno">   26 </span>import Databrary.Model.Permission.Types
+<span class="lineno">   27 </span>import Databrary.Model.Volume.Types
+<span class="lineno">   28 </span>import Databrary.Model.Release.Types
+<span class="lineno">   29 </span>import Databrary.Model.Container.Types
+<span class="lineno">   30 </span>import Databrary.Model.Slot.Types
+<span class="lineno">   31 </span>import Databrary.Model.Format
+<span class="lineno">   32 </span>import Databrary.Model.Asset.Types
+<span class="lineno">   33 </span>import Databrary.Model.AssetSlot.Types
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>data AssetSegment = AssetSegment
+<span class="lineno">   36 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">segmentAsset</span></span></span> :: AssetSlot
+<span class="lineno">   37 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">assetSegment</span></span></span> :: !Segment
+<span class="lineno">   38 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">assetExcerpt</span></span></span> :: Maybe Excerpt
+<span class="lineno">   39 </span>  }
+<span class="lineno">   40 </span>  -- derivin<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">g (S</span></span></span></span>how)
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>assetAssumedSegment :: AssetSlot -&gt; Segment
+<span class="lineno">   43 </span><span class="decl"><span class="istickedoff">assetAssumedSegment a</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="istickedoff">| segmentFull seg = Segment $ Range.bounded 0 $ fromMaybe 0 $ assetDuration $ assetRow $ slotAsset a</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = seg where seg = view a</span></span>
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>-- |A &quot;fake&quot; (possibly invalid) 'AssetSegment' corresponding to the full 'AssetSlot'
+<span class="lineno">   48 </span>assetSlotSegment :: AssetSlot -&gt; AssetSegment
+<span class="lineno">   49 </span><span class="decl"><span class="istickedoff">assetSlotSegment a = AssetSegment a (assetAssumedSegment a) Nothing</span></span>
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>assetFullSegment :: AssetSegment -&gt; AssetSegment
+<span class="lineno">   52 </span><span class="decl"><span class="nottickedoff">assetFullSegment AssetSegment{ assetExcerpt = Just e } = excerptFullSegment e</span>
+<span class="lineno">   53 </span><span class="spaces"></span><span class="nottickedoff">assetFullSegment AssetSegment{ segmentAsset = a } = assetSlotSegment a</span></span>
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>newAssetSegment :: AssetSlot -&gt; Segment -&gt; Maybe Excerpt -&gt; AssetSegment
+<span class="lineno">   56 </span><span class="decl"><span class="istickedoff">newAssetSegment a s e = AssetSegment a (assetAssumedSegment a `segmentIntersect` s) e</span></span>
+<span class="lineno">   57 </span>
+<span class="lineno">   58 </span>assetSegmentFull :: AssetSegment -&gt; Bool
+<span class="lineno">   59 </span><span class="decl"><span class="istickedoff">assetSegmentFull AssetSegment{ segmentAsset = a, assetSegment = s } = assetAssumedSegment a == s</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>assetSegmentRange :: AssetSegment -&gt; Range.Range Offset
+<span class="lineno">   62 </span><span class="decl"><span class="istickedoff">assetSegmentRange AssetSegment{ segmentAsset = a, assetSegment = Segment s } =</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="istickedoff">maybe <span class="nottickedoff">id</span> (fmap . subtract) (lowerBound $ segmentRange $ assetAssumedSegment a) s</span></span>
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>instance Has AssetSlot AssetSegment where
+<span class="lineno">   66 </span>  <span class="decl"><span class="istickedoff">view = segmentAsset</span></span>
+<span class="lineno">   67 </span>instance Has Asset AssetSegment where
+<span class="lineno">   68 </span>  <span class="decl"><span class="istickedoff">view = view . segmentAsset</span></span>
+<span class="lineno">   69 </span>instance Has (Id Asset) AssetSegment where
+<span class="lineno">   70 </span>  <span class="decl"><span class="istickedoff">view = view . segmentAsset</span></span>
+<span class="lineno">   71 </span>getAssetSegmentVolume :: AssetSegment -&gt; Volume
+<span class="lineno">   72 </span><span class="decl"><span class="nottickedoff">getAssetSegmentVolume = getAssetSlotVolume . segmentAsset</span></span>
+<span class="lineno">   73 </span>instance Has Volume AssetSegment where
+<span class="lineno">   74 </span>  <span class="decl"><span class="istickedoff">view = view . segmentAsset</span></span>
+<span class="lineno">   75 </span>instance Has (Id Volume) AssetSegment where
+<span class="lineno">   76 </span>  <span class="decl"><span class="nottickedoff">view = view . segmentAsset</span></span>
+<span class="lineno">   77 </span>getAssetSegmentVolumePermission2 :: AssetSegment -&gt; VolumeRolePolicy
+<span class="lineno">   78 </span><span class="decl"><span class="istickedoff">getAssetSegmentVolumePermission2 = getAssetSlotVolumePermission2 . segmentAsset</span></span>
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>instance Has Slot AssetSegment where
+<span class="lineno">   81 </span>  <span class="decl"><span class="istickedoff">view AssetSegment{ segmentAsset = AssetSlot{ assetSlot = Just s }, assetSegment = seg } = s{ slotSegment = seg }</span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="istickedoff">view _ = <span class="nottickedoff">error &quot;unlinked AssetSegment&quot;</span></span></span>
+<span class="lineno">   83 </span>instance Has Container AssetSegment where
+<span class="lineno">   84 </span>  <span class="decl"><span class="nottickedoff">view = slotContainer . view</span></span>
+<span class="lineno">   85 </span>instance Has (Id Container) AssetSegment where
+<span class="lineno">   86 </span>  <span class="decl"><span class="istickedoff">view = containerId . containerRow . slotContainer . view</span></span>
+<span class="lineno">   87 </span>instance Has Segment AssetSegment where
+<span class="lineno">   88 </span>  <span class="decl"><span class="nottickedoff">view = assetSegment</span></span>
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>instance Has Format AssetSegment where
+<span class="lineno">   91 </span>  <span class="decl"><span class="istickedoff">view AssetSegment{ segmentAsset = a, assetSegment = Segment rng }</span>
+<span class="lineno">   92 </span><span class="spaces">    </span><span class="istickedoff">| Just s &lt;- formatSample fmt</span>
+<span class="lineno">   93 </span><span class="spaces">    </span><span class="istickedoff">, Just _ &lt;- assetDuration $ assetRow $ slotAsset a</span>
+<span class="lineno">   94 </span><span class="spaces">    </span><span class="istickedoff">, Just _ &lt;- Range.getPoint rng = s</span>
+<span class="lineno">   95 </span><span class="spaces">    </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = fmt</span>
+<span class="lineno">   96 </span><span class="spaces">    </span><span class="istickedoff">where fmt = getAssetSlotFormat a</span></span>
+<span class="lineno">   97 </span>instance Has (Id Format) AssetSegment where
+<span class="lineno">   98 </span>  <span class="decl"><span class="nottickedoff">view = formatId . view</span></span>
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>-- when the assetslot has lower permissions than the excerpt, then use the excerpt's permissions
+<span class="lineno">  101 </span>-- when no excerpt is present, then assume no access
+<span class="lineno">  102 </span>getAssetSegmentRelease2 :: AssetSegment -&gt; EffectiveRelease
+<span class="lineno">  103 </span><span class="decl"><span class="istickedoff">getAssetSegmentRelease2 as =</span>
+<span class="lineno">  104 </span><span class="spaces">  </span><span class="istickedoff">case as of</span>
+<span class="lineno">  105 </span><span class="spaces">    </span><span class="istickedoff">AssetSegment{ segmentAsset = a, assetExcerpt = Just e } -&gt;</span>
+<span class="lineno">  106 </span><span class="spaces">      </span><span class="istickedoff">let</span>
+<span class="lineno">  107 </span><span class="spaces">        </span><span class="istickedoff">rel = </span>
+<span class="lineno">  108 </span><span class="spaces">           </span><span class="istickedoff">fold (</span>
+<span class="lineno">  109 </span><span class="spaces">                </span><span class="istickedoff">excerptRelease e  -- Maybe Release monoid takes the first just, if both just, then max of values</span>
+<span class="lineno">  110 </span><span class="spaces">             </span><span class="istickedoff">&lt;&gt; getAssetSlotReleaseMaybe a) -- TODO: should I expose the guts of getAssetSlotRelease2?</span>
+<span class="lineno">  111 </span><span class="spaces">      </span><span class="istickedoff">in </span>
+<span class="lineno">  112 </span><span class="spaces">        </span><span class="istickedoff">EffectiveRelease {</span>
+<span class="lineno">  113 </span><span class="spaces">          </span><span class="istickedoff">effRelPublic = rel</span>
+<span class="lineno">  114 </span><span class="spaces">        </span><span class="istickedoff">, effRelPrivate = rel</span>
+<span class="lineno">  115 </span><span class="spaces">        </span><span class="istickedoff">}</span>
+<span class="lineno">  116 </span><span class="spaces">    </span><span class="istickedoff">AssetSegment{ segmentAsset = a } -&gt;</span>
+<span class="lineno">  117 </span><span class="spaces">      </span><span class="istickedoff">getAssetSlotRelease2 a</span></span>
+<span class="lineno">  118 </span>
+<span class="lineno">  119 </span>data Excerpt = Excerpt
+<span class="lineno">  120 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">excerptAsset</span></span></span> :: !AssetSegment
+<span class="lineno">  121 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">excerptRelease</span></span></span> :: !(Maybe Release)
+<span class="lineno">  122 </span>  }
+<span class="lineno">  123 </span>instance Show Excerpt where
+<span class="lineno">  124 </span>  <span class="decl"><span class="istickedoff">show _ = &quot;Excerpt&quot;</span></span>
+<span class="lineno">  125 </span>
+<span class="lineno">  126 </span>newExcerpt :: AssetSlot -&gt; Segment -&gt; Maybe Release -&gt; Excerpt
+<span class="lineno">  127 </span><span class="decl"><span class="istickedoff">newExcerpt a s r = e where</span>
+<span class="lineno">  128 </span><span class="spaces">  </span><span class="istickedoff">as = newAssetSegment a s (Just e)</span>
+<span class="lineno">  129 </span><span class="spaces">  </span><span class="istickedoff">e = Excerpt as r</span></span>
+<span class="lineno">  130 </span>
+<span class="lineno">  131 </span>excerptInSegment :: Excerpt -&gt; Segment -&gt; AssetSegment
+<span class="lineno">  132 </span><span class="decl"><span class="nottickedoff">excerptInSegment e@Excerpt{ excerptAsset = AssetSegment{ segmentAsset = a, assetSegment = es } } s</span>
+<span class="lineno">  133 </span><span class="spaces">  </span><span class="nottickedoff">| segmentOverlaps es s = as</span>
+<span class="lineno">  134 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = error &quot;excerptInSegment: non-overlapping&quot;</span>
+<span class="lineno">  135 </span><span class="spaces">  </span><span class="nottickedoff">where as = newAssetSegment a s ((es `segmentContains` assetSegment as) `thenUse` e)</span></span>
+<span class="lineno">  136 </span>
+<span class="lineno">  137 </span>excerptFullSegment :: Excerpt -&gt; AssetSegment
+<span class="lineno">  138 </span><span class="decl"><span class="nottickedoff">excerptFullSegment e = excerptInSegment e fullSegment</span></span>
+<span class="lineno">  139 </span>
+<span class="lineno">  140 </span>instance Has AssetSegment Excerpt where
+<span class="lineno">  141 </span>  <span class="decl"><span class="nottickedoff">view = excerptAsset</span></span>
+<span class="lineno">  142 </span>instance Has AssetSlot Excerpt where
+<span class="lineno">  143 </span>  <span class="decl"><span class="istickedoff">view = view . excerptAsset</span></span>
+<span class="lineno">  144 </span>instance Has Asset Excerpt where
+<span class="lineno">  145 </span>  <span class="decl"><span class="nottickedoff">view = view . excerptAsset</span></span>
+<span class="lineno">  146 </span>instance Has (Id Asset) Excerpt where
+<span class="lineno">  147 </span>  <span class="decl"><span class="istickedoff">view = view . excerptAsset</span></span>
+<span class="lineno">  148 </span>instance Has Volume Excerpt where
+<span class="lineno">  149 </span>  <span class="decl"><span class="nottickedoff">view = view . excerptAsset</span></span>
+<span class="lineno">  150 </span>instance Has (Id Volume) Excerpt where
+<span class="lineno">  151 </span>  <span class="decl"><span class="nottickedoff">view = view . excerptAsset</span></span>
+<span class="lineno">  152 </span>instance Has Slot Excerpt where
+<span class="lineno">  153 </span>  <span class="decl"><span class="nottickedoff">view = view . excerptAsset</span></span>
+<span class="lineno">  154 </span>instance Has Container Excerpt where
+<span class="lineno">  155 </span>  <span class="decl"><span class="nottickedoff">view = view . excerptAsset</span></span>
+<span class="lineno">  156 </span>instance Has (Id Container) Excerpt where
+<span class="lineno">  157 </span>  <span class="decl"><span class="istickedoff">view = view . excerptAsset</span></span>
+<span class="lineno">  158 </span>instance Has Segment Excerpt where
+<span class="lineno">  159 </span>  <span class="decl"><span class="nottickedoff">view = view . excerptAsset</span></span>
+
+</pre>
+</body>
+</html>

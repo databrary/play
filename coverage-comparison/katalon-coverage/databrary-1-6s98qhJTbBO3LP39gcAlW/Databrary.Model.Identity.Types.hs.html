@@ -1,0 +1,97 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    2 </span>module Databrary.Model.Identity.Types
+<span class="lineno">    3 </span>  ( Identity(..)
+<span class="lineno">    4 </span>  , MonadHasIdentity
+<span class="lineno">    5 </span>  , extractFromIdentifiedSessOrDefault
+<span class="lineno">    6 </span>  , identityVerf
+<span class="lineno">    7 </span>  , identityAdmin
+<span class="lineno">    8 </span>  , identitySuperuser
+<span class="lineno">    9 </span>  ) where
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import qualified Data.ByteString as BS
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>import Databrary.Has (Has(..), MonadHas)
+<span class="lineno">   14 </span>import Databrary.Model.Id.Types
+<span class="lineno">   15 </span>import Databrary.Model.Permission.Types
+<span class="lineno">   16 </span>import Databrary.Model.Party.Types
+<span class="lineno">   17 </span>import Databrary.Model.Token.Types
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>-- | Who is making the request that we are handling?
+<span class="lineno">   20 </span>data Identity
+<span class="lineno">   21 </span>  = NotLoggedIn
+<span class="lineno">   22 </span>  -- ^ User may have an identity, but they have not established it yet
+<span class="lineno">   23 </span>  | IdentityNotNeeded
+<span class="lineno">   24 </span>  -- ^ We don't care what the user's identity is.
+<span class="lineno">   25 </span>  -- Used mainly for BackgroundContext, but also used when
+<span class="lineno">   26 </span>  -- running unprotected routes
+<span class="lineno">   27 </span>  | Identified Session
+<span class="lineno">   28 </span>  -- ^ An actual human user on a web browser. One of the other two return values
+<span class="lineno">   29 </span>  -- for 'determineIdentity'.
+<span class="lineno">   30 </span>  | ReIdentified SiteAuth
+<span class="lineno">   31 </span>  -- ^ Speculation: used in video conversion when sending results from the
+<span class="lineno">   32 </span>  -- compute cluster back to the system. Used as a 'su' to run actions as the
+<span class="lineno">   33 </span>  -- account who created the upload asset, instead of the anonymous account submitting the result?
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>-- | Get the SiteAuth for the Identity, which corresponds to what privileges the Identity has
+<span class="lineno">   36 </span>-- within the site as well which Party/Account the Identity is
+<span class="lineno">   37 </span>instance Has SiteAuth Identity where
+<span class="lineno">   38 </span>  <span class="decl"><span class="istickedoff">view (Identified Session{ sessionAccountToken = AccountToken{ tokenAccount = t } }) = t</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">view (ReIdentified a) = <span class="nottickedoff">a</span></span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="istickedoff">view IdentityNotNeeded = nobodySiteAuth</span>
+<span class="lineno">   41 </span><span class="spaces">  </span><span class="istickedoff">view NotLoggedIn = nobodySiteAuth</span></span>
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>instance Has Party Identity where
+<span class="lineno">   44 </span>  <span class="decl"><span class="istickedoff">view = view . (view :: Identity -&gt; SiteAuth)</span></span>
+<span class="lineno">   45 </span>instance Has (Id Party) Identity where
+<span class="lineno">   46 </span>  <span class="decl"><span class="nottickedoff">view = view . (view :: Identity -&gt; SiteAuth)</span></span>
+<span class="lineno">   47 </span>instance Has Access Identity where
+<span class="lineno">   48 </span>  <span class="decl"><span class="istickedoff">view = view . (view :: Identity -&gt; SiteAuth)</span></span>
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>--<span class="decl"><span class="istickedoff"> | Used by an action that will reference the</span></span> actor's identity in order to authorize the action being performed.
+<span class="lineno">   51 </span>-- In some cases, this identity simply hasn't been established or was not resolved because the
+<span class="lineno">   52 </span>-- context indicated that an identity wasn't needed.
+<span class="lineno">   53 </span>type MonadHasIdentity c m = (MonadHas Identity c m, Has SiteAuth c, Has Party c, Has (Id Party) c, Has Access c)
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>-- | Extract a value from part of a session for Identified, otherwise use the default value
+<span class="lineno">   56 </span>extractFromIdentifiedSessOrDefault :: a -&gt; (Session -&gt; a) -&gt; Identity -&gt; a
+<span class="lineno">   57 </span>extractFromIdentifiedSessOrDefault z f = \case
+<span class="lineno">   58 </span>    Identified sess -&gt; f sess
+<span class="lineno">   59 </span><span class="decl"><span class="istickedoff">    NotLoggedIn -&gt; z</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="istickedoff">IdentityNotNeeded -&gt; z</span>
+<span class="lineno">   61 </span><span class="spaces">    </span><span class="istickedoff">ReIdentified _ -&gt; z</span>
+<span class="lineno">   62 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">   63 </span><span class="spaces"></span><span class="istickedoff">-- | Extract the secur<span class="nottickedoff">e</span></span></span> token for state changing action, only available for logged in session identity
+<span class="lineno">   64 </span>identityVerf :: Identity -&gt; Maybe BS.ByteString
+<span class="lineno">   65 </span>identityVerf = extractFromIdentifiedSessOrDefault Nothing (Just . sessionVerf)
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span><span class="decl"><span class="istickedoff">identitySuperuserFor :: (Access -&gt; Permission) -&gt; Identity -&gt; Bool           </span>
+<span class="lineno">   68 </span><span class="spaces"></span><span class="istickedoff"></span></span>identitySuperuserFor f (Identified t) = sessionSuperuser t &amp;&amp; f (view t) == PermissionADMIN
+<span class="lineno">   69 </span>identitySuperuserFor _ (ReIdentified _) = True
+<span class="lineno">   70 </span><span class="decl"><span class="istickedoff">identitySuperuserFor _ _ = False</span>
+<span class="lineno">   71 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">   72 </span><span class="spaces"></span><span class="istickedoff">identityAdmin :: Identity -&gt; Boo</span></span>l
+<span class="lineno">   73 </span>identityAdmin = identitySuperuserFor accessMember
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span><span class="decl"><span class="istickedoff">identitySuperuser :: Identity -&gt; Bool<span class="nottickedoff">           </span></span>
+<span class="lineno">   76 </span><span class="spaces"></span><span class="istickedoff"><span class="nottickedoff"></span></span></span>identitySuperuser = identitySuperuserFor accessPermission
+<span class="lineno">   77 </span>ERROR: ("",8,Loc 77 1,[],[(Loc 78 1,Loc 78 57,TopLevelDecl False 1),(Loc 78 1,Loc 78 57,IsTicked),(Loc 78 21,Loc 78 57,IsTicked),(Loc 78 42,Loc 78 57,NotTicked)])
+
+</pre>
+</body>
+</html>

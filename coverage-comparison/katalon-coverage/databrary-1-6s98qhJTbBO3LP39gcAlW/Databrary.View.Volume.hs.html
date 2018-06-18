@@ -1,0 +1,131 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
+<span class="lineno">    2 </span>module Databrary.View.Volume
+<span class="lineno">    3 </span>  (
+<span class="lineno">    4 </span>    htmlVolumeViewLink
+<span class="lineno">    5 </span>    {-
+<span class="lineno">    6 </span>  , htmlVolumeView
+<span class="lineno">    7 </span>  , htmlVolumeEdit
+<span class="lineno">    8 </span>  , htmlVolumeLinksEdit
+<span class="lineno">    9 </span>  , htmlVolumeSearch
+<span class="lineno">   10 </span>   -}
+<span class="lineno">   11 </span>  ) where
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>-- import Control.Monad (when, forM_)
+<span class="lineno">   14 </span>-- import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   15 </span>import Network.HTTP.Types.QueryLike (QueryLike(..))
+<span class="lineno">   16 </span>import qualified Text.Blaze.Html5 as H
+<span class="lineno">   17 </span>-- import qualified Text.Blaze.Html5.Attributes as HA
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>-- import Databrary.Has (view)
+<span class="lineno">   20 </span>import Databrary.Action
+<span class="lineno">   21 </span>-- import Databrary.Model.Permission
+<span class="lineno">   22 </span>import Databrary.Model.Volume
+<span class="lineno">   23 </span>-- import Databrary.Model.Citation
+<span class="lineno">   24 </span>-- import Databrary.Model.Tag
+<span class="lineno">   25 </span>-- import Databrary.HTTP.Form.View
+<span class="lineno">   26 </span>-- import Databrary.Controller.Paths
+<span class="lineno">   27 </span>import Databrary.View.Html
+<span class="lineno">   28 </span>-- import Databrary.View.Template
+<span class="lineno">   29 </span>-- import Databrary.View.Form
+<span class="lineno">   30 </span>-- import Databrary.View.Paginate
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>-- import {-# SOURCE #-} Databrary.Controller.Angular
+<span class="lineno">   33 </span>-- import {-# SOURCE #-} Databrary.Controller.Party
+<span class="lineno">   34 </span>import {-# SOURCE #-} Databrary.Controller.Volume
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>htmlVolumeViewLink :: QueryLike q =&gt; VolumeRow -&gt; q -&gt; H.Html
+<span class="lineno">   37 </span><span class="decl"><span class="nottickedoff">htmlVolumeViewLink v q =</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="nottickedoff">H.a H.! actionLink viewVolume (HTML, volumeId v) q</span>
+<span class="lineno">   39 </span><span class="spaces">    </span><span class="nottickedoff">$ H.text $ volumeName v</span></span>
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>{-
+<span class="lineno">   42 </span>htmlVolumeView :: Volume -&gt; [Tag] -&gt; RequestContext -&gt; H.Html
+<span class="lineno">   43 </span>htmlVolumeView v t req = htmlTemplate req Nothing $ \js -&gt; do
+<span class="lineno">   44 </span>  H.div H.! H.customAttribute &quot;typeof&quot; &quot;dataset&quot; $ do
+<span class="lineno">   45 </span>    H.h1 H.! H.customAttribute &quot;property&quot; &quot;name&quot; $ H.text $ volumeName $ volumeRow v
+<span class="lineno">   46 </span>    when (view v &gt;= PermissionEDIT) $
+<span class="lineno">   47 </span>      H.p $
+<span class="lineno">   48 </span>        H.a H.! actionLink viewVolumeEdit (volumeId $ volumeRow v) js $ &quot;edit&quot;
+<span class="lineno">   49 </span>    H.img
+<span class="lineno">   50 </span>      H.! HA.src (builderValue $ actionURL Nothing thumbVolume (volumeId $ volumeRow v) [])
+<span class="lineno">   51 </span>    H.dl $ do
+<span class="lineno">   52 </span>      forM_ (getVolumeAlias v) $ \a -&gt; do
+<span class="lineno">   53 </span>        H.dt &quot;alias&quot;
+<span class="lineno">   54 </span>        H.dd H.! H.customAttribute &quot;property&quot; &quot;alternateName&quot; $ H.text a
+<span class="lineno">   55 </span>      forM_ (volumeOwners v) $ \(p, n) -&gt; do
+<span class="lineno">   56 </span>        H.dt &quot;owner&quot;
+<span class="lineno">   57 </span>        H.dd H.! H.customAttribute &quot;property&quot; &quot;creator&quot; $ H.a H.! actionLink viewParty (HTML, TargetParty p) js $ H.text n
+<span class="lineno">   58 </span>      forM_ (volumeBody $ volumeRow v) $ \b -&gt; do
+<span class="lineno">   59 </span>        H.dt &quot;body&quot;
+<span class="lineno">   60 </span>        H.dd H.! H.customAttribute &quot;property&quot; &quot;description&quot; $ H.text b -- format
+<span class="lineno">   61 </span>      forM_ (volumeDOI $ volumeRow v) $ \d -&gt; do
+<span class="lineno">   62 </span>        H.dt &quot;doi&quot;
+<span class="lineno">   63 </span>        H.dd H.! H.customAttribute &quot;property&quot; &quot;alternateName&quot; $ byteStringHtml d
+<span class="lineno">   64 </span>      H.dt &quot;keywords&quot;
+<span class="lineno">   65 </span>      H.dd $ H.ul H.! HA.class_ &quot;comma&quot; H.! H.customAttribute &quot;property&quot; &quot;keywords&quot; $ do
+<span class="lineno">   66 </span>        forM_ t $ \n  -&gt; do
+<span class="lineno">   67 </span>          H.li $ byteStringHtml $ tagNameBS $ tagName n
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>htmlVolumeForm :: Maybe Volume -&gt; Maybe Citation -&gt; FormHtml f
+<span class="lineno">   70 </span>htmlVolumeForm vol cite = do
+<span class="lineno">   71 </span>  field &quot;name&quot; $ inputText $ volumeName . volumeRow &lt;$&gt; vol
+<span class="lineno">   72 </span>  field &quot;alias&quot; $ inputText $ volumeAlias . volumeRow =&lt;&lt; vol
+<span class="lineno">   73 </span>  field &quot;body&quot; $ inputTextarea $ volumeBody . volumeRow =&lt;&lt; vol
+<span class="lineno">   74 </span>  &quot;citation&quot; .:&gt; do
+<span class="lineno">   75 </span>    field &quot;head&quot; $ inputText $ citationHead &lt;$&gt; cite
+<span class="lineno">   76 </span>    field &quot;url&quot; $ inputText $ fmap show $ citationURL =&lt;&lt; cite
+<span class="lineno">   77 </span>    field &quot;year&quot; $ inputText $ fmap show $ citationYear =&lt;&lt; cite
+<span class="lineno">   78 </span>
+<span class="lineno">   79 </span>htmlVolumeEdit :: Maybe (Volume, Maybe Citation) -&gt; RequestContext -&gt; FormHtml f
+<span class="lineno">   80 </span>htmlVolumeEdit Nothing = htmlForm &quot;Create volume&quot; createVolume HTML (htmlVolumeForm Nothing Nothing) (const mempty)
+<span class="lineno">   81 </span>htmlVolumeEdit (Just (v, cite)) = htmlForm (&quot;Edit &quot; &lt;&gt; volumeName (volumeRow v)) postVolume (HTML, volumeId $ volumeRow v) (htmlVolumeForm (Just v) cite) (const mempty)
+<span class="lineno">   82 </span>
+<span class="lineno">   83 </span>htmlVolumeLinksEdit :: Volume -&gt; [Citation] -&gt; RequestContext -&gt; FormHtml f
+<span class="lineno">   84 </span>htmlVolumeLinksEdit vol links = htmlForm &quot;Edit volume links&quot; postVolumeLinks (HTML, volumeId $ volumeRow vol)
+<span class="lineno">   85 </span>  (withSubFormsViews links $ \link -&gt; do
+<span class="lineno">   86 </span>    field &quot;head&quot; $ inputText $ citationHead &lt;$&gt; link
+<span class="lineno">   87 </span>    field &quot;url&quot; $ inputText $ fmap show $ citationURL =&lt;&lt; link)
+<span class="lineno">   88 </span>  (const mempty)
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>htmlVolumeList :: JSOpt -&gt; [Volume] -&gt; H.Html
+<span class="lineno">   91 </span>htmlVolumeList js vl = H.ul
+<span class="lineno">   92 </span>  H.! HA.class_ &quot;flat&quot;
+<span class="lineno">   93 </span>  $ forM_ vl $ \v -&gt; H.li
+<span class="lineno">   94 </span>    $ H.article
+<span class="lineno">   95 </span>      H.! HA.class_ &quot;volume-list-result cf&quot;
+<span class="lineno">   96 </span>      $ do
+<span class="lineno">   97 </span>        H.h1
+<span class="lineno">   98 </span>          $ htmlVolumeViewLink (volumeRow v) js
+<span class="lineno">   99 </span>        H.ul
+<span class="lineno">  100 </span>          H.! HA.class_ &quot;flat semicolon&quot;
+<span class="lineno">  101 </span>          $ forM_ (volumeOwners v) $ \(p, o) -&gt; H.li $ do
+<span class="lineno">  102 </span>            H.a H.! actionLink viewParty (HTML, TargetParty p) js
+<span class="lineno">  103 </span>              $ H.text o
+<span class="lineno">  104 </span>        mapM_ (H.p . H.text) $ volumeBody $ volumeRow v
+<span class="lineno">  105 </span>
+<span class="lineno">  106 </span>htmlVolumeSearch :: VolumeFilter -&gt; [Volume] -&gt; RequestContext -&gt; FormHtml f
+<span class="lineno">  107 </span>htmlVolumeSearch VolumeFilter{..} vl req = htmlForm &quot;Volume search&quot; queryVolumes HTML
+<span class="lineno">  108 </span>  (field &quot;query&quot; $ inputText volumeFilterQuery)
+<span class="lineno">  109 </span>  (\js -&gt; htmlPaginate (htmlVolumeList js) volumeFilterPaginate vl (view req))
+<span class="lineno">  110 </span>  req
+<span class="lineno">  111 </span>-}
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Databrary.Store.Probe
+<span class="lineno">    3 </span>  ( Probe(..)
+<span class="lineno">    4 </span>  , probeLength
+<span class="lineno">    5 </span>  , probeFile
+<span class="lineno">    6 </span>  , probeAutoPosition
+<span class="lineno">    7 </span>  , avProbeCheckFormat
+<span class="lineno">    8 </span>  ) where
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import Control.Arrow (left)
+<span class="lineno">   11 </span>import Control.Exception (try)
+<span class="lineno">   12 </span>import Control.Monad.IO.Class (MonadIO(..))
+<span class="lineno">   13 </span>import Control.Monad.Trans.Except (ExceptT(..), runExceptT, throwE)
+<span class="lineno">   14 </span>import qualified Data.ByteString as BS
+<span class="lineno">   15 </span>import Data.List (isPrefixOf)
+<span class="lineno">   16 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   17 </span>import qualified Data.Text as T
+<span class="lineno">   18 </span>import qualified Data.Text.Encoding as TE
+<span class="lineno">   19 </span>import Data.Time.Calendar (diffDays)
+<span class="lineno">   20 </span>import Data.Time.LocalTime (ZonedTime(..), LocalTime(..), timeOfDayToTime)
+<span class="lineno">   21 </span>import System.Posix.FilePath (takeExtension)
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>import Databrary.Has
+<span class="lineno">   24 </span>import Databrary.Files
+<span class="lineno">   25 </span>import Databrary.Service.DB
+<span class="lineno">   26 </span>import Databrary.Model.Format
+<span class="lineno">   27 </span>import Databrary.Model.Offset
+<span class="lineno">   28 </span>import Databrary.Model.Container.Types
+<span class="lineno">   29 </span>import Databrary.Model.AssetSlot
+<span class="lineno">   30 </span>import Databrary.Store.AV
+<span class="lineno">   31 </span>-- import Databrary.Action.Types
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>data Probe
+<span class="lineno">   34 </span>  = ProbePlain
+<span class="lineno">   35 </span>    { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">probeFormat</span></span></span> :: Format }
+<span class="lineno">   36 </span>  | ProbeAV
+<span class="lineno">   37 </span>    { probeFormat :: Format
+<span class="lineno">   38 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">probeTranscode</span></span></span> :: Format
+<span class="lineno">   39 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">probeAV</span></span></span> :: AVProbe
+<span class="lineno">   40 </span>    }
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>-- | Get detected length if this is an audio or video file
+<span class="lineno">   43 </span>probeLength :: Probe -&gt; Maybe Offset
+<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">probeLength ProbeAV{ probeAV = av } = avProbeLength av</span>
+<span class="lineno">   45 </span><span class="spaces"></span><span class="nottickedoff">probeLength _ = Nothing</span></span>
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>-- | Detect whether the mimetype expected in the file given is accepted by Databrary,
+<span class="lineno">   48 </span>-- and probe/wrap the file into a Probe describing it conversion target and current format.
+<span class="lineno">   49 </span>probeFile :: (MonadIO m, MonadHas AV c m) =&gt; BS.ByteString -&gt; RawFilePath -&gt; m (Either T.Text Probe)
+<span class="lineno">   50 </span><span class="decl"><span class="nottickedoff">probeFile n f = runExceptT $ maybe</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">(throwE $ &quot;unknown or unsupported format: &quot; &lt;&gt; TE.decodeLatin1 (takeExtension n))</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">(\fmt -&gt; case formatTranscodable fmt of</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="nottickedoff">Nothing -&gt; return $ ProbePlain fmt</span>
+<span class="lineno">   54 </span><span class="spaces">    </span><span class="nottickedoff">Just t</span>
+<span class="lineno">   55 </span><span class="spaces">      </span><span class="nottickedoff">| t == videoFormat || t == audioFormat -&gt; do</span>
+<span class="lineno">   56 </span><span class="spaces">        </span><span class="nottickedoff">av &lt;- ExceptT $ left ((&quot;could not process unsupported or corrupt media file: &quot; &lt;&gt;) . T.pack . avErrorString)</span>
+<span class="lineno">   57 </span><span class="spaces">          </span><span class="nottickedoff">&lt;$&gt; focusIO (try . avProbe f)</span>
+<span class="lineno">   58 </span><span class="spaces">        </span><span class="nottickedoff">if avProbeHas AVMediaTypeVideo av</span>
+<span class="lineno">   59 </span><span class="spaces">          </span><span class="nottickedoff">then return $ ProbeAV fmt videoFormat av</span>
+<span class="lineno">   60 </span><span class="spaces">          </span><span class="nottickedoff">else if avProbeHas AVMediaTypeAudio av</span>
+<span class="lineno">   61 </span><span class="spaces">            </span><span class="nottickedoff">then return $ ProbeAV fmt audioFormat av</span>
+<span class="lineno">   62 </span><span class="spaces">            </span><span class="nottickedoff">else throwE &quot;no supported video or audio content found&quot;</span>
+<span class="lineno">   63 </span><span class="spaces">      </span><span class="nottickedoff">| otherwise -&gt; fail &quot;unhandled format conversion&quot;)</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">$ getFormatByFilename n</span></span>
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>-- TODO: make this pure
+<span class="lineno">   67 </span>probeAutoPosition :: MonadDB c m =&gt; Container -&gt; Maybe Probe -&gt; m Offset
+<span class="lineno">   68 </span><span class="decl"><span class="nottickedoff">probeAutoPosition</span>
+<span class="lineno">   69 </span><span class="spaces">    </span><span class="nottickedoff">Container{ containerRow = ContainerRow { containerDate = Just d } }</span>
+<span class="lineno">   70 </span><span class="spaces">    </span><span class="nottickedoff">(Just ProbeAV{ probeAV = AVProbe{ avProbeDate = Just (ZonedTime (LocalTime d' t) _) } })</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">| dd &gt;= -1 &amp;&amp; dd &lt;= 1 &amp;&amp; dt &gt;= negate day2 &amp;&amp; dt &lt;= 3*day2 =</span>
+<span class="lineno">   72 </span><span class="spaces">    </span><span class="nottickedoff">return $ diffTimeOffset dt</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   74 </span><span class="spaces">    </span><span class="nottickedoff">dd = diffDays d' d</span>
+<span class="lineno">   75 </span><span class="spaces">    </span><span class="nottickedoff">dt = (fromInteger dd)*day + timeOfDayToTime t</span>
+<span class="lineno">   76 </span><span class="spaces">    </span><span class="nottickedoff">day2 = 43200</span>
+<span class="lineno">   77 </span><span class="spaces">    </span><span class="nottickedoff">day = 2*day2</span>
+<span class="lineno">   78 </span><span class="spaces"></span><span class="nottickedoff">probeAutoPosition c _ = findAssetContainerEnd c</span></span>
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>-- |Test if this represents a file in standard format.
+<span class="lineno">   81 </span>avProbeCheckFormat :: Format -&gt; AVProbe -&gt; Bool
+<span class="lineno">   82 </span><span class="decl"><span class="nottickedoff">avProbeCheckFormat fmt AVProbe{ avProbeFormat = &quot;mov,mp4,m4a,3gp,3g2,mj2&quot;, avProbeStreams = ((AVMediaTypeVideo,&quot;h264&quot;):s) }</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">-- Note: isPrefixOf use here is terse/counterinteruitive. should explicitly test for empty list</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">| fmt == videoFormat = s `isPrefixOf` [(AVMediaTypeAudio,&quot;aac&quot;)]</span>
+<span class="lineno">   85 </span><span class="spaces"></span><span class="nottickedoff">avProbeCheckFormat fmt AVProbe{ avProbeFormat = &quot;mp3&quot;, avProbeStreams = ((AVMediaTypeAudio,&quot;mp3&quot;):_) }</span>
+<span class="lineno">   86 </span><span class="spaces">  </span><span class="nottickedoff">| fmt == audioFormat = True</span>
+<span class="lineno">   87 </span><span class="spaces"></span><span class="nottickedoff">avProbeCheckFormat _ _ = False</span></span>
+<span class="lineno">   88 </span>
+
+</pre>
+</body>
+</html>
