@@ -32,6 +32,7 @@ import Databrary.Model.Format
 import Databrary.Model.Identity (MonadHasIdentity)
 import Databrary.Model.Measure
 import Databrary.Model.Metric
+import Databrary.Model.Offset
 import Databrary.Model.Party
 -- import Databrary.Model.Party.TypesTest
 import Databrary.Model.Permission
@@ -323,18 +324,20 @@ test_12b = Test.stepsWithResourceAndTransaction "" $ \step ist cn2 -> do
               _ <- startTranscode trans
               Just t <- lookupTranscode (transcodeId trans)  -- TODO: without auth; reauth after
               -- TODO (needs asset slot created above); needs sha1; how deal with determining exit code?
-              -- liftIO (threadDelay 3000)
-              liftIO (print "before collect------------")
-              -- collectTranscode t 0 Nothing ""  -- failing during avprobe
-              pure (transcodeAsset trans)
-              
+              liftIO (threadDelay 10000000) -- change this to poll loop on presence of result file?
+              liftIO (print ("before collect------------" :: String))
+              collectTranscode t 0 Nothing ""
+              -- pure (transcodeAsset trans)
+              Just t2 <- lookupTranscode (transcodeId trans)
+              pure (transcodeAsset t2)
               -- lookup assetslot or container w/contents
               )
-        (aiCtxt6 { ctxSecret = Just (Secret "abc") })
+        (aiCtxt6 { ctxSecret = Just (Secret "abc"), ctxRequest = Just mkRequest }) -- use mkRequest to override default domain
     -- Just slotForAnon <- runWithNoIdent cn2 (lookupSlotByContainerId cid)
     step "Then one can retrieve the asset"
     (assetRelease . assetRow) foundAsset @?= Just ReleasePUBLIC
     (assetName . assetRow) foundAsset @?= Just "small.webm"
+    (assetDuration . assetRow) foundAsset @?= Just (Offset 5.62)
 
 ----- record ---
 test_13 :: TestTree
