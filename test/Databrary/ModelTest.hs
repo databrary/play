@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, FlexibleContexts #-}
 module Databrary.ModelTest where
 
-import Control.Concurrent (threadDelay)
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Reader
@@ -327,7 +326,7 @@ test_12b = Test.stepsWithResourceAndTransaction "" $ \step ist cn2 -> do
               liftIO (print "before collect------------")
               -- collectTranscode t 0 Nothing ""  -- failing during avprobe
               pure (transcodeAsset trans)
-              
+
               -- lookup assetslot or container w/contents
               )
         (aiCtxt6 { ctxSecret = Just (Secret "abc") })
