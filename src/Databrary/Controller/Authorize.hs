@@ -107,7 +107,8 @@ createAuthorize = changeAuthorize
 postAuthorize :: ActionRoute (API, PartyTarget, AuthorizeTarget)
 postAuthorize = action POST (pathAPI </>> pathPartyTarget </> pathAuthorizeTarget) $ \arg@(api, i, AuthorizeTarget app oi) -> withAuth $ do
   p <- getParty (Just PermissionADMIN) i
-  o <- maybeAction . mfilter isNobodyParty =<< lookupParty oi -- Don't allow applying to or authorization request from nobody
+  -- Don't allow applying to or authorization request from nobody, nor from root
+  o <- maybeAction . mfilter ((`notElem` [0, -1]) . unPartyId) =<< lookupParty oi
   let (child, parent) = if app then (p, o) else (o, p)
   (c, c') <- findOrMakeRequest child parent
   resultingAuthorize <- if app

@@ -4,7 +4,7 @@ module Databrary.Model.Party
   , partyName
   , partyEmail
   , lookupParty
-  , isNobodyParty
+  , unPartyId
   , lookupPartyAuthorizations
   , lookupAuthParty
   , lookupSiteAuthByEmail
@@ -526,8 +526,9 @@ lookupFixedParty (Id 0) i =
   , partyAccess = (accessMember i > PermissionNONE) `thenUse` (view i) }
 lookupFixedParty i a = (view a) `useWhen` (i == view a)
 
-isNobodyParty :: Party -> Bool
-isNobodyParty = (0 <) . unId . partyId . partyRow
+-- | Get a the id (as an Int32) from a Party
+unPartyId :: Party -> Int32
+unPartyId = unId . partyId . partyRow
 
 -- | Given the id for a party, ensure ... and resolve the id to the full party object. The produced party has permissions
 -- for the retrieving viewer baked in.
