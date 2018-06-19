@@ -422,7 +422,7 @@ test_15 = Test.stepsWithTransaction "" $ \step cn2 -> do
 
 ------- search -------------
 test_16 :: TestTree
-test_16 = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_16 = Test.stepsWithTransaction "" $ \step cn2 -> do -- TODO: enable this inside of nix build with solr installed in precheck
     step "Given an authorized investigator"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     step "When the AI creates a partially shared volume and the search index is updated"
