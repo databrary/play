@@ -121,7 +121,6 @@ library
     Databrary.Model.Notification
     Databrary.Model.Funding.Types
     Databrary.Model.Funding.FundRef
-    Databrary.Model.Funding.SQL
     Databrary.Model.Comment.Types
     Databrary.Model.Release.Types
     Databrary.Model.Release.SQL
@@ -147,7 +146,6 @@ library
     Databrary.Model.Record
     Databrary.Model.Citation.CrossRef
     Databrary.Model.Citation.Types
-    Databrary.Model.Citation.SQL
     Databrary.Model.Stats.Types
     Databrary.Model.AssetRevision.Types
     Databrary.Model.VolumeState
@@ -166,7 +164,6 @@ library
     Databrary.Model.Format.Types
     Databrary.Model.Transcode
     Databrary.Model.AssetSegment.Types
-    Databrary.Model.AssetSegment.SQL
     Databrary.Model.AssetRevision
     Databrary.Model.Offset
     Databrary.Model.Volume.Types

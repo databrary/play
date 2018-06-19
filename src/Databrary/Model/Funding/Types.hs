@@ -2,9 +2,11 @@
 module Databrary.Model.Funding.Types
   ( Funder(..)
   , Funding(..)
+  , makeFunding
   ) where
 
 import Data.Int (Int64)
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 
 -- import Databrary.Has (Has(..))
@@ -35,3 +37,6 @@ data Funding = Funding
 --   view = fundingFunder
 -- instance Has (Id Funder) Funding where
 --   view = (view . fundingFunder)
+
+makeFunding :: [Maybe T.Text] -> Funder -> Funding
+makeFunding a f = Funding f (map (fromMaybe (error "NULL funding.award")) a)
