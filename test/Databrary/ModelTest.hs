@@ -15,6 +15,8 @@ import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Data.Time
 import qualified Hedgehog.Gen as Gen
+import System.Exit (ExitCode(..))
+import System.Process (readProcessWithExitCode)
 import Test.Tasty
 import Test.Tasty.ExpectedFailure
 import Test.Tasty.HUnit
@@ -296,8 +298,6 @@ test_12a = ignoreTest $ -- "Invalid cross-device link"
     -- TODO: bracket with delete file
 
 -- same as above, but for video file that undergoes conversion
----- starting needs log as well as storage <<<
----- callback needs av, internalstate as well
 test_12b :: TestTree
 test_12b = Test.stepsWithResourceAndTransaction "" $ \step ist cn2 -> do
     step "Given a partially shared volume"
@@ -322,22 +322,31 @@ test_12b = Test.stepsWithResourceAndTransaction "" $ \step ist cn2 -> do
               -- change assetslot
               trans <- addTranscode assetWithName fullSegment defaultTranscodeOptions probe
               _ <- startTranscode trans
-              Just t <- lookupTranscode (transcodeId trans)  -- TODO: without auth; reauth after
-              -- TODO (needs asset slot created above); needs sha1; how deal with determining exit code?
-              liftIO (threadDelay 10000000) -- change this to poll loop on presence of result file?
-              liftIO (print ("before collect------------" :: String))
-              collectTranscode t 0 Nothing ""
-              -- pure (transcodeAsset trans)
-              Just t2 <- lookupTranscode (transcodeId trans)
-              pure (transcodeAsset t2)
-              -- lookup assetslot or container w/contents
-              )
+              Just t <- lookupTranscode (transcodeId trans)
+              if (assetSHA1 . assetRow . transcodeAsset) t /= Nothing -- there was an existing matching transcode
+              then
+                 (pure (transcodeAsset t))
+              else do
+                  -- TODO (needs asset slot created above); needs sha1; how deal with determining exit code?
+                  () <- liftIO (detectJobDone (transcodeId trans))
+                  collectTranscode t 0 Nothing ""
+                  Just t2 <- lookupTranscode (transcodeId trans)
+                  pure (transcodeAsset t2))
+                  -- lookup assetslot or container w/contents
         (aiCtxt6 { ctxSecret = Just (Secret "abc"), ctxRequest = Just mkRequest }) -- use mkRequest to override default domain
-    -- Just slotForAnon <- runWithNoIdent cn2 (lookupSlotByContainerId cid)
-    step "Then one can retrieve the asset"
+    step "Then one can retrieve the resulting asset"
     (assetRelease . assetRow) foundAsset @?= Just ReleasePUBLIC
     (assetName . assetRow) foundAsset @?= Just "small.webm"
     (assetDuration . assetRow) foundAsset @?= Just (Offset 5.62)
+
+-- | Can either detect event in log, look for completed output, or wait for process to stop.
+-- Currently, detect event in log.
+detectJobDone :: Id Transcode -> IO ()
+detectJobDone transId@(Id idVal) = do
+    (exit, _, _) <- readProcessWithExitCode "grep" ["curl", "trans/" ++ show idVal ++ ".log"] ""
+    case exit of
+        ExitSuccess -> pure ()
+        ExitFailure _ -> threadDelay 500000 >> detectJobDone transId
 
 ----- record ---
 test_13 :: TestTree
