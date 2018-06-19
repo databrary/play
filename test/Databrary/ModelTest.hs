@@ -54,26 +54,23 @@ import Databrary.Store.Transcode
 import Paths_databrary (getDataFileName)
 import TestHarness as Test
 
-test_1 :: TestTree
-test_1 = Test.stepsWithTransaction "" $ \step cn2 -> do
-    step "Given the databrary site group"
-    let dbSite = rootParty
-    step "When we grant a user as super admin"
-    let ctx = setDefaultRequest (setIdentityNotNeeded (mkDbContext cn2))
-    Just auth3 <-
-        runReaderT
-            (do
-                ca <- Gen.sample genAccountSimple
-                a2 <- addAccount ca
-                Just auth2 <- lookupSiteAuthByEmail False (accountEmail ca)
-                changeAccount (auth2 { accountPasswd = Just "somehashval"})
-                changeAuthorize (makeAuthorize (Access PermissionADMIN PermissionADMIN) Nothing (accountParty a2) dbSite)
-                lookupSiteAuthByEmail False (accountEmail ca))
-            ctx
+test_adminPrivs :: TestTree
+test_adminPrivs = Test.stepsWithTransaction "admin privileges" $ withCtx $ \step -> do
+    step "Given a fresh account"
+    ca <- Gen.sample genAccountSimple
+    a2 <- addAccount ca
+    step "When we grant a user as super admin on the databrary site"
+    let group = rootParty
+    changeAuthorize (makeAuthorize (Access PermissionADMIN PermissionADMIN) Nothing (accountParty a2) group)
     step "Then we expect the user to have admin privileges on the databrary site"
-    let acc = siteAccess auth3
-    accessSite' acc @?= PermissionADMIN
-    accessMember' acc @?= PermissionADMIN
+    Just acc <- fmap siteAccess <$> lookupSiteAuthByEmail False (accountEmail ca)
+    liftIO (accessSite' acc @?= PermissionADMIN)
+    liftIO (accessMember' acc @?= PermissionADMIN)
+  where
+    withCtx m step cn =
+        let ctx = setDefaultRequest (setIdentityNotNeeded (mkDbContext cn))
+        in runReaderT (m (liftIO . step)) ctx
+-- next: AI with edit privileges on db site
 
 setIdentityNotNeeded :: TestContext -> TestContext
 setIdentityNotNeeded c = c { ctxIdentity = Just IdentityNotNeeded, ctxPartyId = Just (Id (-1)) }
