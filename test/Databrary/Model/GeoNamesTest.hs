@@ -28,9 +28,9 @@ unit_parseGeoName =
            [("geonameId", toJSON (6252001 :: Int)), ("name", "United States")])
         @?= Right geoNameUS
 
--- not run so as not to tax the service unnecessarily... actually, tests don't run that often
-unit_lookupGeoName :: Assertion
-unit_lookupGeoName = do
+-- not run so that we don't encounter rate limits
+_unit_lookupGeoName :: Assertion
+_unit_lookupGeoName = do
     -- example
     hc <- initHTTPClient
     mGeo <- lookupGeoName (Id 6252001) hc

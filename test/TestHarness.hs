@@ -1,6 +1,7 @@
 module TestHarness
     (
       TestContext ( .. )
+    , mkRequest
     , withStorage
     , withAV
     , withTimestamp
@@ -45,6 +46,7 @@ import Test.Tasty.HUnit
 import qualified Data.ByteString as BS
 -- import qualified Data.Text as T
 import qualified Network.Wai as Wai
+-- import qualified Network.Wai.Internal as Wai
 
 import Databrary.Has
 import Databrary.Model.Authorize
@@ -188,6 +190,9 @@ instance Has (Id Party) TestContext where
 
 instance Has Access TestContext where
     view = view . fromJust . ctxIdentity
+
+mkRequest :: Wai.Request
+mkRequest = Wai.defaultRequest { Wai.requestHeaderHost = Just "invaliddomain.org" }
 
 withStorage :: TestContext -> IO TestContext
 withStorage ctxt = do
