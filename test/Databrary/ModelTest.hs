@@ -10,11 +10,14 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy.Char8 as BSLC
+-- import qualified Data.HashMap.Strict as HM
 import Data.Maybe
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Data.Time
+-- import qualified Data.Vector as V
 import qualified Hedgehog.Gen as Gen
+import qualified Network.HTTP.Client as HTTPC
 import System.Exit (ExitCode(..))
 import System.Process (readProcessWithExitCode)
 import Test.Tasty
@@ -23,6 +26,7 @@ import Test.Tasty.HUnit
 
 import Databrary.Has
 import Databrary.Controller.CSV (volumeCSV)
+import Databrary.HTTP.Client
 import Databrary.Model.Asset
 import Databrary.Model.Audit (MonadAudit)
 import Databrary.Model.Authorize
@@ -35,6 +39,7 @@ import Databrary.Model.Identity (MonadHasIdentity)
 import Databrary.Model.Measure
 import Databrary.Model.Metric
 import Databrary.Model.Offset
+import Databrary.Model.Paginate
 import Databrary.Model.Party
 -- import Databrary.Model.Party.TypesTest
 import Databrary.Model.Permission
@@ -50,7 +55,10 @@ import Databrary.Model.VolumeAccess
 -- import Databrary.Model.VolumeAccess.TypesTest
 import Databrary.Service.DB (DBConn, MonadDB)
 import Databrary.Service.Types (Secret(..))
+import Databrary.Solr.Search
+import Databrary.Solr.Service (initSolr, finiSolr)
 import Databrary.Store.CSV (buildCSV)
+import qualified Databrary.Store.Config as C
 -- import Databrary.Store.Asset
 -- import Databrary.Store.AV
 import Databrary.Store.Probe
@@ -411,6 +419,37 @@ test_15 = Test.stepsWithTransaction "" $ \step cn2 -> do
          <> (BSLC.pack . show . containerId . containerRow) cntr <> ","
           <> (BSLC.pack . Data.Maybe.maybe "" T.unpack . containerName . containerRow) cntr <> ","
           <> ",\n")
+
+------- search -------------
+test_16 :: TestTree
+test_16 = Test.stepsWithTransaction "" $ \step cn2 -> do
+    step "Given an authorized investigator"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    step "When the AI creates a partially shared volume and the search index is updated"
+    -- TODO: should be lookup auth on rootParty
+    _ <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
+    -- superadmin context
+    step "Then the public will find the volume"
+    -- Implementation of getVolume PUBLIC
+    -- mVolForAnon <- runWithNoIdent cn2 (lookupVolume ((volumeId . volumeRow) vol))
+    -- mVolForAnon @?= Nothing
+    conf <- C.load "databrary.conf"
+    solr <- initSolr True (conf C.! "solr")
+    let sq = SearchQuery {
+          searchString = Just "databrary" -- TODO: use volume title
+        , searchFields = []
+        , searchMetrics = []
+        , searchType = SearchVolumes
+        , searchPaginate = Paginate { paginateOffset = 0, paginateLimit = 12 }
+        }
+    hc <- initHTTPClient
+    lbs <- runReaderT (search sq) (aiCtxt { ctxSolr = Just solr, ctxHttpClient = Just hc})
+    -- TODO: build up backgroundcontextm and invoke updateIndex
+    -- TODO: how reset index after update? delete core, create core and restart solr?
+    let Just resVal = decode (HTTPC.responseBody lbs) :: Maybe Value
+    show resVal @?=
+        "Object (fromList [(\"response\",Object (fromList [(\"numFound\",Number 1.0),(\"start\",Number 0.0),(\"docs\",Array [Object (fromList [(\"body\",String \"Databrary is an open data library for developmental science. Share video, audio, and related metadata. Discover more, faster.\\nMost developmental scientists rely on video recordings to capture the complexity and richness of behavior. However, researchers rarely share video data, and this has impeded scientific progress. By creating the cyber-infrastructure and community to enable open video sharing, the Databrary project aims to facilitate deeper, richer, and broader understanding of behavior.\\nThe Databrary project is dedicated to transforming the culture of developmental science by building a community of researchers committed to open video data sharing, training a new generation of developmental scientists and empowering them with an unprecedented set of tools for discovery, and raising the profile of behavioral science by bolstering interest in and support for scientific research among the general public.\"),(\"name\",String \"Databrary\"),(\"owner_names\",Array [String \"Admin, Admin\",String \"Steiger, Lisa\",String \"Tesla, Testarosa\"]),(\"id\",Number 1.0),(\"owner_ids\",Array [Number 1.0,Number 3.0,Number 7.0])])])])),(\"spellcheck\",Object (fromList [(\"suggestions\",Array [])]))])"
+    finiSolr solr
 
 ------------------------------------------------------ end of tests ---------------------------------
 

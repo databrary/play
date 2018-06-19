@@ -49,6 +49,7 @@ import qualified Network.Wai as Wai
 -- import qualified Network.Wai.Internal as Wai
 
 import Databrary.Has
+import Databrary.HTTP.Client
 import Databrary.Model.Authorize
 import Databrary.Model.Factories
 import Databrary.Model.Id
@@ -62,6 +63,7 @@ import Databrary.Service.DB
 import Databrary.Service.Entropy
 import Databrary.Service.Log
 import Databrary.Service.Types
+import Databrary.Solr.Service (Solr)
 import Databrary.Store.AV
 import Databrary.Store.Config as C (load, (!))
 import Databrary.Store.Service
@@ -105,12 +107,15 @@ data TestContext = TestContext
     -- ^ for MonadDB
     , ctxStorage :: Maybe Storage
     -- ^ for MonadStorage
+    , ctxSolr :: Maybe Solr
+    -- ^ for MonadSolr
     , ctxInternalState :: Maybe InternalState
     , ctxIdentity :: Maybe Identity
     , ctxSiteAuth :: Maybe SiteAuth
     , ctxAV :: Maybe AV
     , ctxTimestamp :: Maybe Timestamp
     , ctxLogs :: Maybe Logs
+    , ctxHttpClient :: Maybe HTTPClient
     }
 
 blankContext :: TestContext
@@ -121,12 +126,14 @@ blankContext = TestContext
     , ctxPartyId = Nothing
     , ctxConn = Nothing
     , ctxStorage = Nothing
+    , ctxSolr = Nothing
     , ctxInternalState = Nothing
     , ctxIdentity = Nothing
     , ctxSiteAuth = Nothing
     , ctxAV = Nothing
     , ctxTimestamp = Nothing
     , ctxLogs = Nothing
+    , ctxHttpClient = Nothing
     }
 
 addCntxt :: TestContext -> TestContext -> TestContext
@@ -138,12 +145,14 @@ addCntxt c1 c2 =
         , ctxPartyId = ctxPartyId c1 <|> ctxPartyId c2
         , ctxConn = ctxConn c1 <|> ctxConn c2
         , ctxStorage = ctxStorage c1 <|> ctxStorage c2
+        , ctxSolr = ctxSolr c1 <|> ctxSolr c2
         , ctxInternalState = ctxInternalState c1 <|> ctxInternalState c2
         , ctxIdentity = ctxIdentity c1 <|> ctxIdentity c2
         , ctxSiteAuth = ctxSiteAuth c1 <|> ctxSiteAuth c2
         , ctxAV = ctxAV c1 <|> ctxAV c2
         , ctxTimestamp = ctxTimestamp c1 <|> ctxTimestamp c2
         , ctxLogs = ctxLogs c1 <|> ctxLogs c2
+        , ctxHttpClient = ctxHttpClient c1 <|> ctxHttpClient c2
        }
 
 instance Has Identity TestContext where
@@ -164,6 +173,9 @@ instance Has Entropy TestContext where
 instance Has AV TestContext where
     view = fromJust . ctxAV
 
+instance Has Solr TestContext where
+    view = fromJust . ctxSolr
+
 instance Has Storage TestContext where
     view = fromJust . ctxStorage
 
@@ -175,6 +187,9 @@ instance Has Timestamp TestContext where
 
 instance Has Logs TestContext where
     view = fromJust . ctxLogs
+
+instance Has HTTPClient TestContext where
+    view = fromJust . ctxHttpClient
 
 -- Needed for types, but unused so far
 
