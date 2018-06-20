@@ -1,6 +1,7 @@
 module TestHarness
     (
-      TestContext ( .. )
+      mkSolrBackgroundContext
+    , TestContext ( .. )
     , mkRequest
     , withStorage
     , withAV
@@ -37,6 +38,7 @@ import Control.Rematch
 import Control.Rematch.Run
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Resource (InternalState, runResourceT, withInternalState)
+import Data.IORef (newIORef)
 import Data.Maybe
 import Data.Time
 import Database.PostgreSQL.Typed.Protocol
@@ -48,8 +50,10 @@ import qualified Data.ByteString as BS
 import qualified Network.Wai as Wai
 -- import qualified Network.Wai.Internal as Wai
 
+import Databrary.Context
 import Databrary.Has
 import Databrary.HTTP.Client
+import Databrary.Ingest.Service (initIngest)
 import Databrary.Model.Authorize
 import Databrary.Model.Factories
 import Databrary.Model.Id
@@ -62,12 +66,17 @@ import Databrary.Model.Token
 import Databrary.Service.DB
 import Databrary.Service.Entropy
 import Databrary.Service.Log
+import Databrary.Service.Messages (loadMessages)
+import Databrary.Service.Notification (initNotifications)
+import Databrary.Service.Passwd (initPasswd)
 import Databrary.Service.Types
 import Databrary.Solr.Service (Solr)
+import Databrary.Static.Service (Static(..))
 import Databrary.Store.AV
 import Databrary.Store.Config as C (load, (!))
 import Databrary.Store.Service
--- import Databrary.Store.Types
+import Databrary.Store.Types (Storage(..))
+import Databrary.Web.Types (Web(..))
 
 -- Runtime dependencies
 --   database started tests run
@@ -88,6 +97,57 @@ expect a matcher = case res of
   MatchSuccess -> return ()
   (MatchFailure msg) -> assertFailure msg
   where res = runMatch matcher a
+
+-- | Build specialized context needed to run solr indexing background job
+mkSolrBackgroundContext :: Solr -> InternalState -> PGConnection -> IO BackgroundContext
+mkSolrBackgroundContext solr ist cn = do
+    conf <- C.load "databrary.conf"
+    logs <- initLogs (conf C.! "log")
+    httpc <- initHTTPClient
+    -- TODO: make a smaller context for solr indexing to use, so stubs aren't needed
+    -- stubs
+    stubEntropy <- initEntropy
+    stubPasswd <- initPasswd
+    stubMessages <- loadMessages
+    stubDb <- initDB (conf C.! "db")
+    stubStorage <- pure (Storage undefined Nothing undefined undefined Nothing Nothing Nothing)
+    stubAv <- initAV
+    stubWeb <- pure (Web {})
+    stubStatic <- pure (Static "" "" Nothing (\_ -> error "no val"))
+    stubEzid <- pure Nothing
+    stubIngest <- initIngest
+    stubNotify <- initNotifications (conf C.! "notification")
+    stats <- return (error "siteStats")
+    stubStatsref <- newIORef stats
+    let
+        service = Service {
+                        serviceStartTime = UTCTime (fromGregorian 2018 3 4) (secondsToDiffTime 0)
+                      , serviceSecret = Secret "abc"
+                      , serviceEntropy = stubEntropy
+                      , servicePasswd = stubPasswd
+                      , serviceLogs = logs
+                      , serviceMessages = stubMessages
+                      , serviceDB = stubDb
+                      , serviceStorage = stubStorage
+                      , serviceAV = stubAv
+                      , serviceWeb = stubWeb
+                      , serviceHTTPClient = httpc
+                      , serviceStatic = stubStatic
+                      , serviceStats = stubStatsref
+                      , serviceIngest = stubIngest
+                      , serviceSolr = solr
+                      , serviceEZID = stubEzid
+                      , servicePeriodic = Nothing
+                      , serviceNotification = stubNotify
+                      , serviceDown = Nothing
+                      }
+        actionContext = ActionContext {
+                            contextService = service
+                          , contextTimestamp = UTCTime (fromGregorian 2018 4 5) (secondsToDiffTime 0)
+                          , contextResourceState = ist
+                          , contextDB = cn
+                          }
+    pure (BackgroundContext actionContext)
 
 -- |
 -- "God object" that can fulfill all needed "Has" instances. This is

@@ -55,6 +55,7 @@ import Databrary.Model.VolumeAccess
 -- import Databrary.Model.VolumeAccess.TypesTest
 import Databrary.Service.DB (DBConn, MonadDB)
 import Databrary.Service.Types (Secret(..))
+import Databrary.Solr.Index (updateIndex)
 import Databrary.Solr.Search
 import Databrary.Solr.Service (initSolr, finiSolr)
 import Databrary.Store.CSV (buildCSV)
@@ -422,36 +423,41 @@ test_15 = Test.stepsWithTransaction "" $ \step cn2 -> do
 
 ------- search -------------
 test_16 :: TestTree
-test_16 = Test.stepsWithTransaction "" $ \step cn2 -> do -- TODO: enable this inside of nix build with solr installed in precheck
-    step "Given an authorized investigator"
-    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
-    step "When the AI creates a partially shared volume and the search index is updated"
-    -- TODO: should be lookup auth on rootParty
-    _ <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
-    -- superadmin context
-    step "Then the public will find the volume"
-    -- Implementation of getVolume PUBLIC
-    -- mVolForAnon <- runWithNoIdent cn2 (lookupVolume ((volumeId . volumeRow) vol))
-    -- mVolForAnon @?= Nothing
-    conf <- C.load "databrary.conf"
-    solr <- initSolr True (conf C.! "solr")
-    let sq = SearchQuery {
-          searchString = Just "databrary" -- TODO: use volume title
+test_16 = ignoreTest $ -- TODO: enable this inside of nix build with solr binaries and core installed in precheck
+    Test.stepsWithResourceAndTransaction "" $ \step ist cn2 -> do
+        step "Given an authorized investigator"
+        (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+        step "When the AI creates a partially shared volume and the search index is updated"
+        -- TODO: should be lookup auth on rootParty
+        vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
+        conf <- C.load "databrary.conf"
+        solr <- initSolr True (conf C.! "solr")
+        threadDelay 2000000 -- TODO: poll until solr is up
+        hc <- initHTTPClient
+        step "Then the public will find a pre-existing volume by title"
+        lbs <- runReaderT (search (mkVolumeSearchQuery "databrary")) (aiCtxt { ctxSolr = Just solr, ctxHttpClient = Just hc})
+        let Just resVal = decode (HTTPC.responseBody lbs) :: Maybe Value
+        show resVal @?= -- TODO: use aeson parser and only check selected fields
+            "Object (fromList [(\"response\",Object (fromList [(\"numFound\",Number 1.0),(\"start\",Number 0.0),(\"docs\",Array [Object (fromList [(\"body\",String \"Databrary is an open data library for developmental science. Share video, audio, and related metadata. Discover more, faster.\\nMost developmental scientists rely on video recordings to capture the complexity and richness of behavior. However, researchers rarely share video data, and this has impeded scientific progress. By creating the cyber-infrastructure and community to enable open video sharing, the Databrary project aims to facilitate deeper, richer, and broader understanding of behavior.\\nThe Databrary project is dedicated to transforming the culture of developmental science by building a community of researchers committed to open video data sharing, training a new generation of developmental scientists and empowering them with an unprecedented set of tools for discovery, and raising the profile of behavioral science by bolstering interest in and support for scientific research among the general public.\"),(\"name\",String \"Databrary\"),(\"owner_names\",Array [String \"Admin, Admin\",String \"Steiger, Lisa\",String \"Tesla, Testarosa\"]),(\"id\",Number 1.0),(\"owner_ids\",Array [Number 1.0,Number 3.0,Number 7.0])])])])),(\"spellcheck\",Object (fromList [(\"suggestions\",Array [])]))])"
+        step "and the public will find the newly added volume by title"
+        bctx <- mkSolrBackgroundContext solr ist cn2
+        runReaderT updateIndex bctx
+        _ <- runReaderT (search (mkVolumeSearchQuery ((volumeName . volumeRow) vol))) (aiCtxt { ctxSolr = Just solr, ctxHttpClient = Just hc})
+        -- TODO: assert one result, and result name matches volume title searched for
+        -- TODO: how reset index after a test? reindex for transaction is rolled back for now...
+        finiSolr solr
+
+------------------------------------------------------ end of tests ---------------------------------
+
+mkVolumeSearchQuery :: T.Text -> SearchQuery
+mkVolumeSearchQuery searchStr =
+    SearchQuery {
+          searchString = Just searchStr
         , searchFields = []
         , searchMetrics = []
         , searchType = SearchVolumes
         , searchPaginate = Paginate { paginateOffset = 0, paginateLimit = 12 }
         }
-    hc <- initHTTPClient
-    lbs <- runReaderT (search sq) (aiCtxt { ctxSolr = Just solr, ctxHttpClient = Just hc})
-    -- TODO: build up backgroundcontextm and invoke updateIndex
-    -- TODO: how reset index after update? delete core, create core and restart solr?
-    let Just resVal = decode (HTTPC.responseBody lbs) :: Maybe Value
-    show resVal @?=
-        "Object (fromList [(\"response\",Object (fromList [(\"numFound\",Number 1.0),(\"start\",Number 0.0),(\"docs\",Array [Object (fromList [(\"body\",String \"Databrary is an open data library for developmental science. Share video, audio, and related metadata. Discover more, faster.\\nMost developmental scientists rely on video recordings to capture the complexity and richness of behavior. However, researchers rarely share video data, and this has impeded scientific progress. By creating the cyber-infrastructure and community to enable open video sharing, the Databrary project aims to facilitate deeper, richer, and broader understanding of behavior.\\nThe Databrary project is dedicated to transforming the culture of developmental science by building a community of researchers committed to open video data sharing, training a new generation of developmental scientists and empowering them with an unprecedented set of tools for discovery, and raising the profile of behavioral science by bolstering interest in and support for scientific research among the general public.\"),(\"name\",String \"Databrary\"),(\"owner_names\",Array [String \"Admin, Admin\",String \"Steiger, Lisa\",String \"Tesla, Testarosa\"]),(\"id\",Number 1.0),(\"owner_ids\",Array [Number 1.0,Number 3.0,Number 7.0])])])])),(\"spellcheck\",Object (fromList [(\"suggestions\",Array [])]))])"
-    finiSolr solr
-
------------------------------------------------------- end of tests ---------------------------------
 
 accessIsEq :: Access -> Permission -> Permission -> Assertion
 accessIsEq a site member = a @?= Access { accessSite' = site, accessMember' = member }
