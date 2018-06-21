@@ -24,8 +24,9 @@ import Test.Tasty
 import Test.Tasty.ExpectedFailure
 import Test.Tasty.HUnit
 
-import Databrary.Has
 import Databrary.Controller.CSV (volumeCSV)
+import Databrary.EZID.Volume (updateEZID)
+import Databrary.Has
 import Databrary.HTTP.Client
 import Databrary.Model.Asset
 import Databrary.Model.Audit (MonadAudit)
@@ -440,12 +441,34 @@ test_16 = ignoreTest $ -- TODO: enable this inside of nix build with solr binari
         show resVal @?= -- TODO: use aeson parser and only check selected fields
             "Object (fromList [(\"response\",Object (fromList [(\"numFound\",Number 1.0),(\"start\",Number 0.0),(\"docs\",Array [Object (fromList [(\"body\",String \"Databrary is an open data library for developmental science. Share video, audio, and related metadata. Discover more, faster.\\nMost developmental scientists rely on video recordings to capture the complexity and richness of behavior. However, researchers rarely share video data, and this has impeded scientific progress. By creating the cyber-infrastructure and community to enable open video sharing, the Databrary project aims to facilitate deeper, richer, and broader understanding of behavior.\\nThe Databrary project is dedicated to transforming the culture of developmental science by building a community of researchers committed to open video data sharing, training a new generation of developmental scientists and empowering them with an unprecedented set of tools for discovery, and raising the profile of behavioral science by bolstering interest in and support for scientific research among the general public.\"),(\"name\",String \"Databrary\"),(\"owner_names\",Array [String \"Admin, Admin\",String \"Steiger, Lisa\",String \"Tesla, Testarosa\"]),(\"id\",Number 1.0),(\"owner_ids\",Array [Number 1.0,Number 3.0,Number 7.0])])])])),(\"spellcheck\",Object (fromList [(\"suggestions\",Array [])]))])"
         step "and the public will find the newly added volume by title"
-        bctx <- mkSolrBackgroundContext solr ist cn2
+        bctx <- mkBackgroundContext (ForSolr solr) ist cn2
         runReaderT updateIndex bctx
         _ <- runReaderT (search (mkVolumeSearchQuery ((volumeName . volumeRow) vol))) (aiCtxt { ctxSolr = Just solr, ctxHttpClient = Just hc})
         -- TODO: assert one result, and result name matches volume title searched for
-        -- TODO: how reset index after a test? reindex for transaction is rolled back for now...
+        -- TODO: how reset index after a test? reindex after transaction is rolled back for now...
         finiSolr solr
+
+-------- ezid --------------
+test_17 :: TestTree
+test_17 = Test.stepsWithResourceAndTransaction "" $ \step ist cn2 -> do
+    step "Given an authorized investigator"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    step "When the AI creates a partially shared volume and the ezid generation runs"
+    -- TODO: should be lookup auth on rootParty
+    vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
+    -- updateEZID
+    -- type EZIDM a = CookiesT (ReaderT EZIDContext IO) a
+    bctx <- mkBackgroundContext ForEzid ist cn2
+    mEzidWasUp <- runReaderT updateEZID bctx
+    step "Then the volume will have a valid doi"
+    mEzidWasUp @?= Just True  -- Nothing = ezid not initialized; Just False = initalized, but down
+    Just vol' <- runReaderT (lookupVolume ((volumeId . volumeRow) vol)) aiCtxt
+    -- let Just doi = (volumeDOI . volumeRow) vol'
+    -- TODO: check doi link causes a redirect to Location: http://databrary.org/volume/801 with the volume id matching above
+    --   example - https://doi.org/10.5072/FK2.801
+    pure ()
+
+-- remaining complex subsystems to demonstrate using: notifications, upload, ingest
 
 ------------------------------------------------------ end of tests ---------------------------------
 
