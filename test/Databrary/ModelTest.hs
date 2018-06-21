@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, FlexibleContexts #-}
+{-# LANGUAGE RecordWildCards #-}
+
 module Databrary.ModelTest where
 
 import Control.Monad
@@ -32,6 +34,7 @@ import Databrary.Model.Identity (MonadHasIdentity)
 import Databrary.Model.Measure
 import Databrary.Model.Metric
 import Databrary.Model.Party
+import Databrary.Model.PartyTest ()
 -- import Databrary.Model.Party.TypesTest
 import Databrary.Model.Permission
 import Databrary.Model.Release
@@ -53,6 +56,53 @@ import Databrary.Store.Probe
 import Databrary.Store.Transcode
 import Paths_databrary (getDataFileName)
 import TestHarness as Test
+
+roundtripChangeAuthorize
+    :: Permission
+    -> Permission
+    -> Account
+    -> Party
+    -> ReaderT TestContext IO ()
+roundtripChangeAuthorize perm1 perm2 account group = do
+    changeAuthorize
+        (makeAuthorize (Access perm1 perm2) Nothing (accountParty account) group
+        )
+    Just access <- fmap siteAccess
+        <$> lookupSiteAuthByEmail False (accountEmail account)
+    liftIO (accessSite' access @?= perm1)
+    liftIO (accessMember' access @?= perm2)
+
+test_authPrivs :: TestTree
+test_authPrivs =
+    let
+        ctxRequest = Just defaultRequest
+        ctxIdentity = Just IdentityNotNeeded
+        ctxPartyId = Just (Id (-1) :: Id Party)
+        --
+        allParties = [rootParty, staffParty]
+        allPermissions = [minBound .. maxBound] :: [Permission]
+    in Test.stepsWithTransaction
+        "roundtrip changeAuthorize->lookupSiteAuthByEmail"
+        (\step' conn ->
+            -- Finish building test context
+            let step = liftIO . step'
+                ctxConn = Just conn
+                roundtrip p1 p2 g = do
+                    step (show p1 ++ " " ++ show p2 ++ " " ++ show (partySortName (partyRow g)))
+                    roundtripChangeAuthorize
+                        <$> pure p1
+                        <*> pure p2
+                        <*> (addAccount =<< Gen.sample genAccountSimple)
+                        <*> pure g
+            in
+                flip runReaderT TestContext {..} $ do
+                    sequence_
+                        [ roundtrip p1 p2 g
+                        | g <- allParties
+                        , p1 <- allPermissions
+                        , p2 <- allPermissions
+                        ]
+        )
 
 test_adminPrivs :: TestTree
 test_adminPrivs = Test.stepsWithTransaction "admin privileges" $ withCtx $ \step -> do
