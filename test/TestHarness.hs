@@ -1,6 +1,7 @@
 module TestHarness
     (
-      mkSolrBackgroundContext
+      ContextFor(..)
+    , mkBackgroundContext
     , TestContext ( .. )
     , mkRequest
     , withStorage
@@ -51,6 +52,7 @@ import qualified Network.Wai as Wai
 -- import qualified Network.Wai.Internal as Wai
 
 import Databrary.Context
+import Databrary.EZID.Service (initEZID)
 import Databrary.Has
 import Databrary.HTTP.Client
 import Databrary.Ingest.Service (initIngest)
@@ -70,7 +72,7 @@ import Databrary.Service.Messages (loadMessages)
 import Databrary.Service.Notification (initNotifications)
 import Databrary.Service.Passwd (initPasswd)
 import Databrary.Service.Types
-import Databrary.Solr.Service (Solr)
+import Databrary.Solr.Service (Solr(..))
 import Databrary.Static.Service (Static(..))
 import Databrary.Store.AV
 import Databrary.Store.Config as C (load, (!))
@@ -98,14 +100,23 @@ expect a matcher = case res of
   (MatchFailure msg) -> assertFailure msg
   where res = runMatch matcher a
 
--- | Build specialized context needed to run solr indexing background job
-mkSolrBackgroundContext :: Solr -> InternalState -> PGConnection -> IO BackgroundContext
-mkSolrBackgroundContext solr ist cn = do
+data ContextFor = ForEzid | ForSolr Solr
+
+-- | Build a specialized context needed to background jobs that use a small subset of services
+mkBackgroundContext :: ContextFor -> InternalState -> PGConnection -> IO BackgroundContext
+mkBackgroundContext ctxtFor ist cn = do
     conf <- C.load "databrary.conf"
     logs <- initLogs (conf C.! "log")
     httpc <- initHTTPClient
     -- TODO: make a smaller context for solr indexing to use, so stubs aren't needed
     -- stubs
+    let stubSolr = Solr { solrRequest = error "no solr req", solrProcess = Nothing }
+        stubEzid = Nothing
+    (solr, ezid) <- case ctxtFor of
+          ForSolr solrInst -> pure (solrInst, stubEzid)
+          ForEzid -> do
+              ezidInst <- initEZID (conf C.! "ezid")
+              pure (stubSolr, ezidInst)
     stubEntropy <- initEntropy
     stubPasswd <- initPasswd
     stubMessages <- loadMessages
@@ -114,7 +125,6 @@ mkSolrBackgroundContext solr ist cn = do
     stubAv <- initAV
     stubWeb <- pure (Web {})
     stubStatic <- pure (Static "" "" Nothing (\_ -> error "no val"))
-    stubEzid <- pure Nothing
     stubIngest <- initIngest
     stubNotify <- initNotifications (conf C.! "notification")
     stats <- return (error "siteStats")
@@ -136,7 +146,7 @@ mkSolrBackgroundContext solr ist cn = do
                       , serviceStats = stubStatsref
                       , serviceIngest = stubIngest
                       , serviceSolr = solr
-                      , serviceEZID = stubEzid
+                      , serviceEZID = ezid
                       , servicePeriodic = Nothing
                       , serviceNotification = stubNotify
                       , serviceDown = Nothing
