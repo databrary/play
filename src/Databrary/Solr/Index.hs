@@ -24,6 +24,7 @@ import Network.HTTP.Types.Header (hContentType)
 import Control.Invert
 import Databrary.Ops
 import Databrary.Has
+import Databrary.HTTP.Client (HTTPClient)
 import Databrary.Service.Log
 import Databrary.Model.Segment
 import Databrary.Model.Kind
@@ -161,17 +162,17 @@ solrComment vi CommentRow{ commentRowSlotId = SlotId{..}, ..} = SolrComment
   , solrBody = Just commentRowText
   }
 
-type SolrM a = ReaderT BackgroundContext (InvertM BS.ByteString) a
+-- type SolrM a = ReaderT BackgroundContext (InvertM BS.ByteString) a
 
-writeBlock :: BS.ByteString -> SolrM ()
+writeBlock :: BS.ByteString -> ReaderT a (InvertM BS.ByteString) ()
 writeBlock = lift . give
 
-writeDocuments :: [SolrDocument] -> SolrM ()
+writeDocuments :: [SolrDocument] -> ReaderT a (InvertM BS.ByteString) ()
 writeDocuments [] = return ()
 writeDocuments d =
   writeBlock $ BSL.toStrict $ BSB.toLazyByteString $ foldMap (("},\"add\":{\"doc\":" <>) . JSON.fromEncoding . JSON.value . JSON.toJSON) d
 
-writeUpdate :: SolrM () -> SolrM ()
+writeUpdate :: ReaderT BackgroundContext (InvertM BS.ByteString) () -> ReaderT BackgroundContext (InvertM BS.ByteString) ()
 writeUpdate f = do
   writeBlock "{\"delete\":{\"query\":\"*:*\""
   f
@@ -184,7 +185,7 @@ joinContainers f cl@(c:cr) al@((a, SlotId ci s):ar)
   | containerId (containerRow c) == ci = f a (Slot c s) : joinContainers f cl ar
   | otherwise = joinContainers f cr al
 
-writeVolume :: (Volume, Maybe Citation) -> SolrM ()
+writeVolume :: (Volume, Maybe Citation) -> ReaderT BackgroundContext (InvertM BS.ByteString) ()
 writeVolume (v, vc) = do
   writeDocuments [solrVolume v vc]
   cl <- lookupVolumeContainers v
@@ -196,7 +197,7 @@ writeVolume (v, vc) = do
   writeDocuments . map (solrTagUse (volumeId $ volumeRow v)) =<< lookupVolumeTagUseRows v
   writeDocuments . map (solrComment (volumeId $ volumeRow v)) =<< lookupVolumeCommentRows v
 
-writeAllDocuments :: SolrM ()
+writeAllDocuments :: ReaderT BackgroundContext (InvertM BS.ByteString) ()
 writeAllDocuments = do
   mapM_ writeVolume =<< lookupVolumesCitations
   writeDocuments . map (uncurry solrParty) =<< lookupPartyAuthorizations
@@ -204,20 +205,28 @@ writeAllDocuments = do
 
 updateIndex :: BackgroundContextM ()
 updateIndex = do
-  ctx <- ask
-  req <- peeks solrRequest
+  (ctx :: BackgroundContext) <- ask
+  (solr :: Solr) <- peek
+  let (req :: HC.Request) = solrRequest solr
   t <- liftIO getCurrentTime
   handle
-    (\(e :: HC.HttpException) -> focusIO $ logMsg t ("solr update failed: " ++ show e))
+    (\(e :: HC.HttpException) -> do
+       (logs :: Logs) <- peek
+       liftIO $ logMsg t ("solr update failed: " ++ show e) logs)
     $ do
-      _ <- focusIO $ HC.httpNoBody req
-        { HC.path = HC.path req <> "update/json"
-        , HC.method = methodPost
-        , HC.requestBody = HC.RequestBodyStreamChunked $ \wf -> do
-          w <- runInvert $ runReaderT (writeUpdate writeAllDocuments) ctx
-          wf $ fold <$> w
-        , HC.requestHeaders = (hContentType, "application/json") : HC.requestHeaders req
-        , HC.responseTimeout = HC.responseTimeoutMicro 100000000
-        }
+      (hc :: HTTPClient) <- peek
+      let idxReq = req
+            { HC.path = HC.path req <> "update/json"
+            , HC.method = methodPost
+            , HC.requestBody = HC.RequestBodyStreamChunked $ \wf -> do
+              (w :: IO (Maybe BSC.ByteString)) <-
+                  runInvert $
+                      (runReaderT (writeUpdate writeAllDocuments) ctx :: InvertM BS.ByteString ())
+              (wf $ (fold <$> w :: IO BSC.ByteString) :: IO ())
+            , HC.requestHeaders = (hContentType, "application/json") : HC.requestHeaders req
+            , HC.responseTimeout = HC.responseTimeoutMicro 100000000
+            }
+      _ <- liftIO (HC.httpNoBody idxReq hc)
       t' <- liftIO getCurrentTime
-      focusIO $ logMsg t' ("solr update complete " ++ show (diffUTCTime t' t))
+      (logs :: Logs) <- peek
+      liftIO $ logMsg t' ("solr update complete " ++ show (diffUTCTime t' t)) logs
