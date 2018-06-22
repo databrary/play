@@ -143,9 +143,9 @@ span.spaces    { background: white }
 <span class="lineno">  127 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">kp = pathSnoc p k</span></span>
 <span class="lineno">  128 </span><span class="spaces">    </span><span class="istickedoff">km &lt;- case HM.lookupDefault Empty k m of</span>
 <span class="lineno">  129 </span><span class="spaces">      </span><span class="istickedoff">Empty -&gt; return Nothing</span>
-<span class="lineno">  130 </span><span class="spaces">      </span><span class="istickedoff">Sub km -&gt; <span class="nottickedoff">return $ Just km</span></span>
+<span class="lineno">  130 </span><span class="spaces">      </span><span class="istickedoff">Sub km -&gt; return $ Just km</span>
 <span class="lineno">  131 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">fail $ &quot;Duplicate key value: &quot; ++ show kp</span></span>
-<span class="lineno">  132 </span><span class="spaces">    </span><span class="istickedoff">kv &lt;- lexeme dot *&gt; <span class="nottickedoff">(Sub &lt;$&gt; pair kp (fold km))</span> &lt;|&gt; rhs <span class="nottickedoff">kp</span> km</span>
+<span class="lineno">  132 </span><span class="spaces">    </span><span class="istickedoff">kv &lt;- lexeme dot *&gt; (Sub &lt;$&gt; pair <span class="nottickedoff">kp</span> (fold km)) &lt;|&gt; rhs <span class="nottickedoff">kp</span> km</span>
 <span class="lineno">  133 </span><span class="spaces">    </span><span class="istickedoff">return $ HM.insert k kv m</span>
 <span class="lineno">  134 </span><span class="spaces">  </span><span class="istickedoff">rhs p Nothing = sub <span class="nottickedoff">p</span> HM.empty &lt;|&gt;</span>
 <span class="lineno">  135 </span><span class="spaces">    </span><span class="istickedoff">lexeme (P.char '=') *&gt; val</span>
@@ -188,7 +188,7 @@ span.spaces    { background: white }
 <span class="lineno">  172 </span>
 <span class="lineno">  173 </span>instance Configurable ConfigMap where
 <span class="lineno">  174 </span>  <span class="decl"><span class="istickedoff">config (Sub m) = Just m</span>
-<span class="lineno">  175 </span><span class="spaces">  </span><span class="istickedoff">config Empty = Just HM.empty</span>
+<span class="lineno">  175 </span><span class="spaces">  </span><span class="istickedoff">config Empty = <span class="nottickedoff">Just HM.empty</span></span>
 <span class="lineno">  176 </span><span class="spaces">  </span><span class="istickedoff">config _ = <span class="nottickedoff">Nothing</span></span></span>
 <span class="lineno">  177 </span>
 <span class="lineno">  178 </span>instance Configurable Config where

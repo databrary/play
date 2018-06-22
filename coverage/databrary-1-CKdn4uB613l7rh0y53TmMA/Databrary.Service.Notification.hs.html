@@ -36,13 +36,13 @@ span.spaces    { background: white }
 <span class="lineno">   20 </span>  }
 <span class="lineno">   21 </span>
 <span class="lineno">   22 </span>initNotifications :: C.Config -&gt; IO Notifications
-<span class="lineno">   23 </span><span class="decl"><span class="nottickedoff">initNotifications conf = do</span>
-<span class="lineno">   24 </span><span class="spaces">  </span><span class="nottickedoff">t &lt;- newMVar Nothing -- run async notification pass at boot</span>
-<span class="lineno">   25 </span><span class="spaces">  </span><span class="nottickedoff">return Notifications</span>
-<span class="lineno">   26 </span><span class="spaces">    </span><span class="nottickedoff">{ notificationsTrigger = t</span>
-<span class="lineno">   27 </span><span class="spaces">    </span><span class="nottickedoff">, notificationsFilter = Regex.makeRegexOpts Regex.compIgnoreCase Regex.blankExecOpt (conf C.! &quot;filter&quot; :: BS.ByteString)</span>
-<span class="lineno">   28 </span><span class="spaces">    </span><span class="nottickedoff">, notificationsCopy = conf C.! &quot;copy&quot;</span>
-<span class="lineno">   29 </span><span class="spaces">    </span><span class="nottickedoff">}</span></span>
+<span class="lineno">   23 </span><span class="decl"><span class="istickedoff">initNotifications conf = do</span>
+<span class="lineno">   24 </span><span class="spaces">  </span><span class="istickedoff">t &lt;- newMVar <span class="nottickedoff">Nothing</span> -- run async notification pass at boot</span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="istickedoff">return Notifications</span>
+<span class="lineno">   26 </span><span class="spaces">    </span><span class="istickedoff">{ notificationsTrigger = t</span>
+<span class="lineno">   27 </span><span class="spaces">    </span><span class="istickedoff">, notificationsFilter = Regex.makeRegexOpts Regex.compIgnoreCase <span class="nottickedoff">Regex.blankExecOpt</span> (conf C.! &quot;filter&quot; :: BS.ByteString)</span>
+<span class="lineno">   28 </span><span class="spaces">    </span><span class="istickedoff">, notificationsCopy = conf C.! &quot;copy&quot;</span>
+<span class="lineno">   29 </span><span class="spaces">    </span><span class="istickedoff">}</span></span>
 <span class="lineno">   30 </span>
 <span class="lineno">   31 </span>triggerNotifications :: Maybe Period -&gt; Notifications -&gt; IO ()
 <span class="lineno">   32 </span><span class="decl"><span class="nottickedoff">triggerNotifications p Notifications{ notificationsTrigger = t } = write p where</span>

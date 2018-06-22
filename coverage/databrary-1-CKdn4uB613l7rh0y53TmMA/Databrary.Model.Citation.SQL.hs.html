@@ -42,7 +42,7 @@ span.spaces    { background: white }
 <span class="lineno">   26 </span><span class="decl"><span class="nottickedoff">selectVolumeCitation = citationRow</span></span>
 <span class="lineno">   27 </span>
 <span class="lineno">   28 </span>makeVolumeCitation :: Volume -&gt; Maybe (Maybe T.Text -&gt; Citation) -&gt; (Volume, Maybe Citation)
-<span class="lineno">   29 </span><span class="decl"><span class="nottickedoff">makeVolumeCitation v cf = (v, cf &lt;*&gt; Just (Just (volumeName $ volumeRow v)))</span></span>
+<span class="lineno">   29 </span><span class="decl"><span class="istickedoff">makeVolumeCitation v cf = (v, cf &lt;*&gt; <span class="nottickedoff">Just (Just (volumeName $ volumeRow v))</span>)</span></span>
 <span class="lineno">   30 </span>
 <span class="lineno">   31 </span>selectCitation :: TH.Name -- ^ @'Identity'@
 <span class="lineno">   32 </span>  -&gt; Selector -- ^ @('Volume', Maybe 'Citation')@

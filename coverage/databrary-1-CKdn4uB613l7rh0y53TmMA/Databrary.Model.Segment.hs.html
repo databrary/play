@@ -50,10 +50,10 @@ span.spaces    { background: white }
 <span class="lineno">   34 </span>import Databrary.Model.Offset
 <span class="lineno">   35 </span>
 <span class="lineno">   36 </span>lowerBound, upperBound :: Range.Range a -&gt; Maybe a
-<span class="lineno">   37 </span><span class="decl"><span class="istickedoff">lowerBound = Range.bound . Range.lowerBound</span></span>
-<span class="lineno">   38 </span><span class="decl"><span class="istickedoff">upperBound = Range.bound . Range.upperBound</span></span>
+<span class="lineno">   37 </span><span class="decl"><span class="nottickedoff">lowerBound = Range.bound . Range.lowerBound</span></span>
+<span class="lineno">   38 </span><span class="decl"><span class="nottickedoff">upperBound = Range.bound . Range.upperBound</span></span>
 <span class="lineno">   39 </span>
-<span class="lineno">   40 </span>newtype Segment = Segment { <span class="istickedoff"><span class="decl"><span class="istickedoff">segmentRange</span></span></span> :: Range.Range Offset } deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, Typeable)
+<span class="lineno">   40 </span>newtype Segment = Segment { <span class="istickedoff"><span class="decl"><span class="istickedoff">segmentRange</span></span></span> :: Range.Range Offset } deriving ( <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, Typeable)
 <span class="lineno">   41 </span>
 <span class="lineno">   42 </span>instance PGType &quot;segment&quot;
 <span class="lineno">   43 </span>instance Range.PGRangeType &quot;segment&quot; &quot;interval&quot;

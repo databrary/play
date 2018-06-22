@@ -104,12 +104,12 @@
 <a name="line-95"></a><a name="AuditIdentity"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>AuditIdentity</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>AuditIdentity</span>
 <a name="line-96"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>auditWho</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Party</span><span class='hs-layout'>)</span>
 <a name="line-97"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>auditIp</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>PGInet</span>
-<a name="line-98"></a>  <span class='hs-layout'>}</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Eq</span><span class='hs-layout'>,</span> <span class='hs-conid'>Show</span><span class='hs-layout'>)</span>
+<a name="line-98"></a>  <span class='hs-layout'>}</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Eq</span><span class='hs-layout'>)</span> <span class='hs-comment'>-- , Show)</span>
 <a name="line-99"></a>
 <a name="line-100"></a><a name="Audit"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Audit</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Audit</span>
 <a name="line-101"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>auditWhen</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>Timestamp</span>
 <a name="line-102"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>auditIdentity</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>AuditIdentity</span>
 <a name="line-103"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>auditAction</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>AuditAction</span>
-<a name="line-104"></a>  <span class='hs-layout'>}</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Eq</span><span class='hs-layout'>,</span> <span class='hs-conid'>Show</span><span class='hs-layout'>)</span>
+<a name="line-104"></a>  <span class='hs-layout'>}</span> <span class='hs-comment'>-- deriving (Eq, Show)</span>
 </pre></body>
 </html>

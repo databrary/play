@@ -35,13 +35,13 @@ span.spaces    { background: white }
 <span class="lineno">   19 </span>  deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">JSON.ToJSON</span></span></span></span></span></span></span></span>)
 <span class="lineno">   20 </span>
 <span class="lineno">   21 </span>messagesFile :: IO FilePath
-<span class="lineno">   22 </span><span class="decl"><span class="nottickedoff">messagesFile = getDataFileName &quot;messages.conf&quot;</span></span>
+<span class="lineno">   22 </span><span class="decl"><span class="istickedoff">messagesFile = getDataFileName &quot;messages.conf&quot;</span></span>
 <span class="lineno">   23 </span>
 <span class="lineno">   24 </span>loadMessagesFrom :: FilePath -&gt; IO Messages
-<span class="lineno">   25 </span><span class="decl"><span class="nottickedoff">loadMessagesFrom f = Messages &lt;$&gt; C.load f</span></span>
+<span class="lineno">   25 </span><span class="decl"><span class="istickedoff">loadMessagesFrom f = Messages &lt;$&gt; C.load f</span></span>
 <span class="lineno">   26 </span>
 <span class="lineno">   27 </span>loadMessages :: IO Messages
-<span class="lineno">   28 </span><span class="decl"><span class="nottickedoff">loadMessages = loadMessagesFrom =&lt;&lt; messagesFile</span></span>
+<span class="lineno">   28 </span><span class="decl"><span class="istickedoff">loadMessages = loadMessagesFrom =&lt;&lt; messagesFile</span></span>
 <span class="lineno">   29 </span>
 <span class="lineno">   30 </span>getMessage :: C.Path -&gt; Messages -&gt; T.Text
 <span class="lineno">   31 </span><span class="decl"><span class="nottickedoff">getMessage p (Messages c) = fromMaybe ('[' `T.cons` TE.decodeLatin1 (C.pathKey p) `T.snoc` ']') $ c C.! p</span></span>

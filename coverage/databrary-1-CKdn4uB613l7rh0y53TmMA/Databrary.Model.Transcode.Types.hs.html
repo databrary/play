@@ -47,26 +47,26 @@ span.spaces    { background: white }
 <span class="lineno">   31 </span>type instance IdType Transcode = Int32
 <span class="lineno">   32 </span>
 <span class="lineno">   33 </span>data Transcode = Transcode
-<span class="lineno">   34 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">transcodeRevision</span></span></span> :: !AssetRevision
+<span class="lineno">   34 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">transcodeRevision</span></span></span> :: !AssetRevision
 <span class="lineno">   35 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">transcodeOwner</span></span></span> :: SiteAuth
 <span class="lineno">   36 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">transcodeSegment</span></span></span> :: Segment
 <span class="lineno">   37 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">transcodeOptions</span></span></span> :: TranscodeArgs
 <span class="lineno">   38 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">transcodeStart</span></span></span> :: Maybe Timestamp
-<span class="lineno">   39 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">transcodeProcess</span></span></span> :: Maybe TranscodePID
+<span class="lineno">   39 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">transcodeProcess</span></span></span> :: Maybe TranscodePID
 <span class="lineno">   40 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">transcodeLog</span></span></span> :: Maybe BS.ByteString
 <span class="lineno">   41 </span>  }
 <span class="lineno">   42 </span>
 <span class="lineno">   43 </span>transcodeAsset :: Transcode -&gt; Asset
-<span class="lineno">   44 </span><span class="decl"><span class="istickedoff">transcodeAsset = revisionAsset . transcodeRevision</span></span>
+<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">transcodeAsset = revisionAsset . transcodeRevision</span></span>
 <span class="lineno">   45 </span>
 <span class="lineno">   46 </span>transcodeOrig :: Transcode -&gt; Asset
-<span class="lineno">   47 </span><span class="decl"><span class="istickedoff">transcodeOrig = revisionOrig . transcodeRevision</span></span>
+<span class="lineno">   47 </span><span class="decl"><span class="nottickedoff">transcodeOrig = revisionOrig . transcodeRevision</span></span>
 <span class="lineno">   48 </span>
 <span class="lineno">   49 </span>transcodeId :: Transcode -&gt; Id Transcode
-<span class="lineno">   50 </span><span class="decl"><span class="istickedoff">transcodeId = Id . unId . assetId . assetRow . transcodeAsset</span></span>
+<span class="lineno">   50 </span><span class="decl"><span class="nottickedoff">transcodeId = Id . unId . assetId . assetRow . transcodeAsset</span></span>
 <span class="lineno">   51 </span>
 <span class="lineno">   52 </span>instance Kinded Transcode where
-<span class="lineno">   53 </span>  <span class="decl"><span class="istickedoff">kindOf _ = &quot;transcode&quot;</span></span>
+<span class="lineno">   53 </span>  <span class="decl"><span class="nottickedoff">kindOf _ = &quot;transcode&quot;</span></span>
 <span class="lineno">   54 </span>
 <span class="lineno">   55 </span>makeTranscodeRow :: Segment -&gt; [Maybe String] -&gt; Maybe Timestamp -&gt; Maybe Int32 -&gt; Maybe BS.ByteString -&gt; SiteAuth -&gt; AssetRevision -&gt; Transcode
 <span class="lineno">   56 </span><span class="decl"><span class="nottickedoff">makeTranscodeRow s f t p l u a =</span>

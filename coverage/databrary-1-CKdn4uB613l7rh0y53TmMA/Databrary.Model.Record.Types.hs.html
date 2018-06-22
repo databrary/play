@@ -50,12 +50,12 @@ span.spaces    { background: white }
 <span class="lineno">   34 </span>data RecordRow = RecordRow
 <span class="lineno">   35 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">recordId</span></span></span> :: Id Record
 <span class="lineno">   36 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">recordCategory</span></span></span> :: Category
-<span class="lineno">   37 </span>  } deriving ({-Show, -} <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">   37 </span>  } -- deriving ({-Show, -} Eq)
 <span class="lineno">   38 </span>
 <span class="lineno">   39 </span>data Record = Record
 <span class="lineno">   40 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">recordRow</span></span></span> :: !RecordRow
 <span class="lineno">   41 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">recordMeasures</span></span></span> :: Measures
-<span class="lineno">   42 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">recordRelease</span></span></span> :: Maybe Release
+<span class="lineno">   42 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">recordRelease</span></span></span> :: Maybe Release
 <span class="lineno">   43 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">recordVolume</span></span></span> :: Volume
 <span class="lineno">   44 </span>  }
 <span class="lineno">   45 </span>
@@ -69,7 +69,7 @@ span.spaces    { background: white }
 <span class="lineno">   53 </span>    = FieldUnused -- ^ Unused/not supplied
 <span class="lineno">   54 </span>    | FieldEmpty -- ^ Supplied, but empty
 <span class="lineno">   55 </span>    | Field MeasureDatum a -- ^ The raw value and its converted form
-<span class="lineno">   56 </span>    deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff">Functor</span></span>)
+<span class="lineno">   56 </span>    -- deriving (Show, Eq, Ord, Functor)
 <span class="lineno">   57 </span>
 <span class="lineno">   58 </span>data ParticipantRecord =
 <span class="lineno">   59 </span>    ParticipantRecord -- are some of these required?
@@ -89,7 +89,7 @@ span.spaces    { background: white }
 <span class="lineno">   73 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">prdState</span></span></span> :: FieldUse ByteString
 <span class="lineno">   74 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">prdSetting</span></span></span> :: FieldUse ByteString
 <span class="lineno">   75 </span>        } 
-<span class="lineno">   76 </span>    deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span>)
+<span class="lineno">   76 </span>    -- deriving (Show, Eq, Ord)
 <span class="lineno">   77 </span>
 <span class="lineno">   78 </span>data Measure = Measure
 <span class="lineno">   79 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">measureRecord</span></span></span> :: Record
@@ -160,7 +160,7 @@ span.spaces    { background: white }
 <span class="lineno">  144 </span>--   view = view . measureMetric
 <span class="lineno">  145 </span>
 <span class="lineno">  146 </span>instance Has (Maybe Release) Measure where
-<span class="lineno">  147 </span>  <span class="decl"><span class="istickedoff">view m = metricRelease (measureMetric m) &lt;|&gt; <span class="nottickedoff">recordRelease (measureRecord m)</span></span></span>
+<span class="lineno">  147 </span>  <span class="decl"><span class="istickedoff">view m = metricRelease (measureMetric m) &lt;|&gt; recordRelease (measureRecord m)</span></span>
 <span class="lineno">  148 </span>instance Has Release Measure where
 <span class="lineno">  149 </span>  <span class="decl"><span class="nottickedoff">view = fold . (view :: Measure -&gt; Maybe Release)</span></span>
 <span class="lineno">  150 </span>

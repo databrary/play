@@ -53,10 +53,10 @@ span.spaces    { background: white }
 <span class="lineno">   37 </span>-- | This is the context for when you don't have an identity, but you have a
 <span class="lineno">   38 </span>-- fully initialized, &quot;command line&quot; access to the system.
 <span class="lineno">   39 </span>data ActionContext = ActionContext
-<span class="lineno">   40 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">contextService</span></span></span> :: !Service -- ^ All initialized services; &quot;the imperative shell&quot;
+<span class="lineno">   40 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">contextService</span></span></span> :: !Service -- ^ All initialized services; &quot;the imperative shell&quot;
 <span class="lineno">   41 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">contextTimestamp</span></span></span> :: !Timestamp -- ^ When the ActionContextM action is running (i.e., NOW)
 <span class="lineno">   42 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">contextResourceState</span></span></span> :: !InternalState -- ^ Optimization for MonadResource
-<span class="lineno">   43 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">contextDB</span></span></span> :: !DBConn -- ^ The specific connection chosen for the running action?
+<span class="lineno">   43 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">contextDB</span></span></span> :: !DBConn -- ^ The specific connection chosen for the running action?
 <span class="lineno">   44 </span>  }
 <span class="lineno">   45 </span>
 <span class="lineno">   46 </span>instance Has Service ActionContext where
@@ -70,7 +70,7 @@ span.spaces    { background: white }
 <span class="lineno">   54 </span>instance Has Databrary.Static.Service.Static ActionContext where
 <span class="lineno">   55 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
 <span class="lineno">   56 </span>instance Has Databrary.HTTP.Client.HTTPClient ActionContext where
-<span class="lineno">   57 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
+<span class="lineno">   57 </span>  <span class="decl"><span class="istickedoff">view = (view . contextService)</span></span>
 <span class="lineno">   58 </span>instance Has Databrary.Web.Types.Web ActionContext where
 <span class="lineno">   59 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
 <span class="lineno">   60 </span>instance Has Databrary.Store.AV.AV ActionContext where
@@ -80,7 +80,7 @@ span.spaces    { background: white }
 <span class="lineno">   64 </span>instance Has Databrary.Service.Messages.Messages ActionContext where
 <span class="lineno">   65 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
 <span class="lineno">   66 </span>instance Has Databrary.Service.Log.Logs ActionContext where
-<span class="lineno">   67 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
+<span class="lineno">   67 </span>  <span class="decl"><span class="istickedoff">view = (view . contextService)</span></span>
 <span class="lineno">   68 </span>instance Has Databrary.Service.Passwd.Passwd ActionContext where
 <span class="lineno">   69 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
 <span class="lineno">   70 </span>instance Has Databrary.Service.Entropy.Entropy ActionContext where
@@ -90,7 +90,7 @@ span.spaces    { background: white }
 <span class="lineno">   74 </span>instance Has InternalState ActionContext where
 <span class="lineno">   75 </span>  <span class="decl"><span class="nottickedoff">view = contextResourceState</span></span>
 <span class="lineno">   76 </span>instance Has DBConn ActionContext where
-<span class="lineno">   77 </span>  <span class="decl"><span class="nottickedoff">view = contextDB</span></span>
+<span class="lineno">   77 </span>  <span class="decl"><span class="istickedoff">view = contextDB</span></span>
 <span class="lineno">   78 </span>
 <span class="lineno">   79 </span>type ActionContextM a = ReaderT ActionContext IO a
 <span class="lineno">   80 </span>
@@ -106,22 +106,22 @@ span.spaces    { background: white }
 <span class="lineno">   90 </span><span class="spaces">        </span><span class="nottickedoff">withDB (serviceDB rc) $ runReaderT action . ActionContext rc t is</span></span>
 <span class="lineno">   91 </span>
 <span class="lineno">   92 </span>-- | A ActionContext with no Identity.
-<span class="lineno">   93 </span>newtype BackgroundContext = BackgroundContext { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">backgroundContext</span></span></span> :: ActionContext }
+<span class="lineno">   93 </span>newtype BackgroundContext = BackgroundContext { <span class="istickedoff"><span class="decl"><span class="istickedoff">backgroundContext</span></span></span> :: ActionContext }
 <span class="lineno">   94 </span>    deriving
 <span class="lineno">   95 </span>        ( <span class="decl"><span class="nottickedoff">Has Service</span></span>
 <span class="lineno">   96 </span>        , <span class="decl"><span class="nottickedoff">Has Notifications</span></span>
 <span class="lineno">   97 </span>        , <span class="decl"><span class="nottickedoff">Has Solr</span></span>
 <span class="lineno">   98 </span>        , <span class="decl"><span class="nottickedoff">Has Ingest</span></span>
-<span class="lineno">   99 </span>        , <span class="decl"><span class="nottickedoff">Has HTTPClient</span></span>
+<span class="lineno">   99 </span>        , <span class="decl"><span class="istickedoff">Has HTTPClient</span></span>
 <span class="lineno">  100 </span>        , <span class="decl"><span class="nottickedoff">Has Storage</span></span>
-<span class="lineno">  101 </span>        , <span class="decl"><span class="nottickedoff">Has Logs</span></span>
-<span class="lineno">  102 </span>        , <span class="decl"><span class="nottickedoff">Has DBConn</span></span>
+<span class="lineno">  101 </span>        , <span class="decl"><span class="istickedoff">Has Logs</span></span>
+<span class="lineno">  102 </span>        , <span class="decl"><span class="istickedoff">Has DBConn</span></span>
 <span class="lineno">  103 </span>        )
 <span class="lineno">  104 </span>
 <span class="lineno">  105 </span>instance Has Timestamp BackgroundContext where
 <span class="lineno">  106 </span>  <span class="decl"><span class="nottickedoff">view = (contextTimestamp . backgroundContext)</span></span>
 <span class="lineno">  107 </span>instance Has Identity BackgroundContext where
-<span class="lineno">  108 </span>  <span class="decl"><span class="nottickedoff">view _ = IdentityNotNeeded</span></span>
+<span class="lineno">  108 </span>  <span class="decl"><span class="istickedoff">view _ = IdentityNotNeeded</span></span>
 <span class="lineno">  109 </span>instance Has SiteAuth BackgroundContext where
 <span class="lineno">  110 </span>  <span class="decl"><span class="nottickedoff">view _ = view IdentityNotNeeded</span></span>
 <span class="lineno">  111 </span>instance Has Party BackgroundContext where

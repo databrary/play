@@ -36,7 +36,7 @@
 <a name="line-27"></a><a name="GeoName"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>GeoName</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>GeoName</span>
 <a name="line-28"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>geoNameId</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>GeoName</span><span class='hs-layout'>)</span> <span class='hs-comment'>-- ^ identifier from geonames service</span>
 <a name="line-29"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>geoName</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>T</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-comment'>-- ^ human readable place name</span>
-<a name="line-30"></a>  <span class='hs-layout'>}</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Eq</span><span class='hs-layout'>,</span> <span class='hs-conid'>Show</span><span class='hs-layout'>)</span>
+<a name="line-30"></a>  <span class='hs-layout'>}</span> <span class='hs-comment'>-- deriving (Eq, Show)</span>
 <a name="line-31"></a>
 <a name="line-32"></a><a name="geoNameUS"></a><span class='hs-comment'>-- | hardcoded value for US geoname place</span>
 <a name="line-33"></a><span class='hs-definition'>geoNameUS</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>GeoName</span>

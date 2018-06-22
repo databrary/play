@@ -37,7 +37,7 @@ span.spaces    { background: white }
 <span class="lineno">   21 </span>charEscaped :: Bool -&gt; BP.BoundedPrim Word8
 <span class="lineno">   22 </span><span class="decl"><span class="istickedoff">charEscaped colon =</span>
 <span class="lineno">   23 </span><span class="spaces">  </span><span class="istickedoff">BP.condB (\c -&gt; c == c2w '%' || (colon &amp;&amp; c == c2w ':') || c &lt; c2w ' ')</span>
-<span class="lineno">   24 </span><span class="spaces">    </span><span class="istickedoff">(BP.liftFixedToBounded $ <span class="nottickedoff">(,) '%'</span> BP.&gt;$&lt; BP.char8 BP.&gt;*&lt; BP.word8HexFixed)</span>
+<span class="lineno">   24 </span><span class="spaces">    </span><span class="istickedoff">(BP.liftFixedToBounded $ (,) '%' BP.&gt;$&lt; BP.char8 BP.&gt;*&lt; BP.word8HexFixed)</span>
 <span class="lineno">   25 </span><span class="spaces">    </span><span class="istickedoff">(BP.liftFixedToBounded BP.word8)</span></span>
 <span class="lineno">   26 </span>
 <span class="lineno">   27 </span>encode :: ANVL -&gt; B.Builder

@@ -50,18 +50,18 @@ span.spaces    { background: white }
 <span class="lineno">   34 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceSecret</span></span></span> :: !Secret
 <span class="lineno">   35 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceEntropy</span></span></span> :: !Entropy
 <span class="lineno">   36 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">servicePasswd</span></span></span> :: !Passwd
-<span class="lineno">   37 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceLogs</span></span></span> :: !Logs
+<span class="lineno">   37 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">serviceLogs</span></span></span> :: !Logs
 <span class="lineno">   38 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceMessages</span></span></span> :: !Messages
 <span class="lineno">   39 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceDB</span></span></span> :: !DBPool
 <span class="lineno">   40 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceStorage</span></span></span> :: Storage -- may be down
 <span class="lineno">   41 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceAV</span></span></span> :: !AV
 <span class="lineno">   42 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceWeb</span></span></span> :: !Web
-<span class="lineno">   43 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceHTTPClient</span></span></span> :: !HTTPClient
+<span class="lineno">   43 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">serviceHTTPClient</span></span></span> :: !HTTPClient
 <span class="lineno">   44 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceStatic</span></span></span> :: !Static
 <span class="lineno">   45 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceStats</span></span></span> :: !(IORef SiteStats)
 <span class="lineno">   46 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceIngest</span></span></span> :: !Ingest
 <span class="lineno">   47 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceSolr</span></span></span> :: !Solr
-<span class="lineno">   48 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceEZID</span></span></span> :: !(Maybe EZID)
+<span class="lineno">   48 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">serviceEZID</span></span></span> :: !(Maybe EZID)
 <span class="lineno">   49 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">servicePeriodic</span></span></span> :: !(Maybe ThreadId)
 <span class="lineno">   50 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceNotification</span></span></span> :: !Notifications
 <span class="lineno">   51 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceDown</span></span></span> :: !(Maybe T.Text)
@@ -75,7 +75,7 @@ span.spaces    { background: white }
 <span class="lineno">   59 </span>instance Has Passwd Service where
 <span class="lineno">   60 </span>  <span class="decl"><span class="nottickedoff">view = servicePasswd</span></span>
 <span class="lineno">   61 </span>instance Has Logs Service where
-<span class="lineno">   62 </span>  <span class="decl"><span class="nottickedoff">view = serviceLogs</span></span>
+<span class="lineno">   62 </span>  <span class="decl"><span class="istickedoff">view = serviceLogs</span></span>
 <span class="lineno">   63 </span>instance Has Messages Service where
 <span class="lineno">   64 </span>  <span class="decl"><span class="nottickedoff">view = serviceMessages</span></span>
 <span class="lineno">   65 </span>-- instance Has DBPool Service where
@@ -87,7 +87,7 @@ span.spaces    { background: white }
 <span class="lineno">   71 </span>instance Has Web Service where
 <span class="lineno">   72 </span>  <span class="decl"><span class="nottickedoff">view = serviceWeb</span></span>
 <span class="lineno">   73 </span>instance Has HTTPClient Service where
-<span class="lineno">   74 </span>  <span class="decl"><span class="nottickedoff">view = serviceHTTPClient</span></span>
+<span class="lineno">   74 </span>  <span class="decl"><span class="istickedoff">view = serviceHTTPClient</span></span>
 <span class="lineno">   75 </span>instance Has Static Service where
 <span class="lineno">   76 </span>  <span class="decl"><span class="nottickedoff">view = serviceStatic</span></span>
 <span class="lineno">   77 </span>instance Has Ingest Service where

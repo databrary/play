@@ -49,45 +49,45 @@ span.spaces    { background: white }
 <span class="lineno">   33 </span>type HTTPClient = HC.Manager
 <span class="lineno">   34 </span>
 <span class="lineno">   35 </span>initHTTPClient :: IO HTTPClient
-<span class="lineno">   36 </span><span class="decl"><span class="nottickedoff">initHTTPClient = HC.newManager tlsManagerSettings</span>
-<span class="lineno">   37 </span><span class="spaces">  </span><span class="nottickedoff">{ HC.managerConnCount = 4</span>
-<span class="lineno">   38 </span><span class="spaces">  </span><span class="nottickedoff">, HC.managerIdleConnectionCount = 8</span>
-<span class="lineno">   39 </span><span class="spaces">  </span><span class="nottickedoff">}</span></span>
+<span class="lineno">   36 </span><span class="decl"><span class="istickedoff">initHTTPClient = HC.newManager tlsManagerSettings</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="istickedoff">{ HC.managerConnCount = <span class="nottickedoff">4</span></span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="istickedoff">, HC.managerIdleConnectionCount = 8</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">}</span></span>
 <span class="lineno">   40 </span>
 <span class="lineno">   41 </span>type CookiesT m a = StateT HC.CookieJar m a
 <span class="lineno">   42 </span>
 <span class="lineno">   43 </span>runCookiesT :: Monad m =&gt; CookiesT m a -&gt; m a
-<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">runCookiesT f = evalStateT f mempty</span></span>
+<span class="lineno">   44 </span><span class="decl"><span class="istickedoff">runCookiesT f = evalStateT f mempty</span></span>
 <span class="lineno">   45 </span>
 <span class="lineno">   46 </span>withCookies :: (MonadIO m, MonadHas HTTPClient c m) =&gt; (HC.Request -&gt; HC.Manager -&gt; IO (HC.Response a)) -&gt; HC.Request -&gt; CookiesT m (HC.Response a)
 <span class="lineno">   47 </span><span class="decl"><span class="nottickedoff">withCookies f r = StateT $ \c -&gt; focusIO $ \m -&gt;</span>
 <span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">(id &amp;&amp;&amp; HC.responseCookieJar) &lt;$&gt; f r{ HC.cookieJar = HC.cookieJar r &lt;&gt; Just c } m</span></span>
 <span class="lineno">   49 </span>
 <span class="lineno">   50 </span>withResponseCookies :: (MonadIO m, MonadHas HTTPClient c m) =&gt; HC.Request -&gt; (HC.Response HC.BodyReader -&gt; IO a) -&gt; CookiesT m a
-<span class="lineno">   51 </span><span class="decl"><span class="nottickedoff">withResponseCookies q f = StateT $ \c -&gt; focusIO $ \m -&gt;</span>
-<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">HC.withResponse q{ HC.cookieJar = HC.cookieJar q &lt;&gt; Just c } m $ \r -&gt; (, HC.responseCookieJar r) &lt;$&gt; f r</span></span>
+<span class="lineno">   51 </span><span class="decl"><span class="istickedoff">withResponseCookies q f = StateT $ \c -&gt; focusIO $ \m -&gt;</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="istickedoff">HC.withResponse q{ HC.cookieJar = HC.cookieJar q &lt;&gt; Just c } m $ \r -&gt; (, HC.responseCookieJar r) &lt;$&gt; f r</span></span>
 <span class="lineno">   53 </span>
 <span class="lineno">   54 </span>contentTypeEq :: BS.ByteString -&gt; BS.ByteString -&gt; Bool
-<span class="lineno">   55 </span><span class="decl"><span class="nottickedoff">contentTypeEq = (==) `on` f where</span>
-<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">f s</span>
-<span class="lineno">   57 </span><span class="spaces">    </span><span class="nottickedoff">| Just i &lt;- BSC.elemIndex ';' s = BS.take i s</span>
-<span class="lineno">   58 </span><span class="spaces">    </span><span class="nottickedoff">| otherwise = s</span></span>
+<span class="lineno">   55 </span><span class="decl"><span class="istickedoff">contentTypeEq = (==) `on` f where</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="istickedoff">f s</span>
+<span class="lineno">   57 </span><span class="spaces">    </span><span class="istickedoff">| Just i &lt;- BSC.elemIndex ';' s = BS.take i s</span>
+<span class="lineno">   58 </span><span class="spaces">    </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = s</span></span>
 <span class="lineno">   59 </span>
 <span class="lineno">   60 </span>checkContentOk :: BS.ByteString -&gt; HC.Request -&gt; HC.Response HC.BodyReader -&gt; IO ()
-<span class="lineno">   61 </span><span class="decl"><span class="nottickedoff">checkContentOk ct _ rsp = do</span>
-<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">if | not $ statusIsSuccessful $ HC.responseStatus rsp -&gt; fail &quot;checkContentOk: status unsuccessful&quot;</span>
-<span class="lineno">   63 </span><span class="spaces">     </span><span class="nottickedoff">| not $ any (contentTypeEq ct) ht -&gt; fail &quot;checkContentOk: bad content type&quot;</span>
-<span class="lineno">   64 </span><span class="spaces">     </span><span class="nottickedoff">| otherwise -&gt; return ()</span>
-<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">where ht = lookup hContentType $ HC.responseHeaders rsp</span></span>
+<span class="lineno">   61 </span><span class="decl"><span class="istickedoff">checkContentOk ct _ rsp = do</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="istickedoff">if | not $ statusIsSuccessful $ HC.responseStatus rsp -&gt; fail &quot;checkContentOk: status unsuccessful&quot;</span>
+<span class="lineno">   63 </span><span class="spaces">     </span><span class="istickedoff">| <span class="tickonlyfalse">not $ any (contentTypeEq ct) ht</span> -&gt; <span class="nottickedoff">fail &quot;checkContentOk: bad content type&quot;</span></span>
+<span class="lineno">   64 </span><span class="spaces">     </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> -&gt; return <span class="nottickedoff">()</span></span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="istickedoff">where ht = lookup hContentType $ HC.responseHeaders rsp</span></span>
 <span class="lineno">   66 </span>
 <span class="lineno">   67 </span>requestAcceptContent :: BS.ByteString -&gt; HC.Request -&gt; HC.Request
-<span class="lineno">   68 </span><span class="decl"><span class="nottickedoff">requestAcceptContent ct req = req</span>
-<span class="lineno">   69 </span><span class="spaces">  </span><span class="nottickedoff">{ HC.requestHeaders = (hAccept, ct) : HC.requestHeaders req</span>
-<span class="lineno">   70 </span><span class="spaces">  </span><span class="nottickedoff">, HC.checkResponse = checkContentOk ct</span>
-<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">}</span></span>
+<span class="lineno">   68 </span><span class="decl"><span class="istickedoff">requestAcceptContent ct req = req</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="istickedoff">{ HC.requestHeaders = (hAccept, ct) : HC.requestHeaders req</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="istickedoff">, HC.checkResponse = checkContentOk ct</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="istickedoff">}</span></span>
 <span class="lineno">   72 </span>
 <span class="lineno">   73 </span>httpParse :: P.Parser a -&gt; HC.Response HC.BodyReader -&gt; IO (P.Result a)
-<span class="lineno">   74 </span><span class="decl"><span class="nottickedoff">httpParse p r = P.parseWith (HC.responseBody r) p BS.empty</span></span>
+<span class="lineno">   74 </span><span class="decl"><span class="istickedoff">httpParse p r = P.parseWith (HC.responseBody r) p BS.empty</span></span>
 <span class="lineno">   75 </span>
 <span class="lineno">   76 </span>httpMaybe :: MonadBaseControl IO m =&gt; m (Maybe a) -&gt; m (Maybe a)
 <span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">httpMaybe = handle (return . fail . (show :: HC.HttpException -&gt; String))</span></span>

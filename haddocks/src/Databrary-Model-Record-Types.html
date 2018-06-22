@@ -43,7 +43,7 @@
 <a name="line-34"></a><a name="RecordRow"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>RecordRow</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>RecordRow</span>
 <a name="line-35"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>recordId</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Id</span> <span class='hs-conid'>Record</span>
 <a name="line-36"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>recordCategory</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Category</span>
-<a name="line-37"></a>  <span class='hs-layout'>}</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-comment'>{-Show, -}</span> <span class='hs-conid'>Eq</span><span class='hs-layout'>)</span>
+<a name="line-37"></a>  <span class='hs-layout'>}</span> <span class='hs-comment'>-- deriving ({-Show, -} Eq)</span>
 <a name="line-38"></a>
 <a name="line-39"></a><a name="Record"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Record</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Record</span>
 <a name="line-40"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>recordRow</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>RecordRow</span>
@@ -62,7 +62,7 @@
 <a name="line-53"></a>    <span class='hs-keyglyph'>=</span> <span class='hs-conid'>FieldUnused</span> <span class='hs-comment'>-- ^ Unused/not supplied</span>
 <a name="line-54"></a>    <span class='hs-keyglyph'>|</span> <span class='hs-conid'>FieldEmpty</span> <span class='hs-comment'>-- ^ Supplied, but empty</span>
 <a name="line-55"></a>    <span class='hs-keyglyph'>|</span> <span class='hs-conid'>Field</span> <span class='hs-conid'>MeasureDatum</span> <span class='hs-varid'>a</span> <span class='hs-comment'>-- ^ The raw value and its converted form</span>
-<a name="line-56"></a>    <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Show</span><span class='hs-layout'>,</span> <span class='hs-conid'>Eq</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ord</span><span class='hs-layout'>,</span> <span class='hs-conid'>Functor</span><span class='hs-layout'>)</span>
+<a name="line-56"></a>    <span class='hs-comment'>-- deriving (Show, Eq, Ord, Functor)</span>
 <a name="line-57"></a>
 <a name="line-58"></a><a name="ParticipantRecord"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>ParticipantRecord</span> <span class='hs-keyglyph'>=</span>
 <a name="line-59"></a>    <span class='hs-conid'>ParticipantRecord</span> <span class='hs-comment'>-- are some of these required?</span>
@@ -82,7 +82,7 @@
 <a name="line-73"></a>        <span class='hs-layout'>,</span> <span class='hs-varid'>prdState</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>FieldUse</span> <span class='hs-conid'>ByteString</span>
 <a name="line-74"></a>        <span class='hs-layout'>,</span> <span class='hs-varid'>prdSetting</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>FieldUse</span> <span class='hs-conid'>ByteString</span>
 <a name="line-75"></a>        <span class='hs-layout'>}</span> 
-<a name="line-76"></a>    <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Show</span><span class='hs-layout'>,</span> <span class='hs-conid'>Eq</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ord</span><span class='hs-layout'>)</span>
+<a name="line-76"></a>    <span class='hs-comment'>-- deriving (Show, Eq, Ord)</span>
 <a name="line-77"></a>
 <a name="line-78"></a><a name="Measure"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Measure</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Measure</span>
 <a name="line-79"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>measureRecord</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Record</span>

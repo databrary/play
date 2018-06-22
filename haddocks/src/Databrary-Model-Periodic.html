@@ -17,7 +17,7 @@
 <a name="line-8"></a><a name="Period"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Period</span>
 <a name="line-9"></a>  <span class='hs-keyglyph'>=</span> <span class='hs-conid'>PeriodDaily</span>
 <a name="line-10"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>PeriodWeekly</span>
-<a name="line-11"></a>  <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Typeable</span><span class='hs-layout'>,</span> <span class='hs-conid'>Eq</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ord</span><span class='hs-layout'>,</span> <span class='hs-conid'>Enum</span><span class='hs-layout'>,</span> <span class='hs-conid'>Show</span><span class='hs-layout'>)</span>
+<a name="line-11"></a>  <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Eq</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ord</span><span class='hs-layout'>,</span> <span class='hs-conid'>Show</span><span class='hs-layout'>)</span> <span class='hs-comment'>-- (Typeable, Eq, Ord, Enum, Show)</span>
 <a name="line-12"></a>
 <a name="line-13"></a><a name="instance%20Exception%20Period"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Exception</span> <span class='hs-conid'>Period</span> <span class='hs-keyword'>where</span>
 <a name="line-14"></a>  <span class='hs-varid'>toException</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>asyncExceptionToException</span>

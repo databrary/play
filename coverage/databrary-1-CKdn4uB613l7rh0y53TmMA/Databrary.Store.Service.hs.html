@@ -34,48 +34,48 @@ span.spaces    { background: white }
 <span class="lineno">   18 </span>import Databrary.Store.Transcoder
 <span class="lineno">   19 </span>
 <span class="lineno">   20 </span>initStorage :: C.Config -&gt; IO Storage
-<span class="lineno">   21 </span><span class="decl"><span class="istickedoff">initStorage conf</span>
-<span class="lineno">   22 </span><span class="spaces">  </span><span class="istickedoff">| Just down &lt;- conf C.! &quot;DOWN&quot; = <span class="nottickedoff">return $ error $ &quot;Storage unavailable: &quot; ++ down</span></span>
-<span class="lineno">   23 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = do</span>
-<span class="lineno">   24 </span><span class="spaces">      </span><span class="istickedoff">fp &lt;- getTemporaryDirectory</span>
-<span class="lineno">   25 </span><span class="spaces">      </span><span class="istickedoff">temp &lt;- fromMaybeM <span class="nottickedoff">(rawFilePath fp)</span> $ conf C.! &quot;temp&quot;</span>
-<span class="lineno">   26 </span><span class="spaces"></span><span class="istickedoff"></span>
-<span class="lineno">   27 </span><span class="spaces">      </span><span class="istickedoff">foldM_ (\dev f -&gt; do</span>
-<span class="lineno">   28 </span><span class="spaces">        </span><span class="istickedoff">s &lt;- getFileStatus f</span>
-<span class="lineno">   29 </span><span class="spaces">        </span><span class="istickedoff">f' &lt;- unRawFilePath f</span>
-<span class="lineno">   30 </span><span class="spaces">        </span><span class="istickedoff">unless (isDirectory s)</span>
-<span class="lineno">   31 </span><span class="spaces">          </span><span class="istickedoff">$ <span class="nottickedoff">ioError $ mkIOError doesNotExistErrorType &quot;storage directory&quot; Nothing (Just f')</span></span>
-<span class="lineno">   32 </span><span class="spaces">        </span><span class="istickedoff">let d = deviceID s</span>
-<span class="lineno">   33 </span><span class="spaces">        </span><span class="istickedoff">unless (all (d ==) dev)</span>
-<span class="lineno">   34 </span><span class="spaces">          </span><span class="istickedoff">$ <span class="nottickedoff">ioError $ mkIOError illegalOperationErrorType &quot;storage filesystem&quot; Nothing (Just f')</span></span>
-<span class="lineno">   35 </span><span class="spaces">        </span><span class="istickedoff">return $ Just d)</span>
-<span class="lineno">   36 </span><span class="spaces">        </span><span class="istickedoff">Nothing $ catMaybes [Just master, Just temp, Just upload, stage]</span>
-<span class="lineno">   37 </span><span class="spaces"></span><span class="istickedoff"></span>
-<span class="lineno">   38 </span><span class="spaces">      </span><span class="istickedoff">forM_ cache $ \c -&gt; do</span>
-<span class="lineno">   39 </span><span class="spaces">        </span><span class="istickedoff">let tmp = c &lt;/&gt; &quot;tmp&quot;</span>
-<span class="lineno">   40 </span><span class="spaces">        </span><span class="istickedoff">tmpPath &lt;- unRawFilePath tmp</span>
-<span class="lineno">   41 </span><span class="spaces">        </span><span class="istickedoff">createDirectoryIfMissing False tmpPath</span>
-<span class="lineno">   42 </span><span class="spaces"></span><span class="istickedoff"></span>
-<span class="lineno">   43 </span><span class="spaces">      </span><span class="istickedoff">let tempPath = addTrailingPathSeparator temp</span>
-<span class="lineno">   44 </span><span class="spaces">      </span><span class="istickedoff">unTempPath &lt;- unRawFilePath tempPath</span>
-<span class="lineno">   45 </span><span class="spaces">      </span><span class="istickedoff">createDirectoryIfMissing False (getStorageTempParticipantUpload' unTempPath)</span>
-<span class="lineno">   46 </span><span class="spaces"></span><span class="istickedoff"></span>
-<span class="lineno">   47 </span><span class="spaces">      </span><span class="istickedoff">tc &lt;- initTranscoder (conf C.! &quot;transcode&quot;)</span>
-<span class="lineno">   48 </span><span class="spaces"></span><span class="istickedoff"></span>
-<span class="lineno">   49 </span><span class="spaces">      </span><span class="istickedoff">return $ Storage</span>
-<span class="lineno">   50 </span><span class="spaces">        </span><span class="istickedoff">{ storageMaster = master</span>
-<span class="lineno">   51 </span><span class="spaces">        </span><span class="istickedoff">, storageFallback = conf C.! &quot;fallback&quot;</span>
-<span class="lineno">   52 </span><span class="spaces">        </span><span class="istickedoff">, storageTemp = tempPath</span>
-<span class="lineno">   53 </span><span class="spaces">        </span><span class="istickedoff">, storageUpload = upload</span>
-<span class="lineno">   54 </span><span class="spaces">        </span><span class="istickedoff">, storageCache = cache</span>
-<span class="lineno">   55 </span><span class="spaces">        </span><span class="istickedoff">, storageStage = stage</span>
-<span class="lineno">   56 </span><span class="spaces">        </span><span class="istickedoff">, storageTranscoder = tc</span>
-<span class="lineno">   57 </span><span class="spaces">        </span><span class="istickedoff">}</span>
-<span class="lineno">   58 </span><span class="spaces">  </span><span class="istickedoff">where</span>
-<span class="lineno">   59 </span><span class="spaces">  </span><span class="istickedoff">master = conf C.! &quot;master&quot;</span>
-<span class="lineno">   60 </span><span class="spaces">  </span><span class="istickedoff">upload = conf C.! &quot;upload&quot;</span>
-<span class="lineno">   61 </span><span class="spaces">  </span><span class="istickedoff">cache = conf C.! &quot;cache&quot;</span>
-<span class="lineno">   62 </span><span class="spaces">  </span><span class="istickedoff">stage = conf C.! &quot;stage&quot;</span></span>
+<span class="lineno">   21 </span><span class="decl"><span class="nottickedoff">initStorage conf</span>
+<span class="lineno">   22 </span><span class="spaces">  </span><span class="nottickedoff">| Just down &lt;- conf C.! &quot;DOWN&quot; = return $ error $ &quot;Storage unavailable: &quot; ++ down</span>
+<span class="lineno">   23 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = do</span>
+<span class="lineno">   24 </span><span class="spaces">      </span><span class="nottickedoff">fp &lt;- getTemporaryDirectory</span>
+<span class="lineno">   25 </span><span class="spaces">      </span><span class="nottickedoff">temp &lt;- fromMaybeM (rawFilePath fp) $ conf C.! &quot;temp&quot;</span>
+<span class="lineno">   26 </span><span class="spaces"></span><span class="nottickedoff"></span>
+<span class="lineno">   27 </span><span class="spaces">      </span><span class="nottickedoff">foldM_ (\dev f -&gt; do</span>
+<span class="lineno">   28 </span><span class="spaces">        </span><span class="nottickedoff">s &lt;- getFileStatus f</span>
+<span class="lineno">   29 </span><span class="spaces">        </span><span class="nottickedoff">f' &lt;- unRawFilePath f</span>
+<span class="lineno">   30 </span><span class="spaces">        </span><span class="nottickedoff">unless (isDirectory s)</span>
+<span class="lineno">   31 </span><span class="spaces">          </span><span class="nottickedoff">$ ioError $ mkIOError doesNotExistErrorType &quot;storage directory&quot; Nothing (Just f')</span>
+<span class="lineno">   32 </span><span class="spaces">        </span><span class="nottickedoff">let d = deviceID s</span>
+<span class="lineno">   33 </span><span class="spaces">        </span><span class="nottickedoff">unless (all (d ==) dev)</span>
+<span class="lineno">   34 </span><span class="spaces">          </span><span class="nottickedoff">$ ioError $ mkIOError illegalOperationErrorType &quot;storage filesystem&quot; Nothing (Just f')</span>
+<span class="lineno">   35 </span><span class="spaces">        </span><span class="nottickedoff">return $ Just d)</span>
+<span class="lineno">   36 </span><span class="spaces">        </span><span class="nottickedoff">Nothing $ catMaybes [Just master, Just temp, Just upload, stage]</span>
+<span class="lineno">   37 </span><span class="spaces"></span><span class="nottickedoff"></span>
+<span class="lineno">   38 </span><span class="spaces">      </span><span class="nottickedoff">forM_ cache $ \c -&gt; do</span>
+<span class="lineno">   39 </span><span class="spaces">        </span><span class="nottickedoff">let tmp = c &lt;/&gt; &quot;tmp&quot;</span>
+<span class="lineno">   40 </span><span class="spaces">        </span><span class="nottickedoff">tmpPath &lt;- unRawFilePath tmp</span>
+<span class="lineno">   41 </span><span class="spaces">        </span><span class="nottickedoff">createDirectoryIfMissing False tmpPath</span>
+<span class="lineno">   42 </span><span class="spaces"></span><span class="nottickedoff"></span>
+<span class="lineno">   43 </span><span class="spaces">      </span><span class="nottickedoff">let tempPath = addTrailingPathSeparator temp</span>
+<span class="lineno">   44 </span><span class="spaces">      </span><span class="nottickedoff">unTempPath &lt;- unRawFilePath tempPath</span>
+<span class="lineno">   45 </span><span class="spaces">      </span><span class="nottickedoff">createDirectoryIfMissing False (getStorageTempParticipantUpload' unTempPath)</span>
+<span class="lineno">   46 </span><span class="spaces"></span><span class="nottickedoff"></span>
+<span class="lineno">   47 </span><span class="spaces">      </span><span class="nottickedoff">tc &lt;- initTranscoder (conf C.! &quot;transcode&quot;)</span>
+<span class="lineno">   48 </span><span class="spaces"></span><span class="nottickedoff"></span>
+<span class="lineno">   49 </span><span class="spaces">      </span><span class="nottickedoff">return $ Storage</span>
+<span class="lineno">   50 </span><span class="spaces">        </span><span class="nottickedoff">{ storageMaster = master</span>
+<span class="lineno">   51 </span><span class="spaces">        </span><span class="nottickedoff">, storageFallback = conf C.! &quot;fallback&quot;</span>
+<span class="lineno">   52 </span><span class="spaces">        </span><span class="nottickedoff">, storageTemp = tempPath</span>
+<span class="lineno">   53 </span><span class="spaces">        </span><span class="nottickedoff">, storageUpload = upload</span>
+<span class="lineno">   54 </span><span class="spaces">        </span><span class="nottickedoff">, storageCache = cache</span>
+<span class="lineno">   55 </span><span class="spaces">        </span><span class="nottickedoff">, storageStage = stage</span>
+<span class="lineno">   56 </span><span class="spaces">        </span><span class="nottickedoff">, storageTranscoder = tc</span>
+<span class="lineno">   57 </span><span class="spaces">        </span><span class="nottickedoff">}</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">master = conf C.! &quot;master&quot;</span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="nottickedoff">upload = conf C.! &quot;upload&quot;</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">cache = conf C.! &quot;cache&quot;</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">stage = conf C.! &quot;stage&quot;</span></span>
 
 </pre>
 </body>

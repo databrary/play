@@ -91,30 +91,30 @@ span.spaces    { background: white }
 <span class="lineno">   75 </span>type DBConn = PGConnection
 <span class="lineno">   76 </span>
 <span class="lineno">   77 </span>initDB :: C.Config -&gt; IO DBPool
-<span class="lineno">   78 </span><span class="decl"><span class="nottickedoff">initDB conf =</span>
-<span class="lineno">   79 </span><span class="spaces">    </span><span class="nottickedoff">DBPool</span>
-<span class="lineno">   80 </span><span class="spaces">        </span><span class="nottickedoff">&lt;$&gt; (createPool' (pgConnect db) pgDisconnect)</span>
-<span class="lineno">   81 </span><span class="spaces">        </span><span class="nottickedoff">&lt;*&gt; (createPool' (PGSimple.connect simpleConnInfo) (PGSimple.close))</span>
-<span class="lineno">   82 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
-<span class="lineno">   83 </span><span class="spaces">    </span><span class="nottickedoff">createPool' :: IO a -&gt; (a -&gt; IO ()) -&gt; IO (Pool a)</span>
-<span class="lineno">   84 </span><span class="spaces">    </span><span class="nottickedoff">createPool' get release =</span>
-<span class="lineno">   85 </span><span class="spaces">        </span><span class="nottickedoff">createPool get release stripes (fromInteger idle) conn</span>
-<span class="lineno">   86 </span><span class="spaces">    </span><span class="nottickedoff">db = confPGDatabase conf</span>
-<span class="lineno">   87 </span><span class="spaces">    </span><span class="nottickedoff">simpleConnInfo = PGSimple.defaultConnectInfo</span>
-<span class="lineno">   88 </span><span class="spaces">        </span><span class="nottickedoff">{ PGSimple.connectHost     = pgDBHost db</span>
-<span class="lineno">   89 </span><span class="spaces">        </span><span class="nottickedoff">, PGSimple.connectPort     = case pgDBPort db of</span>
-<span class="lineno">   90 </span><span class="spaces">            </span><span class="nottickedoff">PortNumber x -&gt; fromIntegral x -- x is opaque</span>
-<span class="lineno">   91 </span><span class="spaces">            </span><span class="nottickedoff">UnixSocket _ -&gt;</span>
-<span class="lineno">   92 </span><span class="spaces">                </span><span class="nottickedoff">PGSimple.connectPort PGSimple.defaultConnectInfo</span>
-<span class="lineno">   93 </span><span class="spaces">            </span><span class="nottickedoff">Service _ -&gt;</span>
-<span class="lineno">   94 </span><span class="spaces">                </span><span class="nottickedoff">PGSimple.connectPort PGSimple.defaultConnectInfo</span>
-<span class="lineno">   95 </span><span class="spaces">        </span><span class="nottickedoff">, PGSimple.connectUser     = BS.unpack (pgDBUser db)</span>
-<span class="lineno">   96 </span><span class="spaces">        </span><span class="nottickedoff">, PGSimple.connectPassword = BS.unpack (pgDBPass db)</span>
-<span class="lineno">   97 </span><span class="spaces">        </span><span class="nottickedoff">, PGSimple.connectDatabase = BS.unpack (pgDBName db)</span>
-<span class="lineno">   98 </span><span class="spaces">        </span><span class="nottickedoff">}</span>
-<span class="lineno">   99 </span><span class="spaces">    </span><span class="nottickedoff">stripes = fromMaybe 1 $ conf C.! &quot;stripes&quot;</span>
-<span class="lineno">  100 </span><span class="spaces">    </span><span class="nottickedoff">idle    = fromMaybe 300 $ conf C.! &quot;idle&quot;</span>
-<span class="lineno">  101 </span><span class="spaces">    </span><span class="nottickedoff">conn    = fromMaybe 16 $ conf C.! &quot;maxconn&quot;</span></span>
+<span class="lineno">   78 </span><span class="decl"><span class="istickedoff">initDB conf =</span>
+<span class="lineno">   79 </span><span class="spaces">    </span><span class="istickedoff">DBPool</span>
+<span class="lineno">   80 </span><span class="spaces">        </span><span class="istickedoff">&lt;$&gt; (createPool' <span class="nottickedoff">(pgConnect db)</span> <span class="nottickedoff">pgDisconnect</span>)</span>
+<span class="lineno">   81 </span><span class="spaces">        </span><span class="istickedoff">&lt;*&gt; (createPool' <span class="nottickedoff">(PGSimple.connect simpleConnInfo)</span> <span class="nottickedoff">(PGSimple.close)</span>)</span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   83 </span><span class="spaces">    </span><span class="istickedoff">createPool' :: IO a -&gt; (a -&gt; IO ()) -&gt; IO (Pool a)</span>
+<span class="lineno">   84 </span><span class="spaces">    </span><span class="istickedoff">createPool' get release =</span>
+<span class="lineno">   85 </span><span class="spaces">        </span><span class="istickedoff">createPool <span class="nottickedoff">get</span> <span class="nottickedoff">release</span> stripes (fromInteger idle) conn</span>
+<span class="lineno">   86 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">db = confPGDatabase conf</span></span>
+<span class="lineno">   87 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">simpleConnInfo = PGSimple.defaultConnectInfo</span></span>
+<span class="lineno">   88 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">{ PGSimple.connectHost     = pgDBHost db</span></span>
+<span class="lineno">   89 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">, PGSimple.connectPort     = case pgDBPort db of</span></span>
+<span class="lineno">   90 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">PortNumber x -&gt; fromIntegral x -- x is opaque</span></span>
+<span class="lineno">   91 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">UnixSocket _ -&gt;</span></span>
+<span class="lineno">   92 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">PGSimple.connectPort PGSimple.defaultConnectInfo</span></span>
+<span class="lineno">   93 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">Service _ -&gt;</span></span>
+<span class="lineno">   94 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">PGSimple.connectPort PGSimple.defaultConnectInfo</span></span>
+<span class="lineno">   95 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">, PGSimple.connectUser     = BS.unpack (pgDBUser db)</span></span>
+<span class="lineno">   96 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">, PGSimple.connectPassword = BS.unpack (pgDBPass db)</span></span>
+<span class="lineno">   97 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">, PGSimple.connectDatabase = BS.unpack (pgDBName db)</span></span>
+<span class="lineno">   98 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">}</span></span>
+<span class="lineno">   99 </span><span class="spaces">    </span><span class="istickedoff">stripes = fromMaybe 1 $ conf C.! &quot;stripes&quot;</span>
+<span class="lineno">  100 </span><span class="spaces">    </span><span class="istickedoff">idle    = fromMaybe 300 $ conf C.! &quot;idle&quot;</span>
+<span class="lineno">  101 </span><span class="spaces">    </span><span class="istickedoff">conn    = fromMaybe 16 $ conf C.! &quot;maxconn&quot;</span></span>
 <span class="lineno">  102 </span>
 <span class="lineno">  103 </span>finiDB :: DBPool -&gt; IO ()
 <span class="lineno">  104 </span><span class="decl"><span class="nottickedoff">finiDB (DBPool p p') = do</span>
@@ -156,7 +156,7 @@ span.spaces    { background: white }
 <span class="lineno">  140 </span><span class="decl"><span class="istickedoff">dbExecute1 q = do</span>
 <span class="lineno">  141 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- dbExecute q</span>
 <span class="lineno">  142 </span><span class="spaces">  </span><span class="istickedoff">case r of</span>
-<span class="lineno">  143 </span><span class="spaces">    </span><span class="istickedoff">0 -&gt; return <span class="nottickedoff">False</span></span>
+<span class="lineno">  143 </span><span class="spaces">    </span><span class="istickedoff">0 -&gt; <span class="nottickedoff">return False</span></span>
 <span class="lineno">  144 </span><span class="spaces">    </span><span class="istickedoff">1 -&gt; return True</span>
 <span class="lineno">  145 </span><span class="spaces">    </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">fail $ &quot;pgExecute1 &quot; ++ show q ++ &quot;: &quot; ++ show r ++ &quot; rows&quot;</span></span></span>
 <span class="lineno">  146 </span>

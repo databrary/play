@@ -73,8 +73,8 @@ span.spaces    { background: white }
 <span class="lineno">   57 </span><span class="spaces">           </span><span class="istickedoff"><span class="nottickedoff">(\[] -&gt; ())</span>)</span></span>
 <span class="lineno">   58 </span>
 <span class="lineno">   59 </span>lookupVolumeFunding :: (MonadDB c m) =&gt; Volume -&gt; m [Funding]
-<span class="lineno">   60 </span><span class="decl"><span class="nottickedoff">lookupVolumeFunding vol =</span>
-<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $(selectQuery selectVolumeFunding &quot;$WHERE volume_funding.volume = ${volumeId $ volumeRow vol}&quot;)</span></span>
+<span class="lineno">   60 </span><span class="decl"><span class="istickedoff">lookupVolumeFunding vol =</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="istickedoff">dbQuery $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery selectVolumeFunding &quot;$WHERE volume_funding.volume = ${volumeId $ volumeRow vol}&quot;</span></span></span></span></span></span></span></span></span></span></span></span>)</span></span>
 <span class="lineno">   62 </span>
 <span class="lineno">   63 </span>changeVolumeFunding :: MonadDB c m =&gt; Volume -&gt; Funding -&gt; m Bool
 <span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">changeVolumeFunding v Funding{..} =</span>
