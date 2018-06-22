@@ -69,7 +69,7 @@ import Paths_databrary (getDataFileName)
 import TestHarness as Test
 
 test_1 :: TestTree
-test_1 = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_1 = Test.stepsWithTransaction "test_1" $ \step cn2 -> do
     step "Given the databrary site group"
     let dbSite = rootParty
     step "When we grant a user as super admin"
@@ -100,7 +100,7 @@ setDefaultRequest c = c { ctxRequest = Just defaultRequest }
 
 ----- site authorize granting -----
 test_2 :: TestTree
-test_2 = Test.stepsWithTransaction "" $ \step cn -> do
+test_2 = Test.stepsWithTransaction "test_2" $ \step cn -> do
     step "Given a superadmin"
     let adminEmail = "test@databrary.org"
     ctxt <- makeSuperAdminContext cn adminEmail
@@ -112,7 +112,7 @@ test_2 = Test.stepsWithTransaction "" $ \step cn -> do
 
 -- TODO:  expand upon these to ensure all inheritances are covered
 test_3 :: TestTree
-test_3 = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_3 = Test.stepsWithTransaction "test_3" $ \step cn2 -> do
     -- Note to self: beyond documentation, this a long winded way of testing authorize_view
     step "Given a superadmin and an institution authorized as admin under db site"
     step "When the superadmin grants an authorized investigator with edit access on their parent institution"
@@ -121,7 +121,7 @@ test_3 = Test.stepsWithTransaction "" $ \step cn2 -> do
     siteAccess ((fromJust . ctxSiteAuth) aiCtxt) @?= Access { accessSite' = PermissionEDIT, accessMember' = PermissionNONE }
 
 test_4 :: TestTree
-test_4 = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_4 = Test.stepsWithTransaction "test_4" $ \step cn2 -> do
     step "Given an authorized investigator"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     let aiParty = accountParty aiAcct
@@ -141,7 +141,7 @@ test_4 = Test.stepsWithTransaction "" $ \step cn2 -> do
     accessIsEq (siteAccess aff2Auth) PermissionREAD PermissionNONE
 
 test_5 :: TestTree
-test_5 = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_5 = Test.stepsWithTransaction "test_5" $ \step cn2 -> do
     step "Given an authorized investigator"
     (_, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     step "When the AI attempts to authorize some party as a superadmin on db site"
@@ -151,7 +151,7 @@ test_5 = Test.stepsWithTransaction "" $ \step cn2 -> do
     partyPermission p @?= PermissionSHARED
 
 test_6 :: TestTree
-test_6 = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_6 = Test.stepsWithTransaction "test_6" $ \step cn2 -> do
     step "Given an affiliate (with high priviliges)"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     affAcct <- addAffiliate aiCtxt (accountParty aiAcct) PermissionREAD PermissionADMIN
@@ -166,7 +166,7 @@ test_6 = Test.stepsWithTransaction "" $ \step cn2 -> do
 
 ------ volume --------
 test_7 :: TestTree
-test_7 = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_7 = Test.stepsWithTransaction "test_7" $ \step cn2 -> do
     step "Given an authorized investigator"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     step "When the AI creates a private volume"
@@ -180,7 +180,7 @@ test_7 = Test.stepsWithTransaction "" $ \step cn2 -> do
 -- <<<< more cases to handle variations of volume access and inheritance through authorization
 
 test_8 :: TestTree
-test_8 = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_8 = Test.stepsWithTransaction "test_8" $ \step cn2 -> do
     step "Given an authorized investigator for some lab A and a lab B member with lab data access only"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     (aiAcct2, aiCtxt2) <- addAuthorizedInvestigatorWithInstitution' cn2
@@ -197,7 +197,7 @@ test_8 = Test.stepsWithTransaction "" $ \step cn2 -> do
     mVolForAff @?= Nothing
 
 test_9 :: TestTree
-test_9 = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_9 = Test.stepsWithTransaction "test_9" $ \step cn2 -> do
     step "Given an authorized investigator and their affiliate with site access only"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     affAcct <- addAffiliate aiCtxt (accountParty aiAcct) PermissionREAD PermissionNONE
@@ -212,7 +212,7 @@ test_9 = Test.stepsWithTransaction "" $ \step cn2 -> do
     mVolForAff @?= Nothing
 
 test_10 :: TestTree
-test_10 = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_10 = Test.stepsWithTransaction "test_10" $ \step cn2 -> do
     step "Given an authorized investigator for some lab A and an authorized investigator for lab B"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     (_, aiCtxt2) <- addAuthorizedInvestigatorWithInstitution' cn2
@@ -226,7 +226,7 @@ test_10 = Test.stepsWithTransaction "" $ \step cn2 -> do
 
 ----- container ----
 test_11 :: TestTree
-test_11 = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_11 = Test.stepsWithTransaction "test_11" $ \step cn2 -> do
     step "Given an authorized investigator"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     step "When the AI creates a private volume with a fully released container"
@@ -242,7 +242,7 @@ test_11 = Test.stepsWithTransaction "" $ \step cn2 -> do
     isNothing mSlotForAnon @? "expected slot lookup to find nothing"
 
 test_12 :: TestTree
-test_12 = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_12 = Test.stepsWithTransaction "test_12" $ \step cn2 -> do
     step "Given an authorized investigator's created public volume with a container released at Excerpts level"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     -- TODO: should be lookup auth on rootParty
@@ -276,7 +276,7 @@ _test_storage = Test.stepsWithTransaction "" $ \step cn2 -> do
 
 test_12a :: TestTree
 test_12a = ignoreTest $ -- "Invalid cross-device link"
-  Test.stepsWithTransaction "" $ \step cn2 -> do
+  Test.stepsWithTransaction "test_12a" $ \step cn2 -> do
     step "Given a partially shared volume"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     -- TODO: should be lookup auth on rootParty
@@ -360,7 +360,7 @@ detectJobDone transId@(Id idVal) = do
 
 ----- record ---
 test_13 :: TestTree
-test_13 = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_13 = Test.stepsWithTransaction "test_13" $ \step cn2 -> do
     step "Given an authorized investigator's created private volume with a record not attached to a container"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     -- TODO: should be lookup auth on rootParty
@@ -376,7 +376,7 @@ test_13 = Test.stepsWithTransaction "" $ \step cn2 -> do
     isNothing mRcrd @? "Expected failure to retrieve record from restricted volume"
 
 test_14 :: TestTree
-test_14 = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_14 = Test.stepsWithTransaction "test_14" $ \step cn2 -> do
     step "Given an authorized investigator's created public volume with a record not attached to a container"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     -- TODO: should be lookup auth on rootParty
@@ -394,7 +394,7 @@ test_14 = Test.stepsWithTransaction "" $ \step cn2 -> do
 
 ------ miscellaneous -----
 test_15 :: TestTree
-test_15 = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_15 = Test.stepsWithTransaction "test_15" $ \step cn2 -> do
     step "Given a public volume with one container"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     -- TODO: should be lookup auth on rootParty
@@ -425,7 +425,7 @@ test_15 = Test.stepsWithTransaction "" $ \step cn2 -> do
 ------- search -------------
 test_16 :: TestTree
 test_16 = ignoreTest $ -- TODO: enable this inside of nix build with solr binaries and core installed in precheck
-    Test.stepsWithResourceAndTransaction "" $ \step ist cn2 -> do
+    Test.stepsWithResourceAndTransaction "test_16" $ \step ist cn2 -> do
         step "Given an authorized investigator"
         (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
         step "When the AI creates a partially shared volume and the search index is updated"
@@ -450,7 +450,7 @@ test_16 = ignoreTest $ -- TODO: enable this inside of nix build with solr binari
 
 -------- ezid --------------
 test_17 :: TestTree
-test_17 = Test.stepsWithResourceAndTransaction "" $ \step ist cn2 -> do
+test_17 = Test.stepsWithResourceAndTransaction "test_17" $ \step ist cn2 -> do
     step "Given an authorized investigator"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     step "When the AI creates a partially shared volume and the ezid generation runs"
