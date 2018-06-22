@@ -31,7 +31,7 @@ Flag sandbox
 
 library
   hs-source-dirs: src
-  c-sources: src/Databrary/Store/avFrame.c
+  c-sources: src/Store/avFrame.c
   ghc-options: -Wall -Wredundant-constraints -Wno-type-defaults
   exposed-modules:
     Paths_databrary
@@ -39,260 +39,260 @@ library
     Data.ByteString.Builder.Escape
     Data.Csv.Contrib
     Data.RangeSet.Parse
-    Databrary.API
-    Databrary.Warp
-    Databrary.Solr.Service
-    Databrary.Solr.Search
-    Databrary.Solr.Tag
-    Databrary.Solr.Index
-    Databrary.Solr.Document
-    Databrary.JSON
-    Databrary.Main
-    Databrary.Web
-    Databrary.Routes.JS
-    Databrary.Routes
-    Databrary.Static.Fillin
-    Databrary.Static.Service
-    Databrary.Action.Form
-    Databrary.Action.Run
-    Databrary.Action.Types
-    Databrary.Action.Route
-    Databrary.Action.Response
-    Databrary.Action.Request
-    Databrary.Action.Servant
-    Databrary.Has
-    Databrary.Context
-    Databrary.EZID.Volume
-    Databrary.EZID.Service
-    Databrary.EZID.DataCite
-    Databrary.EZID.API
-    Databrary.EZID.ANVL
-    Databrary.Model.Format
-    Databrary.Model.RecordSlot
-    Databrary.Model.Audit.Types
-    Databrary.Model.Audit.SQL
-    Databrary.Model.Volume
-    Databrary.Model.Activity
-    Databrary.Model.Asset.Types
-    Databrary.Model.Asset.SQL
-    Databrary.Model.Excerpt.SQL
-    Databrary.Model.AssetSegment
-    Databrary.Model.Excerpt
-    Databrary.Model.VolumeMetric
-    Databrary.Model.Comment
-    Databrary.Model.Token
-    Databrary.Model.Slot
-    Databrary.Model.Category.Types
-    Databrary.Model.Authorize
-    Databrary.Model.RecordSlot.Types
-    Databrary.Model.RecordSlot.SQL
-    Databrary.Model.VolumeState.Types
-    Databrary.Model.Citation
-    Databrary.Model.Container
-    Databrary.Model.Transcode.Types
-    Databrary.Model.Paginate.SQL
-    Databrary.Model.AssetSlot
-    Databrary.Model.Segment
-    Databrary.Model.Enum
-    Databrary.Model.Metric
-    Databrary.Model.Container.Types
-    Databrary.Model.Container.SQL
-    Databrary.Model.Slot.Types
-    Databrary.Model.Slot.SQL
-    Databrary.Model.Permission
-    Databrary.Model.Kind
-    Databrary.Model.Metric.Types
-    Databrary.Model.Permission.Types
-    Databrary.Model.Permission.SQL
-    Databrary.Model.Party
-    Databrary.Model.Authorize.Types
-    Databrary.Model.Authorize.SQL
-    Databrary.Model.Notification.Notice
-    Databrary.Model.Notification.Notify
-    Databrary.Model.Notification.Types
-    Databrary.Model.Notification.SQL
-    Databrary.Model.Notification.Boot
-    Databrary.Model.Periodic
-    Databrary.Model.Funding
-    Databrary.Model.Release
-    Databrary.Model.Activity.Types
-    Databrary.Model.Activity.SQL
-    Databrary.Model.Token.Types
-    Databrary.Model.Notification
-    Databrary.Model.Funding.Types
-    Databrary.Model.Funding.FundRef
-    Databrary.Model.Funding.SQL
-    Databrary.Model.Comment.Types
-    Databrary.Model.Release.Types
-    Databrary.Model.Release.SQL
-    Databrary.Model.Asset
-    Databrary.Model.VolumeAccess.Types
-    Databrary.Model.VolumeAccess.SQL
-    Databrary.Model.Identity
-    Databrary.Model.Category
-    Databrary.Model.Party.Types
-    Databrary.Model.Party.SQL
-    Databrary.Model.Time
-    Databrary.Model.Measure
-    Databrary.Model.Id.Types
-    Databrary.Model.AssetSlot.Types
-    Databrary.Model.AssetSlot.SQL
-    Databrary.Model.PermissionUtil
-    Databrary.Model.ORCID
-    Databrary.Model.Audit
-    Databrary.Model.Record.Types
-    Databrary.Model.Record.SQL
-    Databrary.Model.SQL.Select
-    Databrary.Model.Paginate
-    Databrary.Model.Record
-    Databrary.Model.Citation.CrossRef
-    Databrary.Model.Citation.Types
-    Databrary.Model.Citation.SQL
-    Databrary.Model.Stats.Types
-    Databrary.Model.AssetRevision.Types
-    Databrary.Model.VolumeState
-    Databrary.Model.Ingest
-    Databrary.Model.GeoNames
-    Databrary.Model.Tag
-    Databrary.Model.VolumeAccess
-    Databrary.Model.URL
-    Databrary.Model.Identity.Types
-    Databrary.Model.Age
-    Databrary.Model.Tag.Types
-    Databrary.Model.Tag.SQL
-    Databrary.Model.SQL
-    Databrary.Model.Id
-    Databrary.Model.Stats
-    Databrary.Model.Format.Types
-    Databrary.Model.Transcode
-    Databrary.Model.AssetSegment.Types
-    Databrary.Model.AssetSegment.SQL
-    Databrary.Model.AssetRevision
-    Databrary.Model.Offset
-    Databrary.Model.Volume.Types
-    Databrary.Model.Volume.SQL
-    Databrary.StringUtil
-    Databrary.View.Format
-    Databrary.View.Volume
-    Databrary.View.Token
-    Databrary.View.Authorize
-    Databrary.View.Container
-    Databrary.View.Form
-    Databrary.View.Error
-    Databrary.View.Party
-    Databrary.View.Periodic
-    Databrary.View.Login
-    Databrary.View.Register
-    Databrary.View.Email
-    Databrary.View.Template
-    Databrary.View.Zip
-    Databrary.View.Notification
-    Databrary.View.Root
-    Databrary.View.Angular
-    Databrary.View.Paginate
-    Databrary.View.Ingest
-    Databrary.View.VolumeAccess
-    Databrary.View.Html
-    Databrary.View.Transcode
-    Databrary.Files
-    Databrary.Store.Upload
-    Databrary.Store.AssetSegment
-    Databrary.Store.Service
-    Databrary.Store.Probe
-    Databrary.Store.CSV
-    Databrary.Store.Filename
-    Databrary.Store.Stage
-    Databrary.Store.Transcoder
-    Databrary.Store.Asset
-    Databrary.Store.Types
-    Databrary.Store.Temp
-    Databrary.Store.AV
-    Databrary.Store.Transcode
-    Databrary.Store.Config
-    Databrary.Service.Mail
-    Databrary.Service.Entropy
-    Databrary.Service.DB
-    Databrary.Service.Periodic
-    Databrary.Service.Crypto
-    Databrary.Service.Messages
-    Databrary.Service.Notification
-    Databrary.Service.Types
-    Databrary.Service.Init
-    Databrary.Service.Log
-    Databrary.Service.Passwd
-    Databrary.Web.Service
-    Databrary.Web.Routes
-    Databrary.Web.Cache
-    Databrary.Web.JSHint
-    Databrary.Web.Uglify
-    Databrary.Web.Generate
-    Databrary.Web.GZip
-    Databrary.Web.Libs
-    Databrary.Web.Messages
-    Databrary.Web.Coffee
-    Databrary.Web.Constants
-    Databrary.Web.Files
-    Databrary.Web.Types
-    Databrary.Web.Rules
-    Databrary.Web.Templates
-    Databrary.Web.Info
-    Databrary.Web.All
-    Databrary.Web.Stylus
-    Databrary.Action
-    Databrary.Ingest.Service
-    Databrary.Ingest.JSON
-    Databrary.Ingest.Action
-    Databrary.HTTP
-    Databrary.Controller.Format
-    Databrary.Controller.Paths
-    Databrary.Controller.Upload
-    Databrary.Controller.Volume
-    Databrary.Controller.Activity
-    Databrary.Controller.AssetSegment
-    Databrary.Controller.Excerpt
-    Databrary.Controller.Comment
-    Databrary.Controller.Token
-    Databrary.Controller.Slot
-    Databrary.Controller.Web
-    Databrary.Controller.Authorize
-    Databrary.Controller.Citation
-    Databrary.Controller.Container
-    Databrary.Controller.Form
-    Databrary.Controller.Metric
-    Databrary.Controller.CSV
-    Databrary.Controller.Permission
-    Databrary.Controller.Party
-    Databrary.Controller.Periodic
-    Databrary.Controller.Funding
-    Databrary.Controller.Login
-    Databrary.Controller.Register
-    Databrary.Controller.Zip
-    Databrary.Controller.Notification
-    Databrary.Controller.Asset
-    Databrary.Controller.Root
-    Databrary.Controller.Angular
-    Databrary.Controller.Search
-    Databrary.Controller.IdSet
-    Databrary.Controller.Record
-    Databrary.Controller.VolumeState
-    Databrary.Controller.Ingest
-    Databrary.Controller.Tag
-    Databrary.Controller.VolumeAccess
-    Databrary.Controller.Transcode
-    Databrary.HTTP.File
-    Databrary.HTTP.Cookie
-    Databrary.HTTP.Form
-    Databrary.HTTP.Path.Parser
-    Databrary.HTTP.Method.Map
-    Databrary.HTTP.Form.Data
-    Databrary.HTTP.Form.Deform
-    Databrary.HTTP.Form.Errors
-    Databrary.HTTP.Form.View
-    Databrary.HTTP.Parse
-    Databrary.HTTP.Route
-    Databrary.HTTP.Client
-    Databrary.HTTP.Request
-    Databrary.Ops
+    API
+    Warp
+    Solr.Service
+    Solr.Search
+    Solr.Tag
+    Solr.Index
+    Solr.Document
+    JSON
+    DatabraryMain
+    Web
+    Routes.JS
+    Routes
+    Static.Fillin
+    Static.Service
+    Action.Form
+    Action.Run
+    Action.Types
+    Action.Route
+    Action.Response
+    Action.Request
+    Action.Servant
+    Has
+    Context
+    EZID.Volume
+    EZID.Service
+    EZID.DataCite
+    EZID.API
+    EZID.ANVL
+    Model.Format
+    Model.RecordSlot
+    Model.Audit.Types
+    Model.Audit.SQL
+    Model.Volume
+    Model.Activity
+    Model.Asset.Types
+    Model.Asset.SQL
+    Model.Excerpt.SQL
+    Model.AssetSegment
+    Model.Excerpt
+    Model.VolumeMetric
+    Model.Comment
+    Model.Token
+    Model.Slot
+    Model.Category.Types
+    Model.Authorize
+    Model.RecordSlot.Types
+    Model.RecordSlot.SQL
+    Model.VolumeState.Types
+    Model.Citation
+    Model.Container
+    Model.Transcode.Types
+    Model.Paginate.SQL
+    Model.AssetSlot
+    Model.Segment
+    Model.Enum
+    Model.Metric
+    Model.Container.Types
+    Model.Container.SQL
+    Model.Slot.Types
+    Model.Slot.SQL
+    Model.Permission
+    Model.Kind
+    Model.Metric.Types
+    Model.Permission.Types
+    Model.Permission.SQL
+    Model.Party
+    Model.Authorize.Types
+    Model.Authorize.SQL
+    Model.Notification.Notice
+    Model.Notification.Notify
+    Model.Notification.Types
+    Model.Notification.SQL
+    Model.Notification.Boot
+    Model.Periodic
+    Model.Funding
+    Model.Release
+    Model.Activity.Types
+    Model.Activity.SQL
+    Model.Token.Types
+    Model.Notification
+    Model.Funding.Types
+    Model.Funding.FundRef
+    Model.Funding.SQL
+    Model.Comment.Types
+    Model.Release.Types
+    Model.Release.SQL
+    Model.Asset
+    Model.VolumeAccess.Types
+    Model.VolumeAccess.SQL
+    Model.Identity
+    Model.Category
+    Model.Party.Types
+    Model.Party.SQL
+    Model.Time
+    Model.Measure
+    Model.Id.Types
+    Model.AssetSlot.Types
+    Model.AssetSlot.SQL
+    Model.PermissionUtil
+    Model.ORCID
+    Model.Audit
+    Model.Record.Types
+    Model.Record.SQL
+    Model.SQL.Select
+    Model.Paginate
+    Model.Record
+    Model.Citation.CrossRef
+    Model.Citation.Types
+    Model.Citation.SQL
+    Model.Stats.Types
+    Model.AssetRevision.Types
+    Model.VolumeState
+    Model.Ingest
+    Model.GeoNames
+    Model.Tag
+    Model.VolumeAccess
+    Model.URL
+    Model.Identity.Types
+    Model.Age
+    Model.Tag.Types
+    Model.Tag.SQL
+    Model.SQL
+    Model.Id
+    Model.Stats
+    Model.Format.Types
+    Model.Transcode
+    Model.AssetSegment.Types
+    Model.AssetSegment.SQL
+    Model.AssetRevision
+    Model.Offset
+    Model.Volume.Types
+    Model.Volume.SQL
+    StringUtil
+    View.Format
+    View.Volume
+    View.Token
+    View.Authorize
+    View.Container
+    View.Form
+    View.Error
+    View.Party
+    View.Periodic
+    View.Login
+    View.Register
+    View.Email
+    View.Template
+    View.Zip
+    View.Notification
+    View.Root
+    View.Angular
+    View.Paginate
+    View.Ingest
+    View.VolumeAccess
+    View.Html
+    View.Transcode
+    Files
+    Store.Upload
+    Store.AssetSegment
+    Store.Service
+    Store.Probe
+    Store.CSV
+    Store.Filename
+    Store.Stage
+    Store.Transcoder
+    Store.Asset
+    Store.Types
+    Store.Temp
+    Store.AV
+    Store.Transcode
+    Store.Config
+    Service.Mail
+    Service.Entropy
+    Service.DB
+    Service.Periodic
+    Service.Crypto
+    Service.Messages
+    Service.Notification
+    Service.Types
+    Service.Init
+    Service.Log
+    Service.Passwd
+    Web.Service
+    Web.Routes
+    Web.Cache
+    Web.JSHint
+    Web.Uglify
+    Web.Generate
+    Web.GZip
+    Web.Libs
+    Web.Messages
+    Web.Coffee
+    Web.Constants
+    Web.Files
+    Web.Types
+    Web.Rules
+    Web.Templates
+    Web.Info
+    Web.All
+    Web.Stylus
+    Action
+    Ingest.Service
+    Ingest.JSON
+    Ingest.Action
+    HTTP
+    Controller.Format
+    Controller.Paths
+    Controller.Upload
+    Controller.Volume
+    Controller.Activity
+    Controller.AssetSegment
+    Controller.Excerpt
+    Controller.Comment
+    Controller.Token
+    Controller.Slot
+    Controller.Web
+    Controller.Authorize
+    Controller.Citation
+    Controller.Container
+    Controller.Form
+    Controller.Metric
+    Controller.CSV
+    Controller.Permission
+    Controller.Party
+    Controller.Periodic
+    Controller.Funding
+    Controller.Login
+    Controller.Register
+    Controller.Zip
+    Controller.Notification
+    Controller.Asset
+    Controller.Root
+    Controller.Angular
+    Controller.Search
+    Controller.IdSet
+    Controller.Record
+    Controller.VolumeState
+    Controller.Ingest
+    Controller.Tag
+    Controller.VolumeAccess
+    Controller.Transcode
+    HTTP.File
+    HTTP.Cookie
+    HTTP.Form
+    HTTP.Path.Parser
+    HTTP.Method.Map
+    HTTP.Form.Data
+    HTTP.Form.Deform
+    HTTP.Form.Errors
+    HTTP.Form.View
+    HTTP.Parse
+    HTTP.Route
+    HTTP.Client
+    HTTP.Request
+    Ops
     Control.Invert
 
   autogen-modules: Paths_databrary
@@ -510,74 +510,74 @@ test-suite discovered
     FlexibleInstances
   other-modules:
 
-      Databrary.Action.RequestTest
-    , Databrary.Controller.IngestTest
-    , Databrary.Controller.LoginTest
-    , Databrary.EZID.ANVLTest
-    , Databrary.FilesTest
-    , Databrary.HasTest
-    , Databrary.JSONTest
-    , Databrary.HTTP.CookieTest
-    , Databrary.HTTP.ClientTest
-    , Databrary.HTTP.Form.DeformTest
-    , Databrary.HTTP.RequestTest
-    , Databrary.ModelTest
-    , Databrary.Model.AgeTest
-    , Databrary.Model.AssetTest
-    , Databrary.Model.AssetSlot.TypesTest
-    , Databrary.Model.AssetSegment.TypesTest
-    , Databrary.Model.AuditTest
-    , Databrary.Model.Audit.TypesTest
-    , Databrary.Model.AuthorizeTest
-    , Databrary.Model.Category.TypesTest
-    , Databrary.Model.Citation.CrossRefTest
-    , Databrary.Model.Comment.TypesTest
-    , Databrary.Model.Container.TypesTest
-    , Databrary.Model.EnumTest
-    , Databrary.Model.Factories
-    , Databrary.Model.FormatTest
-    , Databrary.Model.FundingTest
-    , Databrary.Model.Funding.FundRefTest
-    , Databrary.Model.GeoNamesTest
-    , Databrary.Model.Id.TypesTest
-    , Databrary.Model.IdentityTest
-    , Databrary.Model.Identity.TypesTest
-    , Databrary.Model.IngestTest
-    , Databrary.Model.KindTest
-    , Databrary.Model.MetricTest
-    , Databrary.Model.Metric.TypesTest
-    , Databrary.Model.ORCIDTest
-    , Databrary.Model.OffsetTest
-    , Databrary.Model.PaginateTest
-    , Databrary.Model.PartyTest
-    , Databrary.Model.Party.TypesTest
-    , Databrary.Model.PermissionTest
-    , Databrary.Model.Permission.TypesTest
-    , Databrary.Model.RecordTest
-    , Databrary.Model.Record.TypesTest
-    , Databrary.Model.Release.TypesTest
-    , Databrary.Model.SegmentTest
-    , Databrary.Model.Slot.TypesTest
-    , Databrary.Model.Stats.TypesTest
-    , Databrary.Model.Tag.TypesTest
-    , Databrary.Model.TimeTest
-    , Databrary.Model.Token.TypesTest
-    , Databrary.Model.TypeOrphans
-    , Databrary.Model.URLTest
-    , Databrary.Model.VolumeTest
-    , Databrary.Model.VolumeAccessTest
-    , Databrary.Model.VolumeState.TypesTest
-    , Databrary.OpsTest
-    , Databrary.Service.CryptoTest
-    , Databrary.Service.MailTest
-    , Databrary.Service.PasswdTest
-    , Databrary.Solr.DocumentTest
-    , Databrary.Store.AVTest
-    , Databrary.Store.ConfigTest
-    , Databrary.Store.FilenameTest
-    , Databrary.Store.ProbeTest
-    , Databrary.StringUtilTest
-    , Databrary.View.HtmlTest
+      Action.RequestTest
+    , Controller.IngestTest
+    , Controller.LoginTest
+    , EZID.ANVLTest
+    , FilesTest
+    , HasTest
+    , JSONTest
+    , HTTP.CookieTest
+    , HTTP.ClientTest
+    , HTTP.Form.DeformTest
+    , HTTP.RequestTest
+    , ModelTest
+    , Model.AgeTest
+    , Model.AssetTest
+    , Model.AssetSlot.TypesTest
+    , Model.AssetSegment.TypesTest
+    , Model.AuditTest
+    , Model.Audit.TypesTest
+    , Model.AuthorizeTest
+    , Model.Category.TypesTest
+    , Model.Citation.CrossRefTest
+    , Model.Comment.TypesTest
+    , Model.Container.TypesTest
+    , Model.EnumTest
+    , Model.Factories
+    , Model.FormatTest
+    , Model.FundingTest
+    , Model.Funding.FundRefTest
+    , Model.GeoNamesTest
+    , Model.Id.TypesTest
+    , Model.IdentityTest
+    , Model.Identity.TypesTest
+    , Model.IngestTest
+    , Model.KindTest
+    , Model.MetricTest
+    , Model.Metric.TypesTest
+    , Model.ORCIDTest
+    , Model.OffsetTest
+    , Model.PaginateTest
+    , Model.PartyTest
+    , Model.Party.TypesTest
+    , Model.PermissionTest
+    , Model.Permission.TypesTest
+    , Model.RecordTest
+    , Model.Record.TypesTest
+    , Model.Release.TypesTest
+    , Model.SegmentTest
+    , Model.Slot.TypesTest
+    , Model.Stats.TypesTest
+    , Model.Tag.TypesTest
+    , Model.TimeTest
+    , Model.Token.TypesTest
+    , Model.TypeOrphans
+    , Model.URLTest
+    , Model.VolumeTest
+    , Model.VolumeAccessTest
+    , Model.VolumeState.TypesTest
+    , OpsTest
+    , Service.CryptoTest
+    , Service.MailTest
+    , Service.PasswdTest
+    , Solr.DocumentTest
+    , Store.AVTest
+    , Store.ConfigTest
+    , Store.FilenameTest
+    , Store.ProbeTest
+    , StringUtilTest
+    , View.HtmlTest
     , Data.Csv.ContribTest
     , Data.RangeSet.ParseTest
     , TestHarness

@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP, OverloadedStrings #-}
 module Main (main) where
 
-import qualified Databrary.Main
+import qualified DatabraryMain
 
 main :: IO ()
-main = Databrary.Main.main
+main = DatabraryMain.main

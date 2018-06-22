@@ -51,34 +51,34 @@ import qualified Data.ByteString as BS
 import qualified Network.Wai as Wai
 -- import qualified Network.Wai.Internal as Wai
 
-import Databrary.Context
-import Databrary.EZID.Service (initEZID)
-import Databrary.Has
-import Databrary.HTTP.Client
-import Databrary.Ingest.Service (initIngest)
-import Databrary.Model.Authorize
-import Databrary.Model.Factories
-import Databrary.Model.Id
-import Databrary.Model.Identity
-import Databrary.Model.Party
--- import Databrary.Model.Party.TypesTest
-import Databrary.Model.Permission
-import Databrary.Model.Time
-import Databrary.Model.Token
-import Databrary.Service.DB
-import Databrary.Service.Entropy
-import Databrary.Service.Log
-import Databrary.Service.Messages (loadMessages)
-import Databrary.Service.Notification (initNotifications)
-import Databrary.Service.Passwd (initPasswd)
-import Databrary.Service.Types
-import Databrary.Solr.Service (Solr(..))
-import Databrary.Static.Service (Static(..))
-import Databrary.Store.AV
-import Databrary.Store.Config as C (load, (!))
-import Databrary.Store.Service
-import Databrary.Store.Types (Storage(..))
-import Databrary.Web.Types (Web(..))
+import Context
+import EZID.Service (initEZID)
+import Has
+import HTTP.Client
+import Ingest.Service (initIngest)
+import Model.Authorize
+import Model.Factories
+import Model.Id
+import Model.Identity
+import Model.Party
+-- import Model.Party.TypesTest
+import Model.Permission
+import Model.Time
+import Model.Token
+import Service.DB
+import Service.Entropy
+import Service.Log
+import Service.Messages (loadMessages)
+import Service.Notification (initNotifications)
+import Service.Passwd (initPasswd)
+import Service.Types
+import Solr.Service (Solr(..))
+import Static.Service (Static(..))
+import Store.AV
+import Store.Config as C (load, (!))
+import Store.Service
+import Store.Types (Storage(..))
+import Web.Types (Web(..))
 
 -- Runtime dependencies
 --   database started tests run

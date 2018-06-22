@@ -1,4 +1,4 @@
-import Databrary.Web.Rules
+import Web.Rules
 
 -- This file generates webfiles isolated from Databrary/Main.hs 
 -- in to help with hot reloading of frontend web assets to 
