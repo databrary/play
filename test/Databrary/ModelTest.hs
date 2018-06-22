@@ -463,7 +463,7 @@ test_17 = localOption (mkTimeout (10 * 10^(6 :: Int))) $ Test.stepsWithResourceA
     mEzidWasUp <- runReaderT updateEZID bctx
     step "Then the volume will have a valid doi"
     mEzidWasUp @?= Just True  -- Nothing = ezid not initialized; Just False = initalized, but down
-    Just vol' <- runReaderT (lookupVolume ((volumeId . volumeRow) vol)) aiCtxt
+    Just _vol' <- runReaderT (lookupVolume ((volumeId . volumeRow) vol)) aiCtxt
     -- let Just doi = (volumeDOI . volumeRow) vol'
     -- TODO: check doi link causes a redirect to Location: http://databrary.org/volume/801 with the volume id matching above
     --   example - https://doi.org/10.5072/FK2.801

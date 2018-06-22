@@ -104,14 +104,19 @@ data ContextFor = ForEzid | ForSolr Solr
 
 -- | Build a specialized context needed to background jobs that use a small subset of services
 mkBackgroundContext :: ContextFor -> InternalState -> PGConnection -> IO BackgroundContext
-mkBackgroundContext ctxtFor ist cn = do
-    conf <- C.load "databrary.conf"
-    logs <- initLogs (conf C.! "log")
-    httpc <- initHTTPClient
+mkBackgroundContext ctxtFor ist cn =
     -- TODO: make a smaller context for solr indexing to use, so stubs aren't needed
     -- stubs
     let stubSolr = Solr { solrRequest = error "no solr req", solrProcess = Nothing }
         stubEzid = Nothing
+        stubStorage = Storage undefined Nothing undefined undefined Nothing Nothing Nothing
+        stubStatic = Static "" "" Nothing (\_ -> error "no val")
+        stats = error "siteStats"
+        stubWeb = Web {}
+    in do
+    conf <- C.load "databrary.conf"
+    logs <- initLogs (conf C.! "log")
+    httpc <- initHTTPClient
     (solr, ezid) <- case ctxtFor of
           ForSolr solrInst -> pure (solrInst, stubEzid)
           ForEzid -> do
@@ -121,13 +126,9 @@ mkBackgroundContext ctxtFor ist cn = do
     stubPasswd <- initPasswd
     stubMessages <- loadMessages
     stubDb <- initDB (conf C.! "db")
-    stubStorage <- pure (Storage undefined Nothing undefined undefined Nothing Nothing Nothing)
     stubAv <- initAV
-    stubWeb <- pure (Web {})
-    stubStatic <- pure (Static "" "" Nothing (\_ -> error "no val"))
     stubIngest <- initIngest
     stubNotify <- initNotifications (conf C.! "notification")
-    stats <- return (error "siteStats")
     stubStatsref <- newIORef stats
     let
         service = Service {
