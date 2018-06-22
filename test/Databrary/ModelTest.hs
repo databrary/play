@@ -309,7 +309,7 @@ test_12a = ignoreTest $ -- "Invalid cross-device link"
 
 -- same as above, but for video file that undergoes conversion
 test_12b :: TestTree
-test_12b = Test.stepsWithResourceAndTransaction "" $ \step ist cn2 -> do
+test_12b = localOption NoTimeout $ Test.stepsWithResourceAndTransaction "test_12b" $ \step ist cn2 -> do
     step "Given a partially shared volume"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     -- TODO: should be lookup auth on rootParty

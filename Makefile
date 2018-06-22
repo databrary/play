@@ -28,7 +28,7 @@ nix-build = nix-build $(nix-build-args)
 #
 
 ## The default action is to run tests
-cabal-test: ; $(nix-shell) --run 'cabal -j test --test-options="--color always --hide-successes --timeout 20s"'
+cabal-test: ; $(nix-shell) --run 'cabal -j test --test-options="--color always --hide-successes --timeout 1s"'
 .PHONY: cabal-test
 
 ## Start the db (needed for cabal.test and cabal.build, but that relationship is
