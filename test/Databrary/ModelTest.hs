@@ -309,7 +309,8 @@ test_12a = ignoreTest $ -- "Invalid cross-device link"
 
 -- same as above, but for video file that undergoes conversion
 test_12b :: TestTree
-test_12b = localOption NoTimeout $ Test.stepsWithResourceAndTransaction "test_12b" $ \step ist cn2 -> do
+-- FIXME: ignored because it hangs indefinitely for bryan
+test_12b = ignoreTest $ localOption NoTimeout $ Test.stepsWithResourceAndTransaction "test_12b" $ \step ist cn2 -> do
     step "Given a partially shared volume"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     -- TODO: should be lookup auth on rootParty
@@ -450,7 +451,7 @@ test_16 = ignoreTest $ -- TODO: enable this inside of nix build with solr binari
 
 -------- ezid --------------
 test_17 :: TestTree
-test_17 = Test.stepsWithResourceAndTransaction "test_17" $ \step ist cn2 -> do
+test_17 = localOption (mkTimeout (10 * 10^(6 :: Int))) $ Test.stepsWithResourceAndTransaction "test_17" $ \step ist cn2 -> do
     step "Given an authorized investigator"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     step "When the AI creates a partially shared volume and the ezid generation runs"
