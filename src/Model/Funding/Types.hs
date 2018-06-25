@@ -7,7 +7,6 @@ module Model.Funding.Types
 import Data.Int (Int64)
 import qualified Data.Text as T
 
--- import Has (Has(..))
 import Model.Kind
 import Model.Id.Types
 
@@ -16,11 +15,7 @@ type instance IdType Funder = Int64
 data Funder = Funder
   { funderId :: Id Funder
   , funderName :: T.Text
-  } -- deriving (Eq, Show)
-
--- makeHasRec ''Funder ['funderId]
--- instance Has (Id Funder) Funder where
---   view = funderId
+  }
 
 instance Kinded Funder where
   kindOf _ = "funder"
@@ -28,10 +23,4 @@ instance Kinded Funder where
 data Funding = Funding
   { fundingFunder :: Funder
   , fundingAwards :: [T.Text]
-  } -- deriving (Eq, Show)
-
--- makeHasRec ''Funding ['fundingFunder]
--- instance Has Funder Funding where
---   view = fundingFunder
--- instance Has (Id Funder) Funding where
---   view = (view . fundingFunder)
+  }
