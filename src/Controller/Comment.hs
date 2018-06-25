@@ -44,14 +44,14 @@ postComment = action POST (pathJSON >/> pathSlotId </< "comment") $ \si -> withA
   top <- containerIsVolumeTop (slotContainer s)
   forM_ p $ \r -> when (on (/=) (partyId . partyRow . accountParty) (commentWho r) u) $
     createNotification (blankNotification (commentWho r) NoticeCommentReply)
-      { notificationContainerId = top `unlessUse` (view c')
-      , notificationSegment = Just $ view c'
-      , notificationCommentId = Just $ view c'
+      { notificationContainerId = top `unlessUse` ((containerId . containerRow . slotContainer . commentSlot) c')
+      , notificationSegment = Just $ (slotSegment . commentSlot) c'
+      , notificationCommentId = Just $ commentId c'
       }
-  createVolumeNotification (view c') $ \n -> (n NoticeCommentVolume)
-    { notificationContainerId = top `unlessUse` (view c')
-    , notificationSegment = Just $ view c'
-    , notificationCommentId = Just $ view c'
+  createVolumeNotification ((containerVolume . slotContainer . commentSlot) c') $ \n -> (n NoticeCommentVolume)
+    { notificationContainerId = top `unlessUse` ((containerId . containerRow . slotContainer . commentSlot) c')
+    , notificationSegment = Just $ (slotSegment . commentSlot) c'
+    , notificationCommentId = Just $ commentId c'
     }
   return $ okResponse [] $ JSON.recordEncoding $ commentJSON c'
   -- HTML -> peeks $ otherRouteResponse [] (viewSlot False) (api, (Just (view c'), slotId (commentSlot c')))

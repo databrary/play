@@ -8,7 +8,6 @@ module Model.Comment.Types
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 
-import Has (Has(..))
 import Model.Container.Types
 import Model.Kind
 import Model.Time
@@ -16,7 +15,6 @@ import Model.Id.Types
 import Model.Party.Types
 import Model.Segment
 import Model.Slot.Types
-import Model.Volume.Types
 
 type instance IdType Comment = Int32
 
@@ -31,17 +29,6 @@ data Comment = Comment
 
 instance Kinded Comment where
   kindOf _ = "comment"
-
-instance Has (Id Comment) Comment where
-  view = commentId
-instance Has Model.Segment.Segment Comment where
-  view = (view . commentSlot)
-instance Has (Id Model.Container.Types.Container) Comment where
-  view = (view . commentSlot)
-instance Has Model.Volume.Types.Volume Comment where
-  view = (view . commentSlot)
-{- instance Has (Id Model.Volume.Types.Volume) Comment where
-  view = (view . commentSlot) -}
 
 data CommentRow = CommentRow
   { commentRowId :: Id Comment
