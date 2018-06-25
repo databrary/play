@@ -23,12 +23,12 @@ import Controller.Volume
 
 postVolumeState :: ActionRoute (Id Volume, VolumeStateKey)
 postVolumeState = action PUT (pathJSON >/> pathId </> "state" >/> R.parameter) $ \(vi, k) -> withAuth $ do
-  v <- getVolume PermissionEDIT vi
+  _ <- getVolume PermissionEDIT vi
   s <- runForm Nothing $ do
     j <- deform
     p <- "public" .:> fromMaybe False <$> deformOptional deform
     return VolumeState
-      { stateVolume = v
+      { stateVolumeId = vi
       , volumeStateKey = k
       , volumeStatePublic = p
       , volumeStateValue = j
@@ -38,6 +38,6 @@ postVolumeState = action PUT (pathJSON >/> pathId </> "state" >/> R.parameter) $
 
 deleteVolumeState :: ActionRoute (Id Volume, VolumeStateKey)
 deleteVolumeState = action DELETE (pathJSON >/> pathId </> "state" >/> R.parameter) $ \(vi, k) -> withAuth $ do
-  v <- getVolume PermissionEDIT vi
-  r <- removeVolumeState v k
+  _ <- getVolume PermissionEDIT vi
+  r <- removeVolumeState vi k
   return $ okResponse [] $ JSON.toEncoding r
