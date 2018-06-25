@@ -566,7 +566,6 @@ test-suite discovered
     , Model.URLTest
     , Model.VolumeTest
     , Model.VolumeAccessTest
-    , Model.VolumeState.TypesTest
     , OpsTest
     , Service.CryptoTest
     , Service.MailTest

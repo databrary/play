@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Model.Release.TypesTest where
 
-import Data.Monoid
+-- import Data.Monoid
 import Test.Tasty.HUnit
 
 import Model.Release.Types
