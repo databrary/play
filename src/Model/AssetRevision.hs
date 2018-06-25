@@ -192,7 +192,7 @@ lookupAssetReplace a = do
           vname_abkPr, vc_abkPs, vsize_abkPt, vid_abkPu, vname_abkPv,
           vbody_abkPw, valias_abkPx, vdoi_abkPy, vc_abkPz, vowners_abkPA,
           vpermission_abkPB, vfull_abkPC)
-         -> makeAssetRevision
+         -> AssetRevision
               (Asset
                  (Model.Asset.SQL.makeAssetRow
                     vid_abkPn
@@ -324,7 +324,7 @@ lookupAssetTranscode a = do
           vname_abkSg, vc_abkSh, vsize_abkSi, vid_abkSj, vname_abkSk,
           vbody_abkSl, valias_abkSm, vdoi_abkSn, vc_abkSo, vowners_abkSp,
           vpermission_abkSq, vfull_abkSr)
-         -> makeAssetRevision
+         -> AssetRevision
               (Asset
                  (Model.Asset.SQL.makeAssetRow
                     vid_abkSc
