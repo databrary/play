@@ -79,26 +79,19 @@ data Measure = Measure
   , measureDatum :: !MeasureDatum
   }
 
-instance Kinded Measure where
-  kindOf _ = "measure"
+-- instance Kinded Measure where
+--   kindOf _ = "measure"
 
 -- TODO: example building circular Record + Measure
 
 type Measures = [Measure]
 
-instance Has (Id Record) RecordRow where
-  view = recordId
-instance Has Category RecordRow where
-  view = recordCategory
-instance Has (Id Category) RecordRow where
-  view = (categoryId . recordCategory)
-
 instance Has (Id Record) Record where
-  view = (view . recordRow)
+  view = (recordId . recordRow)
 instance Has Category Record where
-  view = (view . recordRow)
+  view = (recordCategory . recordRow)
 instance Has (Id Category) Record where
-  view = (view . recordRow)
+  view = (categoryId . recordCategory . recordRow)
 instance Has Volume Record where
   view = recordVolume
 instance Has Permission Record where
