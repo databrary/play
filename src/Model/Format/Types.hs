@@ -23,12 +23,11 @@ data Format = Format
   , formatName :: T.Text
   }
 
-instance Kinded Format where
-  kindOf _ = "format"
+-- instance Kinded Format where
+--  kindOf _ = "format"
 
 instance Eq Format where
   (==) = on (==) formatId
-  (/=) = on (/=) formatId
 
 deriveLift ''Format
 
