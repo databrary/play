@@ -32,13 +32,10 @@ instance Monoid Citation where
     , citationTitle = citationTitle a <|> citationTitle b
     }
 
-citationJSON :: JSON.ToObject o => Citation -> o
-citationJSON Citation{..} =
-     "head" JSON..= citationHead
-  <> "title" `JSON.kvObjectOrEmpty` citationTitle
-  <> "url" `JSON.kvObjectOrEmpty` citationURL
-  <> "year" `JSON.kvObjectOrEmpty` citationYear
-
 instance JSON.ToJSON Citation where
-  toJSON = JSON.object . citationJSON
-  toEncoding = JSON.pairs . citationJSON
+    toJSON Citation{..} =
+        JSON.object
+            (   "head" JSON..= citationHead
+             <> "title" `JSON.kvObjectOrEmpty` citationTitle
+             <> "url" `JSON.kvObjectOrEmpty` citationURL
+             <> "year" `JSON.kvObjectOrEmpty` citationYear)
