@@ -427,6 +427,16 @@ genCreateRecord vol = do
 -- vol state
 ---- genCreateVolumeState :: Volume -> Gen VolumeState
 ----    generate key value pair and is public
+{-
+volumeState1 :: VolumeState
+volumeState1 =
+  VolumeState {
+        volumeStateKey = "key1"
+      , volumeStateValue = Null
+      , volumeStatePublic = True
+      , stateVolume = vol
+      }
+-}
 -- activity
 -- stats
 -- comment
