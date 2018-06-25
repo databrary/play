@@ -68,10 +68,6 @@ data TagUse = TagUse
   , tagSlot :: Slot
   }
 
-instance Has Tag TagUse where
-  view = useTag
-instance Has Segment TagUse where
-  view = (view . tagSlot)
 instance Has (Id Container) TagUse where
   view = (view . tagSlot)
 instance Has Model.Volume.Types.Volume TagUse where

@@ -54,8 +54,8 @@ postTag = action POST (pathAPI </>> pathSlotId </> pathTagId) $ \(api, si, TagId
   top <- containerIsVolumeTop (slotContainer s)
   createVolumeNotification (view tu) $ \n -> (n NoticeTagVolume)
     { notificationContainerId = top `unlessUse` (view tu)
-    , notificationSegment = Just $ view tu
-    , notificationTag = Just $ view tu
+    , notificationSegment = Just $ (view . tagSlot) tu
+    , notificationTag = Just $ useTag tu
     }
   tagResponse api tu
 
