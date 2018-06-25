@@ -8,7 +8,7 @@ import Control.Monad.Trans.Class (lift)
 import Data.Function (on)
 
 import Ops
-import Has
+-- import Has
 import qualified JSON as JSON
 import Model.Permission
 import Model.Id

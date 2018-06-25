@@ -7,7 +7,6 @@ module Model.Format.Types
 import qualified Data.ByteString as BS
 import Data.Function (on)
 import Data.Int (Int16)
-import Data.Ord (comparing)
 import qualified Data.Text as T
 import Instances.TH.Lift ()
 import Language.Haskell.TH.Lift (deriveLift)
@@ -23,7 +22,6 @@ data Format = Format
   , formatExtension :: [BS.ByteString] -- TODO: nonempty list
   , formatName :: T.Text
   }
-  -- deriving (Show)
 
 instance Kinded Format where
   kindOf _ = "format"
@@ -31,9 +29,6 @@ instance Kinded Format where
 instance Eq Format where
   (==) = on (==) formatId
   (/=) = on (/=) formatId
-
-instance Ord Format where
-  compare = comparing formatId
 
 deriveLift ''Format
 
