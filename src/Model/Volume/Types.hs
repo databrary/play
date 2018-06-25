@@ -31,7 +31,6 @@ data VolumeRow = VolumeRow
   , volumeAlias :: Maybe T.Text
   , volumeDOI :: Maybe BS.ByteString
   }
-  -- deriving (Show, Eq)
 
 type VolumeOwner = (Id Party, T.Text)
 
@@ -41,15 +40,12 @@ data Volume = Volume
   , volumeOwners :: [VolumeOwner]
   , volumeRolePolicy :: VolumeRolePolicy
   }
-  -- deriving (Show, Eq)
 
 instance Kinded Volume where
   kindOf _ = "volume"
 
-instance Has (Id Volume) VolumeRow where
-  view = volumeId
 instance Has (Id Volume) Volume where
-  view = (view . volumeRow)
+  view = (volumeId . volumeRow)
 instance Has Permission Volume where
   view = extractPermissionIgnorePolicy . volumeRolePolicy
 deriveLiftMany [''VolumeRow, ''Volume]
