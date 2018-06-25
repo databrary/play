@@ -91,7 +91,7 @@ instance Has (Id Record) RecordRow where
 instance Has Category RecordRow where
   view = recordCategory
 instance Has (Id Category) RecordRow where
-  view = (view . recordCategory)
+  view = (categoryId . recordCategory)
 
 instance Has (Id Record) Record where
   view = (view . recordRow)
@@ -103,8 +103,6 @@ instance Has Volume Record where
   view = recordVolume
 instance Has Permission Record where
   view = (view . recordVolume)
-{-instance Has (Id Volume) Record where
-  view = (view . recordVolume) -}
 instance Has (Maybe Release) Record where
   view = recordRelease
 instance Has Release Record where

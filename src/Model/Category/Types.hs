@@ -10,7 +10,6 @@ import qualified Data.Text as T
 import Instances.TH.Lift ()
 import Language.Haskell.TH.Lift (deriveLift)
 
-import Has (Has(..))
 import Model.Kind
 import Model.Id.Types
 
@@ -31,9 +30,5 @@ instance Eq Category where
 
 instance Ord Category where
   compare = comparing categoryId
-
--- makeHasRec ''Category ['categoryId]
-instance Has (Id Category) Category where
-  view = categoryId
 
 deriveLift ''Category
