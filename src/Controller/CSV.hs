@@ -12,6 +12,7 @@ import Data.Foldable (fold)
 import Data.Function (on)
 import Data.List (foldl', nubBy, groupBy)
 import Data.Monoid ((<>))
+import Data.Ord (comparing)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import Network.HTTP.Types (hContentType)
@@ -58,7 +59,7 @@ tenc = TE.encodeUtf8
 updateHeaders :: [(Category, Int)] -> Records -> [(Category, Int)]
 updateHeaders h [] = h
 updateHeaders [] l = map (\rl@(r:_) -> (recordCategory $ recordRow r, length rl)) l
-updateHeaders hl@(cm@(c,m):hl') rll@(~rl@(r:_):rll') = case compare c rc of
+updateHeaders hl@(cm@(c,m):hl') rll@(~rl@(r:_):rll') = case comparing categoryId c rc of
   LT -> cm                     : updateHeaders hl' rll
   EQ -> (c, m `max` length rl) : updateHeaders hl' rll'
   GT -> (rc, length rl)        : updateHeaders hl rll'
@@ -91,7 +92,7 @@ recordsRow h [] = concatMap (`metricsRow` []) h
 recordsRow ~(h:hl) (r:rl) = metricsRow h (recordMeasures r) ++ recordsRow hl rl
 
 dataRow :: Headers -> Records -> [BS.ByteString]
-dataRow hl@((c,m):hl') rll@(~rl@(r:_):rll') = case compare c rc of
+dataRow hl@((c,m):hl') rll@(~rl@(r:_):rll') = case comparing categoryId c rc of
   LT -> recordsRow m [] ++ dataRow hl' rll
   EQ -> recordsRow m rl ++ dataRow hl' rll'
   GT -> dataRow hl rll'

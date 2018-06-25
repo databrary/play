@@ -5,7 +5,6 @@ module Model.Category.Types
 
 import Data.Function (on)
 import Data.Int (Int16)
-import Data.Ord (comparing)
 import qualified Data.Text as T
 import Instances.TH.Lift ()
 import Language.Haskell.TH.Lift (deriveLift)
@@ -27,8 +26,5 @@ instance Kinded Category where
 instance Eq Category where
   (==) = on (==) categoryId
   (/=) = on (/=) categoryId
-
-instance Ord Category where
-  compare = comparing categoryId
 
 deriveLift ''Category
