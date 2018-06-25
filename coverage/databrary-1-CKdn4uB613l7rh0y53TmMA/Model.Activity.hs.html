@@ -1,0 +1,262 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TemplateHaskell, RecordWildCards, DataKinds #-}
+<span class="lineno">    2 </span>module Model.Activity
+<span class="lineno">    3 </span>  ( lookupPartyActivity
+<span class="lineno">    4 </span>  , lookupVolumeActivity
+<span class="lineno">    5 </span>  , lookupContainerActivity
+<span class="lineno">    6 </span>  , activityJSON
+<span class="lineno">    7 </span>  , mergeBy
+<span class="lineno">    8 </span>  ) where
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import Control.Applicative ((&lt;|&gt;), empty, pure)
+<span class="lineno">   11 </span>import Control.Arrow ((&amp;&amp;&amp;))
+<span class="lineno">   12 </span>import Control.Monad (forM)
+<span class="lineno">   13 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">   14 </span>import Data.Function (on)
+<span class="lineno">   15 </span>import qualified Data.HashMap.Strict as HM
+<span class="lineno">   16 </span>import Data.List (foldl')
+<span class="lineno">   17 </span>import qualified Data.Map as Map
+<span class="lineno">   18 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   19 </span>import qualified Data.Text as T
+<span class="lineno">   20 </span>import Data.Time.Clock (diffUTCTime)
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>import Ops
+<span class="lineno">   23 </span>import Has
+<span class="lineno">   24 </span>import qualified JSON as JSON
+<span class="lineno">   25 </span>import Service.DB
+<span class="lineno">   26 </span>import Model.SQL
+<span class="lineno">   27 </span>import Model.Identity
+<span class="lineno">   28 </span>import Model.Id
+<span class="lineno">   29 </span>import Model.Time
+<span class="lineno">   30 </span>import Model.Audit
+<span class="lineno">   31 </span>import Model.Volume
+<span class="lineno">   32 </span>import Model.VolumeAccess
+<span class="lineno">   33 </span>import Model.Party
+<span class="lineno">   34 </span>import Model.Authorize
+<span class="lineno">   35 </span>import Model.Container
+<span class="lineno">   36 </span>import Model.Segment
+<span class="lineno">   37 </span>import Model.Slot
+<span class="lineno">   38 </span>import Model.Asset
+<span class="lineno">   39 </span>import Model.AssetRevision
+<span class="lineno">   40 </span>import Model.Activity.Types
+<span class="lineno">   41 </span>import Model.Activity.SQL
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>onActivityTime :: (Timestamp -&gt; Timestamp -&gt; a) -&gt; Activity -&gt; Activity -&gt; a
+<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">onActivityTime = (`on` auditWhen . activityAudit)</span></span>
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>orderActivity :: Activity -&gt; Activity -&gt; Ordering
+<span class="lineno">   47 </span><span class="decl"><span class="nottickedoff">orderActivity = onActivityTime compare</span></span>
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>mergeActivity :: [Activity] -&gt; [Activity] -&gt; [Activity]
+<span class="lineno">   50 </span><span class="decl"><span class="nottickedoff">mergeActivity = mergeBy $ \x y -&gt; orderActivity x y &lt;&gt; LT</span></span>
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>mergeActivities :: [[Activity]] -&gt; [Activity]
+<span class="lineno">   53 </span><span class="decl"><span class="nottickedoff">mergeActivities = foldr1 mergeActivity</span></span>
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>joinActivitiesWith :: (Activity -&gt; Maybe (Activity -&gt; Maybe Activity)) -&gt; [Activity] -&gt; [Activity]
+<span class="lineno">   56 </span><span class="decl"><span class="nottickedoff">joinActivitiesWith f (a1:a1r) = maybe al</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="nottickedoff">(\af -&gt;</span>
+<span class="lineno">   58 </span><span class="spaces">    </span><span class="nottickedoff">let la c (a2:a2r)</span>
+<span class="lineno">   59 </span><span class="spaces">          </span><span class="nottickedoff">| onActivityTime diffUTCTime a2 a1 &gt;= 1 = al</span>
+<span class="lineno">   60 </span><span class="spaces">          </span><span class="nottickedoff">| ((==) `on` auditIdentity . activityAudit) a1 a2, Just a &lt;- af a2 = a : joinActivitiesWith f (c a2r)</span>
+<span class="lineno">   61 </span><span class="spaces">          </span><span class="nottickedoff">| otherwise = la (c . (a2 :)) a2r</span>
+<span class="lineno">   62 </span><span class="spaces">        </span><span class="nottickedoff">la c [] = a1 : joinActivitiesWith f (c [])</span>
+<span class="lineno">   63 </span><span class="spaces">    </span><span class="nottickedoff">in la id a1r)</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">$ f a1</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">where al = a1 : joinActivitiesWith f a1r</span>
+<span class="lineno">   66 </span><span class="spaces"></span><span class="nottickedoff">joinActivitiesWith _ [] = []</span></span>
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>chainPrev :: Ord a =&gt; (ActivityTarget -&gt; a) -&gt; [Activity] -&gt; [Activity]
+<span class="lineno">   69 </span><span class="decl"><span class="nottickedoff">chainPrev f = scan Map.empty where</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="nottickedoff">scan m (a@Activity{ activityAudit = Audit{ auditAction = act }, activityTarget = t }:l) = a{ activityPrev = p } : scan m' l where</span>
+<span class="lineno">   71 </span><span class="spaces">    </span><span class="nottickedoff">(p, m') = case act of</span>
+<span class="lineno">   72 </span><span class="spaces">      </span><span class="nottickedoff">AuditActionAdd -&gt; (Nothing, Map.insert (f t) t m)</span>
+<span class="lineno">   73 </span><span class="spaces">      </span><span class="nottickedoff">AuditActionRemove -&gt; Map.updateLookupWithKey (\_ _ -&gt; Nothing) (f t) m</span>
+<span class="lineno">   74 </span><span class="spaces">      </span><span class="nottickedoff">AuditActionChange -&gt; Map.insertLookupWithKey (const const) (f t) t m</span>
+<span class="lineno">   75 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; (activityPrev a, m)</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="nottickedoff">scan _ [] = []</span></span>
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>maskPasswords :: [Activity] -&gt; [Activity]
+<span class="lineno">   79 </span><span class="decl"><span class="nottickedoff">maskPasswords = mp HM.empty (0 :: Integer) where</span>
+<span class="lineno">   80 </span><span class="spaces">  </span><span class="nottickedoff">-- this could be done much more simply since passwords are never going to repeat in practice</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="nottickedoff">mp m c (a@Activity{ activityTarget = at@ActivityAccount{ activityAccountPassword = Just p } }:l)</span>
+<span class="lineno">   82 </span><span class="spaces">    </span><span class="nottickedoff">| Just i &lt;- HM.lookup p m = f i : mp m c l</span>
+<span class="lineno">   83 </span><span class="spaces">    </span><span class="nottickedoff">| otherwise = f c : mp (HM.insert p c m) (succ c) l</span>
+<span class="lineno">   84 </span><span class="spaces">    </span><span class="nottickedoff">where f i = a{ activityTarget = at{ activityAccountPassword = Just $ BSC.pack $ show i } }</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="nottickedoff">mp m c (a:l) = a : mp m c l</span>
+<span class="lineno">   86 </span><span class="spaces">  </span><span class="nottickedoff">mp _ _ [] = []</span></span>
+<span class="lineno">   87 </span>
+<span class="lineno">   88 </span>lookupPartyActivity :: (MonadDB c m, MonadHasIdentity c m) =&gt; Party -&gt; m [Activity]
+<span class="lineno">   89 </span><span class="decl"><span class="nottickedoff">lookupPartyActivity p = do</span>
+<span class="lineno">   90 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
+<span class="lineno">   91 </span><span class="spaces">  </span><span class="nottickedoff">pa &lt;- chainPrev (const ())</span>
+<span class="lineno">   92 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; dbQuery $(selectQuery selectActivityParty $ &quot;WHERE party.id = ${partyId $ partyRow p} AND &quot; ++ activityQual)</span>
+<span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">ca &lt;- chainPrev (const ()) . maskPasswords</span>
+<span class="lineno">   94 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; dbQuery $(selectQuery selectActivityAccount $ &quot;WHERE account.id = ${partyId $ partyRow p} ORDER BY audit_time&quot;) -- unqual: include logins</span>
+<span class="lineno">   95 </span><span class="spaces">  </span><span class="nottickedoff">aa &lt;- chainPrev (partyId . partyRow . authorizeChild . authorization . activityAuthorize)</span>
+<span class="lineno">   96 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; dbQuery $(selectQuery (selectActivityAuthorize 'p 'ident) $ &quot;WHERE &quot; ++ activityQual)</span>
+<span class="lineno">   97 </span><span class="spaces">  </span><span class="nottickedoff">return $ mergeActivities [pa, ca, aa]</span></span>
+<span class="lineno">   98 </span>
+<span class="lineno">   99 </span>lookupVolumeActivity :: (MonadDB c m, MonadHasIdentity c m) =&gt; Volume -&gt; m [Activity]
+<span class="lineno">  100 </span><span class="decl"><span class="nottickedoff">lookupVolumeActivity vol = do</span>
+<span class="lineno">  101 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
+<span class="lineno">  102 </span><span class="spaces">  </span><span class="nottickedoff">va &lt;- chainPrev (const ())</span>
+<span class="lineno">  103 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; dbQuery $(selectQuery selectActivityVolume $ &quot;!WHERE volume.id = ${volumeId $ volumeRow vol} AND &quot; ++ activityQual)</span>
+<span class="lineno">  104 </span><span class="spaces">  </span><span class="nottickedoff">aa &lt;- chainPrev (partyId . partyRow . volumeAccessParty . activityAccess)</span>
+<span class="lineno">  105 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; dbQuery $(selectQuery (selectActivityAccess 'vol 'ident) $ &quot;WHERE &quot; ++ activityQual)</span>
+<span class="lineno">  106 </span><span class="spaces">  </span><span class="nottickedoff">return $ mergeActivities [va, aa]</span></span>
+<span class="lineno">  107 </span>
+<span class="lineno">  108 </span>addAssetRevision :: (MonadDB c m, MonadHasIdentity c m) =&gt; Volume -&gt; Activity -&gt; m Activity
+<span class="lineno">  109 </span><span class="decl"><span class="nottickedoff">addAssetRevision vol</span>
+<span class="lineno">  110 </span><span class="spaces">  </span><span class="nottickedoff">act@Activity{ activityAudit = Audit{ auditAction = aa }, activityTarget = ActivityAssetSlot{ activityAssetId = ai }, activityPrev = Nothing }</span>
+<span class="lineno">  111 </span><span class="spaces">  </span><span class="nottickedoff">| aa &lt;= AuditActionChange = do</span>
+<span class="lineno">  112 </span><span class="spaces">    </span><span class="nottickedoff">ar &lt;- if aa == AuditActionChange then lookupAssetReplace a else return Nothing</span>
+<span class="lineno">  113 </span><span class="spaces">    </span><span class="nottickedoff">at &lt;- lookupAssetTranscode a</span>
+<span class="lineno">  114 </span><span class="spaces">    </span><span class="nottickedoff">return act</span>
+<span class="lineno">  115 </span><span class="spaces">      </span><span class="nottickedoff">{ activityReplace = revisionOrig &lt;$&gt; ar</span>
+<span class="lineno">  116 </span><span class="spaces">      </span><span class="nottickedoff">, activityTranscode = revisionOrig &lt;$&gt; at</span>
+<span class="lineno">  117 </span><span class="spaces">      </span><span class="nottickedoff">}</span>
+<span class="lineno">  118 </span><span class="spaces">    </span><span class="nottickedoff">where</span>
+<span class="lineno">  119 </span><span class="spaces">    </span><span class="nottickedoff">a = ba{ assetRow = (assetRow ba){ assetId = ai } }</span>
+<span class="lineno">  120 </span><span class="spaces">    </span><span class="nottickedoff">ba = blankAsset vol</span>
+<span class="lineno">  121 </span><span class="spaces"></span><span class="nottickedoff">addAssetRevision _ a = return a</span></span>
+<span class="lineno">  122 </span>
+<span class="lineno">  123 </span>mergeAssetCreation :: [Activity] -&gt; [Activity]
+<span class="lineno">  124 </span><span class="decl"><span class="nottickedoff">mergeAssetCreation = joinActivitiesWith f1 where</span>
+<span class="lineno">  125 </span><span class="spaces">  </span><span class="nottickedoff">f1 a@Activity{ activityAudit = Audit{ auditAction = AuditActionAdd  }, activityTarget = ActivityAsset aa, activityPrev = Nothing } = Just f2 where</span>
+<span class="lineno">  126 </span><span class="spaces">    </span><span class="nottickedoff">f2 Activity{ activityAudit = Audit{ auditAction = AuditActionChange }, activityTarget = ActivityAsset ac, activityPrev = Just (ActivityAsset aa') }</span>
+<span class="lineno">  127 </span><span class="spaces">      </span><span class="nottickedoff">| assetId aa == assetId aa' = Just a{ activityTarget = ActivityAsset ac, activityPrev = Just (ActivityAsset aa) }</span>
+<span class="lineno">  128 </span><span class="spaces">    </span><span class="nottickedoff">f2 _ = Nothing</span>
+<span class="lineno">  129 </span><span class="spaces">  </span><span class="nottickedoff">f1 _ = Nothing</span></span>
+<span class="lineno">  130 </span>
+<span class="lineno">  131 </span>mergeActivityAssetAndSlot :: ActivityTarget -&gt; ActivityTarget -&gt; Maybe ActivityTarget
+<span class="lineno">  132 </span><span class="decl"><span class="nottickedoff">mergeActivityAssetAndSlot (ActivityAsset ar) (ActivityAssetSlot ai si) =</span>
+<span class="lineno">  133 </span><span class="spaces">  </span><span class="nottickedoff">(assetId ar == ai) `thenUse` (ActivityAssetAndSlot ar si)</span>
+<span class="lineno">  134 </span><span class="spaces"></span><span class="nottickedoff">mergeActivityAssetAndSlot _ _ = Nothing</span></span>
+<span class="lineno">  135 </span>
+<span class="lineno">  136 </span>mergeAssetAndSlot :: [Activity] -&gt; [Activity]
+<span class="lineno">  137 </span><span class="decl"><span class="nottickedoff">mergeAssetAndSlot = joinActivitiesWith f1 where</span>
+<span class="lineno">  138 </span><span class="spaces">  </span><span class="nottickedoff">f1 Activity{ activityAudit = a1, activityTarget = t1, activityPrev = p1, activityReplace = Nothing, activityTranscode = Nothing } = Just f2 where</span>
+<span class="lineno">  139 </span><span class="spaces">    </span><span class="nottickedoff">f2 a@Activity{ activityAudit = a2, activityTarget = t2, activityPrev = p2 }</span>
+<span class="lineno">  140 </span><span class="spaces">      </span><span class="nottickedoff">| auditAction a1 &lt;= auditAction a2 &amp;&amp; auditAction a2 &lt;= AuditActionChange</span>
+<span class="lineno">  141 </span><span class="spaces">      </span><span class="nottickedoff">, Just t &lt;- mergeActivityAssetAndSlot t1 t2 = Just a</span>
+<span class="lineno">  142 </span><span class="spaces">        </span><span class="nottickedoff">{ activityAudit = a1</span>
+<span class="lineno">  143 </span><span class="spaces">        </span><span class="nottickedoff">, activityTarget = t</span>
+<span class="lineno">  144 </span><span class="spaces">        </span><span class="nottickedoff">, activityPrev = (do</span>
+<span class="lineno">  145 </span><span class="spaces">          </span><span class="nottickedoff">p1t &lt;- p1</span>
+<span class="lineno">  146 </span><span class="spaces">          </span><span class="nottickedoff">mergeActivityAssetAndSlot p1t =&lt;&lt; p2) &lt;|&gt; p1 &lt;|&gt; p2</span>
+<span class="lineno">  147 </span><span class="spaces">        </span><span class="nottickedoff">}</span>
+<span class="lineno">  148 </span><span class="spaces">    </span><span class="nottickedoff">f2 _ = Nothing</span>
+<span class="lineno">  149 </span><span class="spaces">  </span><span class="nottickedoff">f1 _ = Nothing</span></span>
+<span class="lineno">  150 </span>
+<span class="lineno">  151 </span>lookupContainerActivity :: (MonadDB c m, MonadHasIdentity c m) =&gt; Container -&gt; m [Activity]
+<span class="lineno">  152 </span><span class="decl"><span class="nottickedoff">lookupContainerActivity cont = do</span>
+<span class="lineno">  153 </span><span class="spaces">  </span><span class="nottickedoff">ca &lt;- chainPrev (const ())</span>
+<span class="lineno">  154 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; dbQuery $(selectQuery selectActivityContainer $ &quot;WHERE container.id = ${containerId $ containerRow cont} AND &quot; ++ activityQual)</span>
+<span class="lineno">  155 </span><span class="spaces">  </span><span class="nottickedoff">ra &lt;- chainPrev (slotSegmentId . activitySlotId)</span>
+<span class="lineno">  156 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; dbQuery $(selectQuery selectActivityRelease $ &quot;WHERE slot_release.container = ${containerId $ containerRow cont} AND &quot; ++ activityQual)</span>
+<span class="lineno">  157 </span><span class="spaces"></span><span class="nottickedoff"></span>
+<span class="lineno">  158 </span><span class="spaces">  </span><span class="nottickedoff">asa &lt;- mapM (addAssetRevision (containerVolume cont)) =&lt;&lt; chainPrev activityAssetId</span>
+<span class="lineno">  159 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; dbQuery $(selectQuery selectActivityAssetSlot $ &quot;WHERE slot_asset.container = ${containerId $ containerRow cont} AND &quot; ++ activityQual)</span>
+<span class="lineno">  160 </span><span class="spaces"></span><span class="nottickedoff"></span>
+<span class="lineno">  161 </span><span class="spaces">  </span><span class="nottickedoff">caa &lt;- mergeAssetCreation . chainPrev (assetId . activityAssetRow)</span>
+<span class="lineno">  162 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; dbQuery $(selectQuery selectActivityAsset $ &quot;JOIN slot_asset ON asset.id = slot_asset.asset WHERE slot_asset.container = ${containerId $ containerRow cont} AND &quot; ++ activityQual)</span>
+<span class="lineno">  163 </span><span class="spaces">  </span><span class="nottickedoff">let uam m Activity{ activityAudit = Audit{ auditAction = AuditActionRemove, auditWhen = t }, activityTarget = ActivityAssetSlot{ activityAssetId = a } } =</span>
+<span class="lineno">  164 </span><span class="spaces">        </span><span class="nottickedoff">Map.insert a t m</span>
+<span class="lineno">  165 </span><span class="spaces">      </span><span class="nottickedoff">uam m Activity{ activityAudit = Audit{ auditAction = AuditActionChange, auditWhen = t }, activityReplace = Just ar } =</span>
+<span class="lineno">  166 </span><span class="spaces">        </span><span class="nottickedoff">Map.insert (assetId $ assetRow ar) t m</span>
+<span class="lineno">  167 </span><span class="spaces">      </span><span class="nottickedoff">uam m _ = m</span>
+<span class="lineno">  168 </span><span class="spaces">      </span><span class="nottickedoff">dam = flip $ Map.delete . assetId . activityAssetRow . activityTarget</span>
+<span class="lineno">  169 </span><span class="spaces">      </span><span class="nottickedoff">oal = Map.toList $ foldl' dam (foldl' uam Map.empty asa) caa</span>
+<span class="lineno">  170 </span><span class="spaces">  </span><span class="nottickedoff">oaa &lt;- forM oal $ \(ai, at) -&gt;</span>
+<span class="lineno">  171 </span><span class="spaces">    </span><span class="nottickedoff">mergeAssetCreation . chainPrev (const ())</span>
+<span class="lineno">  172 </span><span class="spaces">      </span><span class="nottickedoff">&lt;$&gt; dbQuery $(selectQuery selectActivityAsset $ &quot;WHERE asset.id = ${ai} AND audit_time &lt;= ${at} AND &quot; ++ activityQual)</span>
+<span class="lineno">  173 </span><span class="spaces"></span><span class="nottickedoff"></span>
+<span class="lineno">  174 </span><span class="spaces">  </span><span class="nottickedoff">cea &lt;- chainPrev (activityAssetId &amp;&amp;&amp; activitySegment)</span>
+<span class="lineno">  175 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; dbQuery $(selectQuery selectActivityExcerpt $ &quot;JOIN slot_asset ON excerpt.asset = slot_asset.asset WHERE slot_asset.container = ${containerId $ containerRow cont} AND &quot; ++ activityQual)</span>
+<span class="lineno">  176 </span><span class="spaces"></span><span class="nottickedoff"></span>
+<span class="lineno">  177 </span><span class="spaces">  </span><span class="nottickedoff">return $ mergeAssetAndSlot $ mergeActivities (ca:ra:asa:cea:caa:oaa)</span></span>
+<span class="lineno">  178 </span>
+<span class="lineno">  179 </span>-- EDIT permission assumed for all
+<span class="lineno">  180 </span>activityTargetJSON :: ActivityTarget -&gt; (T.Text, JSON.Object, JSON.Object)
+<span class="lineno">  181 </span><span class="decl"><span class="nottickedoff">activityTargetJSON (ActivityParty p) =</span>
+<span class="lineno">  182 </span><span class="spaces">  </span><span class="nottickedoff">(&quot;party&quot;, mempty, JSON.recordObject $</span>
+<span class="lineno">  183 </span><span class="spaces">    </span><span class="nottickedoff">partyRowJSON p)</span>
+<span class="lineno">  184 </span><span class="spaces"></span><span class="nottickedoff">activityTargetJSON ActivityAccount{..} =</span>
+<span class="lineno">  185 </span><span class="spaces">  </span><span class="nottickedoff">(&quot;account&quot;, mempty,</span>
+<span class="lineno">  186 </span><span class="spaces">    </span><span class="nottickedoff">&quot;email&quot; JSON..= activityAccountEmail &lt;&gt; &quot;password&quot; JSON..= activityAccountPassword)</span>
+<span class="lineno">  187 </span><span class="spaces"></span><span class="nottickedoff">activityTargetJSON (ActivityAuthorize a) =</span>
+<span class="lineno">  188 </span><span class="spaces">  </span><span class="nottickedoff">(&quot;authorize&quot;, &quot;party&quot; JSON..=: partyJSON (authorizeChild $ authorization a),</span>
+<span class="lineno">  189 </span><span class="spaces">    </span><span class="nottickedoff">authorizeJSON a)</span>
+<span class="lineno">  190 </span><span class="spaces"></span><span class="nottickedoff">activityTargetJSON (ActivityVolume v) =</span>
+<span class="lineno">  191 </span><span class="spaces">  </span><span class="nottickedoff">(&quot;volume&quot;, mempty, JSON.recordObject $</span>
+<span class="lineno">  192 </span><span class="spaces">    </span><span class="nottickedoff">volumeRowJSON v `JSON.foldObjectIntoRec`</span>
+<span class="lineno">  193 </span><span class="spaces">      </span><span class="nottickedoff">(&quot;alias&quot; `JSON.kvObjectOrEmpty` volumeAlias v))</span>
+<span class="lineno">  194 </span><span class="spaces"></span><span class="nottickedoff">activityTargetJSON (ActivityAccess a) =</span>
+<span class="lineno">  195 </span><span class="spaces">  </span><span class="nottickedoff">(&quot;access&quot;, &quot;party&quot; JSON..=: partyJSON (volumeAccessParty a),</span>
+<span class="lineno">  196 </span><span class="spaces">    </span><span class="nottickedoff">volumeAccessJSON a)</span>
+<span class="lineno">  197 </span><span class="spaces"></span><span class="nottickedoff">activityTargetJSON (ActivityContainer c) =</span>
+<span class="lineno">  198 </span><span class="spaces">  </span><span class="nottickedoff">(&quot;container&quot;, mempty, JSON.recordObject $</span>
+<span class="lineno">  199 </span><span class="spaces">    </span><span class="nottickedoff">containerRowJSON False c `JSON.foldObjectIntoRec` -- False assumes edit level on volume for activity route</span>
+<span class="lineno">  200 </span><span class="spaces">      </span><span class="nottickedoff">(&quot;date&quot; `JSON.kvObjectOrEmpty` containerDate c))</span>
+<span class="lineno">  201 </span><span class="spaces"></span><span class="nottickedoff">activityTargetJSON ActivityRelease{..} =</span>
+<span class="lineno">  202 </span><span class="spaces">  </span><span class="nottickedoff">(&quot;release&quot;, segmentJSON $ slotSegmentId activitySlotId,</span>
+<span class="lineno">  203 </span><span class="spaces">    </span><span class="nottickedoff">&quot;release&quot; JSON..= activityRelease)</span>
+<span class="lineno">  204 </span><span class="spaces"></span><span class="nottickedoff">activityTargetJSON (ActivityAsset a) =</span>
+<span class="lineno">  205 </span><span class="spaces">  </span><span class="nottickedoff">(&quot;asset&quot;, &quot;id&quot; JSON..= assetId a,</span>
+<span class="lineno">  206 </span><span class="spaces">    </span><span class="nottickedoff">&quot;classification&quot; `JSON.kvObjectOrEmpty` assetRelease a &lt;&gt; &quot;name&quot; `JSON.kvObjectOrEmpty` assetName a)</span>
+<span class="lineno">  207 </span><span class="spaces"></span><span class="nottickedoff">activityTargetJSON (ActivityAssetSlot a s) =</span>
+<span class="lineno">  208 </span><span class="spaces">  </span><span class="nottickedoff">(&quot;asset&quot;, &quot;id&quot; JSON..= a,</span>
+<span class="lineno">  209 </span><span class="spaces">    </span><span class="nottickedoff">segmentJSON $ slotSegmentId s)</span>
+<span class="lineno">  210 </span><span class="spaces"></span><span class="nottickedoff">activityTargetJSON (ActivityAssetAndSlot a s) = (n, i, o &lt;&gt; segmentJSON (slotSegmentId s)) where</span>
+<span class="lineno">  211 </span><span class="spaces">  </span><span class="nottickedoff">(n, i, o) = activityTargetJSON (ActivityAsset a)</span>
+<span class="lineno">  212 </span><span class="spaces"></span><span class="nottickedoff">activityTargetJSON ActivityExcerpt{..} =</span>
+<span class="lineno">  213 </span><span class="spaces">  </span><span class="nottickedoff">(&quot;excerpt&quot;, &quot;id&quot; JSON..= activityAssetId &lt;&gt; segmentJSON activitySegment,</span>
+<span class="lineno">  214 </span><span class="spaces">    </span><span class="nottickedoff">&quot;excerpt&quot; `JSON.kvObjectOrEmpty` activityExcerptRelease)</span></span>
+<span class="lineno">  215 </span>
+<span class="lineno">  216 </span>activityAssetJSON :: Asset -&gt; JSON.Object
+<span class="lineno">  217 </span><span class="decl"><span class="nottickedoff">activityAssetJSON a =</span>
+<span class="lineno">  218 </span><span class="spaces">  </span><span class="nottickedoff">JSON.recordObject $ assetJSON False a</span>
+<span class="lineno">  219 </span><span class="spaces">      </span><span class="nottickedoff">`JSON.foldObjectIntoRec` (&quot;name&quot; `JSON.kvObjectOrEmpty` assetName (assetRow a))</span></span> -- False assumes edit
+<span class="lineno">  220 </span>
+<span class="lineno">  221 </span>activityJSON :: Activity -&gt; Maybe JSON.Object
+<span class="lineno">  222 </span><span class="decl"><span class="nottickedoff">activityJSON Activity{ activityAudit = Audit{..}, ..} = (auditAction == AuditActionChange &amp;&amp; HM.null new &amp;&amp; HM.null old) `unlessUse`</span>
+<span class="lineno">  223 </span><span class="spaces">  </span><span class="nottickedoff">(new &lt;&gt; key</span>
+<span class="lineno">  224 </span><span class="spaces">    </span><span class="nottickedoff">&lt;&gt; &quot;when&quot; JSON..= auditWhen</span>
+<span class="lineno">  225 </span><span class="spaces">    </span><span class="nottickedoff">&lt;&gt; &quot;action&quot; JSON..= show (auditAction)</span>
+<span class="lineno">  226 </span><span class="spaces">    </span><span class="nottickedoff">&lt;&gt; &quot;ip&quot; JSON..= show (auditIp auditIdentity)</span>
+<span class="lineno">  227 </span><span class="spaces">    </span><span class="nottickedoff">&lt;&gt; &quot;user&quot; JSON..= auditWho auditIdentity</span>
+<span class="lineno">  228 </span><span class="spaces">    </span><span class="nottickedoff">&lt;&gt; &quot;type&quot; JSON..= typ</span>
+<span class="lineno">  229 </span><span class="spaces">    </span><span class="nottickedoff">&lt;&gt; &quot;old&quot; `JSON.kvObjectOrEmpty` (if HM.null old then empty else pure old)</span>
+<span class="lineno">  230 </span><span class="spaces">    </span><span class="nottickedoff">&lt;&gt; &quot;replace&quot; `JSON.kvObjectOrEmpty` (activityAssetJSON &lt;$&gt; activityReplace)</span>
+<span class="lineno">  231 </span><span class="spaces">    </span><span class="nottickedoff">&lt;&gt; &quot;transcode&quot; `JSON.kvObjectOrEmpty` (activityAssetJSON &lt;$&gt; activityTranscode))</span>
+<span class="lineno">  232 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  233 </span><span class="spaces">  </span><span class="nottickedoff">(new, old)</span>
+<span class="lineno">  234 </span><span class="spaces">    </span><span class="nottickedoff">| auditAction == AuditActionRemove</span>
+<span class="lineno">  235 </span><span class="spaces">      </span><span class="nottickedoff">= (HM.empty, targ)</span>
+<span class="lineno">  236 </span><span class="spaces">    </span><span class="nottickedoff">| Just p &lt;- activityPrev</span>
+<span class="lineno">  237 </span><span class="spaces">    </span><span class="nottickedoff">, (_, _, prev) &lt;- activityTargetJSON p</span>
+<span class="lineno">  238 </span><span class="spaces">    </span><span class="nottickedoff">, int &lt;- HM.filter id $ HM.intersectionWith (==) targ prev</span>
+<span class="lineno">  239 </span><span class="spaces">      </span><span class="nottickedoff">= (if auditAction == AuditActionAdd then targ else HM.difference targ int, HM.difference prev int)</span>
+<span class="lineno">  240 </span><span class="spaces">    </span><span class="nottickedoff">| otherwise</span>
+<span class="lineno">  241 </span><span class="spaces">      </span><span class="nottickedoff">= (targ, HM.empty)</span>
+<span class="lineno">  242 </span><span class="spaces">  </span><span class="nottickedoff">(typ, key, targ) = activityTargetJSON activityTarget</span></span>
+
+</pre>
+</body>
+</html>

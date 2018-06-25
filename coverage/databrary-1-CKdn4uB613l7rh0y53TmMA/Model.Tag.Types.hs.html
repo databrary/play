@@ -1,0 +1,189 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies, DataKinds, GeneralizedNewtypeDeriving, DeriveDataTypeable #-}
+<span class="lineno">    2 </span>module Model.Tag.Types
+<span class="lineno">    3 </span>  ( TagName(..)
+<span class="lineno">    4 </span>  , validateTag
+<span class="lineno">    5 </span>  , Tag(..)
+<span class="lineno">    6 </span>  , TagUse(..)
+<span class="lineno">    7 </span>  , TagUseRow(..)
+<span class="lineno">    8 </span>  , TagCoverage(..)
+<span class="lineno">    9 </span>  , TagWeight(..)
+<span class="lineno">   10 </span>  ) where
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import qualified Data.ByteString as BS
+<span class="lineno">   13 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">   14 </span>import Data.Char (toLower)
+<span class="lineno">   15 </span>import qualified Data.Text.Encoding as TE
+<span class="lineno">   16 </span>import Data.Typeable (Typeable)
+<span class="lineno">   17 </span>import Database.PostgreSQL.Typed.Types (PGParameter(..), PGColumn(..))
+<span class="lineno">   18 </span>import qualified Text.Regex.Posix as Regex
+<span class="lineno">   19 </span>import qualified Web.Route.Invertible as R
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>import Ops
+<span class="lineno">   22 </span>import Has (Has(..))
+<span class="lineno">   23 </span>import qualified JSON as JSON
+<span class="lineno">   24 </span>import Model.Kind
+<span class="lineno">   25 </span>import Model.Id.Types
+<span class="lineno">   26 </span>import Model.Party.Types
+<span class="lineno">   27 </span>import Model.Container.Types
+<span class="lineno">   28 </span>import Model.Segment
+<span class="lineno">   29 </span>import Model.Slot.Types
+<span class="lineno">   30 </span>import Model.Volume.Types
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>newtype TagName = TagName { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tagNameBS</span></span></span> :: BS.ByteString } deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">JSON.ToJSON</span></span></span></span></span></span></span></span>, {- JSON.FromJSON, -} Typeable {-, Show, Eq -})
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>validTag :: Regex.Regex
+<span class="lineno">   35 </span><span class="decl"><span class="istickedoff">validTag = Regex.makeRegex</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="istickedoff">(&quot;^[a-z][-a-z ]+[a-z]$&quot; :: BS.ByteString)</span></span>
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>validateTag :: BS.ByteString -&gt; Maybe TagName
+<span class="lineno">   39 </span><span class="decl"><span class="istickedoff">validateTag t = (Regex.matchTest validTag tt) `thenUse` <span class="nottickedoff">(TagName tt)</span> where</span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="istickedoff">tt = BSC.map toLower $ BSC.unwords $ BSC.words t</span></span>
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>instance R.Parameter R.PathString TagName where
+<span class="lineno">   43 </span>  <span class="decl"><span class="nottickedoff">parseParameter = validateTag . TE.encodeUtf8</span></span>
+<span class="lineno">   44 </span>  <span class="decl"><span class="nottickedoff">renderParameter = TE.decodeLatin1 . tagNameBS</span></span>
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>instance PGParameter &quot;character varying&quot; TagName where
+<span class="lineno">   47 </span>  <span class="decl"><span class="nottickedoff">pgEncode t (TagName n) = pgEncode t n</span></span>
+<span class="lineno">   48 </span>  <span class="decl"><span class="nottickedoff">pgEncodeValue e t (TagName n) = pgEncodeValue e t n</span></span>
+<span class="lineno">   49 </span>  <span class="decl"><span class="nottickedoff">pgLiteral t (TagName n) = pgLiteral t n</span></span>
+<span class="lineno">   50 </span>instance PGColumn &quot;character varying&quot; TagName where
+<span class="lineno">   51 </span>  <span class="decl"><span class="nottickedoff">pgDecode t = TagName . pgDecode t</span></span>
+<span class="lineno">   52 </span>  <span class="decl"><span class="nottickedoff">pgDecodeValue e t = TagName . pgDecodeValue e t</span></span>
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>type instance IdType Tag = Int32
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>data Tag = Tag
+<span class="lineno">   57 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tagId</span></span></span> :: Id Tag
+<span class="lineno">   58 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tagName</span></span></span> :: TagName
+<span class="lineno">   59 </span>  }
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>-- makeHasRec ''Tag ['tagId, 'tagName]
+<span class="lineno">   62 </span>-- instance Has (Id Tag) Tag where
+<span class="lineno">   63 </span>--   view = tagId
+<span class="lineno">   64 </span>-- instance Has TagName Tag where
+<span class="lineno">   65 </span>--   view = tagName
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>instance Kinded Tag where
+<span class="lineno">   68 </span>  <span class="decl"><span class="nottickedoff">kindOf _ = &quot;tag&quot;</span></span>
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>data TagUse = TagUse
+<span class="lineno">   71 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">useTag</span></span></span> :: Tag
+<span class="lineno">   72 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tagKeyword</span></span></span> :: Bool
+<span class="lineno">   73 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tagWho</span></span></span> :: Account
+<span class="lineno">   74 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tagSlot</span></span></span> :: Slot
+<span class="lineno">   75 </span>  }
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span>-- makeHasRec ''TagUse ['useTag, 'tagWho, 'tagSlot]
+<span class="lineno">   78 </span>instance Has Tag TagUse where
+<span class="lineno">   79 </span>  <span class="decl"><span class="nottickedoff">view = useTag</span></span>
+<span class="lineno">   80 </span>-- instance Has (Id Tag) TagUse where
+<span class="lineno">   81 </span>--   view = (view . useTag)
+<span class="lineno">   82 </span>-- instance Has TagName TagUse where
+<span class="lineno">   83 </span>--   view = (view . useTag)
+<span class="lineno">   84 </span>-- instance Has Account TagUse where
+<span class="lineno">   85 </span>--   view = tagWho
+<span class="lineno">   86 </span>-- instance Has (Id Party) TagUse where
+<span class="lineno">   87 </span>--   view = (view . tagWho)
+<span class="lineno">   88 </span>-- instance Has PartyRow TagUse where
+<span class="lineno">   89 </span>--   view = (view . tagWho)
+<span class="lineno">   90 </span>-- instance Has Party TagUse where
+<span class="lineno">   91 </span>--   view = (view . tagWho)
+<span class="lineno">   92 </span>-- instance Has Slot TagUse where
+<span class="lineno">   93 </span>--   view = tagSlot
+<span class="lineno">   94 </span>instance Has Segment TagUse where
+<span class="lineno">   95 </span>  <span class="decl"><span class="nottickedoff">view = (view . tagSlot)</span></span>
+<span class="lineno">   96 </span>-- instance Has ContainerRow TagUse where
+<span class="lineno">   97 </span>--   view = (view . tagSlot)
+<span class="lineno">   98 </span>instance Has (Id Container) TagUse where
+<span class="lineno">   99 </span>  <span class="decl"><span class="nottickedoff">view = (view . tagSlot)</span></span>
+<span class="lineno">  100 </span>-- instance Has (Maybe Model.Release.Types.Release) TagUse where
+<span class="lineno">  101 </span>--   view = (view . tagSlot)
+<span class="lineno">  102 </span>-- instance Has Model.Release.Types.Release TagUse where
+<span class="lineno">  103 </span>--   view = (view . tagSlot)
+<span class="lineno">  104 </span>instance Has Model.Volume.Types.Volume TagUse where
+<span class="lineno">  105 </span>  <span class="decl"><span class="nottickedoff">view = (view . tagSlot)</span></span>
+<span class="lineno">  106 </span>-- instance Has Model.Permission.Types.Permission TagUse where
+<span class="lineno">  107 </span>--   view = (view . tagSlot)
+<span class="lineno">  108 </span>instance Has (Id Model.Volume.Types.Volume) TagUse where
+<span class="lineno">  109 </span>  <span class="decl"><span class="nottickedoff">view = (view . tagSlot)</span></span>
+<span class="lineno">  110 </span>-- instance Has Model.Volume.Types.VolumeRow TagUse where
+<span class="lineno">  111 </span>--   view = (view . tagSlot)
+<span class="lineno">  112 </span>-- instance Has Container TagUse where
+<span class="lineno">  113 </span>--   view = (view . tagSlot)
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span>data TagUseRow = TagUseRow
+<span class="lineno">  116 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">useTagRow</span></span></span> :: Tag
+<span class="lineno">  117 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tagRowKeyword</span></span></span> :: Bool
+<span class="lineno">  118 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tagRowWhoId</span></span></span> :: Id Party
+<span class="lineno">  119 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tagRowSlotId</span></span></span> :: SlotId
+<span class="lineno">  120 </span>  }
+<span class="lineno">  121 </span>
+<span class="lineno">  122 </span>data TagWeight = TagWeight
+<span class="lineno">  123 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tagWeightTag</span></span></span> :: Tag
+<span class="lineno">  124 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tagWeightWeight</span></span></span> :: Int32
+<span class="lineno">  125 </span>  }
+<span class="lineno">  126 </span>
+<span class="lineno">  127 </span>-- makeHasRec ''TagWeight ['tagWeightTag]
+<span class="lineno">  128 </span>-- instance Has Tag TagWeight where
+<span class="lineno">  129 </span>--   view = tagWeightTag
+<span class="lineno">  130 </span>-- instance Has (Id Tag) TagWeight where
+<span class="lineno">  131 </span>--   view = (view . tagWeightTag)
+<span class="lineno">  132 </span>-- instance Has TagName TagWeight where
+<span class="lineno">  133 </span>--   view = (view . tagWeightTag)
+<span class="lineno">  134 </span>
+<span class="lineno">  135 </span>data TagCoverage = TagCoverage
+<span class="lineno">  136 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tagCoverageWeight</span></span></span> :: !TagWeight
+<span class="lineno">  137 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tagCoverageContainer</span></span></span> :: Container
+<span class="lineno">  138 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tagCoverageSegments</span></span></span>
+<span class="lineno">  139 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tagCoverageKeywords</span></span></span>
+<span class="lineno">  140 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tagCoverageVotes</span></span></span> :: [Segment]
+<span class="lineno">  141 </span>  }
+<span class="lineno">  142 </span>
+<span class="lineno">  143 </span>-- makeHasRec ''TagCoverage ['tagCoverageWeight, 'tagCoverageContainer]
+<span class="lineno">  144 </span>-- instance Has TagWeight TagCoverage where
+<span class="lineno">  145 </span>--   view = tagCoverageWeight
+<span class="lineno">  146 </span>-- instance Has Tag TagCoverage where
+<span class="lineno">  147 </span>--   view = (view . tagCoverageWeight)
+<span class="lineno">  148 </span>-- instance Has (Id Tag) TagCoverage where
+<span class="lineno">  149 </span>--   view = (view . tagCoverageWeight)
+<span class="lineno">  150 </span>-- instance Has TagName TagCoverage where
+<span class="lineno">  151 </span>--   view = (view . tagCoverageWeight)
+<span class="lineno">  152 </span>-- instance Has Container TagCoverage where
+<span class="lineno">  153 </span>--   view = tagCoverageContainer
+<span class="lineno">  154 </span>-- instance Has Model.Volume.Types.VolumeRow TagCoverage where
+<span class="lineno">  155 </span>--   view = (view . tagCoverageContainer)
+<span class="lineno">  156 </span>-- instance Has (Id Model.Volume.Types.Volume) TagCoverage where
+<span class="lineno">  157 </span>--   view = (view . tagCoverageContainer)
+<span class="lineno">  158 </span>-- instance Has Model.Permission.Types.Permission TagCoverage where
+<span class="lineno">  159 </span>--   view = (view . tagCoverageContainer)
+<span class="lineno">  160 </span>-- instance Has Model.Volume.Types.Volume TagCoverage where
+<span class="lineno">  161 </span>--   view = (view . tagCoverageContainer)
+<span class="lineno">  162 </span>-- instance Has Model.Release.Types.Release TagCoverage where
+<span class="lineno">  163 </span>--   view = (view . tagCoverageContainer)
+<span class="lineno">  164 </span>-- instance Has (Maybe Model.Release.Types.Release) TagCoverage where
+<span class="lineno">  165 </span>--   view = (view . tagCoverageContainer)
+<span class="lineno">  166 </span>-- instance Has (Id Container) TagCoverage where
+<span class="lineno">  167 </span>--   view = (view . tagCoverageContainer)
+<span class="lineno">  168 </span>-- instance Has ContainerRow TagCoverage where
+<span class="lineno">  169 </span>--   view = (view . tagCoverageContainer)
+
+</pre>
+</body>
+</html>

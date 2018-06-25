@@ -1,0 +1,355 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
+<span class="lineno">    2 </span>module Ingest.JSON
+<span class="lineno">    3 </span>  ( ingestJSON
+<span class="lineno">    4 </span>  ) where
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>import Control.Arrow (left)
+<span class="lineno">    7 </span>import Control.Monad (join, when, unless, void, mfilter, forM_, (&lt;=&lt;))
+<span class="lineno">    8 </span>import Control.Monad.Except (ExceptT(..), runExceptT, mapExceptT, catchError, throwError)
+<span class="lineno">    9 </span>import Control.Monad.IO.Class (MonadIO(liftIO))
+<span class="lineno">   10 </span>import Control.Monad.Trans.Class (lift)
+<span class="lineno">   11 </span>import qualified Data.Aeson.BetterErrors as JE
+<span class="lineno">   12 </span>import qualified Data.Attoparsec.ByteString as P
+<span class="lineno">   13 </span>import qualified Data.ByteString as BS
+<span class="lineno">   14 </span>import Data.ByteString.Lazy.Internal (defaultChunkSize)
+<span class="lineno">   15 </span>import Data.Function (on)
+<span class="lineno">   16 </span>import qualified Data.JsonSchema.Draft4 as JS
+<span class="lineno">   17 </span>import Data.List (find)
+<span class="lineno">   18 </span>import Data.Maybe (isJust, fromMaybe, isNothing)
+<span class="lineno">   19 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   20 </span>import Data.Time.Format (parseTimeM, defaultTimeLocale)
+<span class="lineno">   21 </span>import qualified Data.Text as T
+<span class="lineno">   22 </span>import qualified Data.Text.Encoding as TE
+<span class="lineno">   23 </span>import qualified Database.PostgreSQL.Typed.Range as Range
+<span class="lineno">   24 </span>import System.FilePath ((&lt;/&gt;))
+<span class="lineno">   25 </span>import System.IO (withBinaryFile, IOMode(ReadMode))
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>import Paths_databrary
+<span class="lineno">   28 </span>import Ops
+<span class="lineno">   29 </span>import Has (Has, view, focusIO, MonadHas)
+<span class="lineno">   30 </span>import qualified JSON as J
+<span class="lineno">   31 </span>import Files hiding ((&lt;/&gt;))
+<span class="lineno">   32 </span>import Store.AV (AV)
+<span class="lineno">   33 </span>import Store.Stage
+<span class="lineno">   34 </span>import Store.Probe
+<span class="lineno">   35 </span>import Store.Transcode
+<span class="lineno">   36 </span>import Store.Types (MonadStorage)
+<span class="lineno">   37 </span>import Model.Audit (MonadAudit)
+<span class="lineno">   38 </span>import Model.Time
+<span class="lineno">   39 </span>import Model.Kind
+<span class="lineno">   40 </span>import Model.Id.Types
+<span class="lineno">   41 </span>import Model.Volume
+<span class="lineno">   42 </span>import Model.Container
+<span class="lineno">   43 </span>import Model.Segment
+<span class="lineno">   44 </span>import Model.Slot.Types
+<span class="lineno">   45 </span>import Model.Release
+<span class="lineno">   46 </span>import Model.Record
+<span class="lineno">   47 </span>import Model.Category
+<span class="lineno">   48 </span>import Model.Metric
+<span class="lineno">   49 </span>import Model.Measure
+<span class="lineno">   50 </span>import Model.RecordSlot
+<span class="lineno">   51 </span>import Model.Asset
+<span class="lineno">   52 </span>import Model.AssetSlot
+<span class="lineno">   53 </span>import Model.AssetRevision
+<span class="lineno">   54 </span>import Model.Transcode
+<span class="lineno">   55 </span>import Model.Ingest
+<span class="lineno">   56 </span>import Model.Party (SiteAuth)
+<span class="lineno">   57 </span>-- import Action.Types
+<span class="lineno">   58 </span>import Service.Log (MonadLog)
+<span class="lineno">   59 </span>import Service.Types (Secret)
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>-- type IngestM a = JE.ParseT T.Text Handler a -- TODO: bring back as constraint alias
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>loadSchema :: ExceptT [T.Text] IO (J.Value -&gt; [JS.Failure])
+<span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">loadSchema = do</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">schema &lt;- lift $ getDataFileName &quot;volume.json&quot;</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="nottickedoff">r &lt;- lift $ withBinaryFile schema ReadMode (\h -&gt;</span>
+<span class="lineno">   67 </span><span class="spaces">    </span><span class="nottickedoff">P.parseWith (BS.hGetSome h defaultChunkSize) J.json' BS.empty)</span>
+<span class="lineno">   68 </span><span class="spaces">  </span><span class="nottickedoff">js &lt;- ExceptT . return . left (return . T.pack) $ eitherJSON =&lt;&lt; P.eitherResult r</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="nottickedoff">ExceptT $ return $ left (map (T.pack . show)) $ JS.checkSchema (JS.SchemaCache js mempty) (JS.SchemaContext Nothing js)</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   71 </span><span class="spaces">    </span><span class="nottickedoff">eitherJSON = J.parseEither J.parseJSON</span></span>
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>throwPE :: (Monad m) =&gt; T.Text -&gt; JE.ParseT T.Text m a
+<span class="lineno">   74 </span><span class="decl"><span class="nottickedoff">throwPE = JE.throwCustomError</span></span>
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>inObj :: forall a b m. (Kinded a, Has (Id a) a, Show (IdType a), Monad m) =&gt; a -&gt; JE.ParseT T.Text m b -&gt; JE.ParseT T.Text m b
+<span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">inObj o = JE.mapError (&lt;&gt; (&quot; for &quot; &lt;&gt; kindOf o &lt;&gt; T.pack (' ' : show (view o :: Id a))))</span></span>
+<span class="lineno">   78 </span>
+<span class="lineno">   79 </span>noKey :: (Monad m) =&gt; T.Text -&gt; JE.ParseT T.Text m ()
+<span class="lineno">   80 </span><span class="decl"><span class="nottickedoff">noKey k = void $ JE.keyMay k $ throwPE &quot;unhandled value&quot;</span></span>
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>asKey :: (Monad m) =&gt; JE.ParseT T.Text m IngestKey
+<span class="lineno">   83 </span><span class="decl"><span class="nottickedoff">asKey = JE.asText</span></span>
+<span class="lineno">   84 </span>
+<span class="lineno">   85 </span>asDate :: (Monad m) =&gt; JE.ParseT T.Text m Date
+<span class="lineno">   86 </span><span class="decl"><span class="nottickedoff">asDate = JE.withString (maybe (Left &quot;expecting %F&quot;) Right . parseTimeM True defaultTimeLocale &quot;%F&quot;)</span></span>
+<span class="lineno">   87 </span>
+<span class="lineno">   88 </span>asRelease :: (Monad m) =&gt; JE.ParseT T.Text m (Maybe Release)
+<span class="lineno">   89 </span><span class="decl"><span class="nottickedoff">asRelease = JE.perhaps JE.fromAesonParser</span></span>
+<span class="lineno">   90 </span>
+<span class="lineno">   91 </span>asCategory :: (Monad m) =&gt; JE.ParseT T.Text m Category
+<span class="lineno">   92 </span><span class="decl"><span class="nottickedoff">asCategory =</span>
+<span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">JE.withIntegral (err . getCategory . Id) `catchError` \_ -&gt; do</span>
+<span class="lineno">   94 </span><span class="spaces">    </span><span class="nottickedoff">JE.withText (\n -&gt; err $ find ((n ==) . categoryName) allCategories)</span>
+<span class="lineno">   95 </span><span class="spaces">  </span><span class="nottickedoff">where err = maybe (Left &quot;category not found&quot;) Right</span></span>
+<span class="lineno">   96 </span>
+<span class="lineno">   97 </span>asSegment :: (Monad m) =&gt; JE.ParseT T.Text m Segment
+<span class="lineno">   98 </span><span class="decl"><span class="nottickedoff">asSegment = JE.fromAesonParser</span></span>
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>data StageFile = StageFile
+<span class="lineno">  101 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">stageFileRel</span></span></span> :: !FilePath
+<span class="lineno">  102 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">stageFileAbs</span></span></span> :: !FilePath
+<span class="lineno">  103 </span>  }
+<span class="lineno">  104 </span>
+<span class="lineno">  105 </span>asStageFile :: (MonadStorage c m) =&gt; FilePath -&gt; JE.ParseT T.Text m StageFile
+<span class="lineno">  106 </span><span class="decl"><span class="nottickedoff">asStageFile b = do</span>
+<span class="lineno">  107 </span><span class="spaces">  </span><span class="nottickedoff">r &lt;- (b &lt;/&gt;) &lt;$&gt; JE.asString</span>
+<span class="lineno">  108 </span><span class="spaces">  </span><span class="nottickedoff">a &lt;- fromMaybeM (throwPE &quot;stage file not found&quot;) &lt;=&lt; lift $ focusIO $ \a -&gt; do</span>
+<span class="lineno">  109 </span><span class="spaces">    </span><span class="nottickedoff">rfp &lt;- rawFilePath r</span>
+<span class="lineno">  110 </span><span class="spaces">    </span><span class="nottickedoff">stageFileRaw &lt;- stageFile rfp a</span>
+<span class="lineno">  111 </span><span class="spaces">    </span><span class="nottickedoff">mapM unRawFilePath stageFileRaw</span>
+<span class="lineno">  112 </span><span class="spaces">  </span><span class="nottickedoff">return $ StageFile r a</span></span>
+<span class="lineno">  113 </span>
+<span class="lineno">  114 </span>ingestJSON :: (MonadStorage c m, MonadAudit c m, MonadHas AV c m, MonadHas Secret c m, MonadHas Timestamp c m, MonadLog c m, MonadHas SiteAuth c m)
+<span class="lineno">  115 </span>  =&gt; Volume -&gt; J.Value -&gt; Bool -&gt; Bool -&gt; m (Either [T.Text] [Container])
+<span class="lineno">  116 </span><span class="decl"><span class="nottickedoff">ingestJSON vol jdata run overwrite = runExceptT $ do</span>
+<span class="lineno">  117 </span><span class="spaces">  </span><span class="nottickedoff">schema &lt;- mapExceptT liftIO loadSchema</span>
+<span class="lineno">  118 </span><span class="spaces">  </span><span class="nottickedoff">let errs = schema jdata</span>
+<span class="lineno">  119 </span><span class="spaces">  </span><span class="nottickedoff">unless (null errs) $ throwError $ map (T.pack . show) errs</span>
+<span class="lineno">  120 </span><span class="spaces">  </span><span class="nottickedoff">if run</span>
+<span class="lineno">  121 </span><span class="spaces">  </span><span class="nottickedoff">then ExceptT $ left (JE.displayError id) &lt;$&gt; JE.parseValueM volume jdata</span>
+<span class="lineno">  122 </span><span class="spaces">  </span><span class="nottickedoff">else return []</span>
+<span class="lineno">  123 </span><span class="spaces">    </span><span class="nottickedoff">where</span>
+<span class="lineno">  124 </span><span class="spaces">  </span><span class="nottickedoff">check :: (Eq a, Show a, Monad m) =&gt; a -&gt; a -&gt; JE.ParseT T.Text m (Maybe a)</span>
+<span class="lineno">  125 </span><span class="spaces">  </span><span class="nottickedoff">check cur new</span>
+<span class="lineno">  126 </span><span class="spaces">    </span><span class="nottickedoff">| cur == new = return Nothing</span>
+<span class="lineno">  127 </span><span class="spaces">    </span><span class="nottickedoff">| not overwrite = throwPE $ &quot;conflicting value: &quot; &lt;&gt; T.pack (show new) &lt;&gt; &quot; &lt;&gt; &quot; &lt;&gt; T.pack (show cur)</span>
+<span class="lineno">  128 </span><span class="spaces">    </span><span class="nottickedoff">| otherwise = return $ Just new</span>
+<span class="lineno">  129 </span><span class="spaces">  </span><span class="nottickedoff">volume :: (MonadStorage c m, MonadAudit c m, MonadHas AV c m, MonadHas Secret c m, MonadHas Timestamp c m, MonadLog c m, MonadHas SiteAuth c m)</span>
+<span class="lineno">  130 </span><span class="spaces">    </span><span class="nottickedoff">=&gt; JE.ParseT T.Text m [Container]</span>
+<span class="lineno">  131 </span><span class="spaces">  </span><span class="nottickedoff">volume = do</span>
+<span class="lineno">  132 </span><span class="spaces">    </span><span class="nottickedoff">dir &lt;- JE.keyOrDefault &quot;directory&quot; &quot;&quot; $ stageFileRel &lt;$&gt; asStageFile &quot;&quot;</span>
+<span class="lineno">  133 </span><span class="spaces">    </span><span class="nottickedoff">_ &lt;- JE.keyMay &quot;name&quot; $ do</span>
+<span class="lineno">  134 </span><span class="spaces">      </span><span class="nottickedoff">name &lt;- check (volumeName $ volumeRow vol) =&lt;&lt; JE.asText</span>
+<span class="lineno">  135 </span><span class="spaces">      </span><span class="nottickedoff">forM_ name $ \n -&gt; lift $ changeVolume vol{ volumeRow = (volumeRow vol){ volumeName = n } }</span>
+<span class="lineno">  136 </span><span class="spaces">    </span><span class="nottickedoff">top &lt;- lift (lookupVolumeTopContainer vol)</span>
+<span class="lineno">  137 </span><span class="spaces">    </span><span class="nottickedoff">JE.key &quot;containers&quot; $ JE.eachInArray (container top dir)</span>
+<span class="lineno">  138 </span><span class="spaces">  </span><span class="nottickedoff">container :: (MonadStorage c m, MonadAudit c m, MonadHas AV c m, MonadHas Secret c m, MonadHas Timestamp c m, MonadLog c m, MonadHas SiteAuth c m)</span>
+<span class="lineno">  139 </span><span class="spaces">    </span><span class="nottickedoff">=&gt; Container -&gt; String -&gt; JE.ParseT T.Text m Container</span>
+<span class="lineno">  140 </span><span class="spaces">  </span><span class="nottickedoff">container topc dir = do</span>
+<span class="lineno">  141 </span><span class="spaces">    </span><span class="nottickedoff">cid &lt;- JE.keyMay &quot;id&quot; $ Id &lt;$&gt; JE.asIntegral</span>
+<span class="lineno">  142 </span><span class="spaces">    </span><span class="nottickedoff">key &lt;- JE.key &quot;key&quot; $ asKey</span>
+<span class="lineno">  143 </span><span class="spaces">    </span><span class="nottickedoff">c' &lt;- lift (lookupIngestContainer vol key)</span>
+<span class="lineno">  144 </span><span class="spaces">    </span><span class="nottickedoff">c &lt;- maybe</span>
+<span class="lineno">  145 </span><span class="spaces">      </span><span class="nottickedoff">(do</span>
+<span class="lineno">  146 </span><span class="spaces">        </span><span class="nottickedoff">c &lt;- maybe</span>
+<span class="lineno">  147 </span><span class="spaces">          </span><span class="nottickedoff">(do</span>
+<span class="lineno">  148 </span><span class="spaces">            </span><span class="nottickedoff">top &lt;- JE.keyOrDefault &quot;top&quot; False JE.asBool</span>
+<span class="lineno">  149 </span><span class="spaces">            </span><span class="nottickedoff">name &lt;- JE.keyMay &quot;name&quot; JE.asText</span>
+<span class="lineno">  150 </span><span class="spaces">            </span><span class="nottickedoff">date &lt;- JE.keyMay &quot;date&quot; asDate</span>
+<span class="lineno">  151 </span><span class="spaces">            </span><span class="nottickedoff">let c = blankContainer vol</span>
+<span class="lineno">  152 </span><span class="spaces">            </span><span class="nottickedoff">lift $ addContainer c</span>
+<span class="lineno">  153 </span><span class="spaces">              </span><span class="nottickedoff">{ containerRow = (containerRow c)</span>
+<span class="lineno">  154 </span><span class="spaces">                </span><span class="nottickedoff">{ containerTop = top</span>
+<span class="lineno">  155 </span><span class="spaces">                </span><span class="nottickedoff">, containerName = name</span>
+<span class="lineno">  156 </span><span class="spaces">                </span><span class="nottickedoff">, containerDate = date</span>
+<span class="lineno">  157 </span><span class="spaces">                </span><span class="nottickedoff">}</span>
+<span class="lineno">  158 </span><span class="spaces">              </span><span class="nottickedoff">})</span>
+<span class="lineno">  159 </span><span class="spaces">          </span><span class="nottickedoff">(\i -&gt; fromMaybeM (throwPE $ &quot;container &quot; &lt;&gt; T.pack (show i) &lt;&gt; &quot;/&quot; &lt;&gt; key &lt;&gt; &quot; not found&quot;)</span>
+<span class="lineno">  160 </span><span class="spaces">            </span><span class="nottickedoff">=&lt;&lt; lift (lookupVolumeContainer vol i))</span>
+<span class="lineno">  161 </span><span class="spaces">          </span><span class="nottickedoff">cid</span>
+<span class="lineno">  162 </span><span class="spaces">        </span><span class="nottickedoff">inObj c $ lift $ addIngestContainer c key</span>
+<span class="lineno">  163 </span><span class="spaces">        </span><span class="nottickedoff">return c)</span>
+<span class="lineno">  164 </span><span class="spaces">      </span><span class="nottickedoff">(\c -&gt; inObj c $ do</span>
+<span class="lineno">  165 </span><span class="spaces">        </span><span class="nottickedoff">unless (all (containerId (containerRow c) ==) cid) $ do</span>
+<span class="lineno">  166 </span><span class="spaces">          </span><span class="nottickedoff">throwPE &quot;id mismatch&quot;</span>
+<span class="lineno">  167 </span><span class="spaces">        </span><span class="nottickedoff">top &lt;- fmap join . JE.keyMay &quot;top&quot; $ check (containerTop $ containerRow c) =&lt;&lt; JE.asBool</span>
+<span class="lineno">  168 </span><span class="spaces">        </span><span class="nottickedoff">name &lt;- fmap join . JE.keyMay &quot;name&quot; $ check (containerName $ containerRow c) =&lt;&lt; JE.perhaps JE.asText</span>
+<span class="lineno">  169 </span><span class="spaces">        </span><span class="nottickedoff">date &lt;- fmap join . JE.keyMay &quot;date&quot; $ check (containerDate $ containerRow c) =&lt;&lt; JE.perhaps asDate</span>
+<span class="lineno">  170 </span><span class="spaces">        </span><span class="nottickedoff">when (isJust top || isJust name || isJust date) $ lift $ changeContainer c</span>
+<span class="lineno">  171 </span><span class="spaces">          </span><span class="nottickedoff">{ containerRow = (containerRow c)</span>
+<span class="lineno">  172 </span><span class="spaces">            </span><span class="nottickedoff">{ containerTop = fromMaybe (containerTop $ containerRow c) top</span>
+<span class="lineno">  173 </span><span class="spaces">            </span><span class="nottickedoff">, containerName = fromMaybe (containerName $ containerRow c) name</span>
+<span class="lineno">  174 </span><span class="spaces">            </span><span class="nottickedoff">, containerDate = fromMaybe (containerDate $ containerRow c) date</span>
+<span class="lineno">  175 </span><span class="spaces">            </span><span class="nottickedoff">}</span>
+<span class="lineno">  176 </span><span class="spaces">          </span><span class="nottickedoff">}</span>
+<span class="lineno">  177 </span><span class="spaces">        </span><span class="nottickedoff">return c)</span>
+<span class="lineno">  178 </span><span class="spaces">      </span><span class="nottickedoff">c'</span>
+<span class="lineno">  179 </span><span class="spaces">    </span><span class="nottickedoff">let s = containerSlot c</span>
+<span class="lineno">  180 </span><span class="spaces">    </span><span class="nottickedoff">inObj c $ do</span>
+<span class="lineno">  181 </span><span class="spaces">      </span><span class="nottickedoff">_ &lt;- JE.keyMay &quot;release&quot; $ do</span>
+<span class="lineno">  182 </span><span class="spaces">        </span><span class="nottickedoff">release &lt;- maybe (return . fmap Just) (check . containerRelease) c' =&lt;&lt; asRelease</span>
+<span class="lineno">  183 </span><span class="spaces">        </span><span class="nottickedoff">forM_ release $ \r -&gt; do</span>
+<span class="lineno">  184 </span><span class="spaces">          </span><span class="nottickedoff">o &lt;- lift $ changeRelease s r</span>
+<span class="lineno">  185 </span><span class="spaces">          </span><span class="nottickedoff">unless o $ throwPE &quot;update failed&quot;</span>
+<span class="lineno">  186 </span><span class="spaces">      </span><span class="nottickedoff">_ &lt;- JE.key &quot;records&quot; $ JE.eachInArray $ do</span>
+<span class="lineno">  187 </span><span class="spaces">        </span><span class="nottickedoff">r &lt;- record</span>
+<span class="lineno">  188 </span><span class="spaces">        </span><span class="nottickedoff">inObj r $ do</span>
+<span class="lineno">  189 </span><span class="spaces">          </span><span class="nottickedoff">rs' &lt;- lift $ lookupRecordSlotRecords r s</span>
+<span class="lineno">  190 </span><span class="spaces">          </span><span class="nottickedoff">segm &lt;- (if null rs' then return . Just else check (map (slotSegment . recordSlot) rs')) =&lt;&lt; JE.keyOrDefault &quot;positions&quot; [fullSegment] (JE.eachInArray asSegment)</span>
+<span class="lineno">  191 </span><span class="spaces">          </span><span class="nottickedoff">forM_ segm $ \segs -&gt; do</span>
+<span class="lineno">  192 </span><span class="spaces">            </span><span class="nottickedoff">let rs = RecordSlot r . Slot c</span>
+<span class="lineno">  193 </span><span class="spaces">            </span><span class="nottickedoff">unless (null rs') $ do</span>
+<span class="lineno">  194 </span><span class="spaces">              </span><span class="nottickedoff">o &lt;- lift $ moveRecordSlot (rs fullSegment) emptySegment</span>
+<span class="lineno">  195 </span><span class="spaces">              </span><span class="nottickedoff">unless o $ throwPE &quot;record clear failed&quot;</span>
+<span class="lineno">  196 </span><span class="spaces">            </span><span class="nottickedoff">o &lt;- lift $ mapM (moveRecordSlot (rs emptySegment)) segs</span>
+<span class="lineno">  197 </span><span class="spaces">            </span><span class="nottickedoff">unless (and o) $ throwPE &quot;record link failed&quot;</span>
+<span class="lineno">  198 </span><span class="spaces">      </span><span class="nottickedoff">_ &lt;- JE.key &quot;assets&quot; $ JE.eachInArray $ do</span>
+<span class="lineno">  199 </span><span class="spaces">        </span><span class="nottickedoff">(a, probe) &lt;- asset dir</span>
+<span class="lineno">  200 </span><span class="spaces">        </span><span class="nottickedoff">inObj a $ do</span>
+<span class="lineno">  201 </span><span class="spaces">          </span><span class="nottickedoff">as' &lt;- lift $ mfilter (((/=) `on` containerId . containerRow) topc . slotContainer) . assetSlot &lt;$&gt; lookupAssetAssetSlot a</span>
+<span class="lineno">  202 </span><span class="spaces">          </span><span class="nottickedoff">seg &lt;- JE.keyOrDefault &quot;position&quot; (maybe fullSegment slotSegment as') $</span>
+<span class="lineno">  203 </span><span class="spaces">            </span><span class="nottickedoff">JE.withTextM (\t -&gt; if t == &quot;auto&quot;</span>
+<span class="lineno">  204 </span><span class="spaces">              </span><span class="nottickedoff">then maybe (Right . Segment . Range.point &lt;$&gt; probeAutoPosition c probe) (return . Right . slotSegment) $ mfilter (((==) `on` containerId . containerRow) c . slotContainer) as'</span>
+<span class="lineno">  205 </span><span class="spaces">              </span><span class="nottickedoff">else return $ Left &quot;invalid asset position&quot;)</span>
+<span class="lineno">  206 </span><span class="spaces">              </span><span class="nottickedoff">`catchError` \_ -&gt; asSegment</span>
+<span class="lineno">  207 </span><span class="spaces">          </span><span class="nottickedoff">let seg'</span>
+<span class="lineno">  208 </span><span class="spaces">                </span><span class="nottickedoff">| Just p &lt;- Range.getPoint (segmentRange seg)</span>
+<span class="lineno">  209 </span><span class="spaces">                </span><span class="nottickedoff">, Just d &lt;- assetDuration (assetRow a) = Segment $ Range.bounded p (p + d)</span>
+<span class="lineno">  210 </span><span class="spaces">                </span><span class="nottickedoff">| otherwise = seg</span>
+<span class="lineno">  211 </span><span class="spaces">              </span><span class="nottickedoff">ss = Slot c seg'</span>
+<span class="lineno">  212 </span><span class="spaces">          </span><span class="nottickedoff">u &lt;- maybe (return True) (\s' -&gt; isJust &lt;$&gt; on check slotId s' ss) as'</span>
+<span class="lineno">  213 </span><span class="spaces">          </span><span class="nottickedoff">when u $ do</span>
+<span class="lineno">  214 </span><span class="spaces">            </span><span class="nottickedoff">o &lt;- lift $ changeAssetSlot $ AssetSlot a $ Just ss</span>
+<span class="lineno">  215 </span><span class="spaces">            </span><span class="nottickedoff">unless o $ throwPE &quot;asset link failed&quot;</span>
+<span class="lineno">  216 </span><span class="spaces">      </span><span class="nottickedoff">return c</span>
+<span class="lineno">  217 </span><span class="spaces">  </span><span class="nottickedoff">record :: (MonadAudit c m) =&gt; JE.ParseT T.Text m Record</span>
+<span class="lineno">  218 </span><span class="spaces">  </span><span class="nottickedoff">record = do</span>
+<span class="lineno">  219 </span><span class="spaces">    </span><span class="nottickedoff">-- handle record shell</span>
+<span class="lineno">  220 </span><span class="spaces">    </span><span class="nottickedoff">(rid :: Maybe (Id Record)) &lt;- JE.keyMay &quot;id&quot; $ Id &lt;$&gt; JE.asIntegral -- insert = nothing, update = just id</span>
+<span class="lineno">  221 </span><span class="spaces">    </span><span class="nottickedoff">(key :: IngestKey) &lt;- JE.key &quot;key&quot; $ asKey</span>
+<span class="lineno">  222 </span><span class="spaces">    </span><span class="nottickedoff">(mIngestRecord :: Maybe Record) &lt;- lift (lookupIngestRecord vol key)</span>
+<span class="lineno">  223 </span><span class="spaces">    </span><span class="nottickedoff">(r :: Record) &lt;- maybe</span>
+<span class="lineno">  224 </span><span class="spaces">      </span><span class="nottickedoff">-- first run of any ingest for this record. could be updating or insert, but need an ingest entry</span>
+<span class="lineno">  225 </span><span class="spaces">      </span><span class="nottickedoff">(do</span>
+<span class="lineno">  226 </span><span class="spaces">        </span><span class="nottickedoff">(r :: Record) &lt;- maybe</span>
+<span class="lineno">  227 </span><span class="spaces">          </span><span class="nottickedoff">(do -- if no existing record, then add a new record</span>
+<span class="lineno">  228 </span><span class="spaces">            </span><span class="nottickedoff">(category :: Category) &lt;- JE.key &quot;category&quot; asCategory</span>
+<span class="lineno">  229 </span><span class="spaces">            </span><span class="nottickedoff">lift $ addRecord $ blankRecord category vol)</span>
+<span class="lineno">  230 </span><span class="spaces">          </span><span class="nottickedoff">(\i -&gt; do  -- else find the existing record by vol + record id</span>
+<span class="lineno">  231 </span><span class="spaces">            </span><span class="nottickedoff">(mRecord :: Maybe Record) &lt;- lift (lookupVolumeRecord vol i)</span>
+<span class="lineno">  232 </span><span class="spaces">            </span><span class="nottickedoff">fromMaybeM (throwPE $ &quot;record &quot; &lt;&gt; T.pack (show i) &lt;&gt; &quot;/&quot; &lt;&gt; key &lt;&gt; &quot; not found&quot;) mRecord)</span>
+<span class="lineno">  233 </span><span class="spaces">          </span><span class="nottickedoff">rid</span>
+<span class="lineno">  234 </span><span class="spaces">        </span><span class="nottickedoff">inObj r $ lift $ addIngestRecord r key -- log that a record was ingested, assoc key with the record</span>
+<span class="lineno">  235 </span><span class="spaces">        </span><span class="nottickedoff">return r)</span>
+<span class="lineno">  236 </span><span class="spaces">      </span><span class="nottickedoff">-- there has been a prior ingest using the same key for this record</span>
+<span class="lineno">  237 </span><span class="spaces">      </span><span class="nottickedoff">(\priorIngestRecord -&gt; inObj priorIngestRecord $ do</span>
+<span class="lineno">  238 </span><span class="spaces">        </span><span class="nottickedoff">unless (all (recordId (recordRow priorIngestRecord) ==) rid) $ do -- all here refers to either value in maybe or nothing</span>
+<span class="lineno">  239 </span><span class="spaces">          </span><span class="nottickedoff">throwPE &quot;id mismatch&quot;</span>
+<span class="lineno">  240 </span><span class="spaces">        </span><span class="nottickedoff">_ &lt;- JE.key &quot;category&quot; $ do</span>
+<span class="lineno">  241 </span><span class="spaces">          </span><span class="nottickedoff">(category :: Category) &lt;- asCategory</span>
+<span class="lineno">  242 </span><span class="spaces">          </span><span class="nottickedoff">(category' :: Maybe Category) &lt;-</span>
+<span class="lineno">  243 </span><span class="spaces">              </span><span class="nottickedoff">(category &lt;$) -- check whether category name is different from the category on the existing record</span>
+<span class="lineno">  244 </span><span class="spaces">                  </span><span class="nottickedoff">&lt;$&gt; on check categoryName (recordCategory $ recordRow priorIngestRecord) category</span>
+<span class="lineno">  245 </span><span class="spaces">          </span><span class="nottickedoff">-- update record category for a prior ingest, if category changed</span>
+<span class="lineno">  246 </span><span class="spaces">          </span><span class="nottickedoff">forM_ category'</span>
+<span class="lineno">  247 </span><span class="spaces">            </span><span class="nottickedoff">$ \c -&gt;</span>
+<span class="lineno">  248 </span><span class="spaces">                 </span><span class="nottickedoff">lift</span>
+<span class="lineno">  249 </span><span class="spaces">                   </span><span class="nottickedoff">$ changeRecord priorIngestRecord</span>
+<span class="lineno">  250 </span><span class="spaces">                       </span><span class="nottickedoff">{ recordRow = (recordRow priorIngestRecord) { recordCategory = c } }</span>
+<span class="lineno">  251 </span><span class="spaces">        </span><span class="nottickedoff">return priorIngestRecord)</span>
+<span class="lineno">  252 </span><span class="spaces">      </span><span class="nottickedoff">mIngestRecord</span>
+<span class="lineno">  253 </span><span class="spaces">    </span><span class="nottickedoff">-- handle structure (metrics) + field values (measures) for record</span>
+<span class="lineno">  254 </span><span class="spaces">    </span><span class="nottickedoff">_ &lt;- inObj r $ JE.forEachInObject $ \mn -&gt;</span>
+<span class="lineno">  255 </span><span class="spaces">      </span><span class="nottickedoff">unless (mn `elem` [&quot;id&quot;, &quot;key&quot;, &quot;category&quot;, &quot;positions&quot;]) $ do -- for all non special keys, treat as data</span>
+<span class="lineno">  256 </span><span class="spaces">        </span><span class="nottickedoff">(metric :: Metric) &lt;- do</span>
+<span class="lineno">  257 </span><span class="spaces">            </span><span class="nottickedoff">let mMetric = find (\m -&gt; mn == metricName m &amp;&amp; recordCategory (recordRow r) == metricCategory m) allMetrics</span>
+<span class="lineno">  258 </span><span class="spaces">            </span><span class="nottickedoff">fromMaybeM (throwPE $ &quot;metric &quot; &lt;&gt; mn &lt;&gt; &quot; not found&quot;) mMetric</span>
+<span class="lineno">  259 </span><span class="spaces">        </span><span class="nottickedoff">(datum :: Maybe BS.ByteString) &lt;- do</span>
+<span class="lineno">  260 </span><span class="spaces">          </span><span class="nottickedoff">(newMeasureVal :: T.Text) &lt;- JE.asText</span>
+<span class="lineno">  261 </span><span class="spaces">          </span><span class="nottickedoff">let newMeasureValBS :: BS.ByteString</span>
+<span class="lineno">  262 </span><span class="spaces">              </span><span class="nottickedoff">newMeasureValBS = TE.encodeUtf8 newMeasureVal</span>
+<span class="lineno">  263 </span><span class="spaces">          </span><span class="nottickedoff">maybe</span>
+<span class="lineno">  264 </span><span class="spaces">            </span><span class="nottickedoff">(return (Just newMeasureValBS))  -- always update</span>
+<span class="lineno">  265 </span><span class="spaces">            </span><span class="nottickedoff">(\existingMeasure -&gt; check (measureDatum existingMeasure) newMeasureValBS) -- only update if changed and allowed</span>
+<span class="lineno">  266 </span><span class="spaces">            </span><span class="nottickedoff">(getMeasure metric (recordMeasures r)) -- look for existing measure for this metric on the record</span>
+<span class="lineno">  267 </span><span class="spaces">        </span><span class="nottickedoff">forM_ datum</span>
+<span class="lineno">  268 </span><span class="spaces">          </span><span class="nottickedoff">$ \measureDatumVal -&gt; (lift . changeRecordMeasure) (Measure r metric measureDatumVal) -- save measure data</span>
+<span class="lineno">  269 </span><span class="spaces">    </span><span class="nottickedoff">-- return record</span>
+<span class="lineno">  270 </span><span class="spaces">    </span><span class="nottickedoff">return r</span>
+<span class="lineno">  271 </span><span class="spaces">  </span><span class="nottickedoff">asset :: (MonadStorage c m, MonadAudit c m, MonadHas AV c m, MonadHas Secret c m, MonadHas Timestamp c m, MonadLog c m, MonadHas SiteAuth c m)</span>
+<span class="lineno">  272 </span><span class="spaces">    </span><span class="nottickedoff">=&gt; String -&gt; JE.ParseT T.Text m (Asset, Maybe Probe)</span>
+<span class="lineno">  273 </span><span class="spaces">  </span><span class="nottickedoff">asset dir = do</span>
+<span class="lineno">  274 </span><span class="spaces">    </span><span class="nottickedoff">sa &lt;- fromMaybeM</span>
+<span class="lineno">  275 </span><span class="spaces">      </span><span class="nottickedoff">(JE.key &quot;file&quot; $ do</span>
+<span class="lineno">  276 </span><span class="spaces">        </span><span class="nottickedoff">file &lt;- asStageFile dir</span>
+<span class="lineno">  277 </span><span class="spaces">        </span><span class="nottickedoff">stageFileRelRaw &lt;- lift $ liftIO $ rawFilePath $ stageFileRel file</span>
+<span class="lineno">  278 </span><span class="spaces">        </span><span class="nottickedoff">stageFileRelAbs &lt;- lift $ liftIO $ rawFilePath $ stageFileAbs file</span>
+<span class="lineno">  279 </span><span class="spaces">        </span><span class="nottickedoff">(,) . Just . (,) file</span>
+<span class="lineno">  280 </span><span class="spaces">          </span><span class="nottickedoff">&lt;$&gt; (either throwPE return</span>
+<span class="lineno">  281 </span><span class="spaces">            </span><span class="nottickedoff">=&lt;&lt; lift (probeFile stageFileRelRaw stageFileRelAbs))</span>
+<span class="lineno">  282 </span><span class="spaces">          </span><span class="nottickedoff">&lt;*&gt; lift (lookupIngestAsset vol $ stageFileRel file))</span>
+<span class="lineno">  283 </span><span class="spaces">      </span><span class="nottickedoff">=&lt;&lt; (JE.keyMay &quot;id&quot; $ do</span>
+<span class="lineno">  284 </span><span class="spaces">        </span><span class="nottickedoff">maybe (throwPE &quot;asset not found&quot;) (return . (,) Nothing . Just) =&lt;&lt; lift . lookupVolumeAsset vol . Id =&lt;&lt; JE.asIntegral)</span>
+<span class="lineno">  285 </span><span class="spaces">    </span><span class="nottickedoff">when (isNothing $ fst sa) $ noKey &quot;file&quot;</span>
+<span class="lineno">  286 </span><span class="spaces">    </span><span class="nottickedoff">orig &lt;- JE.keyMay &quot;replace&quot; $</span>
+<span class="lineno">  287 </span><span class="spaces">      </span><span class="nottickedoff">let err = fmap $ maybe (Left &quot;asset not found&quot;) Right in</span>
+<span class="lineno">  288 </span><span class="spaces">      </span><span class="nottickedoff">JE.withIntegralM (err . lookupVolumeAsset vol . Id) `catchError` \_ -&gt;</span>
+<span class="lineno">  289 </span><span class="spaces">        </span><span class="nottickedoff">JE.withStringM (err . lookupIngestAsset vol)</span>
+<span class="lineno">  290 </span><span class="spaces">    </span><span class="nottickedoff">a &lt;- case sa of</span>
+<span class="lineno">  291 </span><span class="spaces">      </span><span class="nottickedoff">(_, Just a) -&gt; inObj a $ do</span>
+<span class="lineno">  292 </span><span class="spaces">        </span><span class="nottickedoff">unless (assetBacked a) $ throwPE &quot;ingested asset incomplete&quot;</span>
+<span class="lineno">  293 </span><span class="spaces">        </span><span class="nottickedoff">-- compareFiles file =&lt;&lt; getAssetFile -- assume correct</span>
+<span class="lineno">  294 </span><span class="spaces">        </span><span class="nottickedoff">release &lt;- fmap join . JE.keyMay &quot;release&quot; $ check (assetRelease $ assetRow a) =&lt;&lt; asRelease</span>
+<span class="lineno">  295 </span><span class="spaces">        </span><span class="nottickedoff">name &lt;- fmap join . JE.keyMay &quot;name&quot; $ check (assetName $ assetRow a) =&lt;&lt; JE.perhaps JE.asText</span>
+<span class="lineno">  296 </span><span class="spaces">        </span><span class="nottickedoff">a' &lt;- if isJust release || isJust name</span>
+<span class="lineno">  297 </span><span class="spaces">          </span><span class="nottickedoff">then lift $ changeAsset a</span>
+<span class="lineno">  298 </span><span class="spaces">            </span><span class="nottickedoff">{ assetRow = (assetRow a)</span>
+<span class="lineno">  299 </span><span class="spaces">              </span><span class="nottickedoff">{ assetRelease = fromMaybe (assetRelease $ assetRow a) release</span>
+<span class="lineno">  300 </span><span class="spaces">              </span><span class="nottickedoff">, assetName = fromMaybe (assetName $ assetRow a) name</span>
+<span class="lineno">  301 </span><span class="spaces">              </span><span class="nottickedoff">}</span>
+<span class="lineno">  302 </span><span class="spaces">            </span><span class="nottickedoff">} Nothing</span>
+<span class="lineno">  303 </span><span class="spaces">          </span><span class="nottickedoff">else return a</span>
+<span class="lineno">  304 </span><span class="spaces">        </span><span class="nottickedoff">forM_ orig $ \o -&gt; lift $ replaceSlotAsset o a'</span>
+<span class="lineno">  305 </span><span class="spaces">        </span><span class="nottickedoff">return a'</span>
+<span class="lineno">  306 </span><span class="spaces">      </span><span class="nottickedoff">(~(Just (file, probe)), Nothing) -&gt; do</span>
+<span class="lineno">  307 </span><span class="spaces">        </span><span class="nottickedoff">release &lt;- JE.key &quot;release&quot; asRelease</span>
+<span class="lineno">  308 </span><span class="spaces">        </span><span class="nottickedoff">name &lt;- JE.keyMay &quot;name&quot; JE.asText</span>
+<span class="lineno">  309 </span><span class="spaces">        </span><span class="nottickedoff">stageFileAbsRaw &lt;- lift $ liftIO $ rawFilePath $ stageFileAbs file</span>
+<span class="lineno">  310 </span><span class="spaces">        </span><span class="nottickedoff">let ba = blankAsset vol</span>
+<span class="lineno">  311 </span><span class="spaces">        </span><span class="nottickedoff">a &lt;- lift $ addAsset ba</span>
+<span class="lineno">  312 </span><span class="spaces">          </span><span class="nottickedoff">{ assetRow = (assetRow ba)</span>
+<span class="lineno">  313 </span><span class="spaces">            </span><span class="nottickedoff">{ assetFormat = probeFormat probe</span>
+<span class="lineno">  314 </span><span class="spaces">            </span><span class="nottickedoff">, assetRelease = release</span>
+<span class="lineno">  315 </span><span class="spaces">            </span><span class="nottickedoff">, assetName = name</span>
+<span class="lineno">  316 </span><span class="spaces">            </span><span class="nottickedoff">}</span>
+<span class="lineno">  317 </span><span class="spaces">          </span><span class="nottickedoff">} (Just stageFileAbsRaw)</span>
+<span class="lineno">  318 </span><span class="spaces">        </span><span class="nottickedoff">lift $ addIngestAsset a (stageFileRel file)</span>
+<span class="lineno">  319 </span><span class="spaces">        </span><span class="nottickedoff">forM_ orig $ \o -&gt; lift $ replaceAsset o a -- FIXME</span>
+<span class="lineno">  320 </span><span class="spaces">        </span><span class="nottickedoff">return a</span>
+<span class="lineno">  321 </span><span class="spaces">    </span><span class="nottickedoff">inObj a $ case sa of</span>
+<span class="lineno">  322 </span><span class="spaces">      </span><span class="nottickedoff">(Just (_, probe@ProbeAV{}), ae) -&gt; do</span>
+<span class="lineno">  323 </span><span class="spaces">        </span><span class="nottickedoff">clip &lt;- JE.keyOrDefault &quot;clip&quot; fullSegment asSegment</span>
+<span class="lineno">  324 </span><span class="spaces">        </span><span class="nottickedoff">opts &lt;- JE.keyOrDefault &quot;options&quot; defaultTranscodeOptions $ JE.eachInArray JE.asString</span>
+<span class="lineno">  325 </span><span class="spaces">        </span><span class="nottickedoff">t &lt;- lift $ fromMaybeM</span>
+<span class="lineno">  326 </span><span class="spaces">          </span><span class="nottickedoff">(do</span>
+<span class="lineno">  327 </span><span class="spaces">            </span><span class="nottickedoff">t &lt;- addTranscode a clip opts probe</span>
+<span class="lineno">  328 </span><span class="spaces">            </span><span class="nottickedoff">_ &lt;- startTranscode t</span>
+<span class="lineno">  329 </span><span class="spaces">            </span><span class="nottickedoff">return t)</span>
+<span class="lineno">  330 </span><span class="spaces">          </span><span class="nottickedoff">=&lt;&lt; flatMapM (\_ -&gt; findTranscode a clip opts) ae</span>
+<span class="lineno">  331 </span><span class="spaces">        </span><span class="nottickedoff">return (transcodeAsset t, Just probe)</span>
+<span class="lineno">  332 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; do</span>
+<span class="lineno">  333 </span><span class="spaces">        </span><span class="nottickedoff">noKey &quot;clip&quot;</span>
+<span class="lineno">  334 </span><span class="spaces">        </span><span class="nottickedoff">noKey &quot;options&quot;</span>
+<span class="lineno">  335 </span><span class="spaces">        </span><span class="nottickedoff">return (a, Nothing)</span></span>
+
+</pre>
+</body>
+</html>

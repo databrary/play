@@ -1,0 +1,50 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module View.Login
+<span class="lineno">    3 </span>  ( htmlLogin
+<span class="lineno">    4 </span>  , htmlUserForm
+<span class="lineno">    5 </span>  ) where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import Model.Party.Types
+<span class="lineno">   10 </span>import HTTP.Form.View
+<span class="lineno">   11 </span>import Action
+<span class="lineno">   12 </span>import View.Form
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import {-# SOURCE #-} Controller.Login
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>htmlLogin :: RequestContext -&gt; FormHtml f
+<span class="lineno">   17 </span><span class="decl"><span class="nottickedoff">htmlLogin = htmlForm &quot;Login&quot; postLogin HTML (do</span>
+<span class="lineno">   18 </span><span class="spaces">  </span><span class="nottickedoff">field &quot;email&quot; $ inputText (Nothing :: Maybe String)</span>
+<span class="lineno">   19 </span><span class="spaces">  </span><span class="nottickedoff">field &quot;password&quot; inputPassword</span>
+<span class="lineno">   20 </span><span class="spaces">  </span><span class="nottickedoff">field &quot;superuser&quot; $ inputCheckbox False)</span>
+<span class="lineno">   21 </span><span class="spaces">  </span><span class="nottickedoff">(const mempty)</span></span>
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>htmlUserForm :: Account -&gt; RequestContext -&gt; FormHtml f
+<span class="lineno">   24 </span><span class="decl"><span class="nottickedoff">htmlUserForm a = htmlForm &quot;Edit account&quot; postUser HTML (do</span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="nottickedoff">field &quot;auth&quot; $ inputPassword</span>
+<span class="lineno">   26 </span><span class="spaces">  </span><span class="nottickedoff">field &quot;email&quot; $ inputText $ Just $ BSC.unpack $ accountEmail a</span>
+<span class="lineno">   27 </span><span class="spaces">  </span><span class="nottickedoff">&quot;password&quot; .:&gt; do</span>
+<span class="lineno">   28 </span><span class="spaces">    </span><span class="nottickedoff">field &quot;once&quot; inputPassword</span>
+<span class="lineno">   29 </span><span class="spaces">    </span><span class="nottickedoff">field &quot;again&quot; inputPassword)</span>
+<span class="lineno">   30 </span><span class="spaces">  </span><span class="nottickedoff">(const mempty)</span></span>
+
+</pre>
+</body>
+</html>

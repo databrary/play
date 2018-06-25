@@ -1,0 +1,230 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>-- |
+<span class="lineno">    5 </span>-- How to run Databrary Actions.
+<span class="lineno">    6 </span>--
+<span class="lineno">    7 </span>-- This module is the foundation of the site. It provides a method for packaging
+<span class="lineno">    8 </span>-- up route actions into 'Wai.Application's (which is effectively the HTTP
+<span class="lineno">    9 </span>-- transport layer), as well as a method for packaging them into background
+<span class="lineno">   10 </span>-- threads.
+<span class="lineno">   11 </span>module Action.Run
+<span class="lineno">   12 </span>  (
+<span class="lineno">   13 </span>  -- * \&quot;Framework\&quot; code
+<span class="lineno">   14 </span>    actionApp
+<span class="lineno">   15 </span>  , forkAction
+<span class="lineno">   16 </span>  -- * Declaring authentication needs for Actions
+<span class="lineno">   17 </span>  , withAuth
+<span class="lineno">   18 </span>  , withoutAuth
+<span class="lineno">   19 </span>  , withReAuth
+<span class="lineno">   20 </span>  -- * The underlying type
+<span class="lineno">   21 </span>  , Action
+<span class="lineno">   22 </span>  ) where
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>import Control.Concurrent (ThreadId, forkFinally)
+<span class="lineno">   25 </span>import Control.Exception (SomeException)
+<span class="lineno">   26 </span>import Control.Monad.Reader (ReaderT(..), withReaderT, local)
+<span class="lineno">   27 </span>import Data.Time (getCurrentTime)
+<span class="lineno">   28 </span>import Network.HTTP.Types (hDate, hCacheControl, methodHead)
+<span class="lineno">   29 </span>import qualified Network.Wai as Wai
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>import Has
+<span class="lineno">   32 </span>import HTTP
+<span class="lineno">   33 </span>import Service.DB
+<span class="lineno">   34 </span>import Service.Types
+<span class="lineno">   35 </span>import Service.Log
+<span class="lineno">   36 </span>import Model.Identity
+<span class="lineno">   37 </span>import Model.Id.Types
+<span class="lineno">   38 </span>import Model.Party.Types
+<span class="lineno">   39 </span>import HTTP.Request
+<span class="lineno">   40 </span>import Context
+<span class="lineno">   41 </span>import Action.Types
+<span class="lineno">   42 </span>import Action.Request
+<span class="lineno">   43 </span>import Action.Response
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>-- |
+<span class="lineno">   46 </span>-- Transform a web request to a lower-level action.
+<span class="lineno">   47 </span>--
+<span class="lineno">   48 </span>-- Given an action that runs in a top-level Handler, build the necessary context
+<span class="lineno">   49 </span>-- for that action, and run in it in the base-level ActionContextM
+<span class="lineno">   50 </span>--
+<span class="lineno">   51 </span>-- Handler has a richer context: it has all of ActionContext, plus Identity and
+<span class="lineno">   52 </span>-- the Wai Request.
+<span class="lineno">   53 </span>withHandler
+<span class="lineno">   54 </span>    :: forall a
+<span class="lineno">   55 </span>     . Request -- ^ The wai request to handle
+<span class="lineno">   56 </span>    -&gt; Identity -- ^ The identity to use for this action
+<span class="lineno">   57 </span>    -&gt; Handler a -- ^ The action to perform
+<span class="lineno">   58 </span>    -&gt; ActionContextM a -- ^ The base-level control access to the system
+<span class="lineno">   59 </span><span class="decl"><span class="nottickedoff">withHandler waiReq identity h =</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="nottickedoff">let (handler :: ReaderT RequestContext IO a) = unHandler h</span>
+<span class="lineno">   61 </span><span class="spaces">    </span><span class="nottickedoff">in withReaderT (\(c :: ActionContext) -&gt; RequestContext c waiReq identity) handler</span></span>
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>-- | Authentication requirements for an 'Action'.
+<span class="lineno">   64 </span>data NeedsAuthentication = NeedsAuthentication | DoesntNeedAuthentication
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>-- | This type captures both the authentication needs and the handler for a
+<span class="lineno">   67 </span>-- route.
+<span class="lineno">   68 </span>--
+<span class="lineno">   69 </span>-- It extends ActionRoute, which already has most info about a route and how to
+<span class="lineno">   70 </span>-- serve it, to include the authentication requirement.
+<span class="lineno">   71 </span>data Action = Action
+<span class="lineno">   72 </span>    { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_actionAuthentication</span></span></span> :: !NeedsAuthentication
+<span class="lineno">   73 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_actionM</span></span></span> :: !(Handler Response)
+<span class="lineno">   74 </span>    }
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>-- | Convert an Action into a Wai.Application.
+<span class="lineno">   77 </span>--
+<span class="lineno">   78 </span>-- This is the 3rd level of the Databrary \&quot;web framework\&quot;. It runs the
+<span class="lineno">   79 </span>-- requested action with some resolved identity to build the HTTP response. See
+<span class="lineno">   80 </span>-- 'actionRouteApp' for level 2, and 'servantApp' for level 1.
+<span class="lineno">   81 </span>--
+<span class="lineno">   82 </span>-- TODO: For converting to Servant, this whole function should be duplicated by
+<span class="lineno">   83 </span>-- new combinators.
+<span class="lineno">   84 </span>--
+<span class="lineno">   85 </span>-- For instance, there is a section (in the second 'let', within the do) where
+<span class="lineno">   86 </span>-- headers are added to the response. Servant requires us to put that in the
+<span class="lineno">   87 </span>-- type, which can be easily done. We can even make a combinator for looking up
+<span class="lineno">   88 </span>-- auth results and logging access. After all that, we should be able to create
+<span class="lineno">   89 </span>-- something with HoistServer that will run the rest of the (Databrary) Handler.
+<span class="lineno">   90 </span>--
+<span class="lineno">   91 </span>-- But then we'll have to map the Response (Action ~ ReaderT RequestContext IO
+<span class="lineno">   92 </span>-- Response) into something else! And how do we catch exceptions? Plain old
+<span class="lineno">   93 </span>-- catch blocks? And what do we convert exceptions into?
+<span class="lineno">   94 </span>actionApp
+<span class="lineno">   95 </span>    :: Service -- ^ All the low-level system capabilities
+<span class="lineno">   96 </span>    -&gt; Action -- ^ Action to run
+<span class="lineno">   97 </span>    -&gt; Wai.Application -- ^ Callback for Wai
+<span class="lineno">   98 </span><span class="decl"><span class="nottickedoff">actionApp service (Action needsAuth act) waiReq waiSend =</span>
+<span class="lineno">   99 </span><span class="spaces">    </span><span class="nottickedoff">let</span>
+<span class="lineno">  100 </span><span class="spaces">        </span><span class="nottickedoff">isdb = isDatabraryClient waiReq</span>
+<span class="lineno">  101 </span><span class="spaces">        </span><span class="nottickedoff">authenticatedAct :: ActionContextM (Identity, Response)</span>
+<span class="lineno">  102 </span><span class="spaces">        </span><span class="nottickedoff">authenticatedAct = do</span>
+<span class="lineno">  103 </span><span class="spaces">            </span><span class="nottickedoff">sec &lt;- peek</span>
+<span class="lineno">  104 </span><span class="spaces">            </span><span class="nottickedoff">conn &lt;- peek</span>
+<span class="lineno">  105 </span><span class="spaces">            </span><span class="nottickedoff">identity &lt;- fetchIdent sec conn waiReq needsAuth</span>
+<span class="lineno">  106 </span><span class="spaces">            </span><span class="nottickedoff">waiResponse &lt;-</span>
+<span class="lineno">  107 </span><span class="spaces">                </span><span class="nottickedoff">ReaderT</span>
+<span class="lineno">  108 </span><span class="spaces">                    </span><span class="nottickedoff">-- runResult unwraps the short-circuit machinery from</span>
+<span class="lineno">  109 </span><span class="spaces">                    </span><span class="nottickedoff">-- &quot;Action.Response&quot;, returning IO Response.</span>
+<span class="lineno">  110 </span><span class="spaces">                    </span><span class="nottickedoff">$ \actCtx -&gt;</span>
+<span class="lineno">  111 </span><span class="spaces">                        </span><span class="nottickedoff">runResult</span>
+<span class="lineno">  112 </span><span class="spaces">                            </span><span class="nottickedoff">(runHandler act (RequestContext actCtx waiReq identity))</span>
+<span class="lineno">  113 </span><span class="spaces">            </span><span class="nottickedoff">return (identity, waiResponse)</span>
+<span class="lineno">  114 </span><span class="spaces">      </span><span class="nottickedoff">in do</span>
+<span class="lineno">  115 </span><span class="spaces">          </span><span class="nottickedoff">ts &lt;- getCurrentTime</span>
+<span class="lineno">  116 </span><span class="spaces">          </span><span class="nottickedoff">(identityUsed, waiResponse) &lt;- runContextM authenticatedAct service</span>
+<span class="lineno">  117 </span><span class="spaces">          </span><span class="nottickedoff">logAccess</span>
+<span class="lineno">  118 </span><span class="spaces">              </span><span class="nottickedoff">ts</span>
+<span class="lineno">  119 </span><span class="spaces">              </span><span class="nottickedoff">waiReq</span>
+<span class="lineno">  120 </span><span class="spaces">              </span><span class="nottickedoff">(extractFromIdentifiedSessOrDefault</span>
+<span class="lineno">  121 </span><span class="spaces">                  </span><span class="nottickedoff">Nothing</span>
+<span class="lineno">  122 </span><span class="spaces">                  </span><span class="nottickedoff">(Just . (show :: Id Party -&gt; String) . view)</span>
+<span class="lineno">  123 </span><span class="spaces">                  </span><span class="nottickedoff">identityUsed)</span>
+<span class="lineno">  124 </span><span class="spaces">              </span><span class="nottickedoff">waiResponse</span>
+<span class="lineno">  125 </span><span class="spaces">              </span><span class="nottickedoff">(serviceLogs service)</span>
+<span class="lineno">  126 </span><span class="spaces">          </span><span class="nottickedoff">let</span>
+<span class="lineno">  127 </span><span class="spaces">              </span><span class="nottickedoff">waiResponse' = Wai.mapResponseHeaders</span>
+<span class="lineno">  128 </span><span class="spaces">                  </span><span class="nottickedoff">(((hDate, formatHTTPTimestamp ts) :)</span>
+<span class="lineno">  129 </span><span class="spaces">                    </span><span class="nottickedoff">. (if isdb then ((hCacheControl, &quot;no-cache&quot;) :) else id))</span>
+<span class="lineno">  130 </span><span class="spaces">                  </span><span class="nottickedoff">waiResponse</span>
+<span class="lineno">  131 </span><span class="spaces">          </span><span class="nottickedoff">waiSend $ if Wai.requestMethod waiReq == methodHead</span>
+<span class="lineno">  132 </span><span class="spaces">              </span><span class="nottickedoff">then emptyResponse</span>
+<span class="lineno">  133 </span><span class="spaces">                  </span><span class="nottickedoff">(Wai.responseStatus waiResponse')</span>
+<span class="lineno">  134 </span><span class="spaces">                  </span><span class="nottickedoff">(Wai.responseHeaders waiResponse')</span>
+<span class="lineno">  135 </span><span class="spaces">              </span><span class="nottickedoff">else waiResponse'</span></span>
+<span class="lineno">  136 </span>
+<span class="lineno">  137 </span>-- | Special-purpose context for determing the user's identity. We don't need
+<span class="lineno">  138 </span>-- the full Handler for that, and since this is sensitive work, we don't want to
+<span class="lineno">  139 </span>-- just cheat and use it anyway.
+<span class="lineno">  140 </span>data IdContext = IdContext
+<span class="lineno">  141 </span>    { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">ctxReq</span></span></span> :: Wai.Request
+<span class="lineno">  142 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">ctxSec</span></span></span> :: Secret
+<span class="lineno">  143 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">ctxConn</span></span></span> :: DBConn
+<span class="lineno">  144 </span>    }
+<span class="lineno">  145 </span>
+<span class="lineno">  146 </span>instance Has Wai.Request IdContext where <span class="decl"><span class="nottickedoff">view = ctxReq</span></span>
+<span class="lineno">  147 </span>instance Has Secret IdContext where <span class="decl"><span class="nottickedoff">view = ctxSec</span></span>
+<span class="lineno">  148 </span>instance Has DBConn IdContext where <span class="decl"><span class="nottickedoff">view = ctxConn</span></span>
+<span class="lineno">  149 </span>
+<span class="lineno">  150 </span>-- | Look up the user's identity (or don't)
+<span class="lineno">  151 </span>fetchIdent
+<span class="lineno">  152 </span>    :: Secret -- ^ Session key
+<span class="lineno">  153 </span>    -&gt; DBConn -- ^ For querying the session table
+<span class="lineno">  154 </span>    -&gt; Wai.Request
+<span class="lineno">  155 </span>    -- ^ FIXME: Why the entire request? Can we narrow the scope? What is
+<span class="lineno">  156 </span>    -- actually needed is the session cookie.
+<span class="lineno">  157 </span>    -&gt; NeedsAuthentication
+<span class="lineno">  158 </span>    -- ^ Whether or not to actually do the lookup.
+<span class="lineno">  159 </span>    --
+<span class="lineno">  160 </span>    -- FIXME: This seems like an unncessary complication.
+<span class="lineno">  161 </span>    -&gt; ActionContextM Identity
+<span class="lineno">  162 </span><span class="decl"><span class="nottickedoff">fetchIdent sec con waiReq = \case</span>
+<span class="lineno">  163 </span><span class="spaces">    </span><span class="nottickedoff">NeedsAuthentication -&gt;</span>
+<span class="lineno">  164 </span><span class="spaces">        </span><span class="nottickedoff">runReaderT determineIdentity (IdContext waiReq sec con)</span>
+<span class="lineno">  165 </span><span class="spaces">    </span><span class="nottickedoff">DoesntNeedAuthentication -&gt; return IdentityNotNeeded</span></span>
+<span class="lineno">  166 </span>
+<span class="lineno">  167 </span>-- | Run a Handler action in the background (IO).
+<span class="lineno">  168 </span>--
+<span class="lineno">  169 </span>-- A new ActionContextM is built, with a fresh guaranteed db connection and
+<span class="lineno">  170 </span>-- timestamp, via 'runContextM'
+<span class="lineno">  171 </span>forkAction
+<span class="lineno">  172 </span>    :: Handler a -- ^ Handler action to run
+<span class="lineno">  173 </span>    -&gt; RequestContext
+<span class="lineno">  174 </span>    -- ^ Original context
+<span class="lineno">  175 </span>    --
+<span class="lineno">  176 </span>    -- The background action inherits this context's 'Request' and 'Service'.
+<span class="lineno">  177 </span>    -&gt; (Either SomeException a -&gt; IO ())
+<span class="lineno">  178 </span>    -- ^ Cleanup to run when the action exits
+<span class="lineno">  179 </span>    -&gt; IO ThreadId
+<span class="lineno">  180 </span><span class="decl"><span class="nottickedoff">forkAction h reqCtx = forkFinally $ runContextM (withHandler req ident h) srv</span>
+<span class="lineno">  181 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  182 </span><span class="spaces">    </span><span class="nottickedoff">req = contextRequest reqCtx</span>
+<span class="lineno">  183 </span><span class="spaces">    </span><span class="nottickedoff">ident = requestIdentity reqCtx</span>
+<span class="lineno">  184 </span><span class="spaces">    </span><span class="nottickedoff">srv = contextService (requestContext reqCtx)</span></span>
+<span class="lineno">  185 </span>
+<span class="lineno">  186 </span>-- | Tag an 'Action' as needing to know whether or not the user is
+<span class="lineno">  187 </span>-- authenticated. This simply triggers an extra session lookup in 'actionApp'.
+<span class="lineno">  188 </span>withAuth
+<span class="lineno">  189 </span>    :: Handler Response -- ^ The handler for the route
+<span class="lineno">  190 </span>    -&gt; Action -- ^ The bundled action
+<span class="lineno">  191 </span><span class="decl"><span class="nottickedoff">withAuth = Action NeedsAuthentication</span></span>
+<span class="lineno">  192 </span>
+<span class="lineno">  193 </span>-- | Tag an 'Action' as not needing auth. See note at 'withAuth'.
+<span class="lineno">  194 </span>withoutAuth :: Handler Response -&gt; Action
+<span class="lineno">  195 </span><span class="decl"><span class="nottickedoff">withoutAuth = Action DoesntNeedAuthentication</span></span>
+<span class="lineno">  196 </span>
+<span class="lineno">  197 </span>-- | This may be like a 'su' that allows running an action as a different
+<span class="lineno">  198 </span>-- identity.
+<span class="lineno">  199 </span>withReAuth
+<span class="lineno">  200 </span>    :: SiteAuth -- ^ The identity to assume
+<span class="lineno">  201 </span>    -&gt; Handler a
+<span class="lineno">  202 </span>    -- ^ The action to perform as the assumed identity
+<span class="lineno">  203 </span>    --
+<span class="lineno">  204 </span>    -- Note that one might argue for an indexed form of 'Handler' here, a la
+<span class="lineno">  205 </span>    -- Selda and subqueries.
+<span class="lineno">  206 </span>    -&gt; Handler a -- ^ The re-authenticated action, packaged into the original context
+<span class="lineno">  207 </span><span class="decl"><span class="nottickedoff">withReAuth u =</span>
+<span class="lineno">  208 </span><span class="spaces">    </span><span class="nottickedoff">Handler</span>
+<span class="lineno">  209 </span><span class="spaces">        </span><span class="nottickedoff">. local (\a -&gt; a { requestIdentity = ReIdentified u })</span>
+<span class="lineno">  210 </span><span class="spaces">        </span><span class="nottickedoff">. unHandler</span></span>
+
+</pre>
+</body>
+</html>

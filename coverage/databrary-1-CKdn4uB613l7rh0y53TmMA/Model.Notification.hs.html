@@ -1,0 +1,137 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds, RecordWildCards, OverloadedStrings #-}
+<span class="lineno">    2 </span>module Model.Notification
+<span class="lineno">    3 </span>  ( module Model.Notification.Types
+<span class="lineno">    4 </span>  , module Model.Notification.Notify
+<span class="lineno">    5 </span>  , addNotification
+<span class="lineno">    6 </span>  , addBroadcastNotification
+<span class="lineno">    7 </span>  , changeNotificationsDelivery
+<span class="lineno">    8 </span>  , lookupUserNotifications
+<span class="lineno">    9 </span>  , countUserNotifications
+<span class="lineno">   10 </span>  , lookupUndeliveredNotifications
+<span class="lineno">   11 </span>  , removeNotification
+<span class="lineno">   12 </span>  , removeNotifications
+<span class="lineno">   13 </span>  , cleanNotifications
+<span class="lineno">   14 </span>  , removeMatchingNotifications
+<span class="lineno">   15 </span>  , notificationJSON
+<span class="lineno">   16 </span>  ) where
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import Control.Monad (mfilter)
+<span class="lineno">   19 </span>import Data.Int (Int64)
+<span class="lineno">   20 </span>import Data.Maybe (fromMaybe)
+<span class="lineno">   21 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   22 </span>import Database.PostgreSQL.Typed (pgSQL)
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>import Has
+<span class="lineno">   25 </span>import qualified JSON as JSON
+<span class="lineno">   26 </span>import Service.DB
+<span class="lineno">   27 </span>import Model.SQL
+<span class="lineno">   28 </span>import Model.Id.Types
+<span class="lineno">   29 </span>import Model.Party
+<span class="lineno">   30 </span>import Model.Volume.Types
+<span class="lineno">   31 </span>import Model.Segment
+<span class="lineno">   32 </span>import Model.Tag.Types
+<span class="lineno">   33 </span>import Model.Notification.Types
+<span class="lineno">   34 </span>import Model.Notification.Notify
+<span class="lineno">   35 </span>import Model.Notification.SQL
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>useTDB
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>addNotification :: (MonadDB c m, MonadHas Party c m) =&gt; Notification -&gt; m Notification
+<span class="lineno">   40 </span><span class="decl"><span class="nottickedoff">addNotification n@Notification{..} = do</span>
+<span class="lineno">   41 </span><span class="spaces">  </span><span class="nottickedoff">u &lt;- peeks partyRow</span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="nottickedoff">(i, t) &lt;- dbQuery1' [pgSQL|INSERT INTO notification (target, notice, delivered, agent, party, volume, container, segment, asset, comment, tag, permission, release) VALUES (${partyId $ partyRow $ accountParty notificationTarget}, ${notificationNotice}, ${notificationDelivered}, ${partyId u}, ${partyId &lt;$&gt; notificationParty}, ${volumeId &lt;$&gt; notificationVolume}, ${notificationContainerId}, ${notificationSegment}, ${notificationAssetId}, ${notificationCommentId}, ${tagId &lt;$&gt; notificationTag}, ${notificationPermission}, ${notificationRelease}) RETURNING id, time|]</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="nottickedoff">return n</span>
+<span class="lineno">   44 </span><span class="spaces">    </span><span class="nottickedoff">{ notificationId = i</span>
+<span class="lineno">   45 </span><span class="spaces">    </span><span class="nottickedoff">, notificationTime = t</span>
+<span class="lineno">   46 </span><span class="spaces">    </span><span class="nottickedoff">, notificationAgent = u</span>
+<span class="lineno">   47 </span><span class="spaces">    </span><span class="nottickedoff">}</span></span>
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>addBroadcastNotification :: (MonadDB c m, MonadHas Party c m) =&gt; Notification -&gt; m Int
+<span class="lineno">   50 </span><span class="decl"><span class="nottickedoff">addBroadcastNotification Notification{..} = do</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">u &lt;- peeks (partyId . partyRow)</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute [pgSQL|INSERT INTO notification (target, notice, delivered, agent, party, volume, container, segment, asset, comment, tag, permission, release) SELECT target, notice, ${notificationDelivered}, ${u}, ${partyId &lt;$&gt; notificationParty}, ${volumeId &lt;$&gt; notificationVolume}, ${notificationContainerId}, ${notificationSegment}, ${notificationAssetId}, ${notificationCommentId}, ${tagId &lt;$&gt; notificationTag}, ${notificationPermission}, ${notificationRelease} FROM notify_view WHERE notice = ${notificationNotice} AND delivery &gt; 'none' AND target &lt;&gt; ${u}|]</span></span>
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>changeNotificationsDelivery :: MonadDB c m =&gt; [Notification] -&gt; Delivery -&gt; m Int
+<span class="lineno">   55 </span><span class="decl"><span class="nottickedoff">changeNotificationsDelivery nl d =</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute [pgSQL|UPDATE notification SET delivered = ${d} WHERE id = ANY (${map notificationId nl}) AND delivered &lt; ${d}|]</span></span>
+<span class="lineno">   57 </span>
+<span class="lineno">   58 </span>lookupUserNotifications :: (MonadDB c m, MonadHas Account c m) =&gt; m [Notification]
+<span class="lineno">   59 </span><span class="decl"><span class="nottickedoff">lookupUserNotifications = do</span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="nottickedoff">u &lt;- peek</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ ($ u) &lt;$&gt; $(selectQuery selectTargetNotification &quot;$WHERE target = ${view u :: Id Party} ORDER BY notification.id DESC&quot;)</span></span>
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>countUserNotifications :: (MonadDB c m, MonadHas (Id Party) c m) =&gt; m Int64
+<span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">countUserNotifications = do</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">u &lt;- peek</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1' $ fromMaybe 0 &lt;$&gt; [pgSQL|$SELECT count(id) FROM notification WHERE target = ${u :: Id Party} AND delivered = 'none'|]</span></span>
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>lookupUndeliveredNotifications :: MonadDB c m =&gt; Delivery -&gt; m [Notification]
+<span class="lineno">   69 </span><span class="decl"><span class="nottickedoff">lookupUndeliveredNotifications d =</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $(selectQuery selectNotification &quot;JOIN notify_view USING (target, notice) WHERE delivery &gt;= ${d} AND delivered = 'none' ORDER BY notification.target, notification.id&quot;)</span></span>
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>removeNotification :: (MonadDB c m, MonadHas (Id Party) c m) =&gt; Id Notification -&gt; m Bool
+<span class="lineno">   73 </span><span class="decl"><span class="nottickedoff">removeNotification i = do</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="nottickedoff">p &lt;- peek</span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute1 [pgSQL|DELETE FROM notification WHERE id = ${i} AND target = ${p :: Id Party}|]</span></span>
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span>removeNotifications :: (MonadDB c m, MonadHas (Id Party) c m) =&gt; m Int
+<span class="lineno">   78 </span><span class="decl"><span class="nottickedoff">removeNotifications = do</span>
+<span class="lineno">   79 </span><span class="spaces">  </span><span class="nottickedoff">p &lt;- peek</span>
+<span class="lineno">   80 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute [pgSQL|DELETE FROM notification WHERE target = ${p :: Id Party} AND agent &lt;&gt; ${partyId $ partyRow nobodyParty}|]</span></span>
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>cleanNotifications :: MonadDB c m =&gt; m Int
+<span class="lineno">   83 </span><span class="decl"><span class="nottickedoff">cleanNotifications =</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute [pgSQL|DELETE FROM notification WHERE delivered &gt; 'none' AND time &lt; CURRENT_TIMESTAMP - interval '30 days'|]</span></span>
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>removeMatchingNotifications :: MonadDB c m =&gt; Notification -&gt; m Int
+<span class="lineno">   87 </span><span class="decl"><span class="nottickedoff">removeMatchingNotifications Notification{..} =</span>
+<span class="lineno">   88 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute [pgSQL|DELETE FROM notification</span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="nottickedoff">WHERE notice = ${notificationNotice}</span>
+<span class="lineno">   90 </span><span class="spaces">      </span><span class="nottickedoff">AND target = COALESCE(${mfilter (no /=) $ Just $ partyId $ partyRow $ accountParty notificationTarget}, target) </span>
+<span class="lineno">   91 </span><span class="spaces">      </span><span class="nottickedoff">AND agent = COALESCE(${mfilter (no /=) $ Just $ partyId notificationAgent}, agent) </span>
+<span class="lineno">   92 </span><span class="spaces">      </span><span class="nottickedoff">AND COALESCE(party, -1) = COALESCE(${partyId &lt;$&gt; notificationParty}, party, -1)</span>
+<span class="lineno">   93 </span><span class="spaces">      </span><span class="nottickedoff">AND COALESCE(volume, -1) = COALESCE(${volumeId &lt;$&gt; notificationVolume}, volume, -1)</span>
+<span class="lineno">   94 </span><span class="spaces">      </span><span class="nottickedoff">AND COALESCE(container, -1) = COALESCE(${notificationContainerId}, container, -1)</span>
+<span class="lineno">   95 </span><span class="spaces">      </span><span class="nottickedoff">AND COALESCE(segment, 'empty') &lt;@ ${fromMaybe fullSegment notificationSegment} </span>
+<span class="lineno">   96 </span><span class="spaces">      </span><span class="nottickedoff">AND COALESCE(asset, -1) = COALESCE(${notificationAssetId}, asset, -1)</span>
+<span class="lineno">   97 </span><span class="spaces">      </span><span class="nottickedoff">AND COALESCE(comment, -1) = COALESCE(${notificationCommentId}, comment, -1)</span>
+<span class="lineno">   98 </span><span class="spaces">      </span><span class="nottickedoff">AND COALESCE(tag, -1) = COALESCE(${tagId &lt;$&gt; notificationTag}, tag, -1)</span>
+<span class="lineno">   99 </span><span class="spaces">    </span><span class="nottickedoff">|]</span>
+<span class="lineno">  100 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  101 </span><span class="spaces">  </span><span class="nottickedoff">no :: Num (IdType a) =&gt; Id a</span>
+<span class="lineno">  102 </span><span class="spaces">  </span><span class="nottickedoff">no = Id $ -1</span></span>
+<span class="lineno">  103 </span>
+<span class="lineno">  104 </span>notificationJSON :: JSON.ToNestedObject o u =&gt; Notification -&gt; JSON.Record (Id Notification) o
+<span class="lineno">  105 </span><span class="decl"><span class="nottickedoff">notificationJSON Notification{..} = JSON.Record notificationId $</span>
+<span class="lineno">  106 </span><span class="spaces">     </span><span class="nottickedoff">&quot;notice&quot; JSON..= notificationNotice</span>
+<span class="lineno">  107 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;time&quot; JSON..= notificationTime</span>
+<span class="lineno">  108 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;delivered&quot; JSON..= notificationDelivered</span>
+<span class="lineno">  109 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;agent&quot; JSON..=. JSON.recordObject ({-on (==) partyId notificationAgent (partyRow (accountParty notificationTarget)) ?!&gt;-} partyRowJSON notificationAgent)</span>
+<span class="lineno">  110 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;party&quot; `JSON.kvObjectOrEmpty` (partyId &lt;$&gt; notificationParty)</span>
+<span class="lineno">  111 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;permission&quot; `JSON.kvObjectOrEmpty` notificationPermission</span>
+<span class="lineno">  112 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;volume&quot; `JSON.kvObjectOrEmpty` (volumeId &lt;$&gt; notificationVolume)</span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;container&quot; `JSON.kvObjectOrEmpty` notificationContainerId</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;segment&quot; `JSON.kvObjectOrEmpty` notificationSegment</span>
+<span class="lineno">  115 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;asset&quot; `JSON.kvObjectOrEmpty` notificationAssetId</span>
+<span class="lineno">  116 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;comment&quot; `JSON.kvObjectOrEmpty` notificationCommentId</span>
+<span class="lineno">  117 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;tag&quot; `JSON.kvObjectOrEmpty` (tagName &lt;$&gt; notificationTag)</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Static.Service
+<span class="lineno">    3 </span>  ( Static(..)
+<span class="lineno">    4 </span>  , initStatic
+<span class="lineno">    5 </span>  ) where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import qualified Crypto.Hash.Algorithms as Hash
+<span class="lineno">    8 </span>import Crypto.MAC.HMAC (HMAC, hmac)
+<span class="lineno">    9 </span>import qualified Data.ByteString as BS
+<span class="lineno">   10 </span>import Data.Maybe (fromMaybe)
+<span class="lineno">   11 </span>import qualified Network.HTTP.Client as HC
+<span class="lineno">   12 </span>import Network.HTTP.Types (methodPost, hContentType)
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import qualified Store.Config as C
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>data Static = Static
+<span class="lineno">   17 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">staticAuthorizeAddr</span></span></span> :: !BS.ByteString
+<span class="lineno">   18 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">staticAssistAddr</span></span></span> :: !BS.ByteString
+<span class="lineno">   19 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">staticInvestigator</span></span></span> :: !(Maybe HC.Request)
+<span class="lineno">   20 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">staticKey</span></span></span> :: !(BS.ByteString -&gt; HMAC Hash.SHA256)
+<span class="lineno">   21 </span>  }
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>initStatic :: C.Config -&gt; IO Static
+<span class="lineno">   24 </span><span class="decl"><span class="nottickedoff">initStatic conf = do</span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="nottickedoff">fillin &lt;- mapM HC.parseRequest $ conf C.! &quot;fillin&quot;</span>
+<span class="lineno">   26 </span><span class="spaces">  </span><span class="nottickedoff">return $ Static</span>
+<span class="lineno">   27 </span><span class="spaces">    </span><span class="nottickedoff">{ staticAuthorizeAddr = conf C.! &quot;authorize&quot;</span>
+<span class="lineno">   28 </span><span class="spaces">    </span><span class="nottickedoff">, staticAssistAddr = conf C.! &quot;assist&quot;</span>
+<span class="lineno">   29 </span><span class="spaces">    </span><span class="nottickedoff">, staticInvestigator = fmap (\f -&gt; f</span>
+<span class="lineno">   30 </span><span class="spaces">      </span><span class="nottickedoff">{ HC.method = methodPost</span>
+<span class="lineno">   31 </span><span class="spaces">      </span><span class="nottickedoff">, HC.requestHeaders = (hContentType, &quot;application/x-www-form-urlencoded&quot;) : HC.requestHeaders f</span>
+<span class="lineno">   32 </span><span class="spaces">      </span><span class="nottickedoff">, HC.cookieJar = Nothing</span>
+<span class="lineno">   33 </span><span class="spaces">      </span><span class="nottickedoff">, HC.redirectCount = 0</span>
+<span class="lineno">   34 </span><span class="spaces">      </span><span class="nottickedoff">}) fillin</span>
+<span class="lineno">   35 </span><span class="spaces">    </span><span class="nottickedoff">, staticKey = hmac $ fromMaybe (&quot;databrary&quot; :: BS.ByteString) $ conf C.! &quot;key&quot;</span>
+<span class="lineno">   36 </span><span class="spaces">    </span><span class="nottickedoff">}</span></span>
+
+</pre>
+</body>
+</html>

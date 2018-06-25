@@ -1,0 +1,87 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    2 </span>module Model.RecordSlot.Types
+<span class="lineno">    3 </span>  ( RecordSlot(..)
+<span class="lineno">    4 </span>  , recordSlotId
+<span class="lineno">    5 </span>  , getRecordSlotVolumePermission
+<span class="lineno">    6 </span>  , getRecordSlotRelease
+<span class="lineno">    7 </span>  ) where
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import Control.Applicative ((&lt;|&gt;))
+<span class="lineno">   10 </span>import Data.Foldable (fold)
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import Has (Has(..))
+<span class="lineno">   13 </span>import Model.Id.Types
+<span class="lineno">   14 </span>import Model.Permission
+<span class="lineno">   15 </span>import Model.Release
+<span class="lineno">   16 </span>import Model.Segment
+<span class="lineno">   17 </span>import Model.Volume.Types
+<span class="lineno">   18 </span>import Model.Container.Types
+<span class="lineno">   19 </span>import Model.Record.Types
+<span class="lineno">   20 </span>import Model.Category.Types
+<span class="lineno">   21 </span>import Model.Slot.Types
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>data RecordSlotId = RecordSlotId
+<span class="lineno">   24 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_slotRecordId</span></span></span> :: !(Id Record)
+<span class="lineno">   25 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_recordSlotId</span></span></span> :: !(Id Slot)
+<span class="lineno">   26 </span>  }
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>type instance IdType RecordSlot = RecordSlotId
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>data RecordSlot = RecordSlot
+<span class="lineno">   31 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">slotRecord</span></span></span> :: Record
+<span class="lineno">   32 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">recordSlot</span></span></span> :: Slot
+<span class="lineno">   33 </span>  }
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>recordSlotId :: RecordSlot -&gt; Id RecordSlot
+<span class="lineno">   36 </span><span class="decl"><span class="nottickedoff">recordSlotId (RecordSlot r s) = Id $ RecordSlotId (recordId $ recordRow r) (slotId s)</span></span>
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>instance Has Record RecordSlot where
+<span class="lineno">   39 </span>  <span class="decl"><span class="nottickedoff">view = slotRecord</span></span>
+<span class="lineno">   40 </span>instance Has (Id Record) RecordSlot where
+<span class="lineno">   41 </span>  <span class="decl"><span class="nottickedoff">view = view . slotRecord</span></span>
+<span class="lineno">   42 </span>instance Has Category RecordSlot where
+<span class="lineno">   43 </span>  <span class="decl"><span class="nottickedoff">view = view . slotRecord</span></span>
+<span class="lineno">   44 </span>instance Has (Id Category) RecordSlot where
+<span class="lineno">   45 </span>  <span class="decl"><span class="nottickedoff">view = view . slotRecord</span></span>
+<span class="lineno">   46 </span>instance Has Volume RecordSlot where
+<span class="lineno">   47 </span>  <span class="decl"><span class="nottickedoff">view = view . slotRecord</span></span>
+<span class="lineno">   48 </span>instance Has (Id Volume) RecordSlot where
+<span class="lineno">   49 </span>  <span class="decl"><span class="nottickedoff">view = view . slotRecord</span></span>
+<span class="lineno">   50 </span>getRecordSlotVolumePermission :: RecordSlot -&gt; VolumeRolePolicy
+<span class="lineno">   51 </span><span class="decl"><span class="nottickedoff">getRecordSlotVolumePermission = getRecordVolumePermission . slotRecord</span></span>
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>instance Has Slot RecordSlot where
+<span class="lineno">   54 </span>  <span class="decl"><span class="nottickedoff">view = recordSlot</span></span>
+<span class="lineno">   55 </span>instance Has Container RecordSlot where
+<span class="lineno">   56 </span>  <span class="decl"><span class="nottickedoff">view = view . recordSlot</span></span>
+<span class="lineno">   57 </span>instance Has (Id Container) RecordSlot where
+<span class="lineno">   58 </span>  <span class="decl"><span class="nottickedoff">view = view . recordSlot</span></span>
+<span class="lineno">   59 </span>instance Has Segment RecordSlot where
+<span class="lineno">   60 </span>  <span class="decl"><span class="nottickedoff">view = view . recordSlot</span></span>
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>getRecordSlotRelease :: RecordSlot -&gt; EffectiveRelease
+<span class="lineno">   63 </span><span class="decl"><span class="nottickedoff">getRecordSlotRelease rs =</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">EffectiveRelease {</span>
+<span class="lineno">   65 </span><span class="spaces">      </span><span class="nottickedoff">effRelPublic = fold (view (recordSlot rs) &lt;|&gt; view (slotRecord rs) :: Maybe Release)</span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="nottickedoff">, effRelPrivate = ReleasePRIVATE</span>
+<span class="lineno">   67 </span><span class="spaces">  </span><span class="nottickedoff">}</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>module Model.Periodic
+<span class="lineno">    2 </span>  ( Period(..)
+<span class="lineno">    3 </span>  ) where
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>import Control.Exception (Exception(..), asyncExceptionToException, asyncExceptionFromException)
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>data Period
+<span class="lineno">    8 </span>  = PeriodDaily
+<span class="lineno">    9 </span>  | PeriodWeekly
+<span class="lineno">   10 </span>  deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>)
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>instance Exception Period where
+<span class="lineno">   13 </span>  <span class="decl"><span class="nottickedoff">toException = asyncExceptionToException</span></span>
+<span class="lineno">   14 </span>  <span class="decl"><span class="nottickedoff">fromException = asyncExceptionFromException</span></span>
+<span class="lineno">   15 </span>
+
+</pre>
+</body>
+</html>

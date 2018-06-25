@@ -1,0 +1,163 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE RecordWildCards, OverloadedStrings, ViewPatterns #-}
+<span class="lineno">    2 </span>module Store.Transcode
+<span class="lineno">    3 </span>  ( startTranscode
+<span class="lineno">    4 </span>  , forkTranscode
+<span class="lineno">    5 </span>  , stopTranscode
+<span class="lineno">    6 </span>  , collectTranscode
+<span class="lineno">    7 </span>  , transcodeEnabled
+<span class="lineno">    8 </span>  ) where
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import Control.Concurrent (ThreadId)
+<span class="lineno">   11 </span>import Control.Monad (guard, unless, void)
+<span class="lineno">   12 </span>import Control.Monad.IO.Class (liftIO)
+<span class="lineno">   13 </span>import Control.Monad.Trans.Resource (InternalState)
+<span class="lineno">   14 </span>import qualified Data.ByteString as BS
+<span class="lineno">   15 </span>import qualified Data.ByteString.Builder as BSB
+<span class="lineno">   16 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">   17 </span>import qualified Data.ByteString.Lazy.Char8 as BSLC
+<span class="lineno">   18 </span>import Data.Maybe (fromMaybe, isNothing)
+<span class="lineno">   19 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   20 </span>import System.Exit (ExitCode(..))
+<span class="lineno">   21 </span>import Text.Read (readMaybe)
+<span class="lineno">   22 </span>import qualified Web.Route.Invertible as R
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>import Ops
+<span class="lineno">   25 </span>import Has (view, peek, peeks, focusIO, MonadHas)
+<span class="lineno">   26 </span>import Service.DB (MonadDB)
+<span class="lineno">   27 </span>import Service.Log
+<span class="lineno">   28 </span>import HTTP.Route (routeURL)
+<span class="lineno">   29 </span>import Model.Audit (MonadAudit)
+<span class="lineno">   30 </span>import Model.Segment
+<span class="lineno">   31 </span>import Model.Asset
+<span class="lineno">   32 </span>import Model.AssetSlot
+<span class="lineno">   33 </span>import Model.Format
+<span class="lineno">   34 </span>import Model.Time
+<span class="lineno">   35 </span>import Model.Transcode
+<span class="lineno">   36 </span>import Files
+<span class="lineno">   37 </span>import Service.Types (Secret)
+<span class="lineno">   38 </span>import Store.Types
+<span class="lineno">   39 </span>import Store.Temp
+<span class="lineno">   40 </span>import Store.Asset
+<span class="lineno">   41 </span>import Store.Transcoder
+<span class="lineno">   42 </span>import Store.AV
+<span class="lineno">   43 </span>import Store.Probe
+<span class="lineno">   44 </span>import Action.Types
+<span class="lineno">   45 </span>import Action.Run
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>import {-# SOURCE #-} Controller.Transcode
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>ctlTranscode :: (MonadDB c m, MonadHas Timestamp c m, MonadLog c m, MonadStorage c m) =&gt; Transcode -&gt; TranscodeArgs -&gt; m (ExitCode, String, String)
+<span class="lineno">   50 </span><span class="decl"><span class="nottickedoff">ctlTranscode tc args = do</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">t &lt;- peek</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">Just ctl &lt;- peeks storageTranscoder</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">let args'</span>
+<span class="lineno">   54 </span><span class="spaces">        </span><span class="nottickedoff">= &quot;-i&quot; : show (transcodeId tc)</span>
+<span class="lineno">   55 </span><span class="spaces">        </span><span class="nottickedoff">: &quot;-f&quot; : BSC.unpack (head $ formatExtension $ assetFormat $ assetRow $ transcodeAsset tc)</span>
+<span class="lineno">   56 </span><span class="spaces">        </span><span class="nottickedoff">: args</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="nottickedoff">r@(c, o, e) &lt;- liftIO $ runTranscoder ctl args'</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">focusIO $ logMsg t (&quot;transcode &quot; ++ unwords args' ++ &quot;: &quot; ++ case c of { ExitSuccess -&gt; &quot;&quot; ; ExitFailure i -&gt; &quot;: exit &quot; ++ show i ++ &quot;\n&quot; } ++ o ++ e)</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">return r</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>transcodeArgs :: (MonadStorage c m, MonadHas Secret c m, MonadAudit c m) =&gt; Transcode -&gt; m TranscodeArgs
+<span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">transcodeArgs t@Transcode{..} = do</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">Just f &lt;- getAssetFile (transcodeOrig t)</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">req &lt;- peek</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">auth &lt;- peeks $ transcodeAuth t</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="nottickedoff">fp &lt;- liftIO $ unRawFilePath f</span>
+<span class="lineno">   67 </span><span class="spaces">  </span><span class="nottickedoff">return $</span>
+<span class="lineno">   68 </span><span class="spaces">    </span><span class="nottickedoff">[ &quot;-s&quot;, fp</span>
+<span class="lineno">   69 </span><span class="spaces">    </span><span class="nottickedoff">, &quot;-r&quot;, BSLC.unpack $ BSB.toLazyByteString $ routeURL (Just req) (R.requestActionRoute remoteTranscode (transcodeId t)) [(&quot;auth&quot;, Just auth)]</span>
+<span class="lineno">   70 </span><span class="spaces">    </span><span class="nottickedoff">, &quot;--&quot; ]</span>
+<span class="lineno">   71 </span><span class="spaces">    </span><span class="nottickedoff">++ maybe [] (\l -&gt; [&quot;-ss&quot;, show l]) lb</span>
+<span class="lineno">   72 </span><span class="spaces">    </span><span class="nottickedoff">++ maybe [] (\u -&gt; [&quot;-t&quot;, show $ u - fromMaybe 0 lb]) (upperBound rng)</span>
+<span class="lineno">   73 </span><span class="spaces">    </span><span class="nottickedoff">++ transcodeOptions</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="nottickedoff">rng = segmentRange transcodeSegment</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="nottickedoff">lb = lowerBound rng</span></span>
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>startTranscode :: (MonadStorage c m, MonadHas Secret c m, MonadAudit c m, MonadHas Timestamp c m, MonadLog c m) =&gt; Transcode -&gt; m (Maybe TranscodePID)
+<span class="lineno">   79 </span><span class="decl"><span class="nottickedoff">startTranscode tc = do</span>
+<span class="lineno">   80 </span><span class="spaces">  </span><span class="nottickedoff">tc' &lt;- updateTranscode tc lock Nothing</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="nottickedoff">unless (transcodeProcess tc' == lock) $ fail $ &quot;startTranscode &quot; ++ show (transcodeId tc)</span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="nottickedoff">findMatchingTranscode tc &gt;&gt;= maybe</span>
+<span class="lineno">   83 </span><span class="spaces">    </span><span class="nottickedoff">(do</span>
+<span class="lineno">   84 </span><span class="spaces">      </span><span class="nottickedoff">args &lt;- transcodeArgs tc</span>
+<span class="lineno">   85 </span><span class="spaces">      </span><span class="nottickedoff">(r, out, err) &lt;- ctlTranscode tc' args</span>
+<span class="lineno">   86 </span><span class="spaces">      </span><span class="nottickedoff">let pid = guard (r == ExitSuccess) &gt;&gt; readMaybe out</span>
+<span class="lineno">   87 </span><span class="spaces">      </span><span class="nottickedoff">_ &lt;- updateTranscode tc' pid $ ((isNothing pid) `thenUse` out) &lt;&gt; ((null err) `unlessUse` err)</span>
+<span class="lineno">   88 </span><span class="spaces">      </span><span class="nottickedoff">return pid)</span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="nottickedoff">(\(transcodeAsset -&gt; match) -&gt; do</span>
+<span class="lineno">   90 </span><span class="spaces">      </span><span class="nottickedoff">a &lt;- changeAsset (transcodeAsset tc)</span>
+<span class="lineno">   91 </span><span class="spaces">        </span><span class="nottickedoff">{ assetRow = (assetRow $ transcodeAsset tc)</span>
+<span class="lineno">   92 </span><span class="spaces">          </span><span class="nottickedoff">{ assetSHA1 = assetSHA1 $ assetRow match</span>
+<span class="lineno">   93 </span><span class="spaces">          </span><span class="nottickedoff">, assetDuration = assetDuration $ assetRow match</span>
+<span class="lineno">   94 </span><span class="spaces">          </span><span class="nottickedoff">, assetSize = assetSize $ assetRow match</span>
+<span class="lineno">   95 </span><span class="spaces">          </span><span class="nottickedoff">}</span>
+<span class="lineno">   96 </span><span class="spaces">        </span><span class="nottickedoff">} Nothing</span>
+<span class="lineno">   97 </span><span class="spaces">      </span><span class="nottickedoff">void $ changeAssetSlotDuration a</span>
+<span class="lineno">   98 </span><span class="spaces">      </span><span class="nottickedoff">_ &lt;- updateTranscode tc' Nothing (Just $ &quot;reuse &quot; ++ show (assetId $ assetRow match))</span>
+<span class="lineno">   99 </span><span class="spaces">      </span><span class="nottickedoff">return Nothing)</span>
+<span class="lineno">  100 </span><span class="spaces">  </span><span class="nottickedoff">where lock = Just (-1)</span></span>
+<span class="lineno">  101 </span>
+<span class="lineno">  102 </span>forkTranscode :: Transcode -&gt; Handler ThreadId
+<span class="lineno">  103 </span><span class="decl"><span class="nottickedoff">forkTranscode tc = focusIO $ \ctx -&gt;</span>
+<span class="lineno">  104 </span><span class="spaces">  </span><span class="nottickedoff">forkAction</span>
+<span class="lineno">  105 </span><span class="spaces">    </span><span class="nottickedoff">(startTranscode tc) ctx</span>
+<span class="lineno">  106 </span><span class="spaces">    </span><span class="nottickedoff">(either</span>
+<span class="lineno">  107 </span><span class="spaces">      </span><span class="nottickedoff">(\e -&gt; logMsg (view ctx) (&quot;forkTranscode: &quot; ++ show e) (view ctx))</span>
+<span class="lineno">  108 </span><span class="spaces">      </span><span class="nottickedoff">(const $ return ()))</span></span>
+<span class="lineno">  109 </span>
+<span class="lineno">  110 </span>stopTranscode :: (MonadDB c m, MonadHas Timestamp c m, MonadLog c m, MonadStorage c m) =&gt; Transcode -&gt; m Transcode
+<span class="lineno">  111 </span><span class="decl"><span class="nottickedoff">stopTranscode tc@Transcode{ transcodeProcess = Just pid } | pid &gt;= 0 = do</span>
+<span class="lineno">  112 </span><span class="spaces">  </span><span class="nottickedoff">tc' &lt;- updateTranscode tc Nothing (Just &quot;aborted&quot;)</span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="nottickedoff">(r, out, err) &lt;- ctlTranscode tc [&quot;-k&quot;, show pid]</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="nottickedoff">unless (r == ExitSuccess) $</span>
+<span class="lineno">  115 </span><span class="spaces">    </span><span class="nottickedoff">fail (&quot;stopTranscode: &quot; ++ out ++ err)</span>
+<span class="lineno">  116 </span><span class="spaces">  </span><span class="nottickedoff">return tc'</span>
+<span class="lineno">  117 </span><span class="spaces"></span><span class="nottickedoff">stopTranscode tc = return tc</span></span>
+<span class="lineno">  118 </span>
+<span class="lineno">  119 </span>collectTranscode
+<span class="lineno">  120 </span>  :: (MonadHas AV c m, MonadDB c m, MonadHas InternalState c m, MonadLog c m, MonadStorage c m, MonadHas Timestamp c m, MonadAudit c m)
+<span class="lineno">  121 </span>  =&gt; Transcode -&gt; Int -&gt; Maybe BS.ByteString -&gt; String -&gt; m ()
+<span class="lineno">  122 </span><span class="decl"><span class="nottickedoff">collectTranscode tc 0 sha1 logs = do</span>
+<span class="lineno">  123 </span><span class="spaces">  </span><span class="nottickedoff">tc' &lt;- updateTranscode tc (Just (-2)) (Just logs)</span>
+<span class="lineno">  124 </span><span class="spaces">  </span><span class="nottickedoff">f &lt;- makeTempFile (const $ return ())</span>
+<span class="lineno">  125 </span><span class="spaces">  </span><span class="nottickedoff">(r, out, err) &lt;- ctlTranscode tc [&quot;-c&quot;, BSC.unpack $ tempFilePath f]</span>
+<span class="lineno">  126 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- updateTranscode tc' Nothing (Just $ out ++ err)</span>
+<span class="lineno">  127 </span><span class="spaces">  </span><span class="nottickedoff">if r /= ExitSuccess</span>
+<span class="lineno">  128 </span><span class="spaces">    </span><span class="nottickedoff">then fail $ &quot;collectTranscode &quot; ++ show (transcodeId tc) ++ &quot;: &quot; ++ show r ++ &quot;\n&quot; ++ out ++ err</span>
+<span class="lineno">  129 </span><span class="spaces">    </span><span class="nottickedoff">else do</span>
+<span class="lineno">  130 </span><span class="spaces">      </span><span class="nottickedoff">av &lt;- focusIO $ avProbe (tempFilePath f)</span>
+<span class="lineno">  131 </span><span class="spaces">      </span><span class="nottickedoff">unless (avProbeCheckFormat (assetFormat $ assetRow $ transcodeAsset tc) av)</span>
+<span class="lineno">  132 </span><span class="spaces">        </span><span class="nottickedoff">$ fail $ &quot;collectTranscode &quot; ++ show (transcodeId tc) ++ &quot;: format error&quot;</span>
+<span class="lineno">  133 </span><span class="spaces">      </span><span class="nottickedoff">let dur = avProbeLength av</span>
+<span class="lineno">  134 </span><span class="spaces">      </span><span class="nottickedoff">a &lt;- changeAsset (transcodeAsset tc)</span>
+<span class="lineno">  135 </span><span class="spaces">        </span><span class="nottickedoff">{ assetRow = (assetRow $ transcodeAsset tc)</span>
+<span class="lineno">  136 </span><span class="spaces">          </span><span class="nottickedoff">{ assetSHA1 = sha1</span>
+<span class="lineno">  137 </span><span class="spaces">          </span><span class="nottickedoff">, assetDuration = dur</span>
+<span class="lineno">  138 </span><span class="spaces">          </span><span class="nottickedoff">}</span>
+<span class="lineno">  139 </span><span class="spaces">        </span><span class="nottickedoff">} (Just $ tempFilePath f)</span>
+<span class="lineno">  140 </span><span class="spaces">      </span><span class="nottickedoff">focusIO $ releaseTempFile f</span>
+<span class="lineno">  141 </span><span class="spaces">      </span><span class="nottickedoff">void $ changeAssetSlotDuration a</span>
+<span class="lineno">  142 </span><span class="spaces"></span><span class="nottickedoff">collectTranscode tc e _ logs =</span>
+<span class="lineno">  143 </span><span class="spaces">  </span><span class="nottickedoff">void $ updateTranscode tc Nothing (Just $ &quot;exit &quot; ++ show e ++ '\n' : logs)</span></span>
+
+</pre>
+</body>
+</html>

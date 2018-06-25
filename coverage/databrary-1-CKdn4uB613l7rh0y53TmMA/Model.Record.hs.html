@@ -1,0 +1,121 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TemplateHaskell, RecordWildCards, DataKinds #-}
+<span class="lineno">    2 </span>module Model.Record
+<span class="lineno">    3 </span>  ( module Model.Record.Types
+<span class="lineno">    4 </span>  , lookupRecord
+<span class="lineno">    5 </span>  , lookupVolumeRecord
+<span class="lineno">    6 </span>  , lookupVolumeParticipant
+<span class="lineno">    7 </span>  , lookupVolumeRecords
+<span class="lineno">    8 </span>  , addRecord
+<span class="lineno">    9 </span>  , changeRecord
+<span class="lineno">   10 </span>  , removeRecord
+<span class="lineno">   11 </span>  , recordJSON
+<span class="lineno">   12 </span>  , columnSampleJson
+<span class="lineno">   13 </span>--  , recordJSONRestricted
+<span class="lineno">   14 </span>  -- for testing only
+<span class="lineno">   15 </span>  , extractParticipantFieldRows
+<span class="lineno">   16 </span>  ) where
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import Control.Monad (guard)
+<span class="lineno">   19 </span>import qualified Data.ByteString as BS
+<span class="lineno">   20 </span>import qualified Data.Csv as CSV
+<span class="lineno">   21 </span>import Data.Either (isRight)
+<span class="lineno">   22 </span>import Data.List (find)
+<span class="lineno">   23 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   24 </span>import Data.Vector (Vector)
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>import Data.Csv.Contrib (extractColumnDefaulting)
+<span class="lineno">   27 </span>import Has (peek, view)
+<span class="lineno">   28 </span>import Service.DB
+<span class="lineno">   29 </span>import qualified JSON as JSON
+<span class="lineno">   30 </span>import Model.SQL
+<span class="lineno">   31 </span>import Model.Audit
+<span class="lineno">   32 </span>import Model.Id
+<span class="lineno">   33 </span>import Model.Identity.Types
+<span class="lineno">   34 </span>import Model.Volume.Types
+<span class="lineno">   35 </span>import Model.Party.Types
+<span class="lineno">   36 </span>import Model.Category
+<span class="lineno">   37 </span>import Model.Measure
+<span class="lineno">   38 </span>import Model.Metric
+<span class="lineno">   39 </span>import Model.Record.Types
+<span class="lineno">   40 </span>import Model.Record.SQL
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>lookupRecord :: (MonadHasIdentity c m, MonadDB c m) =&gt; Id Record -&gt; m (Maybe Record)
+<span class="lineno">   43 </span><span class="decl"><span class="istickedoff">lookupRecord ri = do</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="istickedoff">ident &lt;- peek</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="istickedoff">dbQuery1 $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery (selectRecord 'ident) &quot;$WHERE record.id = ${ri}&quot;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)</span></span>
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>lookupVolumeRecord :: MonadDB c m =&gt; Volume -&gt; Id Record -&gt; m (Maybe Record)
+<span class="lineno">   48 </span><span class="decl"><span class="nottickedoff">lookupVolumeRecord vol ri =</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 $ fmap ($ vol) $(selectQuery selectVolumeRecord &quot;$WHERE record.id = ${ri} AND record.volume = ${volumeId $ volumeRow vol}&quot;)</span></span>
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>lookupVolumeParticipant :: MonadDB c m =&gt; Volume -&gt; MeasureDatum -&gt; m (Maybe Record)
+<span class="lineno">   52 </span><span class="decl"><span class="nottickedoff">lookupVolumeParticipant vol idMeasureVal = do</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="nottickedoff">allVolumeRecords &lt;- lookupVolumeRecords vol</span>
+<span class="lineno">   54 </span><span class="spaces">    </span><span class="nottickedoff">let mIdMatch = find matchesId allVolumeRecords</span>
+<span class="lineno">   55 </span><span class="spaces">    </span><span class="nottickedoff">-- check record type is participant, if not, then error</span>
+<span class="lineno">   56 </span><span class="spaces">    </span><span class="nottickedoff">pure mIdMatch</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   58 </span><span class="spaces">    </span><span class="nottickedoff">idMetric :: Metric</span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="nottickedoff">idMetric = getMetric' (Id 1)</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="nottickedoff">matchesId :: Record -&gt; Bool</span>
+<span class="lineno">   61 </span><span class="spaces">    </span><span class="nottickedoff">matchesId r =</span>
+<span class="lineno">   62 </span><span class="spaces">         </span><span class="nottickedoff">maybe</span>
+<span class="lineno">   63 </span><span class="spaces">           </span><span class="nottickedoff">False</span>
+<span class="lineno">   64 </span><span class="spaces">           </span><span class="nottickedoff">(const True)</span>
+<span class="lineno">   65 </span><span class="spaces">           </span><span class="nottickedoff">(find (\msr -&gt; measureMetric msr == idMetric &amp;&amp; measureDatum msr == idMeasureVal) (recordMeasures r))</span></span>
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>lookupVolumeRecords :: MonadDB c m =&gt; Volume -&gt; m [Record]
+<span class="lineno">   68 </span><span class="decl"><span class="nottickedoff">lookupVolumeRecords vol =</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ fmap ($ vol) $(selectQuery selectVolumeRecord &quot;$WHERE record.volume = ${volumeId $ volumeRow vol}&quot;)</span></span>
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>addRecord :: MonadAudit c m =&gt; Record -&gt; m Record
+<span class="lineno">   72 </span><span class="decl"><span class="istickedoff">addRecord br = do</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="istickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="istickedoff">dbQuery1' $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">insertRecord 'ident 'br</span></span></span></span></span></span></span></span></span></span>)</span></span>
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>changeRecord :: MonadAudit c m =&gt; Record -&gt; m ()
+<span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">changeRecord r = do</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">   79 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute1' $(updateRecord 'ident 'r)</span></span>
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>removeRecord :: MonadAudit c m =&gt; Record -&gt; m Bool
+<span class="lineno">   82 </span><span class="decl"><span class="nottickedoff">removeRecord r = do</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">isRight &lt;$&gt; dbTryJust (guard . isForeignKeyViolation) (dbExecute1 $(deleteRecord 'ident 'r))</span></span>
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>recordJSON :: JSON.ToNestedObject o u =&gt; Bool -&gt; Record -&gt; JSON.Record (Id Record) o
+<span class="lineno">   87 </span><span class="decl"><span class="nottickedoff">recordJSON publicRestricted r@Record{ recordRow = RecordRow{..}, ..} = JSON.Record recordId $</span>
+<span class="lineno">   88 </span><span class="spaces">  </span><span class="nottickedoff">-- &quot;volume&quot; JSON..= volumeId recordVolume</span>
+<span class="lineno">   89 </span><span class="spaces">     </span><span class="nottickedoff">&quot;category&quot; JSON..= categoryId recordCategory</span>
+<span class="lineno">   90 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;measures&quot; JSON..=. measuresJSON publicRestricted (getRecordMeasures r)</span></span>
+<span class="lineno">   91 </span>
+<span class="lineno">   92 </span>extractParticipantFieldRows :: [BS.ByteString] -&gt; Vector CSV.NamedRecord -&gt; [(BS.ByteString, [BS.ByteString])]
+<span class="lineno">   93 </span><span class="decl"><span class="istickedoff">extractParticipantFieldRows participantFieldHeaders records =</span>
+<span class="lineno">   94 </span><span class="spaces">    </span><span class="istickedoff">(zip participantFieldHeaders . fmap (\hdr -&gt; extractColumnDefaulting hdr records)) participantFieldHeaders</span></span>
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>columnSampleJson :: BS.ByteString -&gt; [BS.ByteString] -&gt; JSON.Value
+<span class="lineno">   97 </span><span class="decl"><span class="nottickedoff">columnSampleJson hdr sampleValues =</span>
+<span class="lineno">   98 </span><span class="spaces">    </span><span class="nottickedoff">JSON.object [</span>
+<span class="lineno">   99 </span><span class="spaces">          </span><span class="nottickedoff">&quot;column_name&quot; JSON..= hdr</span>
+<span class="lineno">  100 </span><span class="spaces">        </span><span class="nottickedoff">, &quot;samples&quot; JSON..= sampleValues</span>
+<span class="lineno">  101 </span><span class="spaces">        </span><span class="nottickedoff">]</span></span>
+
+</pre>
+</body>
+</html>

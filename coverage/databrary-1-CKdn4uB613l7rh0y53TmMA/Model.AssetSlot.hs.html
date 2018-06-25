@@ -1,0 +1,391 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, RecordWildCards, DataKinds #-}
+<span class="lineno">    2 </span>module Model.AssetSlot
+<span class="lineno">    3 </span>  ( module Model.AssetSlot.Types
+<span class="lineno">    4 </span>  , lookupAssetSlot
+<span class="lineno">    5 </span>  , lookupOrigAssetSlot 
+<span class="lineno">    6 </span>  , lookupAssetAssetSlot
+<span class="lineno">    7 </span>  , lookupSlotAssets
+<span class="lineno">    8 </span>  , lookupOrigSlotAssets
+<span class="lineno">    9 </span>  , lookupContainerAssets
+<span class="lineno">   10 </span>  , lookupOrigContainerAssets
+<span class="lineno">   11 </span>  , lookupVolumeAssetSlots
+<span class="lineno">   12 </span>  -- , lookupOrigVolumeAssetSlots
+<span class="lineno">   13 </span>  , lookupOrigVolumeAssetSlots'
+<span class="lineno">   14 </span>  , lookupVolumeAssetSlotIds
+<span class="lineno">   15 </span>  -- , lookupOrigVolumeAssetSlotIds
+<span class="lineno">   16 </span>  , changeAssetSlot
+<span class="lineno">   17 </span>  , changeAssetSlotDuration
+<span class="lineno">   18 </span>  , fixAssetSlotDuration
+<span class="lineno">   19 </span>  , findAssetContainerEnd
+<span class="lineno">   20 </span>  , assetSlotName
+<span class="lineno">   21 </span>  , assetSlotJSON
+<span class="lineno">   22 </span>  ) where
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>import Control.Monad (when, guard)
+<span class="lineno">   25 </span>import qualified Data.ByteString
+<span class="lineno">   26 </span>import Data.Maybe (fromMaybe, isNothing)
+<span class="lineno">   27 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   28 </span>import Data.Maybe (fromJust, catMaybes)
+<span class="lineno">   29 </span>import Data.String
+<span class="lineno">   30 </span>import qualified Data.Text as T
+<span class="lineno">   31 </span>-- import Database.PostgreSQL.Typed (pgSQL)
+<span class="lineno">   32 </span>import Database.PostgreSQL.Typed.Types
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>import Ops
+<span class="lineno">   35 </span>import Has (peek, view)
+<span class="lineno">   36 </span>import qualified JSON as JSON
+<span class="lineno">   37 </span>import Service.DB
+<span class="lineno">   38 </span>import Model.Offset
+<span class="lineno">   39 </span>import Model.Permission
+<span class="lineno">   40 </span>import Model.Segment
+<span class="lineno">   41 </span>import Model.Id
+<span class="lineno">   42 </span>import Model.Party.Types
+<span class="lineno">   43 </span>import Model.Identity.Types
+<span class="lineno">   44 </span>import Model.Volume.Types
+<span class="lineno">   45 </span>import Model.Container.Types
+<span class="lineno">   46 </span>import Model.Slot.Types
+<span class="lineno">   47 </span>import Model.Asset
+<span class="lineno">   48 </span>import Model.Audit
+<span class="lineno">   49 </span>import Model.SQL
+<span class="lineno">   50 </span>import Model.AssetSlot.Types
+<span class="lineno">   51 </span>import Model.AssetSlot.SQL
+<span class="lineno">   52 </span>import Model.Format.Types
+<span class="lineno">   53 </span>import Model.Format (getFormat')
+<span class="lineno">   54 </span>import Model.PermissionUtil (maskRestrictedString)
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>lookupAssetSlot :: (MonadHasIdentity c m, MonadDB c m) =&gt; Id Asset -&gt; m (Maybe AssetSlot)
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">lookupAssetSlot ai = do</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 $(selectQuery (selectAssetSlot 'ident) &quot;$WHERE asset.id = ${ai}&quot;)</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>lookupOrigAssetSlot :: (MonadHasIdentity c m, MonadDB c m) =&gt; Id Asset -&gt; m (Maybe AssetSlot)
+<span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">lookupOrigAssetSlot ai = do</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">initAsset &lt;- lookupAssetSlot ai</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">let format = formatName . assetFormat . assetRow . slotAsset $ fromJust initAsset</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">case format of </span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="nottickedoff">&quot;.pdf&quot; -&gt; lookupAssetSlot ai --TODO format name should support all doc types</span>
+<span class="lineno">   67 </span><span class="spaces">    </span><span class="nottickedoff">_ -&gt; do </span>
+<span class="lineno">   68 </span><span class="spaces">      </span><span class="nottickedoff">ident &lt;- peek</span>
+<span class="lineno">   69 </span><span class="spaces">      </span><span class="nottickedoff">dbQuery1 $(selectQuery (selectAssetSlot 'ident) &quot;$left join transcode tc on tc.orig = asset.id WHERE tc.asset = ${ai}&quot;)</span></span>
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>lookupAssetAssetSlot :: (MonadDB c m) =&gt; Asset -&gt; m AssetSlot
+<span class="lineno">   72 </span><span class="decl"><span class="nottickedoff">lookupAssetAssetSlot a = fromMaybe assetNoSlot</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">&lt;$&gt; dbQuery1 $(selectQuery selectAssetSlotAsset &quot;$WHERE slot_asset.asset = ${assetId $ assetRow a} AND container.volume = ${volumeId $ volumeRow $ assetVolume a}&quot;)</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="nottickedoff">&lt;*&gt; return a</span></span>
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>lookupSlotAssets :: (MonadDB c m) =&gt; Slot -&gt; m [AssetSlot]
+<span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">lookupSlotAssets (Slot c s) =</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ ($ c) &lt;$&gt; $(selectQuery selectContainerSlotAsset &quot;$WHERE slot_asset.container = ${containerId $ containerRow c} AND slot_asset.segment &amp;&amp; ${s} AND asset.volume = ${volumeId $ volumeRow $ containerVolume c}&quot;)</span></span>
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>lookupOrigSlotAssets :: (MonadDB c m) =&gt; Slot -&gt; m [AssetSlot]
+<span class="lineno">   81 </span><span class="decl"><span class="nottickedoff">lookupOrigSlotAssets slot@(Slot c _) = do</span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_ablno = unknownPGTypeEnv</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">xs &lt;-  dbQuery {- [pgSQL|</span>
+<span class="lineno">   84 </span><span class="spaces">    </span><span class="nottickedoff">SELECT asset.id,asset.format,output_asset.release,asset.duration,asset.name,asset.sha1,asset.size </span>
+<span class="lineno">   85 </span><span class="spaces">    </span><span class="nottickedoff">FROM slot_asset </span>
+<span class="lineno">   86 </span><span class="spaces">    </span><span class="nottickedoff">INNER JOIN transcode ON slot_asset.asset = transcode.asset</span>
+<span class="lineno">   87 </span><span class="spaces">    </span><span class="nottickedoff">INNER JOIN asset ON transcode.orig = asset.id</span>
+<span class="lineno">   88 </span><span class="spaces">    </span><span class="nottickedoff">INNER JOIN asset output_asset ON transcode.asset = output_asset.id</span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="nottickedoff">WHERE slot_asset.container = ${containerId $ containerRow c}</span>
+<span class="lineno">   90 </span><span class="spaces">    </span><span class="nottickedoff">|] -}</span>
+<span class="lineno">   91 </span><span class="spaces">   </span><span class="nottickedoff">(mapQuery2</span>
+<span class="lineno">   92 </span><span class="spaces">    </span><span class="nottickedoff">((\ _p_ablnp -&gt;</span>
+<span class="lineno">   93 </span><span class="spaces">                    </span><span class="nottickedoff">(Data.ByteString.concat</span>
+<span class="lineno">   94 </span><span class="spaces">                       </span><span class="nottickedoff">[fromString</span>
+<span class="lineno">   95 </span><span class="spaces">                          </span><span class="nottickedoff">&quot;\n\</span>
+<span class="lineno">   96 </span><span class="spaces">                          </span><span class="nottickedoff">\    SELECT asset.id,asset.format,output_asset.release,asset.duration,asset.name,asset.sha1,asset.size \n\</span>
+<span class="lineno">   97 </span><span class="spaces">                          </span><span class="nottickedoff">\    FROM slot_asset \n\</span>
+<span class="lineno">   98 </span><span class="spaces">                          </span><span class="nottickedoff">\    INNER JOIN transcode ON slot_asset.asset = transcode.asset\n\</span>
+<span class="lineno">   99 </span><span class="spaces">                          </span><span class="nottickedoff">\    INNER JOIN asset ON transcode.orig = asset.id\n\</span>
+<span class="lineno">  100 </span><span class="spaces">                          </span><span class="nottickedoff">\    INNER JOIN asset output_asset ON transcode.asset = output_asset.id\n\</span>
+<span class="lineno">  101 </span><span class="spaces">                          </span><span class="nottickedoff">\    WHERE slot_asset.container = &quot;,</span>
+<span class="lineno">  102 </span><span class="spaces">                        </span><span class="nottickedoff">pgEscapeParameter</span>
+<span class="lineno">  103 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_ablno (PGTypeProxy :: PGTypeName &quot;integer&quot;) _p_ablnp,</span>
+<span class="lineno">  104 </span><span class="spaces">                        </span><span class="nottickedoff">fromString</span>
+<span class="lineno">  105 </span><span class="spaces">                          </span><span class="nottickedoff">&quot;\n\</span>
+<span class="lineno">  106 </span><span class="spaces">                          </span><span class="nottickedoff">\    &quot;]))</span>
+<span class="lineno">  107 </span><span class="spaces">     </span><span class="nottickedoff">(containerId $ containerRow c))</span>
+<span class="lineno">  108 </span><span class="spaces">            </span><span class="nottickedoff">(\</span>
+<span class="lineno">  109 </span><span class="spaces">               </span><span class="nottickedoff">[_cid_ablnq,</span>
+<span class="lineno">  110 </span><span class="spaces">                </span><span class="nottickedoff">_cformat_ablnr,</span>
+<span class="lineno">  111 </span><span class="spaces">                </span><span class="nottickedoff">_crelease_ablns,</span>
+<span class="lineno">  112 </span><span class="spaces">                </span><span class="nottickedoff">_cduration_ablnt,</span>
+<span class="lineno">  113 </span><span class="spaces">                </span><span class="nottickedoff">_cname_ablnu,</span>
+<span class="lineno">  114 </span><span class="spaces">                </span><span class="nottickedoff">_csha1_ablnv,</span>
+<span class="lineno">  115 </span><span class="spaces">                </span><span class="nottickedoff">_csize_ablnw]</span>
+<span class="lineno">  116 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; (pgDecodeColumnNotNull</span>
+<span class="lineno">  117 </span><span class="spaces">                     </span><span class="nottickedoff">_tenv_ablno (PGTypeProxy :: PGTypeName &quot;integer&quot;) _cid_ablnq, </span>
+<span class="lineno">  118 </span><span class="spaces">                   </span><span class="nottickedoff">pgDecodeColumnNotNull</span>
+<span class="lineno">  119 </span><span class="spaces">                     </span><span class="nottickedoff">_tenv_ablno (PGTypeProxy :: PGTypeName &quot;smallint&quot;) _cformat_ablnr, </span>
+<span class="lineno">  120 </span><span class="spaces">                   </span><span class="nottickedoff">pgDecodeColumn</span>
+<span class="lineno">  121 </span><span class="spaces">                     </span><span class="nottickedoff">_tenv_ablno (PGTypeProxy :: PGTypeName &quot;release&quot;) _crelease_ablns, </span>
+<span class="lineno">  122 </span><span class="spaces">                   </span><span class="nottickedoff">pgDecodeColumn</span>
+<span class="lineno">  123 </span><span class="spaces">                     </span><span class="nottickedoff">_tenv_ablno</span>
+<span class="lineno">  124 </span><span class="spaces">                     </span><span class="nottickedoff">(PGTypeProxy :: PGTypeName &quot;interval&quot;)</span>
+<span class="lineno">  125 </span><span class="spaces">                     </span><span class="nottickedoff">_cduration_ablnt, </span>
+<span class="lineno">  126 </span><span class="spaces">                   </span><span class="nottickedoff">pgDecodeColumn</span>
+<span class="lineno">  127 </span><span class="spaces">                     </span><span class="nottickedoff">_tenv_ablno (PGTypeProxy :: PGTypeName &quot;text&quot;) _cname_ablnu, </span>
+<span class="lineno">  128 </span><span class="spaces">                   </span><span class="nottickedoff">pgDecodeColumn</span>
+<span class="lineno">  129 </span><span class="spaces">                     </span><span class="nottickedoff">_tenv_ablno (PGTypeProxy :: PGTypeName &quot;bytea&quot;) _csha1_ablnv, </span>
+<span class="lineno">  130 </span><span class="spaces">                   </span><span class="nottickedoff">pgDecodeColumn</span>
+<span class="lineno">  131 </span><span class="spaces">                     </span><span class="nottickedoff">_tenv_ablno (PGTypeProxy :: PGTypeName &quot;bigint&quot;) _csize_ablnw)))</span>
+<span class="lineno">  132 </span><span class="spaces">  </span><span class="nottickedoff">return $ flip fmap xs $ \(assetId,formatId,release,duration,name,sha1,size) -&gt;</span>
+<span class="lineno">  133 </span><span class="spaces">    </span><span class="nottickedoff">-- this format value is only used to differentiate between audio/video or not</span>
+<span class="lineno">  134 </span><span class="spaces">    </span><span class="nottickedoff">-- so it is okay that it is hardcoded to mp4, under the assumption that everything with an original</span>
+<span class="lineno">  135 </span><span class="spaces">    </span><span class="nottickedoff">-- was an audio/video file that went through transcoding</span>
+<span class="lineno">  136 </span><span class="spaces">    </span><span class="nottickedoff">let format = getFormat' formatId</span>
+<span class="lineno">  137 </span><span class="spaces">          </span><span class="nottickedoff">-- Format (Id (-800)) &quot;video/mp4&quot; [] &quot;&quot; {-fromJust . getFormatByExtension $ encodeUtf8 $ fromJust name-}</span>
+<span class="lineno">  138 </span><span class="spaces">        </span><span class="nottickedoff">assetRow = AssetRow (Id assetId) format release duration name sha1 size</span>
+<span class="lineno">  139 </span><span class="spaces">    </span><span class="nottickedoff">in AssetSlot (Asset assetRow (containerVolume c)) (Just slot)</span></span>
+<span class="lineno">  140 </span>
+<span class="lineno">  141 </span>lookupContainerAssets :: (MonadDB c m) =&gt; Container -&gt; m [AssetSlot]
+<span class="lineno">  142 </span><span class="decl"><span class="nottickedoff">lookupContainerAssets = lookupSlotAssets . containerSlot</span></span>
+<span class="lineno">  143 </span>
+<span class="lineno">  144 </span>lookupOrigContainerAssets :: (MonadDB c m) =&gt; Container -&gt; m [AssetSlot]
+<span class="lineno">  145 </span><span class="decl"><span class="nottickedoff">lookupOrigContainerAssets = lookupOrigSlotAssets . containerSlot</span></span>
+<span class="lineno">  146 </span>
+<span class="lineno">  147 </span>lookupVolumeAssetSlots :: (MonadDB c m) =&gt; Volume -&gt; Bool -&gt; m [AssetSlot]
+<span class="lineno">  148 </span><span class="decl"><span class="nottickedoff">lookupVolumeAssetSlots v top =</span>
+<span class="lineno">  149 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ ($ v) &lt;$&gt; $(selectQuery selectVolumeSlotAsset &quot;$WHERE asset.volume = ${volumeId $ volumeRow v} AND (container.top OR ${not top}) ORDER BY container.id&quot;)</span></span>
+<span class="lineno">  150 </span>
+<span class="lineno">  151 </span>{- lookupOrigVolumeAssetSlots :: (MonadDB c m, MonadHasIdentity c m) =&gt; Volume -&gt; Bool -&gt; m [AssetSlot]
+<span class="lineno">  152 </span>lookupOrigVolumeAssetSlots v top = do
+<span class="lineno">  153 </span>  fromVol &lt;- lookupVolumeAssetSlots v top
+<span class="lineno">  154 </span>  lookupOrigVolumeAssetSlots' fromVol -}
+<span class="lineno">  155 </span>
+<span class="lineno">  156 </span>lookupOrigVolumeAssetSlots' :: (MonadDB c m, MonadHasIdentity c m) =&gt; [AssetSlot] -&gt; m [AssetSlot]
+<span class="lineno">  157 </span><span class="decl"><span class="nottickedoff">lookupOrigVolumeAssetSlots' slotList = do</span>
+<span class="lineno">  158 </span><span class="spaces">  </span><span class="nottickedoff">catMaybes &lt;$&gt; mapM originFinder slotList</span>
+<span class="lineno">  159 </span><span class="spaces">  </span><span class="nottickedoff">where </span>
+<span class="lineno">  160 </span><span class="spaces">    </span><span class="nottickedoff">originFinder (AssetSlot { slotAsset = Asset {assetRow = AssetRow { assetId = aid }}}) = lookupOrigAssetSlot aid</span></span>
+<span class="lineno">  161 </span>
+<span class="lineno">  162 </span>lookupVolumeAssetSlotIds :: (MonadDB c m) =&gt; Volume -&gt; m [(Asset, SlotId)]
+<span class="lineno">  163 </span><span class="decl"><span class="nottickedoff">lookupVolumeAssetSlotIds v =</span>
+<span class="lineno">  164 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ ($ v) &lt;$&gt; $(selectQuery selectVolumeSlotIdAsset &quot;$WHERE asset.volume = ${volumeId $ volumeRow v} ORDER BY container&quot;)</span></span>
+<span class="lineno">  165 </span>
+<span class="lineno">  166 </span>{- lookupOrigVolumeAssetSlotIds :: (MonadDB c m) =&gt; Volume -&gt; m [(Asset, SlotId)]
+<span class="lineno">  167 </span>lookupOrigVolumeAssetSlotIds v =
+<span class="lineno">  168 </span>  dbQuery $ ($ v) &lt;$&gt; $(selectQuery selectVolumeSlotIdAsset &quot;$left join asset_revision ar on ar.orig = asset.id WHERE asset.volume = ${volumeId $ volumeRow v} ORDER BY container&quot;) -}
+<span class="lineno">  169 </span>
+<span class="lineno">  170 </span>changeAssetSlot :: (MonadAudit c m) =&gt; AssetSlot -&gt; m Bool
+<span class="lineno">  171 </span><span class="decl"><span class="nottickedoff">changeAssetSlot as = do</span>
+<span class="lineno">  172 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">  173 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a8II3 = unknownPGTypeEnv</span>
+<span class="lineno">  174 </span><span class="spaces">  </span><span class="nottickedoff">if isNothing (assetSlot as)</span>
+<span class="lineno">  175 </span><span class="spaces">    </span><span class="nottickedoff">then dbExecute1 -- (deleteSlotAsset 'ident 'as)</span>
+<span class="lineno">  176 </span><span class="spaces">      </span><span class="nottickedoff">(mapQuery2</span>
+<span class="lineno">  177 </span><span class="spaces">          </span><span class="nottickedoff">((\ _p_a8II4 _p_a8II5 _p_a8II6 -&gt;</span>
+<span class="lineno">  178 </span><span class="spaces">                          </span><span class="nottickedoff">(Data.ByteString.concat</span>
+<span class="lineno">  179 </span><span class="spaces">                             </span><span class="nottickedoff">[Data.String.fromString</span>
+<span class="lineno">  180 </span><span class="spaces">                                </span><span class="nottickedoff">&quot;WITH audit_row AS (DELETE FROM slot_asset WHERE asset=&quot;,</span>
+<span class="lineno">  181 </span><span class="spaces">                              </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  182 </span><span class="spaces">                                </span><span class="nottickedoff">_tenv_a8II3</span>
+<span class="lineno">  183 </span><span class="spaces">                                </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  184 </span><span class="spaces">                                   </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  185 </span><span class="spaces">                                </span><span class="nottickedoff">_p_a8II4,</span>
+<span class="lineno">  186 </span><span class="spaces">                              </span><span class="nottickedoff">Data.String.fromString</span>
+<span class="lineno">  187 </span><span class="spaces">                                </span><span class="nottickedoff">&quot; RETURNING *) INSERT INTO audit.slot_asset SELECT CURRENT_TIMESTAMP, &quot;,</span>
+<span class="lineno">  188 </span><span class="spaces">                              </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  189 </span><span class="spaces">                                </span><span class="nottickedoff">_tenv_a8II3</span>
+<span class="lineno">  190 </span><span class="spaces">                                </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  191 </span><span class="spaces">                                   </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  192 </span><span class="spaces">                                </span><span class="nottickedoff">_p_a8II5,</span>
+<span class="lineno">  193 </span><span class="spaces">                              </span><span class="nottickedoff">Data.String.fromString &quot;, &quot;,</span>
+<span class="lineno">  194 </span><span class="spaces">                              </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  195 </span><span class="spaces">                                </span><span class="nottickedoff">_tenv_a8II3</span>
+<span class="lineno">  196 </span><span class="spaces">                                </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  197 </span><span class="spaces">                                   </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;inet&quot;)</span>
+<span class="lineno">  198 </span><span class="spaces">                                </span><span class="nottickedoff">_p_a8II6,</span>
+<span class="lineno">  199 </span><span class="spaces">                              </span><span class="nottickedoff">Data.String.fromString</span>
+<span class="lineno">  200 </span><span class="spaces">                                </span><span class="nottickedoff">&quot;, 'remove'::audit.action, * FROM audit_row&quot;]))</span>
+<span class="lineno">  201 </span><span class="spaces">              </span><span class="nottickedoff">(assetId $ assetRow $ slotAsset as)</span>
+<span class="lineno">  202 </span><span class="spaces">              </span><span class="nottickedoff">(auditWho ident)</span>
+<span class="lineno">  203 </span><span class="spaces">              </span><span class="nottickedoff">(auditIp ident))</span>
+<span class="lineno">  204 </span><span class="spaces">          </span><span class="nottickedoff">(\ [] -&gt; ()))</span>
+<span class="lineno">  205 </span><span class="spaces">    </span><span class="nottickedoff">else do</span>
+<span class="lineno">  206 </span><span class="spaces">      </span><span class="nottickedoff">let _tenv_a8IMD = unknownPGTypeEnv</span>
+<span class="lineno">  207 </span><span class="spaces">          </span><span class="nottickedoff">_tenv_a8IPn = unknownPGTypeEnv</span>
+<span class="lineno">  208 </span><span class="spaces">      </span><span class="nottickedoff">(r, _) &lt;- updateOrInsert</span>
+<span class="lineno">  209 </span><span class="spaces">        </span><span class="nottickedoff">-- (updateSlotAsset 'ident 'as)</span>
+<span class="lineno">  210 </span><span class="spaces">        </span><span class="nottickedoff">(mapQuery2</span>
+<span class="lineno">  211 </span><span class="spaces">           </span><span class="nottickedoff">((\ _p_a8IME _p_a8IMF _p_a8IMG _p_a8IMH _p_a8IMI -&gt;</span>
+<span class="lineno">  212 </span><span class="spaces">                           </span><span class="nottickedoff">(Data.ByteString.concat</span>
+<span class="lineno">  213 </span><span class="spaces">                              </span><span class="nottickedoff">[Data.String.fromString</span>
+<span class="lineno">  214 </span><span class="spaces">                                 </span><span class="nottickedoff">&quot;WITH audit_row AS (UPDATE slot_asset SET container=&quot;,</span>
+<span class="lineno">  215 </span><span class="spaces">                               </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  216 </span><span class="spaces">                                 </span><span class="nottickedoff">_tenv_a8IMD</span>
+<span class="lineno">  217 </span><span class="spaces">                                 </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  218 </span><span class="spaces">                                    </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  219 </span><span class="spaces">                                 </span><span class="nottickedoff">_p_a8IME,</span>
+<span class="lineno">  220 </span><span class="spaces">                               </span><span class="nottickedoff">Data.String.fromString &quot;,segment=&quot;,</span>
+<span class="lineno">  221 </span><span class="spaces">                               </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  222 </span><span class="spaces">                                 </span><span class="nottickedoff">_tenv_a8IMD</span>
+<span class="lineno">  223 </span><span class="spaces">                                 </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  224 </span><span class="spaces">                                    </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;segment&quot;)</span>
+<span class="lineno">  225 </span><span class="spaces">                                 </span><span class="nottickedoff">_p_a8IMF,</span>
+<span class="lineno">  226 </span><span class="spaces">                               </span><span class="nottickedoff">Data.String.fromString &quot; WHERE asset=&quot;,</span>
+<span class="lineno">  227 </span><span class="spaces">                               </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  228 </span><span class="spaces">                                 </span><span class="nottickedoff">_tenv_a8IMD</span>
+<span class="lineno">  229 </span><span class="spaces">                                 </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  230 </span><span class="spaces">                                    </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  231 </span><span class="spaces">                                 </span><span class="nottickedoff">_p_a8IMG,</span>
+<span class="lineno">  232 </span><span class="spaces">                               </span><span class="nottickedoff">Data.String.fromString</span>
+<span class="lineno">  233 </span><span class="spaces">                                 </span><span class="nottickedoff">&quot; RETURNING *) INSERT INTO audit.slot_asset SELECT CURRENT_TIMESTAMP, &quot;,</span>
+<span class="lineno">  234 </span><span class="spaces">                               </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  235 </span><span class="spaces">                                 </span><span class="nottickedoff">_tenv_a8IMD</span>
+<span class="lineno">  236 </span><span class="spaces">                                 </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  237 </span><span class="spaces">                                    </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  238 </span><span class="spaces">                                 </span><span class="nottickedoff">_p_a8IMH,</span>
+<span class="lineno">  239 </span><span class="spaces">                               </span><span class="nottickedoff">Data.String.fromString &quot;, &quot;,</span>
+<span class="lineno">  240 </span><span class="spaces">                               </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  241 </span><span class="spaces">                                 </span><span class="nottickedoff">_tenv_a8IMD</span>
+<span class="lineno">  242 </span><span class="spaces">                                 </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  243 </span><span class="spaces">                                    </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;inet&quot;)</span>
+<span class="lineno">  244 </span><span class="spaces">                                 </span><span class="nottickedoff">_p_a8IMI,</span>
+<span class="lineno">  245 </span><span class="spaces">                               </span><span class="nottickedoff">Data.String.fromString</span>
+<span class="lineno">  246 </span><span class="spaces">                                 </span><span class="nottickedoff">&quot;, 'change'::audit.action, * FROM audit_row&quot;]))</span>
+<span class="lineno">  247 </span><span class="spaces">             </span><span class="nottickedoff">(containerId . containerRow . slotContainer &lt;$&gt; assetSlot as)</span>
+<span class="lineno">  248 </span><span class="spaces">             </span><span class="nottickedoff">(slotSegment &lt;$&gt; assetSlot as)</span>
+<span class="lineno">  249 </span><span class="spaces">             </span><span class="nottickedoff">(assetId $ assetRow $ slotAsset as)</span>
+<span class="lineno">  250 </span><span class="spaces">             </span><span class="nottickedoff">(auditWho ident)</span>
+<span class="lineno">  251 </span><span class="spaces">             </span><span class="nottickedoff">(auditIp ident))</span>
+<span class="lineno">  252 </span><span class="spaces">            </span><span class="nottickedoff">(\[] -&gt; ()))</span>
+<span class="lineno">  253 </span><span class="spaces">        </span><span class="nottickedoff">-- (insertSlotAsset 'ident 'as)</span>
+<span class="lineno">  254 </span><span class="spaces">        </span><span class="nottickedoff">(mapQuery2</span>
+<span class="lineno">  255 </span><span class="spaces">          </span><span class="nottickedoff">((\ _p_a8IPo _p_a8IPp _p_a8IPq _p_a8IPr _p_a8IPs -&gt;</span>
+<span class="lineno">  256 </span><span class="spaces">                          </span><span class="nottickedoff">(Data.ByteString.concat</span>
+<span class="lineno">  257 </span><span class="spaces">                             </span><span class="nottickedoff">[Data.String.fromString</span>
+<span class="lineno">  258 </span><span class="spaces">                                </span><span class="nottickedoff">&quot;WITH audit_row AS (INSERT INTO slot_asset (asset,container,segment) VALUES (&quot;,</span>
+<span class="lineno">  259 </span><span class="spaces">                              </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  260 </span><span class="spaces">                                </span><span class="nottickedoff">_tenv_a8IPn</span>
+<span class="lineno">  261 </span><span class="spaces">                                </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  262 </span><span class="spaces">                                   </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  263 </span><span class="spaces">                                </span><span class="nottickedoff">_p_a8IPo,</span>
+<span class="lineno">  264 </span><span class="spaces">                              </span><span class="nottickedoff">Data.String.fromString &quot;,&quot;,</span>
+<span class="lineno">  265 </span><span class="spaces">                              </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  266 </span><span class="spaces">                                </span><span class="nottickedoff">_tenv_a8IPn</span>
+<span class="lineno">  267 </span><span class="spaces">                                </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  268 </span><span class="spaces">                                   </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  269 </span><span class="spaces">                                </span><span class="nottickedoff">_p_a8IPp,</span>
+<span class="lineno">  270 </span><span class="spaces">                              </span><span class="nottickedoff">Data.String.fromString &quot;,&quot;,</span>
+<span class="lineno">  271 </span><span class="spaces">                              </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  272 </span><span class="spaces">                                </span><span class="nottickedoff">_tenv_a8IPn</span>
+<span class="lineno">  273 </span><span class="spaces">                                </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  274 </span><span class="spaces">                                   </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;segment&quot;)</span>
+<span class="lineno">  275 </span><span class="spaces">                                </span><span class="nottickedoff">_p_a8IPq,</span>
+<span class="lineno">  276 </span><span class="spaces">                              </span><span class="nottickedoff">Data.String.fromString</span>
+<span class="lineno">  277 </span><span class="spaces">                                </span><span class="nottickedoff">&quot;) RETURNING *) INSERT INTO audit.slot_asset SELECT CURRENT_TIMESTAMP, &quot;,</span>
+<span class="lineno">  278 </span><span class="spaces">                              </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  279 </span><span class="spaces">                                </span><span class="nottickedoff">_tenv_a8IPn</span>
+<span class="lineno">  280 </span><span class="spaces">                                </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  281 </span><span class="spaces">                                   </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  282 </span><span class="spaces">                                </span><span class="nottickedoff">_p_a8IPr,</span>
+<span class="lineno">  283 </span><span class="spaces">                              </span><span class="nottickedoff">Data.String.fromString &quot;, &quot;,</span>
+<span class="lineno">  284 </span><span class="spaces">                              </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  285 </span><span class="spaces">                                </span><span class="nottickedoff">_tenv_a8IPn</span>
+<span class="lineno">  286 </span><span class="spaces">                                </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  287 </span><span class="spaces">                                   </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;inet&quot;)</span>
+<span class="lineno">  288 </span><span class="spaces">                                </span><span class="nottickedoff">_p_a8IPs,</span>
+<span class="lineno">  289 </span><span class="spaces">                              </span><span class="nottickedoff">Data.String.fromString &quot;, 'add'::audit.action, * FROM audit_row&quot;]))</span>
+<span class="lineno">  290 </span><span class="spaces">                </span><span class="nottickedoff">(assetId $ assetRow $ slotAsset as)</span>
+<span class="lineno">  291 </span><span class="spaces">                </span><span class="nottickedoff">(containerId . containerRow . slotContainer &lt;$&gt; assetSlot as)</span>
+<span class="lineno">  292 </span><span class="spaces">                </span><span class="nottickedoff">(slotSegment &lt;$&gt; assetSlot as)</span>
+<span class="lineno">  293 </span><span class="spaces">                </span><span class="nottickedoff">(auditWho ident)</span>
+<span class="lineno">  294 </span><span class="spaces">                </span><span class="nottickedoff">(auditIp ident))</span>
+<span class="lineno">  295 </span><span class="spaces">            </span><span class="nottickedoff">(\[] -&gt; ()))</span>
+<span class="lineno">  296 </span><span class="spaces">      </span><span class="nottickedoff">when (r /= 1) $ fail $ &quot;changeAssetSlot: &quot; ++ show r ++ &quot; rows&quot;</span>
+<span class="lineno">  297 </span><span class="spaces">      </span><span class="nottickedoff">return True</span></span>
+<span class="lineno">  298 </span>
+<span class="lineno">  299 </span>changeAssetSlotDuration :: MonadDB c m =&gt; Asset -&gt; m Bool
+<span class="lineno">  300 </span><span class="decl"><span class="nottickedoff">changeAssetSlotDuration a</span>
+<span class="lineno">  301 </span><span class="spaces">  </span><span class="nottickedoff">| Just dur &lt;- assetDuration $ assetRow a = do</span>
+<span class="lineno">  302 </span><span class="spaces">     </span><span class="nottickedoff">let _tenv_ablLj = unknownPGTypeEnv</span>
+<span class="lineno">  303 </span><span class="spaces">     </span><span class="nottickedoff">dbExecute1 -- [pgSQL|UPDATE slot_asset SET segment = segment(lower(segment), lower(segment) + ${dur}) WHERE asset = ${assetId $ assetRow a}|]</span>
+<span class="lineno">  304 </span><span class="spaces">      </span><span class="nottickedoff">(mapQuery2</span>
+<span class="lineno">  305 </span><span class="spaces">        </span><span class="nottickedoff">((\ _p_ablLk _p_ablLl -&gt;</span>
+<span class="lineno">  306 </span><span class="spaces">                        </span><span class="nottickedoff">(Data.ByteString.concat</span>
+<span class="lineno">  307 </span><span class="spaces">                           </span><span class="nottickedoff">[fromString</span>
+<span class="lineno">  308 </span><span class="spaces">                              </span><span class="nottickedoff">&quot;UPDATE slot_asset SET segment = segment(lower(segment), lower(segment) + &quot;,</span>
+<span class="lineno">  309 </span><span class="spaces">                            </span><span class="nottickedoff">pgEscapeParameter</span>
+<span class="lineno">  310 </span><span class="spaces">                              </span><span class="nottickedoff">_tenv_ablLj (PGTypeProxy :: PGTypeName &quot;interval&quot;) _p_ablLk,</span>
+<span class="lineno">  311 </span><span class="spaces">                            </span><span class="nottickedoff">fromString &quot;) WHERE asset = &quot;,</span>
+<span class="lineno">  312 </span><span class="spaces">                            </span><span class="nottickedoff">pgEscapeParameter</span>
+<span class="lineno">  313 </span><span class="spaces">                              </span><span class="nottickedoff">_tenv_ablLj (PGTypeProxy :: PGTypeName &quot;integer&quot;) _p_ablLl]))</span>
+<span class="lineno">  314 </span><span class="spaces">          </span><span class="nottickedoff">dur (assetId $ assetRow a))</span>
+<span class="lineno">  315 </span><span class="spaces">        </span><span class="nottickedoff">(\[] -&gt; ()))</span>
+<span class="lineno">  316 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = return False</span></span>
+<span class="lineno">  317 </span>
+<span class="lineno">  318 </span>fixAssetSlotDuration :: AssetSlot -&gt; AssetSlot
+<span class="lineno">  319 </span><span class="decl"><span class="nottickedoff">fixAssetSlotDuration as</span>
+<span class="lineno">  320 </span><span class="spaces">  </span><span class="nottickedoff">| Just dur &lt;- assetDuration $ assetRow $ slotAsset as = as{ assetSlot = (\s -&gt; s{ slotSegment = segmentSetDuration dur (slotSegment s) }) &lt;$&gt; assetSlot as }</span>
+<span class="lineno">  321 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = as</span></span>
+<span class="lineno">  322 </span>
+<span class="lineno">  323 </span>findAssetContainerEnd :: MonadDB c m =&gt; Container -&gt; m Offset
+<span class="lineno">  324 </span><span class="decl"><span class="nottickedoff">findAssetContainerEnd c = do</span>
+<span class="lineno">  325 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_ablQT = unknownPGTypeEnv</span>
+<span class="lineno">  326 </span><span class="spaces">  </span><span class="nottickedoff">fromMaybe 0 &lt;$&gt;</span>
+<span class="lineno">  327 </span><span class="spaces">    </span><span class="nottickedoff">dbQuery1' -- [pgSQL|SELECT max(upper(segment))+'1s' FROM slot_asset WHERE container = ${containerId $ containerRow c}|]</span>
+<span class="lineno">  328 </span><span class="spaces">     </span><span class="nottickedoff">(mapQuery2</span>
+<span class="lineno">  329 </span><span class="spaces">      </span><span class="nottickedoff">((\ _p_ablQU -&gt;</span>
+<span class="lineno">  330 </span><span class="spaces">                      </span><span class="nottickedoff">(Data.ByteString.concat</span>
+<span class="lineno">  331 </span><span class="spaces">                         </span><span class="nottickedoff">[fromString</span>
+<span class="lineno">  332 </span><span class="spaces">                            </span><span class="nottickedoff">&quot;SELECT max(upper(segment))+'1s' FROM slot_asset WHERE container = &quot;,</span>
+<span class="lineno">  333 </span><span class="spaces">                          </span><span class="nottickedoff">pgEscapeParameter</span>
+<span class="lineno">  334 </span><span class="spaces">                            </span><span class="nottickedoff">_tenv_ablQT (PGTypeProxy :: PGTypeName &quot;integer&quot;) _p_ablQU]))</span>
+<span class="lineno">  335 </span><span class="spaces">        </span><span class="nottickedoff">(containerId $ containerRow c))</span>
+<span class="lineno">  336 </span><span class="spaces">              </span><span class="nottickedoff">(\[_ccolumn_ablQV]</span>
+<span class="lineno">  337 </span><span class="spaces">                 </span><span class="nottickedoff">-&gt; (pgDecodeColumn</span>
+<span class="lineno">  338 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_ablQT</span>
+<span class="lineno">  339 </span><span class="spaces">                       </span><span class="nottickedoff">(PGTypeProxy :: PGTypeName &quot;interval&quot;)</span>
+<span class="lineno">  340 </span><span class="spaces">                       </span><span class="nottickedoff">_ccolumn_ablQV)))</span></span>
+<span class="lineno">  341 </span>
+<span class="lineno">  342 </span>assetSlotName :: AssetSlot -&gt; Maybe T.Text
+<span class="lineno">  343 </span><span class="decl"><span class="nottickedoff">assetSlotName a =</span>
+<span class="lineno">  344 </span><span class="spaces">  </span><span class="nottickedoff">guard</span>
+<span class="lineno">  345 </span><span class="spaces">    </span><span class="nottickedoff">(any (containerTop . containerRow . slotContainer) (assetSlot a)</span>
+<span class="lineno">  346 </span><span class="spaces">     </span><span class="nottickedoff">|| canReadData2 getAssetSlotRelease2 getAssetSlotVolumePermission2 a)</span>
+<span class="lineno">  347 </span><span class="spaces">  </span><span class="nottickedoff">&gt;&gt; assetName (assetRow $ slotAsset a)</span></span>
+<span class="lineno">  348 </span>
+<span class="lineno">  349 </span>assetSlotJSON :: JSON.ToObject o =&gt; Bool -&gt; AssetSlot -&gt; JSON.Record (Id Asset) o
+<span class="lineno">  350 </span><span class="decl"><span class="nottickedoff">assetSlotJSON publicRestricted as@AssetSlot{..} = assetJSON publicRestricted slotAsset `JSON.foldObjectIntoRec`</span>
+<span class="lineno">  351 </span><span class="spaces"> </span><span class="nottickedoff">(foldMap (segmentJSON . slotSegment) assetSlot</span>
+<span class="lineno">  352 </span><span class="spaces">  </span><span class="nottickedoff">--  &quot;release&quot; `JSON.kvObjectOrEmpty` (view as :: Maybe Release)</span>
+<span class="lineno">  353 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;name&quot; `JSON.kvObjectOrEmpty` (if publicRestricted then fmap maskRestrictedString (assetSlotName as) else assetSlotName as)</span>
+<span class="lineno">  354 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;permission&quot; JSON..= p</span>
+<span class="lineno">  355 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;size&quot; `JSON.kvObjectOrEmpty` (z `useWhen` (p &gt; PermissionNONE &amp;&amp; any (0 &lt;=) z)))</span>
+<span class="lineno">  356 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  357 </span><span class="spaces">  </span><span class="nottickedoff">p = dataPermission4 getAssetSlotRelease2 getAssetSlotVolumePermission2 as</span>
+<span class="lineno">  358 </span><span class="spaces">  </span><span class="nottickedoff">z = assetSize $ assetRow slotAsset</span></span>
+<span class="lineno">  359 </span>
+<span class="lineno">  360 </span>{-
+<span class="lineno">  361 </span>assetSlotJSONRestricted :: JSON.ToObject o =&gt; AssetSlot -&gt; JSON.Record (Id Asset) o
+<span class="lineno">  362 </span>assetSlotJSONRestricted as@AssetSlot{..} = assetJSONRestricted slotAsset JSON..&lt;&gt;
+<span class="lineno">  363 </span>  foldMap (segmentJSON . slotSegment) assetSlot
+<span class="lineno">  364 </span>  --  &quot;release&quot; `JSON.kvObjectOrEmpty` (view as :: Maybe Release)
+<span class="lineno">  365 </span>  &lt;&gt; &quot;name&quot; `JSON.kvObjectOrEmpty` (fmap maskRestrictedString (assetSlotName as))
+<span class="lineno">  366 </span>  &lt;&gt; &quot;permission&quot; JSON..= p
+<span class="lineno">  367 </span>  &lt;&gt; &quot;size&quot; `JSON.kvObjectOrEmpty` (z &lt;? p &gt; PermissionNONE &amp;&amp; any (0 &lt;=) z)
+<span class="lineno">  368 </span>  where
+<span class="lineno">  369 </span>  p = dataPermission as
+<span class="lineno">  370 </span>  z = assetSize $ assetRow slotAsset
+<span class="lineno">  371 </span>-}
+
+</pre>
+</body>
+</html>

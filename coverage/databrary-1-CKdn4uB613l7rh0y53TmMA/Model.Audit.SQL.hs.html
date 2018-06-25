@@ -1,0 +1,94 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
+<span class="lineno">    2 </span>module Model.Audit.SQL
+<span class="lineno">    3 </span>  ( selectAudit
+<span class="lineno">    4 </span>  , auditInsert
+<span class="lineno">    5 </span>  , auditDelete
+<span class="lineno">    6 </span>  , auditUpdate
+<span class="lineno">    7 </span>  , selectAuditActivity
+<span class="lineno">    8 </span>  , whereEq
+<span class="lineno">    9 </span>  ) where
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import Data.List (intercalate)
+<span class="lineno">   12 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   13 </span>import Database.PostgreSQL.Typed.Dynamic (pgSafeLiteralString)
+<span class="lineno">   14 </span>import Database.PostgreSQL.Typed.Inet (PGInet)
+<span class="lineno">   15 </span>import Database.PostgreSQL.Typed.Query (makePGQuery, parseQueryFlags)
+<span class="lineno">   16 </span>import qualified Language.Haskell.TH as TH
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import Model.SQL.Select
+<span class="lineno">   19 </span>import Model.Time
+<span class="lineno">   20 </span>import Model.Id.Types
+<span class="lineno">   21 </span>import Model.Party.Types
+<span class="lineno">   22 </span>import Model.Audit.Types
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>makeAudit :: Timestamp -&gt; Id Party -&gt; PGInet -&gt; AuditAction -&gt; Audit
+<span class="lineno">   25 </span><span class="decl"><span class="nottickedoff">makeAudit t u = Audit t . AuditIdentity u</span></span>
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>selectAudit :: String -&gt; Selector
+<span class="lineno">   28 </span><span class="decl"><span class="nottickedoff">selectAudit table = selectColumns 'makeAudit table [&quot;audit_time&quot;, &quot;audit_user&quot;, &quot;audit_ip&quot;, &quot;audit_action&quot;]</span></span>
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>actionCmd :: AuditAction -&gt; String
+<span class="lineno">   31 </span><span class="decl"><span class="nottickedoff">actionCmd AuditActionAdd = &quot;INSERT INTO&quot;</span>
+<span class="lineno">   32 </span><span class="spaces"></span><span class="nottickedoff">actionCmd AuditActionChange = &quot;UPDATE&quot;</span>
+<span class="lineno">   33 </span><span class="spaces"></span><span class="nottickedoff">actionCmd AuditActionRemove = &quot;DELETE FROM&quot;</span>
+<span class="lineno">   34 </span><span class="spaces"></span><span class="nottickedoff">actionCmd a = error $ &quot;actionCmd: &quot; ++ show a</span></span>
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>auditQuery
+<span class="lineno">   37 </span>    :: AuditAction
+<span class="lineno">   38 </span>    -&gt; TH.Name -- ^ @'AuditIdentity'@
+<span class="lineno">   39 </span>    -&gt; String
+<span class="lineno">   40 </span>    -&gt; String -- ^ statement
+<span class="lineno">   41 </span>    -&gt; Maybe SelectOutput
+<span class="lineno">   42 </span>    -&gt; TH.ExpQ
+<span class="lineno">   43 </span><span class="decl"><span class="nottickedoff">auditQuery action ident tablef stmt =</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="nottickedoff">maybe (makePGQuery flags sql) (makeQuery flags ((sql ++) . (&quot; RETURNING &quot; ++)))</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">sql = &quot;WITH audit_row AS (&quot; &lt;&gt; actionCmd action &lt;&gt; &quot; &quot; &lt;&gt; table &lt;&gt; &quot; &quot; &lt;&gt; stmt</span>
+<span class="lineno">   47 </span><span class="spaces">    </span><span class="nottickedoff">&lt;&gt; &quot; RETURNING *) INSERT INTO audit.&quot; &lt;&gt; table</span>
+<span class="lineno">   48 </span><span class="spaces">    </span><span class="nottickedoff">&lt;&gt; &quot; SELECT CURRENT_TIMESTAMP, ${auditWho &quot; &lt;&gt; idents &lt;&gt; &quot;}, ${auditIp &quot; &lt;&gt; idents &lt;&gt; &quot;}, &quot; &lt;&gt; pgSafeLiteralString action &lt;&gt; &quot;, * FROM audit_row&quot;</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">idents = nameRef ident</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">(flags, table) = parseQueryFlags tablef</span></span>
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>auditInsert :: TH.Name -&gt; String -&gt; [(String, String)] -&gt; Maybe SelectOutput -&gt; TH.ExpQ
+<span class="lineno">   53 </span><span class="decl"><span class="nottickedoff">auditInsert ident table args =</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">auditQuery AuditActionAdd ident table</span>
+<span class="lineno">   55 </span><span class="spaces">    </span><span class="nottickedoff">('(' : intercalate &quot;,&quot; (map fst args) ++ &quot;) VALUES (&quot; ++ intercalate &quot;,&quot; (map snd args) ++ &quot;)&quot;)</span></span>
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>auditDelete :: TH.Name -&gt; String -&gt; String -&gt; Maybe SelectOutput -&gt; TH.ExpQ
+<span class="lineno">   58 </span><span class="decl"><span class="nottickedoff">auditDelete ident table wher =</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">auditQuery AuditActionRemove ident table (&quot;WHERE &quot; ++ wher)</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>auditUpdate :: TH.Name -&gt; String -&gt; [(String, String)] -&gt; String -&gt; Maybe SelectOutput -&gt; TH.ExpQ
+<span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">auditUpdate ident table sets wher =</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">auditQuery AuditActionChange ident table</span>
+<span class="lineno">   64 </span><span class="spaces">    </span><span class="nottickedoff">(&quot;SET &quot; ++ intercalate &quot;,&quot; (map pairEq sets) ++ &quot; WHERE &quot; ++ wher)</span></span>
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>selectAuditActivity :: String -&gt; Selector -- ^ @'Timestamp'@
+<span class="lineno">   67 </span><span class="decl"><span class="nottickedoff">selectAuditActivity table =</span>
+<span class="lineno">   68 </span><span class="spaces">  </span><span class="nottickedoff">selector (&quot;audit.&quot; ++ table ++ &quot; AS audit&quot;) (SelectColumn &quot;audit&quot; &quot;audit_time&quot;)</span></span>
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>pairEq :: (String, String) -&gt; String
+<span class="lineno">   71 </span><span class="decl"><span class="nottickedoff">pairEq (c, v) = c ++ &quot;=&quot; ++ v</span></span>
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>whereEq :: [(String, String)] -&gt; String
+<span class="lineno">   74 </span><span class="decl"><span class="nottickedoff">whereEq = intercalate &quot; AND &quot; . map pairEq</span></span>
+
+</pre>
+</body>
+</html>

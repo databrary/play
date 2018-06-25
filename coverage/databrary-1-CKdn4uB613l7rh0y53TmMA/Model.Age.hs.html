@@ -1,0 +1,57 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+<span class="lineno">    2 </span>module Model.Age
+<span class="lineno">    3 </span>  ( Age(..)
+<span class="lineno">    4 </span>  , age
+<span class="lineno">    5 </span>  , yearsAge
+<span class="lineno">    6 </span>  , ageTime
+<span class="lineno">    7 </span>  , ageLimit
+<span class="lineno">    8 </span>  ) where
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import Data.Time (diffDays, DiffTime, secondsToDiffTime)
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import qualified JSON as JSON
+<span class="lineno">   13 </span>import Model.Time
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>newtype Age =
+<span class="lineno">   16 </span>  Age {
+<span class="lineno">   17 </span>      <span class="nottickedoff"><span class="decl"><span class="nottickedoff">ageDays</span></span></span> :: Int -- ^ Totals days constituting age. E.g. 1.5 years old = 548 days
+<span class="lineno">   18 </span>    } deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>) -- (Num, Show)
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>instance JSON.ToJSON Age where
+<span class="lineno">   21 </span>  <span class="decl"><span class="istickedoff">toJSON (Age days) = JSON.Number $ fromIntegral days</span></span>
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>-- | subtract second date (usually current date) from first date (birthdate), convert difference into age
+<span class="lineno">   24 </span>age :: Date -&gt; Date -&gt; Age
+<span class="lineno">   25 </span><span class="decl"><span class="istickedoff">age b d = Age $ fromInteger $ diffDays d b</span></span>
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>-- | convert a fractional value of years into a count of days, building an Age object with that value
+<span class="lineno">   28 </span>yearsAge :: Real a =&gt; a -&gt; Age
+<span class="lineno">   29 </span><span class="decl"><span class="istickedoff">yearsAge y = Age $ ceiling $ (365.24219 :: Double) * realToFrac y</span></span>
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>-- | convert total days spanning an Age value into the equivalent number of seconds (as a time interval)
+<span class="lineno">   32 </span>ageTime :: Age -&gt; DiffTime
+<span class="lineno">   33 </span><span class="decl"><span class="istickedoff">ageTime (Age n) = secondsToDiffTime $ 86400 * fromIntegral n</span></span>
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>-- | upper bound for allowed age values, intended for validation
+<span class="lineno">   36 </span>ageLimit :: Age
+<span class="lineno">   37 </span><span class="decl"><span class="nottickedoff">ageLimit = yearsAge (90 :: Double)</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module View.Ingest
+<span class="lineno">    3 </span>  ( htmlIngestForm
+<span class="lineno">    4 </span>  ) where
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>import Control.Monad (void, forM_)
+<span class="lineno">    7 </span>import qualified Data.Aeson as JSON
+<span class="lineno">    8 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">    9 </span>import qualified Text.Blaze.Html5 as H
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import Action.Types
+<span class="lineno">   12 </span>import Action.Route
+<span class="lineno">   13 </span>import Model.Id.Types
+<span class="lineno">   14 </span>import Model.Volume
+<span class="lineno">   15 </span>import Ingest.Service
+<span class="lineno">   16 </span>import View.Html
+<span class="lineno">   17 </span>import View.Form
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import Controller.Angular
+<span class="lineno">   20 </span>import Controller.Container
+<span class="lineno">   21 </span>import {-# SOURCE #-} Controller.Ingest
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>htmlIngestStatus :: IngestStatus -&gt; JSOpt -&gt; H.Html
+<span class="lineno">   24 </span><span class="decl"><span class="nottickedoff">htmlIngestStatus IngestInactive _ = mempty</span>
+<span class="lineno">   25 </span><span class="spaces"></span><span class="nottickedoff">htmlIngestStatus (IngestActive _) _ = void &quot;An ingest is currently running...&quot;</span>
+<span class="lineno">   26 </span><span class="spaces"></span><span class="nottickedoff">htmlIngestStatus (IngestFailed el) _ = do</span>
+<span class="lineno">   27 </span><span class="spaces">  </span><span class="nottickedoff">void &quot;Previous ingest failed:&quot;</span>
+<span class="lineno">   28 </span><span class="spaces">  </span><span class="nottickedoff">H.ul $ mapM_ (H.li . H.text) el</span>
+<span class="lineno">   29 </span><span class="spaces"></span><span class="nottickedoff">htmlIngestStatus (IngestCompleted cl) js = do</span>
+<span class="lineno">   30 </span><span class="spaces">  </span><span class="nottickedoff">void &quot;Previous ingest completed:&quot;</span>
+<span class="lineno">   31 </span><span class="spaces">  </span><span class="nottickedoff">H.ul $ forM_ cl $ \c -&gt;</span>
+<span class="lineno">   32 </span><span class="spaces">    </span><span class="nottickedoff">H.li $ H.a H.! actionLink viewContainer (HTML, (Nothing, Id c)) js $ H.toMarkup c</span></span>
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>htmlIngestForm :: Volume -&gt; IngestStatus -&gt; RequestContext -&gt; FormHtml JSON.Value
+<span class="lineno">   35 </span><span class="decl"><span class="nottickedoff">htmlIngestForm v s = htmlForm</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="nottickedoff">(&quot;Ingest &quot; &lt;&gt; volumeName (volumeRow v))</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="nottickedoff">postIngest (volumeId $ volumeRow v)</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="nottickedoff">(case s of</span>
+<span class="lineno">   39 </span><span class="spaces">    </span><span class="nottickedoff">IngestActive _ -&gt;</span>
+<span class="lineno">   40 </span><span class="spaces">      </span><span class="nottickedoff">field &quot;abort&quot; $ inputCheckbox False</span>
+<span class="lineno">   41 </span><span class="spaces">    </span><span class="nottickedoff">_ -&gt; do</span>
+<span class="lineno">   42 </span><span class="spaces">      </span><span class="nottickedoff">field &quot;run&quot; $ inputCheckbox False</span>
+<span class="lineno">   43 </span><span class="spaces">      </span><span class="nottickedoff">field &quot;overwrite&quot; $ inputCheckbox False</span>
+<span class="lineno">   44 </span><span class="spaces">      </span><span class="nottickedoff">field &quot;json&quot; $ inputFile)</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">(htmlIngestStatus s)</span></span>
+
+</pre>
+</body>
+</html>

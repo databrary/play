@@ -1,0 +1,409 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TupleSections, ScopedTypeVariables #-}
+<span class="lineno">    2 </span>module Controller.Volume
+<span class="lineno">    3 </span>  ( getVolume
+<span class="lineno">    4 </span>  , viewVolume
+<span class="lineno">    5 </span>  , viewVolumeEdit
+<span class="lineno">    6 </span>  , viewVolumeCreateHandler
+<span class="lineno">    7 </span>  , postVolume
+<span class="lineno">    8 </span>  , createVolume
+<span class="lineno">    9 </span>  -- , viewVolumeLinks
+<span class="lineno">   10 </span>  , postVolumeLinks
+<span class="lineno">   11 </span>  , postVolumeAssist
+<span class="lineno">   12 </span>  , queryVolumes
+<span class="lineno">   13 </span>  , thumbVolume
+<span class="lineno">   14 </span>  , volumeDownloadName
+<span class="lineno">   15 </span>  -- , volumeJSONQuery
+<span class="lineno">   16 </span>  , volumeIsPublicRestricted
+<span class="lineno">   17 </span>  ) where
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import Control.Applicative ((&lt;|&gt;), optional)
+<span class="lineno">   20 </span>import Control.Arrow ((&amp;&amp;&amp;), (***))
+<span class="lineno">   21 </span>import Control.Monad (mfilter, guard, void, when, forM_)
+<span class="lineno">   22 </span>-- import Control.Monad.IO.Class (liftIO)
+<span class="lineno">   23 </span>import Control.Monad.Trans.Class (lift)
+<span class="lineno">   24 </span>import Control.Monad.Trans.State.Lazy (StateT(..), evalStateT, get, put)
+<span class="lineno">   25 </span>import qualified Data.ByteString as BS
+<span class="lineno">   26 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">   27 </span>import qualified Data.HashMap.Lazy as HML
+<span class="lineno">   28 </span>import qualified Data.HashMap.Strict as HM
+<span class="lineno">   29 </span>import Data.Function (on)
+<span class="lineno">   30 </span>import Data.Maybe (fromMaybe, isNothing)
+<span class="lineno">   31 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   32 </span>import qualified Data.Text as T
+<span class="lineno">   33 </span>import qualified Data.Text.Lazy as TL
+<span class="lineno">   34 </span>import Network.HTTP.Types (noContent204, unsupportedMediaType415)
+<span class="lineno">   35 </span>import qualified Network.Wai as Wai
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>import Ops
+<span class="lineno">   38 </span>import Has
+<span class="lineno">   39 </span>import qualified JSON as JSON
+<span class="lineno">   40 </span>import Model.Asset (Asset)
+<span class="lineno">   41 </span>import Model.Enum
+<span class="lineno">   42 </span>import Model.Id
+<span class="lineno">   43 </span>import Model.Permission
+<span class="lineno">   44 </span>import Model.Authorize
+<span class="lineno">   45 </span>import Model.Volume
+<span class="lineno">   46 </span>import Model.VolumeAccess
+<span class="lineno">   47 </span>import Model.Party
+<span class="lineno">   48 </span>import Model.Citation
+<span class="lineno">   49 </span>import Model.Citation.CrossRef
+<span class="lineno">   50 </span>import Model.Funding
+<span class="lineno">   51 </span>import Model.Container
+<span class="lineno">   52 </span>import Model.Record
+<span class="lineno">   53 </span>import Model.VolumeMetric
+<span class="lineno">   54 </span>import Model.RecordSlot
+<span class="lineno">   55 </span>import Model.Segment (Segment)
+<span class="lineno">   56 </span>import Model.Slot
+<span class="lineno">   57 </span>import Model.AssetSlot
+<span class="lineno">   58 </span>import Model.Excerpt
+<span class="lineno">   59 </span>import Model.Tag
+<span class="lineno">   60 </span>import Model.Comment
+<span class="lineno">   61 </span>import Model.VolumeState
+<span class="lineno">   62 </span>import Model.Notification.Types
+<span class="lineno">   63 </span>import Store.Filename
+<span class="lineno">   64 </span>import Static.Service
+<span class="lineno">   65 </span>import Service.Mail
+<span class="lineno">   66 </span>import HTTP.Parse
+<span class="lineno">   67 </span>import HTTP.Form.Deform
+<span class="lineno">   68 </span>import HTTP.Path.Parser
+<span class="lineno">   69 </span>import Action.Route
+<span class="lineno">   70 </span>import Action
+<span class="lineno">   71 </span>import Controller.Paths
+<span class="lineno">   72 </span>import Controller.Permission
+<span class="lineno">   73 </span>import Controller.Form
+<span class="lineno">   74 </span>import Controller.Angular
+<span class="lineno">   75 </span>import Controller.Web
+<span class="lineno">   76 </span>import {-# SOURCE #-} Controller.AssetSegment
+<span class="lineno">   77 </span>import Controller.Notification
+<span class="lineno">   78 </span>import View.Form (FormHtml)
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>getVolume :: Permission -&gt; Id Volume -&gt; Handler Volume
+<span class="lineno">   81 </span><span class="decl"><span class="nottickedoff">getVolume p i = do</span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="nottickedoff">mVol &lt;- lookupVolume i</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">vol &lt;- maybeAction mVol</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">checkPermission p vol</span></span>
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>data VolumeCache = VolumeCache
+<span class="lineno">   87 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">volumeCacheAccess</span></span></span> :: Maybe [VolumeAccess]
+<span class="lineno">   88 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">volumeCacheTopContainer</span></span></span> :: Maybe Container
+<span class="lineno">   89 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">volumeCacheRecords</span></span></span> :: Maybe (HML.HashMap (Id Record) Record)
+<span class="lineno">   90 </span>  }
+<span class="lineno">   91 </span>
+<span class="lineno">   92 </span>-- type VolumeCacheHandler a = StateT VolumeCache Handler a
+<span class="lineno">   93 </span>
+<span class="lineno">   94 </span>instance Monoid VolumeCache where
+<span class="lineno">   95 </span>  <span class="decl"><span class="nottickedoff">mempty = VolumeCache Nothing Nothing Nothing</span></span>
+<span class="lineno">   96 </span>  <span class="decl"><span class="nottickedoff">mappend (VolumeCache a1 t1 r1) (VolumeCache a2 t2 r2) = VolumeCache (a1 &lt;|&gt; a2) (t1 &lt;|&gt; t2) (r1 &lt;&gt; r2)</span></span>
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>runVolumeCache :: StateT VolumeCache Handler a -&gt; Handler a
+<span class="lineno">   99 </span><span class="decl"><span class="nottickedoff">runVolumeCache f = evalStateT f mempty</span></span>
+<span class="lineno">  100 </span>
+<span class="lineno">  101 </span>cacheVolumeAccess :: Volume -&gt; Permission -&gt; StateT VolumeCache Handler [VolumeAccess]
+<span class="lineno">  102 </span><span class="decl"><span class="nottickedoff">cacheVolumeAccess vol perm = do</span>
+<span class="lineno">  103 </span><span class="spaces">  </span><span class="nottickedoff">vc &lt;- get</span>
+<span class="lineno">  104 </span><span class="spaces">  </span><span class="nottickedoff">takeWhile ((perm &lt;=) . volumeAccessIndividual) &lt;$&gt;</span>
+<span class="lineno">  105 </span><span class="spaces">    </span><span class="nottickedoff">fromMaybeM (do</span>
+<span class="lineno">  106 </span><span class="spaces">      </span><span class="nottickedoff">a &lt;- lookupVolumeAccess vol PermissionNONE</span>
+<span class="lineno">  107 </span><span class="spaces">      </span><span class="nottickedoff">put vc{ volumeCacheAccess = Just a }</span>
+<span class="lineno">  108 </span><span class="spaces">      </span><span class="nottickedoff">return a)</span>
+<span class="lineno">  109 </span><span class="spaces">      </span><span class="nottickedoff">(volumeCacheAccess vc)</span></span>
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>cacheVolumeRecords :: Volume -&gt; StateT VolumeCache Handler ([Record], HML.HashMap (Id Record) Record)
+<span class="lineno">  112 </span><span class="decl"><span class="nottickedoff">cacheVolumeRecords vol = do</span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="nottickedoff">vc &lt;- get</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="nottickedoff">maybe (do</span>
+<span class="lineno">  115 </span><span class="spaces">    </span><span class="nottickedoff">l &lt;- lookupVolumeRecords vol</span>
+<span class="lineno">  116 </span><span class="spaces">    </span><span class="nottickedoff">let m = HML.fromList [ (recordId $ recordRow r, r) | r &lt;- l ]</span>
+<span class="lineno">  117 </span><span class="spaces">    </span><span class="nottickedoff">put vc{ volumeCacheRecords = Just m }</span>
+<span class="lineno">  118 </span><span class="spaces">    </span><span class="nottickedoff">return (l, m))</span>
+<span class="lineno">  119 </span><span class="spaces">    </span><span class="nottickedoff">(return . (HML.elems &amp;&amp;&amp; id))</span>
+<span class="lineno">  120 </span><span class="spaces">    </span><span class="nottickedoff">(volumeCacheRecords vc)</span></span>
+<span class="lineno">  121 </span>
+<span class="lineno">  122 </span>cacheVolumeTopContainer :: Volume -&gt; StateT VolumeCache Handler Container
+<span class="lineno">  123 </span><span class="decl"><span class="nottickedoff">cacheVolumeTopContainer vol = do</span>
+<span class="lineno">  124 </span><span class="spaces">  </span><span class="nottickedoff">vc &lt;- get</span>
+<span class="lineno">  125 </span><span class="spaces">  </span><span class="nottickedoff">fromMaybeM (do</span>
+<span class="lineno">  126 </span><span class="spaces">    </span><span class="nottickedoff">t &lt;- lookupVolumeTopContainer vol</span>
+<span class="lineno">  127 </span><span class="spaces">    </span><span class="nottickedoff">put vc{ volumeCacheTopContainer = Just t }</span>
+<span class="lineno">  128 </span><span class="spaces">    </span><span class="nottickedoff">return t)</span>
+<span class="lineno">  129 </span><span class="spaces">    </span><span class="nottickedoff">(volumeCacheTopContainer vc)</span></span>
+<span class="lineno">  130 </span>
+<span class="lineno">  131 </span>leftJoin :: (a -&gt; b -&gt; Bool) -&gt; [a] -&gt; [b] -&gt; [(a, [b])]
+<span class="lineno">  132 </span><span class="decl"><span class="nottickedoff">leftJoin _ [] [] = []</span>
+<span class="lineno">  133 </span><span class="spaces"></span><span class="nottickedoff">leftJoin _ [] _ = error &quot;leftJoin: leftovers&quot;</span>
+<span class="lineno">  134 </span><span class="spaces"></span><span class="nottickedoff">leftJoin p (a:al) b = uncurry (:) $ (,) a *** leftJoin p al $ span (p a) b</span></span>
+<span class="lineno">  135 </span>
+<span class="lineno">  136 </span>volumeIsPublicRestricted :: Volume -&gt; Bool
+<span class="lineno">  137 </span><span class="decl"><span class="nottickedoff">volumeIsPublicRestricted v =</span>
+<span class="lineno">  138 </span><span class="spaces">  </span><span class="nottickedoff">case volumeRolePolicy v of</span>
+<span class="lineno">  139 </span><span class="spaces">    </span><span class="nottickedoff">RolePublicViewer PublicRestrictedPolicy -&gt; True</span>
+<span class="lineno">  140 </span><span class="spaces">    </span><span class="nottickedoff">RoleSharedViewer SharedRestrictedPolicy -&gt; True</span>
+<span class="lineno">  141 </span><span class="spaces">    </span><span class="nottickedoff">_ -&gt; False</span></span>
+<span class="lineno">  142 </span>
+<span class="lineno">  143 </span>volumeJSONField :: Volume -&gt; BS.ByteString -&gt; Maybe BS.ByteString -&gt; StateT VolumeCache Handler (Maybe JSON.Encoding)
+<span class="lineno">  144 </span><span class="decl"><span class="nottickedoff">volumeJSONField vol &quot;access&quot; ma = do</span>
+<span class="lineno">  145 </span><span class="spaces">  </span><span class="nottickedoff">Just . JSON.mapObjects volumeAccessPartyJSON</span>
+<span class="lineno">  146 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; cacheVolumeAccess vol (fromMaybe PermissionNONE $ readDBEnum . BSC.unpack =&lt;&lt; ma)</span>
+<span class="lineno">  147 </span><span class="spaces"></span><span class="nottickedoff">{-</span>
+<span class="lineno">  148 </span><span class="spaces"></span><span class="nottickedoff">volumeJSONField vol &quot;publicaccess&quot; ma = do</span>
+<span class="lineno">  149 </span><span class="spaces">  </span><span class="nottickedoff">Just . JSON.toEncoding . show . volumePublicAccessSummary</span>
+<span class="lineno">  150 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; cacheVolumeAccess vol (fromMaybe PermissionNONE $ readDBEnum . BSC.unpack =&lt;&lt; ma)</span>
+<span class="lineno">  151 </span><span class="spaces"></span><span class="nottickedoff">-}</span>
+<span class="lineno">  152 </span><span class="spaces"></span><span class="nottickedoff">volumeJSONField vol &quot;citation&quot; _ =</span>
+<span class="lineno">  153 </span><span class="spaces">  </span><span class="nottickedoff">Just . JSON.toEncoding &lt;$&gt; lookupVolumeCitation vol</span>
+<span class="lineno">  154 </span><span class="spaces"></span><span class="nottickedoff">volumeJSONField vol &quot;links&quot; _ =</span>
+<span class="lineno">  155 </span><span class="spaces">  </span><span class="nottickedoff">Just . JSON.toEncoding &lt;$&gt; lookupVolumeLinks vol</span>
+<span class="lineno">  156 </span><span class="spaces"></span><span class="nottickedoff">volumeJSONField vol &quot;funding&quot; _ =</span>
+<span class="lineno">  157 </span><span class="spaces">  </span><span class="nottickedoff">Just . JSON.mapObjects fundingJSON &lt;$&gt; lookupVolumeFunding vol</span>
+<span class="lineno">  158 </span><span class="spaces"></span><span class="nottickedoff">volumeJSONField vol &quot;containers&quot; mContainersVal = do</span>
+<span class="lineno">  159 </span><span class="spaces">  </span><span class="nottickedoff">(cl :: [((Container, [(Segment, Id Record)]))]) &lt;- if records</span>
+<span class="lineno">  160 </span><span class="spaces">    </span><span class="nottickedoff">then lookupVolumeContainersRecordIds vol</span>
+<span class="lineno">  161 </span><span class="spaces">    </span><span class="nottickedoff">else nope &lt;$&gt; lookupVolumeContainers vol</span>
+<span class="lineno">  162 </span><span class="spaces">  </span><span class="nottickedoff">(cl' :: [((Container, [(Segment, Id Record)]), [(Asset, SlotId)])]) &lt;- if assets</span>
+<span class="lineno">  163 </span><span class="spaces">    </span><span class="nottickedoff">then leftJoin (\(c, _) (_, SlotId a _) -&gt; containerId (containerRow c) == a) cl &lt;$&gt; lookupVolumeAssetSlotIds vol</span>
+<span class="lineno">  164 </span><span class="spaces">    </span><span class="nottickedoff">else return $ nope cl</span>
+<span class="lineno">  165 </span><span class="spaces">  </span><span class="nottickedoff">rm &lt;- if records then snd &lt;$&gt; cacheVolumeRecords vol else return HM.empty</span>
+<span class="lineno">  166 </span><span class="spaces">  </span><span class="nottickedoff">let publicRestricted = volumeIsPublicRestricted vol</span>
+<span class="lineno">  167 </span><span class="spaces">      </span><span class="nottickedoff">br = blankRecord undefined vol</span>
+<span class="lineno">  168 </span><span class="spaces">      </span><span class="nottickedoff">rjs c (s, r)          = JSON.recordObject $ (recordSlotJSON publicRestricted) $ RecordSlot (HML.lookupDefault br{ recordRow = (recordRow br){ recordId = r } } r rm) (Slot c s)</span>
+<span class="lineno">  169 </span><span class="spaces">      </span><span class="nottickedoff">ajs c (a, SlotId _ s) = JSON.recordObject $ (assetSlotJSON publicRestricted) $ AssetSlot a (Just (Slot c s))</span>
+<span class="lineno">  170 </span><span class="spaces">  </span><span class="nottickedoff">return $ Just $ JSON.mapRecords (\((c, rl), al) -&gt;</span>
+<span class="lineno">  171 </span><span class="spaces">      </span><span class="nottickedoff">containerJSON publicRestricted c</span>
+<span class="lineno">  172 </span><span class="spaces">      </span><span class="nottickedoff">`JSON.foldObjectIntoRec`</span>
+<span class="lineno">  173 </span><span class="spaces">            </span><span class="nottickedoff">(   (if records then JSON.nestObject &quot;records&quot; (\u -&gt; map (u . rjs c) rl) else mempty)</span>
+<span class="lineno">  174 </span><span class="spaces">             </span><span class="nottickedoff">&lt;&gt; (if assets  then JSON.nestObject &quot;assets&quot;  (\u -&gt; map (u . ajs c) al) else mempty)))</span>
+<span class="lineno">  175 </span><span class="spaces">    </span><span class="nottickedoff">cl'</span>
+<span class="lineno">  176 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  177 </span><span class="spaces">  </span><span class="nottickedoff">full = mContainersVal == Just &quot;all&quot;</span>
+<span class="lineno">  178 </span><span class="spaces">  </span><span class="nottickedoff">assets = full || mContainersVal == Just &quot;assets&quot;</span>
+<span class="lineno">  179 </span><span class="spaces">  </span><span class="nottickedoff">records = full || mContainersVal == Just &quot;records&quot;</span>
+<span class="lineno">  180 </span><span class="spaces">  </span><span class="nottickedoff">nope = map (, [])</span>
+<span class="lineno">  181 </span><span class="spaces"></span><span class="nottickedoff">volumeJSONField vol &quot;top&quot; _ = do</span>
+<span class="lineno">  182 </span><span class="spaces">  </span><span class="nottickedoff">topCntr &lt;- cacheVolumeTopContainer vol</span>
+<span class="lineno">  183 </span><span class="spaces">  </span><span class="nottickedoff">let publicRestricted = volumeIsPublicRestricted vol</span>
+<span class="lineno">  184 </span><span class="spaces">  </span><span class="nottickedoff">(return . Just . JSON.recordEncoding . containerJSON publicRestricted) topCntr</span>
+<span class="lineno">  185 </span><span class="spaces"></span><span class="nottickedoff">volumeJSONField vol &quot;records&quot; _ = do</span>
+<span class="lineno">  186 </span><span class="spaces">  </span><span class="nottickedoff">(l, _) &lt;- cacheVolumeRecords vol</span>
+<span class="lineno">  187 </span><span class="spaces">  </span><span class="nottickedoff">let publicRestricted = volumeIsPublicRestricted vol</span>
+<span class="lineno">  188 </span><span class="spaces">  </span><span class="nottickedoff">return $ Just $ JSON.mapRecords (recordJSON publicRestricted) l</span>
+<span class="lineno">  189 </span><span class="spaces"></span><span class="nottickedoff">volumeJSONField vol &quot;metrics&quot; _ =</span>
+<span class="lineno">  190 </span><span class="spaces">  </span><span class="nottickedoff">let metricsCaching = lookupVolumeMetrics vol</span>
+<span class="lineno">  191 </span><span class="spaces">  </span><span class="nottickedoff">in (Just . JSON.toEncoding) &lt;$&gt; metricsCaching</span>
+<span class="lineno">  192 </span><span class="spaces"></span><span class="nottickedoff">volumeJSONField vol &quot;excerpts&quot; _ = do</span>
+<span class="lineno">  193 </span><span class="spaces">  </span><span class="nottickedoff">Just . JSON.mapObjects (\e -&gt; excerptJSON e</span>
+<span class="lineno">  194 </span><span class="spaces">    </span><span class="nottickedoff">&lt;&gt; &quot;asset&quot; JSON..=: (assetSlotJSON False (view e) -- should publicRestricted be set based on volume?</span>
+<span class="lineno">  195 </span><span class="spaces">      </span><span class="nottickedoff">`JSON.foldObjectIntoRec` (&quot;container&quot; JSON..= (view e :: Id Container))))</span>
+<span class="lineno">  196 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; lookupVolumeExcerpts vol</span>
+<span class="lineno">  197 </span><span class="spaces"></span><span class="nottickedoff">volumeJSONField vol &quot;tags&quot; n = do</span>
+<span class="lineno">  198 </span><span class="spaces">  </span><span class="nottickedoff">t &lt;- cacheVolumeTopContainer vol</span>
+<span class="lineno">  199 </span><span class="spaces">  </span><span class="nottickedoff">tc &lt;- lookupSlotTagCoverage (containerSlot t) (maybe 64 fst $ BSC.readInt =&lt;&lt; n)</span>
+<span class="lineno">  200 </span><span class="spaces">  </span><span class="nottickedoff">return $ Just $ JSON.mapRecords tagCoverageJSON tc</span>
+<span class="lineno">  201 </span><span class="spaces"></span><span class="nottickedoff">volumeJSONField vol &quot;comments&quot; n = do</span>
+<span class="lineno">  202 </span><span class="spaces">  </span><span class="nottickedoff">t &lt;- cacheVolumeTopContainer vol</span>
+<span class="lineno">  203 </span><span class="spaces">  </span><span class="nottickedoff">tc &lt;- lookupSlotComments (containerSlot t) (maybe 64 fst $ BSC.readInt =&lt;&lt; n)</span>
+<span class="lineno">  204 </span><span class="spaces">  </span><span class="nottickedoff">return $ Just $ JSON.mapRecords commentJSON tc</span>
+<span class="lineno">  205 </span><span class="spaces"></span><span class="nottickedoff">volumeJSONField vol &quot;state&quot; _ =</span>
+<span class="lineno">  206 </span><span class="spaces">  </span><span class="nottickedoff">Just . JSON.toEncoding . JSON.object . map (volumeStateKey &amp;&amp;&amp; volumeStateValue) &lt;$&gt; lookupVolumeState vol</span>
+<span class="lineno">  207 </span><span class="spaces"></span><span class="nottickedoff">volumeJSONField o &quot;filename&quot; _ =</span>
+<span class="lineno">  208 </span><span class="spaces">  </span><span class="nottickedoff">return $ Just $ JSON.toEncoding $ makeFilename $ volumeDownloadName o</span>
+<span class="lineno">  209 </span><span class="spaces"></span><span class="nottickedoff">volumeJSONField _ _ _ = return Nothing</span></span>
+<span class="lineno">  210 </span>
+<span class="lineno">  211 </span>volumeJSONQuery :: Volume -&gt; Maybe [VolumeAccess] -&gt; JSON.Query -&gt; Handler (JSON.Record (Id Volume) JSON.Series)
+<span class="lineno">  212 </span><span class="decl"><span class="nottickedoff">volumeJSONQuery vol mAccesses q =</span>
+<span class="lineno">  213 </span><span class="spaces">  </span><span class="nottickedoff">let seriesCaching :: StateT VolumeCache Handler JSON.Series</span>
+<span class="lineno">  214 </span><span class="spaces">      </span><span class="nottickedoff">seriesCaching = JSON.jsonQuery (volumeJSONField vol) q</span>
+<span class="lineno">  215 </span><span class="spaces">      </span><span class="nottickedoff">expandedVolJSONcaching :: StateT VolumeCache Handler (JSON.Record (Id Volume) JSON.Series)</span>
+<span class="lineno">  216 </span><span class="spaces">      </span><span class="nottickedoff">expandedVolJSONcaching = (\series -&gt; volumeJSON vol mAccesses `JSON.foldObjectIntoRec` series) &lt;$&gt; seriesCaching</span>
+<span class="lineno">  217 </span><span class="spaces">  </span><span class="nottickedoff">in</span>
+<span class="lineno">  218 </span><span class="spaces">    </span><span class="nottickedoff">runVolumeCache $ expandedVolJSONcaching</span></span>
+<span class="lineno">  219 </span>
+<span class="lineno">  220 </span>volumeDownloadName :: Volume -&gt; [T.Text]
+<span class="lineno">  221 </span><span class="decl"><span class="nottickedoff">volumeDownloadName v =</span>
+<span class="lineno">  222 </span><span class="spaces">  </span><span class="nottickedoff">(T.pack $ &quot;databrary&quot; ++ show (volumeId $ volumeRow v))</span>
+<span class="lineno">  223 </span><span class="spaces">    </span><span class="nottickedoff">: map (T.takeWhile (',' /=) . snd) (volumeOwners v)</span>
+<span class="lineno">  224 </span><span class="spaces">    </span><span class="nottickedoff">++ [fromMaybe (volumeName $ volumeRow v) (getVolumeAlias v)]</span></span>
+<span class="lineno">  225 </span>
+<span class="lineno">  226 </span>viewVolume :: ActionRoute (API, Id Volume)
+<span class="lineno">  227 </span><span class="decl"><span class="istickedoff">viewVolume = action GET (pathAPI &lt;/&gt; pathId) $ \(api, vi) -&gt; <span class="nottickedoff">withAuth $ do</span></span>
+<span class="lineno">  228 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">when (api == HTML) angular</span></span>
+<span class="lineno">  229 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">v &lt;- getVolume PermissionPUBLIC vi</span></span>
+<span class="lineno">  230 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">accesses &lt;- lookupVolumeAccess v PermissionNONE</span></span>
+<span class="lineno">  231 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">-- (liftIO . print) (&quot;num accesses&quot;, length accesses)</span></span>
+<span class="lineno">  232 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">-- case api of</span></span>
+<span class="lineno">  233 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">(let idSeriesRecAct :: Handler (JSON.Record (Id Volume) JSON.Series)</span></span>
+<span class="lineno">  234 </span><span class="spaces">       </span><span class="istickedoff"><span class="nottickedoff">idSeriesRecAct = volumeJSONQuery v (Just accesses) =&lt;&lt; peeks Wai.queryString</span></span>
+<span class="lineno">  235 </span><span class="spaces">   </span><span class="istickedoff"><span class="nottickedoff">in okResponse [] . JSON.recordEncoding &lt;$&gt; idSeriesRecAct)</span></span></span>
+<span class="lineno">  236 </span>  {-
+<span class="lineno">  237 </span>    HTML -&gt; do
+<span class="lineno">  238 </span>      top &lt;- lookupVolumeTopContainer v
+<span class="lineno">  239 </span>      t &lt;- lookupSlotKeywords $ containerSlot top
+<span class="lineno">  240 </span>      peeks $ okResponse [] . htmlVolumeView v t
+<span class="lineno">  241 </span>  -}
+<span class="lineno">  242 </span>
+<span class="lineno">  243 </span>volumeForm :: Volume -&gt; DeformHandler f Volume
+<span class="lineno">  244 </span><span class="decl"><span class="nottickedoff">volumeForm v = do</span>
+<span class="lineno">  245 </span><span class="spaces">  </span><span class="nottickedoff">name &lt;- &quot;name&quot; .:&gt; deform</span>
+<span class="lineno">  246 </span><span class="spaces">  </span><span class="nottickedoff">alias &lt;- &quot;alias&quot; .:&gt; deformNonEmpty deform</span>
+<span class="lineno">  247 </span><span class="spaces">  </span><span class="nottickedoff">body &lt;- &quot;body&quot; .:&gt; deformNonEmpty deform</span>
+<span class="lineno">  248 </span><span class="spaces">  </span><span class="nottickedoff">return v</span>
+<span class="lineno">  249 </span><span class="spaces">    </span><span class="nottickedoff">{ volumeRow = (volumeRow v)</span>
+<span class="lineno">  250 </span><span class="spaces">      </span><span class="nottickedoff">{ volumeName = name</span>
+<span class="lineno">  251 </span><span class="spaces">      </span><span class="nottickedoff">, volumeAlias = alias</span>
+<span class="lineno">  252 </span><span class="spaces">      </span><span class="nottickedoff">, volumeBody = body</span>
+<span class="lineno">  253 </span><span class="spaces">      </span><span class="nottickedoff">}</span>
+<span class="lineno">  254 </span><span class="spaces">    </span><span class="nottickedoff">}</span></span>
+<span class="lineno">  255 </span>
+<span class="lineno">  256 </span>-- FIXME: Too impure, and needs test: What elements of the input are modified?
+<span class="lineno">  257 </span>volumeCitationForm :: Volume -&gt; DeformHandler f (Volume, Maybe Citation)
+<span class="lineno">  258 </span><span class="decl"><span class="nottickedoff">volumeCitationForm v = do</span>
+<span class="lineno">  259 </span><span class="spaces">  </span><span class="nottickedoff">csrfForm</span>
+<span class="lineno">  260 </span><span class="spaces">  </span><span class="nottickedoff">vol &lt;- volumeForm v</span>
+<span class="lineno">  261 </span><span class="spaces">  </span><span class="nottickedoff">cite &lt;- &quot;citation&quot; .:&gt; Citation</span>
+<span class="lineno">  262 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; (&quot;head&quot; .:&gt; deform)</span>
+<span class="lineno">  263 </span><span class="spaces">    </span><span class="nottickedoff">&lt;*&gt; (&quot;url&quot; .:&gt; deformNonEmpty deform)</span>
+<span class="lineno">  264 </span><span class="spaces">    </span><span class="nottickedoff">&lt;*&gt; (&quot;year&quot; .:&gt; deformNonEmpty deform)</span>
+<span class="lineno">  265 </span><span class="spaces">    </span><span class="nottickedoff">&lt;*&gt; pure Nothing</span>
+<span class="lineno">  266 </span><span class="spaces">  </span><span class="nottickedoff">look &lt;- flatMapM (lift . focusIO . lookupCitation) $</span>
+<span class="lineno">  267 </span><span class="spaces">    </span><span class="nottickedoff">guard (T.null (volumeName $ volumeRow vol) || T.null (citationHead cite) || isNothing (citationYear cite)) &gt;&gt; citationURL cite</span>
+<span class="lineno">  268 </span><span class="spaces">  </span><span class="nottickedoff">let fill = maybe cite (cite &lt;&gt;) look</span>
+<span class="lineno">  269 </span><span class="spaces">      </span><span class="nottickedoff">empty = T.null (citationHead fill) &amp;&amp; isNothing (citationURL fill) &amp;&amp; isNothing (citationYear fill)</span>
+<span class="lineno">  270 </span><span class="spaces">      </span><span class="nottickedoff">name</span>
+<span class="lineno">  271 </span><span class="spaces">        </span><span class="nottickedoff">| Just title &lt;- citationTitle fill</span>
+<span class="lineno">  272 </span><span class="spaces">        </span><span class="nottickedoff">, T.null (volumeName $ volumeRow vol) = title</span>
+<span class="lineno">  273 </span><span class="spaces">        </span><span class="nottickedoff">| otherwise = volumeName $ volumeRow vol</span>
+<span class="lineno">  274 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- &quot;name&quot; .:&gt; deformRequired name</span>
+<span class="lineno">  275 </span><span class="spaces">  </span><span class="nottickedoff">when (not empty) $ void $</span>
+<span class="lineno">  276 </span><span class="spaces">    </span><span class="nottickedoff">&quot;citation&quot; .:&gt; &quot;head&quot; .:&gt; deformRequired (citationHead fill)</span>
+<span class="lineno">  277 </span><span class="spaces">  </span><span class="nottickedoff">return (vol{ volumeRow = (volumeRow vol){ volumeName = name } }, empty `unlessUse` fill)</span></span>
+<span class="lineno">  278 </span>
+<span class="lineno">  279 </span>viewVolumeEdit :: ActionRoute (Id Volume)
+<span class="lineno">  280 </span><span class="decl"><span class="nottickedoff">viewVolumeEdit = action GET (pathHTML &gt;/&gt; pathId &lt;/&lt; &quot;edit&quot;) $ \_ -&gt; withAuth $ do</span>
+<span class="lineno">  281 </span><span class="spaces">  </span><span class="nottickedoff">angular</span>
+<span class="lineno">  282 </span><span class="spaces">  </span><span class="nottickedoff">return (okResponse [] (&quot;&quot; :: String))</span></span> -- should never get here
+<span class="lineno">  283 </span>  {-
+<span class="lineno">  284 </span>  v &lt;- getVolume PermissionEDIT vi
+<span class="lineno">  285 </span>  cite &lt;- lookupVolumeCitation v
+<span class="lineno">  286 </span>  peeks $ blankForm . htmlVolumeEdit (Just (v, cite)) -}
+<span class="lineno">  287 </span>
+<span class="lineno">  288 </span>viewVolumeCreateHandler :: Action  -- TODO : GET only
+<span class="lineno">  289 </span><span class="decl"><span class="nottickedoff">viewVolumeCreateHandler = withAuth $ do</span>
+<span class="lineno">  290 </span><span class="spaces">  </span><span class="nottickedoff">angular</span>
+<span class="lineno">  291 </span><span class="spaces">  </span><span class="nottickedoff">return (okResponse [] (&quot;&quot; :: String))</span></span> -- should never get here
+<span class="lineno">  292 </span>  -- peeks $ blankForm . htmlVolumeEdit Nothing
+<span class="lineno">  293 </span>
+<span class="lineno">  294 </span>postVolume :: ActionRoute (Id Volume)
+<span class="lineno">  295 </span><span class="decl"><span class="nottickedoff">postVolume = action POST (pathJSON &gt;/&gt; pathId) $ \vi -&gt; withAuth $ do</span>
+<span class="lineno">  296 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
+<span class="lineno">  297 </span><span class="spaces">  </span><span class="nottickedoff">cite &lt;- lookupVolumeCitation v</span>
+<span class="lineno">  298 </span><span class="spaces">  </span><span class="nottickedoff">(v', cite') &lt;- runForm (Nothing :: Maybe (RequestContext -&gt; FormHtml a)) $ volumeCitationForm v</span>
+<span class="lineno">  299 </span><span class="spaces">  </span><span class="nottickedoff">changeVolume v'</span>
+<span class="lineno">  300 </span><span class="spaces">  </span><span class="nottickedoff">r &lt;- changeVolumeCitation v' cite'</span>
+<span class="lineno">  301 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $</span>
+<span class="lineno">  302 </span><span class="spaces">    </span><span class="nottickedoff">JSON.recordEncoding $ volumeJSONSimple v' `JSON.foldObjectIntoRec` (&quot;citation&quot; JSON..= if r then cite' else cite)</span></span>
+<span class="lineno">  303 </span>    -- HTML -&gt; peeks $ otherRouteResponse [] viewVolume arg
+<span class="lineno">  304 </span>
+<span class="lineno">  305 </span>createVolume :: ActionRoute ()
+<span class="lineno">  306 </span><span class="decl"><span class="nottickedoff">createVolume = action POST (pathJSON &gt;/&gt; &quot;volume&quot;) $ \() -&gt; withAuth $ do</span>
+<span class="lineno">  307 </span><span class="spaces">  </span><span class="nottickedoff">u &lt;- peek</span>
+<span class="lineno">  308 </span><span class="spaces">  </span><span class="nottickedoff">(bv, cite, owner) &lt;- runForm (Nothing :: Maybe (RequestContext -&gt; FormHtml a)) $ do</span>
+<span class="lineno">  309 </span><span class="spaces">    </span><span class="nottickedoff">csrfForm</span>
+<span class="lineno">  310 </span><span class="spaces">    </span><span class="nottickedoff">(bv, cite) &lt;- volumeCitationForm blankVolume</span>
+<span class="lineno">  311 </span><span class="spaces">    </span><span class="nottickedoff">own &lt;- &quot;owner&quot; .:&gt; do</span>
+<span class="lineno">  312 </span><span class="spaces">      </span><span class="nottickedoff">oi &lt;- deformOptional deform</span>
+<span class="lineno">  313 </span><span class="spaces">      </span><span class="nottickedoff">own &lt;- maybe (return $ Just $ selfAuthorize u) (lift . lookupAuthorizeParent u) $ mfilter (partyId (partyRow u) /=) oi</span>
+<span class="lineno">  314 </span><span class="spaces">      </span><span class="nottickedoff">deformMaybe' &quot;You are not authorized to create volumes for that owner.&quot; $</span>
+<span class="lineno">  315 </span><span class="spaces">        </span><span class="nottickedoff">authorizeParent . authorization &lt;$&gt; mfilter ((PermissionADMIN &lt;=) . accessMember) own</span>
+<span class="lineno">  316 </span><span class="spaces">    </span><span class="nottickedoff">auth &lt;- lift $ lookupAuthorization own rootParty</span>
+<span class="lineno">  317 </span><span class="spaces">    </span><span class="nottickedoff">deformGuard &quot;Insufficient site authorization to create volume.&quot; $</span>
+<span class="lineno">  318 </span><span class="spaces">      </span><span class="nottickedoff">PermissionEDIT &lt;= accessSite auth</span>
+<span class="lineno">  319 </span><span class="spaces">    </span><span class="nottickedoff">return (bv, cite, own)</span>
+<span class="lineno">  320 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- addVolume bv</span>
+<span class="lineno">  321 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- changeVolumeCitation v cite</span>
+<span class="lineno">  322 </span><span class="spaces">  </span><span class="nottickedoff">setDefaultVolumeAccessesForCreated owner v</span>
+<span class="lineno">  323 </span><span class="spaces">  </span><span class="nottickedoff">when (on (/=) (partyId . partyRow) owner u) $ forM_ (partyAccount owner) $ \t -&gt;</span>
+<span class="lineno">  324 </span><span class="spaces">    </span><span class="nottickedoff">createNotification (blankNotification t NoticeVolumeCreated)</span>
+<span class="lineno">  325 </span><span class="spaces">      </span><span class="nottickedoff">{ notificationVolume = Just $ volumeRow v</span>
+<span class="lineno">  326 </span><span class="spaces">      </span><span class="nottickedoff">, notificationParty = Just $ partyRow owner</span>
+<span class="lineno">  327 </span><span class="spaces">      </span><span class="nottickedoff">}</span>
+<span class="lineno">  328 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v</span></span>
+<span class="lineno">  329 </span>  -- HTML -&gt; peeks $ otherRouteResponse [] viewVolume (api, volumeId $ volumeRow v)
+<span class="lineno">  330 </span>
+<span class="lineno">  331 </span>{-
+<span class="lineno">  332 </span>viewVolumeLinks :: ActionRoute (Id Volume)
+<span class="lineno">  333 </span>viewVolumeLinks = action GET (pathHTML &gt;/&gt; pathId &lt;/&lt; &quot;link&quot;) $ \vi -&gt; withAuth $ do
+<span class="lineno">  334 </span>  v &lt;- getVolume PermissionEDIT vi
+<span class="lineno">  335 </span>  links &lt;- lookupVolumeLinks v
+<span class="lineno">  336 </span>  peeks $ blankForm . htmlVolumeLinksEdit v links
+<span class="lineno">  337 </span>-}
+<span class="lineno">  338 </span>
+<span class="lineno">  339 </span>postVolumeLinks :: ActionRoute (Id Volume)
+<span class="lineno">  340 </span><span class="decl"><span class="nottickedoff">postVolumeLinks = action POST (pathJSON &gt;/&gt; pathId &lt;/&lt; &quot;link&quot;) $ \vi -&gt; withAuth $ do</span>
+<span class="lineno">  341 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
+<span class="lineno">  342 </span><span class="spaces">  </span><span class="nottickedoff">-- links &lt;- lookupVolumeLinks v</span>
+<span class="lineno">  343 </span><span class="spaces">  </span><span class="nottickedoff">links' &lt;- runForm (Nothing :: Maybe (RequestContext -&gt; FormHtml a)) $ do</span>
+<span class="lineno">  344 </span><span class="spaces">    </span><span class="nottickedoff">csrfForm</span>
+<span class="lineno">  345 </span><span class="spaces">    </span><span class="nottickedoff">withSubDeforms $ \_ -&gt; Citation</span>
+<span class="lineno">  346 </span><span class="spaces">      </span><span class="nottickedoff">&lt;$&gt; (&quot;head&quot; .:&gt; deform)</span>
+<span class="lineno">  347 </span><span class="spaces">      </span><span class="nottickedoff">&lt;*&gt; (&quot;url&quot; .:&gt; (Just &lt;$&gt; deform))</span>
+<span class="lineno">  348 </span><span class="spaces">      </span><span class="nottickedoff">&lt;*&gt; pure Nothing</span>
+<span class="lineno">  349 </span><span class="spaces">      </span><span class="nottickedoff">&lt;*&gt; pure Nothing</span>
+<span class="lineno">  350 </span><span class="spaces">  </span><span class="nottickedoff">changeVolumeLinks v links'</span>
+<span class="lineno">  351 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v `JSON.foldObjectIntoRec` (&quot;links&quot; JSON..= links')</span></span>
+<span class="lineno">  352 </span>  -- HTML -&gt; peeks $ otherRouteResponse [] viewVolume arg
+<span class="lineno">  353 </span>
+<span class="lineno">  354 </span>postVolumeAssist :: ActionRoute (Id Volume)
+<span class="lineno">  355 </span><span class="decl"><span class="nottickedoff">postVolumeAssist = action POST (pathJSON &gt;/&gt; pathId &lt;/&lt; &quot;assist&quot;) $ \vi -&gt; withAuth $ do</span>
+<span class="lineno">  356 </span><span class="spaces">  </span><span class="nottickedoff">user &lt;- authAccount</span>
+<span class="lineno">  357 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
+<span class="lineno">  358 </span><span class="spaces">  </span><span class="nottickedoff">addr &lt;- peeks staticAssistAddr</span>
+<span class="lineno">  359 </span><span class="spaces">  </span><span class="nottickedoff">cont &lt;- parseRequestContent (const 0)</span>
+<span class="lineno">  360 </span><span class="spaces">  </span><span class="nottickedoff">body &lt;- case cont :: Content () of</span>
+<span class="lineno">  361 </span><span class="spaces">    </span><span class="nottickedoff">ContentText body -&gt; return body</span>
+<span class="lineno">  362 </span><span class="spaces">    </span><span class="nottickedoff">_ -&gt; result $ emptyResponse unsupportedMediaType415 []</span>
+<span class="lineno">  363 </span><span class="spaces">  </span><span class="nottickedoff">sendMail [Left addr] [Right user] (&quot;Databrary upload assistance request for volume &quot; &lt;&gt; T.pack (show vi)) $ TL.fromChunks</span>
+<span class="lineno">  364 </span><span class="spaces">    </span><span class="nottickedoff">[ partyName $ partyRow $ accountParty user, &quot; has requested curation assistance for &quot;, volumeName $ volumeRow v, &quot;\n\n&quot; ] &lt;&gt; body `TL.snoc` '\n'</span>
+<span class="lineno">  365 </span><span class="spaces">  </span><span class="nottickedoff">createVolumeNotification v ($ NoticeVolumeAssist)</span>
+<span class="lineno">  366 </span><span class="spaces">  </span><span class="nottickedoff">return $ emptyResponse noContent204 []</span></span>
+<span class="lineno">  367 </span>
+<span class="lineno">  368 </span>volumeSearchForm :: DeformHandler f VolumeFilter
+<span class="lineno">  369 </span><span class="decl"><span class="nottickedoff">volumeSearchForm = VolumeFilter</span>
+<span class="lineno">  370 </span><span class="spaces">  </span><span class="nottickedoff">&lt;$&gt; (&quot;query&quot; .:&gt; deformNonEmpty deform)</span>
+<span class="lineno">  371 </span><span class="spaces">  </span><span class="nottickedoff">&lt;*&gt; (&quot;party&quot; .:&gt; optional deform)</span>
+<span class="lineno">  372 </span><span class="spaces">  </span><span class="nottickedoff">&lt;*&gt; paginateForm</span></span>
+<span class="lineno">  373 </span>
+<span class="lineno">  374 </span>queryVolumes :: ActionRoute API
+<span class="lineno">  375 </span><span class="decl"><span class="nottickedoff">queryVolumes = action GET (pathAPI &lt;/&lt; &quot;volume&quot;) $ \api -&gt; withAuth $ do</span>
+<span class="lineno">  376 </span><span class="spaces">  </span><span class="nottickedoff">when (api == HTML) angular</span>
+<span class="lineno">  377 </span><span class="spaces">  </span><span class="nottickedoff">vf &lt;- runForm (Nothing :: Maybe (RequestContext -&gt; FormHtml a)) volumeSearchForm</span>
+<span class="lineno">  378 </span><span class="spaces">  </span><span class="nottickedoff">p &lt;- findVolumes vf</span>
+<span class="lineno">  379 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ JSON.mapRecords (\v -&gt; volumeJSONSimple v) p</span></span>
+<span class="lineno">  380 </span>  -- HTML -&gt; peeks $ blankForm . htmlVolumeSearch vf p
+<span class="lineno">  381 </span>
+<span class="lineno">  382 </span>thumbVolume :: ActionRoute (Id Volume)
+<span class="lineno">  383 </span><span class="decl"><span class="nottickedoff">thumbVolume = action GET (pathId &lt;/&lt; &quot;thumb&quot;) $ \vi -&gt; withAuth $ do</span>
+<span class="lineno">  384 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionPUBLIC vi</span>
+<span class="lineno">  385 </span><span class="spaces">  </span><span class="nottickedoff">e &lt;- lookupVolumeThumb v</span>
+<span class="lineno">  386 </span><span class="spaces">  </span><span class="nottickedoff">maybe</span>
+<span class="lineno">  387 </span><span class="spaces">    </span><span class="nottickedoff">(peeks $ otherRouteResponse [] webFile (Just $ staticPath [&quot;images&quot;, &quot;draft.png&quot;]))</span>
+<span class="lineno">  388 </span><span class="spaces">    </span><span class="nottickedoff">(\as -&gt; peeks $ otherRouteResponse [] downloadAssetSegment (slotId $ view as, view as))</span>
+<span class="lineno">  389 </span><span class="spaces">    </span><span class="nottickedoff">e</span></span>
+
+</pre>
+</body>
+</html>

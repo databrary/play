@@ -1,0 +1,110 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>module Controller.Permission
+<span class="lineno">    3 </span>  ( checkPermission
+<span class="lineno">    4 </span>  , checkPermission2
+<span class="lineno">    5 </span>  , userCanReadData
+<span class="lineno">    6 </span>  , authAccount
+<span class="lineno">    7 </span>  , checkMemberADMIN
+<span class="lineno">    8 </span>  , checkVerfHeader
+<span class="lineno">    9 </span>  , guardVerfHeader
+<span class="lineno">   10 </span>  ) where
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import Control.Monad (void, unless, liftM2)
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import Has (Has, view, peek, peeks)
+<span class="lineno">   15 </span>import Model.Permission
+<span class="lineno">   16 </span>import Model.Release
+<span class="lineno">   17 </span>import Model.Party
+<span class="lineno">   18 </span>import Model.Identity
+<span class="lineno">   19 </span>import HTTP.Request
+<span class="lineno">   20 </span>import Action
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>-- logic inside of checkPermission and checkDataPermission should be inside of model layer
+<span class="lineno">   23 </span>checkPermission :: Has Permission a =&gt; Permission -&gt; a -&gt; Handler a  -- TODO: delete this
+<span class="lineno">   24 </span><span class="decl"><span class="nottickedoff">checkPermission requiredPermissionLevel objectWithCurrentUserPermLevel =</span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="nottickedoff">checkPermission2 view requiredPermissionLevel objectWithCurrentUserPermLevel</span></span>
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>checkPermission2 :: (a -&gt; Permission) -&gt; Permission -&gt; a -&gt; Handler a
+<span class="lineno">   28 </span><span class="decl"><span class="nottickedoff">checkPermission2 getCurrentUserPermLevel requestingAccessAtPermLevel obj = do</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="nottickedoff">unless (getCurrentUserPermLevel obj &gt;= requestingAccessAtPermLevel) $ do</span>
+<span class="lineno">   30 </span><span class="spaces">    </span><span class="nottickedoff">resp &lt;- peeks (\reqCtxt -&gt; forbiddenResponse reqCtxt)</span>
+<span class="lineno">   31 </span><span class="spaces">    </span><span class="nottickedoff">result resp</span>
+<span class="lineno">   32 </span><span class="spaces">  </span><span class="nottickedoff">return obj</span></span>
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>userCanReadData :: (a -&gt; EffectiveRelease) -&gt; (a -&gt; VolumeRolePolicy) -&gt; a -&gt; Handler a
+<span class="lineno">   35 </span><span class="decl"><span class="nottickedoff">userCanReadData getObjEffectiveRelease getCurrentUserPermLevel obj = do</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="nottickedoff">unless (canReadData2 getObjEffectiveRelease getCurrentUserPermLevel obj) $ do</span>
+<span class="lineno">   37 </span><span class="spaces">    </span><span class="nottickedoff">resp &lt;- peeks (\reqCtxt -&gt; forbiddenResponse reqCtxt)</span>
+<span class="lineno">   38 </span><span class="spaces">    </span><span class="nottickedoff">result resp</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="nottickedoff">return obj</span></span>
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>-- |
+<span class="lineno">   42 </span>-- Pulls the Account out of the Handler context
+<span class="lineno">   43 </span>authAccount :: Handler Account
+<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">authAccount = do</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">case ident of</span>
+<span class="lineno">   47 </span><span class="spaces">    </span><span class="nottickedoff">NotLoggedIn -&gt; result =&lt;&lt; peeks forbiddenResponse</span>
+<span class="lineno">   48 </span><span class="spaces">    </span><span class="nottickedoff">IdentityNotNeeded -&gt; result =&lt;&lt; peeks forbiddenResponse</span>
+<span class="lineno">   49 </span><span class="spaces">    </span><span class="nottickedoff">Identified s -&gt; return $ view s</span>
+<span class="lineno">   50 </span><span class="spaces">    </span><span class="nottickedoff">ReIdentified u -&gt; return $ view u</span></span>
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>-- newtype Handler a = Handler { unHandler :: ReaderT RequestContext IO a }
+<span class="lineno">   53 </span>-- deriving (Functor, Applicative, Alternative, Monad, MonadPlus, MonadIO,
+<span class="lineno">   54 </span>-- MonadBase IO, MonadThrow, MonadReader RequestContext)
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>-- A: Handler satisfies a (MonadHas Access) constraint because...
+<span class="lineno">   57 </span>-- 1. it has a MonadReader RequestContext
+<span class="lineno">   58 </span>-- 2. RequestContext satisfies (Has Access)
+<span class="lineno">   59 </span>--
+<span class="lineno">   60 </span>-- B: (A.2) is true because...
+<span class="lineno">   61 </span>-- 1. RequestContext satisfies (Has Identity) by concretely carrying an Identity
+<span class="lineno">   62 </span>--    value
+<span class="lineno">   63 </span>-- 2. It &quot;inherits&quot; the (Has Access) of its Identity
+<span class="lineno">   64 </span>--
+<span class="lineno">   65 </span>-- C: Identity satisfies (Has Access) because...
+<span class="lineno">   66 </span>-- 1. It satisfies (Has SiteAuth) by *building* a SiteAuth in different ways
+<span class="lineno">   67 </span>--     a. Generate a 'nobody'
+<span class="lineno">   68 </span>--     b. Reach into a sub-sub-field, not using the Has mechanism (although it
+<span class="lineno">   69 </span>--        should?)
+<span class="lineno">   70 </span>--     c. 1 constructor has a concrete SiteAuth field
+<span class="lineno">   71 </span>-- 2. It &quot;inherits&quot; the (Has Access) of the SiteAuth
+<span class="lineno">   72 </span>--
+<span class="lineno">   73 </span>-- D: SiteAuth satisfies (Has Access) because it has a concrete Access field.
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>-- | (Maybe) tests whether someone is a superadmin?
+<span class="lineno">   76 </span>checkMemberADMIN :: Handler ()
+<span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">checkMemberADMIN = do</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="nottickedoff">a :: Access &lt;- peek</span>
+<span class="lineno">   79 </span><span class="spaces">  </span><span class="nottickedoff">let admin = accessMember' a</span>
+<span class="lineno">   80 </span><span class="spaces">  </span><span class="nottickedoff">void $ checkPermission PermissionADMIN admin</span></span>
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>checkVerfHeader :: Handler Bool
+<span class="lineno">   83 </span><span class="decl"><span class="nottickedoff">checkVerfHeader = do</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">header &lt;- peeks $ lookupRequestHeader &quot;x-csverf&quot;</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="nottickedoff">peeks $ or . liftM2 (==) header . identityVerf</span></span>
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>guardVerfHeader :: Handler ()
+<span class="lineno">   88 </span><span class="decl"><span class="nottickedoff">guardVerfHeader = do</span>
+<span class="lineno">   89 </span><span class="spaces">  </span><span class="nottickedoff">c &lt;- checkVerfHeader</span>
+<span class="lineno">   90 </span><span class="spaces">  </span><span class="nottickedoff">unless c $ result =&lt;&lt; peeks forbiddenResponse</span></span>
+
+</pre>
+</body>
+</html>

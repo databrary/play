@@ -1,0 +1,81 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE DataKinds, TemplateHaskell, TypeFamilies, UndecidableInstances, StandaloneDeriving, GeneralizedNewtypeDeriving #-}
+<span class="lineno">    2 </span>module Model.Id.Types
+<span class="lineno">    3 </span>  ( IdType
+<span class="lineno">    4 </span>  , Id(..)
+<span class="lineno">    5 </span>  , Int32
+<span class="lineno">    6 </span>  ) where
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>import Control.Arrow (first)
+<span class="lineno">    9 </span>import qualified Data.Aeson as JSON
+<span class="lineno">   10 </span>import Data.Hashable (Hashable(..))
+<span class="lineno">   11 </span>import Data.Int (Int32)
+<span class="lineno">   12 </span>import Database.PostgreSQL.Typed.Types (PGParameter(..), PGColumn(..), PGType(..))
+<span class="lineno">   13 </span>import Database.PostgreSQL.Typed.Dynamic (PGRep)
+<span class="lineno">   14 </span>import qualified Language.Haskell.TH as TH
+<span class="lineno">   15 </span>import qualified Language.Haskell.TH.Syntax as TH
+<span class="lineno">   16 </span>import Text.Read (Read(..))
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import HTTP.Form.Deform (Deform(..))
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>-- | This defines a way to make a ID type specific to a specific record type.
+<span class="lineno">   21 </span>-- IdType takes a containing type as a parameter (e.g. Asset, Volume), and
+<span class="lineno">   22 </span>-- defines an alias for the containing types actual ID type. IdType Volume = String
+<span class="lineno">   23 </span>-- would mean Volume's use String for their identifiers
+<span class="lineno">   24 </span>type family IdType a
+<span class="lineno">   25 </span>-- | This builds a new type around the container specific type. See tests for examples.
+<span class="lineno">   26 </span>newtype Id a = Id { <span class="istickedoff"><span class="decl"><span class="istickedoff">unId</span></span></span> :: IdType a }
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">deriving instance Eq (IdType a) =&gt; Eq (Id a)</span></span></span></span>
+<span class="lineno">   29 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving instance Ord (IdType a) =&gt; Ord (Id a)</span></span></span></span></span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   30 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving instance Enum (IdType a) =&gt; Enum (Id a)</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   31 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving instance Bounded (IdType a) =&gt; Bounded (Id a)</span></span></span></span>
+<span class="lineno">   32 </span>instance Hashable (IdType a) =&gt; Hashable (Id a) where
+<span class="lineno">   33 </span>  <span class="decl"><span class="nottickedoff">hashWithSalt i = hashWithSalt i . unId</span></span>
+<span class="lineno">   34 </span>  <span class="decl"><span class="nottickedoff">hash = hash . unId</span></span>
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>instance (PGParameter t (IdType a), PGType t) =&gt; PGParameter t (Id a) where
+<span class="lineno">   37 </span>  <span class="decl"><span class="nottickedoff">pgEncode t (Id i) = pgEncode t i</span></span>
+<span class="lineno">   38 </span>  <span class="decl"><span class="istickedoff">pgEncodeValue e t (Id i) = pgEncodeValue <span class="nottickedoff">e</span> <span class="nottickedoff">t</span> i</span></span>
+<span class="lineno">   39 </span>  <span class="decl"><span class="istickedoff">pgLiteral t (Id i) = pgLiteral <span class="nottickedoff">t</span> i</span></span>
+<span class="lineno">   40 </span>instance (PGColumn t (IdType a), PGType t) =&gt; PGColumn t (Id a) where
+<span class="lineno">   41 </span>  <span class="decl"><span class="nottickedoff">pgDecode t = Id . pgDecode t</span></span>
+<span class="lineno">   42 </span>  <span class="decl"><span class="istickedoff">pgDecodeValue e t = Id . pgDecodeValue <span class="nottickedoff">e</span> <span class="nottickedoff">t</span></span></span>
+<span class="lineno">   43 </span>instance (PGParameter t (IdType a), PGColumn t (IdType a), PGRep t (IdType a), PGType t) =&gt; PGRep t (Id a)
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>instance Show (IdType a) =&gt; Show (Id a) where
+<span class="lineno">   46 </span>  <span class="decl"><span class="istickedoff">showsPrec p (Id a) = showsPrec p a</span></span>
+<span class="lineno">   47 </span>  <span class="decl"><span class="istickedoff">show (Id a) = show a</span></span>
+<span class="lineno">   48 </span>instance Read (IdType a) =&gt; Read (Id a) where
+<span class="lineno">   49 </span>  <span class="decl"><span class="nottickedoff">readsPrec p s = map (first Id) $ readsPrec p s</span></span>
+<span class="lineno">   50 </span>  <span class="decl"><span class="nottickedoff">readPrec = Id &lt;$&gt; readPrec</span></span>
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>instance JSON.ToJSON (IdType a) =&gt; JSON.ToJSON (Id a) where
+<span class="lineno">   53 </span>  <span class="decl"><span class="istickedoff">toJSON (Id a) = JSON.toJSON a</span></span>
+<span class="lineno">   54 </span>instance JSON.FromJSON (IdType a) =&gt; JSON.FromJSON (Id a) where
+<span class="lineno">   55 </span>  <span class="decl"><span class="nottickedoff">parseJSON = fmap Id . JSON.parseJSON</span></span>
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>instance Deform f (IdType a) =&gt; Deform f (Id a) where
+<span class="lineno">   58 </span>  <span class="decl"><span class="nottickedoff">deform = Id &lt;$&gt; deform</span></span>
+<span class="lineno">   59 </span>
+<span class="lineno">   60 </span>instance TH.Lift (IdType a) =&gt; TH.Lift (Id a) where
+<span class="lineno">   61 </span>  <span class="decl"><span class="nottickedoff">lift (Id i) = TH.conE 'Id `TH.appE` TH.lift i</span></span>
+
+</pre>
+</body>
+</html>

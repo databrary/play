@@ -1,0 +1,103 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>module Web.Generate
+<span class="lineno">    2 </span>  ( fileNewer
+<span class="lineno">    3 </span>  , staticWebGenerate
+<span class="lineno">    4 </span>  , webRegenerate
+<span class="lineno">    5 </span>  , webLinkDataFile
+<span class="lineno">    6 </span>  ) where
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>import Control.Monad (when, unless)
+<span class="lineno">    9 </span>import Control.Monad.Except (throwError)
+<span class="lineno">   10 </span>import Control.Monad.IO.Class (liftIO)
+<span class="lineno">   11 </span>import System.Directory (createDirectoryIfMissing, canonicalizePath)
+<span class="lineno">   12 </span>import System.FilePath (splitFileName, takeDirectory)
+<span class="lineno">   13 </span>import qualified System.FilePath as FP
+<span class="lineno">   14 </span>import System.Posix.Files.ByteString (createSymbolicLink, rename, fileExist, removeLink)
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import Paths_databrary (getDataFileName)
+<span class="lineno">   17 </span>import Files
+<span class="lineno">   18 </span>import Model.Time
+<span class="lineno">   19 </span>import Web
+<span class="lineno">   20 </span>import Web.Types
+<span class="lineno">   21 </span>import {-# SOURCE #-} Web.Rules
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>anyM :: Monad m =&gt; [m Bool] -&gt; m Bool
+<span class="lineno">   24 </span><span class="decl"><span class="nottickedoff">anyM [] = return False</span>
+<span class="lineno">   25 </span><span class="spaces"></span><span class="nottickedoff">anyM (a:l) = do</span>
+<span class="lineno">   26 </span><span class="spaces">  </span><span class="nottickedoff">r &lt;- a</span>
+<span class="lineno">   27 </span><span class="spaces">  </span><span class="nottickedoff">if r then return True else anyM l</span></span>
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>fileNotFound :: RawFilePath -&gt; WebGeneratorM a
+<span class="lineno">   30 </span><span class="decl"><span class="nottickedoff">fileNotFound rf = do</span>
+<span class="lineno">   31 </span><span class="spaces">  </span><span class="nottickedoff">f &lt;- liftIO $ unRawFilePath rf</span>
+<span class="lineno">   32 </span><span class="spaces">  </span><span class="nottickedoff">throwError $ f ++ &quot; not found\n&quot;</span></span>
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>fileNewerThan :: Timestamp -&gt; RawFilePath -&gt; WebGeneratorM Bool
+<span class="lineno">   35 </span><span class="decl"><span class="nottickedoff">fileNewerThan t f =</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="nottickedoff">maybe (fileNotFound f) (return . (t &lt;) . snd) =&lt;&lt; liftIO (fileInfo f)</span></span>
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>fileNewer :: RawFilePath -&gt; WebGenerator
+<span class="lineno">   39 </span><span class="decl"><span class="nottickedoff">fileNewer f (_, Nothing) = do</span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="nottickedoff">e &lt;- liftIO $ fileExist f</span>
+<span class="lineno">   41 </span><span class="spaces">  </span><span class="nottickedoff">unless e $ fileNotFound f</span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="nottickedoff">return True</span>
+<span class="lineno">   43 </span><span class="spaces"></span><span class="nottickedoff">fileNewer f (_, Just o) =</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="nottickedoff">fileNewerThan (webFileTimestamp o) f</span></span>
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>whether :: Bool -&gt; IO () -&gt; IO Bool
+<span class="lineno">   47 </span><span class="decl"><span class="nottickedoff">whether g = (g &lt;$) . when g</span></span>
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>webRegenerate :: IO () -&gt; [RawFilePath] -&gt; [WebFilePath] -&gt; WebGenerator
+<span class="lineno">   50 </span><span class="decl"><span class="nottickedoff">webRegenerate createOrCombineGeneratedIntoOutputFile fs inputFiles (fileToGen, mPriorFileInfo) = do</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">let dontIncludeStatic = False</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">wr &lt;- mapM (generateWebFile dontIncludeStatic) inputFiles</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">ft &lt;-</span>
+<span class="lineno">   54 </span><span class="spaces">    </span><span class="nottickedoff">liftIO</span>
+<span class="lineno">   55 </span><span class="spaces">        </span><span class="nottickedoff">$ maybe (fmap snd &lt;$&gt; fileInfo (webFileAbs fileToGen)) (return . Just . webFileTimestamp) mPriorFileInfo</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">fr &lt;- maybe (return False) (\t -&gt; anyM $ map (fileNewerThan t) fs) ft</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="nottickedoff">liftIO</span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="nottickedoff">$ whether (all (\t -&gt; fr || any ((t &lt;) . webFileTimestamp) wr) ft)</span>
+<span class="lineno">   59 </span><span class="spaces">            </span><span class="nottickedoff">createOrCombineGeneratedIntoOutputFile</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>-- | Generates a file and compares with the existing file to determine whether
+<span class="lineno">   62 </span>-- replacement is necessary
+<span class="lineno">   63 </span>staticWebGenerate :: (FilePath -&gt; IO ()) -&gt; WebGenerator
+<span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">staticWebGenerate g = \(w, _) -&gt; liftIO $ do</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">tempFile &lt;- do</span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="nottickedoff">f &lt;- unRawFilePath $ webFileAbs w</span>
+<span class="lineno">   67 </span><span class="spaces">    </span><span class="nottickedoff">let (d, n) = splitFileName f</span>
+<span class="lineno">   68 </span><span class="spaces">    </span><span class="nottickedoff">rawFilePath $ d FP.&lt;/&gt; ('.' : n)</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="nottickedoff">g =&lt;&lt; unRawFilePath tempFile</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="nottickedoff">c &lt;- catchDoesNotExist $ compareFiles (webFileAbs w) tempFile</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">if or c</span>
+<span class="lineno">   72 </span><span class="spaces">    </span><span class="nottickedoff">then False &lt;$ removeLink tempFile -- Files are the same, so remove temporary file</span>
+<span class="lineno">   73 </span><span class="spaces">    </span><span class="nottickedoff">else True &lt;$ rename tempFile (webFileAbs w)</span></span> -- Files are different so replace old file with newly generated file
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>webLinkDataFile :: FilePath -&gt; WebGenerator
+<span class="lineno">   76 </span><span class="decl"><span class="nottickedoff">webLinkDataFile s = \fo@(f, _) -&gt; do</span>
+<span class="lineno">   77 </span><span class="spaces">  </span><span class="nottickedoff">wf &lt;- liftIO $ rawFilePath =&lt;&lt; canonicalizePath =&lt;&lt; getDataFileName s</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="nottickedoff">webRegenerate (do</span>
+<span class="lineno">   79 </span><span class="spaces">    </span><span class="nottickedoff">r &lt;- removeFile (webFileAbs f)</span>
+<span class="lineno">   80 </span><span class="spaces">    </span><span class="nottickedoff">f' &lt;- unRawFilePath $ webFileAbs f</span>
+<span class="lineno">   81 </span><span class="spaces">    </span><span class="nottickedoff">unless r $ createDirectoryIfMissing False $ takeDirectory f'</span>
+<span class="lineno">   82 </span><span class="spaces">    </span><span class="nottickedoff">createSymbolicLink wf (webFileAbs f))</span>
+<span class="lineno">   83 </span><span class="spaces">    </span><span class="nottickedoff">[wf] [] fo</span></span>
+
+</pre>
+</body>
+</html>

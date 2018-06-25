@@ -1,0 +1,117 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
+<span class="lineno">    2 </span>module Solr.Search
+<span class="lineno">    3 </span>  ( SearchType(..)
+<span class="lineno">    4 </span>  , SearchQuery(..)
+<span class="lineno">    5 </span>  , search
+<span class="lineno">    6 </span>  ) where
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>import Control.Arrow (first)
+<span class="lineno">    9 </span>import qualified Data.ByteString.Builder as B
+<span class="lineno">   10 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">   11 </span>import qualified Data.ByteString.Lazy as BSL
+<span class="lineno">   12 </span>import Data.Char (isAlphaNum)
+<span class="lineno">   13 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   14 </span>import qualified Data.Text as T
+<span class="lineno">   15 </span>import qualified Data.Text.Encoding as TE
+<span class="lineno">   16 </span>import qualified Network.HTTP.Client as HC
+<span class="lineno">   17 </span>import Network.HTTP.Types.URI (renderSimpleQuery)
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import Data.ByteString.Builder.Escape (escapeLazyByteStringCharsWith, escapeTextWith)
+<span class="lineno">   20 </span>import Has
+<span class="lineno">   21 </span>import Model.Paginate
+<span class="lineno">   22 </span>import Model.Metric.Types
+<span class="lineno">   23 </span>import Solr.Service
+<span class="lineno">   24 </span>import Solr.Document
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>data SearchType
+<span class="lineno">   27 </span>  = SearchVolumes
+<span class="lineno">   28 </span>  | SearchParties
+<span class="lineno">   29 </span>  deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>data SearchQuery = SearchQuery
+<span class="lineno">   32 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">searchString</span></span></span> :: Maybe T.Text
+<span class="lineno">   33 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">searchFields</span></span></span> :: [(T.Text, T.Text)]
+<span class="lineno">   34 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">searchMetrics</span></span></span> :: [(Metric, T.Text)]
+<span class="lineno">   35 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">searchType</span></span></span> :: SearchType
+<span class="lineno">   36 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">searchPaginate</span></span></span> :: !Paginate
+<span class="lineno">   37 </span>  }
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>checkTerm :: T.Text -&gt; Bool
+<span class="lineno">   40 </span><span class="decl"><span class="nottickedoff">checkTerm = cq False [] . T.unpack where</span>
+<span class="lineno">   41 </span><span class="spaces">  </span><span class="nottickedoff">cq False [] &quot;&quot; = True</span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="nottickedoff">cq q g ('&quot;':s) = cq (not q) g s</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="nottickedoff">cq q g ('\\':_:s) = cq q g s</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="nottickedoff">cq _ _ ['\\'] = False</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">cq False ('(':gs) (')':s) = cq False gs s</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">cq False ('[':gs) (']':s) = cq False gs s</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="nottickedoff">cq False ('[':gs) ('}':s) = cq False gs s</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">cq False ('{':gs) (']':s) = cq False gs s</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">cq False ('{':gs) ('}':s) = cq False gs s</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">cq False g (c:s)</span>
+<span class="lineno">   51 </span><span class="spaces">    </span><span class="nottickedoff">| c `elem` ['(','[','{'] = cq False (c:g) s</span>
+<span class="lineno">   52 </span><span class="spaces">    </span><span class="nottickedoff">| c `elem` [')',']','}'] = False</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">cq q g (_:s) = cq q g s</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">cq _ _ _ = False</span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>checkField :: T.Text -&gt; Bool
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">checkField = T.all cc where</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">cc '_' = True</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">cc c = isAlphaNum c</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>quoteQuery :: (Char -&gt; String -&gt; a -&gt; B.Builder) -&gt; a -&gt; B.Builder
+<span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">quoteQuery e s = B.char8 '&quot;' &lt;&gt; e '\\' &quot;\&quot;\\&quot; s &lt;&gt; B.char8 '&quot;'</span></span>
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>defaultParams :: B.Builder
+<span class="lineno">   65 </span><span class="decl"><span class="nottickedoff">defaultParams = B.string8 &quot;{!dismax qf=\&quot;text_en^0.5 text_gen^0.5 keyword^2 tag_name party_name\&quot; pf=\&quot;keyword^2 tag_name party_name\&quot; ps=3}&quot;</span></span>
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>search :: MonadSolr c m =&gt; SearchQuery -&gt; m (HC.Response BSL.ByteString)
+<span class="lineno">   68 </span><span class="decl"><span class="nottickedoff">search SearchQuery{..} = do</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="nottickedoff">req &lt;- peeks solrRequest</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="nottickedoff">focusIO $ HC.httpLbs req</span>
+<span class="lineno">   71 </span><span class="spaces">    </span><span class="nottickedoff">{ HC.path = HC.path req &lt;&gt; &quot;search&quot;</span>
+<span class="lineno">   72 </span><span class="spaces">    </span><span class="nottickedoff">, HC.queryString = renderSimpleQuery True query</span>
+<span class="lineno">   73 </span><span class="spaces">    </span><span class="nottickedoff">, HC.checkResponse = \_ _ -&gt; putStrLn &quot;Search Error&quot;</span>
+<span class="lineno">   74 </span><span class="spaces">    </span><span class="nottickedoff">}</span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="nottickedoff">query =</span>
+<span class="lineno">   77 </span><span class="spaces">    </span><span class="nottickedoff">[ (&quot;q&quot;, BSL.toStrict $ B.toLazyByteString $ qp &lt;&gt; uw ql)</span>
+<span class="lineno">   78 </span><span class="spaces">    </span><span class="nottickedoff">, (&quot;fq&quot;, &quot;content_type:&quot; &lt;&gt; ct)</span>
+<span class="lineno">   79 </span><span class="spaces">    </span><span class="nottickedoff">, (&quot;start&quot;, BSC.pack $ show $ paginateOffset searchPaginate)</span>
+<span class="lineno">   80 </span><span class="spaces">    </span><span class="nottickedoff">, (&quot;rows&quot;, BSC.pack $ show $ paginateLimit searchPaginate)</span>
+<span class="lineno">   81 </span><span class="spaces">    </span><span class="nottickedoff">, (&quot;q.op&quot;, &quot;AND&quot;)</span>
+<span class="lineno">   82 </span><span class="spaces">    </span><span class="nottickedoff">]</span>
+<span class="lineno">   83 </span><span class="spaces">    </span><span class="nottickedoff">++ maybe [] (\q -&gt;</span>
+<span class="lineno">   84 </span><span class="spaces">      </span><span class="nottickedoff">[ (&quot;spellcheck&quot;, &quot;true&quot;)</span>
+<span class="lineno">   85 </span><span class="spaces">      </span><span class="nottickedoff">, (&quot;spellcheck.q&quot;, TE.encodeUtf8 q)</span>
+<span class="lineno">   86 </span><span class="spaces">      </span><span class="nottickedoff">]) searchString</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="nottickedoff">(ct, qp, qe) = case searchType of</span>
+<span class="lineno">   88 </span><span class="spaces">    </span><span class="nottickedoff">SearchVolumes -&gt; (&quot;volume&quot;, mempty, B.string8 &quot;{!join from=volume_id to=volume_id}&quot;)</span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="nottickedoff">SearchParties -&gt; (&quot;party&quot;, mempty, mempty)</span>
+<span class="lineno">   90 </span><span class="spaces">  </span><span class="nottickedoff">ql = maybe id ((:) . bp . (defaultParams &lt;&gt;) . TE.encodeUtf8Builder) searchString $</span>
+<span class="lineno">   91 </span><span class="spaces">    </span><span class="nottickedoff">map bt (searchFields ++ map (first metricField) searchMetrics)</span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="nottickedoff">bt (f, v)</span>
+<span class="lineno">   93 </span><span class="spaces">    </span><span class="nottickedoff">| checkField f &amp;&amp; checkTerm v = bp (TE.encodeUtf8Builder f &lt;&gt; B.string8 &quot;:(&quot; &lt;&gt; (if T.null v then B.char8 '*' else TE.encodeUtf8Builder v) &lt;&gt; B.char8 ')')</span>
+<span class="lineno">   94 </span><span class="spaces">    </span><span class="nottickedoff">| otherwise = bp (B.string8 &quot;{!dismax qf=&quot; &lt;&gt; quoteQuery escapeTextWith f &lt;&gt; B.char8 '}' &lt;&gt; TE.encodeUtf8Builder v)</span>
+<span class="lineno">   95 </span><span class="spaces">  </span><span class="nottickedoff">bp v = B.string8 &quot;_query_:&quot; &lt;&gt; quoteQuery escapeLazyByteStringCharsWith (B.toLazyByteString $ qe &lt;&gt; v)</span>
+<span class="lineno">   96 </span><span class="spaces">  </span><span class="nottickedoff">uw [] = B.string8 &quot;*:*&quot;</span>
+<span class="lineno">   97 </span><span class="spaces">  </span><span class="nottickedoff">uw (t:l) = t &lt;&gt; foldMap (B.char8 ' ' &lt;&gt;) l</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,499 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds, OverloadedStrings #-}
+<span class="lineno">    2 </span>module Model.Ingest
+<span class="lineno">    3 </span>  ( IngestKey
+<span class="lineno">    4 </span>  , lookupIngestContainer
+<span class="lineno">    5 </span>  , addIngestContainer
+<span class="lineno">    6 </span>  , lookupIngestRecord
+<span class="lineno">    7 </span>  , addIngestRecord
+<span class="lineno">    8 </span>  , lookupIngestAsset
+<span class="lineno">    9 </span>  , addIngestAsset
+<span class="lineno">   10 </span>  , replaceSlotAsset
+<span class="lineno">   11 </span>  , checkDetermineMapping
+<span class="lineno">   12 </span>  , attemptParseRows
+<span class="lineno">   13 </span>  , extractColumnsDistinctSampleJson
+<span class="lineno">   14 </span>  , extractColumnsInitialJson
+<span class="lineno">   15 </span>  , HeaderMappingEntry(..)
+<span class="lineno">   16 </span>  , participantFieldMappingToJSON
+<span class="lineno">   17 </span>  , parseParticipantFieldMapping
+<span class="lineno">   18 </span>  -- for testing:
+<span class="lineno">   19 </span>  , determineMapping
+<span class="lineno">   20 </span>  ) where
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>import Control.Monad (when)
+<span class="lineno">   23 </span>import qualified Data.ByteString as BS
+<span class="lineno">   24 </span>import qualified Data.Csv as Csv
+<span class="lineno">   25 </span>import Data.Csv hiding (Record)
+<span class="lineno">   26 </span>import qualified Data.List as L
+<span class="lineno">   27 </span>import qualified Data.Map as Map
+<span class="lineno">   28 </span>import qualified Data.Text as T
+<span class="lineno">   29 </span>import qualified Data.Text.Encoding as TE
+<span class="lineno">   30 </span>import Data.Text (Text)
+<span class="lineno">   31 </span>import Database.PostgreSQL.Typed.Query
+<span class="lineno">   32 </span>import Database.PostgreSQL.Typed.Types
+<span class="lineno">   33 </span>import qualified Data.ByteString
+<span class="lineno">   34 </span>import Data.ByteString (ByteString)
+<span class="lineno">   35 </span>import qualified Data.String
+<span class="lineno">   36 </span>import Data.Vector (Vector)
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>import Data.Csv.Contrib (extractColumnsDistinctSample, decodeCsvByNameWith, extractColumnsInitialRows)
+<span class="lineno">   39 </span>import Service.DB
+<span class="lineno">   40 </span>import qualified JSON as JSON
+<span class="lineno">   41 </span>import JSON (FromJSON(..), ToJSON(..))
+<span class="lineno">   42 </span>import Model.Volume.Types
+<span class="lineno">   43 </span>import Model.Container.Types
+<span class="lineno">   44 </span>import Model.Metric.Types
+<span class="lineno">   45 </span>import Model.Metric
+<span class="lineno">   46 </span>import qualified Model.Record.SQL
+<span class="lineno">   47 </span>import Model.Record.Types
+<span class="lineno">   48 </span>import Model.Record (columnSampleJson)
+<span class="lineno">   49 </span>import Model.Asset.Types
+<span class="lineno">   50 </span>import Model.Asset.SQL
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>type IngestKey = T.Text
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>mapQuery :: ByteString -&gt; ([PGValue] -&gt; a) -&gt; PGSimpleQuery a
+<span class="lineno">   55 </span><span class="decl"><span class="nottickedoff">mapQuery qry mkResult =</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">fmap mkResult (rawPGSimpleQuery qry)</span></span>
+<span class="lineno">   57 </span>
+<span class="lineno">   58 </span>lookupIngestContainer :: MonadDB c m =&gt; Volume -&gt; IngestKey -&gt; m (Maybe Container)
+<span class="lineno">   59 </span><span class="decl"><span class="nottickedoff">lookupIngestContainer vol k = do</span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a6Dpp = unknownPGTypeEnv</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 $ fmap ($ vol) -- .(selectQuery selectVolumeContainer &quot;JOIN ingest.container AS ingest USING (id, volume) WHERE ingest.key = ${k} AND container.volume = ${volumeId $ volumeRow vol}&quot;)</span>
+<span class="lineno">   62 </span><span class="spaces">    </span><span class="nottickedoff">(fmap</span>
+<span class="lineno">   63 </span><span class="spaces">      </span><span class="nottickedoff">(\ (vid_a6Dph, vtop_a6Dpi, vname_a6Dpj, vdate_a6Dpk,</span>
+<span class="lineno">   64 </span><span class="spaces">          </span><span class="nottickedoff">vrelease_a6Dpl)</span>
+<span class="lineno">   65 </span><span class="spaces">         </span><span class="nottickedoff">-&gt; Container</span>
+<span class="lineno">   66 </span><span class="spaces">              </span><span class="nottickedoff">(ContainerRow vid_a6Dph vtop_a6Dpi vname_a6Dpj vdate_a6Dpk)</span>
+<span class="lineno">   67 </span><span class="spaces">              </span><span class="nottickedoff">vrelease_a6Dpl)</span>
+<span class="lineno">   68 </span><span class="spaces">      </span><span class="nottickedoff">(mapQuery</span>
+<span class="lineno">   69 </span><span class="spaces">        </span><span class="nottickedoff">((\ _p_a6Dpq _p_a6Dpr -&gt; </span>
+<span class="lineno">   70 </span><span class="spaces">                       </span><span class="nottickedoff">(Data.ByteString.concat</span>
+<span class="lineno">   71 </span><span class="spaces">                          </span><span class="nottickedoff">[Data.String.fromString</span>
+<span class="lineno">   72 </span><span class="spaces">                             </span><span class="nottickedoff">&quot;SELECT container.id,container.top,container.name,container.date,slot_release.release FROM container LEFT JOIN slot_release ON container.id = slot_release.container AND slot_release.segment = '(,)' JOIN ingest.container AS ingest USING (id, volume) WHERE ingest.key = &quot;,</span>
+<span class="lineno">   73 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">   74 </span><span class="spaces">                             </span><span class="nottickedoff">_tenv_a6Dpp</span>
+<span class="lineno">   75 </span><span class="spaces">                             </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">   76 </span><span class="spaces">                                </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
+<span class="lineno">   77 </span><span class="spaces">                             </span><span class="nottickedoff">_p_a6Dpq,</span>
+<span class="lineno">   78 </span><span class="spaces">                           </span><span class="nottickedoff">Data.String.fromString &quot; AND container.volume = &quot;,</span>
+<span class="lineno">   79 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">   80 </span><span class="spaces">                             </span><span class="nottickedoff">_tenv_a6Dpp</span>
+<span class="lineno">   81 </span><span class="spaces">                             </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">   82 </span><span class="spaces">                                </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">   83 </span><span class="spaces">                             </span><span class="nottickedoff">_p_a6Dpr]))</span>
+<span class="lineno">   84 </span><span class="spaces">         </span><span class="nottickedoff">k (volumeId $ volumeRow vol))</span>
+<span class="lineno">   85 </span><span class="spaces">               </span><span class="nottickedoff">(\ [_cid_a6Dps,</span>
+<span class="lineno">   86 </span><span class="spaces">                   </span><span class="nottickedoff">_ctop_a6Dpt,</span>
+<span class="lineno">   87 </span><span class="spaces">                   </span><span class="nottickedoff">_cname_a6Dpu,</span>
+<span class="lineno">   88 </span><span class="spaces">                   </span><span class="nottickedoff">_cdate_a6Dpv,</span>
+<span class="lineno">   89 </span><span class="spaces">                   </span><span class="nottickedoff">_crelease_a6Dpw]</span>
+<span class="lineno">   90 </span><span class="spaces">                  </span><span class="nottickedoff">-&gt; (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">   91 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6Dpp</span>
+<span class="lineno">   92 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">   93 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">   94 </span><span class="spaces">                        </span><span class="nottickedoff">_cid_a6Dps, </span>
+<span class="lineno">   95 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">   96 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6Dpp</span>
+<span class="lineno">   97 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">   98 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;boolean&quot;)</span>
+<span class="lineno">   99 </span><span class="spaces">                        </span><span class="nottickedoff">_ctop_a6Dpt, </span>
+<span class="lineno">  100 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  101 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6Dpp</span>
+<span class="lineno">  102 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  103 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
+<span class="lineno">  104 </span><span class="spaces">                        </span><span class="nottickedoff">_cname_a6Dpu, </span>
+<span class="lineno">  105 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  106 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6Dpp</span>
+<span class="lineno">  107 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  108 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;date&quot;)</span>
+<span class="lineno">  109 </span><span class="spaces">                        </span><span class="nottickedoff">_cdate_a6Dpv, </span>
+<span class="lineno">  110 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  111 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6Dpp</span>
+<span class="lineno">  112 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  113 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;release&quot;)</span>
+<span class="lineno">  114 </span><span class="spaces">                        </span><span class="nottickedoff">_crelease_a6Dpw))))</span></span>
+<span class="lineno">  115 </span>
+<span class="lineno">  116 </span>addIngestContainer :: MonadDB c m =&gt; Container -&gt; IngestKey -&gt; m ()
+<span class="lineno">  117 </span><span class="decl"><span class="nottickedoff">addIngestContainer c k = do</span>
+<span class="lineno">  118 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a6Dvh = unknownPGTypeEnv</span>
+<span class="lineno">  119 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute1' -- [pgSQL|INSERT INTO ingest.container (id, volume, key) VALUES (${containerId $ containerRow c}, ${volumeId $ volumeRow $ containerVolume c}, ${k})|]</span>
+<span class="lineno">  120 </span><span class="spaces">   </span><span class="nottickedoff">(mapQuery</span>
+<span class="lineno">  121 </span><span class="spaces">    </span><span class="nottickedoff">((\ _p_a6Dvi _p_a6Dvj _p_a6Dvk -&gt;</span>
+<span class="lineno">  122 </span><span class="spaces">                    </span><span class="nottickedoff">(Data.ByteString.concat</span>
+<span class="lineno">  123 </span><span class="spaces">                       </span><span class="nottickedoff">[Data.String.fromString</span>
+<span class="lineno">  124 </span><span class="spaces">                          </span><span class="nottickedoff">&quot;INSERT INTO ingest.container (id, volume, key) VALUES (&quot;,</span>
+<span class="lineno">  125 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  126 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a6Dvh</span>
+<span class="lineno">  127 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  128 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  129 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a6Dvi,</span>
+<span class="lineno">  130 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot;, &quot;,</span>
+<span class="lineno">  131 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  132 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a6Dvh</span>
+<span class="lineno">  133 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  134 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  135 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a6Dvj,</span>
+<span class="lineno">  136 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot;, &quot;,</span>
+<span class="lineno">  137 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  138 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a6Dvh</span>
+<span class="lineno">  139 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  140 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
+<span class="lineno">  141 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a6Dvk,</span>
+<span class="lineno">  142 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot;)&quot;]))</span>
+<span class="lineno">  143 </span><span class="spaces">      </span><span class="nottickedoff">(containerId $ containerRow c)</span>
+<span class="lineno">  144 </span><span class="spaces">      </span><span class="nottickedoff">(volumeId $ volumeRow $ containerVolume c)</span>
+<span class="lineno">  145 </span><span class="spaces">      </span><span class="nottickedoff">k)</span>
+<span class="lineno">  146 </span><span class="spaces">            </span><span class="nottickedoff">(\ [] -&gt; ()))</span></span>
+<span class="lineno">  147 </span>
+<span class="lineno">  148 </span>lookupIngestRecord :: MonadDB c m =&gt; Volume -&gt; IngestKey -&gt; m (Maybe Record)
+<span class="lineno">  149 </span><span class="decl"><span class="nottickedoff">lookupIngestRecord vol k = do</span>
+<span class="lineno">  150 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a6GtF = unknownPGTypeEnv</span>
+<span class="lineno">  151 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 $ fmap ($ vol) -- .(selectQuery selectVolumeRecord &quot;JOIN ingest.record AS ingest USING (id, volume) WHERE ingest.key = ${k} AND record.volume = ${volumeId $ volumeRow vol}&quot;)</span>
+<span class="lineno">  152 </span><span class="spaces">    </span><span class="nottickedoff">(fmap</span>
+<span class="lineno">  153 </span><span class="spaces">      </span><span class="nottickedoff">(\ (vid_a6GtB, vcategory_a6GtC, vmeasures_a6GtD, vc_a6GtE)</span>
+<span class="lineno">  154 </span><span class="spaces">         </span><span class="nottickedoff">-&gt; ($)</span>
+<span class="lineno">  155 </span><span class="spaces">              </span><span class="nottickedoff">(Model.Record.SQL.makeRecord</span>
+<span class="lineno">  156 </span><span class="spaces">                 </span><span class="nottickedoff">vid_a6GtB vcategory_a6GtC vmeasures_a6GtD)</span>
+<span class="lineno">  157 </span><span class="spaces">              </span><span class="nottickedoff">vc_a6GtE)</span>
+<span class="lineno">  158 </span><span class="spaces">     </span><span class="nottickedoff">(mapQuery</span>
+<span class="lineno">  159 </span><span class="spaces">      </span><span class="nottickedoff">((\ _p_a6GtG _p_a6GtH -&gt;</span>
+<span class="lineno">  160 </span><span class="spaces">                       </span><span class="nottickedoff">(Data.ByteString.concat</span>
+<span class="lineno">  161 </span><span class="spaces">                          </span><span class="nottickedoff">[Data.String.fromString</span>
+<span class="lineno">  162 </span><span class="spaces">                             </span><span class="nottickedoff">&quot;SELECT record.id,record.category,record.measures,record_release(record.id) FROM record_measures AS record JOIN ingest.record AS ingest USING (id, volume) WHERE ingest.key = &quot;,</span>
+<span class="lineno">  163 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  164 </span><span class="spaces">                             </span><span class="nottickedoff">_tenv_a6GtF</span>
+<span class="lineno">  165 </span><span class="spaces">                             </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  166 </span><span class="spaces">                                </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
+<span class="lineno">  167 </span><span class="spaces">                             </span><span class="nottickedoff">_p_a6GtG,</span>
+<span class="lineno">  168 </span><span class="spaces">                           </span><span class="nottickedoff">Data.String.fromString &quot; AND record.volume = &quot;,</span>
+<span class="lineno">  169 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  170 </span><span class="spaces">                             </span><span class="nottickedoff">_tenv_a6GtF</span>
+<span class="lineno">  171 </span><span class="spaces">                             </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  172 </span><span class="spaces">                                </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  173 </span><span class="spaces">                             </span><span class="nottickedoff">_p_a6GtH]))</span>
+<span class="lineno">  174 </span><span class="spaces">         </span><span class="nottickedoff">k (volumeId $ volumeRow vol))</span>
+<span class="lineno">  175 </span><span class="spaces">               </span><span class="nottickedoff">(\ [_cid_a6GtI,</span>
+<span class="lineno">  176 </span><span class="spaces">                   </span><span class="nottickedoff">_ccategory_a6GtJ,</span>
+<span class="lineno">  177 </span><span class="spaces">                   </span><span class="nottickedoff">_cmeasures_a6GtK,</span>
+<span class="lineno">  178 </span><span class="spaces">                   </span><span class="nottickedoff">_crecord_release_a6GtL]</span>
+<span class="lineno">  179 </span><span class="spaces">                  </span><span class="nottickedoff">-&gt; (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  180 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6GtF</span>
+<span class="lineno">  181 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  182 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  183 </span><span class="spaces">                        </span><span class="nottickedoff">_cid_a6GtI, </span>
+<span class="lineno">  184 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  185 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6GtF</span>
+<span class="lineno">  186 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  187 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;smallint&quot;)</span>
+<span class="lineno">  188 </span><span class="spaces">                        </span><span class="nottickedoff">_ccategory_a6GtJ, </span>
+<span class="lineno">  189 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  190 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6GtF</span>
+<span class="lineno">  191 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  192 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text[]&quot;)</span>
+<span class="lineno">  193 </span><span class="spaces">                        </span><span class="nottickedoff">_cmeasures_a6GtK, </span>
+<span class="lineno">  194 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  195 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6GtF</span>
+<span class="lineno">  196 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  197 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;release&quot;)</span>
+<span class="lineno">  198 </span><span class="spaces">                        </span><span class="nottickedoff">_crecord_release_a6GtL))))</span></span>
+<span class="lineno">  199 </span>
+<span class="lineno">  200 </span>addIngestRecord :: MonadDB c m =&gt; Record -&gt; IngestKey -&gt; m ()
+<span class="lineno">  201 </span><span class="decl"><span class="nottickedoff">addIngestRecord r k = do</span>
+<span class="lineno">  202 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a6PCz = unknownPGTypeEnv</span>
+<span class="lineno">  203 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute1' -- [pgSQL|INSERT INTO ingest.record (id, volume, key) VALUES (${recordId $ recordRow r}, ${volumeId $ volumeRow $ recordVolume r}, ${k})|]</span>
+<span class="lineno">  204 </span><span class="spaces">   </span><span class="nottickedoff">(mapQuery</span>
+<span class="lineno">  205 </span><span class="spaces">    </span><span class="nottickedoff">((\ _p_a6PCA _p_a6PCB _p_a6PCC -&gt;</span>
+<span class="lineno">  206 </span><span class="spaces">                    </span><span class="nottickedoff">(Data.ByteString.concat</span>
+<span class="lineno">  207 </span><span class="spaces">                       </span><span class="nottickedoff">[Data.String.fromString</span>
+<span class="lineno">  208 </span><span class="spaces">                          </span><span class="nottickedoff">&quot;INSERT INTO ingest.record (id, volume, key) VALUES (&quot;,</span>
+<span class="lineno">  209 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  210 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a6PCz</span>
+<span class="lineno">  211 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  212 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  213 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a6PCA,</span>
+<span class="lineno">  214 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot;, &quot;,</span>
+<span class="lineno">  215 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  216 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a6PCz</span>
+<span class="lineno">  217 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  218 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  219 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a6PCB,</span>
+<span class="lineno">  220 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot;, &quot;,</span>
+<span class="lineno">  221 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  222 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a6PCz</span>
+<span class="lineno">  223 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  224 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
+<span class="lineno">  225 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a6PCC,</span>
+<span class="lineno">  226 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot;)&quot;]))</span>
+<span class="lineno">  227 </span><span class="spaces">      </span><span class="nottickedoff">(recordId $ recordRow r) (volumeId $ volumeRow $ recordVolume r) k)</span>
+<span class="lineno">  228 </span><span class="spaces">            </span><span class="nottickedoff">(\ [] -&gt; ()))</span></span>
+<span class="lineno">  229 </span>
+<span class="lineno">  230 </span>lookupIngestAsset :: MonadDB c m =&gt; Volume -&gt; FilePath -&gt; m (Maybe Asset)
+<span class="lineno">  231 </span><span class="decl"><span class="nottickedoff">lookupIngestAsset vol k = do</span>
+<span class="lineno">  232 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a6PDv = unknownPGTypeEnv</span>
+<span class="lineno">  233 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 $ fmap (`Asset` vol) -- .(selectQuery selectAssetRow &quot;JOIN ingest.asset AS ingest USING (id) WHERE ingest.file = ${k} AND asset.volume = ${volumeId $ volumeRow vol}&quot;)</span>
+<span class="lineno">  234 </span><span class="spaces">    </span><span class="nottickedoff">(fmap</span>
+<span class="lineno">  235 </span><span class="spaces">      </span><span class="nottickedoff">(\ (vid_a6PDo, vformat_a6PDp, vrelease_a6PDq, vduration_a6PDr,</span>
+<span class="lineno">  236 </span><span class="spaces">          </span><span class="nottickedoff">vname_a6PDs, vc_a6PDt, vsize_a6PDu)</span>
+<span class="lineno">  237 </span><span class="spaces">         </span><span class="nottickedoff">-&gt; Model.Asset.SQL.makeAssetRow</span>
+<span class="lineno">  238 </span><span class="spaces">              </span><span class="nottickedoff">vid_a6PDo</span>
+<span class="lineno">  239 </span><span class="spaces">              </span><span class="nottickedoff">vformat_a6PDp</span>
+<span class="lineno">  240 </span><span class="spaces">              </span><span class="nottickedoff">vrelease_a6PDq</span>
+<span class="lineno">  241 </span><span class="spaces">              </span><span class="nottickedoff">vduration_a6PDr</span>
+<span class="lineno">  242 </span><span class="spaces">              </span><span class="nottickedoff">vname_a6PDs</span>
+<span class="lineno">  243 </span><span class="spaces">              </span><span class="nottickedoff">vc_a6PDt</span>
+<span class="lineno">  244 </span><span class="spaces">              </span><span class="nottickedoff">vsize_a6PDu)</span>
+<span class="lineno">  245 </span><span class="spaces">     </span><span class="nottickedoff">(mapQuery</span>
+<span class="lineno">  246 </span><span class="spaces">      </span><span class="nottickedoff">((\ _p_a6PDw _p_a6PDx -&gt;</span>
+<span class="lineno">  247 </span><span class="spaces">                       </span><span class="nottickedoff">(Data.ByteString.concat</span>
+<span class="lineno">  248 </span><span class="spaces">                          </span><span class="nottickedoff">[Data.String.fromString</span>
+<span class="lineno">  249 </span><span class="spaces">                             </span><span class="nottickedoff">&quot;SELECT asset.id,asset.format,asset.release,asset.duration,asset.name,asset.sha1,asset.size FROM asset JOIN ingest.asset AS ingest USING (id) WHERE ingest.file = &quot;,</span>
+<span class="lineno">  250 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  251 </span><span class="spaces">                             </span><span class="nottickedoff">_tenv_a6PDv</span>
+<span class="lineno">  252 </span><span class="spaces">                             </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  253 </span><span class="spaces">                                </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
+<span class="lineno">  254 </span><span class="spaces">                             </span><span class="nottickedoff">_p_a6PDw,</span>
+<span class="lineno">  255 </span><span class="spaces">                           </span><span class="nottickedoff">Data.String.fromString &quot; AND asset.volume = &quot;,</span>
+<span class="lineno">  256 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  257 </span><span class="spaces">                             </span><span class="nottickedoff">_tenv_a6PDv</span>
+<span class="lineno">  258 </span><span class="spaces">                             </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  259 </span><span class="spaces">                                </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  260 </span><span class="spaces">                             </span><span class="nottickedoff">_p_a6PDx]))</span>
+<span class="lineno">  261 </span><span class="spaces">         </span><span class="nottickedoff">k (volumeId $ volumeRow vol))</span>
+<span class="lineno">  262 </span><span class="spaces">               </span><span class="nottickedoff">(\ [_cid_a6PDy,</span>
+<span class="lineno">  263 </span><span class="spaces">                   </span><span class="nottickedoff">_cformat_a6PDz,</span>
+<span class="lineno">  264 </span><span class="spaces">                   </span><span class="nottickedoff">_crelease_a6PDA,</span>
+<span class="lineno">  265 </span><span class="spaces">                   </span><span class="nottickedoff">_cduration_a6PDB,</span>
+<span class="lineno">  266 </span><span class="spaces">                   </span><span class="nottickedoff">_cname_a6PDC,</span>
+<span class="lineno">  267 </span><span class="spaces">                   </span><span class="nottickedoff">_csha1_a6PDD,</span>
+<span class="lineno">  268 </span><span class="spaces">                   </span><span class="nottickedoff">_csize_a6PDE]</span>
+<span class="lineno">  269 </span><span class="spaces">                  </span><span class="nottickedoff">-&gt; (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  270 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6PDv</span>
+<span class="lineno">  271 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  272 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  273 </span><span class="spaces">                        </span><span class="nottickedoff">_cid_a6PDy, </span>
+<span class="lineno">  274 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  275 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6PDv</span>
+<span class="lineno">  276 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  277 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;smallint&quot;)</span>
+<span class="lineno">  278 </span><span class="spaces">                        </span><span class="nottickedoff">_cformat_a6PDz, </span>
+<span class="lineno">  279 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  280 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6PDv</span>
+<span class="lineno">  281 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  282 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;release&quot;)</span>
+<span class="lineno">  283 </span><span class="spaces">                        </span><span class="nottickedoff">_crelease_a6PDA, </span>
+<span class="lineno">  284 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  285 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6PDv</span>
+<span class="lineno">  286 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  287 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;interval&quot;)</span>
+<span class="lineno">  288 </span><span class="spaces">                        </span><span class="nottickedoff">_cduration_a6PDB, </span>
+<span class="lineno">  289 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  290 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6PDv</span>
+<span class="lineno">  291 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  292 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
+<span class="lineno">  293 </span><span class="spaces">                        </span><span class="nottickedoff">_cname_a6PDC, </span>
+<span class="lineno">  294 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  295 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6PDv</span>
+<span class="lineno">  296 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  297 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;bytea&quot;)</span>
+<span class="lineno">  298 </span><span class="spaces">                        </span><span class="nottickedoff">_csha1_a6PDD, </span>
+<span class="lineno">  299 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  300 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6PDv</span>
+<span class="lineno">  301 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  302 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;bigint&quot;)</span>
+<span class="lineno">  303 </span><span class="spaces">                        </span><span class="nottickedoff">_csize_a6PDE))))</span></span>
+<span class="lineno">  304 </span>
+<span class="lineno">  305 </span>addIngestAsset :: MonadDB c m =&gt; Asset -&gt; FilePath -&gt; m ()
+<span class="lineno">  306 </span><span class="decl"><span class="nottickedoff">addIngestAsset r k = do</span>
+<span class="lineno">  307 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a6PFc = unknownPGTypeEnv</span>
+<span class="lineno">  308 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute1' -- [pgSQL|INSERT INTO ingest.asset (id, file) VALUES (${assetId $ assetRow r}, ${k})|]</span>
+<span class="lineno">  309 </span><span class="spaces">   </span><span class="nottickedoff">(mapQuery</span>
+<span class="lineno">  310 </span><span class="spaces">    </span><span class="nottickedoff">((\ _p_a6PFd _p_a6PFe -&gt;</span>
+<span class="lineno">  311 </span><span class="spaces">                    </span><span class="nottickedoff">(Data.ByteString.concat</span>
+<span class="lineno">  312 </span><span class="spaces">                       </span><span class="nottickedoff">[Data.String.fromString</span>
+<span class="lineno">  313 </span><span class="spaces">                          </span><span class="nottickedoff">&quot;INSERT INTO ingest.asset (id, file) VALUES (&quot;,</span>
+<span class="lineno">  314 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  315 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a6PFc</span>
+<span class="lineno">  316 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  317 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  318 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a6PFd,</span>
+<span class="lineno">  319 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot;, &quot;,</span>
+<span class="lineno">  320 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  321 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a6PFc</span>
+<span class="lineno">  322 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  323 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
+<span class="lineno">  324 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a6PFe,</span>
+<span class="lineno">  325 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot;)&quot;]))</span>
+<span class="lineno">  326 </span><span class="spaces">      </span><span class="nottickedoff">(assetId $ assetRow r) k)</span>
+<span class="lineno">  327 </span><span class="spaces">            </span><span class="nottickedoff">(\ [] -&gt; ()))</span></span>
+<span class="lineno">  328 </span>
+<span class="lineno">  329 </span>replaceSlotAsset :: MonadDB c m =&gt; Asset -&gt; Asset -&gt; m Bool
+<span class="lineno">  330 </span><span class="decl"><span class="nottickedoff">replaceSlotAsset o n = do</span>
+<span class="lineno">  331 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a6PFB = unknownPGTypeEnv</span>
+<span class="lineno">  332 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute1 -- [pgSQL|UPDATE slot_asset SET asset = ${assetId $ assetRow n} WHERE asset = ${assetId $ assetRow o}|]</span>
+<span class="lineno">  333 </span><span class="spaces">   </span><span class="nottickedoff">(mapQuery</span>
+<span class="lineno">  334 </span><span class="spaces">    </span><span class="nottickedoff">((\ _p_a6PFC _p_a6PFD -&gt;</span>
+<span class="lineno">  335 </span><span class="spaces">                    </span><span class="nottickedoff">(Data.ByteString.concat</span>
+<span class="lineno">  336 </span><span class="spaces">                       </span><span class="nottickedoff">[Data.String.fromString &quot;UPDATE slot_asset SET asset = &quot;,</span>
+<span class="lineno">  337 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  338 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a6PFB</span>
+<span class="lineno">  339 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  340 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  341 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a6PFC,</span>
+<span class="lineno">  342 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot; WHERE asset = &quot;,</span>
+<span class="lineno">  343 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  344 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a6PFB</span>
+<span class="lineno">  345 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  346 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  347 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a6PFD]))</span>
+<span class="lineno">  348 </span><span class="spaces">      </span><span class="nottickedoff">(assetId $ assetRow n) (assetId $ assetRow o))</span>
+<span class="lineno">  349 </span><span class="spaces">            </span><span class="nottickedoff">(\ [] -&gt; ()))</span></span>
+<span class="lineno">  350 </span>
+<span class="lineno">  351 </span>checkDetermineMapping :: [Metric] -&gt; [Text] -&gt; BS.ByteString -&gt; Either String ParticipantFieldMapping2
+<span class="lineno">  352 </span><span class="decl"><span class="nottickedoff">checkDetermineMapping participantActiveMetrics csvHeaders csvContents = do</span>
+<span class="lineno">  353 </span><span class="spaces">    </span><span class="nottickedoff">-- return skipped columns or not?</span>
+<span class="lineno">  354 </span><span class="spaces">    </span><span class="nottickedoff">mpng &lt;- determineMapping participantActiveMetrics csvHeaders</span>
+<span class="lineno">  355 </span><span class="spaces">    </span><span class="nottickedoff">_ &lt;- attemptParseRows mpng csvContents</span>
+<span class="lineno">  356 </span><span class="spaces">    </span><span class="nottickedoff">pure mpng</span></span>
+<span class="lineno">  357 </span>
+<span class="lineno">  358 </span>attemptParseRows
+<span class="lineno">  359 </span>    :: ParticipantFieldMapping2 -&gt; BS.ByteString -&gt; Either String (Csv.Header, Vector ParticipantRecord)
+<span class="lineno">  360 </span><span class="decl"><span class="istickedoff">attemptParseRows participantFieldMapping contents =</span>
+<span class="lineno">  361 </span><span class="spaces">    </span><span class="istickedoff">decodeCsvByNameWith (participantRecordParseNamedRecord participantFieldMapping) contents</span></span>
+<span class="lineno">  362 </span>
+<span class="lineno">  363 </span>participantRecordParseNamedRecord :: ParticipantFieldMapping2 -&gt; Csv.NamedRecord -&gt; Parser ParticipantRecord
+<span class="lineno">  364 </span><span class="decl"><span class="istickedoff">participantRecordParseNamedRecord fieldMap m = do</span>
+<span class="lineno">  365 </span><span class="spaces">    </span><span class="istickedoff">mId &lt;- extractIfUsed2 (lookupField participantMetricId) validateParticipantId</span>
+<span class="lineno">  366 </span><span class="spaces">    </span><span class="istickedoff">mInfo &lt;- extractIfUsed2 (lookupField participantMetricInfo) validateParticipantInfo</span>
+<span class="lineno">  367 </span><span class="spaces">    </span><span class="istickedoff">mDescription &lt;- extractIfUsed2 (lookupField participantMetricDescription) validateParticipantDescription</span>
+<span class="lineno">  368 </span><span class="spaces">    </span><span class="istickedoff">mBirthdate &lt;- extractIfUsed2 (lookupField participantMetricBirthdate) validateParticipantBirthdate</span>
+<span class="lineno">  369 </span><span class="spaces">    </span><span class="istickedoff">mGender &lt;- extractIfUsed2 (lookupField participantMetricGender) validateParticipantGender</span>
+<span class="lineno">  370 </span><span class="spaces">    </span><span class="istickedoff">mRace &lt;- extractIfUsed2 (lookupField participantMetricRace) validateParticipantRace</span>
+<span class="lineno">  371 </span><span class="spaces">    </span><span class="istickedoff">mEthnicity &lt;- extractIfUsed2 (lookupField participantMetricEthnicity) validateParticipantEthnicity</span>
+<span class="lineno">  372 </span><span class="spaces">    </span><span class="istickedoff">mGestationalAge &lt;- extractIfUsed2 (lookupField participantMetricGestationalAge) validateParticipantGestationalAge</span>
+<span class="lineno">  373 </span><span class="spaces">    </span><span class="istickedoff">mPregnancyTerm &lt;- extractIfUsed2 (lookupField participantMetricPregnancyTerm) validateParticipantPregnancyTerm</span>
+<span class="lineno">  374 </span><span class="spaces">    </span><span class="istickedoff">mBirthWeight &lt;- extractIfUsed2 (lookupField participantMetricBirthWeight) validateParticipantBirthWeight</span>
+<span class="lineno">  375 </span><span class="spaces">    </span><span class="istickedoff">mDisability &lt;- extractIfUsed2 (lookupField participantMetricDisability) validateParticipantDisability</span>
+<span class="lineno">  376 </span><span class="spaces">    </span><span class="istickedoff">mLanguage &lt;- extractIfUsed2 (lookupField participantMetricLanguage) validateParticipantLanguage</span>
+<span class="lineno">  377 </span><span class="spaces">    </span><span class="istickedoff">mCountry &lt;- extractIfUsed2 (lookupField participantMetricCountry) validateParticipantCountry</span>
+<span class="lineno">  378 </span><span class="spaces">    </span><span class="istickedoff">mState &lt;- extractIfUsed2 (lookupField participantMetricState) validateParticipantState</span>
+<span class="lineno">  379 </span><span class="spaces">    </span><span class="istickedoff">mSetting &lt;- extractIfUsed2 (lookupField participantMetricSetting) validateParticipantSetting</span>
+<span class="lineno">  380 </span><span class="spaces">    </span><span class="istickedoff">pure</span>
+<span class="lineno">  381 </span><span class="spaces">        </span><span class="istickedoff">(ParticipantRecord</span>
+<span class="lineno">  382 </span><span class="spaces">            </span><span class="istickedoff">{ prdId = mId</span>
+<span class="lineno">  383 </span><span class="spaces">            </span><span class="istickedoff">, prdInfo = mInfo</span>
+<span class="lineno">  384 </span><span class="spaces">            </span><span class="istickedoff">, prdDescription = mDescription</span>
+<span class="lineno">  385 </span><span class="spaces">            </span><span class="istickedoff">, prdBirthdate = mBirthdate</span>
+<span class="lineno">  386 </span><span class="spaces">            </span><span class="istickedoff">, prdGender = mGender</span>
+<span class="lineno">  387 </span><span class="spaces">            </span><span class="istickedoff">, prdRace = mRace</span>
+<span class="lineno">  388 </span><span class="spaces">            </span><span class="istickedoff">, prdEthnicity = mEthnicity</span>
+<span class="lineno">  389 </span><span class="spaces">            </span><span class="istickedoff">, prdGestationalAge = mGestationalAge</span>
+<span class="lineno">  390 </span><span class="spaces">            </span><span class="istickedoff">, prdPregnancyTerm = mPregnancyTerm</span>
+<span class="lineno">  391 </span><span class="spaces">            </span><span class="istickedoff">, prdBirthWeight = mBirthWeight</span>
+<span class="lineno">  392 </span><span class="spaces">            </span><span class="istickedoff">, prdDisability = mDisability</span>
+<span class="lineno">  393 </span><span class="spaces">            </span><span class="istickedoff">, prdLanguage = mLanguage</span>
+<span class="lineno">  394 </span><span class="spaces">            </span><span class="istickedoff">, prdCountry = mCountry</span>
+<span class="lineno">  395 </span><span class="spaces">            </span><span class="istickedoff">, prdState = mState</span>
+<span class="lineno">  396 </span><span class="spaces">            </span><span class="istickedoff">, prdSetting = mSetting</span>
+<span class="lineno">  397 </span><span class="spaces">            </span><span class="istickedoff">} )</span>
+<span class="lineno">  398 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  399 </span><span class="spaces">    </span><span class="istickedoff">extractIfUsed2</span>
+<span class="lineno">  400 </span><span class="spaces">      </span><span class="istickedoff">:: (ParticipantFieldMapping2 -&gt; Maybe Text)</span>
+<span class="lineno">  401 </span><span class="spaces">      </span><span class="istickedoff">-&gt; (BS.ByteString -&gt; Maybe (Maybe a))</span>
+<span class="lineno">  402 </span><span class="spaces">      </span><span class="istickedoff">-&gt; Parser (FieldUse a)</span>
+<span class="lineno">  403 </span><span class="spaces">    </span><span class="istickedoff">extractIfUsed2 maybeGetField validateValue = do</span>
+<span class="lineno">  404 </span><span class="spaces">        </span><span class="istickedoff">case maybeGetField fieldMap of</span>
+<span class="lineno">  405 </span><span class="spaces">            </span><span class="istickedoff">Just colName -&gt; do</span>
+<span class="lineno">  406 </span><span class="spaces">                </span><span class="istickedoff">contents &lt;- m .: (TE.encodeUtf8 colName)</span>
+<span class="lineno">  407 </span><span class="spaces">                </span><span class="istickedoff">maybe</span>
+<span class="lineno">  408 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">(fail (&quot;invalid value for &quot; ++ show colName ++ &quot;, found &quot; ++ show contents))</span></span>
+<span class="lineno">  409 </span><span class="spaces">                    </span><span class="istickedoff">(\mV -&gt; pure (maybe FieldEmpty (Field contents) mV))</span>
+<span class="lineno">  410 </span><span class="spaces">                    </span><span class="istickedoff">(validateValue contents)</span>
+<span class="lineno">  411 </span><span class="spaces">            </span><span class="istickedoff">Nothing -&gt; pure FieldUnused</span></span>
+<span class="lineno">  412 </span>    
+<span class="lineno">  413 </span>
+<span class="lineno">  414 </span>-- verify that all expected columns are present, with some leniency in matching
+<span class="lineno">  415 </span>-- left if no match possible
+<span class="lineno">  416 </span>determineMapping :: [Metric] -&gt; [Text] -&gt; Either String ParticipantFieldMapping2
+<span class="lineno">  417 </span><span class="decl"><span class="istickedoff">determineMapping participantActiveMetrics csvHeaders = do</span>
+<span class="lineno">  418 </span><span class="spaces">    </span><span class="istickedoff">(columnMatches :: [Text]) &lt;- traverse (detectMetricMatch csvHeaders) participantActiveMetrics</span>
+<span class="lineno">  419 </span><span class="spaces">    </span><span class="istickedoff">mkParticipantFieldMapping2 (zip participantActiveMetrics columnMatches)</span>
+<span class="lineno">  420 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  421 </span><span class="spaces">    </span><span class="istickedoff">detectMetricMatch :: [Text] -&gt; Metric -&gt; Either String Text</span>
+<span class="lineno">  422 </span><span class="spaces">    </span><span class="istickedoff">detectMetricMatch hdrs metric =</span>
+<span class="lineno">  423 </span><span class="spaces">        </span><span class="istickedoff">case L.find (\h -&gt; columnMetricCompatible h metric) hdrs of</span>
+<span class="lineno">  424 </span><span class="spaces">            </span><span class="istickedoff">Just hdr -&gt; Right hdr</span>
+<span class="lineno">  425 </span><span class="spaces">            </span><span class="istickedoff">Nothing -&gt; Left <span class="nottickedoff">(&quot;no compatible header found for metric: &quot; ++ (show . metricName) metric)</span></span></span>
+<span class="lineno">  426 </span>
+<span class="lineno">  427 </span>columnMetricCompatible :: Text -&gt; Metric -&gt; Bool
+<span class="lineno">  428 </span><span class="decl"><span class="istickedoff">columnMetricCompatible hdr metric =</span>
+<span class="lineno">  429 </span><span class="spaces">    </span><span class="istickedoff">(T.filter (/= ' ') . T.toLower . metricName) metric == T.toLower hdr</span></span>
+<span class="lineno">  430 </span>
+<span class="lineno">  431 </span>extractColumnsDistinctSampleJson :: Int -&gt; Csv.Header -&gt; Vector Csv.NamedRecord -&gt; [JSON.Value]
+<span class="lineno">  432 </span><span class="decl"><span class="nottickedoff">extractColumnsDistinctSampleJson maxSamples hdrs records =</span>
+<span class="lineno">  433 </span><span class="spaces">    </span><span class="nottickedoff">( fmap (\(colHdr, vals) -&gt; columnSampleJson colHdr vals)</span>
+<span class="lineno">  434 </span><span class="spaces">    </span><span class="nottickedoff">. extractColumnsDistinctSample maxSamples hdrs)</span>
+<span class="lineno">  435 </span><span class="spaces">    </span><span class="nottickedoff">records</span></span>
+<span class="lineno">  436 </span>
+<span class="lineno">  437 </span>extractColumnsInitialJson :: Int -&gt; Csv.Header -&gt; Vector Csv.NamedRecord -&gt; [JSON.Value]
+<span class="lineno">  438 </span><span class="decl"><span class="nottickedoff">extractColumnsInitialJson maxRows hdrs records =</span>
+<span class="lineno">  439 </span><span class="spaces">    </span><span class="nottickedoff">( fmap (\(colHdr, vals) -&gt; columnSampleJson colHdr vals)</span>
+<span class="lineno">  440 </span><span class="spaces">    </span><span class="nottickedoff">. extractColumnsInitialRows maxRows hdrs )</span>
+<span class="lineno">  441 </span><span class="spaces">    </span><span class="nottickedoff">records</span></span>
+<span class="lineno">  442 </span>
+<span class="lineno">  443 </span>data HeaderMappingEntry =
+<span class="lineno">  444 </span>    HeaderMappingEntry {
+<span class="lineno">  445 </span>          <span class="istickedoff"><span class="decl"><span class="istickedoff">hmeCsvField</span></span></span> :: Text
+<span class="lineno">  446 </span>        , <span class="istickedoff"><span class="decl"><span class="istickedoff">hmeMetric</span></span></span> :: Metric -- only participant metrics
+<span class="lineno">  447 </span>    } deriving ({- Show, -} <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>) -- , Ord)
+<span class="lineno">  448 </span>
+<span class="lineno">  449 </span>instance FromJSON HeaderMappingEntry where
+<span class="lineno">  450 </span>    <span class="decl"><span class="istickedoff">parseJSON =</span>
+<span class="lineno">  451 </span><span class="spaces">        </span><span class="istickedoff">JSON.withObject <span class="nottickedoff">&quot;HeaderMappingEntry&quot;</span></span>
+<span class="lineno">  452 </span><span class="spaces">            </span><span class="istickedoff">(\o -&gt; do</span>
+<span class="lineno">  453 </span><span class="spaces">                 </span><span class="istickedoff">metricCanonicalName &lt;- o JSON..: &quot;metric&quot;</span>
+<span class="lineno">  454 </span><span class="spaces">                 </span><span class="istickedoff">case lookupParticipantMetricBySymbolicName metricCanonicalName of</span>
+<span class="lineno">  455 </span><span class="spaces">                     </span><span class="istickedoff">Just metric -&gt;</span>
+<span class="lineno">  456 </span><span class="spaces">                         </span><span class="istickedoff">HeaderMappingEntry</span>
+<span class="lineno">  457 </span><span class="spaces">                             </span><span class="istickedoff">&lt;$&gt; o JSON..: &quot;csv_field&quot;</span>
+<span class="lineno">  458 </span><span class="spaces">                             </span><span class="istickedoff">&lt;*&gt; pure metric</span>
+<span class="lineno">  459 </span><span class="spaces">                     </span><span class="istickedoff">Nothing -&gt;</span>
+<span class="lineno">  460 </span><span class="spaces">                         </span><span class="istickedoff"><span class="nottickedoff">fail (&quot;metric name does not match any participant metric: &quot; ++ show metricCanonicalName)</span>)</span></span>
+<span class="lineno">  461 </span>
+<span class="lineno">  462 </span>participantFieldMappingToJSON :: ParticipantFieldMapping2 -&gt; JSON.Value
+<span class="lineno">  463 </span><span class="decl"><span class="istickedoff">participantFieldMappingToJSON fldMap =</span>
+<span class="lineno">  464 </span><span class="spaces">    </span><span class="istickedoff">-- didn't use tojson to avoid orphan warning. didn't move tojson to metric.types because of circular ref to metric instances</span>
+<span class="lineno">  465 </span><span class="spaces">    </span><span class="istickedoff">(toJSON . fmap <span class="nottickedoff">fieldToEntry</span> . Map.toList . pfmGetMapping) fldMap</span>
+<span class="lineno">  466 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  467 </span><span class="spaces">    </span><span class="istickedoff">fieldToEntry :: (Metric, Text) -&gt; JSON.Value</span>
+<span class="lineno">  468 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">fieldToEntry (metric, colName) =</span></span>
+<span class="lineno">  469 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">(JSON.object</span></span>
+<span class="lineno">  470 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">[ &quot;metric&quot; JSON..= (T.filter (/= ' ') . T.toLower . metricName) metric -- TODO: use shared function</span></span>
+<span class="lineno">  471 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">, &quot;compatible_csv_fields&quot; JSON..= [colName] -- change to single value soon</span></span>
+<span class="lineno">  472 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">])</span></span></span>
+<span class="lineno">  473 </span>
+<span class="lineno">  474 </span>parseParticipantFieldMapping :: [Metric] -&gt; [(Metric, Text)] -&gt; Either String ParticipantFieldMapping2
+<span class="lineno">  475 </span><span class="decl"><span class="istickedoff">parseParticipantFieldMapping volParticipantActiveMetrics requestedMapping = do</span>
+<span class="lineno">  476 </span><span class="spaces">    </span><span class="istickedoff">when (   length volParticipantActiveMetrics /= length requestedMapping</span>
+<span class="lineno">  477 </span><span class="spaces">          </span><span class="istickedoff">|| L.sort volParticipantActiveMetrics /= (L.sort . fmap fst) requestedMapping)</span>
+<span class="lineno">  478 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">(Left &quot;The requested metric mapping does not completely match the required volume metrics&quot;)</span></span>
+<span class="lineno">  479 </span><span class="spaces">    </span><span class="istickedoff">mkParticipantFieldMapping2 requestedMapping</span></span>
+
+</pre>
+</body>
+</html>

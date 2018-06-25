@@ -1,0 +1,110 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    2 </span>module Model.Activity.SQL
+<span class="lineno">    3 </span>  ( selectActivityParty
+<span class="lineno">    4 </span>  , selectActivityAccount
+<span class="lineno">    5 </span>  , selectActivityAuthorize
+<span class="lineno">    6 </span>  , selectActivityVolume
+<span class="lineno">    7 </span>  , selectActivityAccess
+<span class="lineno">    8 </span>  , selectActivityContainer
+<span class="lineno">    9 </span>  , selectActivityRelease
+<span class="lineno">   10 </span>  , selectActivityAsset
+<span class="lineno">   11 </span>  , selectActivityAssetSlot
+<span class="lineno">   12 </span>  , selectActivityExcerpt
+<span class="lineno">   13 </span>  , activityQual
+<span class="lineno">   14 </span>  ) where
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import Data.List (stripPrefix)
+<span class="lineno">   17 </span>import qualified Language.Haskell.TH as TH
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import Model.SQL.Select
+<span class="lineno">   20 </span>import Model.Audit.Types
+<span class="lineno">   21 </span>import Model.Audit.SQL
+<span class="lineno">   22 </span>import Model.Party.SQL
+<span class="lineno">   23 </span>import Model.Authorize.SQL
+<span class="lineno">   24 </span>import Model.Volume.SQL
+<span class="lineno">   25 </span>import Model.VolumeAccess.SQL
+<span class="lineno">   26 </span>import Model.Container.SQL
+<span class="lineno">   27 </span>import Model.Slot.SQL
+<span class="lineno">   28 </span>import Model.Release.SQL
+<span class="lineno">   29 </span>import Model.Asset.SQL
+<span class="lineno">   30 </span>import Model.Activity.Types
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>delim :: String -&gt; Bool
+<span class="lineno">   33 </span><span class="decl"><span class="nottickedoff">delim &quot;&quot; = True</span>
+<span class="lineno">   34 </span><span class="spaces"></span><span class="nottickedoff">delim (' ':_) = True</span>
+<span class="lineno">   35 </span><span class="spaces"></span><span class="nottickedoff">delim (',':_) = True</span>
+<span class="lineno">   36 </span><span class="spaces"></span><span class="nottickedoff">delim _ = False</span></span>
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>makeActivity :: Audit -&gt; ActivityTarget -&gt; Activity
+<span class="lineno">   39 </span><span class="decl"><span class="nottickedoff">makeActivity a x = Activity a x Nothing Nothing Nothing</span></span>
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>targetActivitySelector :: String -&gt; Selector -&gt; Selector
+<span class="lineno">   42 </span><span class="decl"><span class="nottickedoff">targetActivitySelector t Selector{ selectOutput = o, selectSource = ts, selectJoined = (',':tj) }</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="nottickedoff">| Just s &lt;- stripPrefix t ts, delim s, ts == tj =</span>
+<span class="lineno">   44 </span><span class="spaces">    </span><span class="nottickedoff">selector (&quot;audit.&quot; ++ ts) $ OutputJoin False 'makeActivity [selectOutput (selectAudit t), o]</span>
+<span class="lineno">   45 </span><span class="spaces"></span><span class="nottickedoff">targetActivitySelector t Selector{ selectSource = ts } = error $ &quot;targetActivitySelector &quot; ++ t ++ &quot;: &quot; ++ ts</span></span>
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>selectActivityParty :: Selector
+<span class="lineno">   48 </span><span class="decl"><span class="nottickedoff">selectActivityParty = targetActivitySelector &quot;party&quot; $</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">selectMap (TH.ConE 'ActivityParty `TH.AppE`) selectPartyRow</span></span>
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>selectActivityAccount :: Selector
+<span class="lineno">   52 </span><span class="decl"><span class="nottickedoff">selectActivityAccount = targetActivitySelector &quot;account&quot; $</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">selectColumns 'ActivityAccount &quot;account&quot; [&quot;id&quot;, &quot;email&quot;, &quot;password&quot;]</span></span>
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>selectActivityAuthorize :: TH.Name -&gt; TH.Name -&gt; Selector
+<span class="lineno">   56 </span><span class="decl"><span class="nottickedoff">selectActivityAuthorize p ident = targetActivitySelector &quot;authorize&quot; $</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="nottickedoff">selectMap (TH.ConE 'ActivityAuthorize `TH.AppE`) (selectAuthorizeChild p ident)</span></span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>selectActivityVolume :: Selector
+<span class="lineno">   60 </span><span class="decl"><span class="nottickedoff">selectActivityVolume = targetActivitySelector &quot;volume&quot; $</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">selectMap (TH.ConE 'ActivityVolume `TH.AppE`) selectVolumeRow</span></span>
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>selectActivityAccess :: TH.Name -&gt; TH.Name -&gt; Selector
+<span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">selectActivityAccess vol ident = targetActivitySelector &quot;volume_access&quot; $</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">selectMap (TH.ConE 'ActivityAccess `TH.AppE`) (selectVolumeAccess vol ident)</span></span>
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>selectActivityContainer :: Selector
+<span class="lineno">   68 </span><span class="decl"><span class="nottickedoff">selectActivityContainer = targetActivitySelector &quot;container&quot; $</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="nottickedoff">selectMap (TH.ConE 'ActivityContainer `TH.AppE`) selectContainerRow</span></span>
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>selectActivityRelease :: Selector
+<span class="lineno">   72 </span><span class="decl"><span class="nottickedoff">selectActivityRelease = targetActivitySelector &quot;slot_release&quot; $</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">addSelects 'ActivityRelease (selectSlotId &quot;slot_release&quot;) [selectOutput releaseRow]</span></span>
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>selectActivityAsset :: Selector
+<span class="lineno">   76 </span><span class="decl"><span class="nottickedoff">selectActivityAsset = targetActivitySelector &quot;asset&quot; $</span>
+<span class="lineno">   77 </span><span class="spaces">  </span><span class="nottickedoff">selectMap (TH.ConE 'ActivityAsset `TH.AppE`) selectAssetRow</span></span>
+<span class="lineno">   78 </span>
+<span class="lineno">   79 </span>selectActivityAssetSlot :: Selector
+<span class="lineno">   80 </span><span class="decl"><span class="nottickedoff">selectActivityAssetSlot = targetActivitySelector &quot;slot_asset&quot; $</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="nottickedoff">addSelects 'ActivityAssetSlot</span>
+<span class="lineno">   82 </span><span class="spaces">    </span><span class="nottickedoff">(selectColumn &quot;slot_asset&quot; &quot;asset&quot;)</span>
+<span class="lineno">   83 </span><span class="spaces">    </span><span class="nottickedoff">[selectOutput $ selectSlotId &quot;slot_asset&quot;]</span></span>
+<span class="lineno">   84 </span>
+<span class="lineno">   85 </span>selectActivityExcerpt :: Selector
+<span class="lineno">   86 </span><span class="decl"><span class="nottickedoff">selectActivityExcerpt = targetActivitySelector &quot;excerpt&quot; $</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="nottickedoff">selectColumns 'ActivityExcerpt &quot;excerpt&quot; [&quot;asset&quot;, &quot;segment&quot;, &quot;release&quot;]</span></span>
+<span class="lineno">   88 </span>
+<span class="lineno">   89 </span>activityQual :: String
+<span class="lineno">   90 </span><span class="decl"><span class="nottickedoff">activityQual = &quot;audit_action &gt;= 'add' ORDER BY audit_time&quot;</span></span>
+
+</pre>
+</body>
+</html>

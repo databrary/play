@@ -1,0 +1,212 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE GeneralizedNewtypeDeriving, TemplateHaskell, OverloadedStrings #-}
+<span class="lineno">    2 </span>module Solr.Document
+<span class="lineno">    3 </span>  ( SolrDocument(..)
+<span class="lineno">    4 </span>  , SolrRecordMeasures(..)
+<span class="lineno">    5 </span>  , SolrSegment(..)
+<span class="lineno">    6 </span>  , metricField
+<span class="lineno">    7 </span>  ) where
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import qualified Data.Aeson as JSON
+<span class="lineno">   10 </span>import qualified Data.Aeson.TH as JTH
+<span class="lineno">   11 </span>import qualified Data.ByteString as BS
+<span class="lineno">   12 </span>import Data.Char (isAlphaNum)
+<span class="lineno">   13 </span>import Data.Int (Int16)
+<span class="lineno">   14 </span>import qualified Data.HashMap.Strict as HM
+<span class="lineno">   15 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   16 </span>import qualified Data.Text as T
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import Model.Id.Types
+<span class="lineno">   19 </span>import Model.Permission.Types
+<span class="lineno">   20 </span>import Model.Release.Types
+<span class="lineno">   21 </span>import Model.Party.Types
+<span class="lineno">   22 </span>import Model.Volume.Types
+<span class="lineno">   23 </span>import Model.Container.Types
+<span class="lineno">   24 </span>import Model.Offset
+<span class="lineno">   25 </span>import Model.Segment
+<span class="lineno">   26 </span>import Model.Format.Types
+<span class="lineno">   27 </span>import Model.Asset.Types
+<span class="lineno">   28 </span>import Model.Time
+<span class="lineno">   29 </span>import Model.Age
+<span class="lineno">   30 </span>import Model.Record.Types
+<span class="lineno">   31 </span>import Model.Category.Types
+<span class="lineno">   32 </span>import Model.Metric
+<span class="lineno">   33 </span>import Model.Tag.Types
+<span class="lineno">   34 </span>import Model.Comment.Types
+<span class="lineno">   35 </span>import StringUtil
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>safeField :: T.Text -&gt; T.Text
+<span class="lineno">   38 </span><span class="decl"><span class="istickedoff">safeField = T.map safeChar where</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">safeChar c</span>
+<span class="lineno">   40 </span><span class="spaces">    </span><span class="istickedoff">| isAlphaNum c = c</span>
+<span class="lineno">   41 </span><span class="spaces">    </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = '_'</span></span>
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>newtype SolrRecordMeasures = SolrRecordMeasures [(Metric, MeasureDatum)]
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>metricLabel :: Metric -&gt; T.Text
+<span class="lineno">   46 </span><span class="decl"><span class="istickedoff">metricLabel Metric{ metricType = MeasureTypeText, metricOptions = _:_ } = <span class="nottickedoff">&quot;enum&quot;</span></span>
+<span class="lineno">   47 </span><span class="spaces"></span><span class="istickedoff">metricLabel m@Metric{ metricType = MeasureTypeText }</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlyfalse">metricLong m</span> = <span class="nottickedoff">&quot;long&quot;</span></span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = &quot;text&quot;</span>
+<span class="lineno">   50 </span><span class="spaces"></span><span class="istickedoff">metricLabel Metric{ metricType = MeasureTypeNumeric } = &quot;numeric&quot;</span>
+<span class="lineno">   51 </span><span class="spaces"></span><span class="istickedoff">metricLabel Metric{ metricType = MeasureTypeDate } = <span class="nottickedoff">&quot;date&quot;</span></span>
+<span class="lineno">   52 </span><span class="spaces"></span><span class="istickedoff">metricLabel Metric{ metricType = MeasureTypeVoid } = <span class="nottickedoff">&quot;void&quot;</span></span></span>
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>metricField :: Metric -&gt; T.Text
+<span class="lineno">   55 </span><span class="decl"><span class="istickedoff">metricField m = &quot;record_&quot; &lt;&gt; metricLabel m &lt;&gt; ('_' `T.cons` safeField (metricName m))</span></span>
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>-- slight hack because we actually index dates as datetimes
+<span class="lineno">   58 </span>metricDatum :: Metric -&gt; MeasureDatum -&gt; JSON.Value
+<span class="lineno">   59 </span><span class="decl"><span class="istickedoff">metricDatum Metric{ metricType = MeasureTypeDate } d = <span class="nottickedoff">JSON.toJSON $ d &lt;&gt; &quot;T12:00:00Z&quot;</span></span>
+<span class="lineno">   60 </span><span class="spaces"></span><span class="istickedoff">metricDatum Metric{ metricType = MeasureTypeVoid } _ = <span class="nottickedoff">JSON.toJSON True</span></span>
+<span class="lineno">   61 </span><span class="spaces"></span><span class="istickedoff">metricDatum _ d = JSON.toJSON d</span></span>
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>measureKeyValue :: JSON.KeyValue kv =&gt; (Metric, MeasureDatum) -&gt; kv
+<span class="lineno">   64 </span><span class="decl"><span class="istickedoff">measureKeyValue (m, d) = metricField m JSON..= metricDatum m d</span></span>
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>instance JSON.ToJSON SolrRecordMeasures where
+<span class="lineno">   67 </span>  <span class="decl"><span class="istickedoff">toJSON (SolrRecordMeasures ms) =</span>
+<span class="lineno">   68 </span><span class="spaces">    </span><span class="istickedoff">JSON.object $ map measureKeyValue ms</span></span>
+<span class="lineno">   69 </span>  <span class="decl"><span class="nottickedoff">toEncoding (SolrRecordMeasures ms) =</span>
+<span class="lineno">   70 </span><span class="spaces">    </span><span class="nottickedoff">JSON.pairs $ foldr ((&lt;&gt;) . measureKeyValue) mempty ms</span></span>
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>newtype SolrSegment = SolrSegment Segment deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">JSON.FromJSON</span></span></span></span>)
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>instance Show SolrSegment where
+<span class="lineno">   75 </span>  <span class="decl"><span class="istickedoff">showsPrec _ (SolrSegment s) = showSegmentWith <span class="nottickedoff">(shows . offsetMillis)</span> s</span></span>
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span>instance JSON.ToJSON SolrSegment where
+<span class="lineno">   78 </span>  <span class="decl"><span class="istickedoff">toJSON s = JSON.String $ T.pack $ show s</span></span>
+<span class="lineno">   79 </span>  <span class="decl"><span class="nottickedoff">toEncoding s = JSON.toEncoding $ show s</span></span>
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>data SolrDocument
+<span class="lineno">   82 </span>  = SolrParty
+<span class="lineno">   83 </span>    { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrId</span></span></span> :: !BS.ByteString
+<span class="lineno">   84 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrPartyId</span></span></span> :: Id Party
+<span class="lineno">   85 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrPartySortName</span></span></span> :: T.Text
+<span class="lineno">   86 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrPartyPreName</span></span></span> :: Maybe T.Text
+<span class="lineno">   87 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrPartyAffiliation</span></span></span> :: Maybe T.Text
+<span class="lineno">   88 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrPartyIsInstitution</span></span></span> :: Bool
+<span class="lineno">   89 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrPartyAuthorization</span></span></span> :: Maybe Permission
+<span class="lineno">   90 </span>    }
+<span class="lineno">   91 </span>  | SolrVolume
+<span class="lineno">   92 </span>    { solrId :: !BS.ByteString
+<span class="lineno">   93 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrVolumeId</span></span></span> :: Id Volume
+<span class="lineno">   94 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrName</span></span></span> :: Maybe T.Text
+<span class="lineno">   95 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrBody</span></span></span> :: Maybe T.Text -- body
+<span class="lineno">   96 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrVolumeOwnerIds</span></span></span> :: [Id Party]
+<span class="lineno">   97 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrVolumeOwnerNames</span></span></span> :: [T.Text]
+<span class="lineno">   98 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrCitation</span></span></span> :: Maybe T.Text
+<span class="lineno">   99 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrCitationYear</span></span></span> :: Maybe Int16
+<span class="lineno">  100 </span>    }
+<span class="lineno">  101 </span>  | SolrContainer
+<span class="lineno">  102 </span>    { solrId :: !BS.ByteString
+<span class="lineno">  103 </span>    , solrVolumeId :: Id Volume
+<span class="lineno">  104 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrContainerId</span></span></span> :: Id Container
+<span class="lineno">  105 </span>    , solrName :: Maybe T.Text
+<span class="lineno">  106 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrContainerTop</span></span></span> :: Bool
+<span class="lineno">  107 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrContainerDate</span></span></span> :: Maybe MaskedDate
+<span class="lineno">  108 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrRelease</span></span></span> :: Maybe Release
+<span class="lineno">  109 </span>    }
+<span class="lineno">  110 </span>  | SolrAsset -- Slot
+<span class="lineno">  111 </span>    { solrId :: !BS.ByteString
+<span class="lineno">  112 </span>    , solrVolumeId :: Id Volume
+<span class="lineno">  113 </span>    , solrContainerId :: Id Container
+<span class="lineno">  114 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrSegment</span></span></span> :: SolrSegment
+<span class="lineno">  115 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrSegmentDuration</span></span></span> :: Maybe Offset
+<span class="lineno">  116 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrAssetId</span></span></span> :: Id Asset
+<span class="lineno">  117 </span>    , solrName :: Maybe T.Text
+<span class="lineno">  118 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrFormatId</span></span></span> :: Id Format
+<span class="lineno">  119 </span>    , solrRelease :: Maybe Release
+<span class="lineno">  120 </span>    }
+<span class="lineno">  121 </span>  | SolrExcerpt
+<span class="lineno">  122 </span>    { solrId :: !BS.ByteString
+<span class="lineno">  123 </span>    , solrVolumeId :: Id Volume
+<span class="lineno">  124 </span>    , solrContainerId :: Id Container
+<span class="lineno">  125 </span>    , solrSegment :: SolrSegment
+<span class="lineno">  126 </span>    , solrSegmentDuration :: Maybe Offset
+<span class="lineno">  127 </span>    , solrAssetId :: Id Asset
+<span class="lineno">  128 </span>    , solrRelease :: Maybe Release
+<span class="lineno">  129 </span>    }
+<span class="lineno">  130 </span>  | SolrRecord -- Slot
+<span class="lineno">  131 </span>    { solrId :: !BS.ByteString
+<span class="lineno">  132 </span>    , solrVolumeId :: Id Volume
+<span class="lineno">  133 </span>    , solrContainerId :: Id Container
+<span class="lineno">  134 </span>    , solrSegment :: SolrSegment
+<span class="lineno">  135 </span>    , solrSegmentDuration :: Maybe Offset
+<span class="lineno">  136 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrRecordId</span></span></span> :: Id Record
+<span class="lineno">  137 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrRecordCategoryId</span></span></span> :: Id Category
+<span class="lineno">  138 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrRecordMeasures</span></span></span> :: SolrRecordMeasures
+<span class="lineno">  139 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrRecordAge</span></span></span> :: Maybe Age
+<span class="lineno">  140 </span>    }
+<span class="lineno">  141 </span>  | SolrTagId
+<span class="lineno">  142 </span>    { solrId :: !BS.ByteString
+<span class="lineno">  143 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrTagId</span></span></span> :: Id Tag
+<span class="lineno">  144 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrTagName</span></span></span> :: TagName
+<span class="lineno">  145 </span>    }
+<span class="lineno">  146 </span>  | SolrTag -- Use
+<span class="lineno">  147 </span>    { solrId :: !BS.ByteString
+<span class="lineno">  148 </span>    , solrVolumeId :: Id Volume
+<span class="lineno">  149 </span>    , solrContainerId :: Id Container
+<span class="lineno">  150 </span>    , solrSegment :: SolrSegment
+<span class="lineno">  151 </span>    , solrSegmentDuration :: Maybe Offset
+<span class="lineno">  152 </span>    , solrTagId :: Id Tag
+<span class="lineno">  153 </span>    , solrTagName :: TagName
+<span class="lineno">  154 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrKeyword</span></span></span> :: Maybe TagName
+<span class="lineno">  155 </span>    , solrPartyId :: Id Party
+<span class="lineno">  156 </span>    }
+<span class="lineno">  157 </span>  | SolrComment
+<span class="lineno">  158 </span>    { solrId :: !BS.ByteString
+<span class="lineno">  159 </span>    , solrVolumeId :: Id Volume
+<span class="lineno">  160 </span>    , solrContainerId :: Id Container
+<span class="lineno">  161 </span>    , solrSegment :: SolrSegment
+<span class="lineno">  162 </span>    , solrSegmentDuration :: Maybe Offset
+<span class="lineno">  163 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">solrCommentId</span></span></span> :: Id Comment
+<span class="lineno">  164 </span>    , solrPartyId :: Id Party
+<span class="lineno">  165 </span>    , solrBody :: Maybe T.Text
+<span class="lineno">  166 </span>    }
+<span class="lineno">  167 </span>
+<span class="lineno">  168 </span>$(return []) -- force new decl group for splice:
+<span class="lineno">  169 </span>
+<span class="lineno">  170 </span>solrToJSON :: SolrDocument -&gt; JSON.Value
+<span class="lineno">  171 </span><span class="decl"><span class="istickedoff">solrToJSON =</span>
+<span class="lineno">  172 </span><span class="spaces">  </span><span class="istickedoff">$(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">JTH.mkToJSON JTH.defaultOptions</span></span></span></span></span>
+<span class="lineno">  173 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">{ JTH.fieldLabelModifier = \('s':'o':'l':'r':s) -&gt; fromCamel s</span></span></span></span></span>
+<span class="lineno">  174 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">, JTH.constructorTagModifier = \('S':'o':'l':'r':s) -&gt; fromCamel s</span></span></span></span></span>
+<span class="lineno">  175 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">, JTH.omitNothingFields = True</span></span></span></span></span>
+<span class="lineno">  176 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">, JTH.sumEncoding = JTH.TaggedObject</span></span></span></span></span>
+<span class="lineno">  177 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">{ JTH.tagFieldName = &quot;content_type&quot;</span></span></span></span></span>
+<span class="lineno">  178 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">, JTH.contentsFieldName = error &quot;solrToJSON: contentsFieldName&quot;</span></span></span></span></span>
+<span class="lineno">  179 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">}</span></span></span></span></span>
+<span class="lineno">  180 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">} ''SolrDocument</span></span></span></span>)</span></span>
+<span class="lineno">  181 </span>
+<span class="lineno">  182 </span>fixToJSON :: SolrDocument -&gt; JSON.Value -&gt; JSON.Value
+<span class="lineno">  183 </span><span class="decl"><span class="istickedoff">fixToJSON SolrRecord{} (JSON.Object o) = <span class="nottickedoff">JSON.Object $</span></span>
+<span class="lineno">  184 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">maybe o (HM.union $ HM.delete k o) $ do</span></span>
+<span class="lineno">  185 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">JSON.Object m &lt;- HM.lookup k o</span></span>
+<span class="lineno">  186 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">return m</span></span>
+<span class="lineno">  187 </span><span class="spaces">  </span><span class="istickedoff">where <span class="nottickedoff">k = &quot;record_measures&quot;</span></span>
+<span class="lineno">  188 </span><span class="spaces"></span><span class="istickedoff">fixToJSON _ j = j</span></span>
+<span class="lineno">  189 </span>
+<span class="lineno">  190 </span>instance JSON.ToJSON SolrDocument where
+<span class="lineno">  191 </span>  <span class="decl"><span class="istickedoff">toJSON s = fixToJSON s $ solrToJSON s</span></span>
+<span class="lineno">  192 </span>  -- TODO: toEncoding (and cleanup fixToJSON)
+
+</pre>
+</body>
+</html>
