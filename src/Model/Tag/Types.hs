@@ -58,12 +58,6 @@ data Tag = Tag
   , tagName :: TagName
   }
 
--- makeHasRec ''Tag ['tagId, 'tagName]
--- instance Has (Id Tag) Tag where
---   view = tagId
--- instance Has TagName Tag where
---   view = tagName
-
 instance Kinded Tag where
   kindOf _ = "tag"
 
@@ -74,43 +68,16 @@ data TagUse = TagUse
   , tagSlot :: Slot
   }
 
--- makeHasRec ''TagUse ['useTag, 'tagWho, 'tagSlot]
 instance Has Tag TagUse where
   view = useTag
--- instance Has (Id Tag) TagUse where
---   view = (view . useTag)
--- instance Has TagName TagUse where
---   view = (view . useTag)
--- instance Has Account TagUse where
---   view = tagWho
--- instance Has (Id Party) TagUse where
---   view = (view . tagWho)
--- instance Has PartyRow TagUse where
---   view = (view . tagWho)
--- instance Has Party TagUse where
---   view = (view . tagWho)
--- instance Has Slot TagUse where
---   view = tagSlot
 instance Has Segment TagUse where
   view = (view . tagSlot)
--- instance Has ContainerRow TagUse where
---   view = (view . tagSlot)
 instance Has (Id Container) TagUse where
   view = (view . tagSlot)
--- instance Has (Maybe Model.Release.Types.Release) TagUse where
---   view = (view . tagSlot)
--- instance Has Model.Release.Types.Release TagUse where
---   view = (view . tagSlot)
 instance Has Model.Volume.Types.Volume TagUse where
   view = (view . tagSlot)
--- instance Has Model.Permission.Types.Permission TagUse where
---   view = (view . tagSlot)
 instance Has (Id Model.Volume.Types.Volume) TagUse where
-  view = (view . tagSlot)
--- instance Has Model.Volume.Types.VolumeRow TagUse where
---   view = (view . tagSlot)
--- instance Has Container TagUse where
---   view = (view . tagSlot)
+  view = (volumeId . volumeRow . containerVolume . slotContainer . tagSlot)
 
 data TagUseRow = TagUseRow
   { useTagRow :: Tag
@@ -124,14 +91,6 @@ data TagWeight = TagWeight
   , tagWeightWeight :: Int32
   }
 
--- makeHasRec ''TagWeight ['tagWeightTag]
--- instance Has Tag TagWeight where
---   view = tagWeightTag
--- instance Has (Id Tag) TagWeight where
---   view = (view . tagWeightTag)
--- instance Has TagName TagWeight where
---   view = (view . tagWeightTag)
-
 data TagCoverage = TagCoverage
   { tagCoverageWeight :: !TagWeight
   , tagCoverageContainer :: Container
@@ -139,31 +98,3 @@ data TagCoverage = TagCoverage
   , tagCoverageKeywords
   , tagCoverageVotes :: [Segment]
   }
-
--- makeHasRec ''TagCoverage ['tagCoverageWeight, 'tagCoverageContainer]
--- instance Has TagWeight TagCoverage where
---   view = tagCoverageWeight
--- instance Has Tag TagCoverage where
---   view = (view . tagCoverageWeight)
--- instance Has (Id Tag) TagCoverage where
---   view = (view . tagCoverageWeight)
--- instance Has TagName TagCoverage where
---   view = (view . tagCoverageWeight)
--- instance Has Container TagCoverage where
---   view = tagCoverageContainer
--- instance Has Model.Volume.Types.VolumeRow TagCoverage where
---   view = (view . tagCoverageContainer)
--- instance Has (Id Model.Volume.Types.Volume) TagCoverage where
---   view = (view . tagCoverageContainer)
--- instance Has Model.Permission.Types.Permission TagCoverage where
---   view = (view . tagCoverageContainer)
--- instance Has Model.Volume.Types.Volume TagCoverage where
---   view = (view . tagCoverageContainer)
--- instance Has Model.Release.Types.Release TagCoverage where
---   view = (view . tagCoverageContainer)
--- instance Has (Maybe Model.Release.Types.Release) TagCoverage where
---   view = (view . tagCoverageContainer)
--- instance Has (Id Container) TagCoverage where
---   view = (view . tagCoverageContainer)
--- instance Has ContainerRow TagCoverage where
---   view = (view . tagCoverageContainer)

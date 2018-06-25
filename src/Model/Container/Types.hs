@@ -56,6 +56,6 @@ instance Has Volume Container where
   view = containerVolume
 instance Has Permission Container where
   view = (view . containerVolume)
-instance Has (Id Volume) Container where
+{- instance Has (Id Volume) Container where
   view = (view . containerVolume)
-
+-}

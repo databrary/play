@@ -44,8 +44,8 @@ data Volume = Volume
 instance Kinded Volume where
   kindOf _ = "volume"
 
-instance Has (Id Volume) Volume where
-  view = (volumeId . volumeRow)
+{- instance Has (Id Volume) Volume where
+  view = (volumeId . volumeRow) -}
 instance Has Permission Volume where
   view = extractPermissionIgnorePolicy . volumeRolePolicy
 deriveLiftMany [''VolumeRow, ''Volume]

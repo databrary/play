@@ -37,7 +37,6 @@ data AssetSegment = AssetSegment
   , assetSegment :: !Segment
   , assetExcerpt :: Maybe Excerpt
   }
-  -- deriving (Show)
 
 assetAssumedSegment :: AssetSlot -> Segment
 assetAssumedSegment a
@@ -73,7 +72,7 @@ getAssetSegmentVolume = getAssetSlotVolume . segmentAsset
 instance Has Volume AssetSegment where
   view = view . segmentAsset
 instance Has (Id Volume) AssetSegment where
-  view = view . segmentAsset
+  view = volumeId . volumeRow . assetVolume . slotAsset . segmentAsset
 getAssetSegmentVolumePermission2 :: AssetSegment -> VolumeRolePolicy
 getAssetSegmentVolumePermission2 = getAssetSlotVolumePermission2 . segmentAsset
 
@@ -147,8 +146,8 @@ instance Has (Id Asset) Excerpt where
   view = view . excerptAsset
 instance Has Volume Excerpt where
   view = view . excerptAsset
-instance Has (Id Volume) Excerpt where
-  view = view . excerptAsset
+{- instance Has (Id Volume) Excerpt where
+  view = view . excerptAsset -}
 instance Has Slot Excerpt where
   view = view . excerptAsset
 instance Has Container Excerpt where

@@ -5,7 +5,6 @@ module Model.Comment.Types
   , makeComment
   ) where
 
--- import qualified Data.Time as Time
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 
@@ -15,8 +14,6 @@ import Model.Kind
 import Model.Time
 import Model.Id.Types
 import Model.Party.Types
--- import Model.Permission.Types
--- import Model.Release.Types
 import Model.Segment
 import Model.Slot.Types
 import Model.Volume.Types
@@ -35,43 +32,16 @@ data Comment = Comment
 instance Kinded Comment where
   kindOf _ = "comment"
 
--- makeHasRec ''Comment ['commentId, 'commentWho, 'commentSlot, 'commentTime]
 instance Has (Id Comment) Comment where
   view = commentId
--- instance Has Account Comment where
---   view = commentWho
--- instance Has (Id Party) Comment where
---   view = (view . commentWho)
--- instance Has PartyRow Comment where
---   view = (view . commentWho)
--- instance Has Party Comment where
---   view = (view . commentWho)
--- instance Has Slot Comment where
---   view = commentSlot
 instance Has Model.Segment.Segment Comment where
   view = (view . commentSlot)
--- instance Has Model.Container.Types.ContainerRow Comment where
---   view = (view . commentSlot)
 instance Has (Id Model.Container.Types.Container) Comment where
   view = (view . commentSlot)
--- instance Has (Maybe Model.Release.Types.Release) Comment where
---   view = (view . commentSlot)
--- instance Has Model.Release.Types.Release Comment where
---   view = (view . commentSlot)
 instance Has Model.Volume.Types.Volume Comment where
   view = (view . commentSlot)
--- instance Has Model.Permission.Types.Permission Comment where
---   view = (view . commentSlot)
-instance Has (Id Model.Volume.Types.Volume) Comment where
-  view = (view . commentSlot)
--- instance Has Model.Volume.Types.VolumeRow Comment where
---   view = (view . commentSlot)
--- instance Has Model.Container.Types.Container Comment where
---   view = (view . commentSlot)
--- instance Has Timestamp Comment where
---   view = commentTime
--- instance Has Time.Day Comment where
---   view = (Time.utctDay . commentTime)
+{- instance Has (Id Model.Volume.Types.Volume) Comment where
+  view = (view . commentSlot) -}
 
 data CommentRow = CommentRow
   { commentRowId :: Id Comment

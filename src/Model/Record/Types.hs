@@ -9,7 +9,6 @@ module Model.Record.Types
   , ParticipantRecord(..)
   , FieldUse(..)
   , getRecordVolumePermission
-  -- , ParticipantFieldMapping(..)
   , Measure(..)
   , Measures
   , blankRecord
@@ -34,7 +33,7 @@ type instance IdType Record = Int32
 data RecordRow = RecordRow
   { recordId :: Id Record
   , recordCategory :: Category
-  } -- deriving ({-Show, -} Eq)
+  }
 
 data Record = Record
   { recordRow :: !RecordRow
@@ -73,7 +72,6 @@ data ParticipantRecord =
         , prdState :: FieldUse ByteString
         , prdSetting :: FieldUse ByteString
         } 
-    -- deriving (Show, Eq, Ord)
 
 data Measure = Measure
   { measureRecord :: Record
@@ -88,8 +86,6 @@ instance Kinded Measure where
 
 type Measures = [Measure]
 
--- makeHasRec ''RecordRow ['recordId, 'recordCategory]
--- makeHasRec ''Record ['recordRow, 'recordVolume, 'recordRelease]
 instance Has (Id Record) RecordRow where
   view = recordId
 instance Has Category RecordRow where
@@ -97,8 +93,6 @@ instance Has Category RecordRow where
 instance Has (Id Category) RecordRow where
   view = (view . recordCategory)
 
--- instance Has RecordRow Record where
---   view = recordRow
 instance Has (Id Record) Record where
   view = (view . recordRow)
 instance Has Category Record where
@@ -109,10 +103,8 @@ instance Has Volume Record where
   view = recordVolume
 instance Has Permission Record where
   view = (view . recordVolume)
-instance Has (Id Volume) Record where
-  view = (view . recordVolume)
--- instance Has VolumeRow Record where
---   view = (view . recordVolume)
+{-instance Has (Id Volume) Record where
+  view = (view . recordVolume) -}
 instance Has (Maybe Release) Record where
   view = recordRelease
 instance Has Release Record where
@@ -123,25 +115,6 @@ getRecordVolumePermission = volumeRolePolicy . recordVolume
 
 instance Has Record Measure where
   view = measureRecord
--- instance Has (Id Record) Measure where
---   view = recordId . recordRow . measureRecord
--- instance Has Volume Measure where
---   view = view . measureRecord
--- instance Has (Id Volume) Measure where
---   view = view . measureRecord
--- instance Has Category Measure where
---   view = view . measureRecord
--- instance Has (Id Category) Measure where
----  view = view . measureRecord
--- instance Has Permission Measure where
---    view = view . measureRecord
-
--- instance Has Metric Measure where
---   view = measureMetric
--- instance Has (Id Metric) Measure where
---   view = view . measureMetric
--- instance Has MeasureType Measure where
---   view = view . measureMetric
 
 instance Has (Maybe Release) Measure where
   view m = metricRelease (measureMetric m) <|> recordRelease (measureRecord m)
