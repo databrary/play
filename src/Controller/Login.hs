@@ -76,6 +76,8 @@ checkPassword p = any (`BCrypt.validatePassword` p) . accountPasswd
 postLogin :: ActionRoute API
 postLogin = action POST (pathAPI </< "user" </< "login") $ postLoginAction
 
+data LoginRequest = LoginRequest BS.ByteString BS.ByteString Bool
+
 -- | The action for handling POST for user/login
 postLoginAction :: API -> Action
 postLoginAction = \api -> withoutAuth $ do
@@ -83,6 +85,7 @@ postLoginAction = \api -> withoutAuth $ do
     email <- "email" .:> emailTextForm
     password <- "password" .:> deform
     superuser <- "superuser" .:> deform
+    let _ = LoginRequest email password superuser
     (auth :: Maybe SiteAuth) <- lift $ lookupSiteAuthByEmail True email
     let p :: Maybe Party
         p = view <$> auth
