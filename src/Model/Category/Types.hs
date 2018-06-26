@@ -5,12 +5,10 @@ module Model.Category.Types
 
 import Data.Function (on)
 import Data.Int (Int16)
-import Data.Ord (comparing)
 import qualified Data.Text as T
 import Instances.TH.Lift ()
 import Language.Haskell.TH.Lift (deriveLift)
 
-import Has (Has(..))
 import Model.Kind
 import Model.Id.Types
 
@@ -28,12 +26,5 @@ instance Kinded Category where
 instance Eq Category where
   (==) = on (==) categoryId
   (/=) = on (/=) categoryId
-
-instance Ord Category where
-  compare = comparing categoryId
-
--- makeHasRec ''Category ['categoryId]
-instance Has (Id Category) Category where
-  view = categoryId
 
 deriveLift ''Category

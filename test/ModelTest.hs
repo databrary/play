@@ -426,7 +426,7 @@ test_15 = Test.stepsWithTransaction "test_15" $ \step cn2 -> do
 ------- search -------------
 test_16 :: TestTree
 test_16 = ignoreTest $ -- TODO: enable this inside of nix build with solr binaries and core installed in precheck
-    Test.stepsWithResourceAndTransaction "test_16" $ \step ist cn2 -> do
+    Test.stepsWithTransaction "test_16" $ \step cn2 -> do
         step "Given an authorized investigator"
         (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
         step "When the AI creates a partially shared volume and the search index is updated"
@@ -442,7 +442,7 @@ test_16 = ignoreTest $ -- TODO: enable this inside of nix build with solr binari
         show resVal @?= -- TODO: use aeson parser and only check selected fields
             "Object (fromList [(\"response\",Object (fromList [(\"numFound\",Number 1.0),(\"start\",Number 0.0),(\"docs\",Array [Object (fromList [(\"body\",String \"Databrary is an open data library for developmental science. Share video, audio, and related metadata. Discover more, faster.\\nMost developmental scientists rely on video recordings to capture the complexity and richness of behavior. However, researchers rarely share video data, and this has impeded scientific progress. By creating the cyber-infrastructure and community to enable open video sharing, the Databrary project aims to facilitate deeper, richer, and broader understanding of behavior.\\nThe Databrary project is dedicated to transforming the culture of developmental science by building a community of researchers committed to open video data sharing, training a new generation of developmental scientists and empowering them with an unprecedented set of tools for discovery, and raising the profile of behavioral science by bolstering interest in and support for scientific research among the general public.\"),(\"name\",String \"Databrary\"),(\"owner_names\",Array [String \"Admin, Admin\",String \"Steiger, Lisa\",String \"Tesla, Testarosa\"]),(\"id\",Number 1.0),(\"owner_ids\",Array [Number 1.0,Number 3.0,Number 7.0])])])])),(\"spellcheck\",Object (fromList [(\"suggestions\",Array [])]))])"
         step "and the public will find the newly added volume by title"
-        bctx <- mkBackgroundContext (ForSolr solr) ist cn2
+        bctx <- mkSolrIndexingContextSimple cn2 solr
         runReaderT updateIndex bctx
         _ <- runReaderT (search (mkVolumeSearchQuery ((volumeName . volumeRow) vol))) (aiCtxt { ctxSolr = Just solr, ctxHttpClient = Just hc})
         -- TODO: assert one result, and result name matches volume title searched for

@@ -7,6 +7,9 @@ module Context
   , BackgroundContext(..)
   , BackgroundContextM
   , withBackgroundContextM
+  , SolrIndexingContext(..)
+  , SolrIndexingContextM
+  , mkSolrIndexingContext
   ) where
 
 import Control.Monad.Trans.Reader (ReaderT(..), withReaderT)
@@ -119,3 +122,43 @@ type BackgroundContextM a = ReaderT BackgroundContext IO a
 
 withBackgroundContextM :: BackgroundContextM a -> ActionContextM a
 withBackgroundContextM = withReaderT BackgroundContext
+
+-- | A ActionContext with no Identity, for running Solr indexing.
+data SolrIndexingContext = SolrIndexingContext
+  { slcLogs :: !Logs
+  , slcHTTPClient :: !HTTPClient
+  , slcSolr :: !Solr
+  , slcDB :: !DBConn -- ^ The specific connection chosen for the running action?
+  }
+
+instance Has Solr SolrIndexingContext where
+  view = slcSolr
+instance Has Logs SolrIndexingContext where
+  view = slcLogs
+instance Has HTTPClient SolrIndexingContext where
+  view = slcHTTPClient
+instance Has DBConn SolrIndexingContext where
+  view = slcDB
+
+instance Has Identity SolrIndexingContext where
+  view _ = IdentityNotNeeded
+instance Has SiteAuth SolrIndexingContext where
+  view _ = view IdentityNotNeeded
+instance Has Party SolrIndexingContext where
+  view _ = view IdentityNotNeeded
+instance Has (Id Party) SolrIndexingContext where
+  view _ = view IdentityNotNeeded
+instance Has Access SolrIndexingContext where
+  view _ = view IdentityNotNeeded
+
+type SolrIndexingContextM a = ReaderT SolrIndexingContext IO a
+
+-- | Build a simpler SolrIndexingContext from a complete ActionContext
+mkSolrIndexingContext :: ActionContext -> SolrIndexingContext
+mkSolrIndexingContext ac =
+    SolrIndexingContext {
+          slcLogs = (serviceLogs . contextService) ac
+        , slcHTTPClient = (serviceHTTPClient . contextService) ac
+        , slcSolr = (serviceSolr . contextService) ac
+        , slcDB = contextDB ac
+    }

@@ -25,7 +25,6 @@ import Model.Container.Types
 import Model.Format.Types
 import Model.Asset.Types
 import Model.Slot.Types
--- import Model.Asset (blankAsset)
 
 data AssetSlotId = AssetSlotId
   { slotAssetId :: !(Id Asset)
@@ -39,7 +38,6 @@ data AssetSlot = AssetSlot
   { slotAsset :: Asset
   , assetSlot :: Maybe Slot
   }
-  -- deriving (Show)
 
 assetSlotId :: AssetSlot -> Id AssetSlot
 assetSlotId (AssetSlot a s) = Id $ AssetSlotId (assetId $ assetRow a) (slotId <$> s)

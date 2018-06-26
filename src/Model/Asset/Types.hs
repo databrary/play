@@ -14,7 +14,6 @@ import qualified Data.Text as T
 import Has (Has(..))
 import Model.Offset
 import Model.Kind
--- import Model.Permission.Types
 import Model.Release.Types
 import Model.Id.Types
 import Model.Volume.Types
@@ -31,28 +30,21 @@ data AssetRow = AssetRow
   , assetSHA1 :: Maybe BS.ByteString
   , assetSize :: Maybe Int64
   }
-  -- deriving (Show)
+
 data Asset = Asset
   { assetRow :: !AssetRow
   , assetVolume :: Volume
   }
-  -- deriving (Show)
 
 instance Kinded Asset where
   kindOf _ = "asset"
 
--- makeHasRec ''AssetRow ['assetId, 'assetFormat, 'assetRelease]
--- makeHasRec ''Asset ['assetRow, 'assetVolume]
 instance Has (Id Asset) AssetRow where
   view = assetId
 instance Has Format AssetRow where
   view = assetFormat
 instance Has (Id Format) AssetRow where
   view = (formatId . assetFormat)
--- instance Has (Maybe Release) AssetRow where
---   view = assetRelease
--- instance Has Release AssetRow where
---   view = (view . assetRelease)
 
 instance Has AssetRow Asset where
   view = assetRow
@@ -62,18 +54,10 @@ instance Has Format Asset where
   view = (view . assetRow)
 instance Has (Id Format) Asset where
   view = (view . assetRow)
--- instance Has (Maybe Release) Asset where
---   view = (view . assetRow)
--- instance Has Release Asset where
---   view = (view . assetRow)
 instance Has Volume Asset where
    view = assetVolume
--- instance Has Permission Asset where
---   view = (view . assetVolume)
 instance Has (Id Volume) Asset where
-  view = (view . assetVolume)
--- instance Has VolumeRow Asset where
---   view = (view . assetVolume)
+  view = (volumeId . volumeRow . assetVolume)
 
 getAssetReleaseMaybe :: Asset -> Maybe Release
 getAssetReleaseMaybe = assetRelease . assetRow

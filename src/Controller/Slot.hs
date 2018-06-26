@@ -43,7 +43,7 @@ import {-# SOURCE #-} Controller.AssetSegment
 
 getSlot :: Permission -> Maybe (Id Volume) -> Id Slot -> Handler Slot
 getSlot p mv i =
-  checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupSlot i
+  checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . volumeId . volumeRow . containerVolume . slotContainer) mv =<< lookupSlot i
 
 slotJSONField :: Bool -> Slot -> BS.ByteString -> Maybe BS.ByteString -> Handler (Maybe JSON.Encoding)
 slotJSONField getOrig o "assets" _ =
@@ -82,7 +82,8 @@ viewSlot viewOrig = action GET (pathAPI </> pathMaybe pathId </> pathSlotId) $ \
     JSON -> okResponse [] <$> (slotJSONQuery viewOrig c =<< peeks Wai.queryString)
     HTML
       | isJust vi -> return $ okResponse [] $ BSC.pack $ show $ containerId $ containerRow $ slotContainer c
-      | otherwise -> peeks $ redirectRouteResponse movedPermanently301 [] (viewSlot viewOrig) (api, (Just (view c), slotId c))
+      | otherwise ->
+          peeks $ redirectRouteResponse movedPermanently301 [] (viewSlot viewOrig) (api, (Just ((volumeId . volumeRow . containerVolume . slotContainer) c), slotId c))
 
 thumbSlot :: ActionRoute (Maybe (Id Volume), Id Slot)
 thumbSlot = action GET (pathMaybe pathId </> pathSlotId </< "thumb") $ \(vi, i) -> withAuth $ do

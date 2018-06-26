@@ -1,6 +1,7 @@
 module TestHarness
     (
-      ContextFor(..)
+      mkSolrIndexingContextSimple
+    , ContextFor(..)
     , mkBackgroundContext
     , TestContext ( .. )
     , mkRequest
@@ -100,15 +101,28 @@ expect a matcher = case res of
   (MatchFailure msg) -> assertFailure msg
   where res = runMatch matcher a
 
-data ContextFor = ForEzid | ForSolr Solr
+-- | Build the specialized context needed for solr indexing to run, with defaults for simple values
+mkSolrIndexingContextSimple :: PGConnection -> Solr -> IO SolrIndexingContext
+mkSolrIndexingContextSimple cn solr = do
+    conf <- C.load "databrary.conf"
+    logs <- initLogs (conf C.! "log")
+    httpc <- initHTTPClient
+    pure
+      SolrIndexingContext {
+               slcLogs = logs
+             , slcHTTPClient = httpc
+             , slcSolr = solr
+             , slcDB = cn
+             }
+
+data ContextFor = ForEzid
 
 -- | Build a specialized context needed to background jobs that use a small subset of services
 mkBackgroundContext :: ContextFor -> InternalState -> PGConnection -> IO BackgroundContext
 mkBackgroundContext ctxtFor ist cn =
-    -- TODO: make a smaller context for solr indexing to use, so stubs aren't needed
+    -- TODO: make a smaller context for ezid to use, so stubs aren't needed
     -- stubs
     let stubSolr = Solr { solrRequest = error "no solr req", solrProcess = Nothing }
-        stubEzid = Nothing
         stubStorage = Storage undefined Nothing undefined undefined Nothing Nothing Nothing
         stubStatic = Static "" "" Nothing (\_ -> error "no val")
         stats = error "siteStats"
@@ -118,7 +132,6 @@ mkBackgroundContext ctxtFor ist cn =
     logs <- initLogs (conf C.! "log")
     httpc <- initHTTPClient
     (solr, ezid) <- case ctxtFor of
-          ForSolr solrInst -> pure (solrInst, stubEzid)
           ForEzid -> do
               ezidInst <- initEZID (conf C.! "ezid")
               pure (stubSolr, ezidInst)

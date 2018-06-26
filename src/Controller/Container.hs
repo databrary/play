@@ -44,7 +44,7 @@ import View.Form (FormHtml)
 getContainer :: Permission -> Maybe (Id Volume) -> Id Slot -> Bool -> Handler Container
 getContainer p mv (Id (SlotId i s)) top
   | segmentFull s = do
-    c <- checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupContainer i
+    c <- checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . volumeId . volumeRow . containerVolume) mv =<< lookupContainer i
     unless top $ do
       t <- lookupVolumeTopContainer (containerVolume c)
       when (containerId (containerRow c) == containerId (containerRow t)) $ result =<< peeks notFoundResponse
@@ -80,7 +80,7 @@ viewContainerEdit = action GET (pathHTML >/> pathMaybe pathId </> pathSlotId </<
   when (isJust vi) $ angular
   c <- getContainer PermissionEDIT vi ci False
   unless (isJust vi) $
-    result =<< peeks (redirectRouteResponse movedPermanently301 [] viewContainerEdit (Just (view c), containerSlotId (view c)))
+    result =<< peeks (redirectRouteResponse movedPermanently301 [] viewContainerEdit (Just ((volumeId . volumeRow . containerVolume) c), containerSlotId (view c)))
   return $ okResponse [] $ ("" :: String) -- should never get here
   -- peeks $ blankForm . htmlContainerEdit (Right c)
 

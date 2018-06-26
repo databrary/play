@@ -24,7 +24,7 @@ data ContainerRow = ContainerRow
   , containerTop :: Bool
   , containerName :: Maybe T.Text
   , containerDate :: Maybe Date
-  } -- deriving (Eq, Show)
+  }
 
 data Container = Container
   { containerRow :: !ContainerRow
@@ -55,7 +55,5 @@ instance Has (Maybe Release) Container where
 instance Has Volume Container where
   view = containerVolume
 instance Has Permission Container where
-  view = (view . containerVolume)
-instance Has (Id Volume) Container where
   view = (view . containerVolume)
 
