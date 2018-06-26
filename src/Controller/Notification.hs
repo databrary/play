@@ -53,12 +53,14 @@ viewNotify = action GET (pathJSON </< "notify") $ \() -> withAuth $ do
   n <- lookupAccountNotify u
   return $ okResponse [] $ JSON.toEncoding n
 
+data UpdateNotifyRequest = UpdateNotifyRequest [Notice] (Maybe Delivery)
+
 postNotify :: ActionRoute ()
 postNotify = action POST (pathJSON </< "notify") $ \() -> withAuth $ do
   u <- authAccount
-  (nl, md) <- runForm Nothing $ do
+  UpdateNotifyRequest nl md <- runForm Nothing $ do
     csrfForm
-    (,)
+    UpdateNotifyRequest
       <$> ("notice" .:> return <$> deform <|> withSubDeforms (const deform))
       <*> ("delivery" .:> deformNonEmpty deform)
   mapM_ (maybe (void . removeNotify u) (\d n -> changeNotify u n d) md) nl
