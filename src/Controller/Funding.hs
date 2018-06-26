@@ -23,10 +23,12 @@ import Controller.Form
 import Controller.Permission
 import Controller.Volume
 
+data QueryFundersRequest = QueryFundersRequest T.Text Bool
+
 queryFunderHandler :: Action -- TODO: GET only
 queryFunderHandler = withAuth $ do
   _ <- authAccount
-  (q, a) <- runForm Nothing $ liftM2 (,)
+  QueryFundersRequest q a <- runForm Nothing $ liftM2 QueryFundersRequest
     ("query" .:> (deformRequired =<< deform))
     ("all" .:> deform)
   r <- if a
@@ -34,13 +36,16 @@ queryFunderHandler = withAuth $ do
     else findFunders q
   return $ okResponse [] $ JSON.mapObjects funderJSON r
 
+data CreateOrUpdateVolumeFundingRequest =
+    CreateOrUpdateVolumeFundingRequest [T.Text]
+
 postVolumeFunding :: ActionRoute (Id Volume, Id Funder)
 postVolumeFunding = action POST (pathJSON >/> pathId </> pathId) $ \(vi, fi) -> withAuth $ do
   v <- getVolume PermissionEDIT vi
   f <- maybeAction =<< lookupFunderRef fi
-  a <- runForm Nothing $ do
+  CreateOrUpdateVolumeFundingRequest a <- runForm Nothing $ do
     csrfForm
-    "awards" .:> filter (not . T.null) <$> withSubDeforms (\_ -> deform)
+    CreateOrUpdateVolumeFundingRequest <$> ("awards" .:> filter (not . T.null) <$> withSubDeforms (\_ -> deform))
   let fa = Funding f a
   _ <- changeVolumeFunding v fa
   return $ okResponse [] $ JSON.pairs $ fundingJSON fa
