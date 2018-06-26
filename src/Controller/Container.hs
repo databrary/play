@@ -14,6 +14,7 @@ import Control.Monad (when, unless, mfilter)
 import qualified Data.Invertible as I
 import Data.Maybe (fromMaybe, maybeToList, isJust)
 import qualified Data.Text as T
+import Data.Time (Day)
 import Network.HTTP.Types (noContent204, movedPermanently301, conflict409)
 import qualified Web.Route.Invertible as R
 
@@ -59,6 +60,9 @@ containerDownloadName Container{ containerRow = ContainerRow{..} } =
 viewContainer :: ActionRoute (API, (Maybe (Id Volume), Id Container))
 viewContainer = second (second $ slotContainerId . unId I.:<->: containerSlotId) `R.mapActionRoute` (viewSlot False)
 
+data CreateOrUpdateContainerRequest =
+    CreateOrUpdateContainerRequest (Maybe (Maybe T.Text)) (Maybe Bool) (Maybe (Maybe Day)) (Maybe (Maybe Release))
+
 containerForm :: Container -> DeformHandler () Container
 containerForm c = do
   csrfForm
@@ -66,6 +70,7 @@ containerForm c = do
   top <- "top" .:> deformOptional deform
   date <- "date" .:> deformOptional (deformNonEmpty deform)
   release <- "release" .:> deformOptional (deformNonEmpty deform)
+  let _ = CreateOrUpdateContainerRequest name top date release
   return c
     { containerRow = (containerRow c)
       { containerName = fromMaybe (containerName $ containerRow c) name
