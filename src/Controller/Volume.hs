@@ -27,11 +27,13 @@ import qualified Data.ByteString.Char8 as BSC
 import qualified Data.HashMap.Lazy as HML
 import qualified Data.HashMap.Strict as HM
 import Data.Function (on)
+import Data.Int (Int16)
 import Data.Maybe (fromMaybe, isNothing)
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Network.HTTP.Types (noContent204, unsupportedMediaType415)
+import Network.URI (URI)
 import qualified Network.Wai as Wai
 
 import Ops
@@ -240,6 +242,15 @@ viewVolume = action GET (pathAPI </> pathId) $ \(api, vi) -> withAuth $ do
       peeks $ okResponse [] . htmlVolumeView v t
   -}
 
+data CreateOrUpdateVolumeCitationRequest =
+    CreateOrUpdateVolumeCitationRequest
+        T.Text
+        (Maybe T.Text)
+        (Maybe T.Text)
+        (T.Text)
+        (Maybe URI)
+        (Maybe Int16)
+
 volumeForm :: Volume -> DeformHandler f Volume
 volumeForm v = do
   name <- "name" .:> deform
@@ -254,7 +265,7 @@ volumeForm v = do
     }
 
 -- FIXME: Too impure, and needs test: What elements of the input are modified?
-volumeCitationForm :: Volume -> DeformHandler f (Volume, Maybe Citation)
+volumeCitationForm :: Volume -> DeformHandler f (Volume, Maybe Citation, CreateOrUpdateVolumeCitationRequest)
 volumeCitationForm v = do
   csrfForm
   vol <- volumeForm v
@@ -263,6 +274,14 @@ volumeCitationForm v = do
     <*> ("url" .:> deformNonEmpty deform)
     <*> ("year" .:> deformNonEmpty deform)
     <*> pure Nothing
+  let createOrUpdateVolumeCitationRequest =
+        CreateOrUpdateVolumeCitationRequest
+            ((volumeName . volumeRow) vol)
+            ((volumeAlias . volumeRow) vol)
+            ((volumeBody . volumeRow) vol)
+            (citationHead cite)
+            (citationURL cite)
+            (citationYear cite)
   look <- flatMapM (lift . focusIO . lookupCitation) $
     guard (T.null (volumeName $ volumeRow vol) || T.null (citationHead cite) || isNothing (citationYear cite)) >> citationURL cite
   let fill = maybe cite (cite <>) look
@@ -274,7 +293,7 @@ volumeCitationForm v = do
   _ <- "name" .:> deformRequired name
   when (not empty) $ void $
     "citation" .:> "head" .:> deformRequired (citationHead fill)
-  return (vol{ volumeRow = (volumeRow vol){ volumeName = name } }, empty `unlessUse` fill)
+  return (vol{ volumeRow = (volumeRow vol){ volumeName = name } }, empty `unlessUse` fill, createOrUpdateVolumeCitationRequest)
 
 viewVolumeEdit :: ActionRoute (Id Volume)
 viewVolumeEdit = action GET (pathHTML >/> pathId </< "edit") $ \_ -> withAuth $ do
@@ -295,21 +314,25 @@ postVolume :: ActionRoute (Id Volume)
 postVolume = action POST (pathJSON >/> pathId) $ \vi -> withAuth $ do
   v <- getVolume PermissionEDIT vi
   cite <- lookupVolumeCitation v
-  (v', cite') <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ volumeCitationForm v
+  (v', cite', _) <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ volumeCitationForm v
   changeVolume v'
   r <- changeVolumeCitation v' cite'
   return $ okResponse [] $
     JSON.recordEncoding $ volumeJSONSimple v' `JSON.foldObjectIntoRec` ("citation" JSON..= if r then cite' else cite)
     -- HTML -> peeks $ otherRouteResponse [] viewVolume arg
 
+data CreateVolumeRequest =
+    CreateVolumeRequest (Maybe (Id Party)) CreateOrUpdateVolumeCitationRequest
+
 createVolume :: ActionRoute ()
 createVolume = action POST (pathJSON >/> "volume") $ \() -> withAuth $ do
   u <- peek
   (bv, cite, owner) <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ do
     csrfForm
-    (bv, cite) <- volumeCitationForm blankVolume
+    (bv, cite, req) <- volumeCitationForm blankVolume
     own <- "owner" .:> do
       oi <- deformOptional deform
+      let _ = CreateVolumeRequest oi req
       own <- maybe (return $ Just $ selfAuthorize u) (lift . lookupAuthorizeParent u) $ mfilter (partyId (partyRow u) /=) oi
       deformMaybe' "You are not authorized to create volumes for that owner." $
         authorizeParent . authorization <$> mfilter ((PermissionADMIN <=) . accessMember) own
@@ -336,17 +359,22 @@ viewVolumeLinks = action GET (pathHTML >/> pathId </< "link") $ \vi -> withAuth 
   peeks $ blankForm . htmlVolumeLinksEdit v links
 -}
 
+data UpdateVolumeLinksRequest =
+    UpdateVolumeLinksRequest [(T.Text, Maybe URI)]
+
 postVolumeLinks :: ActionRoute (Id Volume)
 postVolumeLinks = action POST (pathJSON >/> pathId </< "link") $ \vi -> withAuth $ do
   v <- getVolume PermissionEDIT vi
   -- links <- lookupVolumeLinks v
   links' <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ do
     csrfForm
-    withSubDeforms $ \_ -> Citation
+    res <- withSubDeforms $ \_ -> Citation
       <$> ("head" .:> deform)
       <*> ("url" .:> (Just <$> deform))
       <*> pure Nothing
       <*> pure Nothing
+    let _ = UpdateVolumeLinksRequest (fmap (\c -> (citationHead c, citationURL c)) res)
+    pure res
   changeVolumeLinks v links'
   return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v `JSON.foldObjectIntoRec` ("links" JSON..= links')
   -- HTML -> peeks $ otherRouteResponse [] viewVolume arg
