@@ -109,8 +109,7 @@ mkSolrIndexingContextSimple cn solr = do
     httpc <- initHTTPClient
     pure
       SolrIndexingContext {
-               slcTimestamp = UTCTime (fromGregorian 2018 4 5) (secondsToDiffTime 0)
-             , slcLogs = logs
+               slcLogs = logs
              , slcHTTPClient = httpc
              , slcSolr = solr
              , slcDB = cn

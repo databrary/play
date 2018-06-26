@@ -125,8 +125,7 @@ withBackgroundContextM = withReaderT BackgroundContext
 
 -- | A ActionContext with no Identity, for running Solr indexing.
 data SolrIndexingContext = SolrIndexingContext
-  { slcTimestamp :: !Timestamp
-  , slcLogs :: !Logs
+  { slcLogs :: !Logs
   , slcHTTPClient :: !HTTPClient
   , slcSolr :: !Solr
   , slcDB :: !DBConn -- ^ The specific connection chosen for the running action?
@@ -141,8 +140,6 @@ instance Has HTTPClient SolrIndexingContext where
 instance Has DBConn SolrIndexingContext where
   view = slcDB
 
-instance Has Timestamp SolrIndexingContext where
-  view = slcTimestamp
 instance Has Identity SolrIndexingContext where
   view _ = IdentityNotNeeded
 instance Has SiteAuth SolrIndexingContext where
@@ -160,8 +157,7 @@ type SolrIndexingContextM a = ReaderT SolrIndexingContext IO a
 mkSolrIndexingContext :: ActionContext -> SolrIndexingContext
 mkSolrIndexingContext ac =
     SolrIndexingContext {
-          slcTimestamp = contextTimestamp ac
-        , slcLogs = (serviceLogs . contextService) ac
+          slcLogs = (serviceLogs . contextService) ac
         , slcHTTPClient = (serviceHTTPClient . contextService) ac
         , slcSolr = (serviceSolr . contextService) ac
         , slcDB = contextDB ac
