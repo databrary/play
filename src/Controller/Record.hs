@@ -104,13 +104,15 @@ deleteRecord = action DELETE (pathJSON >/> pathId) $ \ri -> withAuth $ do
   return $ emptyResponse noContent204 []
   -- HTML -> peeks $ otherRouteResponse [] viewVolume (api, view rec)
 
+data UpdateRecordSlotRequest = UpdateRecordSlotRequest (Maybe Segment)
+
 postRecordSlot :: ActionRoute (Id Slot, Id Record)
 postRecordSlot = action POST (pathJSON >/> pathSlotId </> pathId) $ \(si, ri) -> withAuth $ do
   slot <- getSlot PermissionEDIT Nothing si
   rec <- getRecord PermissionEDIT ri
-  src <- runForm Nothing $ do
+  UpdateRecordSlotRequest src <- runForm Nothing $ do
     csrfForm
-    "src" .:> deformNonEmpty deform
+    UpdateRecordSlotRequest <$> ("src" .:> deformNonEmpty deform)
   r <- moveRecordSlot (RecordSlot rec slot{ slotSegment = fromMaybe emptySegment src }) (slotSegment slot)
   -- HTML | r      -> peeks $ otherRouteResponse [] (viewSlot False) (api, (Just (view slot), slotId slot))
   --    | otherwise -> peeks $ otherRouteResponse [] viewRecord (api, recordId $ recordRow rec)
