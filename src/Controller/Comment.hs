@@ -6,6 +6,7 @@ module Controller.Comment
 import Control.Monad (forM_, when)
 import Control.Monad.Trans.Class (lift)
 import Data.Function (on)
+import Data.Text (Text)
 
 import Ops
 -- import Has
@@ -28,6 +29,8 @@ import Controller.Notification
 import View.Form (FormHtml)
 -- import View.Comment
 
+data CreateOrUpdateCommentRequest = CreateOrUpdateCommentRequest Text (Maybe (Id Comment))
+
 postComment :: ActionRoute (Id Slot)
 postComment = action POST (pathJSON >/> pathSlotId </< "comment") $ \si -> withAuth $ do
   u <- authAccount
@@ -36,6 +39,7 @@ postComment = action POST (pathJSON >/> pathSlotId </< "comment") $ \si -> withA
     csrfForm
     text <- "text" .:> (deformRequired =<< deform)
     parent <- "parent" .:> deformNonEmpty (deformMaybe' "comment not found" =<< lift . lookupComment =<< deform)
+    let _ = CreateOrUpdateCommentRequest text (fmap commentId parent)
     return ((blankComment u s)
       { commentText = text
       , commentParents = maybe [] (return . commentId) parent
