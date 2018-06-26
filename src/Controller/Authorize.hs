@@ -176,6 +176,9 @@ deleteAuthorize = action DELETE (pathAPI </>> pathPartyTarget </> pathAuthorizeT
     JSON -> return $ okResponse [] $ JSON.pairs $ "party" JSON..=: partyJSON o
     HTML -> peeks $ otherRouteResponse [] viewAuthorize arg
 
+data AuthorizeNotFoundRequest =
+    AuthorizeNotFoundRequest T.Text Permission (Maybe T.Text)
+
 -- | During registration and when requesting additional sponsors, if the target parent party doesn't exist in
 -- Databrary yet, this route enables a user to submit some information on which target parent (AI or institution)
 -- they are seeking, to trigger an email to the Databrary site admins, with the hope that the site admins are able
@@ -184,10 +187,11 @@ postAuthorizeNotFound :: ActionRoute (PartyTarget)
 postAuthorizeNotFound = action POST (pathJSON >/> pathPartyTarget </< "notfound") $ \i -> withAuth $ do
   p <- getParty (Just PermissionADMIN) i
   agent <- peeks $ fmap accountEmail . partyAccount
-  (name, perm, info) <- runForm Nothing $ liftM3 (,,)
-    ("name" .:> deform)
-    ("permission" .:> deform)
-    ("info" .:> deformNonEmpty deform)
+  AuthorizeNotFoundRequest name perm info <-
+    runForm Nothing $ liftM3 AuthorizeNotFoundRequest
+      ("name" .:> deform)
+      ("permission" .:> deform)
+      ("info" .:> deformNonEmpty deform)
   authaddr <- peeks staticAuthorizeAddr
   title <- peeks $ authorizeSiteTitle perm
   sendMail [Left authaddr] []
