@@ -23,8 +23,10 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
+import Data.Text (Text)
 import qualified Data.Text.Encoding as TE
 import Network.HTTP.Types (badRequest400)
+import Network.URI (URI)
 import qualified Network.Wai as Wai
 import Network.Wai.Parse (FileInfo(..))
 
@@ -128,6 +130,9 @@ viewParty = action GET (pathAPI </> pathPartyTarget) $ \(api, i) -> withAuth $ d
     JSON -> okResponse [] <$> (partyJSONQuery p =<< peeks Wai.queryString)
     HTML -> peeks $ okResponse [] . htmlPartyView p
 
+data ProcessPartyRequest =
+    ProcessPartyRequest Text (Maybe Text) (Maybe ORCID) (Maybe Text) (Maybe URI) (Maybe (Maybe (FileInfo TempFile, Format)))
+
 -- | Extract values to build up the fields of a Party from an incoming form/json request.
 -- One part of the extraction is reading and saving any avater image provided.
 -- If an image is provided, also generate an asset, that is attached to the core volume.
@@ -157,6 +162,7 @@ processParty api p = do
               deformCheck "Must be an image." formatIsImage fmt
             return $ Just $ Just (avatarFileInfo, format))
          mFileInfo)
+    let _ = ProcessPartyRequest name prename mOrcid affiliation url avatar
     return (bp
       { partyRow = (partyRow bp)
         { partySortName = name
