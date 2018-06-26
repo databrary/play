@@ -136,10 +136,12 @@ viewPasswordResetAction = withoutAuth $ do
 postPasswordReset :: ActionRoute API
 postPasswordReset = action POST (pathAPI </< "user" </< "password") $ postPasswordResetAction
 
+data PasswordResetRequest = PasswordResetRequest BSC.ByteString
+
 postPasswordResetAction :: API -> Action
 postPasswordResetAction = \api -> withoutAuth $ do
-  email <- runForm ((api == HTML) `thenUse` htmlPasswordReset) $ do
-    "email" .:> emailTextForm
+  PasswordResetRequest email <- runForm ((api == HTML) `thenUse` htmlPasswordReset) $ do
+    PasswordResetRequest <$> ("email" .:> emailTextForm)
   auth <- lookupPasswordResetAccount email
   resetPasswordMail (maybe (Left email) Right auth)
     "Databrary password reset" $
