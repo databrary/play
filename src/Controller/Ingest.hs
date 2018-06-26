@@ -67,6 +67,10 @@ viewIngest = action GET (pathId </< "ingest") $ \vi -> withAuth $ do
   v <- getVolume PermissionEDIT vi
   peeks $ blankForm . htmlIngestForm v s
 
+data ControlIngestRequest =
+      AbortIngest Bool
+    | RunIngest Bool Bool (FileInfo JSON.Value)
+
 postIngest :: ActionRoute (Id Volume)
 postIngest = multipartAction $ action POST (pathId </< "ingest") $ \vi -> withAuth $ do
   checkMemberADMIN
@@ -74,8 +78,8 @@ postIngest = multipartAction $ action POST (pathId </< "ingest") $ \vi -> withAu
   v <- getVolume PermissionEDIT vi
   a <- runFormFiles [("json", 16*1024*1024)] (Just $ htmlIngestForm v s) $ do
     csrfForm
-    abort <- "abort" .:> deform
-    abort `unlessReturn` ((,,)
+    AbortIngest abort <- AbortIngest <$> ("abort" .:> deform)
+    abort `unlessReturn` (RunIngest
       <$> ("run" .:> deform)
       <*> ("overwrite" .:> deform)
       <*> ("json" .:> do
@@ -86,7 +90,7 @@ postIngest = multipartAction $ action POST (pathId </< "ingest") $ \vi -> withAu
                    fileInfo)))
   r <- maybe
     (True <$ focusIO abortIngest)
-    (\(r,o,j) -> runIngest $ right (map (unId . containerId . containerRow)) <$> ingestJSON v (fileContent j) r o)
+    (\(RunIngest r o j) -> runIngest $ right (map (unId . containerId . containerRow)) <$> ingestJSON v (fileContent j) r o)
     a
   unless r $ result $ response badRequest400 [] ("failed" :: String)
   peeks $ otherRouteResponse [] viewIngest (volumeId $ volumeRow v)
