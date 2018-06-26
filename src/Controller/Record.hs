@@ -54,12 +54,14 @@ viewRecord = action GET (pathJSON >/> pathId) $ \i -> withAuth $ do
   return $ okResponse [] $ JSON.recordEncoding $ recordJSON False rec -- json should consult volume
   -- HTML -> okResponse [] $ T.pack $ show $ recordId $ recordRow rec -- TODO
 
+data CreateRecordRequest = CreateRecordRequest Category
+
 createRecord :: ActionRoute (Id Volume)
 createRecord = action POST (pathJSON >/> pathId </< "record") $ \vi -> withAuth $ do
   vol <- getVolume PermissionEDIT vi
   br <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ do
     csrfForm
-    cat <- "category" .:> (deformMaybe' "No such category" . getCategory =<< deform)
+    CreateRecordRequest cat <- CreateRecordRequest <$> ("category" .:> (deformMaybe' "No such category" . getCategory =<< deform))
     return $ blankRecord cat vol
   rec <- addRecord br
   return $ okResponse [] $ JSON.recordEncoding $ recordJSON False rec -- recordJSON not restricted because EDIT
