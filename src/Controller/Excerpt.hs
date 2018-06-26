@@ -19,6 +19,7 @@ import Model.Asset
 import Model.AssetSegment
 import Model.Excerpt
 import Model.Notification.Types
+import Model.Release.Types
 import HTTP.Form.Deform
 import HTTP.Path.Parser
 import Action
@@ -31,12 +32,16 @@ import Controller.AssetSegment
 pathExcerpt :: PathParser (Id Slot, Id Asset)
 pathExcerpt = pathJSON >/> pathSlotId </> pathId </< "excerpt"
 
+data CreateOrUpdateExcerptRequest =
+    CreateOrUpdateExcerptRequest (Maybe Release)
+
 postExcerpt :: ActionRoute (Id Slot, Id Asset)
 postExcerpt = action POST pathExcerpt $ \(si, ai) -> withAuth $ do
   as <- getAssetSegment False PermissionEDIT False Nothing si ai
   e <- runForm Nothing $ do
     csrfForm
-    Excerpt as <$> ("release" .:> deformNonEmpty deform)
+    CreateOrUpdateExcerptRequest rel <- CreateOrUpdateExcerptRequest <$> ("release" .:> deformNonEmpty deform)
+    pure (Excerpt as rel)
   r <- changeExcerpt e
   unless r $ result $
     response conflict409 [] ("The requested excerpt overlaps an existing excerpt." :: T.Text)
