@@ -12,6 +12,7 @@ module Controller.Record
 
 import Control.Monad (when, unless)
 import Control.Monad.Trans.Class (lift)
+import qualified Data.ByteString as BS
 import Data.Maybe (isNothing, fromMaybe)
 import qualified Data.Text as T
 import Network.HTTP.Types (noContent204, conflict409)
@@ -67,6 +68,8 @@ createRecord = action POST (pathJSON >/> pathId </< "record") $ \vi -> withAuth 
   return $ okResponse [] $ JSON.recordEncoding $ recordJSON False rec -- recordJSON not restricted because EDIT
   -- HTML -> peeks $ otherRouteResponse [] viewRecord (api, recordId $ recordRow rec)
 
+data ManageRecordMeasureRequest = ManageRecordMeasureRequest (Maybe BS.ByteString)
+
 postRecordMeasure :: ActionRoute (Id Record, Id Metric)
 postRecordMeasure = action POST (pathJSON >/> pathId </> pathId) $ \(ri, mi) -> withAuth $ do
   record <- getRecord PermissionEDIT ri
@@ -74,7 +77,7 @@ postRecordMeasure = action POST (pathJSON >/> pathId </> pathId) $ \(ri, mi) -> 
   let mkMeasure datum = Measure record met datum
   rec' <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ do
     csrfForm
-    mDatum <- deformSync' ("datum" .:> deformNonEmpty deform)
+    ManageRecordMeasureRequest mDatum <- ManageRecordMeasureRequest <$> (deformSync' ("datum" .:> deformNonEmpty deform))
     maybe
       (lift $ removeRecordMeasure $ mkMeasure "") -- delete measure data
       (\d -> do  -- add or update measure data
