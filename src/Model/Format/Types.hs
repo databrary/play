@@ -11,7 +11,7 @@ import qualified Data.Text as T
 import Instances.TH.Lift ()
 import Language.Haskell.TH.Lift (deriveLift)
 
-import Model.Kind
+-- import Model.Kind
 import Model.Id.Types
 
 type instance IdType Format = Int16

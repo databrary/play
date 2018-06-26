@@ -172,7 +172,7 @@ writeDocuments [] = return ()
 writeDocuments d =
   writeBlock $ BSL.toStrict $ BSB.toLazyByteString $ foldMap (("},\"add\":{\"doc\":" <>) . JSON.fromEncoding . JSON.value . JSON.toJSON) d
 
-writeUpdate :: ReaderT BackgroundContext (InvertM BS.ByteString) () -> ReaderT BackgroundContext (InvertM BS.ByteString) ()
+writeUpdate :: ReaderT SolrIndexingContext (InvertM BS.ByteString) () -> ReaderT SolrIndexingContext (InvertM BS.ByteString) ()
 writeUpdate f = do
   writeBlock "{\"delete\":{\"query\":\"*:*\""
   f
@@ -185,7 +185,7 @@ joinContainers f cl@(c:cr) al@((a, SlotId ci s):ar)
   | containerId (containerRow c) == ci = f a (Slot c s) : joinContainers f cl ar
   | otherwise = joinContainers f cr al
 
-writeVolume :: (Volume, Maybe Citation) -> ReaderT BackgroundContext (InvertM BS.ByteString) ()
+writeVolume :: (Volume, Maybe Citation) -> ReaderT SolrIndexingContext (InvertM BS.ByteString) ()
 writeVolume (v, vc) = do
   writeDocuments [solrVolume v vc]
   cl <- lookupVolumeContainers v
@@ -197,15 +197,15 @@ writeVolume (v, vc) = do
   writeDocuments . map (solrTagUse (volumeId $ volumeRow v)) =<< lookupVolumeTagUseRows v
   writeDocuments . map (solrComment (volumeId $ volumeRow v)) =<< lookupVolumeCommentRows v
 
-writeAllDocuments :: ReaderT BackgroundContext (InvertM BS.ByteString) ()
+writeAllDocuments :: ReaderT SolrIndexingContext (InvertM BS.ByteString) ()
 writeAllDocuments = do
   mapM_ writeVolume =<< lookupVolumesCitations
   writeDocuments . map (uncurry solrParty) =<< lookupPartyAuthorizations
   writeDocuments . map solrTag =<< lookupTags
 
-updateIndex :: BackgroundContextM ()
+updateIndex :: SolrIndexingContextM ()
 updateIndex = do
-  (ctx :: BackgroundContext) <- ask
+  (ctx :: SolrIndexingContext) <- ask
   (solr :: Solr) <- peek
   let (req :: HC.Request) = solrRequest solr
   t <- liftIO getCurrentTime

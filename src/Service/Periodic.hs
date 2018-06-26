@@ -41,7 +41,7 @@ run p = runContextM $ withReaderT BackgroundContext $ do
   focusIO $ logMsg t ("periodic running: " ++ show p)
   cleanTokens
   updateVolumeIndex
-  updateIndex
+  withReaderT (mkSolrIndexingContext . backgroundContext) updateIndex
   ss <- lookupSiteStats
   focusIO $ (`writeIORef` ss) . serviceStats
   when (p >= PeriodWeekly) $
