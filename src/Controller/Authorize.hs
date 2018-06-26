@@ -14,7 +14,7 @@ import Data.Monoid ((<>))
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
-import Data.Time (UTCTime(..), fromGregorian, addGregorianYearsRollOver)
+import Data.Time (UTCTime(..), fromGregorian, addGregorianYearsRollOver, Day)
 import Network.HTTP.Types (noContent204)
 
 import Ops
@@ -102,6 +102,10 @@ updateAuthorize ~Nothing ~Nothing = return ()
 createAuthorize :: (MonadAudit c m) => Authorize -> m ()
 createAuthorize = changeAuthorize
 
+data ParentManageAuthorizeRequest =
+      ParentDeleteAuthorizeRequest Bool
+    | ParentUpdateOrCreateAuthorizeRequest Permission Permission (Maybe Day)
+
 -- | Either create a new authorization request from PartyTarget child to a parent or
 -- update/create/reject with validation errors an authorization request to the PartyTarget parent from a child
 postAuthorize :: ActionRoute (API, PartyTarget, AuthorizeTarget)
@@ -134,7 +138,7 @@ postAuthorize = action POST (pathAPI </>> pathPartyTarget </> pathAuthorizeTarge
       -- the new version of this authorization (possibly first) should either be ...
       a <- runForm ((api == HTML) `thenUse` (htmlAuthorizeForm c')) $ do
         csrfForm
-        delete <- "delete" .:> deform
+        ParentDeleteAuthorizeRequest delete <- ParentDeleteAuthorizeRequest <$> ("delete" .:> deform)
         -- 1. Nothing (causing deletion if there was a request or old auth)
         delete `unlessReturn` (do
           site <- "site" .:> deform
@@ -143,6 +147,7 @@ postAuthorize = action POST (pathAPI </>> pathPartyTarget </> pathAuthorizeTarge
             "expires" .:>
               (deformCheck "Expiration must be within two years." (all (\e -> su || e > minexp && e <= maxexp))
                =<< (<|> (su `unlessUse` maxexp)) <$> deformNonEmpty deform)
+          let _ = ParentUpdateOrCreateAuthorizeRequest site member expires
           -- 2. A Just with the new or updated approved authorization
           return $ makeAuthorize (Access site member) (fmap with1210Utc expires) child parent)
       -- Perform the indicated change decided above in the value of "a"
