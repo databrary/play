@@ -15,7 +15,7 @@ import Data.Maybe
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Data.Time
--- import qualified Data.Vector as V
+import qualified Data.Vector as V
 import qualified Hedgehog.Gen as Gen
 import qualified Network.HTTP.Client as HTTPC
 import System.Exit (ExitCode(..))
@@ -28,6 +28,7 @@ import Controller.CSV (volumeCSV)
 import EZID.Volume (updateEZID)
 import Has
 import HTTP.Client
+import Ingest.JSON
 import Model.Asset
 import Model.Audit (MonadAudit)
 import Model.Authorize
@@ -440,7 +441,7 @@ test_16 = ignoreTest $ -- TODO: enable this inside of nix build with solr binari
         lbs <- runReaderT (search (mkVolumeSearchQuery "databrary")) (aiCtxt { ctxSolr = Just solr, ctxHttpClient = Just hc})
         let Just resVal = decode (HTTPC.responseBody lbs) :: Maybe Value
         show resVal @?= -- TODO: use aeson parser and only check selected fields
-            "Object (fromList [(\"response\",Object (fromList [(\"numFound\",Number 1.0),(\"start\",Number 0.0),(\"docs\",Array [Object (fromList [(\"body\",String \"Databrary is an open data library for developmental science. Share video, audio, and related metadata. Discover more, faster.\\nMost developmental scientists rely on video recordings to capture the complexity and richness of behavior. However, researchers rarely share video data, and this has impeded scientific progress. By creating the cyber-infrastructure and community to enable open video sharing, the Databrary project aims to facilitate deeper, richer, and broader understanding of behavior.\\nThe Databrary project is dedicated to transforming the culture of developmental science by building a community of researchers committed to open video data sharing, training a new generation of developmental scientists and empowering them with an unprecedented set of tools for discovery, and raising the profile of behavioral science by bolstering interest in and support for scientific research among the general public.\"),(\"name\",String \"Databrary\"),(\"owner_names\",Array [String \"Admin, Admin\",String \"Steiger, Lisa\",String \"Tesla, Testarosa\"]),(\"id\",Number 1.0),(\"owner_ids\",Array [Number 1.0,Number 3.0,Number 7.0])])])])),(\"spellcheck\",Object (fromList [(\"suggestions\",Array [])]))])"
+            "Object (fromList [(\"response\",Object (fromList [(\"numFound\",Number 1.0),(\"start\",Number 0.0),(\"docs\",Array [Object (fromList [(\"body\",String \"Databrary is an open data library for developmental science. Share video, audio, and related metadata. Discover more, faster.\\nMost developmental scientists rely on video recordings to capture the complexity and richness of behavior. However, researchers rarely share video data, and this has impeded scientific progress. By creating the cyber-infrastructure and community to enable open video sharing, the Databrary project aims to facilitate deeper, richer, and broader understanding of behavior.\\nThe Databrary project is dedicated to transforming the culture of developmental science by building a community of researchers committed to open video data sharing, training a new generation of developmental scientists and empowering them with an unprecedented set of tools for discovery, and raising the profile of behavioral science by bolstering interest in and supportp for scientific research among the general public.\"),(\"name\",String \"Databrary\"),(\"owner_names\",Array [String \"Admin, Admin\",String \"Steiger, Lisa\",String \"Tesla, Testarosa\"]),(\"id\",Number 1.0),(\"owner_ids\",Array [Number 1.0,Number 3.0,Number 7.0])])])])),(\"spellcheck\",Object (fromList [(\"suggestions\",Array [])]))])"
         step "and the public will find the newly added volume by title"
         bctx <- mkSolrIndexingContextSimple cn2 solr
         runReaderT updateIndex bctx
@@ -469,7 +470,42 @@ test_17 = localOption (mkTimeout (10 * 10^(6 :: Int))) $ Test.stepsWithResourceA
     --   example - https://doi.org/10.5072/FK2.801
     pure ()
 
--- remaining complex subsystems to demonstrate using: notifications, upload, ingest
+
+--------- ingest ------------
+test_18 :: TestTree
+test_18 = localOption (mkTimeout (10 * 10^(6 :: Int))) $ Test.stepsWithTransaction "test_18" $ \step cn2 -> do
+    step "Given an authorized investigator"
+    step " and a volume"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
+    step "When an superadmin user ingests a session"
+    aiCtxt2 <- withStorage aiCtxt
+    aiCtxt3 <- withAV aiCtxt2
+    let aiCtxt4 = withTimestamp (UTCTime (fromGregorian 2017 5 6) (secondsToDiffTime 0)) aiCtxt3
+    aiCtxt5 <- withLogs aiCtxt4
+    let aiCtxt7 = aiCtxt5 { ctxSecret = Just (Secret "abc")}
+    let updateJson = mkIngestInput ((volumeName . volumeRow) vol)
+    Right _ <- runReaderT (ingestJSON vol updateJson True False) aiCtxt7
+    step "Then the user can view the created session"
+    cntrs <- runReaderT (lookupVolumeContainers vol) aiCtxt -- TODO: extract logic from volumeJSONField "containers"
+    (Just "cont1") `elem` (fmap (containerName . containerRow) cntrs) @? "volume doesn't have container naemd cont1"
+    -- TODO: record; non-AV asset; container linked to record + non-AV asset; AV asset; container linked to record + AV asset
+
+mkIngestInput :: T.Text -> Value
+mkIngestInput volName =
+    object
+        [ ("name", String volName)
+        , ("containers"
+          , Array
+              (V.fromList
+                 [object
+                    [ ("name", "cont1")
+                    , ("key", "key1")
+                    , ("records", Array (V.fromList []))
+                    , ("assets", Array (V.fromList []))
+                    ]]))]
+
+-- remaining complex subsystems to demonstrate using: notifications, upload
 
 ------------------------------------------------------ end of tests ---------------------------------
 
