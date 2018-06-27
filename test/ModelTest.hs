@@ -452,14 +452,12 @@ test_16 = ignoreTest $ -- TODO: enable this inside of nix build with solr binari
 
 -------- ezid --------------
 test_17 :: TestTree
-test_17 = localOption (mkTimeout (10 * 10^(6 :: Int))) $ Test.stepsWithResourceAndTransaction "test_17" $ \step ist cn2 -> do
+test_17 = localOption (mkTimeout (15 * 10^(6 :: Int))) $ Test.stepsWithResourceAndTransaction "test_17" $ \step ist cn2 -> do
     step "Given an authorized investigator"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     step "When the AI creates a partially shared volume and the ezid generation runs"
     -- TODO: should be lookup auth on rootParty
     vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
-    -- updateEZID
-    -- type EZIDM a = CookiesT (ReaderT EZIDContext IO) a
     bctx <- mkBackgroundContext ForEzid ist cn2
     mEzidWasUp <- runReaderT updateEZID bctx
     step "Then the volume will have a valid doi"
@@ -484,12 +482,15 @@ test_18 = localOption (mkTimeout (10 * 10^(6 :: Int))) $ Test.stepsWithTransacti
     let aiCtxt4 = withTimestamp (UTCTime (fromGregorian 2017 5 6) (secondsToDiffTime 0)) aiCtxt3
     aiCtxt5 <- withLogs aiCtxt4
     let aiCtxt7 = aiCtxt5 { ctxSecret = Just (Secret "abc")}
+    -- generate csv file to stage dir
     let updateJson = mkIngestInput ((volumeName . volumeRow) vol)
     Right _ <- runReaderT (ingestJSON vol updateJson True False) aiCtxt7
     step "Then the user can view the created session"
     cntrs <- runReaderT (lookupVolumeContainers vol) aiCtxt -- TODO: extract logic from volumeJSONField "containers"
     (Just "cont1") `elem` (fmap (containerName . containerRow) cntrs) @? "volume doesn't have container naemd cont1"
-    -- TODO: record; non-AV asset; container linked to record + non-AV asset; AV asset; container linked to record + AV asset
+    -- TODO: record; >>> non-AV asset <<< ;
+    --   container linked to record + non-AV asset; >>> AV asset <<< ; >>> container linked to record + AV asset <<<
+    --  NOTE: for each transcoded asset, need to wait and manually call collectTranscode based on log status
 
 mkIngestInput :: T.Text -> Value
 mkIngestInput volName =
@@ -505,7 +506,28 @@ mkIngestInput volName =
                     , ("assets", Array (V.fromList []))
                     ]]))]
 
--- remaining complex subsystems to demonstrate using: notifications, upload
+--------- notifications ------------
+test_19 :: TestTree
+test_19 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransaction "test_19" $ \step cn2 -> do
+    -- context needs: ...
+    step "Given an authorized investigator"
+    -- (aiAcct, aiCtxt)
+    _ <- addAuthorizedInvestigatorWithInstitution' cn2
+    -- when create notification that party was updated and trigger deliveries
+    -- then the target user should receive correct notification
+    pure ()
+
+--------- upload ------------
+test_20 :: TestTree
+test_20 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransaction "test_20" $ \step cn2 -> do
+    step "Given an authorized investigator"
+    -- (aiAcct, aiCtxt)
+    _ <- addAuthorizedInvestigatorWithInstitution' cn2
+    -- context needs: ....
+    -- when start upload and send all chunks
+    -- then AI should be able to see the upload
+    --   check upload size and name
+    pure ()
 
 ------------------------------------------------------ end of tests ---------------------------------
 
