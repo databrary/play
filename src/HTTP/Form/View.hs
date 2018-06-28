@@ -4,9 +4,9 @@ module HTTP.Form.View
   , runFormView
   , blankFormView
   , (.:>)
-  , withSubFormsViews
+--  , withSubFormsViews
   , formViewErrors
-  , allFormViewErrors
+--  , allFormViewErrors
   ) where
 
 import Control.Arrow (first, second)
@@ -69,7 +69,7 @@ blankFormView f = runFormView f mempty mempty
 withSubFormView :: Monad m => FormKey -> FormViewT f m a -> FormViewT f m a
 withSubFormView k (FormViewT a) = FormViewT $ \d e ->
   second (setSubFormErrors e k) <$> a (subForm k d) (subFormErrors k e)
-
+{-
 withSubFormsViews :: Monad m => [a] -> (Maybe a -> FormViewT f m ()) -> FormViewT f m ()
 withSubFormsViews l f = msfv 0 l =<< reader subForms where
   msfv _ [] [] = return ()
@@ -78,13 +78,14 @@ withSubFormsViews l f = msfv 0 l =<< reader subForms where
     (_, sr) = uncons sl
   uncons (x:r) = (Just x, r)
   uncons r = (Nothing, r)
-
+-}
 infixr 2 .:>
 (.:>) :: Monad m => T.Text -> FormViewT f m a -> FormViewT f m a
 (.:>) = withSubFormView . FormField
 
 formViewErrors :: Monad m => FormViewT f m [FormErrorMessage]
 formViewErrors = state $ \e -> (formErrors e, e{ formErrors = [] })
-
+{-
 allFormViewErrors :: Monad m => FormViewT f m [(FormPath, FormErrorMessage)]
 allFormViewErrors = state $ \e -> (allFormErrors e, mempty)
+-}
