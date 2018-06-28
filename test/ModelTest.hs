@@ -544,7 +544,7 @@ test_19 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransactio
             nlAfter <- lookupUserNotifications
             pure (nl, nlAfter))
         aiCtxt
-    -- fmap notificationNotice nl @?= []  -- does this notification only use email?
+    fmap notificationNotice nl @?= [NoticeAccountChange]  -- does this notification only use email?
     -- fmap notificationNotice nlAfter @?= []
     -- TODO: connect to mailtrap API and fetch emails
     pure ()
