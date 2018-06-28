@@ -9,6 +9,8 @@ module TestHarness
     , withAV
     , withTimestamp
     , withLogs
+    , mkLogsStub
+    , mkNotificationsStub
     , withInternalStateVal
     , mkDbContext
     , runContextReaderT
@@ -69,8 +71,8 @@ import Model.Token
 import Service.DB
 import Service.Entropy
 import Service.Log
-import Service.Messages (loadMessages)
-import Service.Notification (initNotifications)
+import Service.Messages (loadMessages, Messages)
+import Service.Notification (initNotifications, Notifications)
 import Service.Passwd (initPasswd)
 import Service.Types
 import Solr.Service (Solr(..))
@@ -200,6 +202,8 @@ data TestContext = TestContext
     , ctxTimestamp :: Maybe Timestamp
     , ctxLogs :: Maybe Logs
     , ctxHttpClient :: Maybe HTTPClient
+    , ctxNotifications :: Maybe Notifications
+    , ctxMessages :: Maybe Messages
     }
 
 blankContext :: TestContext
@@ -218,6 +222,8 @@ blankContext = TestContext
     , ctxTimestamp = Nothing
     , ctxLogs = Nothing
     , ctxHttpClient = Nothing
+    , ctxNotifications = Nothing
+    , ctxMessages = Nothing
     }
 
 addCntxt :: TestContext -> TestContext -> TestContext
@@ -237,6 +243,8 @@ addCntxt c1 c2 =
         , ctxTimestamp = ctxTimestamp c1 <|> ctxTimestamp c2
         , ctxLogs = ctxLogs c1 <|> ctxLogs c2
         , ctxHttpClient = ctxHttpClient c1 <|> ctxHttpClient c2
+        , ctxNotifications = ctxNotifications c1 <|> ctxNotifications c2
+        , ctxMessages = ctxMessages c1 <|> ctxMessages c2
        }
 
 instance Has Identity TestContext where
@@ -275,14 +283,23 @@ instance Has Logs TestContext where
 instance Has HTTPClient TestContext where
     view = fromJust . ctxHttpClient
 
+instance Has Notifications TestContext where
+    view = fromJust . ctxNotifications
+
+instance Has Messages TestContext where
+    view = fromJust . ctxMessages
+
+instance Has Party TestContext where
+    view = view . fromJust . ctxSiteAuth
+
+instance Has Account TestContext where
+    view = view . fromJust . ctxSiteAuth
+
 -- Needed for types, but unused so far
 
 -- prefer using SiteAuth instead of Identity for test contexts
 instance Has SiteAuth TestContext where
     view = fromJust . ctxSiteAuth
-
-instance Has Party TestContext where
-    view = undefined
 
 instance Has (Id Party) TestContext where
     view = fromJust . ctxPartyId
@@ -315,6 +332,14 @@ withLogs :: TestContext -> IO TestContext
 withLogs ctxt = do
     logs <- initLogs mempty
     pure (addCntxt ctxt (blankContext { ctxLogs = Just logs }))
+
+mkLogsStub :: IO Logs
+mkLogsStub = initLogs mempty
+
+mkNotificationsStub :: IO Notifications
+mkNotificationsStub = do
+    conf <- C.load "databrary.conf" -- alternatively, don't use config
+    initNotifications (conf C.! "notification")
 
 mkAVContext :: IO TestContext
 mkAVContext = do
