@@ -471,7 +471,6 @@ test_17 = localOption (mkTimeout (15 * 10^(6 :: Int))) $ Test.stepsWithResourceA
     --   example - https://doi.org/10.5072/FK2.801
     pure ()
 
-
 --------- ingest ------------
 test_18 :: TestTree
 test_18 = localOption (mkTimeout (10 * 10^(6 :: Int))) $ Test.stepsWithTransaction "test_18" $ \step cn2 -> do
@@ -520,29 +519,34 @@ test_19 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransactio
     step "When the investigator changes their account, triggering a notification and delivery"
     aiCtxt2 <-
         (\n m l -> aiCtxt { ctxNotifications = Just n, ctxMessages = Just m, ctxLogs = Just l })
-        <$> mkNotificationsStub
-        <*> loadMessages
-        <*> mkLogsStub
+            <$> mkNotificationsStub
+            <*> loadMessages
+            <*> mkLogsStub
     let auth = view aiCtxt
     _ <- runReaderT
         (do
             createNotification (blankNotification (siteAccount auth) NoticeAccountChange)
                 { notificationParty = Just $ partyRow $ accountParty $ siteAccount auth })
         aiCtxt2
-    -- TODO: initialize monadmail
-    -- emitNotifications (periodicDelivery Nothing) -- monaddb; monadmail, hasnotification monadhas messages
+    noIdentNotifyCtxt <-
+        (\n m l -> (mkDbContext cn2) { ctxNotifications = Just n, ctxMessages = Just m, ctxLogs = Just l })
+            <$> mkNotificationsStub
+            <*> loadMessages
+            <*> mkLogsStub
+    _ <- runReaderT (emitNotifications (periodicDelivery Nothing)) noIdentNotifyCtxt -- should this use runNotifier instead?
+    -- NOTE: this test depends on mailtrap and might become sensitive to rate limits
     step "Then the investigator gets a notification about the change"
     step "and the notification is removed"
-    -- TODO: repeating viewNotifications
     (nl, nlAfter) <- runReaderT
         (do
-            nl <- lookupUserNotifications
+            nl <- lookupUserNotifications     -- TODO: repeating viewNotifications
             _ <- changeNotificationsDelivery (filter ((DeliverySite >) . notificationDelivered) nl) DeliverySite
             nlAfter <- lookupUserNotifications
             pure (nl, nlAfter))
         aiCtxt
-    -- fmap notificationNotice nl @?= []
+    -- fmap notificationNotice nl @?= []  -- does this notification only use email?
     -- fmap notificationNotice nlAfter @?= []
+    -- TODO: connect to mailtrap API and fetch emails
     pure ()
 
 -- TODO: daily notification logic (cleanNotifications + updateStateNotifications)
