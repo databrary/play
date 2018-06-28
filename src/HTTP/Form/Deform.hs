@@ -25,8 +25,8 @@ import Control.Monad (MonadPlus(..), liftM, mapAndUnzipM, guard)
 import Control.Monad.Reader (MonadReader(..), asks)
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad.Trans.Class (MonadTrans(..))
-import Control.Monad.Trans.Control (MonadTransControl(..))
-import Control.Monad.Writer.Class (MonadWriter(..))
+-- import Control.Monad.Trans.Control (MonadTransControl(..))
+-- import Control.Monad.Writer.Class (MonadWriter(..))
 import qualified Data.Aeson as JSON
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
@@ -58,13 +58,13 @@ newtype DeformT f m a = DeformT { runDeformT :: Form f -> m (FormErrors, Maybe a
 instance MonadTrans (DeformT f) where
   lift m = DeformT $ \_ ->
     liftM ((,) mempty . Just) m
-
+{-
 instance MonadTransControl (DeformT f) where
   type StT (DeformT f) a = (FormErrors, Maybe a)
   liftWith f = DeformT $ \d ->
     liftM ((,) mempty . Just) $ f $ \t -> runDeformT t d
   restoreT m = DeformT $ \_ -> m
-
+-}
 instance MonadIO m => MonadIO (DeformT f m) where
   liftIO = lift . liftIO
 
@@ -104,7 +104,7 @@ instance Monad m => MonadReader (Form f) (DeformT f m) where
   reader f = DeformT $ \d -> return (mempty, Just (f d))
   local f (DeformT a) = DeformT $ a . f
 
-instance Monad m => MonadWriter FormErrors (DeformT f m) where
+{-instance Monad m => MonadWriter FormErrors (DeformT f m) where
   writer (a, e) = DeformT $ \_ -> return (e, Just a)
   listen (DeformT a) = DeformT $ \d -> do
     (e, r) <- a d
@@ -113,7 +113,7 @@ instance Monad m => MonadWriter FormErrors (DeformT f m) where
     (e, mrf) <- a q
     case mrf of
       Just (r, f) -> return (f e, Just r)
-      Nothing -> return (e, Nothing)
+      Nothing -> return (e, Nothing) -}
 
 runDeform :: Monad m => DeformT f m a -> FormData f -> m (Either FormErrors a)
 runDeform (DeformT fa) = fmap fr . fa . initForm where
