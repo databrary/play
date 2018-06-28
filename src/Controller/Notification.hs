@@ -11,6 +11,8 @@ module Controller.Notification
   , forkNotifier
   , updateStateNotifications
   , updateAuthorizeNotifications
+  -- * For Testing
+  , emitNotifications
   ) where
 
 import Control.Applicative ((<|>))
