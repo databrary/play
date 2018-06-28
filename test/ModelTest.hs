@@ -25,6 +25,7 @@ import Test.Tasty.ExpectedFailure
 import Test.Tasty.HUnit
 
 import Controller.CSV (volumeCSV)
+import Controller.Notification
 import EZID.Volume (updateEZID)
 import Has
 import HTTP.Client
@@ -40,6 +41,7 @@ import Model.Format
 import Model.Identity (MonadHasIdentity)
 import Model.Measure
 import Model.Metric
+import Model.Notification
 import Model.Offset
 import Model.Paginate
 import Model.Party
@@ -57,6 +59,7 @@ import Model.VolumeAccess
 -- import Model.VolumeAccess.TypesTest
 import Service.DB (DBConn, MonadDB)
 import Service.Types (Secret(..))
+import Service.Messages (loadMessages)
 import Solr.Index (updateIndex)
 import Solr.Search
 import Solr.Service (initSolr, finiSolr)
@@ -476,7 +479,7 @@ test_18 = localOption (mkTimeout (10 * 10^(6 :: Int))) $ Test.stepsWithTransacti
     step " and a volume"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
-    step "When an superadmin user ingests a session"
+    step "When a superadmin user ingests a session"
     aiCtxt2 <- withStorage aiCtxt
     aiCtxt3 <- withAV aiCtxt2
     let aiCtxt4 = withTimestamp (UTCTime (fromGregorian 2017 5 6) (secondsToDiffTime 0)) aiCtxt3
@@ -512,10 +515,37 @@ test_19 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransactio
     -- context needs: ...
     step "Given an authorized investigator"
     -- (aiAcct, aiCtxt)
-    _ <- addAuthorizedInvestigatorWithInstitution' cn2
-    -- when create notification that party was updated and trigger deliveries
-    -- then the target user should receive correct notification
+    (_, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    -- when create notification that account was updated and trigger deliveries
+    step "When the investigator changes their account, triggering a notification and delivery"
+    aiCtxt2 <-
+        (\n m l -> aiCtxt { ctxNotifications = Just n, ctxMessages = Just m, ctxLogs = Just l })
+        <$> mkNotificationsStub
+        <*> loadMessages
+        <*> mkLogsStub
+    let auth = view aiCtxt
+    _ <- runReaderT
+        (do
+            createNotification (blankNotification (siteAccount auth) NoticeAccountChange)
+                { notificationParty = Just $ partyRow $ accountParty $ siteAccount auth })
+        aiCtxt2
+    -- TODO: initialize monadmail
+    -- emitNotifications (periodicDelivery Nothing) -- monaddb; monadmail, hasnotification monadhas messages
+    step "Then the investigator gets a notification about the change"
+    step "and the notification is removed"
+    -- TODO: repeating viewNotifications
+    (nl, nlAfter) <- runReaderT
+        (do
+            nl <- lookupUserNotifications
+            _ <- changeNotificationsDelivery (filter ((DeliverySite >) . notificationDelivered) nl) DeliverySite
+            nlAfter <- lookupUserNotifications
+            pure (nl, nlAfter))
+        aiCtxt
+    -- fmap notificationNotice nl @?= []
+    -- fmap notificationNotice nlAfter @?= []
     pure ()
+
+-- TODO: daily notification logic (cleanNotifications + updateStateNotifications)
 
 --------- upload ------------
 test_20 :: TestTree

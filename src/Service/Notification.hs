@@ -15,7 +15,7 @@ import qualified Store.Config as C
 
 data Notifications = Notifications
   { notificationsTrigger :: !(MVar (Maybe Period))
-  , notificationsFilter :: !Regex.Regex
+  , notificationsFilter :: !Regex.Regex -- TODO: get rid of this
   , notificationsCopy :: !(Maybe BS.ByteString)
   }
 
