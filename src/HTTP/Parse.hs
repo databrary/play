@@ -32,7 +32,7 @@ requestTooLarge :: Response
 requestTooLarge = emptyResponse requestEntityTooLarge413 []
 
 type ChunkParser a = IO BS.ByteString -> IO a
-
+{-
 _mapChunks :: (a -> b) -> ChunkParser a -> ChunkParser b
 _mapChunks f parse next = f <$> parse next
 
@@ -43,7 +43,7 @@ _nullChunks next = go 0 where
     if BS.null b
       then return n
       else go (n + fromIntegral (BS.length b))
-
+-}
 limitChunks :: Word64 -> ChunkParser a -> ChunkParser a
 limitChunks lim parse next = do
   len <- liftIO $ newIORef 0
@@ -83,17 +83,17 @@ textChunks err next = run (TE.streamDecodeUtf8With err) where
 textChunks' :: ChunkParser TL.Text
 textChunks' = textChunks (\e _ -> unsafeResult $ response unsupportedMediaType415 [] e)
 
-
+{-
 _mapBackEnd :: (a -> b) -> BackEnd a -> BackEnd b
 _mapBackEnd f back param info next = f <$> back param info next
-
+-}
 rejectBackEnd :: BackEnd a
 rejectBackEnd _ _ _ = result requestTooLarge
 
-
+{-
 _parseRequestChunks :: ChunkParser a -> Handler a
 _parseRequestChunks p = liftIO . p =<< peeks requestBody
-
+-}
 limitRequestChunks :: Word64 -> ChunkParser a -> Handler a
 limitRequestChunks lim p = do
   rq <- peek
