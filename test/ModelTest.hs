@@ -53,13 +53,15 @@ import Model.Record
 import Model.RecordSlot
 import Model.Segment
 import Model.Slot
+import Model.Token (createUpload)
 import Model.Transcode
 import Model.Volume
 import Model.VolumeAccess
 -- import Model.VolumeAccess.TypesTest
 import Service.DB (DBConn, MonadDB)
-import Service.Types (Secret(..))
+import Service.Entropy (initEntropy)
 import Service.Messages (loadMessages)
+import Service.Types (Secret(..))
 import Solr.Index (updateIndex)
 import Solr.Search
 import Solr.Service (initSolr, finiSolr)
@@ -554,13 +556,27 @@ test_19 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransactio
 --------- upload ------------
 test_20 :: TestTree
 test_20 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransaction "test_20" $ \step cn2 -> do
-    step "Given an authorized investigator"
+    step "Given an authorized investigator and their volume"
     -- (aiAcct, aiCtxt)
-    _ <- addAuthorizedInvestigatorWithInstitution' cn2
-    -- context needs: ....
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
     -- when start upload and send all chunks
-    -- then AI should be able to see the upload
-    --   check upload size and name
+    -- context needs: ....
+    aiCtxt2 <- (\e -> aiCtxt { ctxEntropy = Just e })
+        <$> initEntropy
+    tok <- runReaderT
+        (do
+            createUpload vol "abcde.csv" 10  -- TODO: generator
+            -- bracket openfile file
+            -- mk chunk
+            -- save chunk
+        )
+        aiCtxt2
+    step "Then the investigator can view the upload"
+    -- (lookupUpload uploadToken) aiCtxt
+    -- p = fileUploadPath (FileUploadToken upload)
+    -- prb <- probeFile (fileUploadName (FileUploadToken upload))
+    --   check upload size and name and format
     pure ()
 
 ------------------------------------------------------ end of tests ---------------------------------
