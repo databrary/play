@@ -66,7 +66,7 @@ postNotify = action POST (pathJSON </< "notify") $ \() -> withAuth $ do
   mapM_ (maybe (void . removeNotify u) (\d n -> changeNotify u n d) md) nl
   return $ emptyResponse noContent204 []
 
-createNotification :: (MonadDB c m, MonadHas Party c m, MonadLog c m, MonadHas Notifications c m, MonadHas Messages c m) => Notification -> m ()
+createNotification :: (MonadDB c m, MonadHas Party c m, MonadMail c m, MonadHas Notifications c m, MonadHas Messages c m) => Notification -> m ()
 createNotification n' = do
   d <- lookupNotify (notificationTarget n') (notificationNotice n')
   when (d > DeliveryNone) $ do
@@ -79,7 +79,7 @@ broadcastNotification :: Bool -> ((Notice -> Notification) -> Notification) -> H
 broadcastNotification add f =
   void $ (if add then addBroadcastNotification else removeMatchingNotifications) $ f $ blankNotification $ siteAccount nobodySiteAuth
 
-createVolumeNotification :: (MonadDB c m, MonadHas (Id Party) c m, MonadHas Party c m, MonadLog c m, MonadHas Notifications c m, MonadHas Messages c m) =>
+createVolumeNotification :: (MonadDB c m, MonadHas (Id Party) c m, MonadHas Party c m, MonadMail c m, MonadHas Notifications c m, MonadHas Messages c m) =>
   Volume -> ((Notice -> Notification) -> Notification) -> m ()
 createVolumeNotification v f = do
   u <- peek
@@ -122,7 +122,7 @@ sendTargetNotifications l@(Notification{ notificationTarget = u }:_) = do
     $ mailNotifications msg l
 sendTargetNotifications [] = return ()
 
-emitNotifications :: Delivery -> ActionContextM ()
+emitNotifications :: (MonadDB c m, MonadMail c m, MonadHas Notifications c m, MonadHas Messages c m) => Delivery -> m ()
 emitNotifications d = do
   unl <- lookupUndeliveredNotifications d
   mapM_ sendTargetNotifications $ groupBy ((==) `on` partyId . partyRow . accountParty . notificationTarget) unl
