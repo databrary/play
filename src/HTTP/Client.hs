@@ -5,7 +5,7 @@ module HTTP.Client
   , checkContentOk
   , CookiesT
   , runCookiesT
-  , withCookies
+  -- , withCookies
   , withResponseCookies
   , requestAcceptContent
   , httpParse
@@ -42,11 +42,11 @@ type CookiesT m a = StateT HC.CookieJar m a
 
 runCookiesT :: Monad m => CookiesT m a -> m a
 runCookiesT f = evalStateT f mempty
-
+{-
 withCookies :: (MonadIO m, MonadHas HTTPClient c m) => (HC.Request -> HC.Manager -> IO (HC.Response a)) -> HC.Request -> CookiesT m (HC.Response a)
 withCookies f r = StateT $ \c -> focusIO $ \m ->
   (id &&& HC.responseCookieJar) <$> f r{ HC.cookieJar = HC.cookieJar r <> Just c } m
-
+-}
 withResponseCookies :: (MonadIO m, MonadHas HTTPClient c m) => HC.Request -> (HC.Response HC.BodyReader -> IO a) -> CookiesT m a
 withResponseCookies q f = StateT $ \c -> focusIO $ \m ->
   HC.withResponse q{ HC.cookieJar = HC.cookieJar q <> Just c } m $ \r -> (, HC.responseCookieJar r) <$> f r
