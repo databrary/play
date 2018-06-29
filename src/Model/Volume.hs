@@ -30,6 +30,7 @@ import Database.PostgreSQL.Typed.Query (pgSQL, unsafeModifyQuery)
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
 import qualified Data.Time as TM
+import qualified Data.Semigroup
 
 import Has (peek, view)
 import Model.Audit
