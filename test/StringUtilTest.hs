@@ -1,6 +1,7 @@
 module StringUtilTest
 where
 
+import Test.Hspec.Expectations
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -18,5 +19,5 @@ test_all =
     testCase "fromCamel-1"
       (fromCamel "Abc" @?= "abc")
   , testCase "fromCamel-2"
-      (fromCamel "AbcEfg" @?= "abc_efg")
+      (fromCamel "AbcEfg" `shouldBe` "abc_efg")
   ]

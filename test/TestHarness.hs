@@ -25,7 +25,6 @@ module TestHarness
     , lookupSiteAuthNoIdent
     , switchIdentity
     -- , addAuthorization
-    , expect
     -- * re-export for convenience
     , runReaderT
     , Wai.defaultRequest
@@ -36,8 +35,6 @@ module TestHarness
 
 import Control.Applicative
 import Control.Exception (bracket)
-import Control.Rematch
-import Control.Rematch.Run
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Resource (InternalState, runResourceT, withInternalState)
 import Data.IORef (newIORef)
@@ -92,14 +89,6 @@ import Web.Types (Web(..))
 --   solr started using /solr-6.6.0 binaries w/core and config in /solr; databrary_logs created
 --   ffmpeg exe on path
 --   active internet connection for live http calls like geoname lookup to function
-
--- | Sloppily taken from hunit-rematch because author is too lazy
--- to update dependency bounds on hackage. Use fetch from his github later.
-expect :: a -> Matcher a -> Assertion
-expect a matcher = case res of
-  MatchSuccess -> return ()
-  (MatchFailure msg) -> assertFailure msg
-  where res = runMatch matcher a
 
 -- | Build the specialized context needed for solr indexing to run, with defaults for simple values
 mkSolrIndexingContextSimple :: PGConnection -> Solr -> IO SolrIndexingContext
