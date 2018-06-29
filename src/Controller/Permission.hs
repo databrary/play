@@ -12,7 +12,7 @@ module Controller.Permission
 import Control.Monad (void, unless, liftM2)
 
 import Has (Has, view, peek, peeks)
-import Model.Permission
+import Model.Permission hiding (checkPermission)
 import Model.Release
 import Model.Party
 import Model.Identity
@@ -20,7 +20,8 @@ import HTTP.Request
 import Action
 
 -- logic inside of checkPermission and checkDataPermission should be inside of model layer
-checkPermission :: Has Permission a => Permission -> a -> Handler a  -- TODO: delete this
+-- TODO: use Model.checkPermission everywhere instead
+checkPermission :: Has Permission a => Permission -> a -> Handler a
 checkPermission requiredPermissionLevel objectWithCurrentUserPermLevel =
   checkPermission2 view requiredPermissionLevel objectWithCurrentUserPermLevel
 

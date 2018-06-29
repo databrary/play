@@ -25,7 +25,7 @@ import Action.Response
 import Action
 import Model.Id
 import Model.Volume
-import Model.Permission
+import Model.Permission hiding (checkPermission)
 import Model.Record
 import Model.Category
 import Model.RecordSlot

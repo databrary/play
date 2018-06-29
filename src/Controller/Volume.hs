@@ -42,7 +42,8 @@ import qualified JSON as JSON
 import Model.Asset (Asset)
 import Model.Enum
 import Model.Id
-import Model.Permission
+import Model.Identity (Identity)
+import Model.Permission hiding (checkPermission)
 import Model.Authorize
 import Model.Volume
 import Model.VolumeAccess
@@ -64,6 +65,7 @@ import Model.VolumeState
 import Model.Notification.Types
 import Store.Filename
 import Static.Service
+import Service.DB (MonadDB)
 import Service.Mail
 import HTTP.Parse
 import HTTP.Form.Deform
@@ -78,12 +80,48 @@ import Controller.Web
 import {-# SOURCE #-} Controller.AssetSegment
 import Controller.Notification
 import View.Form (FormHtml)
+import qualified Model.Permission as Model
+
+-- | Captures possible database responses.
+-- NOTE: This was designed to mimic existing code and responses. LookupFailed
+-- does NOT mean "does not exist". It means that 'lookupVolume' (for example)
+-- returned Nothing.
+data LookupResult a
+    = LookupFailed
+    | LookupDenied
+    | Found a
 
 getVolume :: Permission -> Id Volume -> Handler Volume
 getVolume p i = do
   mVol <- lookupVolume i
   vol <- maybeAction mVol
   checkPermission p vol
+
+-- | Get a 'Volume', if it is available to the given 'Identity' with the desired
+-- 'Permission'.
+getVolume2
+    :: MonadDB c db
+    => Permission -- ^ Desired permission level
+    -> Identity -- ^ Whom to check permissions for
+    -> Id Volume -- ^ Id of Volume to get
+    -> db (LookupResult Volume)
+getVolume2 reqestedPermission ident volId = do
+    mVol <- lookupVolume2 ident volId
+    pure $ case mVol of
+        Nothing -> LookupFailed
+        Just vol ->
+            let
+                requiredPermission =
+                    extractPermissionIgnorePolicy . volumeRolePolicy
+            in
+                case
+                    Model.checkPermission
+                        requiredPermission
+                        vol
+                        reqestedPermission
+                of
+                    PermissionGranted v -> Found v
+                    PermissionDenied -> LookupDenied
 
 data VolumeCache = VolumeCache
   { volumeCacheAccess :: Maybe [VolumeAccess]

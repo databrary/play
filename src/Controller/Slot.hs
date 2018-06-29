@@ -18,7 +18,7 @@ import qualified Network.Wai as Wai
 import Has (view, peeks)
 import qualified JSON as JSON
 import Model.Id
-import Model.Permission
+import Model.Permission hiding (checkPermission)
 import Model.Volume
 import Model.Container
 import Model.Slot

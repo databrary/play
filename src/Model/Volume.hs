@@ -8,6 +8,7 @@ module Model.Volume
     ( module Model.Volume.Types
     , coreVolume
     , lookupVolume
+    , lookupVolume2
     , changeVolume
     , addVolume
     , auditVolumeDownload
@@ -62,6 +63,12 @@ lookupVolume
     :: (MonadDB c m, MonadHasIdentity c m) => Id Volume -> m (Maybe Volume)
 lookupVolume vi = do
     ident :: Identity <- peek
+    dbQuery1 $(selectQuery (selectVolume 'ident) "$WHERE volume.id = ${vi}")
+
+-- | TODO: m (Maybe (Permissioned Volume))
+lookupVolume2
+    :: MonadDB c m => Identity -> Id Volume -> m (Maybe Volume)
+lookupVolume2 ident vi = do
     dbQuery1 $(selectQuery (selectVolume 'ident) "$WHERE volume.id = ${vi}")
 
 changeVolume :: MonadAudit c m => Volume -> m ()
