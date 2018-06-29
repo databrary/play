@@ -478,6 +478,7 @@ test-suite discovered
     , cookie
     , cryptonite
     , hedgehog
+    , hspec-expectations >= 0.8.2
     , http-client
     , http-types
     , mtl
@@ -485,7 +486,6 @@ test-suite discovered
     , postgresql-typed
     , process
     , range-set-list
-    , rematch >= 0.2.0.0
     , resourcet
     , tasty
     , tasty-discover
