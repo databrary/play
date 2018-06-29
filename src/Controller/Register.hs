@@ -71,6 +71,8 @@ viewRegisterAction = withAuth $ do
 postRegister :: ActionRoute API
 postRegister = action POST (pathAPI </< "user" </< "register") $ postRegisterAction
 
+data RegisterRequest = RegisterRequest T.Text (Maybe T.Text) (BSC.ByteString) (Maybe T.Text) Bool
+
 postRegisterAction :: API -> Action
 postRegisterAction = \api -> withoutAuth $ do
   reg <- runForm ((api == HTML) `thenUse` htmlRegister) $ do
@@ -78,7 +80,8 @@ postRegisterAction = \api -> withoutAuth $ do
     prename <- "prename" .:> deformNonEmpty deform
     email <- "email" .:> emailTextForm
     affiliation <- "affiliation" .:> deformNonEmpty deform
-    _ <- "agreement" .:> (deformCheck "You must consent to the user agreement." id =<< deform)
+    agreement <- "agreement" .:> (deformCheck "You must consent to the user agreement." id =<< deform)
+    let _ = RegisterRequest name prename email affiliation agreement
     let p = blankParty
           { partyRow = (partyRow blankParty)
             { partySortName = name
@@ -133,10 +136,12 @@ viewPasswordResetAction = withoutAuth $ do
 postPasswordReset :: ActionRoute API
 postPasswordReset = action POST (pathAPI </< "user" </< "password") $ postPasswordResetAction
 
+data PasswordResetRequest = PasswordResetRequest BSC.ByteString
+
 postPasswordResetAction :: API -> Action
 postPasswordResetAction = \api -> withoutAuth $ do
-  email <- runForm ((api == HTML) `thenUse` htmlPasswordReset) $ do
-    "email" .:> emailTextForm
+  PasswordResetRequest email <- runForm ((api == HTML) `thenUse` htmlPasswordReset) $ do
+    PasswordResetRequest <$> ("email" .:> emailTextForm)
   auth <- lookupPasswordResetAccount email
   resetPasswordMail (maybe (Left email) Right auth)
     "Databrary password reset" $

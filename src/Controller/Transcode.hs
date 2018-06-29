@@ -8,7 +8,7 @@ module Controller.Transcode
   ) where
 
 import Control.Applicative (optional)
-import Control.Monad (void, liftM3)
+import Control.Monad (void)
 import Data.Bits (shiftL, (.|.))
 import Data.ByteArray (constEq)
 import qualified Data.ByteString as BS
@@ -47,18 +47,23 @@ sha1Form = do
   deformGuard "Invalid SHA1 hex string" (length b == 40)
   maybe (deformError "Invalid hex string" >> return BS.empty) (return . BS.pack) $ unHex b
 
+data RemoteTranscodeResultRequest =
+    RemoteTranscodeResultRequest BS.ByteString (Maybe TranscodePID) Int (Maybe BS.ByteString) String
+
 remoteTranscode :: ActionRoute (Id Transcode)
 remoteTranscode = action POST (pathJSON >/> pathId) $ \ti -> withoutAuth $ do
   t <- maybeAction =<< lookupTranscode ti
   withReAuth (transcodeOwner t) $ do
     auth <- peeks $ transcodeAuth t
-    (res, sha1, logs) <- runForm Nothing $ do
-      _ <- "auth" .:> (deformCheck "Invalid authentication" (constEq auth :: BS.ByteString -> Bool) =<< deform)
-      _ <- "pid" .:> (deformCheck "PID mismatch" (transcodeProcess t ==) =<< deformNonEmpty deform)
-      liftM3 (,,)
-        ("res" .:> deform)
-        ("sha1" .:> optional sha1Form)
-        ("log" .:> deform)
+    RemoteTranscodeResultRequest _ _ res sha1 logs <- runForm Nothing $ do
+      reqAuth <- "auth" .:> (deformCheck "Invalid authentication" (constEq auth :: BS.ByteString -> Bool) =<< deform)
+      reqPid <- "pid" .:> (deformCheck "PID mismatch" (transcodeProcess t ==) =<< deformNonEmpty deform)
+      RemoteTranscodeResultRequest
+        <$> pure reqAuth
+        <*> pure reqPid
+        <*> ("res" .:> deform)
+        <*> ("sha1" .:> optional sha1Form)
+        <*> ("log" .:> deform)
     collectTranscode t res sha1 logs
     return $ okResponse [] BS.empty
 
@@ -88,11 +93,13 @@ instance Read TranscodeAction where
 instance Deform f TranscodeAction where
   deform = deformRead TranscodeStart
 
+data UpdateTranscodeRequest = UpdateTranscodeRequest TranscodeAction
+
 postTranscode :: ActionRoute (Id Transcode)
 postTranscode = action POST (pathHTML >/> "admin" >/> pathId) $ \ti -> withAuth $ do
   t <- maybeAction =<< lookupTranscode ti
-  act <- runForm Nothing $
-    "action" .:> deform
+  UpdateTranscodeRequest act <- runForm Nothing $
+    UpdateTranscodeRequest <$> ("action" .:> deform)
   case act of
     TranscodeStart | isNothing (transcodeProcess t) -> void $ startTranscode t
     TranscodeStop -> void $ stopTranscode t

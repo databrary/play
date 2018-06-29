@@ -88,6 +88,8 @@ emailTextForm = do
   e <- deformCheck "Invalid email address" (Regex.matchTest emailRegex) =<< deform
   return $ maybe e (uncurry ((. BSC.map toLower) . (<>)) . flip BS.splitAt e) $ BSC.elemIndex '@' e
 
+data UpdatePasswordRequest = UpdatePasswordRequest BSC.ByteString BSC.ByteString
+
 passwordForm :: Account -> DeformHandler f BS.ByteString
 passwordForm acct = do
   p <- "once" .:> do
@@ -98,6 +100,7 @@ passwordForm acct = do
     return p
   "again" .:> do
     a <- deform
+    let _ = UpdatePasswordRequest p a
     deformGuard "Passwords do not match." (a == p)
   pw <- liftIO $ BCrypt.hashPasswordUsingPolicy passwordPolicy p
   deformMaybe' "Error processing password." pw

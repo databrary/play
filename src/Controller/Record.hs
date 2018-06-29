@@ -12,6 +12,7 @@ module Controller.Record
 
 import Control.Monad (when, unless)
 import Control.Monad.Trans.Class (lift)
+import qualified Data.ByteString as BS
 import Data.Maybe (isNothing, fromMaybe)
 import qualified Data.Text as T
 import Network.HTTP.Types (noContent204, conflict409)
@@ -54,16 +55,20 @@ viewRecord = action GET (pathJSON >/> pathId) $ \i -> withAuth $ do
   return $ okResponse [] $ JSON.recordEncoding $ recordJSON False rec -- json should consult volume
   -- HTML -> okResponse [] $ T.pack $ show $ recordId $ recordRow rec -- TODO
 
+data CreateRecordRequest = CreateRecordRequest Category
+
 createRecord :: ActionRoute (Id Volume)
 createRecord = action POST (pathJSON >/> pathId </< "record") $ \vi -> withAuth $ do
   vol <- getVolume PermissionEDIT vi
   br <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ do
     csrfForm
-    cat <- "category" .:> (deformMaybe' "No such category" . getCategory =<< deform)
+    CreateRecordRequest cat <- CreateRecordRequest <$> ("category" .:> (deformMaybe' "No such category" . getCategory =<< deform))
     return $ blankRecord cat vol
   rec <- addRecord br
   return $ okResponse [] $ JSON.recordEncoding $ recordJSON False rec -- recordJSON not restricted because EDIT
   -- HTML -> peeks $ otherRouteResponse [] viewRecord (api, recordId $ recordRow rec)
+
+data ManageRecordMeasureRequest = ManageRecordMeasureRequest (Maybe BS.ByteString)
 
 postRecordMeasure :: ActionRoute (Id Record, Id Metric)
 postRecordMeasure = action POST (pathJSON >/> pathId </> pathId) $ \(ri, mi) -> withAuth $ do
@@ -72,7 +77,7 @@ postRecordMeasure = action POST (pathJSON >/> pathId </> pathId) $ \(ri, mi) -> 
   let mkMeasure datum = Measure record met datum
   rec' <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ do
     csrfForm
-    mDatum <- deformSync' ("datum" .:> deformNonEmpty deform)
+    ManageRecordMeasureRequest mDatum <- ManageRecordMeasureRequest <$> (deformSync' ("datum" .:> deformNonEmpty deform))
     maybe
       (lift $ removeRecordMeasure $ mkMeasure "") -- delete measure data
       (\d -> do  -- add or update measure data
@@ -99,13 +104,15 @@ deleteRecord = action DELETE (pathJSON >/> pathId) $ \ri -> withAuth $ do
   return $ emptyResponse noContent204 []
   -- HTML -> peeks $ otherRouteResponse [] viewVolume (api, view rec)
 
+data UpdateRecordSlotRequest = UpdateRecordSlotRequest (Maybe Segment)
+
 postRecordSlot :: ActionRoute (Id Slot, Id Record)
 postRecordSlot = action POST (pathJSON >/> pathSlotId </> pathId) $ \(si, ri) -> withAuth $ do
   slot <- getSlot PermissionEDIT Nothing si
   rec <- getRecord PermissionEDIT ri
-  src <- runForm Nothing $ do
+  UpdateRecordSlotRequest src <- runForm Nothing $ do
     csrfForm
-    "src" .:> deformNonEmpty deform
+    UpdateRecordSlotRequest <$> ("src" .:> deformNonEmpty deform)
   r <- moveRecordSlot (RecordSlot rec slot{ slotSegment = fromMaybe emptySegment src }) (slotSegment slot)
   -- HTML | r      -> peeks $ otherRouteResponse [] (viewSlot False) (api, (Just (view slot), slotId slot))
   --    | otherwise -> peeks $ otherRouteResponse [] viewRecord (api, recordId $ recordRow rec)

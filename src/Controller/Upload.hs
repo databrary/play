@@ -46,12 +46,15 @@ import Controller.Volume
 fileSizeForm :: DeformHandler f Int64
 fileSizeForm = deformCheck "Invalid file size." (0 <) =<< deform
 
+data UploadStartRequest =
+    UploadStartRequest BS.ByteString Int64
+
 uploadStart :: ActionRoute (Id Volume)
 uploadStart = action POST (pathJSON >/> pathId </< "upload") $ \vi -> withAuth $ do
   liftIO $ print "inside of uploadStart..." --DEBUG
   vol <- getVolume PermissionEDIT vi
   liftIO $ print "vol assigned...running form..." --DEBUG
-  (filename, size) <- runForm Nothing $ (,)
+  UploadStartRequest filename size <- runForm Nothing $ UploadStartRequest
     <$> ("filename" .:> (deformCheck "File format not supported." (isJust . getFormatByFilename) =<< deform))
     <*> ("size" .:> (deformCheck "File too large." ((maxAssetSize >=) . fromIntegral) =<< fileSizeForm))
   liftIO $ print "creating Upload..." --DEBUG
@@ -63,6 +66,9 @@ uploadStart = action POST (pathJSON >/> pathId </< "upload") $ \vi -> withAuth $
     closeFd
     (`setFdSize` COff size)
   return $ okResponse [] $ unId (view tok :: Id Token)
+
+data UploadChunkRequest =
+    UploadChunkRequest (Id Token) BS.ByteString Int64 Int64 Int64 Int64 Int64
 
 chunkForm :: DeformHandler f (Upload, Int64, Word64)
 chunkForm = do
@@ -76,6 +82,8 @@ chunkForm = do
   i <- "flowChunkNumber" .:> (deformCheck "Chunk number out of range." (\i -> 0 <= i && i < n) =<< pred <$> deform)
   let o = c * i
   l <- "flowCurrentChunkSize" .:> (deformCheck "Current chunk size out of range." (\l -> (c == l || i == pred n) && o + l <= z) =<< deform)
+  -- TODO: populate filename, total size from request
+  let _ = UploadChunkRequest ((tokenId . accountToken . uploadAccountToken) up) (uploadFilename up) z c n i l
   return (up, o, fromIntegral l)
 
 uploadChunk :: ActionRoute ()

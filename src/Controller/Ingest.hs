@@ -67,6 +67,10 @@ viewIngest = action GET (pathId </< "ingest") $ \vi -> withAuth $ do
   v <- getVolume PermissionEDIT vi
   peeks $ blankForm . htmlIngestForm v s
 
+data ControlIngestRequest =
+      AbortIngest Bool
+    | RunIngest Bool Bool (FileInfo JSON.Value)
+
 postIngest :: ActionRoute (Id Volume)
 postIngest = multipartAction $ action POST (pathId </< "ingest") $ \vi -> withAuth $ do
   checkMemberADMIN
@@ -74,8 +78,8 @@ postIngest = multipartAction $ action POST (pathId </< "ingest") $ \vi -> withAu
   v <- getVolume PermissionEDIT vi
   a <- runFormFiles [("json", 16*1024*1024)] (Just $ htmlIngestForm v s) $ do
     csrfForm
-    abort <- "abort" .:> deform
-    abort `unlessReturn` ((,,)
+    AbortIngest abort <- AbortIngest <$> ("abort" .:> deform)
+    abort `unlessReturn` (RunIngest
       <$> ("run" .:> deform)
       <*> ("overwrite" .:> deform)
       <*> ("json" .:> do
@@ -86,7 +90,7 @@ postIngest = multipartAction $ action POST (pathId </< "ingest") $ \vi -> withAu
                    fileInfo)))
   r <- maybe
     (True <$ focusIO abortIngest)
-    (\(r,o,j) -> runIngest $ right (map (unId . containerId . containerRow)) <$> ingestJSON v (fileContent j) r o)
+    (\(RunIngest r o j) -> runIngest $ right (map (unId . containerId . containerRow)) <$> ingestJSON v (fileContent j) r o)
     a
   unless r $ result $ response badRequest400 [] ("failed" :: String)
   peeks $ otherRouteResponse [] viewIngest (volumeId $ volumeRow v)
@@ -94,18 +98,20 @@ postIngest = multipartAction $ action POST (pathId </< "ingest") $ \vi -> withAu
 maxWidelyAcceptableHttpBodyFileSize :: Word64
 maxWidelyAcceptableHttpBodyFileSize = 16*1024*1024
 
+data DetectParticipantCSVRequest = DetectParticipantCSVRequest (FileInfo TL.Text)
+
 -- TODO: maybe put csv file save/retrieve in Store module
 detectParticipantCSV :: ActionRoute (Id Volume)
 detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCSV") $ \vi -> withAuth $ do
     v <- getVolume PermissionEDIT vi
     (auth :: SiteAuth) <- peek
     (store :: Storage) <- peek
-    csvFileInfo <-
+    DetectParticipantCSVRequest csvFileInfo <-
       -- TODO: is Nothing okay here?
       runFormFiles [("file", maxWidelyAcceptableHttpBodyFileSize)] (Nothing :: Maybe (RequestContext -> FormHtml TL.Text)) $ do
           csrfForm
           fileInfo :: (FileInfo TL.Text) <- "file" .:> deform
-          return fileInfo
+          return (DetectParticipantCSVRequest fileInfo)
     -- liftIO (print ("after extract form"))
     let uploadFileContents' = (BSL.toStrict . TLE.encodeUtf8 . removeBomPrefixText . fileContent) csvFileInfo
     -- liftIO (print "uploaded contents below")
@@ -152,16 +158,18 @@ uniqueUploadName' uid vid uploadName =
     show uid <> "-" <> show vid <> "-" <> uploadName
 ----- end
 
+data RunParticipantUploadRequest = RunParticipantUploadRequest String JSON.Value
+
 runParticipantUpload :: ActionRoute (Id Volume)
 runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUpload") $ \vi -> withAuth $ do
     v <- getVolume PermissionEDIT vi
     (store :: Storage) <- peek
     -- reqCtxt <- peek
-    (csvUploadId :: String, selectedMapping :: JSON.Value) <- runForm (Nothing) $ do
+    RunParticipantUploadRequest csvUploadId selectedMapping <- runForm (Nothing) $ do
         csrfForm
         (uploadId :: String) <- "csv_upload_id" .:> deform
         mapping <- "selected_mapping" .:> deform
-        pure (uploadId, mapping)
+        pure (RunParticipantUploadRequest uploadId mapping)
     -- TODO: resolve csv id to absolute path; http error if unknown
     uploadFileContents <-
         (liftIO . BS.readFile) ((BSC.unpack . getStorageTempParticipantUpload csvUploadId) store)

@@ -206,6 +206,15 @@ detectUpload u = do
   either deformError' (return . FileUpload u)
     =<< lift (probeFile (fileUploadName u) =<< peeks (fileUploadPath u))
 
+data ProcessAssetRequest =
+    ProcessAssetRequest
+        (Maybe (FileInfo TempFile))
+        (Maybe (Id Token))
+        (Maybe T.Text)
+        (Maybe Release)
+        (Maybe (Id Container))
+        ()
+
 processAsset :: AssetTarget -> Handler Response
 processAsset target = do
   let as@AssetSlot{ slotAsset = a, assetSlot = s } = case target of
@@ -243,6 +252,14 @@ processAsset target = do
         Slot c . maybe fullSegment
           (\l -> Segment $ Range.bounded l (l + fromMaybe 0 ((segmentLength =<< seg) <|> dur)))
           <$> orElseM p (mapM (lift . probeAutoPosition c . Just . fileUploadProbe) (guard (isNothing s && isJust dur) >> up)))
+    let _ =
+          ProcessAssetRequest
+              file
+              (fmap (tokenId . accountToken . uploadAccountToken) upload)
+              name
+              classification
+              (fmap (containerId . containerRow . slotContainer) slot)
+              () -- TODO: populate with parsed position value
     liftIO $ putStrLn "slot assigned..." --DEBUG
     return
       ( as

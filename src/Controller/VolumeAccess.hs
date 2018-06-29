@@ -7,6 +7,7 @@ module Controller.VolumeAccess
 -- import Control.Monad.IO.Class (liftIO)
 import Control.Monad (when, forM_)
 import Data.Function (on)
+import Data.Int (Int16)
 
 -- import Ops
 import Has
@@ -37,6 +38,10 @@ viewVolumeAccess = action GET (pathHTML >/> pathId </> pathVolumeAccessTarget) $
   peeks $ blankForm . htmlVolumeAccessForm a
 -}
 
+data ManageVolumeAccessRequest =
+      DeleteVolumeAccessRequest Bool
+    | CreateOrUpdateVolumeAccessRequest Permission Permission (Maybe Int16) (Maybe Bool)
+
 postVolumeAccess :: ActionRoute (Id Volume, VolumeAccessTarget)
 postVolumeAccess = action POST (pathJSON >/> pathId </> pathVolumeAccessTarget) $ \(vi, VolumeAccessTarget ap) -> withAuth $ do
   v <- getVolume (if ap == partyId (partyRow staffParty) then PermissionEDIT else PermissionADMIN) vi
@@ -46,7 +51,7 @@ postVolumeAccess = action POST (pathJSON >/> pathId </> pathVolumeAccessTarget) 
       ru = unId ap > 0
   a' <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ do
     csrfForm
-    delete <- "delete" .:> deform
+    DeleteVolumeAccessRequest delete <- DeleteVolumeAccessRequest <$> ("delete" .:> deform)
     let del
           | delete = return PermissionNONE
           | otherwise = deform
@@ -62,7 +67,8 @@ postVolumeAccess = action POST (pathJSON >/> pathId </> pathVolumeAccessTarget) 
       then do
         _ <- "share_full" .:> (deformCheck "Required" (not . (== FormDatumNone)) =<< deform) -- convulated way of requiring
         Just <$> ("share_full" .:> deform)
-      else pure Nothing 
+      else pure Nothing
+    let _ = CreateOrUpdateVolumeAccessRequest individual children sort mShareFull
     return a
       { volumeAccessIndividual = individual
       , volumeAccessChildren = children

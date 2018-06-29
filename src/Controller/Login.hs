@@ -76,6 +76,8 @@ checkPassword p = any (`BCrypt.validatePassword` p) . accountPasswd
 postLogin :: ActionRoute API
 postLogin = action POST (pathAPI </< "user" </< "login") $ postLoginAction
 
+data LoginRequest = LoginRequest BS.ByteString BS.ByteString Bool
+
 -- | The action for handling POST for user/login
 postLoginAction :: API -> Action
 postLoginAction = \api -> withoutAuth $ do
@@ -83,6 +85,7 @@ postLoginAction = \api -> withoutAuth $ do
     email <- "email" .:> emailTextForm
     password <- "password" .:> deform
     superuser <- "superuser" .:> deform
+    let _ = LoginRequest email password superuser
     (auth :: Maybe SiteAuth) <- lift $ lookupSiteAuthByEmail True email
     let p :: Maybe Party
         p = view <$> auth
@@ -137,15 +140,19 @@ viewUserAction = do
 postUser :: ActionRoute API -- TODO: remove when
 postUser = action POST (pathAPI </< "user") $ \api -> withAuth $ postUserAction api
 
+data UpdateUserRequest = UpdateUserRequest () (Maybe BS.ByteString) (Maybe BS.ByteString)
+
 postUserAction :: API -> Handler Response
 postUserAction api = do
   auth <- peek
   let acct = siteAccount auth
   auth' <- runForm ((api == HTML) `thenUse` (htmlUserForm acct)) $ do
     csrfForm
-    "auth" .:> (deformGuard "Incorrect password" . (`checkPassword` auth) =<< deform)
+    -- TODO: pass old password into UpdateUserRequest
+    "auth" .:> (deformGuard "Incorrect password" . (\pw -> pw `checkPassword` auth) =<< deform)
     email <- "email" .:> deformNonEmpty emailTextForm
     passwd <- "password" .:> deformNonEmpty (passwordForm acct)
+    let _ = UpdateUserRequest () email passwd
     let acct' = acct
           { accountEmail = fromMaybe (accountEmail acct) email
           , accountParty = (accountParty acct){ partyAccount = Just acct' }

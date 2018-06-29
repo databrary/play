@@ -21,12 +21,15 @@ import Controller.Form
 import Controller.Paths
 import Controller.Volume
 
+data CreateOrUpdateVolumeStateRequest = CreateOrUpdateVolumeStateRequest JSON.Value Bool
+
 postVolumeState :: ActionRoute (Id Volume, VolumeStateKey)
 postVolumeState = action PUT (pathJSON >/> pathId </> "state" >/> R.parameter) $ \(vi, k) -> withAuth $ do
   _ <- getVolume PermissionEDIT vi
   s <- runForm Nothing $ do
     j <- deform
     p <- "public" .:> fromMaybe False <$> deformOptional deform
+    let _ = CreateOrUpdateVolumeStateRequest j p
     return VolumeState
       { stateVolumeId = vi
       , volumeStateKey = k
