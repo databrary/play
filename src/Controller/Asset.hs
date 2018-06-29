@@ -109,40 +109,6 @@ assetJSONQuery :: AssetSlot -> JSON.Query -> Handler (JSON.Record (Id Asset) JSO
 assetJSONQuery o q = (assetSlotJSON False o `JSON.foldObjectIntoRec`) <$> JSON.jsonQuery (assetJSONField o) q
 -- public restricted should consult volume
 
-{-
-
-expand :: AssetSlot -> Query -> IO ExpandedAssetSlot
-format :: ExpandedAssetSlot -> AssetSlotResponse -- most of the work here
-toJson :: AssetSlotResponse -> JSON.Value
-
-data ExpandedAssetSlot = ExpandedAssetSlot
-    { easAssetRow :: AssetRow
-    , easAssetSlot :: Maybe (Segment, ContainerRow, Release)
-    , easAssetVolumePermission :: a
-    , easCreation :: Maybe (Maybe Timestamp, Maybe T.Text)
-    , easExcerpts :: Maybe [Excerpt]
-    }
-
-data AssetSlotResponse = AssetSlotResponse
-    { easId :: Id Asset
-    , easName :: Maybe String
-    , easPermission :: Permission
-    , easSize :: Maybe Int64
-    , easSegment :: Maybe Segment
-    , easFormat :: Id Format
-    , easClassification :: Maybe Release
-    , easDuration :: Maybe Offset
-    , easPending :: Maybe Bool
-    , easContainer :: Maybe Container
-    , easCreation :: Maybe (Maybe Timestamp, Maybe T.Text)
-    , easExcerpts :: Maybe [Excerpt]
-    }
--}  
-
-expandAssetContext :: AssetSlot -> JSON.Query -> m ExpandedAssetSlot
-expandAssetContext as q =
-  
-
 assetDownloadName :: Bool -> Bool -> AssetRow -> [T.Text]
 assetDownloadName addPrefix trimFormat a =
   let
