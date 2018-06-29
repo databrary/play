@@ -17,6 +17,7 @@ module Model.Party
   , recentAccountLogins
   , partyRowJSON
   , partyJSON
+  , toFormattedParty
   , PartyFilter(..)
   , findParties
   , lookupAvatar
@@ -87,6 +88,20 @@ data FormattedParty = FormattedParty
     , fpyEmail :: !(Maybe BS.ByteString)
     , fpyPermission :: !(Maybe Int)
     }
+
+instance JSON.ToJSON FormattedParty where
+    toJSON FormattedParty{..} =  -- Bryan: if you want to use a fancy generic transform?
+        JSON.object [
+              "id" JSON..= fpyId
+            , "sortname" JSON..= fpySortname
+            , "prename" JSON..= fpyPrename
+            , "orcid" JSON..= fpyOrcid
+            , "affiliation" JSON..= fpyAffiliation
+            , "url" JSON..= fpyUrl
+            , "institution" JSON..= fpyInstitution
+            , "email" JSON..= fpyEmail
+            , "permission" JSON..= fpyPermission
+            ]
 
 partyRowJSON :: JSON.ToObject o => PartyRow -> JSON.Record (Id Party) o
 partyRowJSON PartyRow{..} = JSON.Record partyId $
