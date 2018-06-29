@@ -251,6 +251,7 @@ partySearchForm = PartyFilter
   <*> ("institution" .:> deformNonEmpty deform)
   <*> paginateForm
 
+-- | Handle route to find parties by the provided PartyFilter.
 queryParties :: ActionRoute API
 queryParties = action GET (pathAPI </< "party") $ \api -> withAuth $ do
   when (api == HTML) angular
