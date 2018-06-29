@@ -5,46 +5,46 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Model.Volume
-  ( module Model.Volume.Types
-  , coreVolume
-  , lookupVolume
-  , changeVolume
-  , addVolume
-  , auditVolumeDownload
-  , VolumeFilter(..)
-  , findVolumes
-  , getVolumeAlias
-  , volumeRowJSON
-  , volumeJSON
-  , volumeJSONSimple
-  , updateVolumeIndex
-  ) where
+    ( module Model.Volume.Types
+    , coreVolume
+    , lookupVolume
+    , changeVolume
+    , addVolume
+    , auditVolumeDownload
+    , VolumeFilter(..)
+    , findVolumes
+    , getVolumeAlias
+    , volumeRowJSON
+    , volumeJSON
+    , volumeJSONSimple
+    , updateVolumeIndex
+    ) where
 
 import Control.Applicative ((<|>))
 import Control.Monad (guard)
-import qualified Data.ByteString as BS
 import Data.List (find)
-import Data.Semigroup hiding ((<>))
 import Data.Monoid ((<>))
-import qualified Data.Time as TM
-import qualified Data.Text as T
-import Database.PostgreSQL.Typed.Query (pgSQL, unsafeModifyQuery)
+import Data.Semigroup hiding ((<>))
 import Database.PostgreSQL.Typed.Dynamic (pgLiteralRep)
+import Database.PostgreSQL.Typed.Query (pgSQL, unsafeModifyQuery)
+import qualified Data.ByteString as BS
+import qualified Data.Text as T
+import qualified Data.Time as TM
 
 import Has (peek, view)
-import Service.DB
-import qualified JSON
-import Model.SQL (selectQuery)
+import Model.Audit
+import Model.Id
+import Model.Identity.Types
 import Model.Paginate (Paginate (..), def)
 import Model.Paginate.SQL (paginateSQL)
-import Model.Id
-import Model.Permission
-import Model.Audit
 import Model.Party.Types
-import Model.Identity.Types
-import Model.Volume.Types
+import Model.Permission
+import Model.SQL (selectQuery)
 import Model.Volume.SQL
+import Model.Volume.Types
 import Model.VolumeAccess.Types (VolumeAccess(..))
+import Service.DB
+import qualified JSON
 
 coreVolume :: Volume
 -- TODO: load on startup in lookups service module
