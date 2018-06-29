@@ -13,7 +13,7 @@ module HTTP.Client
   , httpRequestJSON
   ) where
 
-import Control.Arrow ((&&&))
+-- import Control.Arrow ((&&&))
 import Control.Exception.Lifted (handle)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Control (MonadBaseControl)
