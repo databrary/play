@@ -74,6 +74,20 @@ partyEmail :: Party -> Maybe BS.ByteString
 partyEmail p =
   guard (partyPermission p >= emailPermission) >> accountEmail <$> partyAccount p
 
+-- | Core party object with formatting and authorization applied, ready for
+-- JSON output
+data FormattedParty = FormattedParty
+    { fpyId :: !Int32
+    , fpySortname :: !T.Text
+    , fpyPrename :: !(Maybe T.Text)
+    , fpyOrcid :: !(Maybe String)
+    , fpyAffiliation :: !(Maybe T.Text)
+    , fpyUrl :: !(Maybe String)
+    , fpyInstitution :: !(Maybe Bool)
+    , fpyEmail :: !(Maybe BS.ByteString)
+    , fpyPermission :: !(Maybe Int)
+    }
+
 partyRowJSON :: JSON.ToObject o => PartyRow -> JSON.Record (Id Party) o
 partyRowJSON PartyRow{..} = JSON.Record partyId $
      "sortname" JSON..= partySortName
@@ -87,6 +101,20 @@ partyJSON p@Party{..} = partyRowJSON partyRow `JSON.foldObjectIntoRec`
  (   "institution" `JSON.kvObjectOrEmpty` (True `useWhen` (isNothing partyAccount))
   <> "email" `JSON.kvObjectOrEmpty` partyEmail p
   <> "permission" `JSON.kvObjectOrEmpty` (partyPermission `useWhen` (partyPermission > PermissionREAD)))
+
+-- | Apply formatting and authorization to a core Party object, replacing partyJSON gradually
+toFormattedParty :: Party -> FormattedParty
+toFormattedParty p@Party{..} = FormattedParty {
+      fpyId = unId (partyId partyRow)
+    , fpySortname = partySortName partyRow
+    , fpyPrename = partyPreName partyRow
+    , fpyOrcid = show <$> partyORCID partyRow
+    , fpyAffiliation = partyAffiliation partyRow
+    , fpyUrl = show <$> partyURL partyRow
+    , fpyInstitution = True `useWhen` (isNothing partyAccount)
+    , fpyEmail = partyEmail p
+    , fpyPermission = (fromEnum partyPermission) `useWhen` (partyPermission > PermissionREAD)
+    }
 
 changeParty :: MonadAudit c m => Party -> m ()
 changeParty p = do
