@@ -258,7 +258,7 @@ queryParties = action GET (pathAPI </< "party") $ \api -> withAuth $ do
   pf <- runForm ((api == HTML) `thenUse` (htmlPartySearch mempty [])) partySearchForm
   p <- findParties pf
   case api of
-    JSON -> return $ okResponse [] $ JSON.mapRecords partyJSON p
+    JSON -> return $ okResponse [] $ (JSON.encode . fmap toFormattedParty) p
     HTML -> peeks $ blankForm . htmlPartySearch pf p
 
 adminParties :: ActionRoute ()
