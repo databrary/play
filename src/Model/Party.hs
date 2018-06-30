@@ -88,6 +88,7 @@ data FormattedParty = FormattedParty
     , fpyInstitution :: !(Maybe Bool)
     , fpyEmail :: !(Maybe BS.ByteString)
     , fpyPermission :: !(Maybe Permission)
+    , fpyAuthorization :: !(Maybe Permission)
     }
 
 instance JSON.ToJSON FormattedParty where
@@ -101,7 +102,8 @@ instance JSON.ToJSON FormattedParty where
             <> "url" `JSON.omitIfNothing` fpyUrl
             <> "institution" `JSON.omitIfNothing` fpyInstitution
             <> "email" `JSON.omitIfNothing` fpyEmail
-            <> "permission" `JSON.omitIfNothing` fpyPermission)
+            <> "permission" `JSON.omitIfNothing` fpyPermission
+            <> "authorization" `JSON.omitIfNothing` fpyAuthorization)
 
 partyRowJSON :: JSON.ToObject o => PartyRow -> JSON.Record (Id Party) o
 partyRowJSON PartyRow{..} = JSON.Record partyId $
@@ -129,6 +131,7 @@ toFormattedParty p@Party{..} = FormattedParty {
     , fpyInstitution = True `useWhen` (isNothing partyAccount)
     , fpyEmail = partyEmail p
     , fpyPermission = partyPermission `useWhen` (partyPermission > PermissionREAD)
+    , fpyAuthorization = Nothing
     }
 
 changeParty :: MonadAudit c m => Party -> m ()
