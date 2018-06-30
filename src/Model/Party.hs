@@ -58,6 +58,7 @@ import Model.Asset.Types
 import Model.Asset.SQL
 import Model.Party.Types
 import Model.Party.SQL
+import Model.URL (URI)
 
 useTDB
 
@@ -83,10 +84,10 @@ data FormattedParty = FormattedParty
     , fpyPrename :: !(Maybe T.Text)
     , fpyOrcid :: !(Maybe String)
     , fpyAffiliation :: !(Maybe T.Text)
-    , fpyUrl :: !(Maybe String)
+    , fpyUrl :: !(Maybe URI)
     , fpyInstitution :: !(Maybe Bool)
     , fpyEmail :: !(Maybe BS.ByteString)
-    , fpyPermission :: !(Maybe Int)
+    , fpyPermission :: !(Maybe Permission)
     }
 
 instance JSON.ToJSON FormattedParty where
@@ -124,10 +125,10 @@ toFormattedParty p@Party{..} = FormattedParty {
     , fpyPrename = partyPreName partyRow
     , fpyOrcid = show <$> partyORCID partyRow
     , fpyAffiliation = partyAffiliation partyRow
-    , fpyUrl = show <$> partyURL partyRow
+    , fpyUrl = partyURL partyRow
     , fpyInstitution = True `useWhen` (isNothing partyAccount)
     , fpyEmail = partyEmail p
-    , fpyPermission = (fromEnum partyPermission) `useWhen` (partyPermission > PermissionREAD)
+    , fpyPermission = partyPermission `useWhen` (partyPermission > PermissionREAD)
     }
 
 changeParty :: MonadAudit c m => Party -> m ()
