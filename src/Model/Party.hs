@@ -1002,8 +1002,15 @@ findParties pf = do
   rows <- dbQuery $ unsafeModifyQuery -- (selectQuery (selectParty 'ident) "")
     (mapQuery2
        (BS.concat
-            [Data.String.fromString
-                "SELECT party.id,party.name,party.prename,party.orcid,party.affiliation,party.url,account.email FROM party LEFT JOIN account USING (id) "])
+             -- TODO: this duplicates logic in lookupAuthorization slightly
+            [Data.String.fromString 
+                "SELECT \
+                \  party.id,party.name,party.prename,party.orcid,party.affiliation,party.url,account.email \
+                \ ,COALESCE(av.site, 'NONE') \
+                \ FROM party \
+                \   LEFT JOIN account USING (id) \
+                \   LEFT JOIN authorize_view av \
+                \      ON party.id = av.child AND av.parent = 0 "])
         (\ 
            [_cid_a6R7m,
             _cname_a6R7o,
@@ -1011,7 +1018,8 @@ findParties pf = do
             _corcid_a6R7q,
             _caffiliation_a6R7r,
             _curl_a6R7s,
-            _cemail_a6R7t]
+            _cemail_a6R7t,
+            site]
            -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                  _tenv_a6R7j
                  (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -1046,14 +1054,19 @@ findParties pf = do
                  _tenv_a6R7j
                  (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                     Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                 _cemail_a6R7t)))
+                 _cemail_a6R7t,
+               Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
+                 _tenv_a6R7j
+                 (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
+                    Database.PostgreSQL.Typed.Types.PGTypeName "permission")
+                 site)))
     (<> partyFilter pf ident)
   pure
     (fmap
       (\ (vid_a6R3R, vname_a6R3S, vprename_a6R3T, vorcid_a6R3U,
-          vaffiliation_a6R3V, vurl_a6R3W, vemail_a6R3X)
+          vaffiliation_a6R3V, vurl_a6R3W, vemail_a6R3X, site)
          -> Model.Party.SQL.permissionParty
-              (Model.Party.SQL.makeParty
+              (Model.Party.SQL.makeParty2
                  (PartyRow
                     vid_a6R3R
                     vname_a6R3S
@@ -1062,7 +1075,8 @@ findParties pf = do
                     vaffiliation_a6R3V
                     vurl_a6R3W)
                  (do { cm_a6R44 <- vemail_a6R3X;
-                       Just (Account cm_a6R44) }))
+                       Just (Account cm_a6R44) })
+                 site)
               Nothing
               ident)
       rows)
