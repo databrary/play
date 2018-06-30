@@ -8,6 +8,7 @@ module JSON
   , mapObjects
   , ToNestedObject(..)
   , (.=.)
+  , omitIfNothing
   , kvObjectOrEmpty-- , (.=?)
   , lookupAtParse-- , (.!)
   -- , (.!?)
@@ -75,6 +76,12 @@ instance ToNestedObject Object Value where
 infixr 8 .=.
 (.=.) :: ToNestedObject o u => T.Text -> o -> o
 k .=. v = nestObject k (\f -> f v)
+
+-- | Utility to build pairs that omit nothing values.
+-- Replace with generic deriving instances later.
+omitIfNothing :: (ToJSON v) => T.Text -> Maybe v -> [Pair]
+_ `omitIfNothing` Nothing = []
+k `omitIfNothing` (Just v) = [k .= v]
 
 -- infixr 8 .=?
 -- (.=?) :: (ToObject o, ToJSON v) => T.Text -> Maybe v -> o

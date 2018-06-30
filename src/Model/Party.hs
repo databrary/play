@@ -91,17 +91,16 @@ data FormattedParty = FormattedParty
 
 instance JSON.ToJSON FormattedParty where
     toJSON FormattedParty{..} =  -- Bryan: if you want to use a fancy generic transform?
-        JSON.object [
-              "id" JSON..= fpyId
-            , "sortname" JSON..= fpySortname
-            , "prename" JSON..= fpyPrename
-            , "orcid" JSON..= fpyOrcid
-            , "affiliation" JSON..= fpyAffiliation
-            , "url" JSON..= fpyUrl
-            , "institution" JSON..= fpyInstitution
-            , "email" JSON..= fpyEmail
-            , "permission" JSON..= fpyPermission
-            ]
+        JSON.object (
+               ["id" JSON..= fpyId]
+            <> ["sortname" JSON..= fpySortname]
+            <> "prename" `JSON.omitIfNothing` fpyPrename
+            <> "orcid" `JSON.omitIfNothing` fpyOrcid
+            <> "affiliation" `JSON.omitIfNothing` fpyAffiliation
+            <> "url" `JSON.omitIfNothing` fpyUrl
+            <> "institution" `JSON.omitIfNothing` fpyInstitution
+            <> "email" `JSON.omitIfNothing` fpyEmail
+            <> "permission" `JSON.omitIfNothing` fpyPermission)
 
 partyRowJSON :: JSON.ToObject o => PartyRow -> JSON.Record (Id Party) o
 partyRowJSON PartyRow{..} = JSON.Record partyId $
