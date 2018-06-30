@@ -41,6 +41,8 @@ data Party = Party
   { partyRow :: !PartyRow
   , partyAccount :: Maybe Account
   -- , partySiteAccess :: Access -- site-level access this party is granted under root (currently SiteAuth only)
+  , partySiteAccess :: !(Maybe Permission) -- ^ site-level data access this party is granted under root.
+                                           -- Maybe is an indication of whether this value was loaded only.
   , partyPermission :: Permission -- ^ permission current user has over this party
   , partyAccess :: Maybe Access -- ^ direct authorization this party has granted to current user
   }
@@ -86,10 +88,13 @@ instance Has Access SiteAuth where
 
 deriveLiftMany [''PartyRow, ''Party, ''Account]
 
+-- The values below assume a minimalist loading of each object, with no
+-- related objects loaded.
 nobodyParty, rootParty, staffParty :: Party -- TODO: load on startup from service module
 nobodyParty =
    Party
          (PartyRow (Id (-1)) (T.pack "Everybody") Nothing Nothing Nothing Nothing)
+         Nothing
          Nothing
          PermissionREAD
          Nothing
@@ -97,11 +102,13 @@ rootParty =
    Party
          (PartyRow (Id 0) (T.pack "Databrary") Nothing Nothing Nothing Nothing)
          Nothing
+         Nothing
          PermissionSHARED
          Nothing
 staffParty =
    Party
          (PartyRow (Id 2) (T.pack "Staff") Nothing Nothing (Just (T.pack "Databrary")) Nothing)
+         Nothing
          Nothing
          PermissionPUBLIC
          Nothing
@@ -121,6 +128,7 @@ nobodySiteAuth = SiteAuth
         , partyURL = Nothing
         }
       , partyAccount = Nothing
+      , partySiteAccess = Nothing -- not loaded
       , partyPermission = PermissionREAD
       , partyAccess = Just minBound
       }
@@ -141,6 +149,7 @@ blankParty = Party
     , partyURL = Nothing
     }
   , partyAccount = Nothing
+  , partySiteAccess = Nothing -- not loaded
   , partyPermission = PermissionNONE
   , partyAccess = Nothing
   }

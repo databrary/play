@@ -131,7 +131,7 @@ toFormattedParty p@Party{..} = FormattedParty {
     , fpyInstitution = True `useWhen` (isNothing partyAccount)
     , fpyEmail = partyEmail p
     , fpyPermission = partyPermission `useWhen` (partyPermission > PermissionREAD)
-    , fpyAuthorization = Nothing
+    , fpyAuthorization = partySiteAccess
     }
 
 changeParty :: MonadAudit c m => Party -> m ()
@@ -351,7 +351,7 @@ addParty bp = do
                 vaffiliation_a6PKi
                 vurl_a6PKj)
            row)
-  pure ((\p -> Party p Nothing PermissionREAD Nothing) pRow)
+  pure ((\p -> Party p Nothing Nothing PermissionREAD Nothing) pRow)
     
 -- | Create a new account without any authorizations, during registration, using the nobodySiteAuth.
 -- The account password will be blank. The party will not have any authorizations yet.
@@ -459,7 +459,7 @@ addAccount ba@Account{ accountParty = bp } = do
                    vaffiliation_a6PKi
                    vurl_a6PKj)
            row
-      p = ((\pr -> Party pr Nothing PermissionREAD Nothing) pRow)
+      p = ((\pr -> Party pr Nothing Nothing PermissionREAD Nothing) pRow)
   let pa = p{ partyAccount = Just a }
       a = ba{ accountParty = pa }
   -- Create an account with no password, and the email provided

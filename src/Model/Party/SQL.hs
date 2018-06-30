@@ -44,10 +44,10 @@ accountRow = selectColumns 'Account "account" ["email"]
 
 -- | Build party, with a circular connection to an account if an account creation function is provided
 makeParty :: PartyRow -> Maybe (Party -> Account) -> Permission -> Maybe Access -> Party
-makeParty pr mMkAcct perm mAccess =
+makeParty pr mMkAcct perm mAccess = -- TODO: take site auth permission
     p
   where
-    p = Party pr (fmap (\mkAcct -> mkAcct p) mMkAcct) perm mAccess
+    p = Party pr (fmap (\mkAcct -> mkAcct p) mMkAcct) Nothing perm mAccess
 
 selectPermissionParty :: Selector -- ^ @'Permission' -> Maybe 'Access' -> 'Party'@
 selectPermissionParty = selectJoin 'makeParty
@@ -135,8 +135,8 @@ selectAuthParty ident = selectMap (`TH.AppE` TH.VarE ident) $ selectJoin 'permis
 
 -- | Used by 'makeUserAccount' and 'selectPermissionAccount'. This finishes building the circular Party and Account structure.
 makeAccount :: PartyRow -> (Party -> Account) -> Permission -> Maybe Access -> Account
-makeAccount pr ac perm ma = a where
-  a = ac $ Party pr (Just a) perm ma
+makeAccount pr ac perm ma = a where -- TODO: take site auth permission
+  a = ac $ Party pr (Just a) Nothing perm ma
 
 selectPermissionAccount :: Selector -- ^ @'Permission' -> Maybe 'Access' -> 'Account'@
 selectPermissionAccount = selectJoin 'makeAccount
