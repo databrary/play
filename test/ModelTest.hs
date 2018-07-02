@@ -558,7 +558,6 @@ test_19 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransactio
 test_20 :: TestTree
 test_20 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransaction "test_20" $ \step cn2 -> do
     step "Given an authorized investigator and their volume"
-    -- (aiAcct, aiCtxt)
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
     -- when start upload and send all chunks
@@ -568,15 +567,15 @@ test_20 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransactio
         <*> mkStorageStub
     tok <- runReaderT
         (do
-            createUploadSetSize vol (UploadStartRequest "abcde.csv" 10))  -- TODO: generator
+            createUploadSetSize vol (UploadStartRequest "abcde.csv" 10))  -- TODO: generator for req + chunks
         aiCtxt2
     step "Then the investigator can view the upload"
     -- TODO: implementation of processAsset
-    upload <- runReaderT (lookupUpload ((unId . tokenId . accountToken . uploadAccountToken) tok)) aiCtxt
+    Just upload <- runReaderT (lookupUpload ((unId . tokenId . accountToken . uploadAccountToken) tok)) aiCtxt
     -- p = fileUploadPath (FileUploadToken upload)
     -- prb <- probeFile (fileUploadName (FileUploadToken upload))
     --   check upload size and name and format
-    pure ()
+    uploadFilename upload @?= "abcde.csv"
 
 ------------------------------------------------------ end of tests ---------------------------------
 
