@@ -2,9 +2,11 @@
 module Model.Funding.Types
   ( Funder(..)
   , Funding(..)
+  , makeFunding
   ) where
 
 import Data.Int (Int64)
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 
 import Model.Kind
@@ -24,3 +26,6 @@ data Funding = Funding
   { fundingFunder :: Funder
   , fundingAwards :: [T.Text]
   }
+
+makeFunding :: [Maybe T.Text] -> Funder -> Funding
+makeFunding a f = Funding f (map (fromMaybe (error "NULL funding.award")) a)
