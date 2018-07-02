@@ -1,0 +1,349 @@
+Test suite discovered: RUNNING...
+test/Discovered.hs
+  Action.RequestTest
+    isDatabraryClient
+      example:                                   OK
+      typical use:                               OK
+  Controller
+    IngestTest
+      all
+        parseMapping-1:                          OK
+        parseMapping-2:                          OK
+        buildParticipantRecordAction-1:          OK
+        buildParticipantRecordAction-all:        OK
+        buildParticipantRecordAction-3:          OK
+        buildParticipantRecordAction-4:          OK
+    LoginTest
+      checkPassword:                             OK (0.22s)
+  Data
+    Csv.ContribTest
+      all
+        extractColumnDefaulting:                 OK
+        extractColumnsDistinctSample:            OK
+        repairCarriageReturnOnly-1:              OK
+        repairCarriageReturnOnly-2:              OK
+        repairDuplicateLineEndings-fix:          OK
+        repairDuplicateLineEndings-nofix:        OK
+        removeBomPrefix-fix:                     OK
+        removeBomPrefix-nofix:                   OK
+        removeBomPrefixText-fix:                 OK
+        removeBomPrefixText-nofix:               OK
+    RangeSet.ParseTest
+      examples
+        parseRangeSet-1:                         OK
+        parseRangeSet-2:                         OK
+        parseRangeSet-3:                         OK
+        showRangeSet-1:                          OK
+        showRangeSet-2:                          OK
+  DatabraryMainTest
+    flagConfig example:                          OK
+  EZID.ANVLTest
+    all
+      encode-1:                                  OK
+      parse-1:                                   OK
+  FilesTest
+    rawFilePath:                                 OK
+    unRawFilePath:                               OK
+    removeFile:                                  OK
+    createDir:                                   OK
+    compareFiles:                                OK
+    hashFiles:                                   OK
+  HTTP
+    ClientTest
+      httpRequestJSON:                           IGNORED
+    CookieTest
+      setSignedCookie:                           OK
+      setSignedCookieNulls:                      OK
+    Form.DeformTest
+      all
+        textInteger-1:                           OK
+    RequestTest
+      all
+        boolParameterValue-1:                    OK
+        boolParameterValue-2:                    OK
+        boolParameterValue-2:                    OK
+        requestHost-1:                           OK
+        requestHost-2:                           OK
+        lookupRequestHeader-1:                   OK
+        lookupRequestHeader-2:                   OK
+        lookupRequestHeaders-1:                  OK
+        lookupQueryParameters-1:                 OK
+        lookupQueryParameters-2:                 OK
+        lookupQueryParameters-3:                 OK
+      Request examples:                          OK
+  HasTest
+    view:                                        OK
+    peek:                                        OK
+    peeks:                                       OK
+  JSONTest
+    JSON examples:                               OK
+  Model
+    AgeTest
+      age toJSON:                                OK
+      age:                                       OK
+      yearsAge:                                  OK
+      ageTime:                                   OK
+    AssetSegment.TypesTest
+      all
+        testgetAssetSegmentRelease2:             OK
+    AssetSlot.TypesTest
+      all
+        testgetAssetSlotRelease2:                OK
+    AssetTest
+      assetBacked:                               OK
+    AuditTest
+      all
+        getRemoteIp-1:                           OK
+    AuthorizeTest
+      Authorize examples:                        OK
+    Citation.CrossRefTest
+      uriHDL:                                    OK
+    Container.TypesTest
+      getContainerRelease:                       OK
+    EnumTest
+      Enum examples:                             OK
+    FormatTest
+      mimeTypeTop:                               OK
+      formatJSON:                                OK
+    Funding.FundRefTest
+      annotateFunder:                            OK
+    FundingTest
+      Funding examples:                          OK
+    GeoNamesTest
+      parseGeoNameRef:                           OK
+      parseGeoName:                              OK
+    Id.TypesTest
+      toJSON ID:                                 OK
+    Identity.TypesTest
+      extractFromIdentifiedSessOrDefault:        OK
+      identitySuperuser:                         OK
+    IdentityTest
+      Identity examples:                         OK
+    IngestTest
+      all
+        parseParticipantFieldMapping-1:          OK
+        parseParticipantFieldMapping-2:          OK
+        participantFieldMappingToJSON:           OK
+        attemptParseRows-1:                      OK
+        attemptParseRows-2:                      OK
+        attemptParseRows-3:                      OK
+        attemptParseRows-all:                    OK
+        determineMapping-1:                      OK
+        determineMapping-2:                      OK
+        determineMapping-3:                      OK
+    KindTest
+      kindOf:                                    OK
+    MetricTest
+      all
+        lookupParticipantMetricBySymbolicName-1: OK
+        lookupParticipantMetricBySymbolicName-2: OK
+        validateParticipantId-1:                 OK
+        validateParticipantId-required:          OK
+        validateParticipantInfo-1:               OK
+        validateParticipantInfo-optional:        OK
+        validateParticipantDescription-1:        OK
+        validateParticipantDescription-optional: OK
+        validateParticipantGender-1:             OK
+        validateParticipantGender-2:             OK
+        validateParticipantGender-optional:      OK
+        validateParticipantCountry-1:            OK
+        validateParticipantRace-1:               OK
+        validateParticipantEthnicity-1:          OK
+        validateParticipantPregnancyTerm-1:      OK
+        validateParticipantState-1:              OK
+        validateParticipantSetting-1:            OK
+        validateParticipantDisability-1:         OK
+        validateParticipantGestationalAge-1:     OK
+        validateParticipantGestationalAge-1:     OK
+        validateParticipantBirthWeight-1:        OK
+        validateParticipantBirthWeight-2:        OK
+        validateParticipantBirthWeight-3:        OK
+        validateParticipantBirthDate-1:          OK
+        validateParticipantBirthDate-2:          OK
+        validateParticipantBirthDate-3:          OK
+        validateParticipantBirthDate-4:          OK
+        validateParticipantBirthDate-optional:   OK
+        validateParticipantLanguage-1:           OK
+    ORCIDTest
+      readORCID example:                         OK
+    OffsetTest
+      Offset examples:                           OK
+      Offset readshow inverts:                   OK
+    PaginateTest
+      paginate succ:                             OK
+      paginate pred:                             OK
+      paginate toEnum:                           OK
+      paginate fromEnum:                         OK
+    PartyTest
+      Party examples:                            OK (0.06s)
+      partyName example:                         OK
+      lookupParty:                               OK
+      lookupSiteAuthByEmail:                     OK
+      addAccount:                                OK
+    PermissionTest
+      readRelease example:                       OK
+      accessMember:                              OK
+      dataPermission4 combinations:              OK
+    RecordTest
+      all
+        extractParticipantFieldRows:             OK
+    Release.TypesTest
+      releaseMonoid:                             OK
+    SegmentTest
+      segmentIntersect example:                  OK
+    Slot.TypesTest
+      containerSlot:                             OK
+    Tag.TypesTest
+      validateTag:                               OK
+    TimeTest
+      dateYear:                                  OK
+      maskDateIf:                                OK
+      formatTime MaskedDate:                     OK
+      toJSON MaskedDate:                         OK
+    URLTest
+      validHDL:                                  OK
+      parseURL:                                  OK
+      urlLink:                                   OK
+    VolumeAccessTest
+      volumeAccessProvidesADMIN:                 OK
+      lookupVolumeAccess example:                OK (0.01s)
+    VolumeTest
+      getVolumeAlias:                            OK
+      findVolumes:                               IGNORED
+      volumeJSONSimple example:                  OK
+      lookupVolume example:                      OK
+      addVolume:                                 FAIL (expected) (0.03s)
+        expected: Volume {volumeRow = VolumeRow {volumeId = 1, volumeName = "Test Vol One: A Survey", volumeBody = Just "Here is a description for a volume", volumeAlias = Just "Test Vol 1", volumeDOI = Nothing}, volumeCreation = 2018-01-02 00:00:00 UTC, volumeOwners = [], volumeRolePolicy = RolePublicViewer PublicNoPolicy}
+         but got: Volume {volumeRow = VolumeRow {volumeId = 490, volumeName = "Test Vol One: A Survey", volumeBody = Just "Here is a description for a volume", volumeAlias = Just "Test Vol 1", volumeDOI = Nothing}, volumeCreation = 2013-01-11 10:26:40 UTC, volumeOwners = [], volumeRolePolicy = RoleAdmin}
+        (expected failure)
+  ModelTest
+    test_1:                                      OK (0.04s)
+      Given the databrary site group
+      When we grant a user as super admin
+      Then we expect the user to have admin privileges on the databrary site
+    test_2:                                      OK (0.04s)
+      Given a superadmin
+      When the superadmin grants the institution admin access on the db site
+      Then we expect the institution to have ADMIN site access, no member privileges
+    test_3:                                      OK (0.54s)
+      Given a superadmin and an institution authorized as admin under db site
+      When the superadmin grants an authorized investigator with edit access on their parent institution
+      Then we expect the authorized investigator to effectively have edit db site access
+    test_4:                                      OK (0.59s)
+      Given an authorized investigator
+      When the authorized investigator grants various affiliates access on their lab and/or db site data
+      Then we expect each affiliate to have appropriate db site data and site admin access
+    test_5:                                      OK (0.07s)
+      Given an authorized investigator
+      When the AI attempts to authorize some party as a superadmin on db site
+      Then the attempt fails during the check for privileges on db site party
+    test_6:                                      OK (0.09s)
+      Given an affiliate (with high priviliges)
+      When affiliate attempts to authorize anybody to any other party
+      Then the attempt fails during the check for privileges on the parent party
+    test_7:                                      OK (0.09s)
+      Given an authorized investigator
+      When the AI creates a private volume
+      Then the public can't view it
+    test_8:                                      OK (0.19s)
+      Given an authorized investigator for some lab A and a lab B member with lab data access only
+      When an AI creates a private volume for some lab A
+      Then the lab B member can't view it
+    test_9:                                      OK (0.12s)
+      Given an authorized investigator and their affiliate with site access only
+      When an AI creates a private volume
+      Then their lab member with site access only can't view it
+    test_10:                                     OK (0.15s)
+      Given an authorized investigator for some lab A and an authorized investigator for lab B
+      When the lab A AI creates a public volume
+      Then the lab B AI can't add volume acccess
+    test_11:                                     OK (0.08s)
+      Given an authorized investigator
+      When the AI creates a private volume with a fully released container
+      Then the public can't view the container
+    test_12:                                     OK (0.10s)
+      Given an authorized investigator's created public volume with a container released at Excerpts level
+      When the public attempts to view the container
+      Then the public can't see protected parts like the detailed test date
+    test_12a:                                    IGNORED
+    test_12b:                                    IGNORED
+    test_13:                                     OK (0.08s)
+      Given an authorized investigator's created private volume with a record not attached to a container
+      When the public attempts to view the record
+      Then the public can't
+    test_14:                                     OK (0.11s)
+      Given an authorized investigator's created public volume with a record not attached to a container
+      When the public attempts to view the record
+      Then the public can't see the restricted measures like birthdate
+    test_15:                                     OK (0.07s)
+      Given a public volume with one container
+      When the public downloads the volume as a zip
+      Then zip contains a CSV summarizing the volume
+    test_16:                                     IGNORED
+    test_17:                                     2018-07-02 01:57:12 ezid: GET /status: [("success","EZID is up")]
+OK (2.16s)
+      Given an authorized investigator
+      When the AI creates a partially shared volume and the ezid generation runs
+      Then the volume will have a valid doi
+  OpsTest
+    Ops examples:                                OK
+    all
+      rightJust-1:                               OK
+      rightJust-2:                               OK
+      mergeBy-1:                                 OK
+      groupTuplesBy-1:                           OK
+  Service
+    CryptoTest
+      signAndUnsignRandomString:                 OK (0.01s)
+        +++ OK, passed 100 tests.
+      signAndUnsign
+        simple:                                  OK
+        sign null string:                        OK
+      sign:                                      FAIL (expected)
+        expected: "5jUOuWSd7dBGgrne8pD0bbea6Z5zsRfFunlebApSzusHgffoobar"
+         but got: "SfutqFvxvKjTV4JD09ewdv0dYCKCtOVQ6HreagRKWittLbfoobar"
+        (expected failure)
+    MailTest
+      all
+        wrapText-1:                              OK
+    PasswdTest
+      all
+        passwdCheck-1:                           IGNORED
+  Solr.DocumentTest
+    Document examples:                           OK
+  Store
+    AVTest
+      all
+        sanity:                                  2018-07-02 01:57:13 ezid: POST /id/doi:10.17910/B7159Q: HttpExceptionRequest Request {
+  host                 = "ezid.cdlib.org"
+  port                 = 443
+  secure               = True
+  requestHeaders       = [("Accept","text/plain"),("Authorization","Basic YXBpdGVzdDphcGl0ZXN0"),("Content-Type","text/plain")]
+  path                 = "/id/doi:10.17910/B7159Q"
+  queryString          = ""
+  method               = "POST"
+  proxy                = Nothing
+  rawBody              = False
+  redirectCount        = 1
+  responseTimeout      = ResponseTimeoutMicro 100000000
+  requestVersion       = HTTP/1.1
+}
+ (InternalException user error (checkContentOk: status unsuccessful))
+2018-07-02 01:57:13 ezid: PUT /id/doi:10.5072/FK2.500: [("success","doi:10.5072/FK2.500 | ark:/b5072/fk2.500")]
+OK (0.02s)
+    ConfigTest
+      Config examples:                           OK
+    FilenameTest
+      makeFilename:                              OK
+    ProbeTest
+      Probe examples:                            OK
+  StringUtilTest
+    all
+      fromCamel-1:                               OK
+      fromCamel-2:                               OK
+  View.HtmlTest
+    Html examples:                               OK
+
+All 187 tests passed (4.93s)
+Test suite discovered: PASS
+Test suite logged to: dist/test/databrary-1-discovered.log
