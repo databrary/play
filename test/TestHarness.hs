@@ -6,6 +6,7 @@ module TestHarness
     , TestContext ( .. )
     , mkRequest
     , withStorage
+    , mkStorageStub
     , withAV
     , withTimestamp
     , withLogs
@@ -305,9 +306,13 @@ withStorage ctxt = do
 
 mkStorageContext :: IO TestContext
 mkStorageContext = do
-    conf <- load "databrary.conf"
-    stor <- initStorage (conf C.! "store")
+    stor <- mkStorageStub
     pure (blankContext { ctxStorage = Just stor })
+
+mkStorageStub :: IO Storage
+mkStorageStub = do
+    conf <- load "databrary.conf"
+    initStorage (conf C.! "store")
 
 withAV :: TestContext -> IO TestContext
 withAV ctxt = do

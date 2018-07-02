@@ -3,6 +3,9 @@ module Controller.Upload
   ( uploadStart
   , uploadChunk
   , testChunk
+  -- * for testing
+  , createUploadSetSize
+  , UploadStartRequest(..)
   ) where
 
 import Control.Exception (bracket)
@@ -25,15 +28,19 @@ import System.Posix.Files.ByteString (setFdSize)
 import System.Posix.IO.ByteString (openFd, OpenMode(ReadOnly, WriteOnly), defaultFileFlags, exclusive, closeFd, fdSeek, fdWriteBuf, fdReadBuf)
 import System.Posix.Types (COff(..))
 
-import Has (view, peek, peeks, focusIO)
+import Has (view, peek, peeks, focusIO, MonadHas)
 import qualified JSON as JSON
+import Service.DB (MonadDB)
+import Service.Entropy (Entropy)
 import Service.Log
 import Model.Id
+import Model.Identity (MonadHasIdentity)
 import Model.Permission
 import Model.Volume
 import Model.Format
 import Model.Token
 import Store.Upload
+import Store.Types (MonadStorage)
 import Store.Asset
 import HTTP.Form.Deform
 import HTTP.Path.Parser
@@ -54,10 +61,11 @@ uploadStart = action POST (pathJSON >/> pathId </< "upload") $ \vi -> withAuth $
   liftIO $ print "inside of uploadStart..." --DEBUG
   vol <- getVolume PermissionEDIT vi
   liftIO $ print "vol assigned...running form..." --DEBUG
-  UploadStartRequest filename size <- runForm Nothing $ UploadStartRequest
+  uploadStartRequest <- runForm Nothing $ UploadStartRequest
     <$> ("filename" .:> (deformCheck "File format not supported." (isJust . getFormatByFilename) =<< deform))
     <*> ("size" .:> (deformCheck "File too large." ((maxAssetSize >=) . fromIntegral) =<< fileSizeForm))
   liftIO $ print "creating Upload..." --DEBUG
+  {-
   tok <- createUpload vol filename size
   liftIO $ print "peeking..." --DEBUG
   file <- peeks $ uploadFile tok
@@ -65,7 +73,21 @@ uploadStart = action POST (pathJSON >/> pathId </< "upload") $ \vi -> withAuth $
     (openFd file WriteOnly (Just 0o640) defaultFileFlags{ exclusive = True })
     closeFd
     (`setFdSize` COff size)
+  -}
+  tok <- createUploadSetSize vol uploadStartRequest
   return $ okResponse [] $ unId (view tok :: Id Token)
+
+createUploadSetSize :: (MonadHas Entropy c m, MonadDB c m, MonadHasIdentity c m, MonadStorage c m) => Volume -> UploadStartRequest -> m Upload
+createUploadSetSize vol (UploadStartRequest filename size) = do
+    liftIO $ print "creating Upload..." --DEBUG
+    tok <- createUpload vol filename size
+    liftIO $ print "peeking..." --DEBUG
+    file <- peeks $ uploadFile tok
+    liftIO $ bracket
+      (openFd file WriteOnly (Just 0o640) defaultFileFlags{ exclusive = True })
+      closeFd
+      (`setFdSize` COff size)
+    pure tok
 
 data UploadChunkRequest =
     UploadChunkRequest (Id Token) BS.ByteString Int64 Int64 Int64 Int64 Int64

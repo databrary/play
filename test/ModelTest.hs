@@ -26,6 +26,7 @@ import Test.Tasty.HUnit
 
 import Controller.CSV (volumeCSV)
 import Controller.Notification
+import Controller.Upload (createUploadSetSize, UploadStartRequest(..))
 import EZID.Volume (updateEZID)
 import Has
 import HTTP.Client
@@ -53,7 +54,7 @@ import Model.Record
 import Model.RecordSlot
 import Model.Segment
 import Model.Slot
-import Model.Token (createUpload)
+import Model.Token
 import Model.Transcode
 import Model.Volume
 import Model.VolumeAccess
@@ -562,18 +563,16 @@ test_20 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransactio
     vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
     -- when start upload and send all chunks
     -- context needs: ....
-    aiCtxt2 <- (\e -> aiCtxt { ctxEntropy = Just e })
+    aiCtxt2 <- (\e s -> aiCtxt { ctxEntropy = Just e , ctxStorage = Just s })
         <$> initEntropy
+        <*> mkStorageStub
     tok <- runReaderT
         (do
-            createUpload vol "abcde.csv" 10  -- TODO: generator
-            -- bracket openfile file
-            -- mk chunk
-            -- save chunk
-        )
+            createUploadSetSize vol (UploadStartRequest "abcde.csv" 10))  -- TODO: generator
         aiCtxt2
     step "Then the investigator can view the upload"
-    -- (lookupUpload uploadToken) aiCtxt
+    -- TODO: implementation of processAsset
+    upload <- runReaderT (lookupUpload ((unId . tokenId . accountToken . uploadAccountToken) tok)) aiCtxt
     -- p = fileUploadPath (FileUploadToken upload)
     -- prb <- probeFile (fileUploadName (FileUploadToken upload))
     --   check upload size and name and format
