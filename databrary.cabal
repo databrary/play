@@ -32,7 +32,7 @@ Flag sandbox
 library
   hs-source-dirs: src
   c-sources: src/Store/avFrame.c
-  ghc-options: -Wall -Wredundant-constraints -Wno-type-defaults
+  ghc-options: -Wall -Wredundant-constraints -Wno-type-defaults -ddump-splices -ddump-to-file
   exposed-modules:
     Paths_databrary
     Blaze.ByteString.Builder.Html.Word
