@@ -1,5 +1,7 @@
 # Databrary 
 
+## Testing
+
 |                       | docs | results | coverage |
 |-----------------------|------|---------|----------|
 | functional            |      | [<img src="https://img.shields.io/badge/tests-master%20passed-brightgreen.svg">](http://databrary.github.io/databrary/Report.html)        | [<img src="https://img.shields.io/badge/functional%20coverage-37%25-yellow.svg">](http://databrary.github.io/databrary/coverage-comparison/katalon-coverage/hpc_index.html)          |
