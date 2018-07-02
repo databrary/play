@@ -4,8 +4,8 @@ module Model.Funding.SQL
   , selectVolumeFunding
   ) where
 
-import Data.Maybe (fromMaybe)
-import qualified Data.Text as T
+-- import Data.Maybe (fromMaybe)
+-- import qualified Data.Text as T
 
 import Model.SQL.Select
 import Model.Funding.Types
@@ -16,8 +16,8 @@ funderRow = selectColumns 'Funder "funder" ["fundref_id", "name"]
 selectFunder :: Selector -- ^ @'Funder'@
 selectFunder = funderRow
 
-makeFunding :: [Maybe T.Text] -> Funder -> Funding
-makeFunding a f = Funding f (map (fromMaybe (error "NULL funding.award")) a)
+-- makeFunding :: [Maybe T.Text] -> Funder -> Funding
+-- makeFunding a f = Funding f (map (fromMaybe (error "NULL funding.award")) a)
 
 fundingRow :: Selector -- ^ @'Funder' -> 'Funding'@
 fundingRow = selectColumns 'makeFunding "volume_funding" ["awards"]
