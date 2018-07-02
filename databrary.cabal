@@ -121,7 +121,6 @@ library
     Model.Notification
     Model.Funding.Types
     Model.Funding.FundRef
-    Model.Funding.SQL
     Model.Comment.Types
     Model.Release.Types
     Model.Release.SQL

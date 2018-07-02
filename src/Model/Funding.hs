@@ -25,7 +25,7 @@ import Model.SQL
 import Model.Id.Types
 import Model.Volume.Types
 import Model.Funding.Types
-import Model.Funding.SQL
+-- import Model.Funding.SQL
 
 lookupFunder :: MonadDB c m => Id Funder -> m (Maybe Funder)
 lookupFunder fi = do
