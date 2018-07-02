@@ -100,12 +100,6 @@ lookupVolume vi = do
     ident :: Identity <- peek
     dbQuery1 $(selectQuery (selectVolume 'ident) "$WHERE volume.id = ${vi}")
 
--- | TODO: m (Maybe (Permissioned Volume))
-lookupVolume2
-    :: MonadDB c m => Identity -> Id Volume -> m (Maybe Volume)
-lookupVolume2 ident vi = do
-    dbQuery1 $(selectQuery (selectVolume 'ident) "$WHERE volume.id = ${vi}")
-
 changeVolume :: MonadAudit c m => Volume -> m ()
 changeVolume v = do
     ident <- getAuditIdentity
