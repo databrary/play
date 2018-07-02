@@ -6,6 +6,7 @@ import Model.Age
 import Model.Asset.Types
 import Model.AssetSegment.Types
 import Model.AssetSlot.Types
+import Model.Container.Types
 import Model.Format.Types
 import Model.Funding.Types
 import Model.GeoNames
@@ -30,6 +31,9 @@ deriving instance Show Asset
 deriving instance Show AssetSlot
 
 deriving instance Show AssetSegment
+
+deriving instance Eq ContainerRow
+deriving instance Show ContainerRow
 
 deriving instance Eq ParticipantFieldMapping2
 deriving instance Show ParticipantFieldMapping2

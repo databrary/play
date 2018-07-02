@@ -15,7 +15,7 @@ import Data.Maybe
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Data.Time
--- import qualified Data.Vector as V
+import qualified Data.Vector as V
 import qualified Hedgehog.Gen as Gen
 import qualified Network.HTTP.Client as HTTPC
 import System.Exit (ExitCode(..))
@@ -25,9 +25,11 @@ import Test.Tasty.ExpectedFailure
 import Test.Tasty.HUnit
 
 import Controller.CSV (volumeCSV)
+import Controller.Notification
 import EZID.Volume (updateEZID)
 import Has
 import HTTP.Client
+import Ingest.JSON
 import Model.Asset
 import Model.Audit (MonadAudit)
 import Model.Authorize
@@ -39,6 +41,7 @@ import Model.Format
 import Model.Identity (MonadHasIdentity)
 import Model.Measure
 import Model.Metric
+import Model.Notification
 import Model.Offset
 import Model.Paginate
 import Model.Party
@@ -50,11 +53,14 @@ import Model.Record
 import Model.RecordSlot
 import Model.Segment
 import Model.Slot
+import Model.Token (createUpload)
 import Model.Transcode
 import Model.Volume
 import Model.VolumeAccess
 -- import Model.VolumeAccess.TypesTest
 import Service.DB (DBConn, MonadDB)
+import Service.Entropy (initEntropy)
+import Service.Messages (loadMessages)
 import Service.Types (Secret(..))
 import Solr.Index (updateIndex)
 import Solr.Search
@@ -440,7 +446,7 @@ test_16 = ignoreTest $ -- TODO: enable this inside of nix build with solr binari
         lbs <- runReaderT (search (mkVolumeSearchQuery "databrary")) (aiCtxt { ctxSolr = Just solr, ctxHttpClient = Just hc})
         let Just resVal = decode (HTTPC.responseBody lbs) :: Maybe Value
         show resVal @?= -- TODO: use aeson parser and only check selected fields
-            "Object (fromList [(\"response\",Object (fromList [(\"numFound\",Number 1.0),(\"start\",Number 0.0),(\"docs\",Array [Object (fromList [(\"body\",String \"Databrary is an open data library for developmental science. Share video, audio, and related metadata. Discover more, faster.\\nMost developmental scientists rely on video recordings to capture the complexity and richness of behavior. However, researchers rarely share video data, and this has impeded scientific progress. By creating the cyber-infrastructure and community to enable open video sharing, the Databrary project aims to facilitate deeper, richer, and broader understanding of behavior.\\nThe Databrary project is dedicated to transforming the culture of developmental science by building a community of researchers committed to open video data sharing, training a new generation of developmental scientists and empowering them with an unprecedented set of tools for discovery, and raising the profile of behavioral science by bolstering interest in and support for scientific research among the general public.\"),(\"name\",String \"Databrary\"),(\"owner_names\",Array [String \"Admin, Admin\",String \"Steiger, Lisa\",String \"Tesla, Testarosa\"]),(\"id\",Number 1.0),(\"owner_ids\",Array [Number 1.0,Number 3.0,Number 7.0])])])])),(\"spellcheck\",Object (fromList [(\"suggestions\",Array [])]))])"
+            "Object (fromList [(\"response\",Object (fromList [(\"numFound\",Number 1.0),(\"start\",Number 0.0),(\"docs\",Array [Object (fromList [(\"body\",String \"Databrary is an open data library for developmental science. Share video, audio, and related metadata. Discover more, faster.\\nMost developmental scientists rely on video recordings to capture the complexity and richness of behavior. However, researchers rarely share video data, and this has impeded scientific progress. By creating the cyber-infrastructure and community to enable open video sharing, the Databrary project aims to facilitate deeper, richer, and broader understanding of behavior.\\nThe Databrary project is dedicated to transforming the culture of developmental science by building a community of researchers committed to open video data sharing, training a new generation of developmental scientists and empowering them with an unprecedented set of tools for discovery, and raising the profile of behavioral science by bolstering interest in and supportp for scientific research among the general public.\"),(\"name\",String \"Databrary\"),(\"owner_names\",Array [String \"Admin, Admin\",String \"Steiger, Lisa\",String \"Tesla, Testarosa\"]),(\"id\",Number 1.0),(\"owner_ids\",Array [Number 1.0,Number 3.0,Number 7.0])])])])),(\"spellcheck\",Object (fromList [(\"suggestions\",Array [])]))])"
         step "and the public will find the newly added volume by title"
         bctx <- mkSolrIndexingContextSimple cn2 solr
         runReaderT updateIndex bctx
@@ -451,14 +457,12 @@ test_16 = ignoreTest $ -- TODO: enable this inside of nix build with solr binari
 
 -------- ezid --------------
 test_17 :: TestTree
-test_17 = localOption (mkTimeout (10 * 10^(6 :: Int))) $ Test.stepsWithResourceAndTransaction "test_17" $ \step ist cn2 -> do
+test_17 = localOption (mkTimeout (15 * 10^(6 :: Int))) $ Test.stepsWithResourceAndTransaction "test_17" $ \step ist cn2 -> do
     step "Given an authorized investigator"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     step "When the AI creates a partially shared volume and the ezid generation runs"
     -- TODO: should be lookup auth on rootParty
     vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
-    -- updateEZID
-    -- type EZIDM a = CookiesT (ReaderT EZIDContext IO) a
     bctx <- mkBackgroundContext ForEzid ist cn2
     mEzidWasUp <- runReaderT updateEZID bctx
     step "Then the volume will have a valid doi"
@@ -469,7 +473,111 @@ test_17 = localOption (mkTimeout (10 * 10^(6 :: Int))) $ Test.stepsWithResourceA
     --   example - https://doi.org/10.5072/FK2.801
     pure ()
 
--- remaining complex subsystems to demonstrate using: notifications, upload, ingest
+--------- ingest ------------
+test_18 :: TestTree
+test_18 = localOption (mkTimeout (10 * 10^(6 :: Int))) $ Test.stepsWithTransaction "test_18" $ \step cn2 -> do
+    step "Given an authorized investigator"
+    step " and a volume"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
+    step "When a superadmin user ingests a session"
+    aiCtxt2 <- withStorage aiCtxt
+    aiCtxt3 <- withAV aiCtxt2
+    let aiCtxt4 = withTimestamp (UTCTime (fromGregorian 2017 5 6) (secondsToDiffTime 0)) aiCtxt3
+    aiCtxt5 <- withLogs aiCtxt4
+    let aiCtxt7 = aiCtxt5 { ctxSecret = Just (Secret "abc")}
+    -- generate csv file to stage dir
+    let updateJson = mkIngestInput ((volumeName . volumeRow) vol)
+    Right _ <- runReaderT (ingestJSON vol updateJson True False) aiCtxt7
+    step "Then the user can view the created session"
+    cntrs <- runReaderT (lookupVolumeContainers vol) aiCtxt -- TODO: extract logic from volumeJSONField "containers"
+    (Just "cont1") `elem` (fmap (containerName . containerRow) cntrs) @? "volume doesn't have container naemd cont1"
+    -- TODO: record; >>> non-AV asset <<< ;
+    --   container linked to record + non-AV asset; >>> AV asset <<< ; >>> container linked to record + AV asset <<<
+    --  NOTE: for each transcoded asset, need to wait and manually call collectTranscode based on log status
+
+mkIngestInput :: T.Text -> Value
+mkIngestInput volName =
+    object
+        [ ("name", String volName)
+        , ("containers"
+          , Array
+              (V.fromList
+                 [object
+                    [ ("name", "cont1")
+                    , ("key", "key1")
+                    , ("records", Array (V.fromList []))
+                    , ("assets", Array (V.fromList []))
+                    ]]))]
+
+--------- notifications ------------
+test_19 :: TestTree
+test_19 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransaction "test_19" $ \step cn2 -> do
+    -- context needs: ...
+    step "Given an authorized investigator"
+    -- (aiAcct, aiCtxt)
+    (_, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    -- when create notification that account was updated and trigger deliveries
+    step "When the investigator changes their account, triggering a notification and delivery"
+    aiCtxt2 <-
+        (\n m l -> aiCtxt { ctxNotifications = Just n, ctxMessages = Just m, ctxLogs = Just l })
+            <$> mkNotificationsStub
+            <*> loadMessages
+            <*> mkLogsStub
+    let auth = view aiCtxt
+    _ <- runReaderT
+        (do
+            createNotification (blankNotification (siteAccount auth) NoticeAccountChange)
+                { notificationParty = Just $ partyRow $ accountParty $ siteAccount auth })
+        aiCtxt2
+    noIdentNotifyCtxt <-
+        (\n m l -> (mkDbContext cn2) { ctxNotifications = Just n, ctxMessages = Just m, ctxLogs = Just l })
+            <$> mkNotificationsStub
+            <*> loadMessages
+            <*> mkLogsStub
+    _ <- runReaderT (emitNotifications (periodicDelivery Nothing)) noIdentNotifyCtxt -- should this use runNotifier instead?
+    -- NOTE: this test depends on mailtrap and might become sensitive to rate limits
+    step "Then the investigator gets a notification about the change"
+    step "and the notification is removed"
+    (nl, nlAfter) <- runReaderT
+        (do
+            nl <- lookupUserNotifications     -- TODO: repeating viewNotifications
+            _ <- changeNotificationsDelivery (filter ((DeliverySite >) . notificationDelivered) nl) DeliverySite
+            nlAfter <- lookupUserNotifications
+            pure (nl, nlAfter))
+        aiCtxt
+    fmap notificationNotice nl @?= [NoticeAccountChange]  -- does this notification only use email?
+    -- fmap notificationNotice nlAfter @?= []
+    -- TODO: connect to mailtrap API and fetch emails
+    pure ()
+
+-- TODO: daily notification logic (cleanNotifications + updateStateNotifications)
+
+--------- upload ------------
+test_20 :: TestTree
+test_20 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransaction "test_20" $ \step cn2 -> do
+    step "Given an authorized investigator and their volume"
+    -- (aiAcct, aiCtxt)
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
+    -- when start upload and send all chunks
+    -- context needs: ....
+    aiCtxt2 <- (\e -> aiCtxt { ctxEntropy = Just e })
+        <$> initEntropy
+    tok <- runReaderT
+        (do
+            createUpload vol "abcde.csv" 10  -- TODO: generator
+            -- bracket openfile file
+            -- mk chunk
+            -- save chunk
+        )
+        aiCtxt2
+    step "Then the investigator can view the upload"
+    -- (lookupUpload uploadToken) aiCtxt
+    -- p = fileUploadPath (FileUploadToken upload)
+    -- prb <- probeFile (fileUploadName (FileUploadToken upload))
+    --   check upload size and name and format
+    pure ()
 
 ------------------------------------------------------ end of tests ---------------------------------
 
