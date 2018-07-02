@@ -32,8 +32,29 @@ lookupFunder fi =
   dbQuery1 $(selectQuery selectFunder "$WHERE funder.fundref_id = ${fi}")
 
 findFunders :: MonadDB c m => T.Text -> m [Funder]
-findFunders q =
-  dbQuery $(selectQuery selectFunder "$WHERE funder.name ILIKE '%' || ${q} || '%'")
+findFunders q = do
+  let _tenv_a1vMY = unknownPGTypeEnv
+  rows <- dbQuery -- (selectQuery selectFunder "WHERE funder.name ILIKE '%' || ${q} || '%'")
+    (mapQuery
+      ((\ _p_a1vMZ ->
+                       (Data.ByteString.concat
+                          [Data.String.fromString
+                             "SELECT funder.fundref_id,funder.name FROM funder WHERE funder.name ILIKE '%' || ",
+                           pgEscapeParameter
+                             _tenv_a1vMY (PGTypeProxy :: PGTypeName "text") _p_a1vMZ,
+                           Data.String.fromString " || '%'"]))
+         q)
+               (\ [_cfundref_id_a1vN0, _cname_a1vN1]
+                  -> (pgDecodeColumnNotNull
+                        _tenv_a1vMY
+                        (PGTypeProxy :: PGTypeName "bigint")
+                        _cfundref_id_a1vN0, 
+                      pgDecodeColumnNotNull
+                        _tenv_a1vMY (PGTypeProxy :: PGTypeName "text") _cname_a1vN1)))
+  pure
+      (fmap
+          (\(vid_a1vMW, vname_a1vMX) -> Funder vid_a1vMW vname_a1vMX)
+          rows)
 
 addFunder :: MonadDB c m => Funder -> m ()
 addFunder f =
