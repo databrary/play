@@ -173,9 +173,11 @@ test_7 = Test.stepsWithTransaction "test_7" $ \step cn2 -> do
     -- TODO: should be lookup auth on rootParty
     vol <- runReaderT (addVolumeSetPrivate aiAcct) aiCtxt
     step "Then the public can't view it"
-    -- Implementation of getVolume PUBLIC
-    mVolForAnon <- runWithNoIdent cn2 (lookupVolume ((volumeId . volumeRow) vol))
-    mVolForAnon @?= Nothing
+    mVolForAnon <-
+        runWithNoIdent
+            cn2
+            (getVolume2 PermissionREAD ((volumeId . volumeRow) vol))
+    mVolForAnon @?= LookupFailed
 
 -- <<<< more cases to handle variations of volume access and inheritance through authorization
 
