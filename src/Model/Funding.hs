@@ -28,8 +28,28 @@ import Model.Funding.Types
 import Model.Funding.SQL
 
 lookupFunder :: MonadDB c m => Id Funder -> m (Maybe Funder)
-lookupFunder fi =
-  dbQuery1 $(selectQuery selectFunder "$WHERE funder.fundref_id = ${fi}")
+lookupFunder fi = do
+  let _tenv_a13FG = unknownPGTypeEnv
+  rows <- dbQuery1 -- (selectQuery selectFunder "WHERE funder.fundref_id = ${fi}")
+    (mapQuery
+      ((\ _p_a13FH ->
+                       (Data.ByteString.concat
+                          [Data.String.fromString
+                             "SELECT funder.fundref_id,funder.name FROM funder WHERE funder.fundref_id = ",
+                           pgEscapeParameter
+                             _tenv_a13FG (PGTypeProxy :: PGTypeName "bigint") _p_a13FH]))
+         fi)
+               (\ [_cfundref_id_a13FI, _cname_a13FJ]
+                  -> (pgDecodeColumnNotNull
+                        _tenv_a13FG
+                        (PGTypeProxy :: PGTypeName "bigint")
+                        _cfundref_id_a13FI, 
+                      pgDecodeColumnNotNull
+                        _tenv_a13FG (PGTypeProxy :: PGTypeName "text") _cname_a13FJ)))
+  pure
+    (fmap
+      (\ (vid_a13Ft, vname_a13Fu) -> Funder vid_a13Ft vname_a13Fu)
+      rows)
 
 findFunders :: MonadDB c m => T.Text -> m [Funder]
 findFunders q = do
