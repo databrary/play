@@ -5,7 +5,7 @@
 NIX_OPTIONS := --option binary-caches "https://cache.nixos.org http://devdatabrary2.home.nyu.edu:5000"
 
 # These below intentionally use '='to pick up following changes to NIX_OPTIONS
-nix-build-args = $(NIX_OPTIONS) --drv-link $(PWD)/derivation --cores 4 -A databrary
+nix-build-args = $(NIX_OPTIONS) --drv-link $(PWD)/derivation --cores 0 -A databrary
 nix-shell-args = $(NIX_OPTIONS) #--pure Commented for now because git DNE
 
 ifdef BUILDDEV
@@ -55,6 +55,12 @@ cabal-build: ; $(nix-shell) --run 'cabal -j new-build --disable-optimization'
 #
 # Experimental tasks
 #
+
+# Dump splices and list the newly creates dump files.
+splices:
+	$(nix-shell) --run 'cabal -j new-build lib:databrary --ghc-options "-ddump-splices -ddump-to-file"'
+	-find dist-newstyle -name '*.dump-splices' -mmin -10
+.PHONY: splices
 
 ##
 ## For haddock development
