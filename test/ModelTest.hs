@@ -226,17 +226,10 @@ test_10 = Test.stepsWithTransaction "test_10" $ \step cn2 -> do
     -- TODO: should be lookup auth on rootParty
     createdVol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt -- partially shared, but effectively same as public
     step "Then the lab B AI can't add volume acccess"
-    -- Implementation of getVolume as used by postVolumeAccess
-    -- FIXME
-    mvolForAI2 <-
-        runReaderT
-            (getVolume2 PermissionREAD ((volumeId . volumeRow) createdVol))
-            aiCtxt2
-    case mvolForAI2 of
-        LookupFound vol ->
-            volumeRolePolicy vol @?= RoleSharedViewer SharedRestrictedPolicy
-        LookupFailed -> assertFailure "Lookup failed"
-        LookupDenied -> assertFailure "Lookup denied"
+    -- FIXME: Hard to express properly with the confusion between permissions
+    -- and roles.
+    Just volForAI2 <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) aiCtxt2
+    volumeRolePolicy volForAI2 @?= RoleSharedViewer SharedRestrictedPolicy
 
 ----- container ----
 test_11 :: TestTree
