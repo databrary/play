@@ -55,6 +55,7 @@ viewNotify = action GET (pathJSON </< "notify") $ \() -> withAuth $ do
   return $ okResponse [] $ (Aeson.encode . unwrap) n
 
 -- TODO: change to [Delivery]
+-- | GET notify response body
 newtype ViewNotifyResult = ViewNotifyResult { unwrap :: NoticeMap Delivery }
 
 data UpdateNotifyRequest = UpdateNotifyRequest [Notice] (Maybe Delivery)
