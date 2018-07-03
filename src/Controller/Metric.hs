@@ -6,7 +6,7 @@ module Controller.Metric
 
 import Control.Invertible.Monoidal ((>|<))
 
-import Data.Aeson as Aeson
+import qualified Data.Aeson as Aeson
 import Model.Id
 import Model.Permission
 import Model.Volume

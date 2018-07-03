@@ -8,7 +8,7 @@ import Data.Maybe (fromMaybe)
 import Network.HTTP.Types (noContent204)
 import qualified Web.Route.Invertible as R
 
-import qualified JSON as JSON
+import qualified Data.Aeson as Aeson
 import Model.Id
 import Model.Permission
 import Model.Volume
@@ -21,7 +21,7 @@ import Controller.Form
 import Controller.Paths
 import Controller.Volume
 
-data CreateOrUpdateVolumeStateRequest = CreateOrUpdateVolumeStateRequest JSON.Value Bool
+data CreateOrUpdateVolumeStateRequest = CreateOrUpdateVolumeStateRequest Aeson.Value Bool
 
 postVolumeState :: ActionRoute (Id Volume, VolumeStateKey)
 postVolumeState = action PUT (pathJSON >/> pathId </> "state" >/> R.parameter) $ \(vi, k) -> withAuth $ do
@@ -42,5 +42,7 @@ postVolumeState = action PUT (pathJSON >/> pathId </> "state" >/> R.parameter) $
 deleteVolumeState :: ActionRoute (Id Volume, VolumeStateKey)
 deleteVolumeState = action DELETE (pathJSON >/> pathId </> "state" >/> R.parameter) $ \(vi, k) -> withAuth $ do
   _ <- getVolume PermissionEDIT vi
-  r <- removeVolumeState vi k
-  return $ okResponse [] $ JSON.toEncoding r
+  r <- DeleteVolumeStateResponse <$> removeVolumeState vi k
+  return $ okResponse [] $ (Aeson.encode . wasDeleted) r
+
+newtype DeleteVolumeStateResponse = DeleteVolumeStateResponse { wasDeleted :: Bool }
