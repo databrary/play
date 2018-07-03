@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, FlexibleContexts #-}
+{-# LANGUAGE ViewPatterns #-}
 module ModelTest where
 
 import Control.Concurrent (threadDelay)
@@ -178,6 +179,24 @@ test_7 = Test.stepsWithTransaction "test_7" $ \step cn2 -> do
             cn2
             (getVolume PermissionREAD ((volumeId . volumeRow) vol))
     mVol @?= LookupFailed
+
+volWithId :: Volume -> (Id Volume, Volume)
+volWithId v = (volumeId (volumeRow v), v)
+
+test_7_accessOwnVolume :: TestTree
+test_7_accessOwnVolume = Test.stepsWithTransaction "can access own volume" $ \step cn2 -> do
+    step "Given an authorized investigator"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    step "When the AI creates a private volume"
+    -- TODO: should be lookup auth on rootParty
+    (volId, _) <- volWithId <$> runReaderT (addVolumeSetPrivate aiAcct) aiCtxt
+    step "Then the AI can view it"
+    mVol <- runReaderT (getVolume PermissionREAD volId) aiCtxt
+    case mVol of
+        -- FIXME: vol' is not equal to vol.
+        LookupFound (volWithId -> (volId', _)) -> volId' @?= volId
+        LookupFailed -> assertFailure "Lookup failed"
+        LookupDenied -> assertFailure "Lookup denied"
 
 -- <<<< more cases to handle variations of volume access and inheritance through authorization
 
