@@ -26,7 +26,19 @@ checkPermissionOld :: Has Permission a => Permission -> a -> Handler a
 checkPermissionOld requiredPermissionLevel objectWithCurrentUserPermLevel =
   checkPermission view requiredPermissionLevel objectWithCurrentUserPermLevel
 
-checkPermission :: (a -> Permission) -> Permission -> a -> Handler a
+-- | Determine if the requested permission is granted, or throw an HTTP 403.
+--
+-- This function is probably due for another 3 or 4 rewrites: it's a bit
+-- abstract, serving mostly as a description for its arguments.
+checkPermission
+    :: (a -> Permission)
+    -- ^ How to extract the granted permission for current user
+    -> Permission
+    -- ^ Requested permission permission
+    -> a
+    -- ^ Object under scrutiny
+    -> Handler a
+    -- ^ Just returns the 3rd arg, unless it short-circuits with a 403.
 checkPermission getCurrentUserPermLevel requestingAccessAtPermLevel obj = do
   unless (getCurrentUserPermLevel obj >= requestingAccessAtPermLevel) $ do
     resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)

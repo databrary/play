@@ -72,12 +72,12 @@ getVolume reqestedPermission volId = do
         Nothing -> LookupFailed
         Just vol ->
             let
-                requiredPermission =
+                grantedPermission =
                     extractPermissionIgnorePolicy . volumeRolePolicy
             in
                 case
                     checkPermission
-                        requiredPermission
+                        grantedPermission
                         vol
                         reqestedPermission
                 of
