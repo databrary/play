@@ -45,7 +45,7 @@ import View.Form (FormHtml)
 
 getRecord :: Permission -> Id Record -> Handler Record
 getRecord p i =
-  checkPermission p =<< maybeAction =<< lookupRecord i
+  checkPermissionOld p =<< maybeAction =<< lookupRecord i
 
 viewRecord :: ActionRoute (Id Record)
 viewRecord = action GET (pathJSON >/> pathId) $ \i -> withAuth $ do

@@ -43,7 +43,7 @@ import {-# SOURCE #-} Controller.AssetSegment
 
 getSlot :: Permission -> Maybe (Id Volume) -> Id Slot -> Handler Slot
 getSlot p mv i =
-  checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . volumeId . volumeRow . containerVolume . slotContainer) mv =<< lookupSlot i
+  checkPermissionOld p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . volumeId . volumeRow . containerVolume . slotContainer) mv =<< lookupSlot i
 
 slotJSONField :: Bool -> Slot -> BS.ByteString -> Maybe BS.ByteString -> Handler (Maybe JSON.Encoding)
 slotJSONField getOrig o "assets" _ =

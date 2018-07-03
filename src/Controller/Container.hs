@@ -45,7 +45,7 @@ import View.Form (FormHtml)
 getContainer :: Permission -> Maybe (Id Volume) -> Id Slot -> Bool -> Handler Container
 getContainer p mv (Id (SlotId i s)) top
   | segmentFull s = do
-    c <- checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . volumeId . volumeRow . containerVolume) mv =<< lookupContainer i
+    c <- checkPermissionOld p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . volumeId . volumeRow . containerVolume) mv =<< lookupContainer i
     unless top $ do
       t <- lookupVolumeTopContainer (containerVolume c)
       when (containerId (containerRow c) == containerId (containerRow t)) $ result =<< peeks notFoundResponse

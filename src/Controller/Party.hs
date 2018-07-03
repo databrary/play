@@ -35,7 +35,7 @@ import Has
 import qualified JSON as JSON
 import Model.Enum
 import Model.Id
-import Model.Permission
+import Model.Permission hiding (checkPermission)
 import Model.Release
 import Model.Party
 import Model.ORCID
@@ -69,7 +69,7 @@ getParty
   -> PartyTarget
   -> Handler Party
 getParty (Just p) (TargetParty i) =
-  (\party -> checkPermission2 partyPermission p party) =<< maybeAction =<< lookupAuthParty i
+  (\party -> checkPermission partyPermission p party) =<< maybeAction =<< lookupAuthParty i
 getParty _ mi = do
   u <- accountParty <$> authAccount
   let isme TargetProfile = True

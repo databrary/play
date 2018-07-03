@@ -37,7 +37,7 @@ import Ops
 import Has
 import qualified JSON as JSON
 import Model.Segment
-import Model.Permission
+import Model.Permission hiding (checkPermission)
 import Model.Release
 import Model.Id
 import Model.Volume hiding (getVolume)
@@ -83,7 +83,7 @@ getAsset :: Bool -> Permission -> Bool -> Id Asset -> Handler AssetSlot
 getAsset getOrig p checkDataPerm i = do
   mAssetSlot <- (if getOrig then lookupOrigAssetSlot else lookupAssetSlot) i
   slot <- maybeAction mAssetSlot
-  void (checkPermission2 (extractPermissionIgnorePolicy . getAssetSlotVolumePermission2) p slot)
+  void (checkPermission (extractPermissionIgnorePolicy . getAssetSlotVolumePermission2) p slot)
   when checkDataPerm $ do
     -- TODO: delete
     -- liftIO $ print ("checking data perm", "assetSlot", slot)

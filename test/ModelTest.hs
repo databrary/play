@@ -147,7 +147,7 @@ test_5 = Test.stepsWithTransaction "test_5" $ \step cn2 -> do
     step "When the AI attempts to authorize some party as a superadmin on db site"
     Just p <- runReaderT (lookupAuthParty ((partyId . partyRow) rootParty)) aiCtxt
     step "Then the attempt fails during the check for privileges on db site party"
-    -- guts of checkPermission2, as used by getParty and postAuthorize - <= ADMIN
+    -- guts of checkPermission, as used by getParty and postAuthorize - <= ADMIN
     partyPermission p @?= PermissionSHARED
 
 test_6 :: TestTree
@@ -160,7 +160,7 @@ test_6 = Test.stepsWithTransaction "test_6" $ \step cn2 -> do
     step "When affiliate attempts to authorize anybody to any other party"
     Just _ <- runReaderT (lookupAuthParty ((partyId . partyRow . accountParty) affAcct)) affCtxt
     step "Then the attempt fails during the check for privileges on the parent party"
-    -- guts of checkPermission2, as used by getParty and postAuthorize - <= ADMIN
+    -- guts of checkPermission, as used by getParty and postAuthorize - <= ADMIN
     -- FAILING - needs change in postAuthorize
     -- partyPermission p @?= PermissionEDIT
 

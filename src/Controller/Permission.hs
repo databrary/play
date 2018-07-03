@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Controller.Permission
-  ( checkPermission
-  , checkPermission2
+  ( checkPermissionOld
+  , checkPermission
   , userCanReadData
   , authAccount
   , checkMemberADMIN
@@ -19,14 +19,15 @@ import Model.Identity
 import HTTP.Request
 import Action
 
--- logic inside of checkPermission and checkDataPermission should be inside of model layer
--- TODO: use Model.checkPermission everywhere instead
-checkPermission :: Has Permission a => Permission -> a -> Handler a
-checkPermission requiredPermissionLevel objectWithCurrentUserPermLevel =
-  checkPermission2 view requiredPermissionLevel objectWithCurrentUserPermLevel
 
-checkPermission2 :: (a -> Permission) -> Permission -> a -> Handler a
-checkPermission2 getCurrentUserPermLevel requestingAccessAtPermLevel obj = do
+-- TODO: use Model.checkPermission everywhere instead
+{-# DEPRECATED checkPermissionOld "Use checkPermission instead" #-}
+checkPermissionOld :: Has Permission a => Permission -> a -> Handler a
+checkPermissionOld requiredPermissionLevel objectWithCurrentUserPermLevel =
+  checkPermission view requiredPermissionLevel objectWithCurrentUserPermLevel
+
+checkPermission :: (a -> Permission) -> Permission -> a -> Handler a
+checkPermission getCurrentUserPermLevel requestingAccessAtPermLevel obj = do
   unless (getCurrentUserPermLevel obj >= requestingAccessAtPermLevel) $ do
     resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)
     result resp
@@ -78,7 +79,7 @@ checkMemberADMIN :: Handler ()
 checkMemberADMIN = do
   a :: Access <- peek
   let admin = accessMember' a
-  void $ checkPermission PermissionADMIN admin
+  void $ checkPermissionOld PermissionADMIN admin
 
 checkVerfHeader :: Handler Bool
 checkVerfHeader = do
