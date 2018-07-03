@@ -250,6 +250,19 @@ test_10 = Test.stepsWithTransaction "test_10" $ \step cn2 -> do
     Just volForAI2 <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) aiCtxt2
     volumeRolePolicy volForAI2 @?= RoleSharedViewer SharedRestrictedPolicy
 
+test_10_1 :: TestTree
+test_10_1 = Test.stepsWithTransaction "Denied elevated access" $ \step cn2 -> do
+    step "Given an authorized investigator for some lab A and an authorized investigator for lab B"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    (_, aiCtxt2) <- addAuthorizedInvestigatorWithInstitution' cn2
+    step "When the lab A AI creates a public volume"
+    -- TODO: should be lookup auth on rootParty
+    -- NB: partially shared, but effectively same as public
+    (volId, _) <- volWithId <$> runReaderT (addVolumeWithAccess aiAcct) aiCtxt
+    step "Then the lab B AI can't access it with edit privileges"
+    mVol <- runReaderT (getVolume PermissionEDIT volId) aiCtxt2
+    mVol @?= LookupDenied
+
 ----- container ----
 test_11 :: TestTree
 test_11 = Test.stepsWithTransaction "test_11" $ \step cn2 -> do
