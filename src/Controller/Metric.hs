@@ -6,7 +6,7 @@ module Controller.Metric
 
 import Control.Invertible.Monoidal ((>|<))
 
-import qualified JSON as JSON
+import Data.Aeson as Aeson
 import Model.Id
 import Model.Permission
 import Model.Volume
@@ -29,10 +29,10 @@ postVolumeMetric = action PUT (pathJSON >/> pathId </> (pathId >|< pathId)) $ \(
               metricAdded <- addVolumeMetric v metricId'
               return $ if metricAdded then [metricId'] else [])
           cm
-  return $ okResponse [] $ JSON.toEncoding addedMetrics
+  return $ okResponse [] $ Aeson.encode addedMetrics
 
 deleteVolumeMetric :: ActionRoute (Id Volume, Either (Id Category) (Id Metric))
 deleteVolumeMetric = action DELETE (pathJSON >/> pathId </> (pathId >|< pathId)) $ \(vi, cm) -> withAuth $ do
   v <- getVolume PermissionEDIT vi
   r <- either (removeVolumeCategory v) (fmap fromEnum . removeVolumeMetric v) cm
-  return $ okResponse [] $ JSON.toEncoding r
+  return $ okResponse [] $ Aeson.encode r
