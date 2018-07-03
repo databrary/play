@@ -50,7 +50,7 @@
 <a name="line-41"></a>  <span class='hs-varid'>focusIO</span> <span class='hs-varop'>$</span> <span class='hs-varid'>logMsg</span> <span class='hs-varid'>t</span> <span class='hs-layout'>(</span><span class='hs-str'>"periodic running: "</span> <span class='hs-varop'>++</span> <span class='hs-varid'>show</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span>
 <a name="line-42"></a>  <span class='hs-varid'>cleanTokens</span>
 <a name="line-43"></a>  <span class='hs-varid'>updateVolumeIndex</span>
-<a name="line-44"></a>  <span class='hs-varid'>updateIndex</span>
+<a name="line-44"></a>  <span class='hs-varid'>withReaderT</span> <span class='hs-layout'>(</span><span class='hs-varid'>mkSolrIndexingContext</span> <span class='hs-varop'>.</span> <span class='hs-varid'>backgroundContext</span><span class='hs-layout'>)</span> <span class='hs-varid'>updateIndex</span>
 <a name="line-45"></a>  <span class='hs-varid'>ss</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>lookupSiteStats</span>
 <a name="line-46"></a>  <span class='hs-varid'>focusIO</span> <span class='hs-varop'>$</span> <span class='hs-layout'>(</span><span class='hs-varop'>`writeIORef`</span> <span class='hs-varid'>ss</span><span class='hs-layout'>)</span> <span class='hs-varop'>.</span> <span class='hs-varid'>serviceStats</span>
 <a name="line-47"></a>  <span class='hs-varid'>when</span> <span class='hs-layout'>(</span><span class='hs-varid'>p</span> <span class='hs-varop'>&gt;=</span> <span class='hs-conid'>PeriodWeekly</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span>

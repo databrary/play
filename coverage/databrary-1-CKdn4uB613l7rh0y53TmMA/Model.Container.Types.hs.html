@@ -40,7 +40,7 @@ span.spaces    { background: white }
 <span class="lineno">   24 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">containerTop</span></span></span> :: Bool
 <span class="lineno">   25 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">containerName</span></span></span> :: Maybe T.Text
 <span class="lineno">   26 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">containerDate</span></span></span> :: Maybe Date
-<span class="lineno">   27 </span>  } -- deriving (Eq, Show)
+<span class="lineno">   27 </span>  }
 <span class="lineno">   28 </span>
 <span class="lineno">   29 </span>data Container = Container
 <span class="lineno">   30 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">containerRow</span></span></span> :: !ContainerRow
@@ -72,9 +72,7 @@ span.spaces    { background: white }
 <span class="lineno">   56 </span>  <span class="decl"><span class="nottickedoff">view = containerVolume</span></span>
 <span class="lineno">   57 </span>instance Has Permission Container where
 <span class="lineno">   58 </span>  <span class="decl"><span class="nottickedoff">view = (view . containerVolume)</span></span>
-<span class="lineno">   59 </span>instance Has (Id Volume) Container where
-<span class="lineno">   60 </span>  <span class="decl"><span class="nottickedoff">view = (view . containerVolume)</span></span>
-<span class="lineno">   61 </span>
+<span class="lineno">   59 </span>
 
 </pre>
 </body>

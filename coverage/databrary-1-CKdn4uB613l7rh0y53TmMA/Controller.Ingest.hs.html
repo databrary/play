@@ -83,242 +83,250 @@ span.spaces    { background: white }
 <span class="lineno">   67 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
 <span class="lineno">   68 </span><span class="spaces">  </span><span class="nottickedoff">peeks $ blankForm . htmlIngestForm v s</span></span>
 <span class="lineno">   69 </span>
-<span class="lineno">   70 </span>postIngest :: ActionRoute (Id Volume)
-<span class="lineno">   71 </span><span class="decl"><span class="nottickedoff">postIngest = multipartAction $ action POST (pathId &lt;/&lt; &quot;ingest&quot;) $ \vi -&gt; withAuth $ do</span>
-<span class="lineno">   72 </span><span class="spaces">  </span><span class="nottickedoff">checkMemberADMIN</span>
-<span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">s &lt;- focusIO getIngestStatus</span>
-<span class="lineno">   74 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
-<span class="lineno">   75 </span><span class="spaces">  </span><span class="nottickedoff">a &lt;- runFormFiles [(&quot;json&quot;, 16*1024*1024)] (Just $ htmlIngestForm v s) $ do</span>
-<span class="lineno">   76 </span><span class="spaces">    </span><span class="nottickedoff">csrfForm</span>
-<span class="lineno">   77 </span><span class="spaces">    </span><span class="nottickedoff">abort &lt;- &quot;abort&quot; .:&gt; deform</span>
-<span class="lineno">   78 </span><span class="spaces">    </span><span class="nottickedoff">abort `unlessReturn` ((,,)</span>
-<span class="lineno">   79 </span><span class="spaces">      </span><span class="nottickedoff">&lt;$&gt; (&quot;run&quot; .:&gt; deform)</span>
-<span class="lineno">   80 </span><span class="spaces">      </span><span class="nottickedoff">&lt;*&gt; (&quot;overwrite&quot; .:&gt; deform)</span>
-<span class="lineno">   81 </span><span class="spaces">      </span><span class="nottickedoff">&lt;*&gt; (&quot;json&quot; .:&gt; do</span>
-<span class="lineno">   82 </span><span class="spaces">              </span><span class="nottickedoff">(fileInfo :: FileInfo JSON.Value) &lt;- deform</span>
-<span class="lineno">   83 </span><span class="spaces">              </span><span class="nottickedoff">(deformCheck</span>
-<span class="lineno">   84 </span><span class="spaces">                   </span><span class="nottickedoff">&quot;Must be JSON.&quot;</span>
-<span class="lineno">   85 </span><span class="spaces">                   </span><span class="nottickedoff">(\f -&gt; fileContentType f `elem` [&quot;text/json&quot;, &quot;application/json&quot;] || takeExtension (fileName f) == &quot;.json&quot;)</span>
-<span class="lineno">   86 </span><span class="spaces">                   </span><span class="nottickedoff">fileInfo)))</span>
-<span class="lineno">   87 </span><span class="spaces">  </span><span class="nottickedoff">r &lt;- maybe</span>
-<span class="lineno">   88 </span><span class="spaces">    </span><span class="nottickedoff">(True &lt;$ focusIO abortIngest)</span>
-<span class="lineno">   89 </span><span class="spaces">    </span><span class="nottickedoff">(\(r,o,j) -&gt; runIngest $ right (map (unId . containerId . containerRow)) &lt;$&gt; ingestJSON v (fileContent j) r o)</span>
-<span class="lineno">   90 </span><span class="spaces">    </span><span class="nottickedoff">a</span>
-<span class="lineno">   91 </span><span class="spaces">  </span><span class="nottickedoff">unless r $ result $ response badRequest400 [] (&quot;failed&quot; :: String)</span>
-<span class="lineno">   92 </span><span class="spaces">  </span><span class="nottickedoff">peeks $ otherRouteResponse [] viewIngest (volumeId $ volumeRow v)</span></span>
-<span class="lineno">   93 </span>
-<span class="lineno">   94 </span>maxWidelyAcceptableHttpBodyFileSize :: Word64
-<span class="lineno">   95 </span><span class="decl"><span class="nottickedoff">maxWidelyAcceptableHttpBodyFileSize = 16*1024*1024</span></span>
-<span class="lineno">   96 </span>
-<span class="lineno">   97 </span>-- TODO: maybe put csv file save/retrieve in Store module
-<span class="lineno">   98 </span>detectParticipantCSV :: ActionRoute (Id Volume)
-<span class="lineno">   99 </span><span class="decl"><span class="nottickedoff">detectParticipantCSV = action POST (pathJSON &gt;/&gt; pathId &lt;/&lt; &quot;detectParticipantCSV&quot;) $ \vi -&gt; withAuth $ do</span>
-<span class="lineno">  100 </span><span class="spaces">    </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
-<span class="lineno">  101 </span><span class="spaces">    </span><span class="nottickedoff">(auth :: SiteAuth) &lt;- peek</span>
-<span class="lineno">  102 </span><span class="spaces">    </span><span class="nottickedoff">(store :: Storage) &lt;- peek</span>
-<span class="lineno">  103 </span><span class="spaces">    </span><span class="nottickedoff">csvFileInfo &lt;-</span>
-<span class="lineno">  104 </span><span class="spaces">      </span><span class="nottickedoff">-- TODO: is Nothing okay here?</span>
-<span class="lineno">  105 </span><span class="spaces">      </span><span class="nottickedoff">runFormFiles [(&quot;file&quot;, maxWidelyAcceptableHttpBodyFileSize)] (Nothing :: Maybe (RequestContext -&gt; FormHtml TL.Text)) $ do</span>
-<span class="lineno">  106 </span><span class="spaces">          </span><span class="nottickedoff">csrfForm</span>
-<span class="lineno">  107 </span><span class="spaces">          </span><span class="nottickedoff">fileInfo :: (FileInfo TL.Text) &lt;- &quot;file&quot; .:&gt; deform</span>
-<span class="lineno">  108 </span><span class="spaces">          </span><span class="nottickedoff">return fileInfo</span>
-<span class="lineno">  109 </span><span class="spaces">    </span><span class="nottickedoff">-- liftIO (print (&quot;after extract form&quot;))</span>
-<span class="lineno">  110 </span><span class="spaces">    </span><span class="nottickedoff">let uploadFileContents' = (BSL.toStrict . TLE.encodeUtf8 . removeBomPrefixText . fileContent) csvFileInfo</span>
-<span class="lineno">  111 </span><span class="spaces">    </span><span class="nottickedoff">-- liftIO (print &quot;uploaded contents below&quot;)</span>
-<span class="lineno">  112 </span><span class="spaces">    </span><span class="nottickedoff">-- liftIO (print uploadFileContents')</span>
-<span class="lineno">  113 </span><span class="spaces">    </span><span class="nottickedoff">case parseCsvWithHeader uploadFileContents' of</span>
-<span class="lineno">  114 </span><span class="spaces">        </span><span class="nottickedoff">Left err -&gt; do</span>
-<span class="lineno">  115 </span><span class="spaces">            </span><span class="nottickedoff">-- liftIO (print (&quot;csv parse error&quot;, err))</span>
-<span class="lineno">  116 </span><span class="spaces">            </span><span class="nottickedoff">pure (response badRequest400 [] err)</span>
-<span class="lineno">  117 </span><span class="spaces">        </span><span class="nottickedoff">Right (hdrs, records) -&gt; do</span>
-<span class="lineno">  118 </span><span class="spaces">            </span><span class="nottickedoff">metrics &lt;- lookupVolumeParticipantMetrics v</span>
-<span class="lineno">  119 </span><span class="spaces">            </span><span class="nottickedoff">-- liftIO (print (&quot;before check determine&quot;, show hdrs))</span>
-<span class="lineno">  120 </span><span class="spaces">            </span><span class="nottickedoff">case checkDetermineMapping metrics ((fmap TE.decodeUtf8 . getHeaders) hdrs) uploadFileContents' of</span>
-<span class="lineno">  121 </span><span class="spaces">                </span><span class="nottickedoff">Left err -&gt; do</span>
-<span class="lineno">  122 </span><span class="spaces">                    </span><span class="nottickedoff">-- liftIO (print (&quot;failed to determine mapping&quot;, err))</span>
-<span class="lineno">  123 </span><span class="spaces">                    </span><span class="nottickedoff">-- if column check failed, then don't save csv file and response is error</span>
-<span class="lineno">  124 </span><span class="spaces">                    </span><span class="nottickedoff">pure (response badRequest400 [] err)</span>
-<span class="lineno">  125 </span><span class="spaces">                </span><span class="nottickedoff">Right participantFieldMapping -&gt; do</span>
-<span class="lineno">  126 </span><span class="spaces">                    </span><span class="nottickedoff">let uploadFileName =</span>
-<span class="lineno">  127 </span><span class="spaces">                            </span><span class="nottickedoff">uniqueUploadName auth v ((BSC.unpack . fileName) csvFileInfo)</span>
-<span class="lineno">  128 </span><span class="spaces">                    </span><span class="nottickedoff">liftIO</span>
-<span class="lineno">  129 </span><span class="spaces">                        </span><span class="nottickedoff">(BS.writeFile</span>
-<span class="lineno">  130 </span><span class="spaces">                             </span><span class="nottickedoff">((BSC.unpack . getStorageTempParticipantUpload uploadFileName) store)</span>
-<span class="lineno">  131 </span><span class="spaces">                             </span><span class="nottickedoff">uploadFileContents')</span>
-<span class="lineno">  132 </span><span class="spaces">                    </span><span class="nottickedoff">pure</span>
-<span class="lineno">  133 </span><span class="spaces">                        </span><span class="nottickedoff">$ okResponse []</span>
-<span class="lineno">  134 </span><span class="spaces">                            </span><span class="nottickedoff">$ JSON.recordEncoding -- TODO: not record encoding</span>
-<span class="lineno">  135 </span><span class="spaces">                                </span><span class="nottickedoff">$ JSON.Record vi</span>
-<span class="lineno">  136 </span><span class="spaces">                                    </span><span class="nottickedoff">$      &quot;csv_upload_id&quot; JSON..= uploadFileName</span>
-<span class="lineno">  137 </span><span class="spaces">                                        </span><span class="nottickedoff">-- TODO: samples for mapped columns only</span>
-<span class="lineno">  138 </span><span class="spaces">                                        </span><span class="nottickedoff">&lt;&gt; &quot;column_samples&quot; JSON..= extractColumnsDistinctSampleJson 5 hdrs records</span>
-<span class="lineno">  139 </span><span class="spaces">                                        </span><span class="nottickedoff">&lt;&gt; &quot;suggested_mapping&quot; JSON..= participantFieldMappingToJSON participantFieldMapping</span>
-<span class="lineno">  140 </span><span class="spaces">                                        </span><span class="nottickedoff">&lt;&gt; &quot;columns_firstvals&quot; JSON..= extractColumnsInitialJson 5 hdrs records</span></span>
-<span class="lineno">  141 </span>
-<span class="lineno">  142 </span>-- TODO: move this to Store.ParticipantUploadTemp
-<span class="lineno">  143 </span>uniqueUploadName :: SiteAuth -&gt; Volume -&gt; String -&gt; String
-<span class="lineno">  144 </span><span class="decl"><span class="nottickedoff">uniqueUploadName siteAuth vol uploadName =</span>
-<span class="lineno">  145 </span><span class="spaces">    </span><span class="nottickedoff">uniqueUploadName'</span>
-<span class="lineno">  146 </span><span class="spaces">        </span><span class="nottickedoff">((partyId . partyRow . accountParty . siteAccount) siteAuth)</span>
-<span class="lineno">  147 </span><span class="spaces">        </span><span class="nottickedoff">((volumeId . volumeRow) vol)</span>
-<span class="lineno">  148 </span><span class="spaces">        </span><span class="nottickedoff">uploadName</span></span>
-<span class="lineno">  149 </span>
-<span class="lineno">  150 </span>uniqueUploadName' :: Id Party -&gt; Id Volume -&gt; String -&gt; String
-<span class="lineno">  151 </span><span class="decl"><span class="nottickedoff">uniqueUploadName' uid vid uploadName =</span>
-<span class="lineno">  152 </span><span class="spaces">    </span><span class="nottickedoff">show uid &lt;&gt; &quot;-&quot; &lt;&gt; show vid &lt;&gt; &quot;-&quot; &lt;&gt; uploadName</span></span>
-<span class="lineno">  153 </span>----- end
-<span class="lineno">  154 </span>
-<span class="lineno">  155 </span>runParticipantUpload :: ActionRoute (Id Volume)
-<span class="lineno">  156 </span><span class="decl"><span class="nottickedoff">runParticipantUpload = action POST (pathJSON &gt;/&gt; pathId &lt;/&lt; &quot;runParticipantUpload&quot;) $ \vi -&gt; withAuth $ do</span>
-<span class="lineno">  157 </span><span class="spaces">    </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
-<span class="lineno">  158 </span><span class="spaces">    </span><span class="nottickedoff">(store :: Storage) &lt;- peek</span>
-<span class="lineno">  159 </span><span class="spaces">    </span><span class="nottickedoff">-- reqCtxt &lt;- peek</span>
-<span class="lineno">  160 </span><span class="spaces">    </span><span class="nottickedoff">(csvUploadId :: String, selectedMapping :: JSON.Value) &lt;- runForm (Nothing) $ do</span>
-<span class="lineno">  161 </span><span class="spaces">        </span><span class="nottickedoff">csrfForm</span>
-<span class="lineno">  162 </span><span class="spaces">        </span><span class="nottickedoff">(uploadId :: String) &lt;- &quot;csv_upload_id&quot; .:&gt; deform</span>
-<span class="lineno">  163 </span><span class="spaces">        </span><span class="nottickedoff">mapping &lt;- &quot;selected_mapping&quot; .:&gt; deform</span>
-<span class="lineno">  164 </span><span class="spaces">        </span><span class="nottickedoff">pure (uploadId, mapping)</span>
-<span class="lineno">  165 </span><span class="spaces">    </span><span class="nottickedoff">-- TODO: resolve csv id to absolute path; http error if unknown</span>
-<span class="lineno">  166 </span><span class="spaces">    </span><span class="nottickedoff">uploadFileContents &lt;-</span>
-<span class="lineno">  167 </span><span class="spaces">        </span><span class="nottickedoff">(liftIO . BS.readFile) ((BSC.unpack . getStorageTempParticipantUpload csvUploadId) store)</span>
-<span class="lineno">  168 </span><span class="spaces">    </span><span class="nottickedoff">case JSON.parseEither mappingParser selectedMapping of</span>
-<span class="lineno">  169 </span><span class="spaces">        </span><span class="nottickedoff">Left err -&gt;</span>
-<span class="lineno">  170 </span><span class="spaces">            </span><span class="nottickedoff">pure (response badRequest400 [] err) -- bad json shape or keys</span>
-<span class="lineno">  171 </span><span class="spaces">        </span><span class="nottickedoff">Right mpngVal -&gt; do</span>
-<span class="lineno">  172 </span><span class="spaces">            </span><span class="nottickedoff">participantActiveMetrics &lt;- lookupVolumeParticipantMetrics v</span>
-<span class="lineno">  173 </span><span class="spaces">            </span><span class="nottickedoff">case parseParticipantFieldMapping participantActiveMetrics mpngVal of</span>
-<span class="lineno">  174 </span><span class="spaces">                </span><span class="nottickedoff">Left err -&gt;</span>
-<span class="lineno">  175 </span><span class="spaces">                    </span><span class="nottickedoff">pure (response badRequest400 [] err) -- mapping of inactive metrics or missing metric</span>
-<span class="lineno">  176 </span><span class="spaces">                </span><span class="nottickedoff">Right mpngs -&gt; do</span>
-<span class="lineno">  177 </span><span class="spaces">                    </span><span class="nottickedoff">-- liftIO $ print (&quot;upload id&quot;, csvUploadId, &quot;mapping&quot;, mpngs)</span>
-<span class="lineno">  178 </span><span class="spaces">                    </span><span class="nottickedoff">case attemptParseRows mpngs uploadFileContents of</span>
-<span class="lineno">  179 </span><span class="spaces">                        </span><span class="nottickedoff">Left err -&gt;   -- invalid value in row</span>
-<span class="lineno">  180 </span><span class="spaces">                            </span><span class="nottickedoff">pure (response badRequest400 [] err)</span>
-<span class="lineno">  181 </span><span class="spaces">                        </span><span class="nottickedoff">Right (_, records) -&gt;</span>
-<span class="lineno">  182 </span><span class="spaces">                            </span><span class="nottickedoff">let response' =</span>
-<span class="lineno">  183 </span><span class="spaces">                                    </span><span class="nottickedoff">okResponse []</span>
-<span class="lineno">  184 </span><span class="spaces">                                        </span><span class="nottickedoff">$ JSON.recordEncoding -- TODO: not record encoding</span>
-<span class="lineno">  185 </span><span class="spaces">                                        </span><span class="nottickedoff">$       JSON.Record vi</span>
-<span class="lineno">  186 </span><span class="spaces">                                        </span><span class="nottickedoff">$       &quot;succeeded&quot;</span>
-<span class="lineno">  187 </span><span class="spaces">                                        </span><span class="nottickedoff">JSON..= True</span>
-<span class="lineno">  188 </span><span class="spaces">                            </span><span class="nottickedoff">in  response' &lt;$ runImport v records</span></span>
-<span class="lineno">  189 </span>
-<span class="lineno">  190 </span>mappingParser :: JSON.Value -&gt; JSON.Parser [(Metric, Text)]
-<span class="lineno">  191 </span><span class="decl"><span class="istickedoff">mappingParser val = do</span>
-<span class="lineno">  192 </span><span class="spaces">    </span><span class="istickedoff">(entries :: [HeaderMappingEntry]) &lt;- JSON.parseJSON val</span>
-<span class="lineno">  193 </span><span class="spaces">    </span><span class="istickedoff">pure (fmap (\e -&gt; (hmeMetric e, hmeCsvField e)) entries)</span></span>
-<span class="lineno">  194 </span>
-<span class="lineno">  195 </span>-- TODO: move all below to Model.Ingest
-<span class="lineno">  196 </span> -- TODO: error or count
-<span class="lineno">  197 </span>runImport :: Volume -&gt; Vector ParticipantRecord -&gt; Handler (Vector ())
-<span class="lineno">  198 </span><span class="decl"><span class="nottickedoff">runImport vol records =</span>
-<span class="lineno">  199 </span><span class="spaces">    </span><span class="nottickedoff">mapM (createOrUpdateRecord vol) records</span></span>
-<span class="lineno">  200 </span>
-<span class="lineno">  201 </span>data ParticipantStatus = Create | Found Record
+<span class="lineno">   70 </span>data ControlIngestRequest =
+<span class="lineno">   71 </span>      AbortIngest Bool
+<span class="lineno">   72 </span>    | RunIngest Bool Bool (FileInfo JSON.Value)
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>postIngest :: ActionRoute (Id Volume)
+<span class="lineno">   75 </span><span class="decl"><span class="nottickedoff">postIngest = multipartAction $ action POST (pathId &lt;/&lt; &quot;ingest&quot;) $ \vi -&gt; withAuth $ do</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="nottickedoff">checkMemberADMIN</span>
+<span class="lineno">   77 </span><span class="spaces">  </span><span class="nottickedoff">s &lt;- focusIO getIngestStatus</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
+<span class="lineno">   79 </span><span class="spaces">  </span><span class="nottickedoff">a &lt;- runFormFiles [(&quot;json&quot;, 16*1024*1024)] (Just $ htmlIngestForm v s) $ do</span>
+<span class="lineno">   80 </span><span class="spaces">    </span><span class="nottickedoff">csrfForm</span>
+<span class="lineno">   81 </span><span class="spaces">    </span><span class="nottickedoff">AbortIngest abort &lt;- AbortIngest &lt;$&gt; (&quot;abort&quot; .:&gt; deform)</span>
+<span class="lineno">   82 </span><span class="spaces">    </span><span class="nottickedoff">abort `unlessReturn` (RunIngest</span>
+<span class="lineno">   83 </span><span class="spaces">      </span><span class="nottickedoff">&lt;$&gt; (&quot;run&quot; .:&gt; deform)</span>
+<span class="lineno">   84 </span><span class="spaces">      </span><span class="nottickedoff">&lt;*&gt; (&quot;overwrite&quot; .:&gt; deform)</span>
+<span class="lineno">   85 </span><span class="spaces">      </span><span class="nottickedoff">&lt;*&gt; (&quot;json&quot; .:&gt; do</span>
+<span class="lineno">   86 </span><span class="spaces">              </span><span class="nottickedoff">(fileInfo :: FileInfo JSON.Value) &lt;- deform</span>
+<span class="lineno">   87 </span><span class="spaces">              </span><span class="nottickedoff">(deformCheck</span>
+<span class="lineno">   88 </span><span class="spaces">                   </span><span class="nottickedoff">&quot;Must be JSON.&quot;</span>
+<span class="lineno">   89 </span><span class="spaces">                   </span><span class="nottickedoff">(\f -&gt; fileContentType f `elem` [&quot;text/json&quot;, &quot;application/json&quot;] || takeExtension (fileName f) == &quot;.json&quot;)</span>
+<span class="lineno">   90 </span><span class="spaces">                   </span><span class="nottickedoff">fileInfo)))</span>
+<span class="lineno">   91 </span><span class="spaces">  </span><span class="nottickedoff">r &lt;- maybe</span>
+<span class="lineno">   92 </span><span class="spaces">    </span><span class="nottickedoff">(True &lt;$ focusIO abortIngest)</span>
+<span class="lineno">   93 </span><span class="spaces">    </span><span class="nottickedoff">(\(RunIngest r o j) -&gt; runIngest $ right (map (unId . containerId . containerRow)) &lt;$&gt; ingestJSON v (fileContent j) r o)</span>
+<span class="lineno">   94 </span><span class="spaces">    </span><span class="nottickedoff">a</span>
+<span class="lineno">   95 </span><span class="spaces">  </span><span class="nottickedoff">unless r $ result $ response badRequest400 [] (&quot;failed&quot; :: String)</span>
+<span class="lineno">   96 </span><span class="spaces">  </span><span class="nottickedoff">peeks $ otherRouteResponse [] viewIngest (volumeId $ volumeRow v)</span></span>
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>maxWidelyAcceptableHttpBodyFileSize :: Word64
+<span class="lineno">   99 </span><span class="decl"><span class="nottickedoff">maxWidelyAcceptableHttpBodyFileSize = 16*1024*1024</span></span>
+<span class="lineno">  100 </span>
+<span class="lineno">  101 </span>data DetectParticipantCSVRequest = DetectParticipantCSVRequest (FileInfo TL.Text)
+<span class="lineno">  102 </span>
+<span class="lineno">  103 </span>-- TODO: maybe put csv file save/retrieve in Store module
+<span class="lineno">  104 </span>detectParticipantCSV :: ActionRoute (Id Volume)
+<span class="lineno">  105 </span><span class="decl"><span class="nottickedoff">detectParticipantCSV = action POST (pathJSON &gt;/&gt; pathId &lt;/&lt; &quot;detectParticipantCSV&quot;) $ \vi -&gt; withAuth $ do</span>
+<span class="lineno">  106 </span><span class="spaces">    </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
+<span class="lineno">  107 </span><span class="spaces">    </span><span class="nottickedoff">(auth :: SiteAuth) &lt;- peek</span>
+<span class="lineno">  108 </span><span class="spaces">    </span><span class="nottickedoff">(store :: Storage) &lt;- peek</span>
+<span class="lineno">  109 </span><span class="spaces">    </span><span class="nottickedoff">DetectParticipantCSVRequest csvFileInfo &lt;-</span>
+<span class="lineno">  110 </span><span class="spaces">      </span><span class="nottickedoff">-- TODO: is Nothing okay here?</span>
+<span class="lineno">  111 </span><span class="spaces">      </span><span class="nottickedoff">runFormFiles [(&quot;file&quot;, maxWidelyAcceptableHttpBodyFileSize)] (Nothing :: Maybe (RequestContext -&gt; FormHtml TL.Text)) $ do</span>
+<span class="lineno">  112 </span><span class="spaces">          </span><span class="nottickedoff">csrfForm</span>
+<span class="lineno">  113 </span><span class="spaces">          </span><span class="nottickedoff">fileInfo :: (FileInfo TL.Text) &lt;- &quot;file&quot; .:&gt; deform</span>
+<span class="lineno">  114 </span><span class="spaces">          </span><span class="nottickedoff">return (DetectParticipantCSVRequest fileInfo)</span>
+<span class="lineno">  115 </span><span class="spaces">    </span><span class="nottickedoff">-- liftIO (print (&quot;after extract form&quot;))</span>
+<span class="lineno">  116 </span><span class="spaces">    </span><span class="nottickedoff">let uploadFileContents' = (BSL.toStrict . TLE.encodeUtf8 . removeBomPrefixText . fileContent) csvFileInfo</span>
+<span class="lineno">  117 </span><span class="spaces">    </span><span class="nottickedoff">-- liftIO (print &quot;uploaded contents below&quot;)</span>
+<span class="lineno">  118 </span><span class="spaces">    </span><span class="nottickedoff">-- liftIO (print uploadFileContents')</span>
+<span class="lineno">  119 </span><span class="spaces">    </span><span class="nottickedoff">case parseCsvWithHeader uploadFileContents' of</span>
+<span class="lineno">  120 </span><span class="spaces">        </span><span class="nottickedoff">Left err -&gt; do</span>
+<span class="lineno">  121 </span><span class="spaces">            </span><span class="nottickedoff">-- liftIO (print (&quot;csv parse error&quot;, err))</span>
+<span class="lineno">  122 </span><span class="spaces">            </span><span class="nottickedoff">pure (response badRequest400 [] err)</span>
+<span class="lineno">  123 </span><span class="spaces">        </span><span class="nottickedoff">Right (hdrs, records) -&gt; do</span>
+<span class="lineno">  124 </span><span class="spaces">            </span><span class="nottickedoff">metrics &lt;- lookupVolumeParticipantMetrics v</span>
+<span class="lineno">  125 </span><span class="spaces">            </span><span class="nottickedoff">-- liftIO (print (&quot;before check determine&quot;, show hdrs))</span>
+<span class="lineno">  126 </span><span class="spaces">            </span><span class="nottickedoff">case checkDetermineMapping metrics ((fmap TE.decodeUtf8 . getHeaders) hdrs) uploadFileContents' of</span>
+<span class="lineno">  127 </span><span class="spaces">                </span><span class="nottickedoff">Left err -&gt; do</span>
+<span class="lineno">  128 </span><span class="spaces">                    </span><span class="nottickedoff">-- liftIO (print (&quot;failed to determine mapping&quot;, err))</span>
+<span class="lineno">  129 </span><span class="spaces">                    </span><span class="nottickedoff">-- if column check failed, then don't save csv file and response is error</span>
+<span class="lineno">  130 </span><span class="spaces">                    </span><span class="nottickedoff">pure (response badRequest400 [] err)</span>
+<span class="lineno">  131 </span><span class="spaces">                </span><span class="nottickedoff">Right participantFieldMapping -&gt; do</span>
+<span class="lineno">  132 </span><span class="spaces">                    </span><span class="nottickedoff">let uploadFileName =</span>
+<span class="lineno">  133 </span><span class="spaces">                            </span><span class="nottickedoff">uniqueUploadName auth v ((BSC.unpack . fileName) csvFileInfo)</span>
+<span class="lineno">  134 </span><span class="spaces">                    </span><span class="nottickedoff">liftIO</span>
+<span class="lineno">  135 </span><span class="spaces">                        </span><span class="nottickedoff">(BS.writeFile</span>
+<span class="lineno">  136 </span><span class="spaces">                             </span><span class="nottickedoff">((BSC.unpack . getStorageTempParticipantUpload uploadFileName) store)</span>
+<span class="lineno">  137 </span><span class="spaces">                             </span><span class="nottickedoff">uploadFileContents')</span>
+<span class="lineno">  138 </span><span class="spaces">                    </span><span class="nottickedoff">pure</span>
+<span class="lineno">  139 </span><span class="spaces">                        </span><span class="nottickedoff">$ okResponse []</span>
+<span class="lineno">  140 </span><span class="spaces">                            </span><span class="nottickedoff">$ JSON.recordEncoding -- TODO: not record encoding</span>
+<span class="lineno">  141 </span><span class="spaces">                                </span><span class="nottickedoff">$ JSON.Record vi</span>
+<span class="lineno">  142 </span><span class="spaces">                                    </span><span class="nottickedoff">$      &quot;csv_upload_id&quot; JSON..= uploadFileName</span>
+<span class="lineno">  143 </span><span class="spaces">                                        </span><span class="nottickedoff">-- TODO: samples for mapped columns only</span>
+<span class="lineno">  144 </span><span class="spaces">                                        </span><span class="nottickedoff">&lt;&gt; &quot;column_samples&quot; JSON..= extractColumnsDistinctSampleJson 5 hdrs records</span>
+<span class="lineno">  145 </span><span class="spaces">                                        </span><span class="nottickedoff">&lt;&gt; &quot;suggested_mapping&quot; JSON..= participantFieldMappingToJSON participantFieldMapping</span>
+<span class="lineno">  146 </span><span class="spaces">                                        </span><span class="nottickedoff">&lt;&gt; &quot;columns_firstvals&quot; JSON..= extractColumnsInitialJson 5 hdrs records</span></span>
+<span class="lineno">  147 </span>
+<span class="lineno">  148 </span>-- TODO: move this to Store.ParticipantUploadTemp
+<span class="lineno">  149 </span>uniqueUploadName :: SiteAuth -&gt; Volume -&gt; String -&gt; String
+<span class="lineno">  150 </span><span class="decl"><span class="nottickedoff">uniqueUploadName siteAuth vol uploadName =</span>
+<span class="lineno">  151 </span><span class="spaces">    </span><span class="nottickedoff">uniqueUploadName'</span>
+<span class="lineno">  152 </span><span class="spaces">        </span><span class="nottickedoff">((partyId . partyRow . accountParty . siteAccount) siteAuth)</span>
+<span class="lineno">  153 </span><span class="spaces">        </span><span class="nottickedoff">((volumeId . volumeRow) vol)</span>
+<span class="lineno">  154 </span><span class="spaces">        </span><span class="nottickedoff">uploadName</span></span>
+<span class="lineno">  155 </span>
+<span class="lineno">  156 </span>uniqueUploadName' :: Id Party -&gt; Id Volume -&gt; String -&gt; String
+<span class="lineno">  157 </span><span class="decl"><span class="nottickedoff">uniqueUploadName' uid vid uploadName =</span>
+<span class="lineno">  158 </span><span class="spaces">    </span><span class="nottickedoff">show uid &lt;&gt; &quot;-&quot; &lt;&gt; show vid &lt;&gt; &quot;-&quot; &lt;&gt; uploadName</span></span>
+<span class="lineno">  159 </span>----- end
+<span class="lineno">  160 </span>
+<span class="lineno">  161 </span>data RunParticipantUploadRequest = RunParticipantUploadRequest String JSON.Value
+<span class="lineno">  162 </span>
+<span class="lineno">  163 </span>runParticipantUpload :: ActionRoute (Id Volume)
+<span class="lineno">  164 </span><span class="decl"><span class="nottickedoff">runParticipantUpload = action POST (pathJSON &gt;/&gt; pathId &lt;/&lt; &quot;runParticipantUpload&quot;) $ \vi -&gt; withAuth $ do</span>
+<span class="lineno">  165 </span><span class="spaces">    </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
+<span class="lineno">  166 </span><span class="spaces">    </span><span class="nottickedoff">(store :: Storage) &lt;- peek</span>
+<span class="lineno">  167 </span><span class="spaces">    </span><span class="nottickedoff">-- reqCtxt &lt;- peek</span>
+<span class="lineno">  168 </span><span class="spaces">    </span><span class="nottickedoff">RunParticipantUploadRequest csvUploadId selectedMapping &lt;- runForm (Nothing) $ do</span>
+<span class="lineno">  169 </span><span class="spaces">        </span><span class="nottickedoff">csrfForm</span>
+<span class="lineno">  170 </span><span class="spaces">        </span><span class="nottickedoff">(uploadId :: String) &lt;- &quot;csv_upload_id&quot; .:&gt; deform</span>
+<span class="lineno">  171 </span><span class="spaces">        </span><span class="nottickedoff">mapping &lt;- &quot;selected_mapping&quot; .:&gt; deform</span>
+<span class="lineno">  172 </span><span class="spaces">        </span><span class="nottickedoff">pure (RunParticipantUploadRequest uploadId mapping)</span>
+<span class="lineno">  173 </span><span class="spaces">    </span><span class="nottickedoff">-- TODO: resolve csv id to absolute path; http error if unknown</span>
+<span class="lineno">  174 </span><span class="spaces">    </span><span class="nottickedoff">uploadFileContents &lt;-</span>
+<span class="lineno">  175 </span><span class="spaces">        </span><span class="nottickedoff">(liftIO . BS.readFile) ((BSC.unpack . getStorageTempParticipantUpload csvUploadId) store)</span>
+<span class="lineno">  176 </span><span class="spaces">    </span><span class="nottickedoff">case JSON.parseEither mappingParser selectedMapping of</span>
+<span class="lineno">  177 </span><span class="spaces">        </span><span class="nottickedoff">Left err -&gt;</span>
+<span class="lineno">  178 </span><span class="spaces">            </span><span class="nottickedoff">pure (response badRequest400 [] err) -- bad json shape or keys</span>
+<span class="lineno">  179 </span><span class="spaces">        </span><span class="nottickedoff">Right mpngVal -&gt; do</span>
+<span class="lineno">  180 </span><span class="spaces">            </span><span class="nottickedoff">participantActiveMetrics &lt;- lookupVolumeParticipantMetrics v</span>
+<span class="lineno">  181 </span><span class="spaces">            </span><span class="nottickedoff">case parseParticipantFieldMapping participantActiveMetrics mpngVal of</span>
+<span class="lineno">  182 </span><span class="spaces">                </span><span class="nottickedoff">Left err -&gt;</span>
+<span class="lineno">  183 </span><span class="spaces">                    </span><span class="nottickedoff">pure (response badRequest400 [] err) -- mapping of inactive metrics or missing metric</span>
+<span class="lineno">  184 </span><span class="spaces">                </span><span class="nottickedoff">Right mpngs -&gt; do</span>
+<span class="lineno">  185 </span><span class="spaces">                    </span><span class="nottickedoff">-- liftIO $ print (&quot;upload id&quot;, csvUploadId, &quot;mapping&quot;, mpngs)</span>
+<span class="lineno">  186 </span><span class="spaces">                    </span><span class="nottickedoff">case attemptParseRows mpngs uploadFileContents of</span>
+<span class="lineno">  187 </span><span class="spaces">                        </span><span class="nottickedoff">Left err -&gt;   -- invalid value in row</span>
+<span class="lineno">  188 </span><span class="spaces">                            </span><span class="nottickedoff">pure (response badRequest400 [] err)</span>
+<span class="lineno">  189 </span><span class="spaces">                        </span><span class="nottickedoff">Right (_, records) -&gt;</span>
+<span class="lineno">  190 </span><span class="spaces">                            </span><span class="nottickedoff">let response' =</span>
+<span class="lineno">  191 </span><span class="spaces">                                    </span><span class="nottickedoff">okResponse []</span>
+<span class="lineno">  192 </span><span class="spaces">                                        </span><span class="nottickedoff">$ JSON.recordEncoding -- TODO: not record encoding</span>
+<span class="lineno">  193 </span><span class="spaces">                                        </span><span class="nottickedoff">$       JSON.Record vi</span>
+<span class="lineno">  194 </span><span class="spaces">                                        </span><span class="nottickedoff">$       &quot;succeeded&quot;</span>
+<span class="lineno">  195 </span><span class="spaces">                                        </span><span class="nottickedoff">JSON..= True</span>
+<span class="lineno">  196 </span><span class="spaces">                            </span><span class="nottickedoff">in  response' &lt;$ runImport v records</span></span>
+<span class="lineno">  197 </span>
+<span class="lineno">  198 </span>mappingParser :: JSON.Value -&gt; JSON.Parser [(Metric, Text)]
+<span class="lineno">  199 </span><span class="decl"><span class="istickedoff">mappingParser val = do</span>
+<span class="lineno">  200 </span><span class="spaces">    </span><span class="istickedoff">(entries :: [HeaderMappingEntry]) &lt;- JSON.parseJSON val</span>
+<span class="lineno">  201 </span><span class="spaces">    </span><span class="istickedoff">pure (fmap (\e -&gt; (hmeMetric e, hmeCsvField e)) entries)</span></span>
 <span class="lineno">  202 </span>
-<span class="lineno">  203 </span>data MeasureUpdateAction = Upsert Metric MeasureDatum | Delete Metric | Unchanged Metric | NoAction Metric
-<span class="lineno">  204 </span>    deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
-<span class="lineno">  205 </span>
-<span class="lineno">  206 </span>data ParticipantRecordAction = ParticipantRecordAction ParticipantStatus [MeasureUpdateAction]
-<span class="lineno">  207 </span>
-<span class="lineno">  208 </span>buildParticipantRecordAction :: ParticipantRecord -&gt; ParticipantStatus -&gt; ParticipantRecordAction
-<span class="lineno">  209 </span><span class="decl"><span class="istickedoff">buildParticipantRecordAction participantRecord updatingRecord =</span>
-<span class="lineno">  210 </span><span class="spaces">    </span><span class="istickedoff">let</span>
-<span class="lineno">  211 </span><span class="spaces">        </span><span class="istickedoff">mId = getFieldVal' prdId participantMetricId</span>
-<span class="lineno">  212 </span><span class="spaces">        </span><span class="istickedoff">mInfo = getFieldVal' prdInfo participantMetricInfo</span>
-<span class="lineno">  213 </span><span class="spaces">        </span><span class="istickedoff">mDescription = getFieldVal' prdDescription participantMetricDescription</span>
-<span class="lineno">  214 </span><span class="spaces">        </span><span class="istickedoff">mBirthdate = getFieldVal' prdBirthdate participantMetricBirthdate</span>
-<span class="lineno">  215 </span><span class="spaces">        </span><span class="istickedoff">mGender = getFieldVal' prdGender participantMetricGender</span>
-<span class="lineno">  216 </span><span class="spaces">        </span><span class="istickedoff">mRace = getFieldVal' prdRace participantMetricRace</span>
-<span class="lineno">  217 </span><span class="spaces">        </span><span class="istickedoff">mEthnicity = getFieldVal' prdEthnicity participantMetricEthnicity</span>
-<span class="lineno">  218 </span><span class="spaces">        </span><span class="istickedoff">mGestationalAge = getFieldVal' prdGestationalAge participantMetricGestationalAge</span>
-<span class="lineno">  219 </span><span class="spaces">        </span><span class="istickedoff">mPregnancyTerm = getFieldVal' prdPregnancyTerm participantMetricPregnancyTerm</span>
-<span class="lineno">  220 </span><span class="spaces">        </span><span class="istickedoff">mBirthWeight = getFieldVal' prdBirthWeight participantMetricBirthWeight</span>
-<span class="lineno">  221 </span><span class="spaces">        </span><span class="istickedoff">mDisability = getFieldVal' prdDisability participantMetricDisability</span>
-<span class="lineno">  222 </span><span class="spaces">        </span><span class="istickedoff">mLanguage = getFieldVal' prdLanguage participantMetricLanguage</span>
-<span class="lineno">  223 </span><span class="spaces">        </span><span class="istickedoff">mCountry = getFieldVal' prdCountry participantMetricCountry</span>
-<span class="lineno">  224 </span><span class="spaces">        </span><span class="istickedoff">mState = getFieldVal' prdState participantMetricState</span>
-<span class="lineno">  225 </span><span class="spaces">        </span><span class="istickedoff">mSetting = getFieldVal' prdSetting participantMetricSetting</span>
-<span class="lineno">  226 </span><span class="spaces">        </span><span class="istickedoff">-- print (&quot;save measure id:&quot;, mId)</span>
-<span class="lineno">  227 </span><span class="spaces">        </span><span class="istickedoff">measureActions =</span>
-<span class="lineno">  228 </span><span class="spaces">            </span><span class="istickedoff">[ changeRecordMeasureIfUsed mId</span>
-<span class="lineno">  229 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mInfo</span>
-<span class="lineno">  230 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mDescription</span>
-<span class="lineno">  231 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mBirthdate</span>
-<span class="lineno">  232 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mGender</span>
-<span class="lineno">  233 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mRace</span>
-<span class="lineno">  234 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mEthnicity</span>
-<span class="lineno">  235 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mGestationalAge</span>
-<span class="lineno">  236 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mPregnancyTerm</span>
-<span class="lineno">  237 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mBirthWeight</span>
-<span class="lineno">  238 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mDisability</span>
-<span class="lineno">  239 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mLanguage</span>
-<span class="lineno">  240 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mCountry</span>
-<span class="lineno">  241 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mState</span>
-<span class="lineno">  242 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mSetting</span>
-<span class="lineno">  243 </span><span class="spaces">            </span><span class="istickedoff">]</span>
-<span class="lineno">  244 </span><span class="spaces">    </span><span class="istickedoff">in</span>
-<span class="lineno">  245 </span><span class="spaces">        </span><span class="istickedoff">ParticipantRecordAction updatingRecord (catMaybes measureActions)</span>
-<span class="lineno">  246 </span><span class="spaces">  </span><span class="istickedoff">where</span>
-<span class="lineno">  247 </span><span class="spaces">    </span><span class="istickedoff">changeRecordMeasureIfUsed :: Maybe (Maybe MeasureDatum, Metric) -&gt; Maybe MeasureUpdateAction</span>
-<span class="lineno">  248 </span><span class="spaces">    </span><span class="istickedoff">changeRecordMeasureIfUsed mValueMetric = do</span>
-<span class="lineno">  249 </span><span class="spaces">        </span><span class="istickedoff">(mVal, met) &lt;- mValueMetric</span>
-<span class="lineno">  250 </span><span class="spaces">        </span><span class="istickedoff">pure (determineUpdatedMeasure mVal met)</span>
-<span class="lineno">  251 </span><span class="spaces">    </span><span class="istickedoff">determineUpdatedMeasure :: Maybe MeasureDatum -&gt; Metric -&gt; MeasureUpdateAction</span>
-<span class="lineno">  252 </span><span class="spaces">    </span><span class="istickedoff">determineUpdatedMeasure mVal met =</span>
-<span class="lineno">  253 </span><span class="spaces">        </span><span class="istickedoff">case updatingRecord of</span>
-<span class="lineno">  254 </span><span class="spaces">            </span><span class="istickedoff">Create -&gt;</span>
-<span class="lineno">  255 </span><span class="spaces">                </span><span class="istickedoff">maybe (NoAction met) (Upsert met) mVal</span>
-<span class="lineno">  256 </span><span class="spaces">            </span><span class="istickedoff">Found _ -&gt; do</span>
-<span class="lineno">  257 </span><span class="spaces">                 </span><span class="istickedoff">-- TODO:</span>
-<span class="lineno">  258 </span><span class="spaces">                 </span><span class="istickedoff">-- mOldVal &lt;- getOldVal metric record</span>
-<span class="lineno">  259 </span><span class="spaces">                 </span><span class="istickedoff">-- action = maybe (Upsert val) (\o -&gt; if o == val then Unchanged else Upsert val)</span>
-<span class="lineno">  260 </span><span class="spaces">                 </span><span class="istickedoff">let measureAction = maybe (Delete met) (Upsert met) mVal</span>
-<span class="lineno">  261 </span><span class="spaces">                 </span><span class="istickedoff">measureAction</span>
-<span class="lineno">  262 </span><span class="spaces">    </span><span class="istickedoff">getFieldVal' :: (ParticipantRecord -&gt; FieldUse a) -&gt; Metric -&gt; Maybe (Maybe MeasureDatum, Metric)</span>
-<span class="lineno">  263 </span><span class="spaces">    </span><span class="istickedoff">getFieldVal' = getFieldVal participantRecord</span></span>
-<span class="lineno">  264 </span>
-<span class="lineno">  265 </span>getFieldVal
-<span class="lineno">  266 </span>    :: ParticipantRecord
-<span class="lineno">  267 </span>    -&gt; (ParticipantRecord -&gt; FieldUse a)
-<span class="lineno">  268 </span>    -&gt; Metric
-<span class="lineno">  269 </span>    -&gt; Maybe (Maybe MeasureDatum, Metric)
-<span class="lineno">  270 </span><span class="decl"><span class="istickedoff">getFieldVal participantRecord extractFieldVal metric =</span>
-<span class="lineno">  271 </span><span class="spaces">    </span><span class="istickedoff">case extractFieldVal participantRecord of</span>
-<span class="lineno">  272 </span><span class="spaces">        </span><span class="istickedoff">Field fieldVal _ -&gt; pure (Just fieldVal, metric)</span>
-<span class="lineno">  273 </span><span class="spaces">        </span><span class="istickedoff">FieldEmpty -&gt; pure (Nothing, metric)</span>
-<span class="lineno">  274 </span><span class="spaces">        </span><span class="istickedoff">FieldUnused -&gt; Nothing</span></span>
-<span class="lineno">  275 </span>            -- field isn't used by this volume, so don't need to save the measure
-<span class="lineno">  276 </span>
-<span class="lineno">  277 </span>createOrUpdateRecord :: Volume -&gt; ParticipantRecord -&gt; Handler () -- TODO: error or record
-<span class="lineno">  278 </span><span class="decl"><span class="nottickedoff">createOrUpdateRecord vol participantRecord = do</span>
-<span class="lineno">  279 </span><span class="spaces">    </span><span class="nottickedoff">let category = getCategory' (Id 1) -- TODO: use global variable</span>
-<span class="lineno">  280 </span><span class="spaces">        </span><span class="nottickedoff">mIdVal = fst $ maybe (error &quot;id missing&quot;) id (getFieldVal' prdId participantMetricId)</span>
-<span class="lineno">  281 </span><span class="spaces">        </span><span class="nottickedoff">idVal = maybe (error &quot;id empty&quot;) id mIdVal</span>
-<span class="lineno">  282 </span><span class="spaces">    </span><span class="nottickedoff">mOldParticipant &lt;- lookupVolumeParticipant vol idVal</span>
-<span class="lineno">  283 </span><span class="spaces">    </span><span class="nottickedoff">let recordStatus =</span>
-<span class="lineno">  284 </span><span class="spaces">            </span><span class="nottickedoff">case mOldParticipant of</span>
-<span class="lineno">  285 </span><span class="spaces">                </span><span class="nottickedoff">Nothing -&gt; Create</span>
-<span class="lineno">  286 </span><span class="spaces">                </span><span class="nottickedoff">Just oldParticipant -&gt; Found oldParticipant</span>
-<span class="lineno">  287 </span><span class="spaces">    </span><span class="nottickedoff">-- print (&quot;save measure id:&quot;, mId)</span>
-<span class="lineno">  288 </span><span class="spaces">    </span><span class="nottickedoff">case buildParticipantRecordAction participantRecord recordStatus of</span>
-<span class="lineno">  289 </span><span class="spaces">        </span><span class="nottickedoff">ParticipantRecordAction Create measureActs -&gt; do</span>
-<span class="lineno">  290 </span><span class="spaces">            </span><span class="nottickedoff">newParticipantShell &lt;- addRecord (blankRecord category vol) -- blankParticipantRecord</span>
-<span class="lineno">  291 </span><span class="spaces">            </span><span class="nottickedoff">_ &lt;- mapM (runMeasureUpdate newParticipantShell) measureActs</span>
-<span class="lineno">  292 </span><span class="spaces">            </span><span class="nottickedoff">pure () -- TODO: reload participant</span>
-<span class="lineno">  293 </span><span class="spaces">        </span><span class="nottickedoff">ParticipantRecordAction (Found oldRecord) measureActs -&gt; do</span>
-<span class="lineno">  294 </span><span class="spaces">            </span><span class="nottickedoff">_ &lt;- mapM (runMeasureUpdate oldRecord) measureActs</span>
-<span class="lineno">  295 </span><span class="spaces">            </span><span class="nottickedoff">pure ()</span>
-<span class="lineno">  296 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
-<span class="lineno">  297 </span><span class="spaces">    </span><span class="nottickedoff">runMeasureUpdate :: Record -&gt; MeasureUpdateAction -&gt; Handler (Maybe Record)</span>
-<span class="lineno">  298 </span><span class="spaces">    </span><span class="nottickedoff">runMeasureUpdate record act =</span>
-<span class="lineno">  299 </span><span class="spaces">        </span><span class="nottickedoff">case act of</span>
-<span class="lineno">  300 </span><span class="spaces">            </span><span class="nottickedoff">Upsert met val -&gt; changeRecordMeasure (Measure record met val)</span>
-<span class="lineno">  301 </span><span class="spaces">            </span><span class="nottickedoff">Delete met -&gt; fmap Just (removeRecordMeasure (Measure record met &quot;&quot;))</span>
-<span class="lineno">  302 </span><span class="spaces">            </span><span class="nottickedoff">Unchanged _ -&gt; pure Nothing</span>
-<span class="lineno">  303 </span><span class="spaces">            </span><span class="nottickedoff">NoAction _ -&gt; pure Nothing</span>
-<span class="lineno">  304 </span><span class="spaces">    </span><span class="nottickedoff">getFieldVal' :: (ParticipantRecord -&gt; FieldUse a) -&gt; Metric -&gt; Maybe (Maybe MeasureDatum, Metric)</span>
-<span class="lineno">  305 </span><span class="spaces">    </span><span class="nottickedoff">getFieldVal' = getFieldVal participantRecord</span></span>
+<span class="lineno">  203 </span>-- TODO: move all below to Model.Ingest
+<span class="lineno">  204 </span> -- TODO: error or count
+<span class="lineno">  205 </span>runImport :: Volume -&gt; Vector ParticipantRecord -&gt; Handler (Vector ())
+<span class="lineno">  206 </span><span class="decl"><span class="nottickedoff">runImport vol records =</span>
+<span class="lineno">  207 </span><span class="spaces">    </span><span class="nottickedoff">mapM (createOrUpdateRecord vol) records</span></span>
+<span class="lineno">  208 </span>
+<span class="lineno">  209 </span>data ParticipantStatus = Create | Found Record
+<span class="lineno">  210 </span>
+<span class="lineno">  211 </span>data MeasureUpdateAction = Upsert Metric MeasureDatum | Delete Metric | Unchanged Metric | NoAction Metric
+<span class="lineno">  212 </span>    deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">  213 </span>
+<span class="lineno">  214 </span>data ParticipantRecordAction = ParticipantRecordAction ParticipantStatus [MeasureUpdateAction]
+<span class="lineno">  215 </span>
+<span class="lineno">  216 </span>buildParticipantRecordAction :: ParticipantRecord -&gt; ParticipantStatus -&gt; ParticipantRecordAction
+<span class="lineno">  217 </span><span class="decl"><span class="istickedoff">buildParticipantRecordAction participantRecord updatingRecord =</span>
+<span class="lineno">  218 </span><span class="spaces">    </span><span class="istickedoff">let</span>
+<span class="lineno">  219 </span><span class="spaces">        </span><span class="istickedoff">mId = getFieldVal' prdId participantMetricId</span>
+<span class="lineno">  220 </span><span class="spaces">        </span><span class="istickedoff">mInfo = getFieldVal' prdInfo participantMetricInfo</span>
+<span class="lineno">  221 </span><span class="spaces">        </span><span class="istickedoff">mDescription = getFieldVal' prdDescription participantMetricDescription</span>
+<span class="lineno">  222 </span><span class="spaces">        </span><span class="istickedoff">mBirthdate = getFieldVal' prdBirthdate participantMetricBirthdate</span>
+<span class="lineno">  223 </span><span class="spaces">        </span><span class="istickedoff">mGender = getFieldVal' prdGender participantMetricGender</span>
+<span class="lineno">  224 </span><span class="spaces">        </span><span class="istickedoff">mRace = getFieldVal' prdRace participantMetricRace</span>
+<span class="lineno">  225 </span><span class="spaces">        </span><span class="istickedoff">mEthnicity = getFieldVal' prdEthnicity participantMetricEthnicity</span>
+<span class="lineno">  226 </span><span class="spaces">        </span><span class="istickedoff">mGestationalAge = getFieldVal' prdGestationalAge participantMetricGestationalAge</span>
+<span class="lineno">  227 </span><span class="spaces">        </span><span class="istickedoff">mPregnancyTerm = getFieldVal' prdPregnancyTerm participantMetricPregnancyTerm</span>
+<span class="lineno">  228 </span><span class="spaces">        </span><span class="istickedoff">mBirthWeight = getFieldVal' prdBirthWeight participantMetricBirthWeight</span>
+<span class="lineno">  229 </span><span class="spaces">        </span><span class="istickedoff">mDisability = getFieldVal' prdDisability participantMetricDisability</span>
+<span class="lineno">  230 </span><span class="spaces">        </span><span class="istickedoff">mLanguage = getFieldVal' prdLanguage participantMetricLanguage</span>
+<span class="lineno">  231 </span><span class="spaces">        </span><span class="istickedoff">mCountry = getFieldVal' prdCountry participantMetricCountry</span>
+<span class="lineno">  232 </span><span class="spaces">        </span><span class="istickedoff">mState = getFieldVal' prdState participantMetricState</span>
+<span class="lineno">  233 </span><span class="spaces">        </span><span class="istickedoff">mSetting = getFieldVal' prdSetting participantMetricSetting</span>
+<span class="lineno">  234 </span><span class="spaces">        </span><span class="istickedoff">-- print (&quot;save measure id:&quot;, mId)</span>
+<span class="lineno">  235 </span><span class="spaces">        </span><span class="istickedoff">measureActions =</span>
+<span class="lineno">  236 </span><span class="spaces">            </span><span class="istickedoff">[ changeRecordMeasureIfUsed mId</span>
+<span class="lineno">  237 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mInfo</span>
+<span class="lineno">  238 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mDescription</span>
+<span class="lineno">  239 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mBirthdate</span>
+<span class="lineno">  240 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mGender</span>
+<span class="lineno">  241 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mRace</span>
+<span class="lineno">  242 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mEthnicity</span>
+<span class="lineno">  243 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mGestationalAge</span>
+<span class="lineno">  244 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mPregnancyTerm</span>
+<span class="lineno">  245 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mBirthWeight</span>
+<span class="lineno">  246 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mDisability</span>
+<span class="lineno">  247 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mLanguage</span>
+<span class="lineno">  248 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mCountry</span>
+<span class="lineno">  249 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mState</span>
+<span class="lineno">  250 </span><span class="spaces">            </span><span class="istickedoff">, changeRecordMeasureIfUsed mSetting</span>
+<span class="lineno">  251 </span><span class="spaces">            </span><span class="istickedoff">]</span>
+<span class="lineno">  252 </span><span class="spaces">    </span><span class="istickedoff">in</span>
+<span class="lineno">  253 </span><span class="spaces">        </span><span class="istickedoff">ParticipantRecordAction updatingRecord (catMaybes measureActions)</span>
+<span class="lineno">  254 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  255 </span><span class="spaces">    </span><span class="istickedoff">changeRecordMeasureIfUsed :: Maybe (Maybe MeasureDatum, Metric) -&gt; Maybe MeasureUpdateAction</span>
+<span class="lineno">  256 </span><span class="spaces">    </span><span class="istickedoff">changeRecordMeasureIfUsed mValueMetric = do</span>
+<span class="lineno">  257 </span><span class="spaces">        </span><span class="istickedoff">(mVal, met) &lt;- mValueMetric</span>
+<span class="lineno">  258 </span><span class="spaces">        </span><span class="istickedoff">pure (determineUpdatedMeasure mVal met)</span>
+<span class="lineno">  259 </span><span class="spaces">    </span><span class="istickedoff">determineUpdatedMeasure :: Maybe MeasureDatum -&gt; Metric -&gt; MeasureUpdateAction</span>
+<span class="lineno">  260 </span><span class="spaces">    </span><span class="istickedoff">determineUpdatedMeasure mVal met =</span>
+<span class="lineno">  261 </span><span class="spaces">        </span><span class="istickedoff">case updatingRecord of</span>
+<span class="lineno">  262 </span><span class="spaces">            </span><span class="istickedoff">Create -&gt;</span>
+<span class="lineno">  263 </span><span class="spaces">                </span><span class="istickedoff">maybe (NoAction met) (Upsert met) mVal</span>
+<span class="lineno">  264 </span><span class="spaces">            </span><span class="istickedoff">Found _ -&gt; do</span>
+<span class="lineno">  265 </span><span class="spaces">                 </span><span class="istickedoff">-- TODO:</span>
+<span class="lineno">  266 </span><span class="spaces">                 </span><span class="istickedoff">-- mOldVal &lt;- getOldVal metric record</span>
+<span class="lineno">  267 </span><span class="spaces">                 </span><span class="istickedoff">-- action = maybe (Upsert val) (\o -&gt; if o == val then Unchanged else Upsert val)</span>
+<span class="lineno">  268 </span><span class="spaces">                 </span><span class="istickedoff">let measureAction = maybe (Delete met) (Upsert met) mVal</span>
+<span class="lineno">  269 </span><span class="spaces">                 </span><span class="istickedoff">measureAction</span>
+<span class="lineno">  270 </span><span class="spaces">    </span><span class="istickedoff">getFieldVal' :: (ParticipantRecord -&gt; FieldUse a) -&gt; Metric -&gt; Maybe (Maybe MeasureDatum, Metric)</span>
+<span class="lineno">  271 </span><span class="spaces">    </span><span class="istickedoff">getFieldVal' = getFieldVal participantRecord</span></span>
+<span class="lineno">  272 </span>
+<span class="lineno">  273 </span>getFieldVal
+<span class="lineno">  274 </span>    :: ParticipantRecord
+<span class="lineno">  275 </span>    -&gt; (ParticipantRecord -&gt; FieldUse a)
+<span class="lineno">  276 </span>    -&gt; Metric
+<span class="lineno">  277 </span>    -&gt; Maybe (Maybe MeasureDatum, Metric)
+<span class="lineno">  278 </span><span class="decl"><span class="istickedoff">getFieldVal participantRecord extractFieldVal metric =</span>
+<span class="lineno">  279 </span><span class="spaces">    </span><span class="istickedoff">case extractFieldVal participantRecord of</span>
+<span class="lineno">  280 </span><span class="spaces">        </span><span class="istickedoff">Field fieldVal _ -&gt; pure (Just fieldVal, metric)</span>
+<span class="lineno">  281 </span><span class="spaces">        </span><span class="istickedoff">FieldEmpty -&gt; pure (Nothing, metric)</span>
+<span class="lineno">  282 </span><span class="spaces">        </span><span class="istickedoff">FieldUnused -&gt; Nothing</span></span>
+<span class="lineno">  283 </span>            -- field isn't used by this volume, so don't need to save the measure
+<span class="lineno">  284 </span>
+<span class="lineno">  285 </span>createOrUpdateRecord :: Volume -&gt; ParticipantRecord -&gt; Handler () -- TODO: error or record
+<span class="lineno">  286 </span><span class="decl"><span class="nottickedoff">createOrUpdateRecord vol participantRecord = do</span>
+<span class="lineno">  287 </span><span class="spaces">    </span><span class="nottickedoff">let category = getCategory' (Id 1) -- TODO: use global variable</span>
+<span class="lineno">  288 </span><span class="spaces">        </span><span class="nottickedoff">mIdVal = fst $ maybe (error &quot;id missing&quot;) id (getFieldVal' prdId participantMetricId)</span>
+<span class="lineno">  289 </span><span class="spaces">        </span><span class="nottickedoff">idVal = maybe (error &quot;id empty&quot;) id mIdVal</span>
+<span class="lineno">  290 </span><span class="spaces">    </span><span class="nottickedoff">mOldParticipant &lt;- lookupVolumeParticipant vol idVal</span>
+<span class="lineno">  291 </span><span class="spaces">    </span><span class="nottickedoff">let recordStatus =</span>
+<span class="lineno">  292 </span><span class="spaces">            </span><span class="nottickedoff">case mOldParticipant of</span>
+<span class="lineno">  293 </span><span class="spaces">                </span><span class="nottickedoff">Nothing -&gt; Create</span>
+<span class="lineno">  294 </span><span class="spaces">                </span><span class="nottickedoff">Just oldParticipant -&gt; Found oldParticipant</span>
+<span class="lineno">  295 </span><span class="spaces">    </span><span class="nottickedoff">-- print (&quot;save measure id:&quot;, mId)</span>
+<span class="lineno">  296 </span><span class="spaces">    </span><span class="nottickedoff">case buildParticipantRecordAction participantRecord recordStatus of</span>
+<span class="lineno">  297 </span><span class="spaces">        </span><span class="nottickedoff">ParticipantRecordAction Create measureActs -&gt; do</span>
+<span class="lineno">  298 </span><span class="spaces">            </span><span class="nottickedoff">newParticipantShell &lt;- addRecord (blankRecord category vol) -- blankParticipantRecord</span>
+<span class="lineno">  299 </span><span class="spaces">            </span><span class="nottickedoff">_ &lt;- mapM (runMeasureUpdate newParticipantShell) measureActs</span>
+<span class="lineno">  300 </span><span class="spaces">            </span><span class="nottickedoff">pure () -- TODO: reload participant</span>
+<span class="lineno">  301 </span><span class="spaces">        </span><span class="nottickedoff">ParticipantRecordAction (Found oldRecord) measureActs -&gt; do</span>
+<span class="lineno">  302 </span><span class="spaces">            </span><span class="nottickedoff">_ &lt;- mapM (runMeasureUpdate oldRecord) measureActs</span>
+<span class="lineno">  303 </span><span class="spaces">            </span><span class="nottickedoff">pure ()</span>
+<span class="lineno">  304 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  305 </span><span class="spaces">    </span><span class="nottickedoff">runMeasureUpdate :: Record -&gt; MeasureUpdateAction -&gt; Handler (Maybe Record)</span>
+<span class="lineno">  306 </span><span class="spaces">    </span><span class="nottickedoff">runMeasureUpdate record act =</span>
+<span class="lineno">  307 </span><span class="spaces">        </span><span class="nottickedoff">case act of</span>
+<span class="lineno">  308 </span><span class="spaces">            </span><span class="nottickedoff">Upsert met val -&gt; changeRecordMeasure (Measure record met val)</span>
+<span class="lineno">  309 </span><span class="spaces">            </span><span class="nottickedoff">Delete met -&gt; fmap Just (removeRecordMeasure (Measure record met &quot;&quot;))</span>
+<span class="lineno">  310 </span><span class="spaces">            </span><span class="nottickedoff">Unchanged _ -&gt; pure Nothing</span>
+<span class="lineno">  311 </span><span class="spaces">            </span><span class="nottickedoff">NoAction _ -&gt; pure Nothing</span>
+<span class="lineno">  312 </span><span class="spaces">    </span><span class="nottickedoff">getFieldVal' :: (ParticipantRecord -&gt; FieldUse a) -&gt; Metric -&gt; Maybe (Maybe MeasureDatum, Metric)</span>
+<span class="lineno">  313 </span><span class="spaces">    </span><span class="nottickedoff">getFieldVal' = getFieldVal participantRecord</span></span>
 
 </pre>
 </body>

@@ -104,35 +104,38 @@ span.spaces    { background: white }
 <span class="lineno">   88 </span><span class="spaces">  </span><span class="nottickedoff">e &lt;- deformCheck &quot;Invalid email address&quot; (Regex.matchTest emailRegex) =&lt;&lt; deform</span>
 <span class="lineno">   89 </span><span class="spaces">  </span><span class="nottickedoff">return $ maybe e (uncurry ((. BSC.map toLower) . (&lt;&gt;)) . flip BS.splitAt e) $ BSC.elemIndex '@' e</span></span>
 <span class="lineno">   90 </span>
-<span class="lineno">   91 </span>passwordForm :: Account -&gt; DeformHandler f BS.ByteString
-<span class="lineno">   92 </span><span class="decl"><span class="nottickedoff">passwordForm acct = do</span>
-<span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">p &lt;- &quot;once&quot; .:&gt; do</span>
-<span class="lineno">   94 </span><span class="spaces">    </span><span class="nottickedoff">p &lt;- deform</span>
-<span class="lineno">   95 </span><span class="spaces">    </span><span class="nottickedoff">deformGuard &quot;Password too short. Must be 7 characters.&quot; (7 &lt;= BS.length p)</span>
-<span class="lineno">   96 </span><span class="spaces">    </span><span class="nottickedoff">c &lt;- lift $ focusIO $ passwdCheck p (accountEmail acct) (TE.encodeUtf8 $ partyName $ partyRow $ accountParty acct)</span>
-<span class="lineno">   97 </span><span class="spaces">    </span><span class="nottickedoff">mapM_ (deformError . (&quot;Insecure password: &quot; &lt;&gt;) . TE.decodeLatin1) c</span>
-<span class="lineno">   98 </span><span class="spaces">    </span><span class="nottickedoff">return p</span>
-<span class="lineno">   99 </span><span class="spaces">  </span><span class="nottickedoff">&quot;again&quot; .:&gt; do</span>
-<span class="lineno">  100 </span><span class="spaces">    </span><span class="nottickedoff">a &lt;- deform</span>
-<span class="lineno">  101 </span><span class="spaces">    </span><span class="nottickedoff">deformGuard &quot;Passwords do not match.&quot; (a == p)</span>
-<span class="lineno">  102 </span><span class="spaces">  </span><span class="nottickedoff">pw &lt;- liftIO $ BCrypt.hashPasswordUsingPolicy passwordPolicy p</span>
-<span class="lineno">  103 </span><span class="spaces">  </span><span class="nottickedoff">deformMaybe' &quot;Error processing password.&quot; pw</span></span>
-<span class="lineno">  104 </span>
-<span class="lineno">  105 </span>paginateForm :: DeformHandler f Paginate
-<span class="lineno">  106 </span><span class="decl"><span class="nottickedoff">paginateForm = Paginate</span>
-<span class="lineno">  107 </span><span class="spaces">  </span><span class="nottickedoff">&lt;$&gt; get &quot;offset&quot; paginateOffset</span>
-<span class="lineno">  108 </span><span class="spaces">  </span><span class="nottickedoff">&lt;*&gt; get &quot;limit&quot; paginateLimit</span>
-<span class="lineno">  109 </span><span class="spaces">  </span><span class="nottickedoff">where get t f = t .:&gt; (deformCheck (&quot;invalid &quot; &lt;&gt; t) (\i -&gt; i &gt;= f minBound &amp;&amp; i &lt;= f maxBound) =&lt;&lt; deform) &lt;|&gt; return (f def)</span></span>
-<span class="lineno">  110 </span>
-<span class="lineno">  111 </span>csrfForm :: DeformHandler f ()
-<span class="lineno">  112 </span><span class="decl"><span class="nottickedoff">csrfForm = do</span>
-<span class="lineno">  113 </span><span class="spaces">  </span><span class="nottickedoff">r &lt;- lift checkVerfHeader</span>
-<span class="lineno">  114 </span><span class="spaces">  </span><span class="nottickedoff">unless r $ do</span>
-<span class="lineno">  115 </span><span class="spaces">    </span><span class="nottickedoff">verf &lt;- lift $ peeks identityVerf</span>
-<span class="lineno">  116 </span><span class="spaces">    </span><span class="nottickedoff">&quot;csverf&quot; .:&gt; maybe</span>
-<span class="lineno">  117 </span><span class="spaces">      </span><span class="nottickedoff">(deformError &quot;You must be logged in to perform this request.&quot;)</span>
-<span class="lineno">  118 </span><span class="spaces">      </span><span class="nottickedoff">(\v -&gt; deformGuard &quot;Invalid form verifier. Please logout, reload, and try again.&quot; . (v ==) =&lt;&lt; deform)</span>
-<span class="lineno">  119 </span><span class="spaces">      </span><span class="nottickedoff">verf</span></span>
+<span class="lineno">   91 </span>data UpdatePasswordRequest = UpdatePasswordRequest BSC.ByteString BSC.ByteString
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>passwordForm :: Account -&gt; DeformHandler f BS.ByteString
+<span class="lineno">   94 </span><span class="decl"><span class="nottickedoff">passwordForm acct = do</span>
+<span class="lineno">   95 </span><span class="spaces">  </span><span class="nottickedoff">p &lt;- &quot;once&quot; .:&gt; do</span>
+<span class="lineno">   96 </span><span class="spaces">    </span><span class="nottickedoff">p &lt;- deform</span>
+<span class="lineno">   97 </span><span class="spaces">    </span><span class="nottickedoff">deformGuard &quot;Password too short. Must be 7 characters.&quot; (7 &lt;= BS.length p)</span>
+<span class="lineno">   98 </span><span class="spaces">    </span><span class="nottickedoff">c &lt;- lift $ focusIO $ passwdCheck p (accountEmail acct) (TE.encodeUtf8 $ partyName $ partyRow $ accountParty acct)</span>
+<span class="lineno">   99 </span><span class="spaces">    </span><span class="nottickedoff">mapM_ (deformError . (&quot;Insecure password: &quot; &lt;&gt;) . TE.decodeLatin1) c</span>
+<span class="lineno">  100 </span><span class="spaces">    </span><span class="nottickedoff">return p</span>
+<span class="lineno">  101 </span><span class="spaces">  </span><span class="nottickedoff">&quot;again&quot; .:&gt; do</span>
+<span class="lineno">  102 </span><span class="spaces">    </span><span class="nottickedoff">a &lt;- deform</span>
+<span class="lineno">  103 </span><span class="spaces">    </span><span class="nottickedoff">let _ = UpdatePasswordRequest p a</span>
+<span class="lineno">  104 </span><span class="spaces">    </span><span class="nottickedoff">deformGuard &quot;Passwords do not match.&quot; (a == p)</span>
+<span class="lineno">  105 </span><span class="spaces">  </span><span class="nottickedoff">pw &lt;- liftIO $ BCrypt.hashPasswordUsingPolicy passwordPolicy p</span>
+<span class="lineno">  106 </span><span class="spaces">  </span><span class="nottickedoff">deformMaybe' &quot;Error processing password.&quot; pw</span></span>
+<span class="lineno">  107 </span>
+<span class="lineno">  108 </span>paginateForm :: DeformHandler f Paginate
+<span class="lineno">  109 </span><span class="decl"><span class="nottickedoff">paginateForm = Paginate</span>
+<span class="lineno">  110 </span><span class="spaces">  </span><span class="nottickedoff">&lt;$&gt; get &quot;offset&quot; paginateOffset</span>
+<span class="lineno">  111 </span><span class="spaces">  </span><span class="nottickedoff">&lt;*&gt; get &quot;limit&quot; paginateLimit</span>
+<span class="lineno">  112 </span><span class="spaces">  </span><span class="nottickedoff">where get t f = t .:&gt; (deformCheck (&quot;invalid &quot; &lt;&gt; t) (\i -&gt; i &gt;= f minBound &amp;&amp; i &lt;= f maxBound) =&lt;&lt; deform) &lt;|&gt; return (f def)</span></span>
+<span class="lineno">  113 </span>
+<span class="lineno">  114 </span>csrfForm :: DeformHandler f ()
+<span class="lineno">  115 </span><span class="decl"><span class="nottickedoff">csrfForm = do</span>
+<span class="lineno">  116 </span><span class="spaces">  </span><span class="nottickedoff">r &lt;- lift checkVerfHeader</span>
+<span class="lineno">  117 </span><span class="spaces">  </span><span class="nottickedoff">unless r $ do</span>
+<span class="lineno">  118 </span><span class="spaces">    </span><span class="nottickedoff">verf &lt;- lift $ peeks identityVerf</span>
+<span class="lineno">  119 </span><span class="spaces">    </span><span class="nottickedoff">&quot;csverf&quot; .:&gt; maybe</span>
+<span class="lineno">  120 </span><span class="spaces">      </span><span class="nottickedoff">(deformError &quot;You must be logged in to perform this request.&quot;)</span>
+<span class="lineno">  121 </span><span class="spaces">      </span><span class="nottickedoff">(\v -&gt; deformGuard &quot;Invalid form verifier. Please logout, reload, and try again.&quot; . (v ==) =&lt;&lt; deform)</span>
+<span class="lineno">  122 </span><span class="spaces">      </span><span class="nottickedoff">verf</span></span>
 
 </pre>
 </body>

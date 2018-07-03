@@ -62,8 +62,8 @@ span.spaces    { background: white }
 <span class="lineno">   46 </span>
 <span class="lineno">   47 </span>instance Has Container Slot where
 <span class="lineno">   48 </span>  <span class="decl"><span class="nottickedoff">view = slotContainer</span></span>
-<span class="lineno">   49 </span>instance Has (Id Model.Volume.Types.Volume) Slot where
-<span class="lineno">   50 </span>  <span class="decl"><span class="nottickedoff">view = (view . slotContainer)</span></span>
+<span class="lineno">   49 </span>{- instance Has (Id Model.Volume.Types.Volume) Slot where
+<span class="lineno">   50 </span>  view = (view . slotContainer) -}
 <span class="lineno">   51 </span>instance Has Model.Permission.Types.Permission Slot where
 <span class="lineno">   52 </span>  <span class="decl"><span class="nottickedoff">view = (view . slotContainer)</span></span>
 <span class="lineno">   53 </span>instance Has Model.Volume.Types.Volume Slot where

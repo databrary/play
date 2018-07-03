@@ -57,7 +57,7 @@ span.spaces    { background: white }
 <span class="lineno">   41 </span><span class="spaces">  </span><span class="nottickedoff">focusIO $ logMsg t (&quot;periodic running: &quot; ++ show p)</span>
 <span class="lineno">   42 </span><span class="spaces">  </span><span class="nottickedoff">cleanTokens</span>
 <span class="lineno">   43 </span><span class="spaces">  </span><span class="nottickedoff">updateVolumeIndex</span>
-<span class="lineno">   44 </span><span class="spaces">  </span><span class="nottickedoff">updateIndex</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="nottickedoff">withReaderT (mkSolrIndexingContext . backgroundContext) updateIndex</span>
 <span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">ss &lt;- lookupSiteStats</span>
 <span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">focusIO $ (`writeIORef` ss) . serviceStats</span>
 <span class="lineno">   47 </span><span class="spaces">  </span><span class="nottickedoff">when (p &gt;= PeriodWeekly) $</span>

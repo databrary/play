@@ -54,9 +54,9 @@
 <a name="line-45"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>slotRecord</span>
 <a name="line-46"></a><a name="instance%20Has%20Volume%20RecordSlot"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Volume</span> <span class='hs-conid'>RecordSlot</span> <span class='hs-keyword'>where</span>
 <a name="line-47"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>slotRecord</span>
-<a name="line-48"></a><a name="instance%20Has%20(Id%20Volume)%20RecordSlot"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Volume</span><span class='hs-layout'>)</span> <span class='hs-conid'>RecordSlot</span> <span class='hs-keyword'>where</span>
-<a name="line-49"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>slotRecord</span>
-<a name="line-50"></a><a name="getRecordSlotVolumePermission"></a><span class='hs-definition'>getRecordSlotVolumePermission</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>RecordSlot</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>VolumeRolePolicy</span>
+<a name="line-48"></a><a name="getRecordSlotVolumePermission"></a><span class='hs-comment'>{- instance Has (Id Volume) RecordSlot where
+<a name="line-49"></a>  view = view . slotRecord -}</span>
+<a name="line-50"></a><span class='hs-definition'>getRecordSlotVolumePermission</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>RecordSlot</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>VolumeRolePolicy</span>
 <a name="line-51"></a><span class='hs-definition'>getRecordSlotVolumePermission</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getRecordVolumePermission</span> <span class='hs-varop'>.</span> <span class='hs-varid'>slotRecord</span>
 <a name="line-52"></a>
 <a name="line-53"></a><a name="instance%20Has%20Slot%20RecordSlot"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Slot</span> <span class='hs-conid'>RecordSlot</span> <span class='hs-keyword'>where</span>

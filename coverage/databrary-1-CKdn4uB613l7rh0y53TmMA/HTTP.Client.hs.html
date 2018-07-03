@@ -21,7 +21,7 @@ span.spaces    { background: white }
 <span class="lineno">    5 </span>  , checkContentOk
 <span class="lineno">    6 </span>  , CookiesT
 <span class="lineno">    7 </span>  , runCookiesT
-<span class="lineno">    8 </span>  , withCookies
+<span class="lineno">    8 </span>  -- , withCookies
 <span class="lineno">    9 </span>  , withResponseCookies
 <span class="lineno">   10 </span>  , requestAcceptContent
 <span class="lineno">   11 </span>  , httpParse
@@ -29,7 +29,7 @@ span.spaces    { background: white }
 <span class="lineno">   13 </span>  , httpRequestJSON
 <span class="lineno">   14 </span>  ) where
 <span class="lineno">   15 </span>
-<span class="lineno">   16 </span>import Control.Arrow ((&amp;&amp;&amp;))
+<span class="lineno">   16 </span>-- import Control.Arrow ((&amp;&amp;&amp;))
 <span class="lineno">   17 </span>import Control.Exception.Lifted (handle)
 <span class="lineno">   18 </span>import Control.Monad.IO.Class (MonadIO)
 <span class="lineno">   19 </span>import Control.Monad.Trans.Control (MonadBaseControl)
@@ -58,11 +58,11 @@ span.spaces    { background: white }
 <span class="lineno">   42 </span>
 <span class="lineno">   43 </span>runCookiesT :: Monad m =&gt; CookiesT m a -&gt; m a
 <span class="lineno">   44 </span><span class="decl"><span class="istickedoff">runCookiesT f = evalStateT f mempty</span></span>
-<span class="lineno">   45 </span>
+<span class="lineno">   45 </span>{-
 <span class="lineno">   46 </span>withCookies :: (MonadIO m, MonadHas HTTPClient c m) =&gt; (HC.Request -&gt; HC.Manager -&gt; IO (HC.Response a)) -&gt; HC.Request -&gt; CookiesT m (HC.Response a)
-<span class="lineno">   47 </span><span class="decl"><span class="nottickedoff">withCookies f r = StateT $ \c -&gt; focusIO $ \m -&gt;</span>
-<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">(id &amp;&amp;&amp; HC.responseCookieJar) &lt;$&gt; f r{ HC.cookieJar = HC.cookieJar r &lt;&gt; Just c } m</span></span>
-<span class="lineno">   49 </span>
+<span class="lineno">   47 </span>withCookies f r = StateT $ \c -&gt; focusIO $ \m -&gt;
+<span class="lineno">   48 </span>  (id &amp;&amp;&amp; HC.responseCookieJar) &lt;$&gt; f r{ HC.cookieJar = HC.cookieJar r &lt;&gt; Just c } m
+<span class="lineno">   49 </span>-}
 <span class="lineno">   50 </span>withResponseCookies :: (MonadIO m, MonadHas HTTPClient c m) =&gt; HC.Request -&gt; (HC.Response HC.BodyReader -&gt; IO a) -&gt; CookiesT m a
 <span class="lineno">   51 </span><span class="decl"><span class="istickedoff">withResponseCookies q f = StateT $ \c -&gt; focusIO $ \m -&gt;</span>
 <span class="lineno">   52 </span><span class="spaces">  </span><span class="istickedoff">HC.withResponse q{ HC.cookieJar = HC.cookieJar q &lt;&gt; Just c } m $ \r -&gt; (, HC.responseCookieJar r) &lt;$&gt; f r</span></span>

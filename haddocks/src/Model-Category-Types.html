@@ -14,37 +14,28 @@
 <a name="line-5"></a>
 <a name="line-6"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Function</span> <span class='hs-layout'>(</span><span class='hs-varid'>on</span><span class='hs-layout'>)</span>
 <a name="line-7"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Int</span> <span class='hs-layout'>(</span><span class='hs-conid'>Int16</span><span class='hs-layout'>)</span>
-<a name="line-8"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Ord</span> <span class='hs-layout'>(</span><span class='hs-varid'>comparing</span><span class='hs-layout'>)</span>
-<a name="line-9"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>T</span>
-<a name="line-10"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Instances</span><span class='hs-varop'>.</span><span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Lift</span> <span class='hs-conid'>()</span>
-<a name="line-11"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Language</span><span class='hs-varop'>.</span><span class='hs-conid'>Haskell</span><span class='hs-varop'>.</span><span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Lift</span> <span class='hs-layout'>(</span><span class='hs-varid'>deriveLift</span><span class='hs-layout'>)</span>
-<a name="line-12"></a>
-<a name="line-13"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-conid'>Has</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-<a name="line-14"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Kind</span>
-<a name="line-15"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Id</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
+<a name="line-8"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>T</span>
+<a name="line-9"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Instances</span><span class='hs-varop'>.</span><span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Lift</span> <span class='hs-conid'>()</span>
+<a name="line-10"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Language</span><span class='hs-varop'>.</span><span class='hs-conid'>Haskell</span><span class='hs-varop'>.</span><span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Lift</span> <span class='hs-layout'>(</span><span class='hs-varid'>deriveLift</span><span class='hs-layout'>)</span>
+<a name="line-11"></a>
+<a name="line-12"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Kind</span>
+<a name="line-13"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Id</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
+<a name="line-14"></a>
+<a name="line-15"></a><span class='hs-keyword'>type</span> <span class='hs-keyword'>instance</span> <span class='hs-conid'>IdType</span> <span class='hs-conid'>Category</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Int16</span>
 <a name="line-16"></a>
-<a name="line-17"></a><span class='hs-keyword'>type</span> <span class='hs-keyword'>instance</span> <span class='hs-conid'>IdType</span> <span class='hs-conid'>Category</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Int16</span>
-<a name="line-18"></a>
-<a name="line-19"></a><a name="Category"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Category</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Category</span>
-<a name="line-20"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>categoryId</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Category</span><span class='hs-layout'>)</span>
-<a name="line-21"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>categoryName</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>T</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span>
-<a name="line-22"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>categoryDescription</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-conid'>T</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-layout'>)</span>
-<a name="line-23"></a>  <span class='hs-layout'>}</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Show</span><span class='hs-layout'>)</span>
-<a name="line-24"></a>
-<a name="line-25"></a><a name="instance%20Kinded%20Category"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Kinded</span> <span class='hs-conid'>Category</span> <span class='hs-keyword'>where</span>
-<a name="line-26"></a>  <span class='hs-varid'>kindOf</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>=</span> <span class='hs-str'>"category"</span>
-<a name="line-27"></a>
-<a name="line-28"></a><a name="instance%20Eq%20Category"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Eq</span> <span class='hs-conid'>Category</span> <span class='hs-keyword'>where</span>
-<a name="line-29"></a>  <span class='hs-layout'>(</span><span class='hs-varop'>==</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>on</span> <span class='hs-layout'>(</span><span class='hs-varop'>==</span><span class='hs-layout'>)</span> <span class='hs-varid'>categoryId</span>
-<a name="line-30"></a>  <span class='hs-layout'>(</span><span class='hs-varop'>/=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>on</span> <span class='hs-layout'>(</span><span class='hs-varop'>/=</span><span class='hs-layout'>)</span> <span class='hs-varid'>categoryId</span>
-<a name="line-31"></a>
-<a name="line-32"></a><a name="instance%20Ord%20Category"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Ord</span> <span class='hs-conid'>Category</span> <span class='hs-keyword'>where</span>
-<a name="line-33"></a>  <span class='hs-varid'>compare</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>comparing</span> <span class='hs-varid'>categoryId</span>
-<a name="line-34"></a>
-<a name="line-35"></a><a name="instance%20Has%20(Id%20Category)%20Category"></a><span class='hs-comment'>-- makeHasRec ''Category ['categoryId]</span>
-<a name="line-36"></a><a name="instance%20Has%20(Id%20Category)%20Category"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Category</span><span class='hs-layout'>)</span> <span class='hs-conid'>Category</span> <span class='hs-keyword'>where</span>
-<a name="line-37"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>categoryId</span>
-<a name="line-38"></a>
-<a name="line-39"></a><a name="deriveLift"></a><span class='hs-definition'>deriveLift</span> <span class='hs-chr'>'</span><span class='hs-chr'>'</span><span class='hs-conid'>Category</span>
+<a name="line-17"></a><a name="Category"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Category</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Category</span>
+<a name="line-18"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>categoryId</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Category</span><span class='hs-layout'>)</span>
+<a name="line-19"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>categoryName</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>T</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span>
+<a name="line-20"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>categoryDescription</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-conid'>T</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-layout'>)</span>
+<a name="line-21"></a>  <span class='hs-layout'>}</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Show</span><span class='hs-layout'>)</span>
+<a name="line-22"></a>
+<a name="line-23"></a><a name="instance%20Kinded%20Category"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Kinded</span> <span class='hs-conid'>Category</span> <span class='hs-keyword'>where</span>
+<a name="line-24"></a>  <span class='hs-varid'>kindOf</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>=</span> <span class='hs-str'>"category"</span>
+<a name="line-25"></a>
+<a name="line-26"></a><a name="instance%20Eq%20Category"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Eq</span> <span class='hs-conid'>Category</span> <span class='hs-keyword'>where</span>
+<a name="line-27"></a>  <span class='hs-layout'>(</span><span class='hs-varop'>==</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>on</span> <span class='hs-layout'>(</span><span class='hs-varop'>==</span><span class='hs-layout'>)</span> <span class='hs-varid'>categoryId</span>
+<a name="line-28"></a>  <span class='hs-layout'>(</span><span class='hs-varop'>/=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>on</span> <span class='hs-layout'>(</span><span class='hs-varop'>/=</span><span class='hs-layout'>)</span> <span class='hs-varid'>categoryId</span>
+<a name="line-29"></a>
+<a name="line-30"></a><a name="deriveLift"></a><span class='hs-definition'>deriveLift</span> <span class='hs-chr'>'</span><span class='hs-chr'>'</span><span class='hs-conid'>Category</span>
 </pre></body>
 </html>

@@ -9,17 +9,16 @@
 <body>
 <pre><a name="line-1"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>AssetRevision</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
 <a name="line-2"></a>  <span class='hs-layout'>(</span> <span class='hs-conid'>AssetRevision</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
-<a name="line-3"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>makeAssetRevision</span>
-<a name="line-4"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-5"></a>
-<a name="line-6"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Asset</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
-<a name="line-7"></a>
-<a name="line-8"></a><a name="AssetRevision"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>AssetRevision</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>AssetRevision</span>
-<a name="line-9"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>revisionAsset</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>Asset</span>
-<a name="line-10"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>revisionOrig</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>Asset</span>
-<a name="line-11"></a>  <span class='hs-layout'>}</span>
-<a name="line-12"></a>
-<a name="line-13"></a><a name="makeAssetRevision"></a><span class='hs-definition'>makeAssetRevision</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Asset</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Asset</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>AssetRevision</span>
-<a name="line-14"></a><span class='hs-definition'>makeAssetRevision</span> <span class='hs-varid'>o</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>AssetRevision</span> <span class='hs-varid'>a</span> <span class='hs-varid'>o</span>
+<a name="line-3"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-4"></a>
+<a name="line-5"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Asset</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
+<a name="line-6"></a>
+<a name="line-7"></a><a name="AssetRevision"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>AssetRevision</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>AssetRevision</span>
+<a name="line-8"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>revisionAsset</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>Asset</span>
+<a name="line-9"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>revisionOrig</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>Asset</span>
+<a name="line-10"></a>  <span class='hs-layout'>}</span>
+<a name="line-11"></a>
+<a name="line-12"></a><span class='hs-comment'>-- makeAssetRevision :: Asset -&gt; Asset -&gt; AssetRevision</span>
+<a name="line-13"></a><span class='hs-comment'>-- makeAssetRevision o a = AssetRevision a o</span>
 </pre></body>
 </html>

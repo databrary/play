@@ -15,40 +15,28 @@
 <a name="line-6"></a>
 <a name="line-7"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Int</span> <span class='hs-layout'>(</span><span class='hs-conid'>Int16</span><span class='hs-layout'>)</span>
 <a name="line-8"></a>
-<a name="line-9"></a><span class='hs-comment'>-- import Has (Has(..))</span>
-<a name="line-10"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Id</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
-<a name="line-11"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Permission</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
-<a name="line-12"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Volume</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
-<a name="line-13"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Party</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
-<a name="line-14"></a>
-<a name="line-15"></a><a name="VolumeAccess"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>VolumeAccess</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>VolumeAccess</span>
-<a name="line-16"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>volumeAccessIndividual</span><span class='hs-layout'>,</span> <span class='hs-varid'>volumeAccessChildren</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Permission</span>
-<a name="line-17"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>volumeAccessSort</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>Int16</span>
-<a name="line-18"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>volumeAccessShareFull</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>Bool</span>
-<a name="line-19"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>volumeAccessParty</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Party</span>
-<a name="line-20"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>volumeAccessVolume</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Volume</span>
-<a name="line-21"></a>  <span class='hs-layout'>}</span>
-<a name="line-22"></a>
-<a name="line-23"></a><a name="getShareFullDefault"></a><span class='hs-definition'>getShareFullDefault</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Party</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Permission</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>Bool</span>
-<a name="line-24"></a><span class='hs-definition'>getShareFullDefault</span> <span class='hs-varid'>targetParty</span> <span class='hs-varid'>individualAccessLevel</span> <span class='hs-keyglyph'>=</span>
-<a name="line-25"></a>    <span class='hs-keyword'>if</span> <span class='hs-layout'>(</span><span class='hs-varid'>getPartyId</span> <span class='hs-varid'>targetParty</span><span class='hs-layout'>,</span> <span class='hs-varid'>individualAccessLevel</span><span class='hs-layout'>)</span> <span class='hs-varop'>==</span> <span class='hs-layout'>(</span><span class='hs-varid'>nobodyId</span><span class='hs-layout'>,</span> <span class='hs-conid'>PermissionPUBLIC</span><span class='hs-layout'>)</span>
-<a name="line-26"></a>    <span class='hs-keyword'>then</span> <span class='hs-varid'>nobodyPublicLegacyDefault</span>
-<a name="line-27"></a>    <span class='hs-keyword'>else</span> <span class='hs-varid'>generalDefault</span>
-<a name="line-28"></a>  <span class='hs-keyword'>where</span>
-<a name="line-29"></a>    <span class='hs-varid'>nobodyId</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Id</span> <span class='hs-conid'>Party</span>
-<a name="line-30"></a>    <span class='hs-varid'>nobodyId</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>getPartyId</span> <span class='hs-varop'>.</span> <span class='hs-varid'>accountParty</span> <span class='hs-varop'>.</span> <span class='hs-varid'>siteAccount</span><span class='hs-layout'>)</span> <span class='hs-varid'>nobodySiteAuth</span>
-<a name="line-31"></a>    <span class='hs-varid'>nobodyPublicLegacyDefault</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Just</span> <span class='hs-conid'>True</span>
-<a name="line-32"></a>    <span class='hs-varid'>generalDefault</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
-<a name="line-33"></a>
-<a name="line-34"></a><span class='hs-comment'>{-
-<a name="line-35"></a>instance Has Volume VolumeAccess where
-<a name="line-36"></a>  view = volumeAccessVolume
-<a name="line-37"></a>instance Has (Id Volume) VolumeAccess where
-<a name="line-38"></a>  view = (Has.view . volumeAccessVolume)
-<a name="line-39"></a>instance Has Party VolumeAccess where
-<a name="line-40"></a>  view = volumeAccessParty
-<a name="line-41"></a>instance Has (Id Party) VolumeAccess where
-<a name="line-42"></a>  view = (view . volumeAccessParty)
-<a name="line-43"></a>-}</span>
+<a name="line-9"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Id</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
+<a name="line-10"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Permission</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
+<a name="line-11"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Volume</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
+<a name="line-12"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Party</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
+<a name="line-13"></a>
+<a name="line-14"></a><a name="VolumeAccess"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>VolumeAccess</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>VolumeAccess</span>
+<a name="line-15"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>volumeAccessIndividual</span><span class='hs-layout'>,</span> <span class='hs-varid'>volumeAccessChildren</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Permission</span>
+<a name="line-16"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>volumeAccessSort</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>Int16</span>
+<a name="line-17"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>volumeAccessShareFull</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>Bool</span>
+<a name="line-18"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>volumeAccessParty</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Party</span>
+<a name="line-19"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>volumeAccessVolume</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Volume</span>
+<a name="line-20"></a>  <span class='hs-layout'>}</span>
+<a name="line-21"></a>
+<a name="line-22"></a><a name="getShareFullDefault"></a><span class='hs-definition'>getShareFullDefault</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Party</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Permission</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>Bool</span>
+<a name="line-23"></a><span class='hs-definition'>getShareFullDefault</span> <span class='hs-varid'>targetParty</span> <span class='hs-varid'>individualAccessLevel</span> <span class='hs-keyglyph'>=</span>
+<a name="line-24"></a>    <span class='hs-keyword'>if</span> <span class='hs-layout'>(</span><span class='hs-varid'>getPartyId</span> <span class='hs-varid'>targetParty</span><span class='hs-layout'>,</span> <span class='hs-varid'>individualAccessLevel</span><span class='hs-layout'>)</span> <span class='hs-varop'>==</span> <span class='hs-layout'>(</span><span class='hs-varid'>nobodyId</span><span class='hs-layout'>,</span> <span class='hs-conid'>PermissionPUBLIC</span><span class='hs-layout'>)</span>
+<a name="line-25"></a>    <span class='hs-keyword'>then</span> <span class='hs-varid'>nobodyPublicLegacyDefault</span>
+<a name="line-26"></a>    <span class='hs-keyword'>else</span> <span class='hs-varid'>generalDefault</span>
+<a name="line-27"></a>  <span class='hs-keyword'>where</span>
+<a name="line-28"></a>    <span class='hs-varid'>nobodyId</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Id</span> <span class='hs-conid'>Party</span>
+<a name="line-29"></a>    <span class='hs-varid'>nobodyId</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>getPartyId</span> <span class='hs-varop'>.</span> <span class='hs-varid'>accountParty</span> <span class='hs-varop'>.</span> <span class='hs-varid'>siteAccount</span><span class='hs-layout'>)</span> <span class='hs-varid'>nobodySiteAuth</span>
+<a name="line-30"></a>    <span class='hs-varid'>nobodyPublicLegacyDefault</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Just</span> <span class='hs-conid'>True</span>
+<a name="line-31"></a>    <span class='hs-varid'>generalDefault</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
 </pre></body>
 </html>

@@ -41,8 +41,8 @@ span.spaces    { background: white }
 <span class="lineno">   25 </span>import Control.Monad.Reader (MonadReader(..), asks)
 <span class="lineno">   26 </span>import Control.Monad.IO.Class (MonadIO(..))
 <span class="lineno">   27 </span>import Control.Monad.Trans.Class (MonadTrans(..))
-<span class="lineno">   28 </span>import Control.Monad.Trans.Control (MonadTransControl(..))
-<span class="lineno">   29 </span>import Control.Monad.Writer.Class (MonadWriter(..))
+<span class="lineno">   28 </span>-- import Control.Monad.Trans.Control (MonadTransControl(..))
+<span class="lineno">   29 </span>-- import Control.Monad.Writer.Class (MonadWriter(..))
 <span class="lineno">   30 </span>import qualified Data.Aeson as JSON
 <span class="lineno">   31 </span>import qualified Data.ByteString as BS
 <span class="lineno">   32 </span>import qualified Data.ByteString.Char8 as BSC
@@ -74,13 +74,13 @@ span.spaces    { background: white }
 <span class="lineno">   58 </span>instance MonadTrans (DeformT f) where
 <span class="lineno">   59 </span>  <span class="decl"><span class="nottickedoff">lift m = DeformT $ \_ -&gt;</span>
 <span class="lineno">   60 </span><span class="spaces">    </span><span class="nottickedoff">liftM ((,) mempty . Just) m</span></span>
-<span class="lineno">   61 </span>
+<span class="lineno">   61 </span>{-
 <span class="lineno">   62 </span>instance MonadTransControl (DeformT f) where
 <span class="lineno">   63 </span>  type StT (DeformT f) a = (FormErrors, Maybe a)
-<span class="lineno">   64 </span>  <span class="decl"><span class="nottickedoff">liftWith f = DeformT $ \d -&gt;</span>
-<span class="lineno">   65 </span><span class="spaces">    </span><span class="nottickedoff">liftM ((,) mempty . Just) $ f $ \t -&gt; runDeformT t d</span></span>
-<span class="lineno">   66 </span>  <span class="decl"><span class="nottickedoff">restoreT m = DeformT $ \_ -&gt; m</span></span>
-<span class="lineno">   67 </span>
+<span class="lineno">   64 </span>  liftWith f = DeformT $ \d -&gt;
+<span class="lineno">   65 </span>    liftM ((,) mempty . Just) $ f $ \t -&gt; runDeformT t d
+<span class="lineno">   66 </span>  restoreT m = DeformT $ \_ -&gt; m
+<span class="lineno">   67 </span>-}
 <span class="lineno">   68 </span>instance MonadIO m =&gt; MonadIO (DeformT f m) where
 <span class="lineno">   69 </span>  <span class="decl"><span class="nottickedoff">liftIO = lift . liftIO</span></span>
 <span class="lineno">   70 </span>
@@ -120,16 +120,16 @@ span.spaces    { background: white }
 <span class="lineno">  104 </span>  <span class="decl"><span class="nottickedoff">reader f = DeformT $ \d -&gt; return (mempty, Just (f d))</span></span>
 <span class="lineno">  105 </span>  <span class="decl"><span class="nottickedoff">local f (DeformT a) = DeformT $ a . f</span></span>
 <span class="lineno">  106 </span>
-<span class="lineno">  107 </span>instance Monad m =&gt; MonadWriter FormErrors (DeformT f m) where
-<span class="lineno">  108 </span>  <span class="decl"><span class="nottickedoff">writer (a, e) = DeformT $ \_ -&gt; return (e, Just a)</span></span>
-<span class="lineno">  109 </span>  <span class="decl"><span class="nottickedoff">listen (DeformT a) = DeformT $ \d -&gt; do</span>
-<span class="lineno">  110 </span><span class="spaces">    </span><span class="nottickedoff">(e, r) &lt;- a d</span>
-<span class="lineno">  111 </span><span class="spaces">    </span><span class="nottickedoff">return (e, fmap (flip (,) e) r)</span></span>
-<span class="lineno">  112 </span>  <span class="decl"><span class="nottickedoff">pass (DeformT a) = DeformT $ \q -&gt; do</span>
-<span class="lineno">  113 </span><span class="spaces">    </span><span class="nottickedoff">(e, mrf) &lt;- a q</span>
-<span class="lineno">  114 </span><span class="spaces">    </span><span class="nottickedoff">case mrf of</span>
-<span class="lineno">  115 </span><span class="spaces">      </span><span class="nottickedoff">Just (r, f) -&gt; return (f e, Just r)</span>
-<span class="lineno">  116 </span><span class="spaces">      </span><span class="nottickedoff">Nothing -&gt; return (e, Nothing)</span></span>
+<span class="lineno">  107 </span>{-instance Monad m =&gt; MonadWriter FormErrors (DeformT f m) where
+<span class="lineno">  108 </span>  writer (a, e) = DeformT $ \_ -&gt; return (e, Just a)
+<span class="lineno">  109 </span>  listen (DeformT a) = DeformT $ \d -&gt; do
+<span class="lineno">  110 </span>    (e, r) &lt;- a d
+<span class="lineno">  111 </span>    return (e, fmap (flip (,) e) r)
+<span class="lineno">  112 </span>  pass (DeformT a) = DeformT $ \q -&gt; do
+<span class="lineno">  113 </span>    (e, mrf) &lt;- a q
+<span class="lineno">  114 </span>    case mrf of
+<span class="lineno">  115 </span>      Just (r, f) -&gt; return (f e, Just r)
+<span class="lineno">  116 </span>      Nothing -&gt; return (e, Nothing) -}
 <span class="lineno">  117 </span>
 <span class="lineno">  118 </span>runDeform :: Monad m =&gt; DeformT f m a -&gt; FormData f -&gt; m (Either FormErrors a)
 <span class="lineno">  119 </span><span class="decl"><span class="nottickedoff">runDeform (DeformT fa) = fmap fr . fa . initForm where</span>

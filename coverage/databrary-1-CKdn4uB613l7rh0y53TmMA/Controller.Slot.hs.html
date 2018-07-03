@@ -34,7 +34,7 @@ span.spaces    { background: white }
 <span class="lineno">   18 </span>import Has (view, peeks)
 <span class="lineno">   19 </span>import qualified JSON as JSON
 <span class="lineno">   20 </span>import Model.Id
-<span class="lineno">   21 </span>import Model.Permission
+<span class="lineno">   21 </span>import Model.Permission hiding (checkPermission)
 <span class="lineno">   22 </span>import Model.Volume
 <span class="lineno">   23 </span>import Model.Container
 <span class="lineno">   24 </span>import Model.Slot
@@ -59,7 +59,7 @@ span.spaces    { background: white }
 <span class="lineno">   43 </span>
 <span class="lineno">   44 </span>getSlot :: Permission -&gt; Maybe (Id Volume) -&gt; Id Slot -&gt; Handler Slot
 <span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">getSlot p mv i =</span>
-<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">checkPermission p =&lt;&lt; maybeAction . maybe id (\v -&gt; mfilter $ (v ==) . view) mv =&lt;&lt; lookupSlot i</span></span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">checkPermission p =&lt;&lt; maybeAction . maybe id (\v -&gt; mfilter $ (v ==) . volumeId . volumeRow . containerVolume . slotContainer) mv =&lt;&lt; lookupSlot i</span></span>
 <span class="lineno">   47 </span>
 <span class="lineno">   48 </span>slotJSONField :: Bool -&gt; Slot -&gt; BS.ByteString -&gt; Maybe BS.ByteString -&gt; Handler (Maybe JSON.Encoding)
 <span class="lineno">   49 </span><span class="decl"><span class="nottickedoff">slotJSONField getOrig o &quot;assets&quot; _ =</span>
@@ -98,18 +98,19 @@ span.spaces    { background: white }
 <span class="lineno">   82 </span><span class="spaces">    </span><span class="nottickedoff">JSON -&gt; okResponse [] &lt;$&gt; (slotJSONQuery viewOrig c =&lt;&lt; peeks Wai.queryString)</span>
 <span class="lineno">   83 </span><span class="spaces">    </span><span class="nottickedoff">HTML</span>
 <span class="lineno">   84 </span><span class="spaces">      </span><span class="nottickedoff">| isJust vi -&gt; return $ okResponse [] $ BSC.pack $ show $ containerId $ containerRow $ slotContainer c</span>
-<span class="lineno">   85 </span><span class="spaces">      </span><span class="nottickedoff">| otherwise -&gt; peeks $ redirectRouteResponse movedPermanently301 [] (viewSlot viewOrig) (api, (Just (view c), slotId c))</span></span>
-<span class="lineno">   86 </span>
-<span class="lineno">   87 </span>thumbSlot :: ActionRoute (Maybe (Id Volume), Id Slot)
-<span class="lineno">   88 </span><span class="decl"><span class="nottickedoff">thumbSlot = action GET (pathMaybe pathId &lt;/&gt; pathSlotId &lt;/&lt; &quot;thumb&quot;) $ \(vi, i) -&gt; withAuth $ do</span>
-<span class="lineno">   89 </span><span class="spaces">  </span><span class="nottickedoff">s &lt;- getSlot PermissionPUBLIC vi i</span>
-<span class="lineno">   90 </span><span class="spaces">  </span><span class="nottickedoff">let v = (containerVolume . slotContainer) s</span>
-<span class="lineno">   91 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted, duplicated from above</span>
-<span class="lineno">   92 </span><span class="spaces">  </span><span class="nottickedoff">e &lt;- lookupSlotSegmentThumb s</span>
-<span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">maybe</span>
-<span class="lineno">   94 </span><span class="spaces">    </span><span class="nottickedoff">(peeks $ otherRouteResponse [] webFile (Just $ staticPath [&quot;images&quot;, &quot;draft.png&quot;]))</span>
-<span class="lineno">   95 </span><span class="spaces">    </span><span class="nottickedoff">(\as -&gt; peeks $ otherRouteResponse [] downloadAssetSegment (slotId $ view as, assetId $ assetRow $ view as))</span>
-<span class="lineno">   96 </span><span class="spaces">    </span><span class="nottickedoff">e</span></span>
+<span class="lineno">   85 </span><span class="spaces">      </span><span class="nottickedoff">| otherwise -&gt;</span>
+<span class="lineno">   86 </span><span class="spaces">          </span><span class="nottickedoff">peeks $ redirectRouteResponse movedPermanently301 [] (viewSlot viewOrig) (api, (Just ((volumeId . volumeRow . containerVolume . slotContainer) c), slotId c))</span></span>
+<span class="lineno">   87 </span>
+<span class="lineno">   88 </span>thumbSlot :: ActionRoute (Maybe (Id Volume), Id Slot)
+<span class="lineno">   89 </span><span class="decl"><span class="nottickedoff">thumbSlot = action GET (pathMaybe pathId &lt;/&gt; pathSlotId &lt;/&lt; &quot;thumb&quot;) $ \(vi, i) -&gt; withAuth $ do</span>
+<span class="lineno">   90 </span><span class="spaces">  </span><span class="nottickedoff">s &lt;- getSlot PermissionPUBLIC vi i</span>
+<span class="lineno">   91 </span><span class="spaces">  </span><span class="nottickedoff">let v = (containerVolume . slotContainer) s</span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted, duplicated from above</span>
+<span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">e &lt;- lookupSlotSegmentThumb s</span>
+<span class="lineno">   94 </span><span class="spaces">  </span><span class="nottickedoff">maybe</span>
+<span class="lineno">   95 </span><span class="spaces">    </span><span class="nottickedoff">(peeks $ otherRouteResponse [] webFile (Just $ staticPath [&quot;images&quot;, &quot;draft.png&quot;]))</span>
+<span class="lineno">   96 </span><span class="spaces">    </span><span class="nottickedoff">(\as -&gt; peeks $ otherRouteResponse [] downloadAssetSegment (slotId $ view as, assetId $ assetRow $ view as))</span>
+<span class="lineno">   97 </span><span class="spaces">    </span><span class="nottickedoff">e</span></span>
 
 </pre>
 </body>

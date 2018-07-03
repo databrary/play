@@ -20,9 +20,9 @@ span.spaces    { background: white }
 <span class="lineno">    4 </span>  , runFormView
 <span class="lineno">    5 </span>  , blankFormView
 <span class="lineno">    6 </span>  , (.:&gt;)
-<span class="lineno">    7 </span>  , withSubFormsViews
+<span class="lineno">    7 </span>--  , withSubFormsViews
 <span class="lineno">    8 </span>  , formViewErrors
-<span class="lineno">    9 </span>  , allFormViewErrors
+<span class="lineno">    9 </span>--  , allFormViewErrors
 <span class="lineno">   10 </span>  ) where
 <span class="lineno">   11 </span>
 <span class="lineno">   12 </span>import Control.Arrow (first, second)
@@ -85,25 +85,26 @@ span.spaces    { background: white }
 <span class="lineno">   69 </span>withSubFormView :: Monad m =&gt; FormKey -&gt; FormViewT f m a -&gt; FormViewT f m a
 <span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">withSubFormView k (FormViewT a) = FormViewT $ \d e -&gt;</span>
 <span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">second (setSubFormErrors e k) &lt;$&gt; a (subForm k d) (subFormErrors k e)</span></span>
-<span class="lineno">   72 </span>
+<span class="lineno">   72 </span>{-
 <span class="lineno">   73 </span>withSubFormsViews :: Monad m =&gt; [a] -&gt; (Maybe a -&gt; FormViewT f m ()) -&gt; FormViewT f m ()
-<span class="lineno">   74 </span><span class="decl"><span class="nottickedoff">withSubFormsViews l f = msfv 0 l =&lt;&lt; reader subForms where</span>
-<span class="lineno">   75 </span><span class="spaces">  </span><span class="nottickedoff">msfv _ [] [] = return ()</span>
-<span class="lineno">   76 </span><span class="spaces">  </span><span class="nottickedoff">msfv i xl sl = withSubFormView (FormIndex i) (f x) &gt;&gt; msfv (succ i) xr sr where</span>
-<span class="lineno">   77 </span><span class="spaces">    </span><span class="nottickedoff">(x, xr) = uncons xl</span>
-<span class="lineno">   78 </span><span class="spaces">    </span><span class="nottickedoff">(_, sr) = uncons sl</span>
-<span class="lineno">   79 </span><span class="spaces">  </span><span class="nottickedoff">uncons (x:r) = (Just x, r)</span>
-<span class="lineno">   80 </span><span class="spaces">  </span><span class="nottickedoff">uncons r = (Nothing, r)</span></span>
-<span class="lineno">   81 </span>
+<span class="lineno">   74 </span>withSubFormsViews l f = msfv 0 l =&lt;&lt; reader subForms where
+<span class="lineno">   75 </span>  msfv _ [] [] = return ()
+<span class="lineno">   76 </span>  msfv i xl sl = withSubFormView (FormIndex i) (f x) &gt;&gt; msfv (succ i) xr sr where
+<span class="lineno">   77 </span>    (x, xr) = uncons xl
+<span class="lineno">   78 </span>    (_, sr) = uncons sl
+<span class="lineno">   79 </span>  uncons (x:r) = (Just x, r)
+<span class="lineno">   80 </span>  uncons r = (Nothing, r)
+<span class="lineno">   81 </span>-}
 <span class="lineno">   82 </span>infixr 2 .:&gt;
 <span class="lineno">   83 </span>(.:&gt;) :: Monad m =&gt; T.Text -&gt; FormViewT f m a -&gt; FormViewT f m a
 <span class="lineno">   84 </span><span class="decl"><span class="nottickedoff">(.:&gt;) = withSubFormView . FormField</span></span>
 <span class="lineno">   85 </span>
 <span class="lineno">   86 </span>formViewErrors :: Monad m =&gt; FormViewT f m [FormErrorMessage]
 <span class="lineno">   87 </span><span class="decl"><span class="nottickedoff">formViewErrors = state $ \e -&gt; (formErrors e, e{ formErrors = [] })</span></span>
-<span class="lineno">   88 </span>
+<span class="lineno">   88 </span>{-
 <span class="lineno">   89 </span>allFormViewErrors :: Monad m =&gt; FormViewT f m [(FormPath, FormErrorMessage)]
-<span class="lineno">   90 </span><span class="decl"><span class="nottickedoff">allFormViewErrors = state $ \e -&gt; (allFormErrors e, mempty)</span></span>
+<span class="lineno">   90 </span>allFormViewErrors = state $ \e -&gt; (allFormErrors e, mempty)
+<span class="lineno">   91 </span>-}
 
 </pre>
 </body>

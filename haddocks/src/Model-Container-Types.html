@@ -33,7 +33,7 @@
 <a name="line-24"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>containerTop</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Bool</span>
 <a name="line-25"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>containerName</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>T</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span>
 <a name="line-26"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>containerDate</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>Date</span>
-<a name="line-27"></a>  <span class='hs-layout'>}</span> <span class='hs-comment'>-- deriving (Eq, Show)</span>
+<a name="line-27"></a>  <span class='hs-layout'>}</span>
 <a name="line-28"></a>
 <a name="line-29"></a><a name="Container"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Container</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Container</span>
 <a name="line-30"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>containerRow</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>ContainerRow</span>
@@ -65,8 +65,6 @@
 <a name="line-56"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>containerVolume</span>
 <a name="line-57"></a><a name="instance%20Has%20Permission%20Container"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Permission</span> <span class='hs-conid'>Container</span> <span class='hs-keyword'>where</span>
 <a name="line-58"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>containerVolume</span><span class='hs-layout'>)</span>
-<a name="line-59"></a><a name="instance%20Has%20(Id%20Volume)%20Container"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Volume</span><span class='hs-layout'>)</span> <span class='hs-conid'>Container</span> <span class='hs-keyword'>where</span>
-<a name="line-60"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>containerVolume</span><span class='hs-layout'>)</span>
-<a name="line-61"></a>
+<a name="line-59"></a>
 </pre></body>
 </html>

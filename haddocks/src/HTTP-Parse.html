@@ -41,19 +41,19 @@
 <a name="line-32"></a><span class='hs-definition'>requestTooLarge</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>emptyResponse</span> <span class='hs-varid'>requestEntityTooLarge413</span> <span class='hs-conid'>[]</span>
 <a name="line-33"></a>
 <a name="line-34"></a><a name="ChunkParser"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>ChunkParser</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>IO</span> <span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IO</span> <span class='hs-varid'>a</span>
-<a name="line-35"></a>
-<a name="line-36"></a><span class='hs-sel'>_mapChunks</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ChunkParser</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ChunkParser</span> <span class='hs-varid'>b</span>
-<a name="line-37"></a><span class='hs-sel'>_mapChunks</span> <span class='hs-varid'>f</span> <span class='hs-varid'>parse</span> <span class='hs-varid'>next</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>parse</span> <span class='hs-varid'>next</span>
+<a name="line-35"></a><a name="limitChunks"></a><span class='hs-comment'>{-
+<a name="line-36"></a>_mapChunks :: (a -&gt; b) -&gt; ChunkParser a -&gt; ChunkParser b
+<a name="line-37"></a>_mapChunks f parse next = f &lt;$&gt; parse next
 <a name="line-38"></a>
-<a name="line-39"></a><span class='hs-sel'>_nullChunks</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ChunkParser</span> <span class='hs-conid'>Word64</span>
-<a name="line-40"></a><span class='hs-sel'>_nullChunks</span> <span class='hs-varid'>next</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-num'>0</span> <span class='hs-keyword'>where</span>
-<a name="line-41"></a>  <span class='hs-varid'>go</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
-<a name="line-42"></a>    <span class='hs-varid'>b</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>next</span>
-<a name="line-43"></a>    <span class='hs-keyword'>if</span> <span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>b</span>
-<a name="line-44"></a>      <span class='hs-keyword'>then</span> <span class='hs-varid'>return</span> <span class='hs-varid'>n</span>
-<a name="line-45"></a>      <span class='hs-keyword'>else</span> <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-varid'>n</span> <span class='hs-varop'>+</span> <span class='hs-varid'>fromIntegral</span> <span class='hs-layout'>(</span><span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-varid'>length</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-<a name="line-46"></a>
-<a name="line-47"></a><a name="limitChunks"></a><span class='hs-definition'>limitChunks</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Word64</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ChunkParser</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ChunkParser</span> <span class='hs-varid'>a</span>
+<a name="line-39"></a>_nullChunks :: ChunkParser Word64
+<a name="line-40"></a>_nullChunks next = go 0 where
+<a name="line-41"></a>  go n = do
+<a name="line-42"></a>    b &lt;- next
+<a name="line-43"></a>    if BS.null b
+<a name="line-44"></a>      then return n
+<a name="line-45"></a>      else go (n + fromIntegral (BS.length b))
+<a name="line-46"></a>-}</span>
+<a name="line-47"></a><span class='hs-definition'>limitChunks</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Word64</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ChunkParser</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ChunkParser</span> <span class='hs-varid'>a</span>
 <a name="line-48"></a><span class='hs-definition'>limitChunks</span> <span class='hs-varid'>lim</span> <span class='hs-varid'>parse</span> <span class='hs-varid'>next</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
 <a name="line-49"></a>  <span class='hs-varid'>len</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>liftIO</span> <span class='hs-varop'>$</span> <span class='hs-varid'>newIORef</span> <span class='hs-num'>0</span>
 <a name="line-50"></a>  <span class='hs-varid'>parse</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>do</span>
@@ -92,18 +92,18 @@
 <a name="line-83"></a><a name="textChunks'"></a><span class='hs-definition'>textChunks'</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ChunkParser</span> <span class='hs-conid'>TL</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span>
 <a name="line-84"></a><span class='hs-definition'>textChunks'</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>textChunks</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>e</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>unsafeResult</span> <span class='hs-varop'>$</span> <span class='hs-varid'>response</span> <span class='hs-varid'>unsupportedMediaType415</span> <span class='hs-conid'>[]</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span>
 <a name="line-85"></a>
-<a name="line-86"></a>
-<a name="line-87"></a><span class='hs-sel'>_mapBackEnd</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>BackEnd</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>BackEnd</span> <span class='hs-varid'>b</span>
-<a name="line-88"></a><span class='hs-sel'>_mapBackEnd</span> <span class='hs-varid'>f</span> <span class='hs-varid'>back</span> <span class='hs-varid'>param</span> <span class='hs-varid'>info</span> <span class='hs-varid'>next</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>back</span> <span class='hs-varid'>param</span> <span class='hs-varid'>info</span> <span class='hs-varid'>next</span>
-<a name="line-89"></a>
-<a name="line-90"></a><a name="rejectBackEnd"></a><span class='hs-definition'>rejectBackEnd</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>BackEnd</span> <span class='hs-varid'>a</span>
+<a name="line-86"></a><a name="rejectBackEnd"></a><span class='hs-comment'>{-
+<a name="line-87"></a>_mapBackEnd :: (a -&gt; b) -&gt; BackEnd a -&gt; BackEnd b
+<a name="line-88"></a>_mapBackEnd f back param info next = f &lt;$&gt; back param info next
+<a name="line-89"></a>-}</span>
+<a name="line-90"></a><span class='hs-definition'>rejectBackEnd</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>BackEnd</span> <span class='hs-varid'>a</span>
 <a name="line-91"></a><span class='hs-definition'>rejectBackEnd</span> <span class='hs-keyword'>_</span> <span class='hs-keyword'>_</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>result</span> <span class='hs-varid'>requestTooLarge</span>
 <a name="line-92"></a>
-<a name="line-93"></a>
-<a name="line-94"></a><span class='hs-sel'>_parseRequestChunks</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ChunkParser</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Handler</span> <span class='hs-varid'>a</span>
-<a name="line-95"></a><span class='hs-sel'>_parseRequestChunks</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>liftIO</span> <span class='hs-varop'>.</span> <span class='hs-varid'>p</span> <span class='hs-varop'>=&lt;&lt;</span> <span class='hs-varid'>peeks</span> <span class='hs-varid'>requestBody</span>
-<a name="line-96"></a>
-<a name="line-97"></a><a name="limitRequestChunks"></a><span class='hs-definition'>limitRequestChunks</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Word64</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ChunkParser</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Handler</span> <span class='hs-varid'>a</span>
+<a name="line-93"></a><a name="limitRequestChunks"></a><span class='hs-comment'>{-
+<a name="line-94"></a>_parseRequestChunks :: ChunkParser a -&gt; Handler a
+<a name="line-95"></a>_parseRequestChunks p = liftIO . p =&lt;&lt; peeks requestBody
+<a name="line-96"></a>-}</span>
+<a name="line-97"></a><span class='hs-definition'>limitRequestChunks</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Word64</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ChunkParser</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Handler</span> <span class='hs-varid'>a</span>
 <a name="line-98"></a><span class='hs-definition'>limitRequestChunks</span> <span class='hs-varid'>lim</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
 <a name="line-99"></a>  <span class='hs-varid'>rq</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>peek</span>
 <a name="line-100"></a>  <span class='hs-keyword'>case</span> <span class='hs-varid'>requestBodyLength</span> <span class='hs-varid'>rq</span> <span class='hs-keyword'>of</span>

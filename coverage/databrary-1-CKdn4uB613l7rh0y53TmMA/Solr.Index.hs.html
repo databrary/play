@@ -188,7 +188,7 @@ span.spaces    { background: white }
 <span class="lineno">  172 </span><span class="spaces"></span><span class="nottickedoff">writeDocuments d =</span>
 <span class="lineno">  173 </span><span class="spaces">  </span><span class="nottickedoff">writeBlock $ BSL.toStrict $ BSB.toLazyByteString $ foldMap ((&quot;},\&quot;add\&quot;:{\&quot;doc\&quot;:&quot; &lt;&gt;) . JSON.fromEncoding . JSON.value . JSON.toJSON) d</span></span>
 <span class="lineno">  174 </span>
-<span class="lineno">  175 </span>writeUpdate :: ReaderT BackgroundContext (InvertM BS.ByteString) () -&gt; ReaderT BackgroundContext (InvertM BS.ByteString) ()
+<span class="lineno">  175 </span>writeUpdate :: ReaderT SolrIndexingContext (InvertM BS.ByteString) () -&gt; ReaderT SolrIndexingContext (InvertM BS.ByteString) ()
 <span class="lineno">  176 </span><span class="decl"><span class="nottickedoff">writeUpdate f = do</span>
 <span class="lineno">  177 </span><span class="spaces">  </span><span class="nottickedoff">writeBlock &quot;{\&quot;delete\&quot;:{\&quot;query\&quot;:\&quot;*:*\&quot;&quot;</span>
 <span class="lineno">  178 </span><span class="spaces">  </span><span class="nottickedoff">f</span>
@@ -201,7 +201,7 @@ span.spaces    { background: white }
 <span class="lineno">  185 </span><span class="spaces">  </span><span class="nottickedoff">| containerId (containerRow c) == ci = f a (Slot c s) : joinContainers f cl ar</span>
 <span class="lineno">  186 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = joinContainers f cr al</span></span>
 <span class="lineno">  187 </span>
-<span class="lineno">  188 </span>writeVolume :: (Volume, Maybe Citation) -&gt; ReaderT BackgroundContext (InvertM BS.ByteString) ()
+<span class="lineno">  188 </span>writeVolume :: (Volume, Maybe Citation) -&gt; ReaderT SolrIndexingContext (InvertM BS.ByteString) ()
 <span class="lineno">  189 </span><span class="decl"><span class="nottickedoff">writeVolume (v, vc) = do</span>
 <span class="lineno">  190 </span><span class="spaces">  </span><span class="nottickedoff">writeDocuments [solrVolume v vc]</span>
 <span class="lineno">  191 </span><span class="spaces">  </span><span class="nottickedoff">cl &lt;- lookupVolumeContainers v</span>
@@ -213,15 +213,15 @@ span.spaces    { background: white }
 <span class="lineno">  197 </span><span class="spaces">  </span><span class="nottickedoff">writeDocuments . map (solrTagUse (volumeId $ volumeRow v)) =&lt;&lt; lookupVolumeTagUseRows v</span>
 <span class="lineno">  198 </span><span class="spaces">  </span><span class="nottickedoff">writeDocuments . map (solrComment (volumeId $ volumeRow v)) =&lt;&lt; lookupVolumeCommentRows v</span></span>
 <span class="lineno">  199 </span>
-<span class="lineno">  200 </span>writeAllDocuments :: ReaderT BackgroundContext (InvertM BS.ByteString) ()
+<span class="lineno">  200 </span>writeAllDocuments :: ReaderT SolrIndexingContext (InvertM BS.ByteString) ()
 <span class="lineno">  201 </span><span class="decl"><span class="nottickedoff">writeAllDocuments = do</span>
 <span class="lineno">  202 </span><span class="spaces">  </span><span class="nottickedoff">mapM_ writeVolume =&lt;&lt; lookupVolumesCitations</span>
 <span class="lineno">  203 </span><span class="spaces">  </span><span class="nottickedoff">writeDocuments . map (uncurry solrParty) =&lt;&lt; lookupPartyAuthorizations</span>
 <span class="lineno">  204 </span><span class="spaces">  </span><span class="nottickedoff">writeDocuments . map solrTag =&lt;&lt; lookupTags</span></span>
 <span class="lineno">  205 </span>
-<span class="lineno">  206 </span>updateIndex :: BackgroundContextM ()
+<span class="lineno">  206 </span>updateIndex :: SolrIndexingContextM ()
 <span class="lineno">  207 </span><span class="decl"><span class="nottickedoff">updateIndex = do</span>
-<span class="lineno">  208 </span><span class="spaces">  </span><span class="nottickedoff">(ctx :: BackgroundContext) &lt;- ask</span>
+<span class="lineno">  208 </span><span class="spaces">  </span><span class="nottickedoff">(ctx :: SolrIndexingContext) &lt;- ask</span>
 <span class="lineno">  209 </span><span class="spaces">  </span><span class="nottickedoff">(solr :: Solr) &lt;- peek</span>
 <span class="lineno">  210 </span><span class="spaces">  </span><span class="nottickedoff">let (req :: HC.Request) = solrRequest solr</span>
 <span class="lineno">  211 </span><span class="spaces">  </span><span class="nottickedoff">t &lt;- liftIO getCurrentTime</span>

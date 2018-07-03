@@ -48,18 +48,18 @@ span.spaces    { background: white }
 <span class="lineno">   32 </span><span class="decl"><span class="nottickedoff">requestTooLarge = emptyResponse requestEntityTooLarge413 []</span></span>
 <span class="lineno">   33 </span>
 <span class="lineno">   34 </span>type ChunkParser a = IO BS.ByteString -&gt; IO a
-<span class="lineno">   35 </span>
+<span class="lineno">   35 </span>{-
 <span class="lineno">   36 </span>_mapChunks :: (a -&gt; b) -&gt; ChunkParser a -&gt; ChunkParser b
-<span class="lineno">   37 </span><span class="decl"><span class="nottickedoff">_mapChunks f parse next = f &lt;$&gt; parse next</span></span>
+<span class="lineno">   37 </span>_mapChunks f parse next = f &lt;$&gt; parse next
 <span class="lineno">   38 </span>
 <span class="lineno">   39 </span>_nullChunks :: ChunkParser Word64
-<span class="lineno">   40 </span><span class="decl"><span class="nottickedoff">_nullChunks next = go 0 where</span>
-<span class="lineno">   41 </span><span class="spaces">  </span><span class="nottickedoff">go n = do</span>
-<span class="lineno">   42 </span><span class="spaces">    </span><span class="nottickedoff">b &lt;- next</span>
-<span class="lineno">   43 </span><span class="spaces">    </span><span class="nottickedoff">if BS.null b</span>
-<span class="lineno">   44 </span><span class="spaces">      </span><span class="nottickedoff">then return n</span>
-<span class="lineno">   45 </span><span class="spaces">      </span><span class="nottickedoff">else go (n + fromIntegral (BS.length b))</span></span>
-<span class="lineno">   46 </span>
+<span class="lineno">   40 </span>_nullChunks next = go 0 where
+<span class="lineno">   41 </span>  go n = do
+<span class="lineno">   42 </span>    b &lt;- next
+<span class="lineno">   43 </span>    if BS.null b
+<span class="lineno">   44 </span>      then return n
+<span class="lineno">   45 </span>      else go (n + fromIntegral (BS.length b))
+<span class="lineno">   46 </span>-}
 <span class="lineno">   47 </span>limitChunks :: Word64 -&gt; ChunkParser a -&gt; ChunkParser a
 <span class="lineno">   48 </span><span class="decl"><span class="nottickedoff">limitChunks lim parse next = do</span>
 <span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">len &lt;- liftIO $ newIORef 0</span>
@@ -99,17 +99,17 @@ span.spaces    { background: white }
 <span class="lineno">   83 </span>textChunks' :: ChunkParser TL.Text
 <span class="lineno">   84 </span><span class="decl"><span class="nottickedoff">textChunks' = textChunks (\e _ -&gt; unsafeResult $ response unsupportedMediaType415 [] e)</span></span>
 <span class="lineno">   85 </span>
-<span class="lineno">   86 </span>
+<span class="lineno">   86 </span>{-
 <span class="lineno">   87 </span>_mapBackEnd :: (a -&gt; b) -&gt; BackEnd a -&gt; BackEnd b
-<span class="lineno">   88 </span><span class="decl"><span class="nottickedoff">_mapBackEnd f back param info next = f &lt;$&gt; back param info next</span></span>
-<span class="lineno">   89 </span>
+<span class="lineno">   88 </span>_mapBackEnd f back param info next = f &lt;$&gt; back param info next
+<span class="lineno">   89 </span>-}
 <span class="lineno">   90 </span>rejectBackEnd :: BackEnd a
 <span class="lineno">   91 </span><span class="decl"><span class="nottickedoff">rejectBackEnd _ _ _ = result requestTooLarge</span></span>
 <span class="lineno">   92 </span>
-<span class="lineno">   93 </span>
+<span class="lineno">   93 </span>{-
 <span class="lineno">   94 </span>_parseRequestChunks :: ChunkParser a -&gt; Handler a
-<span class="lineno">   95 </span><span class="decl"><span class="nottickedoff">_parseRequestChunks p = liftIO . p =&lt;&lt; peeks requestBody</span></span>
-<span class="lineno">   96 </span>
+<span class="lineno">   95 </span>_parseRequestChunks p = liftIO . p =&lt;&lt; peeks requestBody
+<span class="lineno">   96 </span>-}
 <span class="lineno">   97 </span>limitRequestChunks :: Word64 -&gt; ChunkParser a -&gt; Handler a
 <span class="lineno">   98 </span><span class="decl"><span class="nottickedoff">limitRequestChunks lim p = do</span>
 <span class="lineno">   99 </span><span class="spaces">  </span><span class="nottickedoff">rq &lt;- peek</span>

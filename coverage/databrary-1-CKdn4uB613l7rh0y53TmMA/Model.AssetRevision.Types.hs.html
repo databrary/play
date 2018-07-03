@@ -16,18 +16,17 @@ span.spaces    { background: white }
 <pre>
 <span class="lineno">    1 </span>module Model.AssetRevision.Types
 <span class="lineno">    2 </span>  ( AssetRevision(..)
-<span class="lineno">    3 </span>  , makeAssetRevision
-<span class="lineno">    4 </span>  ) where
-<span class="lineno">    5 </span>
-<span class="lineno">    6 </span>import Model.Asset.Types
-<span class="lineno">    7 </span>
-<span class="lineno">    8 </span>data AssetRevision = AssetRevision
-<span class="lineno">    9 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">revisionAsset</span></span></span> :: !Asset
-<span class="lineno">   10 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">revisionOrig</span></span></span> :: !Asset
-<span class="lineno">   11 </span>  }
-<span class="lineno">   12 </span>
-<span class="lineno">   13 </span>makeAssetRevision :: Asset -&gt; Asset -&gt; AssetRevision
-<span class="lineno">   14 </span><span class="decl"><span class="nottickedoff">makeAssetRevision o a = AssetRevision a o</span></span>
+<span class="lineno">    3 </span>  ) where
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>import Model.Asset.Types
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>data AssetRevision = AssetRevision
+<span class="lineno">    8 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">revisionAsset</span></span></span> :: !Asset
+<span class="lineno">    9 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">revisionOrig</span></span></span> :: !Asset
+<span class="lineno">   10 </span>  }
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>-- makeAssetRevision :: Asset -&gt; Asset -&gt; AssetRevision
+<span class="lineno">   13 </span>-- makeAssetRevision o a = AssetRevision a o
 
 </pre>
 </body>
