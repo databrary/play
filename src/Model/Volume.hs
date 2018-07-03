@@ -52,7 +52,8 @@ import qualified JSON
 -- | Captures possible database responses.
 -- NOTE: This was designed to mimic existing code and responses. LookupFailed
 -- does NOT mean "does not exist". It means that 'lookupVolume' (for example)
--- returned Nothing.
+-- returned Nothing. This could mean either the id is a valid id, or the user
+-- doesn't have access to the volume.
 data LookupResult a
     = LookupFailed
     | LookupDenied
