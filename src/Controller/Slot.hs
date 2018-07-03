@@ -18,7 +18,7 @@ import qualified Network.Wai as Wai
 import Has (view, peeks)
 import qualified JSON as JSON
 import Model.Id
-import Model.Permission
+import Model.Permission hiding (checkPermission)
 import Model.Volume
 import Model.Container
 import Model.Slot
@@ -43,7 +43,7 @@ import {-# SOURCE #-} Controller.AssetSegment
 
 getSlot :: Permission -> Maybe (Id Volume) -> Id Slot -> Handler Slot
 getSlot p mv i =
-  checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . volumeId . volumeRow . containerVolume . slotContainer) mv =<< lookupSlot i
+  checkPermissionOld p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . volumeId . volumeRow . containerVolume . slotContainer) mv =<< lookupSlot i
 
 slotJSONField :: Bool -> Slot -> BS.ByteString -> Maybe BS.ByteString -> Handler (Maybe JSON.Encoding)
 slotJSONField getOrig o "assets" _ =

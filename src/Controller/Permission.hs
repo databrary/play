@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Controller.Permission
-  ( checkPermission
-  , checkPermission2
+  ( checkPermissionOld
+  , checkPermission
   , userCanReadData
   , authAccount
   , checkMemberADMIN
@@ -12,20 +12,34 @@ module Controller.Permission
 import Control.Monad (void, unless, liftM2)
 
 import Has (Has, view, peek, peeks)
-import Model.Permission
+import Model.Permission hiding (checkPermission)
 import Model.Release
 import Model.Party
 import Model.Identity
 import HTTP.Request
 import Action
 
--- logic inside of checkPermission and checkDataPermission should be inside of model layer
-checkPermission :: Has Permission a => Permission -> a -> Handler a  -- TODO: delete this
-checkPermission requiredPermissionLevel objectWithCurrentUserPermLevel =
-  checkPermission2 view requiredPermissionLevel objectWithCurrentUserPermLevel
 
-checkPermission2 :: (a -> Permission) -> Permission -> a -> Handler a
-checkPermission2 getCurrentUserPermLevel requestingAccessAtPermLevel obj = do
+-- TODO: use Model.checkPermission everywhere instead
+{-# DEPRECATED checkPermissionOld "Use checkPermission instead" #-}
+checkPermissionOld :: Has Permission a => Permission -> a -> Handler a
+checkPermissionOld requiredPermissionLevel objectWithCurrentUserPermLevel =
+  checkPermission view requiredPermissionLevel objectWithCurrentUserPermLevel
+
+-- | Determine if the requested permission is granted, or throw an HTTP 403.
+--
+-- This function is probably due for another 3 or 4 rewrites: it's a bit
+-- abstract, serving mostly as a description for its arguments.
+checkPermission
+    :: (a -> Permission)
+    -- ^ How to extract the granted permission for current user
+    -> Permission
+    -- ^ Requested permission permission
+    -> a
+    -- ^ Object under scrutiny
+    -> Handler a
+    -- ^ Just returns the 3rd arg, unless it short-circuits with a 403.
+checkPermission getCurrentUserPermLevel requestingAccessAtPermLevel obj = do
   unless (getCurrentUserPermLevel obj >= requestingAccessAtPermLevel) $ do
     resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)
     result resp
@@ -77,7 +91,7 @@ checkMemberADMIN :: Handler ()
 checkMemberADMIN = do
   a :: Access <- peek
   let admin = accessMember' a
-  void $ checkPermission PermissionADMIN admin
+  void $ checkPermissionOld PermissionADMIN admin
 
 checkVerfHeader :: Handler Bool
 checkVerfHeader = do

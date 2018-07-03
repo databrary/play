@@ -30,7 +30,7 @@ import qualified JSON as JSON
 import Service.Log
 import Model.Id
 import Model.Permission
-import Model.Volume
+import Model.Volume hiding (getVolume)
 import Model.Format
 import Model.Token
 import Store.Upload

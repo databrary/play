@@ -24,8 +24,8 @@ import Action.Route
 import Action.Response
 import Action
 import Model.Id
-import Model.Volume
-import Model.Permission
+import Model.Volume hiding (getVolume)
+import Model.Permission hiding (checkPermission)
 import Model.Record
 import Model.Category
 import Model.RecordSlot
@@ -45,7 +45,7 @@ import View.Form (FormHtml)
 
 getRecord :: Permission -> Id Record -> Handler Record
 getRecord p i =
-  checkPermission p =<< maybeAction =<< lookupRecord i
+  checkPermissionOld p =<< maybeAction =<< lookupRecord i
 
 viewRecord :: ActionRoute (Id Record)
 viewRecord = action GET (pathJSON >/> pathId) $ \i -> withAuth $ do

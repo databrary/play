@@ -9,7 +9,7 @@ import Control.Invertible.Monoidal ((>|<))
 import Data.Aeson as Aeson
 import Model.Id
 import Model.Permission
-import Model.Volume
+import Model.Volume hiding (getVolume)
 import Model.Category
 import Model.Metric
 import Model.VolumeMetric
