@@ -26,7 +26,7 @@ import Test.Tasty.HUnit
 
 import Controller.CSV (volumeCSV)
 import Controller.Notification
-import Controller.Upload (createUploadSetSize, UploadStartRequest(..))
+import Controller.Upload (createUploadSetSize, UploadStartRequest(..), writeChunk)
 import EZID.Volume (updateEZID)
 import Has
 import HTTP.Client
@@ -72,6 +72,7 @@ import qualified Store.Config as C
 -- import Store.AV
 import Store.Probe
 import Store.Transcode
+import Store.Upload (uploadFile)
 import Paths_databrary (getDataFileName)
 import TestHarness as Test
 
@@ -560,21 +561,24 @@ test_20 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransactio
     step "Given an authorized investigator and their volume"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
-    -- when start upload and send all chunks
-    -- context needs: ....
+    step "When start upload and send all chunks"
     aiCtxt2 <- (\e s -> aiCtxt { ctxEntropy = Just e , ctxStorage = Just s })
         <$> initEntropy
         <*> mkStorageStub
     tok <- runReaderT
         (do
-            createUploadSetSize vol (UploadStartRequest "abcde.csv" 10))  -- TODO: generator for req + chunks
+            up <- createUploadSetSize vol (UploadStartRequest "abcde.csv" 10)
+            file <- peeks $ uploadFile up -- TODO: generator for req + chunks of content + ofset + len
+            bl <- pure "col1,col2\nv1,22\n"
+            _ <- liftIO (writeChunk 0 10 file (pure bl))
+            pure up) 
         aiCtxt2
     step "Then the investigator can view the upload"
     -- TODO: implementation of processAsset
     Just upload <- runReaderT (lookupUpload ((unId . tokenId . accountToken . uploadAccountToken) tok)) aiCtxt
     -- p = fileUploadPath (FileUploadToken upload)
     -- prb <- probeFile (fileUploadName (FileUploadToken upload))
-    --   check upload size and name and format
+    --   check upload size and name and format and contents
     uploadFilename upload @?= "abcde.csv"
 
 ------------------------------------------------------ end of tests ---------------------------------

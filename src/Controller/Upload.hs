@@ -6,6 +6,7 @@ module Controller.Upload
   -- * for testing
   , createUploadSetSize
   , UploadStartRequest(..)
+  , writeChunk
   ) where
 
 import Control.Exception (bracket)
@@ -24,6 +25,7 @@ import Foreign.Ptr (castPtr)
 import Network.HTTP.Types (ok200, noContent204, badRequest400)
 import qualified Network.Wai as Wai
 import System.IO (SeekMode(AbsoluteSeek))
+import System.Posix.FilePath (RawFilePath)
 import System.Posix.Files.ByteString (setFdSize)
 import System.Posix.IO.ByteString (openFd, OpenMode(ReadOnly, WriteOnly), defaultFileFlags, exclusive, closeFd, fdSeek, fdWriteBuf, fdReadBuf)
 import System.Posix.Types (COff(..))
@@ -65,15 +67,6 @@ uploadStart = action POST (pathJSON >/> pathId </< "upload") $ \vi -> withAuth $
     <$> ("filename" .:> (deformCheck "File format not supported." (isJust . getFormatByFilename) =<< deform))
     <*> ("size" .:> (deformCheck "File too large." ((maxAssetSize >=) . fromIntegral) =<< fileSizeForm))
   liftIO $ print "creating Upload..." --DEBUG
-  {-
-  tok <- createUpload vol filename size
-  liftIO $ print "peeking..." --DEBUG
-  file <- peeks $ uploadFile tok
-  liftIO $ bracket
-    (openFd file WriteOnly (Just 0o640) defaultFileFlags{ exclusive = True })
-    closeFd
-    (`setFdSize` COff size)
-  -}
   tok <- createUploadSetSize vol uploadStartRequest
   return $ okResponse [] $ unId (view tok :: Id Token)
 
@@ -129,7 +122,14 @@ uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
   rb <- peeks Wai.requestBody
   -- liftIO $ putStrLn "request body length"
   -- liftIO $ print . BS.length =<< rb
-  n <- liftIO $ bracket
+  n <- liftIO (writeChunk off len file rb)
+  liftIO $ putStrLn $ "n = " ++ show n --DEBUG
+  checkLength n -- TODO: clear block (maybe wait for calloc)
+  liftIO $ print "uploadChunk:  post checkLength..." --DEBUG
+  return $ emptyResponse noContent204 []
+
+writeChunk :: Int64 -> Word64 -> RawFilePath -> IO BS.ByteString -> IO Word64
+writeChunk off len file rb = bracket
     (openFd file WriteOnly Nothing defaultFileFlags)
     (\f -> putStrLn "closeFd..." >> closeFd f) $ \h -> do
       _ <- fdSeek h AbsoluteSeek (COff off)
@@ -165,10 +165,6 @@ uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
                     liftIO $ putStrLn $ "n' > len" ++ show (n',len)   --DEBUG
                     write b
       block 0
-  liftIO $ putStrLn $ "n = " ++ show n --DEBUG
-  checkLength n -- TODO: clear block (maybe wait for calloc)
-  liftIO $ print "uploadChunk:  post checkLength..." --DEBUG
-  return $ emptyResponse noContent204 []
 
 testChunk :: ActionRoute ()
 testChunk = action GET (pathJSON </< "upload") $ \() -> withAuth $ do
