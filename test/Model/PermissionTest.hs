@@ -20,4 +20,7 @@ test_checkPermission =
     , testCase "Cannot read when granted 'public'"
         $ checkPermission (const PermissionPUBLIC) () PermissionREAD
         @?= PermissionDenied
+    , testCase "Can edit when granted edit"
+        $ checkPermission (const PermissionEDIT) () PermissionEDIT
+        @?= PermissionGranted ()
     ]
