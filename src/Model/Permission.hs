@@ -93,7 +93,7 @@ checkPermission
     -> PermissionResponse a
     -- ^ The object decorated with the permission response
 checkPermission getGrantedPerms obj requestedPerms =
-    case compare requestedPerms (getGrantedPerms obj) of
+    case compare (getGrantedPerms obj) requestedPerms of
         LT -> PermissionDenied
         GT -> PermissionGranted obj
         EQ -> PermissionGranted obj
