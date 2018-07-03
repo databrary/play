@@ -22,7 +22,7 @@ import Has
 import qualified JSON as JSON
 import Model.Id
 import Model.Permission hiding (checkPermission)
-import Model.Volume
+import Model.Volume hiding (getVolume)
 import Model.Container
 import Model.Segment
 import Model.Slot

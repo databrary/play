@@ -35,7 +35,7 @@ import Store.CSV (buildCSV)
 import Store.Types
 import Model.Id
 import Model.Permission
-import Model.Volume
+import Model.Volume hiding (getVolume)
 import Model.Container
 import Model.Slot
 import Model.RecordSlot

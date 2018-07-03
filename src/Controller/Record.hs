@@ -24,7 +24,7 @@ import Action.Route
 import Action.Response
 import Action
 import Model.Id
-import Model.Volume
+import Model.Volume hiding (getVolume)
 import Model.Permission hiding (checkPermission)
 import Model.Record
 import Model.Category

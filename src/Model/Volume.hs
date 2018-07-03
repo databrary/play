@@ -8,7 +8,7 @@ module Model.Volume
     ( module Model.Volume.Types
     , coreVolume
     , lookupVolume
-    , getVolume2
+    , getVolume
     , LookupResult (..)
     , changeVolume
     , addVolume
@@ -61,12 +61,12 @@ data LookupResult a
 
 -- | Get a 'Volume', if it is available to the given 'Identity' with the desired
 -- 'Permission'.
-getVolume2
+getVolume
     :: (MonadDB c ctrl, MonadHasIdentity c ctrl)
     => Permission -- ^ Desired permission level
     -> Id Volume -- ^ Id of Volume to get
     -> ctrl (LookupResult Volume)
-getVolume2 reqestedPermission volId = do
+getVolume reqestedPermission volId = do
     mVol <- lookupVolume volId
     pure $ case mVol of
         Nothing -> LookupFailed

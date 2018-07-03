@@ -9,7 +9,7 @@ import Control.Invertible.Monoidal ((>|<))
 import qualified JSON as JSON
 import Model.Id
 import Model.Permission
-import Model.Volume
+import Model.Volume hiding (getVolume)
 import Model.Category
 import Model.Metric
 import Model.VolumeMetric

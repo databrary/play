@@ -11,7 +11,7 @@ import qualified Web.Route.Invertible as R
 import qualified JSON as JSON
 import Model.Id
 import Model.Permission
-import Model.Volume
+import Model.Volume hiding (getVolume)
 import Model.VolumeState
 import HTTP.Path.Parser
 import HTTP.Form.Deform

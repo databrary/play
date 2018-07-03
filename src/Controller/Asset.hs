@@ -40,7 +40,7 @@ import Model.Segment
 import Model.Permission
 import Model.Release
 import Model.Id
-import Model.Volume
+import Model.Volume hiding (getVolume)
 import Model.Container
 import Model.Token
 import Model.Format

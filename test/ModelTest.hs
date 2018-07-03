@@ -176,7 +176,7 @@ test_7 = Test.stepsWithTransaction "test_7" $ \step cn2 -> do
     mVol <-
         runWithNoIdent
             cn2
-            (getVolume2 PermissionREAD ((volumeId . volumeRow) vol))
+            (getVolume PermissionREAD ((volumeId . volumeRow) vol))
     mVol @?= LookupFailed
 
 -- <<<< more cases to handle variations of volume access and inheritance through authorization
@@ -196,7 +196,7 @@ test_8 = Test.stepsWithTransaction "test_8" $ \step cn2 -> do
     step "Then the lab B member can't view it"
     mVol <-
         runReaderT
-            (getVolume2 PermissionPUBLIC ((volumeId . volumeRow) createdVol))
+            (getVolume PermissionPUBLIC ((volumeId . volumeRow) createdVol))
             affCtxt
     mVol @?= LookupFailed
 
@@ -213,7 +213,7 @@ test_9 = Test.stepsWithTransaction "test_9" $ \step cn2 -> do
     step "Then their lab member with site access only can't view it"
     mVol <-
         runReaderT
-            (getVolume2 PermissionPUBLIC ((volumeId . volumeRow) vol))
+            (getVolume PermissionPUBLIC ((volumeId . volumeRow) vol))
             affCtxt
     mVol @?= LookupFailed
 
