@@ -5,6 +5,7 @@ module Controller.Tag
   , deleteTag
   ) where
 
+import qualified Data.Aeson as Aeson
 import Control.Monad (unless)
 import qualified Data.Text as T
 import Network.HTTP.Types (conflict409)
@@ -20,22 +21,26 @@ import Model.Slot
 import Model.Tag
 import Model.Notification.Types
 import Solr.Tag
-import HTTP.Form.Deform
+-- import HTTP.Form.Deform
 import HTTP.Path.Parser
 import Action.Run
 import Action
 import Controller.Paths
-import Controller.Form
+-- import Controller.Form
 import Controller.Permission
 import Controller.Slot
 import Controller.Notification
 
-_tagNameForm :: DeformHandler f TagName
-_tagNameForm = deformMaybe' "Invalid tag name." . validateTag =<< deform
+-- TODO: use validateTag after receiving string in url first, similar to below
+-- _tagNameForm :: DeformHandler f TagName
+-- _tagNameForm = deformMaybe' "Invalid tag name." . validateTag =<< deform
 
 queryTags :: ActionRoute (Maybe TagName)
 queryTags = action GET (pathJSON >/> "tags" >/> pathMaybe R.parameter) $ \t -> withoutAuth $
-  okResponse [] . JSON.toEncoding <$> termTags t 16
+  okResponse [] . Aeson.encode . unwrap . QueryTagsResponse <$> termTags t 16
+
+-- | Response body for queryTags
+newtype QueryTagsResponse = QueryTagsResponse { unwrap :: [TagName] }
 
 tagResponse :: API -> TagUse -> Handler Response
 tagResponse JSON t = okResponse [] . JSON.recordEncoding . tagCoverageJSON <$> lookupTagCoverage (useTag t) (containerSlot $ slotContainer $ tagSlot t)
