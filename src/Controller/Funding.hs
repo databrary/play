@@ -31,10 +31,13 @@ queryFunderHandler = withAuth $ do
   QueryFundersRequest q a <- runForm Nothing $ liftM2 QueryFundersRequest
     ("query" .:> (deformRequired =<< deform))
     ("all" .:> deform)
-  r <- if a
+  r <- QueryFunderResponse <$> if a
     then focusIO $ searchFundRef q
     else findFunders q
-  return $ okResponse [] $ JSON.mapObjects funderJSON r
+  return $ okResponse [] $ (JSON.mapObjects funderJSON . unwrap) r
+
+-- | Body of funder query response
+newtype QueryFunderResponse = QueryFunderResponse { unwrap :: [Funder] }
 
 data CreateOrUpdateVolumeFundingRequest =
     CreateOrUpdateVolumeFundingRequest [T.Text]
@@ -46,9 +49,12 @@ postVolumeFunding = action POST (pathJSON >/> pathId </> pathId) $ \(vi, fi) -> 
   CreateOrUpdateVolumeFundingRequest a <- runForm Nothing $ do
     csrfForm
     CreateOrUpdateVolumeFundingRequest <$> ("awards" .:> filter (not . T.null) <$> withSubDeforms (\_ -> deform))
-  let fa = Funding f a
+  let resp@(AddVolumeFundingResponse fa) = AddVolumeFundingResponse (Funding f a)
   _ <- changeVolumeFunding v fa
-  return $ okResponse [] $ JSON.pairs $ fundingJSON fa
+  return $ okResponse [] $ JSON.pairs $ (fundingJSON . avfUnwrap) resp
+
+-- | Body of add volume funding response
+newtype AddVolumeFundingResponse = AddVolumeFundingResponse { avfUnwrap :: Funding } 
 
 deleteVolumeFunder :: ActionRoute (Id Volume, Id Funder)
 deleteVolumeFunder = action DELETE (pathJSON >/> pathId </> pathId) $ \(vi, fi) -> withAuth $ do
