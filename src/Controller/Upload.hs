@@ -38,7 +38,7 @@ import Service.Log
 import Model.Id
 import Model.Identity (MonadHasIdentity)
 import Model.Permission
-import Model.Volume
+import Model.Volume hiding (getVolume)
 import Model.Format
 import Model.Token
 import Store.Upload
@@ -81,6 +81,9 @@ createUploadSetSize vol (UploadStartRequest filename size) = do
       closeFd
       (`setFdSize` COff size)
     pure tok
+
+-- TODO: use this very soon
+-- data UploadStartResponse = UploadStartResponse { unwrap :: Id Token }
 
 data UploadChunkRequest =
     UploadChunkRequest (Id Token) BS.ByteString Int64 Int64 Int64 Int64 Int64

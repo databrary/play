@@ -121,7 +121,6 @@ library
     Model.Notification
     Model.Funding.Types
     Model.Funding.FundRef
-    Model.Funding.SQL
     Model.Comment.Types
     Model.Release.Types
     Model.Release.SQL
@@ -550,7 +549,6 @@ test-suite discovered
     , Model.OffsetTest
     , Model.PaginateTest
     , Model.PartyTest
-    , Model.Party.TypesTest
     , Model.PermissionTest
     , Model.Permission.TypesTest
     , Model.RecordTest

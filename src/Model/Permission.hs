@@ -9,6 +9,9 @@ module Model.Permission
   , dataPermission4
   , canReadData2
   , accessJSON
+  -- * Checking permissioned objects
+  , checkPermission
+  , PermissionResponse (..)
   ) where
 
 import Data.Monoid ((<>))
@@ -69,3 +72,28 @@ accessJSON :: JSON.ToObject o => Access -> o
 accessJSON Access{..} =
      "site" JSON..= accessSite'
   <> "member" JSON..= accessMember'
+
+-- | Responses to 'checkPermission'
+data PermissionResponse a
+    = PermissionGranted a
+    -- ^ Whatever you wanted, you got it!
+    | PermissionDenied
+    -- ^ No.
+
+-- | Decorate some permissioned object with a permission response
+-- TODO: Wouldn't it be great if this had type
+-- @@Permissioned a -> Permission -> PermissionResponse a@@ ?
+--
+-- NB: This clashes with 'Controller.Permission.checkPermission', which it
+-- should replace.
+checkPermission
+    :: (a -> Permission) -- ^ Extract the object's permission rules
+    -> a -- ^ The object in question
+    -> Permission -- ^ The requested permission
+    -> PermissionResponse a
+    -- ^ The object decorated with the permission response
+checkPermission getGrantedPerms obj requestedPerms =
+    case compare (getGrantedPerms obj) requestedPerms of
+        LT -> PermissionDenied
+        GT -> PermissionGranted obj
+        EQ -> PermissionGranted obj

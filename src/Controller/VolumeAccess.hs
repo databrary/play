@@ -15,7 +15,7 @@ import qualified JSON as JSON
 import Model.Id
 import Model.Permission
 import Model.Identity
-import Model.Volume
+import Model.Volume hiding (getVolume)
 import Model.VolumeAccess
 import Model.Party
 import Model.Notification.Types

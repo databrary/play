@@ -42,9 +42,9 @@ import qualified JSON as JSON
 import Model.Asset (Asset)
 import Model.Enum
 import Model.Id
-import Model.Permission
+import Model.Permission hiding (checkPermission)
 import Model.Authorize
-import Model.Volume
+import Model.Volume hiding (getVolume)
 import Model.VolumeAccess
 import Model.Party
 import Model.Citation
@@ -78,12 +78,23 @@ import Controller.Web
 import {-# SOURCE #-} Controller.AssetSegment
 import Controller.Notification
 import View.Form (FormHtml)
+import qualified Model.Volume as Model
 
-getVolume :: Permission -> Id Volume -> Handler Volume
+-- | Convert 'Model.Volume' into HTTP error responses if the lookup fails or is
+-- denied.
+getVolume
+    :: Permission
+    -- ^ Requested permission
+    -> Id Volume
+    -- ^ Volume to look up
+    -> Handler Volume
+    -- ^ The volume, as requested (or a short-circuited error response)
 getVolume p i = do
-  mVol <- lookupVolume i
-  vol <- maybeAction mVol
-  checkPermission p vol
+  resp <- Model.getVolume p i
+  case resp of
+    LookupFailed -> result =<< peeks notFoundResponse
+    LookupDenied -> result =<< peeks forbiddenResponse
+    LookupFound v -> pure v
 
 data VolumeCache = VolumeCache
   { volumeCacheAccess :: Maybe [VolumeAccess]

@@ -21,8 +21,8 @@ import qualified Web.Route.Invertible as R
 import Has
 import qualified JSON as JSON
 import Model.Id
-import Model.Permission
-import Model.Volume
+import Model.Permission hiding (checkPermission)
+import Model.Volume hiding (getVolume)
 import Model.Container
 import Model.Segment
 import Model.Slot
@@ -45,7 +45,7 @@ import View.Form (FormHtml)
 getContainer :: Permission -> Maybe (Id Volume) -> Id Slot -> Bool -> Handler Container
 getContainer p mv (Id (SlotId i s)) top
   | segmentFull s = do
-    c <- checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . volumeId . volumeRow . containerVolume) mv =<< lookupContainer i
+    c <- checkPermissionOld p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . volumeId . volumeRow . containerVolume) mv =<< lookupContainer i
     unless top $ do
       t <- lookupVolumeTopContainer (containerVolume c)
       when (containerId (containerRow c) == containerId (containerRow t)) $ result =<< peeks notFoundResponse

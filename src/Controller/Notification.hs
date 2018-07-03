@@ -19,6 +19,7 @@ import Control.Applicative ((<|>))
 import Control.Concurrent (ThreadId, forkFinally, threadDelay)
 import Control.Concurrent.MVar (takeMVar, tryTakeMVar)
 import Control.Monad (join, when, void, forM_)
+import qualified Data.Aeson as Aeson
 import Data.Function (on)
 import Data.List (groupBy)
 import Data.Time.Clock (getCurrentTime, addUTCTime)
@@ -52,8 +53,12 @@ import View.Notification
 viewNotify :: ActionRoute ()
 viewNotify = action GET (pathJSON </< "notify") $ \() -> withAuth $ do
   u <- authAccount
-  n <- lookupAccountNotify u
-  return $ okResponse [] $ JSON.toEncoding n
+  n <- ViewNotifyResult <$> lookupAccountNotify u
+  return $ okResponse [] $ (Aeson.encode . unwrap) n
+
+-- TODO: change to [Delivery]
+-- | GET notify response body
+newtype ViewNotifyResult = ViewNotifyResult { unwrap :: NoticeMap Delivery }
 
 data UpdateNotifyRequest = UpdateNotifyRequest [Notice] (Maybe Delivery)
 

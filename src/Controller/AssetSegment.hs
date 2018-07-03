@@ -29,7 +29,7 @@ import Has (view, peeks)
 import qualified JSON as JSON
 import Files (fileInfo)
 import Model.Id
-import Model.Permission
+import Model.Permission hiding (checkPermission)
 import Model.Volume
 import Model.Slot
 import Model.Format
@@ -56,7 +56,7 @@ getAssetSegment :: Bool -> Permission -> Bool -> Maybe (Id Volume) -> Id Slot ->
 getAssetSegment getOrig p checkDataPerm mv s a = do
   mAssetSeg <- (if getOrig then lookupOrigSlotAssetSegment else lookupSlotAssetSegment) s a
   assetSeg <- maybeAction ((maybe id (\v -> mfilter $ (v ==) . view) mv) mAssetSeg)
-  void (checkPermission2 (extractPermissionIgnorePolicy . getAssetSegmentVolumePermission2) p assetSeg)
+  void (checkPermission (extractPermissionIgnorePolicy . getAssetSegmentVolumePermission2) p assetSeg)
   when checkDataPerm $ do
     -- TODO: delete
     -- liftIO $ print ("checking data perm", "as", assetSeg)

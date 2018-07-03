@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, FlexibleContexts #-}
+{-# LANGUAGE ViewPatterns #-}
 module ModelTest where
 
 import Control.Concurrent (threadDelay)
@@ -155,7 +156,7 @@ test_5 = Test.stepsWithTransaction "test_5" $ \step cn2 -> do
     step "When the AI attempts to authorize some party as a superadmin on db site"
     Just p <- runReaderT (lookupAuthParty ((partyId . partyRow) rootParty)) aiCtxt
     step "Then the attempt fails during the check for privileges on db site party"
-    -- guts of checkPermission2, as used by getParty and postAuthorize - <= ADMIN
+    -- guts of checkPermission, as used by getParty and postAuthorize - <= ADMIN
     partyPermission p @?= PermissionSHARED
 
 test_6 :: TestTree
@@ -168,7 +169,7 @@ test_6 = Test.stepsWithTransaction "test_6" $ \step cn2 -> do
     step "When affiliate attempts to authorize anybody to any other party"
     Just _ <- runReaderT (lookupAuthParty ((partyId . partyRow . accountParty) affAcct)) affCtxt
     step "Then the attempt fails during the check for privileges on the parent party"
-    -- guts of checkPermission2, as used by getParty and postAuthorize - <= ADMIN
+    -- guts of checkPermission, as used by getParty and postAuthorize - <= ADMIN
     -- FAILING - needs change in postAuthorize
     -- partyPermission p @?= PermissionEDIT
 
@@ -181,9 +182,29 @@ test_7 = Test.stepsWithTransaction "test_7" $ \step cn2 -> do
     -- TODO: should be lookup auth on rootParty
     vol <- runReaderT (addVolumeSetPrivate aiAcct) aiCtxt
     step "Then the public can't view it"
-    -- Implementation of getVolume PUBLIC
-    mVolForAnon <- runWithNoIdent cn2 (lookupVolume ((volumeId . volumeRow) vol))
-    mVolForAnon @?= Nothing
+    mVol <-
+        runWithNoIdent
+            cn2
+            (getVolume PermissionREAD ((volumeId . volumeRow) vol))
+    mVol @?= LookupFailed
+
+volWithId :: Volume -> (Id Volume, Volume)
+volWithId v = (volumeId (volumeRow v), v)
+
+test_7_accessOwnVolume :: TestTree
+test_7_accessOwnVolume = Test.stepsWithTransaction "can access own volume" $ \step cn2 -> do
+    step "Given an authorized investigator"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    step "When the AI creates a private volume"
+    -- TODO: should be lookup auth on rootParty
+    (volId, _) <- volWithId <$> runReaderT (addVolumeSetPrivate aiAcct) aiCtxt
+    step "Then the AI can view it"
+    mVol <- runReaderT (getVolume PermissionREAD volId) aiCtxt
+    case mVol of
+        -- FIXME: vol' is not equal to vol.
+        LookupFound (volWithId -> (volId', _)) -> volId' @?= volId
+        LookupFailed -> assertFailure "Lookup failed"
+        LookupDenied -> assertFailure "Lookup denied"
 
 -- <<<< more cases to handle variations of volume access and inheritance through authorization
 
@@ -200,9 +221,11 @@ test_8 = Test.stepsWithTransaction "test_8" $ \step cn2 -> do
     -- TODO: should be lookup auth on rootParty
     createdVol <- runReaderT (addVolumeSetPrivate aiAcct) aiCtxt
     step "Then the lab B member can't view it"
-    -- Implementation of getVolume PUBLIC
-    mVolForAff <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) affCtxt
-    mVolForAff @?= Nothing
+    mVol <-
+        runReaderT
+            (getVolume PermissionPUBLIC ((volumeId . volumeRow) createdVol))
+            affCtxt
+    mVol @?= LookupFailed
 
 test_9 :: TestTree
 test_9 = Test.stepsWithTransaction "test_9" $ \step cn2 -> do
@@ -215,9 +238,11 @@ test_9 = Test.stepsWithTransaction "test_9" $ \step cn2 -> do
     -- TODO: should be lookup auth on rootParty
     vol <- runReaderT (addVolumeSetPrivate aiAcct) aiCtxt
     step "Then their lab member with site access only can't view it"
-    -- Implementation of getVolume PUBLIC
-    mVolForAff <- runReaderT (lookupVolume ((volumeId . volumeRow) vol)) affCtxt
-    mVolForAff @?= Nothing
+    mVol <-
+        runReaderT
+            (getVolume PermissionPUBLIC ((volumeId . volumeRow) vol))
+            affCtxt
+    mVol @?= LookupFailed
 
 test_10 :: TestTree
 test_10 = Test.stepsWithTransaction "test_10" $ \step cn2 -> do
@@ -228,9 +253,23 @@ test_10 = Test.stepsWithTransaction "test_10" $ \step cn2 -> do
     -- TODO: should be lookup auth on rootParty
     createdVol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt -- partially shared, but effectively same as public
     step "Then the lab B AI can't add volume acccess"
-    -- Implementation of getVolume as used by postVolumeAccess
+    -- FIXME: Hard to express properly with the confusion between permissions
+    -- and roles.
     Just volForAI2 <- runReaderT (lookupVolume ((volumeId . volumeRow) createdVol)) aiCtxt2
     volumeRolePolicy volForAI2 @?= RoleSharedViewer SharedRestrictedPolicy
+
+test_10_1 :: TestTree
+test_10_1 = Test.stepsWithTransaction "Denied elevated access" $ \step cn2 -> do
+    step "Given an authorized investigator for some lab A and an authorized investigator for lab B"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    (_, aiCtxt2) <- addAuthorizedInvestigatorWithInstitution' cn2
+    step "When the lab A AI creates a public volume"
+    -- TODO: should be lookup auth on rootParty
+    -- NB: partially shared, but effectively same as public
+    (volId, _) <- volWithId <$> runReaderT (addVolumeWithAccess aiAcct) aiCtxt
+    step "Then the lab B AI can't access it with edit privileges"
+    mVol <- runReaderT (getVolume PermissionEDIT volId) aiCtxt2
+    mVol @?= LookupDenied
 
 ----- container ----
 test_11 :: TestTree

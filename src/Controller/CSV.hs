@@ -19,7 +19,7 @@ import Network.HTTP.Types (hContentType)
 
 import Model.Id
 import Model.Permission
-import Model.Volume
+import Model.Volume hiding (getVolume)
 import Model.Container
 import Model.Record
 import Model.Category

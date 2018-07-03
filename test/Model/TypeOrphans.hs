@@ -14,12 +14,13 @@ import Model.Metric.Types
 import Model.ORCID
 import Model.Paginate
 import Model.Party.Types
-import Model.Permission.Types
+import Model.Permission
 import Model.Release.Types
 import Model.Record.Types
 import Model.Slot.Types
 import Model.Tag.Types
 import Model.Volume.Types
+import Model.Volume (LookupResult (..))
 
 deriving instance Show Age
 
@@ -93,3 +94,8 @@ deriving instance Show Volume
 deriving instance Eq VolumeRow
 deriving instance Show VolumeRow
 
+deriving instance Show a => Show (LookupResult a)
+deriving instance Eq a => Eq (LookupResult a)
+
+deriving instance Show a => Show (PermissionResponse a)
+deriving instance Eq a => Eq (PermissionResponse a)

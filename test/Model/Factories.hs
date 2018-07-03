@@ -167,7 +167,7 @@ genPartySimple :: Gen Party
 genPartySimple = do
    let gPerm = pure PermissionPUBLIC
    let gAccess = pure Nothing
-   p <- Party <$> genPartyRowSimple <*> pure Nothing <*> gPerm <*> gAccess
+   p <- Party <$> genPartyRowSimple <*> pure Nothing <*> pure Nothing <*> gPerm <*> gAccess
    a <- Account <$> genAccountEmail <*> pure p
    (let p2 = p { partyAccount = Just a2 } -- account expected below
         a2 = a { accountParty = p2 }

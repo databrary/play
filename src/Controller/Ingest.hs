@@ -43,7 +43,7 @@ import Model.Measure
 import Model.Metric
 import Model.Party
 import Model.Record
-import Model.Volume
+import Model.Volume hiding (getVolume)
 import Model.VolumeMetric
 import Model.Container
 import Ingest.Action

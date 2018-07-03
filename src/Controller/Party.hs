@@ -35,7 +35,7 @@ import Has
 import qualified JSON as JSON
 import Model.Enum
 import Model.Id
-import Model.Permission
+import Model.Permission hiding (checkPermission)
 import Model.Release
 import Model.Party
 import Model.ORCID
@@ -69,7 +69,7 @@ getParty
   -> PartyTarget
   -> Handler Party
 getParty (Just p) (TargetParty i) =
-  (\party -> checkPermission2 partyPermission p party) =<< maybeAction =<< lookupAuthParty i
+  (\party -> checkPermission partyPermission p party) =<< maybeAction =<< lookupAuthParty i
 getParty _ mi = do
   u <- accountParty <$> authAccount
   let isme TargetProfile = True
@@ -251,13 +251,14 @@ partySearchForm = PartyFilter
   <*> ("institution" .:> deformNonEmpty deform)
   <*> paginateForm
 
+-- | Handle route to find parties by the provided PartyFilter.
 queryParties :: ActionRoute API
 queryParties = action GET (pathAPI </< "party") $ \api -> withAuth $ do
   when (api == HTML) angular
   pf <- runForm ((api == HTML) `thenUse` (htmlPartySearch mempty [])) partySearchForm
   p <- findParties pf
   case api of
-    JSON -> return $ okResponse [] $ JSON.mapRecords partyJSON p
+    JSON -> return $ okResponse [] $ (JSON.encode . fmap toFormattedParty) p
     HTML -> peeks $ blankForm . htmlPartySearch pf p
 
 adminParties :: ActionRoute ()
