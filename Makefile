@@ -59,7 +59,7 @@ cabal-build: ; $(nix-shell) --run 'cabal -j new-build --disable-optimization'
 # Dump splices and list the newly creates dump files.
 splices:
 	$(nix-shell) --run 'cabal -j new-build lib:databrary --ghc-options "-ddump-splices -ddump-to-file"'
-	-find dist-newstyle -name '*.dump-splices' -mmin -10
+	@find dist-newstyle -name '*.dump-splices' -mmin -10
 .PHONY: splices
 
 ##
