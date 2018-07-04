@@ -10,12 +10,10 @@ module Model.Citation.SQL
   , deleteVolumeLink
   ) where
 
-import qualified Data.Text as T
 import qualified Language.Haskell.TH as TH
 
 import Model.SQL.Select
 import Model.Audit.SQL
-import Model.Volume.Types
 import Model.Volume.SQL
 import Model.Citation.Types
 

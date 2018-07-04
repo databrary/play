@@ -1,8 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 module Store.Transcoder
   ( runTranscoder
   , initTranscoder
   , transcodeEnabled
+  -- * Replacing initTranscoder
+  , initTranscoder2
+  , TranscodeConfig (..)
   ) where
 
 import Data.Maybe (isJust)
@@ -18,6 +22,30 @@ runTranscoder :: Transcoder -> [String] -> IO (ExitCode, String, String)
 runTranscoder (Transcoder cmd arg) args =
   readProcessWithExitCode cmd (arg ++ args) ""
 
+data TranscodeConfig = TranscodeConfig
+    { transcodeHost :: Maybe String
+    , transcodeDir :: Maybe String
+    , transcodeMount :: Maybe String
+    }
+
+initTranscoder2 :: TranscodeConfig -> IO (Maybe Transcoder)
+initTranscoder2 TranscodeConfig {..} = case (transcodeHost, transcodeDir) of
+    (Nothing, Nothing) -> return Nothing
+    _ -> Just <$> do
+        cmd <- getDataFileName "transctl.sh"
+        let t =
+                Transcoder cmd
+                    $ ["-v", showVersion version]
+                    ++ maybe [] (\d -> ["-d", d]) transcodeDir
+                    ++ maybe [] (\h -> ["-h", h]) transcodeHost
+                    ++ maybe [] (\m -> ["-m", m]) transcodeMount
+        (r, out, err) <- runTranscoder t ["-t"]
+        case r of
+            ExitSuccess -> return t
+            ExitFailure e ->
+                fail $ "initTranscoder test: " ++ show e ++ "\n" ++ out ++ err
+
+{-# DEPRECATED initTranscoder "Gradually being replaced by initTranscoder2" #-}
 initTranscoder :: C.Config -> IO (Maybe Transcoder)
 initTranscoder conf =
   case (host, dir) of
