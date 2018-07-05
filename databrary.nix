@@ -82,6 +82,7 @@ in
     attoparsec
     base
     cookie
+    directory
     hedgehog
     hspec-expectations
     http-types

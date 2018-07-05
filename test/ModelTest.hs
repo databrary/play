@@ -61,6 +61,7 @@ import Solr.Index (updateIndex)
 import Solr.Search
 import Solr.Service (initSolr, finiSolr)
 import Store.CSV (buildCSV)
+import Store.Types
 import qualified Store.Config as C
 -- import Store.Asset
 -- import Store.AV
@@ -68,6 +69,8 @@ import Store.Probe
 import Store.Transcode
 import Paths_databrary (getDataFileName)
 import TestHarness as Test
+import System.Directory (copyFile)
+import System.Posix.FilePath ((</>))
 
 test_1 :: TestTree
 test_1 = Test.stepsWithTransaction "test_1" $ \step cn2 -> do
@@ -332,11 +335,12 @@ test_12b = localOption NoTimeout $ Test.stepsWithResourceAndTransaction "test_12
             let aiCtxt4 = withTimestamp (UTCTime (fromGregorian 2017 5 6) (secondsToDiffTime 0)) aiCtxt3
             aiCtxt5 <- withLogs aiCtxt4
             let aiCtxt6 = withInternalStateVal ist aiCtxt5
+                rpath = storageUpload storage </> "small.webm"
+            flip copyFile (BSC.unpack rpath) =<< getDataFileName "test/data/small.webm"
             foundAsset <- runReaderT
                 (do
                     (a, _) <- Gen.sample (genCreateAssetAfterUpload vol)
                     let a' = a { assetRow = (assetRow a) { assetRelease = Just ReleasePUBLIC, assetFormat = (fromJust . getFormatByExtension) "webm" } }
-                    rpath <- liftIO (BSC.pack <$> getDataFileName "test/data/small.webm") -- TODO: touch timestamp to trigger new file
                     Right probe <- probeFile "small.webm" rpath
                     savedAsset <- addAsset a' (Just rpath)
                     let assetWithName = savedAsset { assetRow = (assetRow savedAsset) { assetName = Just "small.webm" } }

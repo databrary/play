@@ -298,7 +298,7 @@ withStorage2 = do
         (mkdtemp (userTmpDir </> "databrary-storage-fixture-"))
         removeDirectory
     -- initStorage and initTranscoder expect these to exist.
-    (liftIO  . mapM_ (flip createDirectory 0755 . (dir </>)))
+    (liftIO  . mapM_ (flip createDirectory 0o755 . (dir </>)))
         ["tmp", "stage", "upload", "trans", "cache"]
     let tc = initTranscoder2 TranscodeConfig
             { transcodeHost = Nothing
