@@ -87,6 +87,7 @@ in
     http-types
     mtl
     range-set-list
+    posix-paths
     tasty-discover
     tasty-expected-failure
     tasty-hedgehog

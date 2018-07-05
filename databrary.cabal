@@ -483,6 +483,7 @@ test-suite discovered
     , mtl
     , network-uri
     , postgresql-typed
+    , posix-paths
     , process
     , range-set-list
     , resourcet
