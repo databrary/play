@@ -9,9 +9,12 @@ module Model.Citation
   ) where
 
 import qualified Data.ByteString
+import Data.ByteString (concat)
 --import Data.ByteString (ByteString)
 import qualified Data.String
+import Data.String (fromString)
 import Database.PostgreSQL.Typed.Types
+import Database.PostgreSQL.Typed.Query
 
 import Has (peek, view)
 import Service.DB

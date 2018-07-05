@@ -36,6 +36,7 @@ import Model.Asset
 import Model.Audit (MonadAudit)
 import Model.Authorize
 import Model.Category
+import Model.Citation
 import Model.Container
 -- import Model.Container.TypesTest
 import Model.Factories
@@ -470,6 +471,42 @@ test_15 = Test.stepsWithTransaction "test_15" $ \step cn2 -> do
           <> (BSLC.pack . Data.Maybe.maybe "" T.unpack . containerName . containerRow) cntr <> ","
           <> ",\n")
 
+test_15b :: TestTree
+test_15b = Test.stepsWithTransaction "test_15b" $ \step cn2 -> do
+    step "Given a created volume"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    -- TODO: should be lookup auth on rootParty
+    v <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
+    step "When a link is added to the volume"
+    link <- Gen.sample genVolumeLink
+    runReaderT (changeVolumeLinks v [link]) aiCtxt
+    step "Then one can view the link"
+    volLinks <- runWithNoIdent cn2 (lookupVolumeLinks v)
+    volLinks @?= [link]
+
+test_15c :: TestTree
+test_15c = Test.stepsWithTransaction "test_15c" $ \step cn2 -> do
+    step "Given a created volume with a link"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    -- TODO: should be lookup auth on rootParty
+    link <- Gen.sample genVolumeLink
+    (v, [loadedLink]) <- runReaderT
+        (do
+            v <- addVolumeWithAccess aiAcct
+            changeVolumeLinks v [link]
+            ls <- lookupVolumeLinks v
+            pure (v, ls))
+        aiCtxt
+    step "When the link is changed and removed"
+    step "Then one can see each change"
+    let link2 = loadedLink { citationHead = "name corrected" }
+    runReaderT (changeVolumeLinks v [link2]) aiCtxt -- TODO: test for ezid update for changed link in ezid test
+    volLinks <- runWithNoIdent cn2 (lookupVolumeLinks v)
+    volLinks @?= [link2]
+    runReaderT (changeVolumeLinks v []) aiCtxt
+    volLinks2 <- runWithNoIdent cn2 (lookupVolumeLinks v)
+    volLinks2 @?= []
+
 ------- search -------------
 test_16 :: TestTree
 test_16 = ignoreTest $ -- TODO: enable this inside of nix build with solr binaries and core installed in precheck
@@ -501,12 +538,23 @@ test_17 :: TestTree
 test_17 = localOption (mkTimeout (15 * 10^(6 :: Int))) $ Test.stepsWithResourceAndTransaction "test_17" $ \step ist cn2 -> do
     step "Given an authorized investigator"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
-    step "When the AI creates a partially shared volume and the ezid generation runs"
+    step "When the AI creates a partially shared volume"
+    step "and add data that will be indexed with ezid"
+    step "and the ezid generation runs"
     -- TODO: should be lookup auth on rootParty
-    vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
+    vol <- runReaderT
+        (do
+            v <- addVolumeWithAccess aiAcct
+            l <- liftIO (Gen.sample genVolumeLink)
+            changeVolumeLinks v [l]
+            pure v
+        )
+        aiCtxt
+    -- updateEZID
+    -- type EZIDM a = CookiesT (ReaderT EZIDContext IO) a
     bctx <- mkBackgroundContext ForEzid ist cn2
     mEzidWasUp <- runReaderT updateEZID bctx
-    step "Then the volume will have a valid doi"
+    step "Then the volume will have a valid doi" -- TODO; and ezid will expose registered info somehow?
     mEzidWasUp @?= Just True  -- Nothing = ezid not initialized; Just False = initalized, but down
     Just _vol' <- runReaderT (lookupVolume ((volumeId . volumeRow) vol)) aiCtxt
     -- let Just doi = (volumeDOI . volumeRow) vol'

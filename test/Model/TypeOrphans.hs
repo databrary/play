@@ -7,6 +7,7 @@ import Model.Asset.Types
 import Model.AssetSegment.Types
 import Model.AssetSlot.Types
 import Model.Container.Types
+import Model.Citation.Types
 import Model.Format.Types
 import Model.Funding.Types
 import Model.GeoNames
@@ -35,6 +36,9 @@ deriving instance Show AssetSegment
 
 deriving instance Eq ContainerRow
 deriving instance Show ContainerRow
+
+deriving instance Eq Citation
+deriving instance Show Citation
 
 deriving instance Eq ParticipantFieldMapping2
 deriving instance Show ParticipantFieldMapping2
