@@ -28,9 +28,33 @@ import Model.Citation.Types
 import Model.Citation.SQL
 import Model.Volume.SQL
 
+$(useTDB)
+
 lookupVolumeCitation :: (MonadDB c m) => Volume -> m (Maybe Citation)
-lookupVolumeCitation vol =
-  dbQuery1 $ fmap ($ Just (volumeName $ volumeRow vol)) $(selectQuery selectVolumeCitation "WHERE volume_citation.volume = ${volumeId $ volumeRow vol}")
+lookupVolumeCitation vol = do
+  let _tenv_aAhX = unknownPGTypeEnv
+  mRow <- dbQuery1 -- $ fmap ($ Just (volumeName $ volumeRow vol)) $(selectQuery selectVolumeCitation "WHERE volume_citation.volume = ${volumeId $ volumeRow vol}")
+   (mapQuery2 
+      ((\ _p_aAhY ->
+                       (Data.ByteString.concat
+                          [fromString
+                             "SELECT volume_citation.head,volume_citation.url,volume_citation.year FROM volume_citation WHERE volume_citation.volume = ",
+                           pgEscapeParameter
+                             _tenv_aAhX (PGTypeProxy :: PGTypeName "integer") _p_aAhY]))
+         (volumeId $ volumeRow vol))
+               (\[_chead_aAhZ, _curl_aAi0, _cyear_aAi1]
+                  -> (pgDecodeColumnNotNull
+                        _tenv_aAhX (PGTypeProxy :: PGTypeName "text") _chead_aAhZ, 
+                      pgDecodeColumn
+                        _tenv_aAhX (PGTypeProxy :: PGTypeName "text") _curl_aAi0, 
+                      pgDecodeColumn
+                        _tenv_aAhX (PGTypeProxy :: PGTypeName "smallint") _cyear_aAi1)))
+  pure
+   (fmap ($ Just (volumeName $ volumeRow vol))
+     (fmap
+      (\ (vhead_aAhJ, vurl_aAhK, vyear_aAhL)
+         -> Citation vhead_aAhJ vurl_aAhK vyear_aAhL)
+      mRow))
 
 lookupVolumesCitations :: (MonadDB c m, MonadHasIdentity c m) => m [(Volume, Maybe Citation)]
 lookupVolumesCitations = do
