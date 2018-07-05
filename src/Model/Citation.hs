@@ -200,5 +200,52 @@ changeVolumeLinks :: (MonadAudit c m) => Volume -> [Citation] -> m ()
 changeVolumeLinks vol links = do
   ident <- getAuditIdentity
   dbTransaction $ do
-    _ <- dbExecute $(deleteVolumeLink 'ident 'vol)
-    mapM_ (\link -> dbExecute $(insertVolumeLink 'ident 'vol 'link)) links
+    let _tenv_aAlq = unknownPGTypeEnv
+    let _tenv_aAm1 = unknownPGTypeEnv
+    _ <- dbExecute -- (deleteVolumeLink 'ident 'vol)
+     (mapQuery2
+       ((\ _p_aAlr _p_aAls _p_aAlt ->
+                    (Data.ByteString.concat
+                       [fromString
+                          "WITH audit_row AS (DELETE FROM volume_link WHERE volume=",
+                        pgEscapeParameter
+                          _tenv_aAlq (PGTypeProxy :: PGTypeName "integer") _p_aAlr,
+                        fromString
+                          " RETURNING *) INSERT INTO audit.volume_link SELECT CURRENT_TIMESTAMP, ",
+                        pgEscapeParameter
+                          _tenv_aAlq (PGTypeProxy :: PGTypeName "integer") _p_aAls,
+                        fromString ", ",
+                        pgEscapeParameter
+                          _tenv_aAlq (PGTypeProxy :: PGTypeName "inet") _p_aAlt,
+                        fromString ", 'remove'::audit.action, * FROM audit_row"]))
+       (volumeId $ volumeRow vol) (auditWho ident) (auditIp ident))
+       (\[] -> ()))
+    mapM_ (\link -> dbExecute -- (insertVolumeLink 'ident 'vol 'link)
+       (mapQuery2
+         ((\ _p_aAm2 _p_aAm3 _p_aAm4 _p_aAm5 _p_aAm6 ->
+                         (Data.ByteString.concat
+                            [fromString
+                               "WITH audit_row AS (INSERT INTO volume_link (volume,head,url) VALUES (",
+                             pgEscapeParameter
+                               _tenv_aAm1 (PGTypeProxy :: PGTypeName "integer") _p_aAm2,
+                             fromString ",",
+                             pgEscapeParameter
+                               _tenv_aAm1 (PGTypeProxy :: PGTypeName "text") _p_aAm3,
+                             fromString ",",
+                             pgEscapeParameter
+                               _tenv_aAm1 (PGTypeProxy :: PGTypeName "text") _p_aAm4,
+                             fromString
+                               ") RETURNING *) INSERT INTO audit.volume_link SELECT CURRENT_TIMESTAMP, ",
+                             pgEscapeParameter
+                               _tenv_aAm1 (PGTypeProxy :: PGTypeName "integer") _p_aAm5,
+                             fromString ", ",
+                             pgEscapeParameter
+                               _tenv_aAm1 (PGTypeProxy :: PGTypeName "inet") _p_aAm6,
+                             fromString ", 'add'::audit.action, * FROM audit_row"]))
+           (volumeId $ volumeRow vol)
+           (citationHead link)
+           (citationURL link)
+           (auditWho ident)
+           (auditIp ident))
+                 (\[] -> ())))
+       links
