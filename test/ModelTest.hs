@@ -33,6 +33,7 @@ import Model.Asset
 import Model.Audit (MonadAudit)
 import Model.Authorize
 import Model.Category
+import Model.Citation
 import Model.Container
 -- import Model.Container.TypesTest
 import Model.Factories
@@ -461,6 +462,19 @@ test_15 = Test.stepsWithTransaction "test_15" $ \step cn2 -> do
          <> (BSLC.pack . show . containerId . containerRow) cntr <> ","
           <> (BSLC.pack . Data.Maybe.maybe "" T.unpack . containerName . containerRow) cntr <> ","
           <> ",\n")
+
+test_15b :: TestTree
+test_15b = Test.stepsWithTransaction "test_15b" $ \step cn2 -> do
+    step "Given a created volume"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    -- TODO: should be lookup auth on rootParty
+    v <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
+    step "When a link is added to the volume"
+    link <- Gen.sample genVolumeLink
+    runReaderT (changeVolumeLinks v [link]) aiCtxt
+    step "Then one can view the link"
+    volLinks <- runWithNoIdent cn2 (lookupVolumeLinks v)
+    volLinks @?= [link]
 
 ------- search -------------
 test_16 :: TestTree
