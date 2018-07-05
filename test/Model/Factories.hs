@@ -235,6 +235,9 @@ genVolumeBody = Gen.text (Range.constant 0 300) Gen.alphaNum
 genVolumeAlias :: Gen Text
 genVolumeAlias = Gen.text (Range.constant 0 60) Gen.alphaNum
 
+-- citation only uses head, url, and year fields of citation; start with a doi like 10.1145/2897518.2897542 which get site converts to hdl,
+--   hdl result example: hdl:10.1145/2897518.2897542
+
 {-
 genVolumeDOI :: Gen BS.ByteString
 genVolumeDOI = pure "10.17910/B7159Q" -- TODO: good generator for this?
