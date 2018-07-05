@@ -164,8 +164,27 @@ lookupVolumesCitations = do
       rows)
 
 lookupVolumeLinks :: (MonadDB c m) => Volume -> m [Citation]
-lookupVolumeLinks vol =
-  dbQuery $(selectQuery selectVolumeLink "WHERE volume_link.volume = ${volumeId $ volumeRow vol}")
+lookupVolumeLinks vol = do
+  let _tenv_aAiJ = unknownPGTypeEnv
+  rows <- dbQuery -- (selectQuery selectVolumeLink "WHERE volume_link.volume = ${volumeId $ volumeRow vol}")
+   (mapQuery2
+      ((\ _p_aAiK ->
+                       (Data.ByteString.concat
+                          [fromString
+                             "SELECT volume_link.head,volume_link.url FROM volume_link WHERE volume_link.volume = ",
+                           pgEscapeParameter
+                             _tenv_aAiJ (PGTypeProxy :: PGTypeName "integer") _p_aAiK]))
+         (volumeId $ volumeRow vol))
+               (\ [_chead_aAiL, _curl_aAiM]
+                  -> (pgDecodeColumnNotNull
+                        _tenv_aAiJ (PGTypeProxy :: PGTypeName "text") _chead_aAiL, 
+                      pgDecodeColumnNotNull
+                        _tenv_aAiJ (PGTypeProxy :: PGTypeName "text") _curl_aAiM)))
+  pure
+    (fmap
+      (\ (vhead_aAiH, vurl_aAiI)
+         -> Citation vhead_aAiH vurl_aAiI Nothing Nothing)
+      rows)
 
 changeVolumeCitation :: (MonadAudit c m) => Volume -> Maybe Citation -> m Bool
 changeVolumeCitation vol citem = do
