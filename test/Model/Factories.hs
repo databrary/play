@@ -17,6 +17,7 @@ import Network.URI
 import Model.Age
 import Model.Asset
 import Model.Category
+import Model.Citation.Types
 import Model.Container
 import Model.Format
 import Model.GeoNames
@@ -58,7 +59,7 @@ genGeneralURI :: Gen URI
 genGeneralURI = do
     domain <- Gen.string (Range.constant 1 20) Gen.alphaNum
     pathSeg1 <- Gen.string (Range.constant 1 20) Gen.alphaNum -- TODO: generate multiple segs, allowed chars?
-    scheme1 <- Gen.element ["http", "https"]
+    scheme1 <- Gen.element ["http:", "https:"]
     pure
         (nullURI {
               uriScheme = scheme1
@@ -417,8 +418,16 @@ genCreateRecord vol = do
 -- funding
 ----- genCreateVolumeFunding :: Gen Funding
 -- links
------ genVolumeLink :: Volume -> Gen Citation
-
+genVolumeLink :: Gen Citation
+genVolumeLink =
+    -- TODO: use real generators below
+    -- TODO: some repetition from postVolumeLinks form parsing, create blankLink function
+    -- TODO: pass the link name into the URI generator
+    Citation
+        <$> Gen.text (Range.constant 0 50) Gen.alpha
+        <*> (Just <$> genGeneralURI)
+        <*> pure Nothing
+        <*> pure Nothing
 
 
 -- notification
