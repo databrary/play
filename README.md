@@ -1,5 +1,16 @@
 # Databrary 
 
+## Demo
+
+Go for a test drive on http://dev1.databrary.org:8000/. We are excited to have your attention and interest.
+1. Login as test@databrary.org / unastan54
+2. Click on "Testarosa Tesla", in the upper right corner, and select "Create Volume"
+3. Select "No" at the bottom of the page and enter some text in boxes provided
+4. Click on the "Enter Data" tab
+5. Click on "add folder", enter a test date, e.g. "01/02/2017"
+6. Scroll to the top of the page and click the "eye" icon, to switch to view mode
+
+
 ## Testing, Requirements, Implementation Documentation
 
 |            | docs  |
