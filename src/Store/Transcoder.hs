@@ -43,7 +43,13 @@ initTranscoder2 TranscodeConfig {..} = case (transcodeHost, transcodeDir) of
         case r of
             ExitSuccess -> return t
             ExitFailure e ->
-                fail $ "initTranscoder test: " ++ show e ++ "\n" ++ out ++ err
+                fail
+                    ("initTranscoder test: "
+                    ++ show e
+                    ++ "\n=== STDOUT ===\n"
+                    ++ out
+                    ++ "\n=== STDERR ===\n"
+                    ++ err)
 
 {-# DEPRECATED initTranscoder "Gradually being replaced by initTranscoder2" #-}
 initTranscoder :: C.Config -> IO (Maybe Transcoder)
@@ -60,7 +66,14 @@ initTranscoder conf =
       (r, out, err) <- runTranscoder t ["-t"]
       case r of
         ExitSuccess -> return t
-        ExitFailure e -> fail $ "initTranscoder test: " ++ show e ++ "\n" ++ out ++ err
+        ExitFailure e ->
+            fail
+                ("initTranscoder test: "
+                ++ show e
+                ++ "\n=== STDOUT ===\n"
+                ++ out
+                ++ "\n=== STDERR ===\n"
+                ++ err)
   where
   host = conf C.! "host"
   dir = conf C.! "dir"

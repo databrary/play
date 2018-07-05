@@ -9,6 +9,10 @@ escape() {
 	done
 }
 
+warn () {
+	>&2 echo "$@"
+}
+
 cmd=`dirname $0`/transcode
 
 if [[ ! -f $cmd ]] ; then
@@ -37,6 +41,7 @@ hcmd=./transcode${version:+-$version}
 
 if [[ -n $test ]] ; then
 	if [[ -z $dir ]] ; then
+                # NOT REACHED: getopts will have already thrown an error.
 		false
 	elif [[ -n $host ]] ; then
 		ssh "$host" test -d "$dir"
@@ -47,7 +52,11 @@ if [[ -n $test ]] ; then
 			rsync -p "$cmd" "$host:$hcmd"
 		fi
 	else
-		test -d "$dir"
+		if ! test -d "$dir"
+                then
+                    warn "$0: $dir does not exist"
+                    false
+                fi
 	fi
 	exit $?
 fi
