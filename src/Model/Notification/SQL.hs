@@ -23,7 +23,7 @@ import Model.Segment
 import Model.Asset.Types
 import Model.Tag.Types
 import Model.Tag.SQL
-import Model.Comment.Types
+-- import Model.Comment.Types
 import Model.Notification.Types
 
 selectNotifyDelivery :: Selector
@@ -40,11 +40,11 @@ selectPartyAuthorizationNotify ident = selectJoin 'makePartyAuthorizationNotice
     selectNotifyDelivery
   ]
 
-makeNotification :: Id Notification -> Notice -> Timestamp -> Delivery -> Maybe Permission -> Maybe (Id Container) -> Maybe Segment -> Maybe (Id Asset) -> Maybe Release -> Maybe (Id Comment) -> PartyRow -> Maybe PartyRow -> Maybe VolumeRow -> Maybe Tag -> Account -> Notification
-makeNotification i n t d e c s a r m w p v g u = Notification i (view u) n t d w p v e c s a r m g
+makeNotification :: Id Notification -> Notice -> Timestamp -> Delivery -> Maybe Permission -> Maybe (Id Container) -> Maybe Segment -> Maybe (Id Asset) -> Maybe Release {- -> Maybe (Id Comment) -} -> PartyRow -> Maybe PartyRow -> Maybe VolumeRow -> Maybe Tag -> Account -> Notification
+makeNotification i n t d e c s a r w p v g u = Notification i (view u) n t d w p v e c s a r g
 
 notificationRow :: Selector -- ^ @'PartyRow' -> Maybe 'PartyRow' -> Maybe 'VolumeRow' -> Maybe 'Tag' -> 'Account' -> 'Notification'@
-notificationRow = selectColumns 'makeNotification "notification" ["id", "notice", "time", "delivered", "permission", "container", "segment", "asset", "release", "comment"]
+notificationRow = selectColumns 'makeNotification "notification" ["id", "notice", "time", "delivered", "permission", "container", "segment", "asset", "release"]
 
 selectTargetNotification :: Selector -- ^ @'Account' -> 'Notification'@
 selectTargetNotification = selectJoin '($)

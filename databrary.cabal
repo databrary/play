@@ -79,7 +79,7 @@ library
     Model.AssetSegment
     Model.Excerpt
     Model.VolumeMetric
-    Model.Comment
+    -- Model.Comment
     Model.Token
     Model.Slot
     Model.Category.Types
@@ -121,7 +121,7 @@ library
     Model.Notification
     Model.Funding.Types
     Model.Funding.FundRef
-    Model.Comment.Types
+    -- Model.Comment.Types
     Model.Release.Types
     Model.Release.SQL
     Model.Asset
@@ -530,7 +530,7 @@ test-suite discovered
     , Model.AuthorizeTest
     , Model.Category.TypesTest
     , Model.Citation.CrossRefTest
-    , Model.Comment.TypesTest
+    -- , Model.Comment.TypesTest
     , Model.Container.TypesTest
     , Model.EnumTest
     , Model.Factories

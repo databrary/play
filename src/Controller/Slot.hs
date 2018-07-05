@@ -29,7 +29,7 @@ import Model.Excerpt
 import Model.Record
 import Model.RecordSlot
 import Model.Tag
-import Model.Comment
+-- import Model.Comment
 import Store.Filename
 import HTTP.Path.Parser
 import Action
@@ -57,9 +57,11 @@ slotJSONField _ o "records" _ =  -- recordJSON should decide public restricted b
 slotJSONField _ o "tags" n = do
   tc <- lookupSlotTagCoverage o (maybe 64 fst $ BSC.readInt =<< n)
   return $ Just $ JSON.pairs $ JSON.recordMap $ map tagCoverageJSON tc
+{-
 slotJSONField _ o "comments" n = do
   c <- lookupSlotComments o (maybe 64 fst $ BSC.readInt =<< n)
   return $ Just $ JSON.mapRecords commentJSON c
+-}
 slotJSONField _ o "excerpts" _ =
   Just . JSON.mapObjects (\e -> excerptJSON e <> "asset" JSON..= (view e :: Id Asset)) <$> lookupSlotExcerpts o
 slotJSONField _ o "filename" _ =

@@ -45,7 +45,7 @@ import Model.Record.Types
 import Model.RecordSlot
 import Model.Measure
 import Model.Tag
-import Model.Comment
+-- import Model.Comment
 import Context
 import Solr.Service
 import Solr.Document
@@ -150,6 +150,7 @@ solrTagUse vi TagUseRow{ useTagRow = Tag{..}, tagRowSlotId = SlotId{..}, ..} = S
   , solrPartyId = tagRowWhoId
   }
 
+{-
 solrComment :: Id Volume -> CommentRow -> SolrDocument
 solrComment vi CommentRow{ commentRowSlotId = SlotId{..}, ..} = SolrComment
   { solrId = BSC.pack $ "comment_" <> show commentRowId
@@ -161,6 +162,7 @@ solrComment vi CommentRow{ commentRowSlotId = SlotId{..}, ..} = SolrComment
   , solrPartyId = commentRowWhoId
   , solrBody = Just commentRowText
   }
+-}
 
 -- type SolrM a = ReaderT BackgroundContext (InvertM BS.ByteString) a
 
@@ -195,7 +197,7 @@ writeVolume (v, vc) = do
   writeDocuments . map solrExcerpt =<< lookupVolumeExcerpts v
   writeDocuments . map solrRecord . joinContainers RecordSlot cl =<< lookupVolumeRecordSlotIds v
   writeDocuments . map (solrTagUse (volumeId $ volumeRow v)) =<< lookupVolumeTagUseRows v
-  writeDocuments . map (solrComment (volumeId $ volumeRow v)) =<< lookupVolumeCommentRows v
+  -- writeDocuments . map (solrComment (volumeId $ volumeRow v)) =<< lookupVolumeCommentRows v
 
 writeAllDocuments :: ReaderT SolrIndexingContext (InvertM BS.ByteString) ()
 writeAllDocuments = do

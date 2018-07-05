@@ -13,7 +13,7 @@ import Model.Volume.Types
 import Model.Container.Types
 import Model.Segment
 import Model.Asset.Types
-import Model.Comment.Types
+-- import Model.Comment.Types
 import Model.Tag.Types
 import Model.Permission.Types
 import Model.Release.Types
@@ -35,7 +35,7 @@ data Notification = Notification
   , notificationSegment :: Maybe Segment
   , notificationAssetId :: Maybe (Id Asset)
   , notificationRelease :: Maybe Release
-  , notificationCommentId :: Maybe (Id Comment)
+  -- , notificationCommentId :: Maybe (Id Comment)
   , notificationTag :: Maybe Tag
   }
 
@@ -57,6 +57,6 @@ blankNotification target notice = Notification
   , notificationSegment = Nothing
   , notificationAssetId = Nothing
   , notificationRelease = Nothing
-  , notificationCommentId = Nothing
+  -- , notificationCommentId = Nothing
   , notificationTag = Nothing
   }
