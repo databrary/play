@@ -256,7 +256,7 @@ jsRoutes =
   , rt "\"uploadChunk\":{method:\"POST\",route:function(){return \"/api/upload\";}},"
   -- , jsRoute "uploadChunk" uploadChunk ()
 
-  , rt "\"postComment\":{method:\"POST\",route:function(int320,segment1){return \"/api/slot/\"+int320+\"/\"+segment1+\"/comment\";}},"
+  -- , rt "\"postComment\":{method:\"POST\",route:function(int320,segment1){return \"/api/slot/\"+int320+\"/\"+segment1+\"/comment\";}},"
   -- , jsRoute "postComment" postComment (slot)
   , rt "\"getTags\":{method:\"GET\",route:function(tagName0){return \"/api/tags/\"+tagName0+\"\";}},"
   -- , jsRoute "getTags" queryTags (Just tag)

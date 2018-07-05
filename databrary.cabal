@@ -249,7 +249,7 @@ library
     Controller.Activity
     Controller.AssetSegment
     Controller.Excerpt
-    Controller.Comment
+    -- Controller.Comment
     Controller.Token
     Controller.Slot
     Controller.Web
