@@ -146,7 +146,6 @@ library
     Model.Record
     Model.Citation.CrossRef
     Model.Citation.Types
-    Model.Citation.SQL
     Model.Stats.Types
     Model.AssetRevision.Types
     Model.VolumeState

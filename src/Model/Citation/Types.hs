@@ -16,8 +16,11 @@ import Model.Volume.Types
 data Citation = Citation
   { citationHead :: T.Text
   , citationURL :: Maybe URI
-  , citationYear :: Maybe Int16
-  , citationTitle :: Maybe T.Text
+  , citationYear :: Maybe Int16 -- ^ The year of the published work that this volume is connected to.
+                                -- This field doesn't apply to general links added to a volume.
+  , citationTitle :: Maybe T.Text -- ^ When the Citation is a link to a published version of this volume,
+                                  -- then this value is the volume's title. This field doesn't apply to general
+                                  -- links added to a volume
   }
 
 makeVolumeCitation :: Volume -> Maybe (Maybe T.Text -> Citation) -> (Volume, Maybe Citation)
