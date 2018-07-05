@@ -507,14 +507,23 @@ test_17 :: TestTree
 test_17 = localOption (mkTimeout (10 * 10^(6 :: Int))) $ Test.stepsWithResourceAndTransaction "test_17" $ \step ist cn2 -> do
     step "Given an authorized investigator"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
-    step "When the AI creates a partially shared volume and the ezid generation runs"
+    step "When the AI creates a partially shared volume"
+    step "and add data that will be indexed with ezid"
+    step "and the ezid generation runs"
     -- TODO: should be lookup auth on rootParty
-    vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
+    vol <- runReaderT
+        (do
+            v <- addVolumeWithAccess aiAcct
+            l <- liftIO (Gen.sample genVolumeLink)
+            changeVolumeLinks v [l]
+            pure v
+        )
+        aiCtxt
     -- updateEZID
     -- type EZIDM a = CookiesT (ReaderT EZIDContext IO) a
     bctx <- mkBackgroundContext ForEzid ist cn2
     mEzidWasUp <- runReaderT updateEZID bctx
-    step "Then the volume will have a valid doi"
+    step "Then the volume will have a valid doi" -- TODO; and ezid will expose registered info somehow?
     mEzidWasUp @?= Just True  -- Nothing = ezid not initialized; Just False = initalized, but down
     Just _vol' <- runReaderT (lookupVolume ((volumeId . volumeRow) vol)) aiCtxt
     -- let Just doi = (volumeDOI . volumeRow) vol'
