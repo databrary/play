@@ -91,7 +91,7 @@ let
           (drv.libraryHaskellDepends or [])
            ++
              (with self;
-               [ghcid cabal-install ghciDatabrary
+               [cabal-install ghciDatabrary
                # for ghci-databrary script
                wget cpio nodePackages.shell.nodeDependencies]);
       });
