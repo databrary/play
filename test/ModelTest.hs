@@ -63,6 +63,7 @@ import Model.VolumeAccess
 -- import Model.VolumeAccess.TypesTest
 import Service.DB (DBConn, MonadDB)
 import Service.Entropy (initEntropy)
+import Service.Mail (initMailer)
 import Service.Messages (loadMessages)
 import Service.Types (Secret(..))
 import Solr.Index (updateIndex)
@@ -620,10 +621,16 @@ test_19 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransactio
                 { notificationParty = Just $ partyRow $ accountParty $ siteAccount auth })
         aiCtxt2
     noIdentNotifyCtxt <-
-        (\n m l -> (mkDbContext cn2) { ctxNotifications = Just n, ctxMessages = Just m, ctxLogs = Just l })
+        (\n m l ml -> (mkDbContext cn2) {
+                ctxNotifications = Just n
+              , ctxMessages = Just m
+              , ctxLogs = Just l
+              , ctxMailer = Just ml
+              })
             <$> mkNotificationsStub
             <*> loadMessages
             <*> mkLogsStub
+            <*> pure initMailer
     _ <- runReaderT (emitNotifications (periodicDelivery Nothing)) noIdentNotifyCtxt -- should this use runNotifier instead?
     -- NOTE: this test depends on mailtrap and might become sensitive to rate limits
     step "Then the investigator gets a notification about the change"

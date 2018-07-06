@@ -17,6 +17,7 @@ import Store.Types (Storage)
 import Store.AV (AV)
 import Service.Passwd (Passwd)
 import Service.Log (Logs)
+import Service.Mail (Mailer)
 import Service.Messages (Messages)
 import Web.Types (Web)
 import Static.Service (Static)
@@ -35,6 +36,7 @@ data Service = Service
   , serviceEntropy :: !Entropy
   , servicePasswd :: !Passwd
   , serviceLogs :: !Logs
+  , serviceMailer :: !Mailer
   , serviceMessages :: !Messages
   , serviceDB :: !DBPool
   , serviceStorage :: Storage -- may be down
@@ -60,6 +62,8 @@ instance Has Passwd Service where
   view = servicePasswd
 instance Has Logs Service where
   view = serviceLogs
+instance Has Mailer Service where
+  view = serviceMailer
 instance Has Messages Service where
   view = serviceMessages
 -- instance Has DBPool Service where

@@ -69,6 +69,7 @@ import Model.Token
 import Service.DB
 import Service.Entropy
 import Service.Log
+import Service.Mail (initMailer, Mailer)
 import Service.Messages (loadMessages, Messages)
 import Service.Notification (initNotifications, Notifications)
 import Service.Passwd (initPasswd)
@@ -122,6 +123,7 @@ mkBackgroundContext ctxtFor ist cn =
     in do
     conf <- C.load "databrary.conf"
     logs <- initLogs (conf C.! "log")
+    mailer <- pure initMailer
     httpc <- initHTTPClient
     (solr, ezid) <- case ctxtFor of
           ForEzid -> do
@@ -142,6 +144,7 @@ mkBackgroundContext ctxtFor ist cn =
                       , serviceEntropy = stubEntropy
                       , servicePasswd = stubPasswd
                       , serviceLogs = logs
+                      , serviceMailer = mailer
                       , serviceMessages = stubMessages
                       , serviceDB = stubDb
                       , serviceStorage = stubStorage
@@ -185,6 +188,8 @@ data TestContext = TestContext
     -- ^ for MonadStorage
     , ctxSolr :: Maybe Solr
     -- ^ for MonadSolr
+    , ctxMailer :: Maybe Mailer
+    -- ^ for MonadMail
     , ctxInternalState :: Maybe InternalState
     , ctxIdentity :: Maybe Identity
     , ctxSiteAuth :: Maybe SiteAuth
@@ -205,6 +210,7 @@ blankContext = TestContext
     , ctxConn = Nothing
     , ctxStorage = Nothing
     , ctxSolr = Nothing
+    , ctxMailer = Nothing
     , ctxInternalState = Nothing
     , ctxIdentity = Nothing
     , ctxSiteAuth = Nothing
@@ -226,6 +232,7 @@ addCntxt c1 c2 =
         , ctxConn = ctxConn c1 <|> ctxConn c2
         , ctxStorage = ctxStorage c1 <|> ctxStorage c2
         , ctxSolr = ctxSolr c1 <|> ctxSolr c2
+        , ctxMailer = ctxMailer c1 <|> ctxMailer c2
         , ctxInternalState = ctxInternalState c1 <|> ctxInternalState c2
         , ctxIdentity = ctxIdentity c1 <|> ctxIdentity c2
         , ctxSiteAuth = ctxSiteAuth c1 <|> ctxSiteAuth c2
@@ -269,6 +276,9 @@ instance Has Timestamp TestContext where
 
 instance Has Logs TestContext where
     view = fromJust . ctxLogs
+
+instance Has Mailer TestContext where
+    view = fromJust . ctxMailer
 
 instance Has HTTPClient TestContext where
     view = fromJust . ctxHttpClient
