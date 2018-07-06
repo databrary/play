@@ -395,13 +395,30 @@ genParticipantMetricValue :: Gen (Metric, BS.ByteString)
 genParticipantMetricValue =
     Gen.choice [genBirthdateMeasure, genGenderMeasure]
 
-genCreateMeasure :: Gen Measure
+genCreateMeasure :: Gen Measure -- TODO: don't use this
 genCreateMeasure = do
     (mtrc, val) <- genParticipantMetricValue
     Measure
         <$> (pure . error) "measure record not set yet"
         <*> pure mtrc
         <*> pure val
+
+genCreateGenderMeasure :: Gen Measure
+genCreateGenderMeasure = do
+    (mtrc, val) <- genGenderMeasure
+    Measure
+        <$> (pure . error) "measure record not set yet"
+        <*> pure mtrc
+        <*> pure val
+
+genCreateBirthdateMeasure :: Gen Measure
+genCreateBirthdateMeasure = do
+    (mtrc, val) <- genBirthdateMeasure
+    Measure
+        <$> (pure . error) "measure record not set yet"
+        <*> pure mtrc
+        <*> pure val
+
 -- record
 genCreateRecord :: Volume -> Gen Record
 genCreateRecord vol = do

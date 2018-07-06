@@ -424,7 +424,7 @@ test_14 = Test.stepsWithTransaction "test_14" $ \step cn2 -> do
     rid <- runReaderT
          (do
               v <- addVolumeWithAccess aiAcct
-              (someMeasure, someMeasure2) <- (,) <$> Gen.sample genCreateMeasure <*> Gen.sample genCreateMeasure
+              (someMeasure, someMeasure2) <- (,) <$> Gen.sample genCreateGenderMeasure <*> Gen.sample genCreateBirthdateMeasure
               addParticipantRecordWithMeasures v [someMeasure, someMeasure2])
          aiCtxt
     step "When the public attempts to view the record"
@@ -443,7 +443,7 @@ test_14b = Test.stepsWithTransaction "test_14b" $ \step cn2 -> do
     step "and add one record"
     rid <- runReaderT
          (do
-              (someMeasure, someMeasure2) <- (,) <$> Gen.sample genCreateMeasure <*> Gen.sample genCreateMeasure
+              (someMeasure, someMeasure2) <- (,) <$> Gen.sample genCreateGenderMeasure <*> Gen.sample genCreateBirthdateMeasure
               addParticipantRecordWithMeasures vol [someMeasure, someMeasure2])
          aiCtxt
     step "Then one can view the record under the volume"
@@ -460,29 +460,36 @@ test_14c = Test.stepsWithTransaction "test_14c" $ \step cn2 -> do
     (_, vol) <- runReaderT
          (do
               vol <- addVolumeWithAccess aiAcct
-              (someMeasure, someMeasure2) <- (,) <$> Gen.sample genCreateMeasure <*> Gen.sample genCreateMeasure
-              rid <- addParticipantRecordWithMeasures vol [someMeasure, someMeasure2]
+              someMeasure <- Gen.sample genCreateGenderMeasure
+              rid <- addParticipantRecordWithMeasures vol [someMeasure]
               pure (rid, vol))
          aiCtxt
-    step "When one adds a measure"
-    step "and one changes a measure"
-    step "and one deletes a measure"
-    step "and one removes the record"  -- Assumes record hasn't been connected to a container slot
-    step "Then one can view each change"
+    step "When one changes a measure"
+    _ <- runReaderT
+        (do
+            [[m1]] <- fmap recordMeasures <$> lookupVolumeRecords vol
+            changeRecordMeasure m1 { measureDatum = "Female" })
+        aiCtxt
+    step "Then one sees the updated measure"
+    [rcrd3] <- runWithNoIdent cn2 (lookupVolumeRecords vol)
+    (fmap measureDatum . recordMeasures) rcrd3 @?= ["Female"]
+    step "When one deletes a measure"
     deletedMeasure <- runReaderT
         (do
-            [rcrd] <- lookupVolumeRecords vol
-            let m1:_ = recordMeasures rcrd
-            removeRecordMeasure m1 { measureDatum = "" }
+            [[m1]] <- fmap recordMeasures <$> lookupVolumeRecords vol
+            _ <- removeRecordMeasure m1 { measureDatum = "" }
             pure m1)
         aiCtxt
+    step "Then one doesn't see the measure when viewing"
     [rcrd0] <- runWithNoIdent cn2 (lookupVolumeRecords vol)
     measureMetric deletedMeasure `notElem` (fmap measureMetric . recordMeasures) rcrd0 @? "expected measure removed"
+    step "When one removes the record"  -- Assumes record hasn't been connected to a container slot
     _ <- runReaderT
         (do
             [rcrd] <- lookupVolumeRecords vol
             removeRecord rcrd)
         aiCtxt
+    step "Then one doesn't see the record on the volume"
     -- TODO: duplicates volumJSONField "records"
     rs <- runWithNoIdent cn2 (lookupVolumeRecords vol)
     fmap recordRow rs @?= []
