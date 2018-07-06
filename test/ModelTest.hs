@@ -452,6 +452,29 @@ test_14b = Test.stepsWithTransaction "test_14b" $ \step cn2 -> do
     rid @?= (recordId . recordRow) rcrd
     -- TODO: check measure type + values, check category
 
+test_14c :: TestTree
+test_14c = Test.stepsWithTransaction "test_14c" $ \step cn2 -> do
+    step "Given a volume record"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    -- TODO: should be lookup auth on rootParty
+    (_, vol) <- runReaderT
+         (do
+              vol <- addVolumeWithAccess aiAcct
+              (someMeasure, someMeasure2) <- (,) <$> Gen.sample genCreateMeasure <*> Gen.sample genCreateMeasure
+              rid <- addParticipantRecordWithMeasures vol [someMeasure, someMeasure2]
+              pure (rid, vol))
+         aiCtxt
+    step "When one adds a measure"
+    step "and one changes a measure"
+    step "and one deletes a measure"
+    step "and one removes the record"
+    [rcrd] <- runWithNoIdent cn2 (lookupVolumeRecords vol)
+    _ <- runReaderT (removeRecord rcrd) aiCtxt
+    step "Then one can view each change"
+    -- TODO: based off of volumJSONField "records"
+    rs <- runWithNoIdent cn2 (lookupVolumeRecords vol)
+    fmap recordRow rs @?= []
+
 ------ miscellaneous -----
 test_15 :: TestTree
 test_15 = Test.stepsWithTransaction "test_15" $ \step cn2 -> do
