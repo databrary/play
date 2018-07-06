@@ -433,7 +433,7 @@ test_14 = Test.stepsWithTransaction "test_14" $ \step cn2 -> do
     step "Then the public can't see the restricted measures like birthdate"
     (participantMetricBirthdate `notElem` (fmap measureMetric . getRecordMeasures) rcrdForAnon) @? "Expected birthdate to be removed"
 
-test_14b :: TestTree
+test_14b :: TestTree -- TODO: should record tests only test viewing under recordslot?
 test_14b = Test.stepsWithTransaction "test_14b" $ \step cn2 -> do
     step "Given a volume"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
@@ -447,7 +447,7 @@ test_14b = Test.stepsWithTransaction "test_14b" $ \step cn2 -> do
               addParticipantRecordWithMeasures vol [someMeasure, someMeasure2])
          aiCtxt
     step "Then one can view the record under the volume"
-    -- TODO: based off of volumJSONField "records"
+    -- TODO: duplicates volumJSONField "records"
     [rcrd] <- runWithNoIdent cn2 (lookupVolumeRecords vol) -- TODO: don't fail when there is noise from other records
     rid @?= (recordId . recordRow) rcrd
     -- TODO: check measure type + values, check category
@@ -467,11 +467,23 @@ test_14c = Test.stepsWithTransaction "test_14c" $ \step cn2 -> do
     step "When one adds a measure"
     step "and one changes a measure"
     step "and one deletes a measure"
-    step "and one removes the record"
-    [rcrd] <- runWithNoIdent cn2 (lookupVolumeRecords vol)
-    _ <- runReaderT (removeRecord rcrd) aiCtxt
+    step "and one removes the record"  -- Assumes record hasn't been connected to a container slot
     step "Then one can view each change"
-    -- TODO: based off of volumJSONField "records"
+    deletedMeasure <- runReaderT
+        (do
+            [rcrd] <- lookupVolumeRecords vol
+            let m1:_ = recordMeasures rcrd
+            removeRecordMeasure m1 { measureDatum = "" }
+            pure m1)
+        aiCtxt
+    [rcrd0] <- runWithNoIdent cn2 (lookupVolumeRecords vol)
+    measureMetric deletedMeasure `notElem` (fmap measureMetric . recordMeasures) rcrd0 @? "expected measure removed"
+    _ <- runReaderT
+        (do
+            [rcrd] <- lookupVolumeRecords vol
+            removeRecord rcrd)
+        aiCtxt
+    -- TODO: duplicates volumJSONField "records"
     rs <- runWithNoIdent cn2 (lookupVolumeRecords vol)
     fmap recordRow rs @?= []
 
