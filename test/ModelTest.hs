@@ -433,6 +433,25 @@ test_14 = Test.stepsWithTransaction "test_14" $ \step cn2 -> do
     step "Then the public can't see the restricted measures like birthdate"
     (participantMetricBirthdate `notElem` (fmap measureMetric . getRecordMeasures) rcrdForAnon) @? "Expected birthdate to be removed"
 
+test_14b :: TestTree
+test_14b = Test.stepsWithTransaction "test_14b" $ \step cn2 -> do
+    step "Given a volume"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    -- TODO: should be lookup auth on rootParty
+    vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
+    step "When you define a record's fields"
+    step "and add one record"
+    rid <- runReaderT
+         (do
+              (someMeasure, someMeasure2) <- (,) <$> Gen.sample genCreateMeasure <*> Gen.sample genCreateMeasure
+              addParticipantRecordWithMeasures vol [someMeasure, someMeasure2])
+         aiCtxt
+    step "Then one can view the record under the volume"
+    -- TODO: based off of volumJSONField "records"
+    [rcrd] <- runWithNoIdent cn2 (lookupVolumeRecords vol) -- TODO: don't fail when there is noise from other records
+    rid @?= (recordId . recordRow) rcrd
+    -- TODO: check measure type + values, check category
+
 ------ miscellaneous -----
 test_15 :: TestTree
 test_15 = Test.stepsWithTransaction "test_15" $ \step cn2 -> do
