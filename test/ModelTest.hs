@@ -56,6 +56,7 @@ import Model.Transcode
 import Model.Volume
 import Model.VolumeAccess
 -- import Model.VolumeAccess.TypesTest
+import Model.VolumeMetric
 import Service.DB (DBConn, MonadDB)
 import Service.Types (Secret(..))
 import Solr.Index (updateIndex)
@@ -408,6 +409,7 @@ test_13 = Test.stepsWithTransaction "test_13" $ \step cn2 -> do
     rid <- runReaderT
          (do
               v <- addVolumeSetPrivate aiAcct
+              _ <- addVolumeCategory v (categoryId participantCategory)
               addParticipantRecordWithMeasures v [])
          aiCtxt
     step "When the public attempts to view the record"
@@ -425,6 +427,7 @@ test_14 = Test.stepsWithTransaction "test_14" $ \step cn2 -> do
          (do
               v <- addVolumeWithAccess aiAcct
               (someMeasure, someMeasure2) <- (,) <$> Gen.sample genCreateGenderMeasure <*> Gen.sample genCreateBirthdateMeasure
+              defineVolumeParticipantMetrics v (fmap measureMetric [someMeasure, someMeasure2])
               addParticipantRecordWithMeasures v [someMeasure, someMeasure2])
          aiCtxt
     step "When the public attempts to view the record"
@@ -444,6 +447,7 @@ test_14b = Test.stepsWithTransaction "test_14b" $ \step cn2 -> do
     rid <- runReaderT
          (do
               (someMeasure, someMeasure2) <- (,) <$> Gen.sample genCreateGenderMeasure <*> Gen.sample genCreateBirthdateMeasure
+              defineVolumeParticipantMetrics vol (fmap measureMetric [someMeasure, someMeasure2])
               addParticipantRecordWithMeasures vol [someMeasure, someMeasure2])
          aiCtxt
     step "Then one can view the record under the volume"
@@ -461,6 +465,7 @@ test_14c = Test.stepsWithTransaction "test_14c" $ \step cn2 -> do
          (do
               vol <- addVolumeWithAccess aiAcct
               someMeasure <- Gen.sample genCreateGenderMeasure
+              defineVolumeParticipantMetrics vol [measureMetric someMeasure]
               rid <- addParticipantRecordWithMeasures vol [someMeasure]
               pure (rid, vol))
          aiCtxt
@@ -473,7 +478,7 @@ test_14c = Test.stepsWithTransaction "test_14c" $ \step cn2 -> do
     step "Then one sees the updated measure"
     [rcrd3] <- runWithNoIdent cn2 (lookupVolumeRecords vol)
     (fmap measureDatum . recordMeasures) rcrd3 @?= ["Female"]
-    step "When one deletes a measure"
+    step "When one deletes a measure" -- any restrictions on deleting when volume metric exists?
     deletedMeasure <- runReaderT
         (do
             [[m1]] <- fmap recordMeasures <$> lookupVolumeRecords vol
@@ -685,6 +690,13 @@ mkContainer v mRel mDate = do
            , containerVolume = v
            , containerRow = (containerRow c) { containerDate = mDate }
            })
+
+defineVolumeParticipantMetrics :: (MonadDB c m) => Volume -> [Metric] -> m ()
+defineVolumeParticipantMetrics vol metrics = do
+    -- should use add category + remove metric for each not used
+    forM_
+        metrics
+        (\m -> removeVolumeMetric vol (metricId m))
 
 addParticipantRecordWithMeasures :: (MonadAudit c m) => Volume -> [Measure] -> m (Id Record)
 addParticipantRecordWithMeasures v measures = do
