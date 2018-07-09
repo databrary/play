@@ -8,13 +8,9 @@ module Model.Citation
   , changeVolumeLinks
   ) where
 
--- import qualified Data.ByteString
 import Data.ByteString (concat)
---import Data.ByteString (ByteString)
--- import qualified Data.String
 import Data.String (fromString)
 import Database.PostgreSQL.Typed.Types
--- import Database.PostgreSQL.Typed.Query
 
 import Has (peek, view)
 import Service.DB
@@ -25,15 +21,12 @@ import Model.Identity.Types
 import Model.Party.Types
 import Model.Volume.Types
 import Model.Citation.Types
--- import Model.Citation.SQL
 import Model.Volume.SQL
-
--- $(useTDB)
 
 lookupVolumeCitation :: (MonadDB c m) => Volume -> m (Maybe Citation)
 lookupVolumeCitation vol = do
   let _tenv_aAhX = unknownPGTypeEnv
-  mRow <- dbQuery1 -- $ fmap ($ Just (volumeName $ volumeRow vol)) $(selectQuery selectVolumeCitation "WHERE volume_citation.volume = ${volumeId $ volumeRow vol}")
+  mRow <- dbQuery1 -- . fmap ($ Just (volumeName $ volumeRow vol)) $(selectQuery selectVolumeCitation "WHERE volume_citation.volume = ${volumeId $ volumeRow vol}")
    (mapQuery2 
       ((\ _p_aAhY ->
                        (Data.ByteString.concat
