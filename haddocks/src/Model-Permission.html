@@ -101,8 +101,8 @@
 <a name="line-92"></a>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Permission</span> <span class='hs-comment'>-- ^ The requested permission</span>
 <a name="line-93"></a>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PermissionResponse</span> <span class='hs-varid'>a</span>
 <a name="line-94"></a>    <span class='hs-comment'>-- ^ The object decorated with the permission response</span>
-<a name="line-95"></a><span class='hs-definition'>checkPermission</span> <span class='hs-varid'>getRequiredPerm</span> <span class='hs-varid'>obj</span> <span class='hs-varid'>requested</span> <span class='hs-keyglyph'>=</span>
-<a name="line-96"></a>    <span class='hs-keyword'>case</span> <span class='hs-varid'>compare</span> <span class='hs-varid'>requested</span> <span class='hs-layout'>(</span><span class='hs-varid'>getRequiredPerm</span> <span class='hs-varid'>obj</span><span class='hs-layout'>)</span> <span class='hs-keyword'>of</span>
+<a name="line-95"></a><span class='hs-definition'>checkPermission</span> <span class='hs-varid'>getGrantedPerms</span> <span class='hs-varid'>obj</span> <span class='hs-varid'>requestedPerms</span> <span class='hs-keyglyph'>=</span>
+<a name="line-96"></a>    <span class='hs-keyword'>case</span> <span class='hs-varid'>compare</span> <span class='hs-layout'>(</span><span class='hs-varid'>getGrantedPerms</span> <span class='hs-varid'>obj</span><span class='hs-layout'>)</span> <span class='hs-varid'>requestedPerms</span> <span class='hs-keyword'>of</span>
 <a name="line-97"></a>        <span class='hs-conid'>LT</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PermissionDenied</span>
 <a name="line-98"></a>        <span class='hs-conid'>GT</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PermissionGranted</span> <span class='hs-varid'>obj</span>
 <a name="line-99"></a>        <span class='hs-conid'>EQ</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PermissionGranted</span> <span class='hs-varid'>obj</span>

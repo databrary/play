@@ -57,116 +57,125 @@ span.spaces    { background: white }
 <span class="lineno">   41 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">partyRow</span></span></span> :: !PartyRow
 <span class="lineno">   42 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">partyAccount</span></span></span> :: Maybe Account
 <span class="lineno">   43 </span>  -- , partySiteAccess :: Access -- site-level access this party is granted under root (currently SiteAuth only)
-<span class="lineno">   44 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">partyPermission</span></span></span> :: Permission -- ^ permission current user has over this party
-<span class="lineno">   45 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">partyAccess</span></span></span> :: Maybe Access -- ^ direct authorization this party has granted to current user
-<span class="lineno">   46 </span>  }
-<span class="lineno">   47 </span>
-<span class="lineno">   48 </span>data Account = Account
-<span class="lineno">   49 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">accountEmail</span></span></span> :: BS.ByteString
-<span class="lineno">   50 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">accountParty</span></span></span> :: Party
-<span class="lineno">   51 </span>  }
-<span class="lineno">   52 </span>
-<span class="lineno">   53 </span>instance Has (Id Party) Party where
-<span class="lineno">   54 </span>  <span class="decl"><span class="istickedoff">view = getPartyId</span></span>
-<span class="lineno">   55 </span>getPartyId :: Party -&gt; Id Party
-<span class="lineno">   56 </span><span class="decl"><span class="istickedoff">getPartyId = partyId . partyRow</span></span>
-<span class="lineno">   57 </span>instance Has Party Account where
-<span class="lineno">   58 </span>  <span class="decl"><span class="nottickedoff">view = accountParty</span></span>
-<span class="lineno">   59 </span>instance Has (Id Party) Account where
-<span class="lineno">   60 </span>  <span class="decl"><span class="istickedoff">view = (getPartyId . accountParty)</span></span>
-<span class="lineno">   61 </span>
-<span class="lineno">   62 </span>instance Has Access Party where
-<span class="lineno">   63 </span>  <span class="decl"><span class="nottickedoff">view Party{ partyAccess = Just a } = a</span>
-<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">view _ = mempty</span></span>
-<span class="lineno">   65 </span>
-<span class="lineno">   66 </span>instance Kinded Party where
-<span class="lineno">   67 </span>  <span class="decl"><span class="nottickedoff">kindOf _ = &quot;party&quot;</span></span>
-<span class="lineno">   68 </span>
-<span class="lineno">   69 </span>-- | TODO: clarify. This is not necessarily a session, but... some user (human
-<span class="lineno">   70 </span>-- being) who has been granted access to the site. There is a corner case
-<span class="lineno">   71 </span>-- indirection because sometimes a job runs a human being.
-<span class="lineno">   72 </span>data SiteAuth = SiteAuth
-<span class="lineno">   73 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">siteAccount</span></span></span> :: Account -- ^ maybe should be Party (for nobody)
-<span class="lineno">   74 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">accountPasswd</span></span></span> :: Maybe BS.ByteString
-<span class="lineno">   75 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">siteAccess</span></span></span> :: Access -- ^ Still figuring out what an 'Access' is.
-<span class="lineno">   76 </span>  }
-<span class="lineno">   77 </span>
-<span class="lineno">   78 </span>instance Has Account SiteAuth where
-<span class="lineno">   79 </span>  <span class="decl"><span class="nottickedoff">view = siteAccount</span></span>
-<span class="lineno">   80 </span>instance Has Party SiteAuth where
-<span class="lineno">   81 </span>  <span class="decl"><span class="nottickedoff">view = (view . siteAccount)</span></span>
-<span class="lineno">   82 </span>instance Has (Id Party) SiteAuth where
-<span class="lineno">   83 </span>  <span class="decl"><span class="istickedoff">view = (view . siteAccount)</span></span>
-<span class="lineno">   84 </span>instance Has Access SiteAuth where
-<span class="lineno">   85 </span>  <span class="decl"><span class="istickedoff">view = siteAccess</span></span>
-<span class="lineno">   86 </span>
-<span class="lineno">   87 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLiftMany [''PartyRow, ''Party, ''Account]</span></span></span></span></span></span></span>
+<span class="lineno">   44 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">partySiteAccess</span></span></span> :: !(Maybe Permission) -- ^ site-level data access this party is granted under root.
+<span class="lineno">   45 </span>                                           -- Maybe is an indication of whether this value was loaded only.
+<span class="lineno">   46 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">partyPermission</span></span></span> :: Permission -- ^ permission current user has over this party
+<span class="lineno">   47 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">partyAccess</span></span></span> :: Maybe Access -- ^ direct authorization this party has granted to current user
+<span class="lineno">   48 </span>  }
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>data Account = Account
+<span class="lineno">   51 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">accountEmail</span></span></span> :: BS.ByteString
+<span class="lineno">   52 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">accountParty</span></span></span> :: Party
+<span class="lineno">   53 </span>  }
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>instance Has (Id Party) Party where
+<span class="lineno">   56 </span>  <span class="decl"><span class="istickedoff">view = getPartyId</span></span>
+<span class="lineno">   57 </span>getPartyId :: Party -&gt; Id Party
+<span class="lineno">   58 </span><span class="decl"><span class="istickedoff">getPartyId = partyId . partyRow</span></span>
+<span class="lineno">   59 </span>instance Has Party Account where
+<span class="lineno">   60 </span>  <span class="decl"><span class="nottickedoff">view = accountParty</span></span>
+<span class="lineno">   61 </span>instance Has (Id Party) Account where
+<span class="lineno">   62 </span>  <span class="decl"><span class="istickedoff">view = (getPartyId . accountParty)</span></span>
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>instance Has Access Party where
+<span class="lineno">   65 </span>  <span class="decl"><span class="nottickedoff">view Party{ partyAccess = Just a } = a</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="nottickedoff">view _ = mempty</span></span>
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>instance Kinded Party where
+<span class="lineno">   69 </span>  <span class="decl"><span class="nottickedoff">kindOf _ = &quot;party&quot;</span></span>
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>-- | TODO: clarify. This is not necessarily a session, but... some user (human
+<span class="lineno">   72 </span>-- being) who has been granted access to the site. There is a corner case
+<span class="lineno">   73 </span>-- indirection because sometimes a job runs a human being.
+<span class="lineno">   74 </span>data SiteAuth = SiteAuth
+<span class="lineno">   75 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">siteAccount</span></span></span> :: Account -- ^ maybe should be Party (for nobody)
+<span class="lineno">   76 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">accountPasswd</span></span></span> :: Maybe BS.ByteString
+<span class="lineno">   77 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">siteAccess</span></span></span> :: Access -- ^ Still figuring out what an 'Access' is.
+<span class="lineno">   78 </span>  }
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>instance Has Account SiteAuth where
+<span class="lineno">   81 </span>  <span class="decl"><span class="nottickedoff">view = siteAccount</span></span>
+<span class="lineno">   82 </span>instance Has Party SiteAuth where
+<span class="lineno">   83 </span>  <span class="decl"><span class="nottickedoff">view = (view . siteAccount)</span></span>
+<span class="lineno">   84 </span>instance Has (Id Party) SiteAuth where
+<span class="lineno">   85 </span>  <span class="decl"><span class="istickedoff">view = (view . siteAccount)</span></span>
+<span class="lineno">   86 </span>instance Has Access SiteAuth where
+<span class="lineno">   87 </span>  <span class="decl"><span class="istickedoff">view = siteAccess</span></span>
 <span class="lineno">   88 </span>
-<span class="lineno">   89 </span>nobodyParty, rootParty, staffParty :: Party -- TODO: load on startup from service module
-<span class="lineno">   90 </span><span class="decl"><span class="istickedoff">nobodyParty =</span>
-<span class="lineno">   91 </span><span class="spaces">   </span><span class="istickedoff">Party</span>
-<span class="lineno">   92 </span><span class="spaces">         </span><span class="istickedoff">(PartyRow (Id (-1)) (T.pack &quot;Everybody&quot;) Nothing Nothing Nothing Nothing)</span>
-<span class="lineno">   93 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">Nothing</span></span>
-<span class="lineno">   94 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">PermissionREAD</span></span>
-<span class="lineno">   95 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">Nothing</span></span></span>
-<span class="lineno">   96 </span><span class="decl"><span class="istickedoff">rootParty =</span>
-<span class="lineno">   97 </span><span class="spaces">   </span><span class="istickedoff">Party</span>
-<span class="lineno">   98 </span><span class="spaces">         </span><span class="istickedoff">(PartyRow (Id 0) (T.pack &quot;Databrary&quot;) Nothing Nothing Nothing Nothing)</span>
-<span class="lineno">   99 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">Nothing</span></span>
-<span class="lineno">  100 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">PermissionSHARED</span></span>
-<span class="lineno">  101 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">Nothing</span></span></span>
-<span class="lineno">  102 </span><span class="decl"><span class="istickedoff">staffParty =</span>
-<span class="lineno">  103 </span><span class="spaces">   </span><span class="istickedoff">Party</span>
-<span class="lineno">  104 </span><span class="spaces">         </span><span class="istickedoff">(PartyRow (Id 2) (T.pack &quot;Staff&quot;) Nothing Nothing (Just (T.pack &quot;Databrary&quot;)) Nothing)</span>
+<span class="lineno">   89 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLiftMany [''PartyRow, ''Party, ''Account]</span></span></span></span></span></span></span>
+<span class="lineno">   90 </span>
+<span class="lineno">   91 </span>-- The values below assume a minimalist loading of each object, with no
+<span class="lineno">   92 </span>-- related objects loaded.
+<span class="lineno">   93 </span>nobodyParty, rootParty, staffParty :: Party -- TODO: load on startup from service module
+<span class="lineno">   94 </span><span class="decl"><span class="istickedoff">nobodyParty =</span>
+<span class="lineno">   95 </span><span class="spaces">   </span><span class="istickedoff">Party</span>
+<span class="lineno">   96 </span><span class="spaces">         </span><span class="istickedoff">(PartyRow (Id (-1)) (T.pack &quot;Everybody&quot;) Nothing Nothing Nothing Nothing)</span>
+<span class="lineno">   97 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">Nothing</span></span>
+<span class="lineno">   98 </span><span class="spaces">         </span><span class="istickedoff">Nothing</span>
+<span class="lineno">   99 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">PermissionREAD</span></span>
+<span class="lineno">  100 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">Nothing</span></span></span>
+<span class="lineno">  101 </span><span class="decl"><span class="istickedoff">rootParty =</span>
+<span class="lineno">  102 </span><span class="spaces">   </span><span class="istickedoff">Party</span>
+<span class="lineno">  103 </span><span class="spaces">         </span><span class="istickedoff">(PartyRow (Id 0) (T.pack &quot;Databrary&quot;) Nothing Nothing Nothing Nothing)</span>
+<span class="lineno">  104 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">Nothing</span></span>
 <span class="lineno">  105 </span><span class="spaces">         </span><span class="istickedoff">Nothing</span>
-<span class="lineno">  106 </span><span class="spaces">         </span><span class="istickedoff">PermissionPUBLIC</span>
-<span class="lineno">  107 </span><span class="spaces">         </span><span class="istickedoff">Nothing</span></span>
-<span class="lineno">  108 </span>
-<span class="lineno">  109 </span>-- this is unfortunate, mainly to avoid untangling Party.SQL
-<span class="lineno">  110 </span>nobodySiteAuth :: SiteAuth
-<span class="lineno">  111 </span><span class="decl"><span class="istickedoff">nobodySiteAuth = SiteAuth</span>
-<span class="lineno">  112 </span><span class="spaces">  </span><span class="istickedoff">{ siteAccount = Account</span>
-<span class="lineno">  113 </span><span class="spaces">    </span><span class="istickedoff">{ accountEmail = <span class="nottickedoff">&quot;nobody@databrary.org&quot;</span></span>
-<span class="lineno">  114 </span><span class="spaces">    </span><span class="istickedoff">, accountParty = Party</span>
-<span class="lineno">  115 </span><span class="spaces">      </span><span class="istickedoff">{ partyRow = PartyRow</span>
-<span class="lineno">  116 </span><span class="spaces">        </span><span class="istickedoff">{ partyId = Id (-1)</span>
-<span class="lineno">  117 </span><span class="spaces">        </span><span class="istickedoff">, partySortName = <span class="nottickedoff">&quot;Nobody&quot;</span></span>
-<span class="lineno">  118 </span><span class="spaces">        </span><span class="istickedoff">, partyPreName = <span class="nottickedoff">Nothing</span></span>
-<span class="lineno">  119 </span><span class="spaces">        </span><span class="istickedoff">, partyORCID = <span class="nottickedoff">Nothing</span></span>
-<span class="lineno">  120 </span><span class="spaces">        </span><span class="istickedoff">, partyAffiliation = <span class="nottickedoff">Nothing</span></span>
-<span class="lineno">  121 </span><span class="spaces">        </span><span class="istickedoff">, partyURL = <span class="nottickedoff">Nothing</span></span>
-<span class="lineno">  122 </span><span class="spaces">        </span><span class="istickedoff">}</span>
-<span class="lineno">  123 </span><span class="spaces">      </span><span class="istickedoff">, partyAccount = <span class="nottickedoff">Nothing</span></span>
-<span class="lineno">  124 </span><span class="spaces">      </span><span class="istickedoff">, partyPermission = <span class="nottickedoff">PermissionREAD</span></span>
-<span class="lineno">  125 </span><span class="spaces">      </span><span class="istickedoff">, partyAccess = <span class="nottickedoff">Just minBound</span></span>
-<span class="lineno">  126 </span><span class="spaces">      </span><span class="istickedoff">}</span>
-<span class="lineno">  127 </span><span class="spaces">    </span><span class="istickedoff">}</span>
-<span class="lineno">  128 </span><span class="spaces">  </span><span class="istickedoff">, accountPasswd = <span class="nottickedoff">Nothing</span></span>
-<span class="lineno">  129 </span><span class="spaces">  </span><span class="istickedoff">, siteAccess = mempty</span>
-<span class="lineno">  130 </span><span class="spaces">  </span><span class="istickedoff">}</span></span>
-<span class="lineno">  131 </span>
-<span class="lineno">  132 </span>-- | Uninitialized Party object to be used in creating new parties (and accounts)
-<span class="lineno">  133 </span>blankParty :: Party
-<span class="lineno">  134 </span><span class="decl"><span class="istickedoff">blankParty = Party</span>
-<span class="lineno">  135 </span><span class="spaces">  </span><span class="istickedoff">{ partyRow = PartyRow</span>
-<span class="lineno">  136 </span><span class="spaces">    </span><span class="istickedoff">{ partyId = <span class="nottickedoff">error &quot;blankParty&quot;</span></span>
-<span class="lineno">  137 </span><span class="spaces">    </span><span class="istickedoff">, partySortName = <span class="nottickedoff">&quot;&quot;</span></span>
-<span class="lineno">  138 </span><span class="spaces">    </span><span class="istickedoff">, partyPreName = <span class="nottickedoff">Nothing</span></span>
-<span class="lineno">  139 </span><span class="spaces">    </span><span class="istickedoff">, partyORCID = Nothing</span>
-<span class="lineno">  140 </span><span class="spaces">    </span><span class="istickedoff">, partyAffiliation = Nothing</span>
-<span class="lineno">  141 </span><span class="spaces">    </span><span class="istickedoff">, partyURL = Nothing</span>
-<span class="lineno">  142 </span><span class="spaces">    </span><span class="istickedoff">}</span>
-<span class="lineno">  143 </span><span class="spaces">  </span><span class="istickedoff">, partyAccount = <span class="nottickedoff">Nothing</span></span>
-<span class="lineno">  144 </span><span class="spaces">  </span><span class="istickedoff">, partyPermission = <span class="nottickedoff">PermissionNONE</span></span>
-<span class="lineno">  145 </span><span class="spaces">  </span><span class="istickedoff">, partyAccess = <span class="nottickedoff">Nothing</span></span>
-<span class="lineno">  146 </span><span class="spaces">  </span><span class="istickedoff">}</span></span>
-<span class="lineno">  147 </span>
-<span class="lineno">  148 </span>-- | Uninitialized Account object to be used in creating new accounts
-<span class="lineno">  149 </span>blankAccount :: Account
-<span class="lineno">  150 </span><span class="decl"><span class="istickedoff">blankAccount = Account</span>
-<span class="lineno">  151 </span><span class="spaces">  </span><span class="istickedoff">{ accountParty = <span class="nottickedoff">blankParty{ partyAccount = Just blankAccount }</span></span>
-<span class="lineno">  152 </span><span class="spaces">  </span><span class="istickedoff">, accountEmail = <span class="nottickedoff">error &quot;blankAccount&quot;</span></span>
-<span class="lineno">  153 </span><span class="spaces">  </span><span class="istickedoff">}</span></span>
+<span class="lineno">  106 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">PermissionSHARED</span></span>
+<span class="lineno">  107 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">Nothing</span></span></span>
+<span class="lineno">  108 </span><span class="decl"><span class="istickedoff">staffParty =</span>
+<span class="lineno">  109 </span><span class="spaces">   </span><span class="istickedoff">Party</span>
+<span class="lineno">  110 </span><span class="spaces">         </span><span class="istickedoff">(PartyRow (Id 2) (T.pack &quot;Staff&quot;) Nothing Nothing (Just (T.pack &quot;Databrary&quot;)) Nothing)</span>
+<span class="lineno">  111 </span><span class="spaces">         </span><span class="istickedoff">Nothing</span>
+<span class="lineno">  112 </span><span class="spaces">         </span><span class="istickedoff">Nothing</span>
+<span class="lineno">  113 </span><span class="spaces">         </span><span class="istickedoff">PermissionPUBLIC</span>
+<span class="lineno">  114 </span><span class="spaces">         </span><span class="istickedoff">Nothing</span></span>
+<span class="lineno">  115 </span>
+<span class="lineno">  116 </span>-- this is unfortunate, mainly to avoid untangling Party.SQL
+<span class="lineno">  117 </span>nobodySiteAuth :: SiteAuth
+<span class="lineno">  118 </span><span class="decl"><span class="istickedoff">nobodySiteAuth = SiteAuth</span>
+<span class="lineno">  119 </span><span class="spaces">  </span><span class="istickedoff">{ siteAccount = Account</span>
+<span class="lineno">  120 </span><span class="spaces">    </span><span class="istickedoff">{ accountEmail = <span class="nottickedoff">&quot;nobody@databrary.org&quot;</span></span>
+<span class="lineno">  121 </span><span class="spaces">    </span><span class="istickedoff">, accountParty = Party</span>
+<span class="lineno">  122 </span><span class="spaces">      </span><span class="istickedoff">{ partyRow = PartyRow</span>
+<span class="lineno">  123 </span><span class="spaces">        </span><span class="istickedoff">{ partyId = Id (-1)</span>
+<span class="lineno">  124 </span><span class="spaces">        </span><span class="istickedoff">, partySortName = <span class="nottickedoff">&quot;Nobody&quot;</span></span>
+<span class="lineno">  125 </span><span class="spaces">        </span><span class="istickedoff">, partyPreName = <span class="nottickedoff">Nothing</span></span>
+<span class="lineno">  126 </span><span class="spaces">        </span><span class="istickedoff">, partyORCID = <span class="nottickedoff">Nothing</span></span>
+<span class="lineno">  127 </span><span class="spaces">        </span><span class="istickedoff">, partyAffiliation = <span class="nottickedoff">Nothing</span></span>
+<span class="lineno">  128 </span><span class="spaces">        </span><span class="istickedoff">, partyURL = <span class="nottickedoff">Nothing</span></span>
+<span class="lineno">  129 </span><span class="spaces">        </span><span class="istickedoff">}</span>
+<span class="lineno">  130 </span><span class="spaces">      </span><span class="istickedoff">, partyAccount = <span class="nottickedoff">Nothing</span></span>
+<span class="lineno">  131 </span><span class="spaces">      </span><span class="istickedoff">, partySiteAccess = Nothing -- not loaded</span>
+<span class="lineno">  132 </span><span class="spaces">      </span><span class="istickedoff">, partyPermission = <span class="nottickedoff">PermissionREAD</span></span>
+<span class="lineno">  133 </span><span class="spaces">      </span><span class="istickedoff">, partyAccess = <span class="nottickedoff">Just minBound</span></span>
+<span class="lineno">  134 </span><span class="spaces">      </span><span class="istickedoff">}</span>
+<span class="lineno">  135 </span><span class="spaces">    </span><span class="istickedoff">}</span>
+<span class="lineno">  136 </span><span class="spaces">  </span><span class="istickedoff">, accountPasswd = <span class="nottickedoff">Nothing</span></span>
+<span class="lineno">  137 </span><span class="spaces">  </span><span class="istickedoff">, siteAccess = mempty</span>
+<span class="lineno">  138 </span><span class="spaces">  </span><span class="istickedoff">}</span></span>
+<span class="lineno">  139 </span>
+<span class="lineno">  140 </span>-- | Uninitialized Party object to be used in creating new parties (and accounts)
+<span class="lineno">  141 </span>blankParty :: Party
+<span class="lineno">  142 </span><span class="decl"><span class="istickedoff">blankParty = Party</span>
+<span class="lineno">  143 </span><span class="spaces">  </span><span class="istickedoff">{ partyRow = PartyRow</span>
+<span class="lineno">  144 </span><span class="spaces">    </span><span class="istickedoff">{ partyId = <span class="nottickedoff">error &quot;blankParty&quot;</span></span>
+<span class="lineno">  145 </span><span class="spaces">    </span><span class="istickedoff">, partySortName = <span class="nottickedoff">&quot;&quot;</span></span>
+<span class="lineno">  146 </span><span class="spaces">    </span><span class="istickedoff">, partyPreName = <span class="nottickedoff">Nothing</span></span>
+<span class="lineno">  147 </span><span class="spaces">    </span><span class="istickedoff">, partyORCID = Nothing</span>
+<span class="lineno">  148 </span><span class="spaces">    </span><span class="istickedoff">, partyAffiliation = Nothing</span>
+<span class="lineno">  149 </span><span class="spaces">    </span><span class="istickedoff">, partyURL = Nothing</span>
+<span class="lineno">  150 </span><span class="spaces">    </span><span class="istickedoff">}</span>
+<span class="lineno">  151 </span><span class="spaces">  </span><span class="istickedoff">, partyAccount = <span class="nottickedoff">Nothing</span></span>
+<span class="lineno">  152 </span><span class="spaces">  </span><span class="istickedoff">, partySiteAccess = Nothing -- not loaded</span>
+<span class="lineno">  153 </span><span class="spaces">  </span><span class="istickedoff">, partyPermission = <span class="nottickedoff">PermissionNONE</span></span>
+<span class="lineno">  154 </span><span class="spaces">  </span><span class="istickedoff">, partyAccess = <span class="nottickedoff">Nothing</span></span>
+<span class="lineno">  155 </span><span class="spaces">  </span><span class="istickedoff">}</span></span>
+<span class="lineno">  156 </span>
+<span class="lineno">  157 </span>-- | Uninitialized Account object to be used in creating new accounts
+<span class="lineno">  158 </span>blankAccount :: Account
+<span class="lineno">  159 </span><span class="decl"><span class="istickedoff">blankAccount = Account</span>
+<span class="lineno">  160 </span><span class="spaces">  </span><span class="istickedoff">{ accountParty = <span class="nottickedoff">blankParty{ partyAccount = Just blankAccount }</span></span>
+<span class="lineno">  161 </span><span class="spaces">  </span><span class="istickedoff">, accountEmail = <span class="nottickedoff">error &quot;blankAccount&quot;</span></span>
+<span class="lineno">  162 </span><span class="spaces">  </span><span class="istickedoff">}</span></span>
 
 </pre>
 </body>

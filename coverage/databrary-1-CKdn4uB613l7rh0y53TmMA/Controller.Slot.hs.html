@@ -59,7 +59,7 @@ span.spaces    { background: white }
 <span class="lineno">   43 </span>
 <span class="lineno">   44 </span>getSlot :: Permission -&gt; Maybe (Id Volume) -&gt; Id Slot -&gt; Handler Slot
 <span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">getSlot p mv i =</span>
-<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">checkPermission p =&lt;&lt; maybeAction . maybe id (\v -&gt; mfilter $ (v ==) . volumeId . volumeRow . containerVolume . slotContainer) mv =&lt;&lt; lookupSlot i</span></span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">checkPermissionOld p =&lt;&lt; maybeAction . maybe id (\v -&gt; mfilter $ (v ==) . volumeId . volumeRow . containerVolume . slotContainer) mv =&lt;&lt; lookupSlot i</span></span>
 <span class="lineno">   47 </span>
 <span class="lineno">   48 </span>slotJSONField :: Bool -&gt; Slot -&gt; BS.ByteString -&gt; Maybe BS.ByteString -&gt; Handler (Maybe JSON.Encoding)
 <span class="lineno">   49 </span><span class="decl"><span class="nottickedoff">slotJSONField getOrig o &quot;assets&quot; _ =</span>

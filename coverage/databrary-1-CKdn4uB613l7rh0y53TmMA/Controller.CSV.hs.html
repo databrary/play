@@ -35,7 +35,7 @@ span.spaces    { background: white }
 <span class="lineno">   19 </span>
 <span class="lineno">   20 </span>import Model.Id
 <span class="lineno">   21 </span>import Model.Permission
-<span class="lineno">   22 </span>import Model.Volume
+<span class="lineno">   22 </span>import Model.Volume hiding (getVolume)
 <span class="lineno">   23 </span>import Model.Container
 <span class="lineno">   24 </span>import Model.Record
 <span class="lineno">   25 </span>import Model.Category
@@ -70,7 +70,7 @@ span.spaces    { background: white }
 <span class="lineno">   54 </span><span class="decl"><span class="istickedoff">tmaybe = maybe BS.empty</span></span>
 <span class="lineno">   55 </span>
 <span class="lineno">   56 </span>tenc :: T.Text -&gt; BS.ByteString
-<span class="lineno">   57 </span><span class="decl"><span class="istickedoff">tenc = TE.encodeUtf8</span></span>
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">tenc = TE.encodeUtf8</span></span>
 <span class="lineno">   58 </span>
 <span class="lineno">   59 </span>updateHeaders :: [(Category, Int)] -&gt; Records -&gt; [(Category, Int)]
 <span class="lineno">   60 </span><span class="decl"><span class="istickedoff">updateHeaders h [] = h</span>
@@ -123,7 +123,7 @@ span.spaces    { background: white }
 <span class="lineno">  107 </span><span class="spaces">      </span><span class="istickedoff">crl = map (second $ map <span class="nottickedoff">(nubBy ((==) `on` recordId . recordRow))</span> . groupBy <span class="nottickedoff">((==) `on` recordCategory . recordRow)</span> . map <span class="nottickedoff">(grm . slotRecord)</span>) crsl</span>
 <span class="lineno">  108 </span><span class="spaces">      </span><span class="istickedoff">hl = map <span class="nottickedoff">(\(c, n) -&gt; (c, replicate n $ filter ((c ==) . metricCategory) mets))</span> $</span>
 <span class="lineno">  109 </span><span class="spaces">        </span><span class="istickedoff">foldl' updateHeaders [] $ map snd crl</span>
-<span class="lineno">  110 </span><span class="spaces">      </span><span class="istickedoff">cr c r = tshow (containerId $ containerRow c) : tmaybe tenc (containerName $ containerRow c) : maybe (if <span class="tickonlyfalse">containerTop (containerRow c)</span> then <span class="nottickedoff">&quot;materials&quot;</span> else BS.empty) <span class="nottickedoff">BSC.pack</span> (formatContainerDate c) : tmaybe <span class="nottickedoff">tshow</span> (containerRelease c) : dataRow hl <span class="nottickedoff">r</span></span>
+<span class="lineno">  110 </span><span class="spaces">      </span><span class="istickedoff">cr c r = tshow (containerId $ containerRow c) : tmaybe <span class="nottickedoff">tenc</span> (containerName $ containerRow c) : maybe (if <span class="tickonlyfalse">containerTop (containerRow c)</span> then <span class="nottickedoff">&quot;materials&quot;</span> else BS.empty) <span class="nottickedoff">BSC.pack</span> (formatContainerDate c) : tmaybe <span class="nottickedoff">tshow</span> (containerRelease c) : dataRow hl <span class="nottickedoff">r</span></span>
 <span class="lineno">  111 </span><span class="spaces">      </span><span class="istickedoff">hr = &quot;session-id&quot; : &quot;session-name&quot; : &quot;session-date&quot; : &quot;session-release&quot; : headerRow hl</span>
 <span class="lineno">  112 </span><span class="spaces">  </span><span class="istickedoff">return $ hr : map (uncurry cr) crl</span></span>
 <span class="lineno">  113 </span>

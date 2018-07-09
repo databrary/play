@@ -28,7 +28,7 @@ span.spaces    { background: white }
 <span class="lineno">   12 </span>import qualified JSON as JSON
 <span class="lineno">   13 </span>import Model.Id
 <span class="lineno">   14 </span>import Model.Permission
-<span class="lineno">   15 </span>import Model.Volume
+<span class="lineno">   15 </span>import Model.Volume hiding (getVolume)
 <span class="lineno">   16 </span>import Model.Funding
 <span class="lineno">   17 </span>import Model.Funding.FundRef
 <span class="lineno">   18 </span>import HTTP.Form.Deform
@@ -47,31 +47,37 @@ span.spaces    { background: white }
 <span class="lineno">   31 </span><span class="spaces">  </span><span class="nottickedoff">QueryFundersRequest q a &lt;- runForm Nothing $ liftM2 QueryFundersRequest</span>
 <span class="lineno">   32 </span><span class="spaces">    </span><span class="nottickedoff">(&quot;query&quot; .:&gt; (deformRequired =&lt;&lt; deform))</span>
 <span class="lineno">   33 </span><span class="spaces">    </span><span class="nottickedoff">(&quot;all&quot; .:&gt; deform)</span>
-<span class="lineno">   34 </span><span class="spaces">  </span><span class="nottickedoff">r &lt;- if a</span>
+<span class="lineno">   34 </span><span class="spaces">  </span><span class="nottickedoff">r &lt;- QueryFunderResponse &lt;$&gt; if a</span>
 <span class="lineno">   35 </span><span class="spaces">    </span><span class="nottickedoff">then focusIO $ searchFundRef q</span>
 <span class="lineno">   36 </span><span class="spaces">    </span><span class="nottickedoff">else findFunders q</span>
-<span class="lineno">   37 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ JSON.mapObjects funderJSON r</span></span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ (JSON.mapObjects funderJSON . unwrap) r</span></span>
 <span class="lineno">   38 </span>
-<span class="lineno">   39 </span>data CreateOrUpdateVolumeFundingRequest =
-<span class="lineno">   40 </span>    CreateOrUpdateVolumeFundingRequest [T.Text]
+<span class="lineno">   39 </span>-- | Body of funder query response
+<span class="lineno">   40 </span>newtype QueryFunderResponse = QueryFunderResponse { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unwrap</span></span></span> :: [Funder] }
 <span class="lineno">   41 </span>
-<span class="lineno">   42 </span>postVolumeFunding :: ActionRoute (Id Volume, Id Funder)
-<span class="lineno">   43 </span><span class="decl"><span class="nottickedoff">postVolumeFunding = action POST (pathJSON &gt;/&gt; pathId &lt;/&gt; pathId) $ \(vi, fi) -&gt; withAuth $ do</span>
-<span class="lineno">   44 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
-<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">f &lt;- maybeAction =&lt;&lt; lookupFunderRef fi</span>
-<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">CreateOrUpdateVolumeFundingRequest a &lt;- runForm Nothing $ do</span>
-<span class="lineno">   47 </span><span class="spaces">    </span><span class="nottickedoff">csrfForm</span>
-<span class="lineno">   48 </span><span class="spaces">    </span><span class="nottickedoff">CreateOrUpdateVolumeFundingRequest &lt;$&gt; (&quot;awards&quot; .:&gt; filter (not . T.null) &lt;$&gt; withSubDeforms (\_ -&gt; deform))</span>
-<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">let fa = Funding f a</span>
-<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- changeVolumeFunding v fa</span>
-<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ JSON.pairs $ fundingJSON fa</span></span>
-<span class="lineno">   52 </span>
-<span class="lineno">   53 </span>deleteVolumeFunder :: ActionRoute (Id Volume, Id Funder)
-<span class="lineno">   54 </span><span class="decl"><span class="nottickedoff">deleteVolumeFunder = action DELETE (pathJSON &gt;/&gt; pathId &lt;/&gt; pathId) $ \(vi, fi) -&gt; withAuth $ do</span>
-<span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">guardVerfHeader</span>
-<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
-<span class="lineno">   57 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- removeVolumeFunder v fi</span>
-<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v</span></span>
+<span class="lineno">   42 </span>data CreateOrUpdateVolumeFundingRequest =
+<span class="lineno">   43 </span>    CreateOrUpdateVolumeFundingRequest [T.Text]
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>postVolumeFunding :: ActionRoute (Id Volume, Id Funder)
+<span class="lineno">   46 </span><span class="decl"><span class="nottickedoff">postVolumeFunding = action POST (pathJSON &gt;/&gt; pathId &lt;/&gt; pathId) $ \(vi, fi) -&gt; withAuth $ do</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">f &lt;- maybeAction =&lt;&lt; lookupFunderRef fi</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">CreateOrUpdateVolumeFundingRequest a &lt;- runForm Nothing $ do</span>
+<span class="lineno">   50 </span><span class="spaces">    </span><span class="nottickedoff">csrfForm</span>
+<span class="lineno">   51 </span><span class="spaces">    </span><span class="nottickedoff">CreateOrUpdateVolumeFundingRequest &lt;$&gt; (&quot;awards&quot; .:&gt; filter (not . T.null) &lt;$&gt; withSubDeforms (\_ -&gt; deform))</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">let resp@(AddVolumeFundingResponse fa) = AddVolumeFundingResponse (Funding f a)</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- changeVolumeFunding v fa</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ JSON.pairs $ (fundingJSON . avfUnwrap) resp</span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>-- | Body of add volume funding response
+<span class="lineno">   57 </span>newtype AddVolumeFundingResponse = AddVolumeFundingResponse { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">avfUnwrap</span></span></span> :: Funding } 
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>deleteVolumeFunder :: ActionRoute (Id Volume, Id Funder)
+<span class="lineno">   60 </span><span class="decl"><span class="nottickedoff">deleteVolumeFunder = action DELETE (pathJSON &gt;/&gt; pathId &lt;/&gt; pathId) $ \(vi, fi) -&gt; withAuth $ do</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">guardVerfHeader</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- removeVolumeFunder v fi</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v</span></span>
 
 </pre>
 </body>

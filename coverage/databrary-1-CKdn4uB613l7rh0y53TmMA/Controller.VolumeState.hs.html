@@ -24,10 +24,10 @@ span.spaces    { background: white }
 <span class="lineno">    8 </span>import Network.HTTP.Types (noContent204)
 <span class="lineno">    9 </span>import qualified Web.Route.Invertible as R
 <span class="lineno">   10 </span>
-<span class="lineno">   11 </span>import qualified JSON as JSON
+<span class="lineno">   11 </span>import qualified Data.Aeson as Aeson
 <span class="lineno">   12 </span>import Model.Id
 <span class="lineno">   13 </span>import Model.Permission
-<span class="lineno">   14 </span>import Model.Volume
+<span class="lineno">   14 </span>import Model.Volume hiding (getVolume)
 <span class="lineno">   15 </span>import Model.VolumeState
 <span class="lineno">   16 </span>import HTTP.Path.Parser
 <span class="lineno">   17 </span>import HTTP.Form.Deform
@@ -37,7 +37,7 @@ span.spaces    { background: white }
 <span class="lineno">   21 </span>import Controller.Paths
 <span class="lineno">   22 </span>import Controller.Volume
 <span class="lineno">   23 </span>
-<span class="lineno">   24 </span>data CreateOrUpdateVolumeStateRequest = CreateOrUpdateVolumeStateRequest JSON.Value Bool
+<span class="lineno">   24 </span>data CreateOrUpdateVolumeStateRequest = CreateOrUpdateVolumeStateRequest Aeson.Value Bool
 <span class="lineno">   25 </span>
 <span class="lineno">   26 </span>postVolumeState :: ActionRoute (Id Volume, VolumeStateKey)
 <span class="lineno">   27 </span><span class="decl"><span class="nottickedoff">postVolumeState = action PUT (pathJSON &gt;/&gt; pathId &lt;/&gt; &quot;state&quot; &gt;/&gt; R.parameter) $ \(vi, k) -&gt; withAuth $ do</span>
@@ -58,8 +58,10 @@ span.spaces    { background: white }
 <span class="lineno">   42 </span>deleteVolumeState :: ActionRoute (Id Volume, VolumeStateKey)
 <span class="lineno">   43 </span><span class="decl"><span class="nottickedoff">deleteVolumeState = action DELETE (pathJSON &gt;/&gt; pathId &lt;/&gt; &quot;state&quot; &gt;/&gt; R.parameter) $ \(vi, k) -&gt; withAuth $ do</span>
 <span class="lineno">   44 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- getVolume PermissionEDIT vi</span>
-<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">r &lt;- removeVolumeState vi k</span>
-<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ JSON.toEncoding r</span></span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">r &lt;- DeleteVolumeStateResponse &lt;$&gt; removeVolumeState vi k</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ (Aeson.encode . wasDeleted) r</span></span>
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>newtype DeleteVolumeStateResponse = DeleteVolumeStateResponse { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">wasDeleted</span></span></span> :: Bool }
 
 </pre>
 </body>

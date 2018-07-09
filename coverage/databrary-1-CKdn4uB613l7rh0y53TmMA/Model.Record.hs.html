@@ -81,8 +81,8 @@ span.spaces    { background: white }
 <span class="lineno">   65 </span><span class="spaces">           </span><span class="nottickedoff">(find (\msr -&gt; measureMetric msr == idMetric &amp;&amp; measureDatum msr == idMeasureVal) (recordMeasures r))</span></span>
 <span class="lineno">   66 </span>
 <span class="lineno">   67 </span>lookupVolumeRecords :: MonadDB c m =&gt; Volume -&gt; m [Record]
-<span class="lineno">   68 </span><span class="decl"><span class="nottickedoff">lookupVolumeRecords vol =</span>
-<span class="lineno">   69 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ fmap ($ vol) $(selectQuery selectVolumeRecord &quot;$WHERE record.volume = ${volumeId $ volumeRow vol}&quot;)</span></span>
+<span class="lineno">   68 </span><span class="decl"><span class="istickedoff">lookupVolumeRecords vol =</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="istickedoff">dbQuery $ fmap ($ <span class="nottickedoff">vol</span>) $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery selectVolumeRecord &quot;$WHERE record.volume = ${volumeId $ volumeRow vol}&quot;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)</span></span>
 <span class="lineno">   70 </span>
 <span class="lineno">   71 </span>addRecord :: MonadAudit c m =&gt; Record -&gt; m Record
 <span class="lineno">   72 </span><span class="decl"><span class="istickedoff">addRecord br = do</span>

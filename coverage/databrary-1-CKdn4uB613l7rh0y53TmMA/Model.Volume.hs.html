@@ -24,7 +24,7 @@ span.spaces    { background: white }
 <span class="lineno">    8 </span>    ( module Model.Volume.Types
 <span class="lineno">    9 </span>    , coreVolume
 <span class="lineno">   10 </span>    , lookupVolume
-<span class="lineno">   11 </span>    , getVolume2
+<span class="lineno">   11 </span>    , getVolume
 <span class="lineno">   12 </span>    , LookupResult (..)
 <span class="lineno">   13 </span>    , changeVolume
 <span class="lineno">   14 </span>    , addVolume
@@ -77,28 +77,28 @@ span.spaces    { background: white }
 <span class="lineno">   61 </span>
 <span class="lineno">   62 </span>-- | Get a 'Volume', if it is available to the given 'Identity' with the desired
 <span class="lineno">   63 </span>-- 'Permission'.
-<span class="lineno">   64 </span>getVolume2
+<span class="lineno">   64 </span>getVolume
 <span class="lineno">   65 </span>    :: (MonadDB c ctrl, MonadHasIdentity c ctrl)
 <span class="lineno">   66 </span>    =&gt; Permission -- ^ Desired permission level
 <span class="lineno">   67 </span>    -&gt; Id Volume -- ^ Id of Volume to get
 <span class="lineno">   68 </span>    -&gt; ctrl (LookupResult Volume)
-<span class="lineno">   69 </span><span class="decl"><span class="istickedoff">getVolume2 reqestedPermission volId = do</span>
+<span class="lineno">   69 </span><span class="decl"><span class="istickedoff">getVolume reqestedPermission volId = do</span>
 <span class="lineno">   70 </span><span class="spaces">    </span><span class="istickedoff">mVol &lt;- lookupVolume volId</span>
 <span class="lineno">   71 </span><span class="spaces">    </span><span class="istickedoff">pure $ case mVol of</span>
 <span class="lineno">   72 </span><span class="spaces">        </span><span class="istickedoff">Nothing -&gt; LookupFailed</span>
 <span class="lineno">   73 </span><span class="spaces">        </span><span class="istickedoff">Just vol -&gt;</span>
-<span class="lineno">   74 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">let</span></span>
-<span class="lineno">   75 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">requiredPermission =</span></span>
-<span class="lineno">   76 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">extractPermissionIgnorePolicy . volumeRolePolicy</span></span>
-<span class="lineno">   77 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">in</span></span>
-<span class="lineno">   78 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">case</span></span>
-<span class="lineno">   79 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">checkPermission</span></span>
-<span class="lineno">   80 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">requiredPermission</span></span>
-<span class="lineno">   81 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">vol</span></span>
-<span class="lineno">   82 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">reqestedPermission</span></span>
-<span class="lineno">   83 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">of</span></span>
-<span class="lineno">   84 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">PermissionGranted v -&gt; LookupFound v</span></span>
-<span class="lineno">   85 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">PermissionDenied -&gt; LookupDenied</span></span></span>
+<span class="lineno">   74 </span><span class="spaces">            </span><span class="istickedoff">let</span>
+<span class="lineno">   75 </span><span class="spaces">                </span><span class="istickedoff">grantedPermission =</span>
+<span class="lineno">   76 </span><span class="spaces">                    </span><span class="istickedoff">extractPermissionIgnorePolicy . volumeRolePolicy</span>
+<span class="lineno">   77 </span><span class="spaces">            </span><span class="istickedoff">in</span>
+<span class="lineno">   78 </span><span class="spaces">                </span><span class="istickedoff">case</span>
+<span class="lineno">   79 </span><span class="spaces">                    </span><span class="istickedoff">checkPermission</span>
+<span class="lineno">   80 </span><span class="spaces">                        </span><span class="istickedoff">grantedPermission</span>
+<span class="lineno">   81 </span><span class="spaces">                        </span><span class="istickedoff">vol</span>
+<span class="lineno">   82 </span><span class="spaces">                        </span><span class="istickedoff">reqestedPermission</span>
+<span class="lineno">   83 </span><span class="spaces">                </span><span class="istickedoff">of</span>
+<span class="lineno">   84 </span><span class="spaces">                    </span><span class="istickedoff">PermissionGranted v -&gt; LookupFound v</span>
+<span class="lineno">   85 </span><span class="spaces">                    </span><span class="istickedoff">PermissionDenied -&gt; LookupDenied</span></span>
 <span class="lineno">   86 </span>
 <span class="lineno">   87 </span>coreVolume :: Volume
 <span class="lineno">   88 </span>-- TODO: load on startup in lookups service module

@@ -53,10 +53,10 @@ span.spaces    { background: white }
 <span class="lineno">   37 </span>import Has
 <span class="lineno">   38 </span>import qualified JSON as JSON
 <span class="lineno">   39 </span>import Model.Segment
-<span class="lineno">   40 </span>import Model.Permission
+<span class="lineno">   40 </span>import Model.Permission hiding (checkPermission)
 <span class="lineno">   41 </span>import Model.Release
 <span class="lineno">   42 </span>import Model.Id
-<span class="lineno">   43 </span>import Model.Volume
+<span class="lineno">   43 </span>import Model.Volume hiding (getVolume)
 <span class="lineno">   44 </span>import Model.Container
 <span class="lineno">   45 </span>import Model.Token
 <span class="lineno">   46 </span>import Model.Format
@@ -99,7 +99,7 @@ span.spaces    { background: white }
 <span class="lineno">   83 </span><span class="decl"><span class="nottickedoff">getAsset getOrig p checkDataPerm i = do</span>
 <span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">mAssetSlot &lt;- (if getOrig then lookupOrigAssetSlot else lookupAssetSlot) i</span>
 <span class="lineno">   85 </span><span class="spaces">  </span><span class="nottickedoff">slot &lt;- maybeAction mAssetSlot</span>
-<span class="lineno">   86 </span><span class="spaces">  </span><span class="nottickedoff">void (checkPermission2 (extractPermissionIgnorePolicy . getAssetSlotVolumePermission2) p slot)</span>
+<span class="lineno">   86 </span><span class="spaces">  </span><span class="nottickedoff">void (checkPermission (extractPermissionIgnorePolicy . getAssetSlotVolumePermission2) p slot)</span>
 <span class="lineno">   87 </span><span class="spaces">  </span><span class="nottickedoff">when checkDataPerm $ do</span>
 <span class="lineno">   88 </span><span class="spaces">    </span><span class="nottickedoff">-- TODO: delete</span>
 <span class="lineno">   89 </span><span class="spaces">    </span><span class="nottickedoff">-- liftIO $ print (&quot;checking data perm&quot;, &quot;assetSlot&quot;, slot)</span>

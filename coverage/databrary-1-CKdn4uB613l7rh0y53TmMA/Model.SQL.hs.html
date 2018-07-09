@@ -57,7 +57,7 @@ span.spaces    { background: white }
 <span class="lineno">   41 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">uoi</span></span>
 <span class="lineno">   42 </span><span class="spaces">          </span><span class="istickedoff">Left (Just e) -&gt; <span class="nottickedoff">return $ Left e</span></span>
 <span class="lineno">   43 </span><span class="spaces">          </span><span class="istickedoff">Right r -&gt; return $ Right r</span>
-<span class="lineno">   44 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; return u</span></span>
+<span class="lineno">   44 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">return u</span></span></span>
 <span class="lineno">   45 </span>
 <span class="lineno">   46 </span>updateOrInsert :: (MonadDB c m, PGQuery q a) =&gt; q -&gt; q -&gt; m (Int, [a])
 <span class="lineno">   47 </span>-- updateOrInsert upd ins = either fail return &lt;$&gt; tryUpdateOrInsert (const Nothing) upd ins

@@ -40,7 +40,7 @@ span.spaces    { background: white }
 <span class="lineno">   24 </span>import Action.Response
 <span class="lineno">   25 </span>import Action
 <span class="lineno">   26 </span>import Model.Id
-<span class="lineno">   27 </span>import Model.Volume
+<span class="lineno">   27 </span>import Model.Volume hiding (getVolume)
 <span class="lineno">   28 </span>import Model.Permission hiding (checkPermission)
 <span class="lineno">   29 </span>import Model.Record
 <span class="lineno">   30 </span>import Model.Category
@@ -61,7 +61,7 @@ span.spaces    { background: white }
 <span class="lineno">   45 </span>
 <span class="lineno">   46 </span>getRecord :: Permission -&gt; Id Record -&gt; Handler Record
 <span class="lineno">   47 </span><span class="decl"><span class="nottickedoff">getRecord p i =</span>
-<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">checkPermission p =&lt;&lt; maybeAction =&lt;&lt; lookupRecord i</span></span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">checkPermissionOld p =&lt;&lt; maybeAction =&lt;&lt; lookupRecord i</span></span>
 <span class="lineno">   49 </span>
 <span class="lineno">   50 </span>viewRecord :: ActionRoute (Id Record)
 <span class="lineno">   51 </span><span class="decl"><span class="nottickedoff">viewRecord = action GET (pathJSON &gt;/&gt; pathId) $ \i -&gt; withAuth $ do</span>

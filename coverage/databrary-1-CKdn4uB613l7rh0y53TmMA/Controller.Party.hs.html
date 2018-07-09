@@ -51,7 +51,7 @@ span.spaces    { background: white }
 <span class="lineno">   35 </span>import qualified JSON as JSON
 <span class="lineno">   36 </span>import Model.Enum
 <span class="lineno">   37 </span>import Model.Id
-<span class="lineno">   38 </span>import Model.Permission
+<span class="lineno">   38 </span>import Model.Permission hiding (checkPermission)
 <span class="lineno">   39 </span>import Model.Release
 <span class="lineno">   40 </span>import Model.Party
 <span class="lineno">   41 </span>import Model.ORCID
@@ -85,7 +85,7 @@ span.spaces    { background: white }
 <span class="lineno">   69 </span>  -&gt; PartyTarget
 <span class="lineno">   70 </span>  -&gt; Handler Party
 <span class="lineno">   71 </span><span class="decl"><span class="nottickedoff">getParty (Just p) (TargetParty i) =</span>
-<span class="lineno">   72 </span><span class="spaces">  </span><span class="nottickedoff">(\party -&gt; checkPermission2 partyPermission p party) =&lt;&lt; maybeAction =&lt;&lt; lookupAuthParty i</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="nottickedoff">(\party -&gt; checkPermission partyPermission p party) =&lt;&lt; maybeAction =&lt;&lt; lookupAuthParty i</span>
 <span class="lineno">   73 </span><span class="spaces"></span><span class="nottickedoff">getParty _ mi = do</span>
 <span class="lineno">   74 </span><span class="spaces">  </span><span class="nottickedoff">u &lt;- accountParty &lt;$&gt; authAccount</span>
 <span class="lineno">   75 </span><span class="spaces">  </span><span class="nottickedoff">let isme TargetProfile = True</span>
@@ -274,7 +274,7 @@ span.spaces    { background: white }
 <span class="lineno">  258 </span><span class="spaces">  </span><span class="nottickedoff">pf &lt;- runForm ((api == HTML) `thenUse` (htmlPartySearch mempty [])) partySearchForm</span>
 <span class="lineno">  259 </span><span class="spaces">  </span><span class="nottickedoff">p &lt;- findParties pf</span>
 <span class="lineno">  260 </span><span class="spaces">  </span><span class="nottickedoff">case api of</span>
-<span class="lineno">  261 </span><span class="spaces">    </span><span class="nottickedoff">JSON -&gt; return $ okResponse [] $ JSON.mapRecords partyJSON p</span>
+<span class="lineno">  261 </span><span class="spaces">    </span><span class="nottickedoff">JSON -&gt; return $ okResponse [] $ (JSON.encode . fmap toFormattedParty) p</span>
 <span class="lineno">  262 </span><span class="spaces">    </span><span class="nottickedoff">HTML -&gt; peeks $ blankForm . htmlPartySearch pf p</span></span>
 <span class="lineno">  263 </span>
 <span class="lineno">  264 </span>adminParties :: ActionRoute ()
