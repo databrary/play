@@ -696,7 +696,7 @@ defineVolumeParticipantMetrics vol metrics = do
     -- should use add category + remove metric for each not used
     forM_
         metrics
-        (\m -> removeVolumeMetric vol (metricId m))
+        (\m -> addVolumeMetric vol (metricId m))
 
 addParticipantRecordWithMeasures :: (MonadAudit c m) => Volume -> [Measure] -> m (Id Record)
 addParticipantRecordWithMeasures v measures = do
