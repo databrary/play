@@ -94,17 +94,20 @@ data FormattedParty = FormattedParty
     , fpyAuthorization :: !(Maybe Permission)
     } deriving (Generic)
 
+-- | ToJSON options for FormattedParty
+formattedPartyToJsonOptions :: JSON.Options
+formattedPartyToJsonOptions = JSON.defaultOptions
+    { JSON.omitNothingFields = True
+    , JSON.fieldLabelModifier = (\(x:xs) -> toLower x : xs) . drop 3
+    }
+
 -- |
 -- >>> encode (FormattedParty 3 "foo" (Just "bar") Nothing Nothing Nothing Nothing Nothing Nothing Nothing)
 -- "{\"sortname\":\"foo\",\"id\":3,\"prename\":\"bar\"}"
 --
 instance JSON.ToJSON FormattedParty where
-    toEncoding =
-        JSON.genericToEncoding
-            JSON.defaultOptions
-                { JSON.omitNothingFields = True
-                , JSON.fieldLabelModifier = (\(x:xs) -> toLower x : xs) . drop 3
-                }
+    toJSON = JSON.genericToJSON formattedPartyToJsonOptions
+    toEncoding = JSON.genericToEncoding formattedPartyToJsonOptions
 
 partyRowJSON :: JSON.ToObject o => PartyRow -> JSON.Record (Id Party) o
 partyRowJSON PartyRow{..} = JSON.Record partyId $
