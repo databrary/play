@@ -508,13 +508,15 @@ test_15c = Test.stepsWithTransaction "test_15c" $ \step cn2 -> do
             ls <- lookupVolumeLinks v
             pure (v, ls))
         aiCtxt
-    step "When the link is changed and removed"
-    step "Then one can see each change"
+    step "When the link is changed"
     let link2 = loadedLink { citationHead = "name corrected" }
     runReaderT (changeVolumeLinks v [link2]) aiCtxt -- TODO: test for ezid update for changed link in ezid test
+    step "Then one can see the change"
     volLinks <- runWithNoIdent cn2 (lookupVolumeLinks v)
     volLinks @?= [link2]
+    step "When the link is removed"
     runReaderT (changeVolumeLinks v []) aiCtxt
+    step "Then one can see the change"
     volLinks2 <- runWithNoIdent cn2 (lookupVolumeLinks v)
     volLinks2 @?= []
 
