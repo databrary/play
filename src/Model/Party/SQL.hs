@@ -50,7 +50,7 @@ makeParty pr mMkAcct perm mAccess = makeParty2 pr mMkAcct Nothing perm mAccess
 -- | Build party, with a circular connection to an account if an account creation function is provided.
 -- Transition function taking mSiteAccess until all queries use this.
 makeParty2 :: PartyRow -> Maybe (Party -> Account) -> Maybe Permission -> Permission -> Maybe Access -> Party
-makeParty2 pr mMkAcct mSiteAccess perm mAccess = -- TODO: take site auth permission
+makeParty2 pr mMkAcct mSiteAccess perm mAccess =
     p
   where
     p = Party pr (fmap (\mkAcct -> mkAcct p) mMkAcct) mSiteAccess perm mAccess
