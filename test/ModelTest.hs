@@ -495,8 +495,8 @@ test_15b = Test.stepsWithTransaction "test_15b" $ \step cn2 -> do
     volLinks <- runWithNoIdent cn2 (lookupVolumeLinks v)
     volLinks @?= [link]
 
-test_15c :: TestTree
-test_15c = Test.stepsWithTransaction "test_15c" $ \step cn2 -> do
+test_change_volume_links :: TestTree
+test_change_volume_links = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "Given a created volume with a link"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     -- TODO: should be lookup auth on rootParty
