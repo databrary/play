@@ -535,33 +535,34 @@ test_16 = ignoreTest $ -- TODO: enable this inside of nix build with solr binari
         finiSolr solr
 
 -------- ezid --------------
-test_17 :: TestTree
-test_17 = localOption (mkTimeout (15 * 10^(6 :: Int))) $ Test.stepsWithResourceAndTransaction "test_17" $ \step ist cn2 -> do
-    step "Given an authorized investigator"
-    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
-    step "When the AI creates a partially shared volume"
-    step "and add data that will be indexed with ezid"
-    step "and the ezid generation runs"
-    -- TODO: should be lookup auth on rootParty
-    vol <- runReaderT
-        (do
-            v <- addVolumeWithAccess aiAcct
-            l <- liftIO (Gen.sample genVolumeLink)
-            changeVolumeLinks v [l]
-            pure v
-        )
-        aiCtxt
-    -- updateEZID
-    -- type EZIDM a = CookiesT (ReaderT EZIDContext IO) a
-    bctx <- mkBackgroundContext ForEzid ist cn2
-    mEzidWasUp <- runReaderT updateEZID bctx
-    step "Then the volume will have a valid doi" -- TODO; and ezid will expose registered info somehow?
-    mEzidWasUp @?= Just True  -- Nothing = ezid not initialized; Just False = initalized, but down
-    Just _vol' <- runReaderT (lookupVolume ((volumeId . volumeRow) vol)) aiCtxt
-    -- let Just doi = (volumeDOI . volumeRow) vol'
-    -- TODO: check doi link causes a redirect to Location: http://databrary.org/volume/801 with the volume id matching above
-    --   example - https://doi.org/10.5072/FK2.801
-    pure ()
+test_register_volume_with_ezid :: TestTree
+test_register_volume_with_ezid = localOption (mkTimeout (15 * 10^(6 :: Int))) $
+    Test.stepsWithResourceAndTransaction "test_17" $ \step ist cn2 -> do
+        step "Given an authorized investigator"
+        (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+        step "When the AI creates a partially shared volume"
+        step "and add data that will be indexed with ezid"
+        step "and the ezid generation runs"
+        -- TODO: should be lookup auth on rootParty
+        vol <- runReaderT
+            (do
+                v <- addVolumeWithAccess aiAcct
+                l <- liftIO (Gen.sample genVolumeLink)
+                changeVolumeLinks v [l]
+                pure v
+            )
+            aiCtxt
+        -- updateEZID
+        -- type EZIDM a = CookiesT (ReaderT EZIDContext IO) a
+        bctx <- mkBackgroundContext ForEzid ist cn2
+        mEzidWasUp <- runReaderT updateEZID bctx
+        step "Then the volume will have a valid doi" -- TODO; and ezid will expose registered info somehow?
+        mEzidWasUp @?= Just True  -- Nothing = ezid not initialized; Just False = initalized, but down
+        Just _vol' <- runReaderT (lookupVolume ((volumeId . volumeRow) vol)) aiCtxt
+        -- let Just doi = (volumeDOI . volumeRow) vol'
+        -- TODO: check doi link causes a redirect to Location: http://databrary.org/volume/801 with the volume id matching above
+        --   example - https://doi.org/10.5072/FK2.801
+        pure ()
 
 --------- ingest ------------
 test_18 :: TestTree
