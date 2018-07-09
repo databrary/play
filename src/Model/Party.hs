@@ -30,6 +30,7 @@ import Control.Applicative ((<|>))
 import Control.Exception.Lifted (handleJust)
 import Control.Monad (guard)
 import qualified Data.ByteString as BS
+import Data.Char (toLower)
 import Data.Int (Int64)
 import Data.List (intercalate)
 import Data.Maybe (isNothing, fromMaybe)
@@ -93,10 +94,17 @@ data FormattedParty = FormattedParty
     , fpyAuthorization :: !(Maybe Permission)
     } deriving (Generic)
 
+-- |
+-- >>> encode (FormattedParty 3 "foo" (Just "bar") Nothing Nothing Nothing Nothing Nothing Nothing Nothing)
+-- "{\"sortname\":\"foo\",\"id\":3,\"prename\":\"bar\"}"
+--
 instance JSON.ToJSON FormattedParty where
     toEncoding =
         JSON.genericToEncoding
-            JSON.defaultOptions { JSON.omitNothingFields = True }
+            JSON.defaultOptions
+                { JSON.omitNothingFields = True
+                , JSON.fieldLabelModifier = (\(x:xs) -> toLower x : xs) . drop 3
+                }
 
 partyRowJSON :: JSON.ToObject o => PartyRow -> JSON.Record (Id Party) o
 partyRowJSON PartyRow{..} = JSON.Record partyId $
