@@ -31,7 +31,7 @@ import Model.Record.Types
 import Model.Category.Types
 import Model.Metric
 import Model.Tag.Types
-import Model.Comment.Types
+-- import Model.Comment.Types
 import StringUtil
 
 safeField :: T.Text -> T.Text
@@ -154,6 +154,7 @@ data SolrDocument
     , solrKeyword :: Maybe TagName
     , solrPartyId :: Id Party
     }
+  {-
   | SolrComment
     { solrId :: !BS.ByteString
     , solrVolumeId :: Id Volume
@@ -164,6 +165,7 @@ data SolrDocument
     , solrPartyId :: Id Party
     , solrBody :: Maybe T.Text
     }
+  -}
 
 $(return []) -- force new decl group for splice:
 

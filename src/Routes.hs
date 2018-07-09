@@ -50,7 +50,7 @@ import Controller.AssetSegment
 import Controller.Excerpt
 import Controller.Zip
 import Controller.Tag
-import Controller.Comment
+-- import Controller.Comment
 import Controller.CSV
 import Controller.VolumeState
 import Controller.Activity
@@ -175,7 +175,7 @@ routeMapInvertible = routes
   , route queryTags
   , route postTag
   , route deleteTag
-  , route postComment
+  -- , route postComment
   , route uploadStart
   , route uploadChunk
   , route testChunk

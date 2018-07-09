@@ -1,3 +1,4 @@
+{-
 {-# LANGUAGE OverloadedStrings #-}
 module Controller.Comment
   ( postComment
@@ -59,3 +60,4 @@ postComment = action POST (pathJSON >/> pathSlotId </< "comment") $ \si -> withA
     }
   return $ okResponse [] $ JSON.recordEncoding $ commentJSON c'
   -- HTML -> peeks $ otherRouteResponse [] (viewSlot False) (api, (Just (view c'), slotId (commentSlot c')))
+-}

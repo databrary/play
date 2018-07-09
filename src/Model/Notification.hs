@@ -39,7 +39,7 @@ useTDB
 addNotification :: (MonadDB c m, MonadHas Party c m) => Notification -> m Notification
 addNotification n@Notification{..} = do
   u <- peeks partyRow
-  (i, t) <- dbQuery1' [pgSQL|INSERT INTO notification (target, notice, delivered, agent, party, volume, container, segment, asset, comment, tag, permission, release) VALUES (${partyId $ partyRow $ accountParty notificationTarget}, ${notificationNotice}, ${notificationDelivered}, ${partyId u}, ${partyId <$> notificationParty}, ${volumeId <$> notificationVolume}, ${notificationContainerId}, ${notificationSegment}, ${notificationAssetId}, ${notificationCommentId}, ${tagId <$> notificationTag}, ${notificationPermission}, ${notificationRelease}) RETURNING id, time|]
+  (i, t) <- dbQuery1' [pgSQL|INSERT INTO notification (target, notice, delivered, agent, party, volume, container, segment, asset, tag, permission, release) VALUES (${partyId $ partyRow $ accountParty notificationTarget}, ${notificationNotice}, ${notificationDelivered}, ${partyId u}, ${partyId <$> notificationParty}, ${volumeId <$> notificationVolume}, ${notificationContainerId}, ${notificationSegment}, ${notificationAssetId}, ${tagId <$> notificationTag}, ${notificationPermission}, ${notificationRelease}) RETURNING id, time|]
   return n
     { notificationId = i
     , notificationTime = t
@@ -49,7 +49,7 @@ addNotification n@Notification{..} = do
 addBroadcastNotification :: (MonadDB c m, MonadHas Party c m) => Notification -> m Int
 addBroadcastNotification Notification{..} = do
   u <- peeks (partyId . partyRow)
-  dbExecute [pgSQL|INSERT INTO notification (target, notice, delivered, agent, party, volume, container, segment, asset, comment, tag, permission, release) SELECT target, notice, ${notificationDelivered}, ${u}, ${partyId <$> notificationParty}, ${volumeId <$> notificationVolume}, ${notificationContainerId}, ${notificationSegment}, ${notificationAssetId}, ${notificationCommentId}, ${tagId <$> notificationTag}, ${notificationPermission}, ${notificationRelease} FROM notify_view WHERE notice = ${notificationNotice} AND delivery > 'none' AND target <> ${u}|]
+  dbExecute [pgSQL|INSERT INTO notification (target, notice, delivered, agent, party, volume, container, segment, asset, tag, permission, release) SELECT target, notice, ${notificationDelivered}, ${u}, ${partyId <$> notificationParty}, ${volumeId <$> notificationVolume}, ${notificationContainerId}, ${notificationSegment}, ${notificationAssetId}, ${tagId <$> notificationTag}, ${notificationPermission}, ${notificationRelease} FROM notify_view WHERE notice = ${notificationNotice} AND delivery > 'none' AND target <> ${u}|]
 
 changeNotificationsDelivery :: MonadDB c m => [Notification] -> Delivery -> m Int
 changeNotificationsDelivery nl d =
@@ -94,7 +94,6 @@ removeMatchingNotifications Notification{..} =
       AND COALESCE(container, -1) = COALESCE(${notificationContainerId}, container, -1)
       AND COALESCE(segment, 'empty') <@ ${fromMaybe fullSegment notificationSegment} 
       AND COALESCE(asset, -1) = COALESCE(${notificationAssetId}, asset, -1)
-      AND COALESCE(comment, -1) = COALESCE(${notificationCommentId}, comment, -1)
       AND COALESCE(tag, -1) = COALESCE(${tagId <$> notificationTag}, tag, -1)
     |]
   where
@@ -113,5 +112,4 @@ notificationJSON Notification{..} = JSON.Record notificationId $
   <> "container" `JSON.kvObjectOrEmpty` notificationContainerId
   <> "segment" `JSON.kvObjectOrEmpty` notificationSegment
   <> "asset" `JSON.kvObjectOrEmpty` notificationAssetId
-  <> "comment" `JSON.kvObjectOrEmpty` notificationCommentId
   <> "tag" `JSON.kvObjectOrEmpty` (tagName <$> notificationTag)

@@ -59,7 +59,7 @@ import Model.Slot
 import Model.AssetSlot
 import Model.Excerpt
 import Model.Tag
-import Model.Comment
+-- import Model.Comment
 import Model.VolumeState
 import Model.Notification.Types
 import Store.Filename
@@ -211,10 +211,12 @@ volumeJSONField vol "tags" n = do
   t <- cacheVolumeTopContainer vol
   tc <- lookupSlotTagCoverage (containerSlot t) (maybe 64 fst $ BSC.readInt =<< n)
   return $ Just $ JSON.mapRecords tagCoverageJSON tc
+{-
 volumeJSONField vol "comments" n = do
   t <- cacheVolumeTopContainer vol
   tc <- lookupSlotComments (containerSlot t) (maybe 64 fst $ BSC.readInt =<< n)
   return $ Just $ JSON.mapRecords commentJSON tc
+-}
 volumeJSONField vol "state" _ =
   Just . JSON.toEncoding . JSON.object . map (volumeStateKey &&& volumeStateValue) <$> lookupVolumeState ((volumeId . volumeRow) vol) (volumeRolePolicy vol)
 volumeJSONField o "filename" _ =

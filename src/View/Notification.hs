@@ -126,12 +126,14 @@ mailNotification msg Notification{..} = case notificationNotice of
   NoticeExcerptVolume ->
     agent <> " created a highlight in your volume (" <> volume <> "). To review this highlight, go to: "
     <> assetSegment
+  {-
   NoticeCommentVolume ->
     agent <> " commented on your volume (" <> volume <> "). To review or reply, go to: "
     <> slotVolume [] <> "#comment-" <> foldMap (TL.pack . show) notificationCommentId
   NoticeCommentReply -> -- high risk information disclosure of volume name
     agent <> " replied to your comment on the volume, " <> volume <> ". To review or reply, go to: "
     <> slotVolume [] <> "#comment-" <> foldMap (TL.pack . show) notificationCommentId
+  -}
   NoticeTagVolume ->
     agent <> " tagged the volume, " <> volume <> ", with \"" <> foldMap (TL.fromStrict . TE.decodeLatin1 . tagNameBS . tagName) notificationTag <> "\". To review tags, go to: "
     <> slotVolume [("tag", foldMap (tagNameBS . tagName) notificationTag)] <> "#panel-tags"
@@ -221,12 +223,14 @@ htmlNotification msg Notification{..} = case notificationNotice of
   NoticeExcerptVolume ->
     agent >> " created a " >> assetSegment "highlight"
     >> " in " >> volume >> "."
+  {-
   NoticeCommentVolume ->
     agent >> " " >> (slotVolume [] ("#comment-" <> foldMap (H.toValue . unId) notificationCommentId)) "commented"
     >> " on " >> volume >> "."
   NoticeCommentReply ->
     agent >> " " >> (slotVolume [] ("#comment-" <> foldMap (H.toValue . unId) notificationCommentId)) "replied"
     >> " to your comment on " >> volume >> "."
+  -}
   NoticeTagVolume ->
     agent >> " " >> (slotVolume [("tag", foldMap (tagNameBS . tagName) notificationTag)] "#panel-tags") "tagged"
     >> " " >> volume >> " with " >> H.em (mapM_ (byteStringHtml . tagNameBS . tagName) notificationTag) >> "."
