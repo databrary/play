@@ -391,10 +391,7 @@ genGenderMeasure :: Gen (Metric, BS.ByteString)
 genGenderMeasure =
     pure (participantMetricGender, "Male")
 
--- TODO: genCreateMeasures -- will ensure each measure metric is distinct
--- genParticipantMetricValue :: Gen (Metric, BS.ByteString)
--- genParticipantMetricValue =
---    Gen.choice [genBirthdateMeasure, genGenderMeasure]
+-- TODO: genCreateMeasures :: Gen [(Metric, BS.ByteString)] -- will ensure each measure metric is distinct
 
 genCreateGenderMeasure :: Gen Measure
 genCreateGenderMeasure = do
