@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, RecordWildCards, DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
 module Model.Party
   ( module Model.Party.Types
   , partyName
@@ -39,6 +40,7 @@ import qualified Data.Text as T
 import Database.PostgreSQL.Typed.Query (unsafeModifyQuery)
 import Database.PostgreSQL.Typed.Dynamic (pgLiteralRep, pgLiteralString, pgSafeLiteral)
 import Database.PostgreSQL.Typed.Types
+import GHC.Generics
 
 import Ops
 import Has (Has(..), peek)
@@ -89,21 +91,12 @@ data FormattedParty = FormattedParty
     , fpyEmail :: !(Maybe BS.ByteString)
     , fpyPermission :: !(Maybe Permission)
     , fpyAuthorization :: !(Maybe Permission)
-    }
+    } deriving (Generic)
 
 instance JSON.ToJSON FormattedParty where
-    toJSON FormattedParty{..} =  -- Bryan: if you want to use a fancy generic transform?
-        JSON.object (
-               ["id" JSON..= fpyId]
-            <> ["sortname" JSON..= fpySortname]
-            <> "prename" `JSON.omitIfNothing` fpyPrename
-            <> "orcid" `JSON.omitIfNothing` fpyOrcid
-            <> "affiliation" `JSON.omitIfNothing` fpyAffiliation
-            <> "url" `JSON.omitIfNothing` fpyUrl
-            <> "institution" `JSON.omitIfNothing` fpyInstitution
-            <> "email" `JSON.omitIfNothing` fpyEmail
-            <> "permission" `JSON.omitIfNothing` fpyPermission
-            <> "authorization" `JSON.omitIfNothing` fpyAuthorization)
+    toEncoding =
+        JSON.genericToEncoding
+            JSON.defaultOptions { JSON.omitNothingFields = True }
 
 partyRowJSON :: JSON.ToObject o => PartyRow -> JSON.Record (Id Party) o
 partyRowJSON PartyRow{..} = JSON.Record partyId $

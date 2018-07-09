@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, DeriveDataTypeable, DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Model.Permission.Types
   ( Permission(..)
@@ -13,6 +14,7 @@ module Model.Permission.Types
 import Language.Haskell.TH.Lift (deriveLift, deriveLiftMany)
 import qualified Data.Typeable.Internal
 import qualified GHC.Arr
+import GHC.Generics
 import qualified Database.PostgreSQL.Typed.Types
 import qualified Database.PostgreSQL.Typed.Dynamic
 import qualified Database.PostgreSQL.Typed.Enum
@@ -39,7 +41,8 @@ data Permission
             Enum,
             GHC.Arr.Ix,
             Bounded,
-            Data.Typeable.Internal.Typeable)
+            Data.Typeable.Internal.Typeable,
+            Generic)
 instance Show Permission where
   show PermissionNONE = "NONE"
   show PermissionPUBLIC = "PUBLIC"
