@@ -423,9 +423,9 @@ genCreateRecord vol = do
 -- links
 genVolumeLink :: Gen Citation
 genVolumeLink =
-    -- TODO: use real generators below
-    -- TODO: some repetition from postVolumeLinks form parsing, create blankLink function
-    -- TODO: pass the link name into the URI generator
+    -- TODO: Create and use more realistic generators for head and uri values. Generate them together.
+    -- TODO: This logic repeats behavior from C.Volume.postVolumeLinks, create blankLink helper
+    --   function instead of repeating.
     Citation
         <$> Gen.text (Range.constant 0 50) Gen.alpha
         <*> (Just <$> genGeneralURI)

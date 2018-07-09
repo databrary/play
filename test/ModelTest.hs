@@ -495,8 +495,8 @@ test_15b = Test.stepsWithTransaction "test_15b" $ \step cn2 -> do
     volLinks <- runWithNoIdent cn2 (lookupVolumeLinks v)
     volLinks @?= [link]
 
-test_15c :: TestTree
-test_15c = Test.stepsWithTransaction "test_15c" $ \step cn2 -> do
+test_change_volume_links :: TestTree
+test_change_volume_links = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "Given a created volume with a link"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     -- TODO: should be lookup auth on rootParty
@@ -508,13 +508,15 @@ test_15c = Test.stepsWithTransaction "test_15c" $ \step cn2 -> do
             ls <- lookupVolumeLinks v
             pure (v, ls))
         aiCtxt
-    step "When the link is changed and removed"
-    step "Then one can see each change"
+    step "When the link is changed"
     let link2 = loadedLink { citationHead = "name corrected" }
     runReaderT (changeVolumeLinks v [link2]) aiCtxt -- TODO: test for ezid update for changed link in ezid test
+    step "Then one can see the change"
     volLinks <- runWithNoIdent cn2 (lookupVolumeLinks v)
     volLinks @?= [link2]
+    step "When the link is removed"
     runReaderT (changeVolumeLinks v []) aiCtxt
+    step "Then one can see the change"
     volLinks2 <- runWithNoIdent cn2 (lookupVolumeLinks v)
     volLinks2 @?= []
 
