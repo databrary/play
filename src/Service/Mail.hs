@@ -34,13 +34,25 @@ initMailer = Mailer
     }
 
 -- | Default implementation of sendMail to be used in most environments besides unit tests
-sendMailImpl :: String -> Int -> String -> String ->  Mail -> IO ()
-sendMailImpl host port "" _ = sendMail' host (fromIntegral port)
-sendMailImpl host port user pass = sendMailWithLogin' host (fromIntegral port) user pass
+sendMailImpl :: MailHost -> MailPort -> MailUser -> MailPass -> Mail -> IO ()
+sendMailImpl (MailHost host) (MailPort port) (MailUser "") (MailPass _) = sendMail' host (fromIntegral port)
+sendMailImpl (MailHost host) (MailPort port) (MailUser user) (MailPass pass) = sendMailWithLogin' host (fromIntegral port) user pass
+
+-- | Server hostname for smtp mail delivery
+newtype MailHost = MailHost String
+
+-- | Sever port for smtp mail delivery
+newtype MailPort = MailPort Int
+
+-- | Acount username for smtp mail delivery
+newtype MailUser = MailUser String
+
+-- | Account password for smtp mail delivery
+newtype MailPass = MailPass String
 
 -- | Parts of mailer that can be mocked
 data Mailer = Mailer
-    { mlr :: String -> Int -> String -> String -> Mail -> IO ()
+    { mlr :: MailHost -> MailPort -> MailUser -> MailPass -> Mail -> IO ()
     }
 
 type MonadMail c m = (MonadLog c m, MonadHas Mailer c m)
@@ -85,19 +97,13 @@ sendMail to cc subj body = do
   liftIO $ putStrLn "Retrieving mail config..."
   Just (host, port :: Int, user, pass) <- fmap decode $ liftIO $ LBS.readFile "config/email"
   focusIO $ logMsg t $ "mail " <> BS.intercalate ", " (map (either id accountEmail) to) <> ": " <> TE.encodeUtf8 subj 
-  liftIO $ (mlr mailer) host port user pass $ addPart
+  liftIO $ (mlr mailer) (MailHost host) (MailPort port) (MailUser user) (MailPass pass) $ addPart
     [Part "text/plain; charset=utf-8" None Nothing [] $ TLE.encodeUtf8 $ mailHeader <> wrapText 78 body <> mailFooter] baseMail
     { mailTo = map addr to
     , mailCc = map addr cc
     , mailHeaders = [("Subject", subj)]
     }
   where
-  {-
-  sendMailImpl :: String -> Int -> String -> String ->  Mail -> IO ()
-  sendMailImpl host port "" _ = sendMail' host (fromIntegral port)
-  sendMailImpl host port user pass =
-    sendMailWithLogin' host (fromIntegral port) user pass
-  -}
   addr (Left e) = Address Nothing (TE.decodeLatin1 e)
   addr (Right Account{ accountEmail = email, accountParty = p }) =
     Address (Just $ partyName $ partyRow p) (TE.decodeLatin1 email)
