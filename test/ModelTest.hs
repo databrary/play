@@ -68,6 +68,7 @@ import Service.Types (Secret(..))
 import Solr.Index (updateIndex)
 import Solr.Search
 import Solr.Service (initSolr, finiSolr)
+import Store.AV (initAV)
 import Store.CSV (buildCSV)
 import qualified Store.Config as C
 -- import Store.Asset
@@ -627,7 +628,7 @@ test_19 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransactio
             _ <- changeNotificationsDelivery (filter ((DeliverySite >) . notificationDelivered) nl) DeliverySite
             nlAfter <- lookupUserNotifications
             pure (nl, nlAfter))
-        aiCtxt
+        aiCtxt2
     fmap notificationNotice nl @?= [NoticeAccountChange]  -- does this notification only use email?
     -- fmap notificationNotice nlAfter @?= []
     -- TODO: connect to mailtrap API and fetch emails
@@ -647,19 +648,28 @@ test_20 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransactio
         <*> mkStorageStub
     tok <- runReaderT
         (do
-            up <- createUploadSetSize vol (UploadStartRequest "abcde.csv" 10)
-            file <- peeks $ uploadFile up -- TODO: generator for req + chunks of content + ofset + len
+            up <- createUploadSetSize vol (UploadStartRequest "abcde.csv" 16)
+            file <- peeks $ uploadFile up -- TODO: generator for (req, [contentChunk, offset, len])
             bl <- pure "col1,col2\nv1,22\n"
-            _ <- liftIO (writeChunk 0 10 file (pure bl))
+            _ <- liftIO (writeChunk 0 16 file (pure bl))
             pure up) 
         aiCtxt2
     step "Then the investigator can view the upload"
     -- TODO: implementation of processAsset
     Just upload <- runReaderT (lookupUpload ((unId . tokenId . accountToken . uploadAccountToken) tok)) aiCtxt
-    -- p = fileUploadPath (FileUploadToken upload)
-    -- prb <- probeFile (fileUploadName (FileUploadToken upload))
-    --   check upload size and name and format and contents
+    aiCtxt3 <- (\a -> aiCtxt2 { ctxAV = Just a }) <$> initAV
+    (filepath, Right (ProbePlain fmt)) <- runReaderT
+        (do            
+             fp <- peeks (uploadFile upload)
+             prb <- probeFile (uploadFilename upload) fp
+             pure (fp, prb))
+        aiCtxt3
+    --   check upload contents
+    Just fmt @?= getFormatByExtension "csv"
     uploadFilename upload @?= "abcde.csv"
+    uploadSize upload @?= 16
+    contents <- readFile (BSC.unpack filepath)
+    contents @?= "col1,col2\nv1,22\n"
 
 ------------------------------------------------------ end of tests ---------------------------------
 
