@@ -16,7 +16,6 @@ import Data.Maybe
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Data.Time
-import qualified Data.Vector as V
 import qualified Hedgehog.Gen as Gen
 import qualified Network.HTTP.Client as HTTPC
 import System.Exit (ExitCode(..))
@@ -586,20 +585,6 @@ test_18 = localOption (mkTimeout (10 * 10^(6 :: Int))) $ Test.stepsWithTransacti
     -- TODO: record; >>> non-AV asset <<< ;
     --   container linked to record + non-AV asset; >>> AV asset <<< ; >>> container linked to record + AV asset <<<
     --  NOTE: for each transcoded asset, need to wait and manually call collectTranscode based on log status
-
-mkIngestInput :: T.Text -> Value
-mkIngestInput volName =
-    object
-        [ ("name", String volName)
-        , ("containers"
-          , Array
-              (V.fromList
-                 [object
-                    [ ("name", "cont1")
-                    , ("key", "key1")
-                    , ("records", Array (V.fromList []))
-                    , ("assets", Array (V.fromList []))
-                    ]]))]
 
 --------- notifications ------------
 test_19 :: TestTree
