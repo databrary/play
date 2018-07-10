@@ -644,7 +644,7 @@ test_upload_small_csv = Test.stepsWithTransaction "" $ \step cn2 -> do
     vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
     step "When start upload and send all chunks"
     aiCtxt2 <- (\e s -> aiCtxt { ctxEntropy = Just e , ctxStorage = Just s })
-        -- refactor createUpload to take a list of generated ids, isolate entropy depedency to Upload controller?
+        -- refactor createUpload to take a list of generated ids, isolate entropy dependency to Upload controller?
         <$> initEntropy
         <*> mkStorageStub
     tok <- runReaderT
