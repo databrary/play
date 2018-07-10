@@ -664,7 +664,6 @@ test_20 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransactio
              prb <- probeFile (uploadFilename upload) fp
              pure (fp, prb))
         aiCtxt3
-    --   check upload contents
     Just fmt @?= getFormatByExtension "csv"
     uploadFilename upload @?= "abcde.csv"
     uploadSize upload @?= 16
