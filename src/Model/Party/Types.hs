@@ -43,15 +43,15 @@ data Party = Party
   { partyRow :: !PartyRow
   , partyAccount :: Maybe Account
   -- , partySiteAccess :: Access -- site-level access this party is granted under root (currently SiteAuth only)
-  , partySiteAccess :: !(Loaded Permission) -- ^ site-level data access this party is granted under root party (0).
-                                           -- Maybe is only an indication of whether this value was loaded.
+  , partySiteAccess :: !(Loaded Permission) -- ^ See accessSite' field of Access type.
+                                           -- Only some queries populate (load) this value.
   , partyPermission :: Permission -- ^ permission current user has over this party
   , partyAccess :: Maybe Access -- ^ direct authorization this party has granted to current user
   }
 
--- | When loading a graph of objects, some queries will neglect loaded
+-- | When loading a graph of objects, some queries will neglect loading
 -- all related objects. Use this type to indicate an object which isn't loaded
--- by all queries
+-- by all queries.
 data Loaded a = -- TODO: move this to a utility module when used more widely
     Loaded a
   | NotLoaded
