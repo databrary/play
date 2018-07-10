@@ -391,17 +391,24 @@ genGenderMeasure :: Gen (Metric, BS.ByteString)
 genGenderMeasure =
     pure (participantMetricGender, "Male")
 
-genParticipantMetricValue :: Gen (Metric, BS.ByteString)
-genParticipantMetricValue =
-    Gen.choice [genBirthdateMeasure, genGenderMeasure]
+-- TODO: genCreateMeasures :: Gen [(Metric, BS.ByteString)] -- will ensure each measure metric is distinct
 
-genCreateMeasure :: Gen Measure
-genCreateMeasure = do
-    (mtrc, val) <- genParticipantMetricValue
+genCreateGenderMeasure :: Gen Measure
+genCreateGenderMeasure = do
+    (mtrc, val) <- genGenderMeasure
     Measure
         <$> (pure . error) "measure record not set yet"
         <*> pure mtrc
         <*> pure val
+
+genCreateBirthdateMeasure :: Gen Measure
+genCreateBirthdateMeasure = do
+    (mtrc, val) <- genBirthdateMeasure
+    Measure
+        <$> (pure . error) "measure record not set yet"
+        <*> pure mtrc
+        <*> pure val
+
 -- record
 genCreateRecord :: Volume -> Gen Record
 genCreateRecord vol = do

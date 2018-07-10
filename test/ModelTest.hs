@@ -56,6 +56,7 @@ import Model.Transcode
 import Model.Volume
 import Model.VolumeAccess
 -- import Model.VolumeAccess.TypesTest
+import Model.VolumeMetric
 import Service.DB (DBConn, MonadDB)
 import Service.Types (Secret(..))
 import Solr.Index (updateIndex)
@@ -408,6 +409,9 @@ test_13 = Test.stepsWithTransaction "test_13" $ \step cn2 -> do
     rid <- runReaderT
          (do
               v <- addVolumeSetPrivate aiAcct
+              _ <- addVolumeCategory v (categoryId participantCategory)
+              -- TODO: add check in addRecord requiring some metrics for the category
+              -- to already be associated with the volume
               addParticipantRecordWithMeasures v [])
          aiCtxt
     step "When the public attempts to view the record"
@@ -424,7 +428,8 @@ test_14 = Test.stepsWithTransaction "test_14" $ \step cn2 -> do
     rid <- runReaderT
          (do
               v <- addVolumeWithAccess aiAcct
-              (someMeasure, someMeasure2) <- (,) <$> Gen.sample genCreateMeasure <*> Gen.sample genCreateMeasure
+              (someMeasure, someMeasure2) <- (,) <$> Gen.sample genCreateGenderMeasure <*> Gen.sample genCreateBirthdateMeasure
+              defineVolumeParticipantMetrics v (fmap measureMetric [someMeasure, someMeasure2])
               addParticipantRecordWithMeasures v [someMeasure, someMeasure2])
          aiCtxt
     step "When the public attempts to view the record"
@@ -433,7 +438,7 @@ test_14 = Test.stepsWithTransaction "test_14" $ \step cn2 -> do
     step "Then the public can't see the restricted measures like birthdate"
     (participantMetricBirthdate `notElem` (fmap measureMetric . getRecordMeasures) rcrdForAnon) @? "Expected birthdate to be removed"
 
-test_14b :: TestTree
+test_14b :: TestTree -- TODO: have more tests focused on record within a recordslot rather than record attached to a volume only
 test_14b = Test.stepsWithTransaction "test_14b" $ \step cn2 -> do
     step "Given a volume"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
@@ -443,14 +448,60 @@ test_14b = Test.stepsWithTransaction "test_14b" $ \step cn2 -> do
     step "and add one record"
     rid <- runReaderT
          (do
-              (someMeasure, someMeasure2) <- (,) <$> Gen.sample genCreateMeasure <*> Gen.sample genCreateMeasure
-              addParticipantRecordWithMeasures vol [someMeasure, someMeasure2])
+              someMeasure <- (\m -> m { measureDatum = "Male"}) <$> Gen.sample genCreateGenderMeasure
+              defineVolumeParticipantMetrics vol [measureMetric someMeasure]
+              addParticipantRecordWithMeasures vol [someMeasure])
          aiCtxt
     step "Then one can view the record under the volume"
-    -- TODO: based off of volumJSONField "records"
+    -- TODO: duplicates volumJSONField "records"
     [rcrd] <- runWithNoIdent cn2 (lookupVolumeRecords vol) -- TODO: don't fail when there is noise from other records
     rid @?= (recordId . recordRow) rcrd
-    -- TODO: check measure type + values, check category
+    let [m1] = recordMeasures rcrd
+    measureDatum m1 @?= "Male"
+    -- TODO: check measure type, check record category
+
+test_14c :: TestTree
+test_14c = Test.stepsWithTransaction "test_14c" $ \step cn2 -> do
+    step "Given a volume record"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    -- TODO: should be lookup auth on rootParty
+    (_, vol) <- runReaderT
+         (do
+              vol <- addVolumeWithAccess aiAcct
+              someMeasure <- (\m -> m { measureDatum = "Male"}) <$> Gen.sample genCreateGenderMeasure
+              defineVolumeParticipantMetrics vol [measureMetric someMeasure]
+              rid <- addParticipantRecordWithMeasures vol [someMeasure]
+              pure (rid, vol))
+         aiCtxt
+    step "When one changes a measure"
+    _ <- runReaderT
+        (do
+            [[m1]] <- fmap recordMeasures <$> lookupVolumeRecords vol
+            changeRecordMeasure m1 { measureDatum = "Female" })
+        aiCtxt
+    step "Then one sees the updated measure"
+    [rcrd3] <- runWithNoIdent cn2 (lookupVolumeRecords vol)
+    (fmap measureDatum . recordMeasures) rcrd3 @?= ["Female"]
+    step "When one deletes a measure" -- any restrictions on deleting when volume metric exists?
+    deletedMeasure <- runReaderT
+        (do
+            [[m1]] <- fmap recordMeasures <$> lookupVolumeRecords vol
+            _ <- removeRecordMeasure m1 { measureDatum = "" }
+            pure m1)
+        aiCtxt
+    step "Then one doesn't see the measure when viewing"
+    [rcrd0] <- runWithNoIdent cn2 (lookupVolumeRecords vol)
+    measureMetric deletedMeasure `notElem` (fmap measureMetric . recordMeasures) rcrd0 @? "expected measure removed"
+    step "When one removes the record"  -- Assumes record hasn't been connected to a container slot
+    _ <- runReaderT
+        (do
+            [rcrd] <- lookupVolumeRecords vol
+            removeRecord rcrd)
+        aiCtxt
+    step "Then one doesn't see the record on the volume"
+    -- TODO: duplicates volumJSONField "records"
+    rs <- runWithNoIdent cn2 (lookupVolumeRecords vol)
+    fmap recordRow rs @?= []
 
 ------ miscellaneous -----
 test_15 :: TestTree
@@ -645,6 +696,13 @@ mkContainer v mRel mDate = do
            , containerVolume = v
            , containerRow = (containerRow c) { containerDate = mDate }
            })
+
+defineVolumeParticipantMetrics :: (MonadDB c m) => Volume -> [Metric] -> m ()
+defineVolumeParticipantMetrics vol metrics = do
+    -- should use add category + remove metric for each not used
+    forM_
+        metrics
+        (\m -> addVolumeMetric vol (metricId m))
 
 addParticipantRecordWithMeasures :: (MonadAudit c m) => Volume -> [Measure] -> m (Id Record)
 addParticipantRecordWithMeasures v measures = do
