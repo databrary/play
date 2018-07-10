@@ -637,8 +637,8 @@ test_19 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransactio
 -- TODO: daily notification logic (cleanNotifications + updateStateNotifications)
 
 --------- upload ------------
-test_20 :: TestTree
-test_20 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransaction "test_20" $ \step cn2 -> do
+test_upload_small_csv :: TestTree
+test_upload_small_csv = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "Given an authorized investigator and their volume"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
@@ -649,9 +649,10 @@ test_20 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransactio
     tok <- runReaderT
         (do
             up <- createUploadSetSize vol (UploadStartRequest "abcde.csv" 16)
+            let (chunk1, offset1, len1) = ("col1,col2\nv1,22\n", 0, 16)
             file <- peeks $ uploadFile up -- TODO: generator for (req, [contentChunk, offset, len])
-            bl <- pure "col1,col2\nv1,22\n"
-            _ <- liftIO (writeChunk 0 16 file (pure bl))
+            let rb = pure chunk1
+            _ <- liftIO (writeChunk offset1 len1 file rb)
             pure up) 
         aiCtxt2
     step "Then the investigator can view the upload"
