@@ -656,13 +656,13 @@ test_20 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransactio
         aiCtxt2
     step "Then the investigator can view the upload"
     -- TODO: implementation of processAsset
-    Just upload <- runReaderT (lookupUpload ((unId . tokenId . accountToken . uploadAccountToken) tok)) aiCtxt
     aiCtxt3 <- (\a -> aiCtxt2 { ctxAV = Just a }) <$> initAV
-    (filepath, Right (ProbePlain fmt)) <- runReaderT
-        (do            
+    (upload, filepath, Right (ProbePlain fmt)) <- runReaderT
+        (do
+             Just upload <- lookupUpload ((unId . tokenId . accountToken . uploadAccountToken) tok)
              fp <- peeks (uploadFile upload)
              prb <- probeFile (uploadFilename upload) fp
-             pure (fp, prb))
+             pure (upload, fp, prb))
         aiCtxt3
     Just fmt @?= getFormatByExtension "csv"
     uploadFilename upload @?= "abcde.csv"
