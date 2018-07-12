@@ -67,6 +67,9 @@ uploadStart = action POST (pathJSON >/> pathId </< "upload") $ \vi -> withAuth $
     (`setFdSize` COff size)
   return $ okResponse [] $ unId (view tok :: Id Token)
 
+-- TODO: use this very soon
+-- data UploadStartResponse = UploadStartResponse { unwrap :: Id Token }
+
 data UploadChunkRequest =
     UploadChunkRequest (Id Token) BS.ByteString Int64 Int64 Int64 Int64 Int64
 

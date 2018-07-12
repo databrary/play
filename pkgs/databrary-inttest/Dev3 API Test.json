@@ -1,0 +1,881 @@
+{
+  "trigger_url": "https://api.runscope.com/radar/1e8e2c34-3dab-40c6-a3bb-6d55ea2f9a87/trigger", 
+  "name": "Dev3 API Tests", 
+  "version": "1.0", 
+  "exported_at": 1530652054, 
+  "steps": [
+    {
+      "skipped": true, 
+      "fragment": "", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "search volumes, only public results--depending on other tests", 
+      "headers": {}, 
+      "url": "http://apitest1.databrary.org:8000/api/search", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "is_greater_than", 
+          "property": "response.numFound", 
+          "value": "3", 
+          "source": "response_json"
+        }
+      ]
+    }, 
+    {
+      "skipped": false, 
+      "fragment": "", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "admin routes are protected", 
+      "headers": {}, 
+      "url": "http://apitest1.databrary.org:8000/party/duplicate/csv", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "403", 
+          "source": "response_status"
+        }
+      ]
+    }, 
+    {
+      "skipped": false, 
+      "fragment": "", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "admin routes are protected", 
+      "headers": {}, 
+      "url": "http://apitest1.databrary.org:8000/party/csv", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "403", 
+          "source": "response_status"
+        }
+      ]
+    }, 
+    {
+      "body": "{\"email\":\"test@databrary.org\",\"password\":\"unastan54\"}", 
+      "skipped": false, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "can only login with correct password", 
+      "headers": {
+        "Content-Type": [
+          "application/json;charset=UTF-8"
+        ]
+      }, 
+      "url": "http://apitest1.databrary.org:8000/api/user/login", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "not_empty", 
+          "property": "Set-Cookie", 
+          "value": null, 
+          "source": "response_headers"
+        }, 
+        {
+          "comparison": "equal", 
+          "property": "id", 
+          "value": "7", 
+          "source": "response_json"
+        }, 
+        {
+          "comparison": "equal", 
+          "property": "email", 
+          "value": "test@databrary.org", 
+          "source": "response_json"
+        }
+      ]
+    }, 
+    {
+      "body": "{\"prename\":\"First5\",\"sortname\":\"Last5\",\"email\":\"first5@nyu.edu\",\"affiliation\":\"nyu\",\"agreement\":true}", 
+      "skipped": false, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "unapproved registration can't login", 
+      "headers": {
+        "Content-Type": [
+          "application/json;charset=UTF-8"
+        ]
+      }, 
+      "url": "http://apitest1.databrary.org:8000/api/user/register", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "equal", 
+          "value": "Your confirmation email has been sent to 'first5@nyu.edu'.", 
+          "source": "response_text"
+        }
+      ]
+    }, 
+    {
+      "body": "{\"email\":\"first5@nyu.edu\",\"password\":\"dfdsfdsfds\"}", 
+      "skipped": false, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "unapproved registration can't login", 
+      "headers": {
+        "Content-Type": [
+          "application/json;charset=UTF-8"
+        ]
+      }, 
+      "url": "http://apitest1.databrary.org:8000/api/user/login", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "400", 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "equal", 
+          "property": "password", 
+          "value": "Incorrect email address or password. Both are case-sensitive, and institutional addresses are preferred.", 
+          "source": "response_json"
+        }
+      ]
+    }, 
+    {
+      "body": "{\"email\":\"test@databrary.org\"}", 
+      "skipped": false, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "reset password goes to correct email", 
+      "headers": {
+        "Content-Type": [
+          "application/json;charset=UTF-8"
+        ]
+      }, 
+      "url": "http://apitest1.databrary.org:8000/api/user/password", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "equal", 
+          "value": "Your password reset information has been sent to 'test@databrary.org'.", 
+          "source": "response_text"
+        }
+      ]
+    }, 
+    {
+      "skipped": false, 
+      "url": "https://mailtrap.io/api/v1/inboxes/329183/messages?api_token=7290c3c29a872551fbb8bde13096e472", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "reset password goes to correct email--didn't add the body because it fails", 
+      "headers": {}, 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "equal", 
+          "property": "[0].to_email", 
+          "value": "test@databrary.org", 
+          "source": "response_json"
+        }
+      ], 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET"
+    }, 
+    {
+      "body": "{\"email\":\"test@databrary.org\",\"password\":\"unastan54\"}", 
+      "skipped": false, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [
+        {
+          "source": "response_json", 
+          "property": "csverf", 
+          "name": "x-csverf"
+        }, 
+        {
+          "source": "response_headers", 
+          "property": "Set-Cookie", 
+          "name": "setCookie"
+        }
+      ], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "login", 
+      "headers": {
+        "Content-Type": [
+          "application/json;charset=UTF-8"
+        ]
+      }, 
+      "url": "http://apitest1.databrary.org:8000/api/user/login", 
+      "scripts": [
+        "variables.set('cookie', variables.get(\"setCookie\").substring(0, variables.get(\"setCookie\").indexOf(';')));\nvariables.set('timestampFixed', Date.now());"
+      ], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }
+      ]
+    }, 
+    {
+      "body": "{\"name\":\"Test Volume Long Name\",\"alias\":\"Test Vol Short\",\"body\":\"Test volume description here.\",\"citation\":{\"head\":\"\"},\"published\":false,\"owner\":7}", 
+      "skipped": false, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "create volume, can view the volume", 
+      "headers": {
+        "Content-Type": [
+          "application/json;charset=UTF-8"
+        ], 
+        "Cookie": [
+          "{{cookie}}"
+        ], 
+        "x-csverf": [
+          "{{x-csverf}}"
+        ]
+      }, 
+      "url": "http://apitest1.databrary.org:8000/api/volume", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "equal", 
+          "property": "name", 
+          "value": "Test Volume Long Name", 
+          "source": "response_json"
+        }
+      ]
+    }, 
+    {
+      "body": "{\"category\":1}", 
+      "skipped": false, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [
+        {
+          "source": "response_json", 
+          "property": "id", 
+          "name": "recordId"
+        }
+      ], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "add record to a volume, can view that record", 
+      "headers": {
+        "Content-Type": [
+          "application/json;charset=UTF-8"
+        ], 
+        "Cookie": [
+          "{{cookie}}"
+        ], 
+        "x-csverf": [
+          "{{x-csverf}}"
+        ]
+      }, 
+      "url": "http://apitest1.databrary.org:8000/api/volume/1/record", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }
+      ]
+    }, 
+    {
+      "body": "{\"datum\":\"3\"}", 
+      "skipped": false, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "add record to a volume, can view that record", 
+      "headers": {
+        "Content-Type": [
+          "application/json;charset=UTF-8"
+        ], 
+        "Cookie": [
+          "{{cookie}}"
+        ], 
+        "x-csverf": [
+          "{{x-csverf}}"
+        ]
+      }, 
+      "url": "http://apitest1.databrary.org:8000/api/record/{{recordId}}/metric/1", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "equal", 
+          "property": "measures.1", 
+          "value": "3", 
+          "source": "response_json"
+        }
+      ]
+    }, 
+    {
+      "body": "", 
+      "skipped": false, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [
+        {
+          "source": "response_json", 
+          "property": "id", 
+          "name": "slotId"
+        }
+      ], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "add simple asset to a volume, can view that asset after upload is complete", 
+      "headers": {
+        "Cookie": [
+          "{{cookie}}"
+        ], 
+        "Content-Length": [
+          "0"
+        ], 
+        "x-csverf": [
+          "{{x-csverf}}"
+        ]
+      }, 
+      "url": "http://apitest1.databrary.org:8000/api/volume/1/slot", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }
+      ]
+    }, 
+    {
+      "body": "{\"top\":false}", 
+      "skipped": false, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "add simple asset to a volume, can view that asset after upload is complete", 
+      "headers": {
+        "Content-Type": [
+          "application/json;charset=UTF-8"
+        ], 
+        "Cookie": [
+          "{{cookie}}"
+        ], 
+        "x-csverf": [
+          "{{x-csverf}}"
+        ]
+      }, 
+      "url": "http://apitest1.databrary.org:8000/api/slot/{{slotId}}", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }
+      ]
+    }, 
+    {
+      "body": "{\"filename\":\"asset1.csv\",\"size\":10}", 
+      "skipped": false, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [
+        {
+          "source": "response_text", 
+          "name": "flowIdentifier"
+        }
+      ], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "add simple asset to a volume, can view that asset after upload is complete", 
+      "headers": {
+        "Content-Type": [
+          "application/json;charset=UTF-8"
+        ], 
+        "Cookie": [
+          "{{cookie}}"
+        ], 
+        "x-csverf": [
+          "{{x-csverf}}"
+        ]
+      }, 
+      "url": "http://apitest1.databrary.org:8000/api/volume/1/upload", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }
+      ]
+    }, 
+    {
+      "body": "col1,col2", 
+      "skipped": false, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "add simple asset to a volume, can view that asset after upload is complete", 
+      "headers": {
+        "Cookie": [
+          "{{cookie}}"
+        ], 
+        "Content-Length": [
+          "10"
+        ], 
+        "x-csverf": [
+          "{{x-csverf}}"
+        ]
+      }, 
+      "url": "http://apitest1.databrary.org:8000/api/upload?flowChunkNumber=1&flowChunkSize=1048576&flowCurrentChunkSize=10&flowFilename=asset1.csv&flowIdentifier={{flowIdentifier}}&flowRelativePath=asset1.csv&flowTotalChunks=1&flowTotalSize=10", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "400", 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "equal", 
+          "value": "\"Incorrect content length: file being uploaded may have moved or changed\"", 
+          "source": "response_text"
+        }
+      ]
+    }, 
+    {
+      "body": "{\"name\":\"f2\",\"classification\":\"0\"}", 
+      "skipped": false, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [
+        {
+          "source": "response_json", 
+          "property": "id", 
+          "name": "assetId"
+        }
+      ], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "add simple asset to a volume, can view that asset after upload is complete", 
+      "headers": {
+        "Content-Type": [
+          "application/json;charset=UTF-8"
+        ], 
+        "Cookie": [
+          "{{cookie}}"
+        ], 
+        "x-csverf": [
+          "{{x-csverf}}"
+        ]
+      }, 
+      "url": "http://apitest1.databrary.org:8000/api/volume/1/asset?container={{slotId}}&upload={{flowIdentifier}}", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "equal_number", 
+          "property": "size", 
+          "value": "10", 
+          "source": "response_json"
+        }
+      ]
+    }, 
+    {
+      "skipped": false, 
+      "fragment": "", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "public can't see data only shared with community", 
+      "headers": {}, 
+      "url": "http://apitest1.databrary.org:8000/api/volume/1/slot/{{slotId}}/-/asset/{{assetId}}", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "403", 
+          "source": "response_status"
+        }
+      ]
+    }, 
+    {
+      "body": "{\"prename\":\"John\",\"sortname\":\"Affiliate{{timestampFixed}}\",\"email\":\"john.affiliate.{{timestampFixed}}@abc.com\",\"affiliation\":\"New York University\",\"agreement\":true}", 
+      "skipped": false, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "users with privileges less than AI can't authorize a user to the site", 
+      "headers": {
+        "Content-Type": [
+          "application/json;charset=UTF-8"
+        ]
+      }, 
+      "url": "http://apitest1.databrary.org:8000/api/user/register", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }
+      ]
+    }, 
+    {
+      "skipped": false, 
+      "fragment": "", 
+      "variables": [
+        {
+          "source": "response_json", 
+          "property": "[0].id", 
+          "name": "affiliateId"
+        }
+      ], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "users with privileges less than AI can't authorize a user to the site", 
+      "headers": {}, 
+      "url": "http://apitest1.databrary.org:8000/api/party?query=John Affiliate{{timestampFixed}}", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }
+      ]
+    }, 
+    {
+      "body": "{\"site\":0,\"member\":4,\"expires\":\"2020-02-01\"}", 
+      "skipped": false, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "users with privileges less than AI can't authorize a user to the site", 
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ], 
+        "Cookie": [
+          "{{cookie}}"
+        ], 
+        "x-csverf": [
+          "{{x-csverf}}"
+        ]
+      }, 
+      "url": "http://apitest1.databrary.org:8000/api/party/7/authorize/{{affiliateId}}", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }
+      ]
+    }, 
+    {
+      "body": "{\"name\":\"Test Private Volume Access\",\"alias\":\"Test Private Vol\",\"body\":\"test private vol\",\"citation\":{\"head\":\"\"},\"published\":false,\"owner\":7}", 
+      "skipped": false, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [
+        {
+          "source": "response_json", 
+          "property": "id", 
+          "name": "volumeId"
+        }
+      ], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "AI creates a private volume, users other than the AI can't see the volume", 
+      "headers": {
+        "Content-Type": [
+          "application/json;charset=UTF-8"
+        ], 
+        "Cookie": [
+          "{{cookie}}"
+        ], 
+        "x-csverf": [
+          "{{x-csverf}}"
+        ]
+      }, 
+      "url": "http://apitest1.databrary.org:8000/api/volume", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }
+      ]
+    }, 
+    {
+      "body": "{\"individual\":0,\"children\":0,\"share_full\":false}", 
+      "skipped": false, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "AI creates a private volume, users other than the AI can't see the volume", 
+      "headers": {
+        "Content-Type": [
+          "application/json;charset=UTF-8"
+        ], 
+        "Cookie": [
+          "{{cookie}}"
+        ], 
+        "x-csverf": [
+          "{{x-csverf}}"
+        ]
+      }, 
+      "url": "http://apitest1.databrary.org:8000/api/volume/{{volumeId}}/access/-1", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }
+      ]
+    }, 
+    {
+      "body": "", 
+      "skipped": false, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "Logout", 
+      "headers": {
+        "Cookie": [
+          "{{cookie}}"
+        ], 
+        "Content-Length": [
+          "0"
+        ], 
+        "x-csverf": [
+          "{{x-csverf}}"
+        ]
+      }, 
+      "url": "http://apitest1.databrary.org:8000/api/user/logout", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }
+      ]
+    }, 
+    {
+      "skipped": false, 
+      "fragment": "", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "AI creates a private volume, users other than the AI can't see the volume", 
+      "headers": {}, 
+      "url": "http://apitest1.databrary.org:8000/api/volume/{{volumeId}}", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "404", 
+          "source": "response_status"
+        }
+      ]
+    }, 
+    {
+      "skipped": false, 
+      "url": "https://mailtrap.io/api/v1/inboxes/329183/messages?api_token=7290c3c29a872551fbb8bde13096e472", 
+      "variables": [
+        {
+          "source": "response_json", 
+          "property": "[0].text_body", 
+          "name": "textBody"
+        }
+      ], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "users with privileges less than AI can't authorize a user to the site", 
+      "headers": {}, 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }
+      ], 
+      "scripts": [
+        "variables.set('registerToken', variables.get('textBody').substring(variables.get('textBody').indexOf('http://dev3.databrary.org:8000/token/') + 37, variables.get('textBody').indexOf('By clicking the above link')));"
+      ], 
+      "before_scripts": [], 
+      "method": "GET"
+    }, 
+    {
+      "body": "{\"once\":\"unastan54\",\"again\":\"unastan54\"}", 
+      "skipped": true, 
+      "form": {}, 
+      "fragment": "", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "users with privileges less than AI can't authorize a user to the site", 
+      "headers": {}, 
+      "url": "http://apitest1.databrary.org:8000/api/token/{{registerToken}}", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }
+      ]
+    }
+  ], 
+  "description": "This test suite tests some /api routes on dev3."
+}

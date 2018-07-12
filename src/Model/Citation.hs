@@ -8,9 +8,8 @@ module Model.Citation
   , changeVolumeLinks
   ) where
 
-import qualified Data.ByteString
---import Data.ByteString (ByteString)
-import qualified Data.String
+import Data.ByteString (concat)
+import Data.String (fromString)
 import Database.PostgreSQL.Typed.Types
 
 import Has (peek, view)
@@ -22,12 +21,33 @@ import Model.Identity.Types
 import Model.Party.Types
 import Model.Volume.Types
 import Model.Citation.Types
-import Model.Citation.SQL
 import Model.Volume.SQL
 
 lookupVolumeCitation :: (MonadDB c m) => Volume -> m (Maybe Citation)
-lookupVolumeCitation vol =
-  dbQuery1 $ fmap ($ Just (volumeName $ volumeRow vol)) $(selectQuery selectVolumeCitation "WHERE volume_citation.volume = ${volumeId $ volumeRow vol}")
+lookupVolumeCitation vol = do
+  let _tenv_aAhX = unknownPGTypeEnv
+  mRow <- dbQuery1 -- . fmap ($ Just (volumeName $ volumeRow vol)) $(selectQuery selectVolumeCitation "WHERE volume_citation.volume = ${volumeId $ volumeRow vol}")
+   (mapQuery2 
+      ((\ _p_aAhY ->
+                       (Data.ByteString.concat
+                          [fromString
+                             "SELECT volume_citation.head,volume_citation.url,volume_citation.year FROM volume_citation WHERE volume_citation.volume = ",
+                           pgEscapeParameter
+                             _tenv_aAhX (PGTypeProxy :: PGTypeName "integer") _p_aAhY]))
+         (volumeId $ volumeRow vol))
+               (\[_chead_aAhZ, _curl_aAi0, _cyear_aAi1]
+                  -> (pgDecodeColumnNotNull
+                        _tenv_aAhX (PGTypeProxy :: PGTypeName "text") _chead_aAhZ, 
+                      pgDecodeColumn
+                        _tenv_aAhX (PGTypeProxy :: PGTypeName "text") _curl_aAi0, 
+                      pgDecodeColumn
+                        _tenv_aAhX (PGTypeProxy :: PGTypeName "smallint") _cyear_aAi1)))
+  pure
+   (fmap ($ Just (volumeName $ volumeRow vol))
+     (fmap
+      (\ (vhead_aAhJ, vurl_aAhK, vyear_aAhL)
+         -> Citation vhead_aAhJ vurl_aAhK vyear_aAhL)
+      mRow))
 
 lookupVolumesCitations :: (MonadDB c m, MonadHasIdentity c m) => m [(Volume, Maybe Citation)]
 lookupVolumesCitations = do
@@ -161,22 +181,169 @@ lookupVolumesCitations = do
       rows)
 
 lookupVolumeLinks :: (MonadDB c m) => Volume -> m [Citation]
-lookupVolumeLinks vol =
-  dbQuery $(selectQuery selectVolumeLink "WHERE volume_link.volume = ${volumeId $ volumeRow vol}")
+lookupVolumeLinks vol = do
+  let _tenv_aAiJ = unknownPGTypeEnv
+  rows <- dbQuery -- (selectQuery selectVolumeLink "WHERE volume_link.volume = ${volumeId $ volumeRow vol}")
+   (mapQuery2
+      ((\ _p_aAiK ->
+                       (Data.ByteString.concat
+                          [fromString
+                             "SELECT volume_link.head,volume_link.url FROM volume_link WHERE volume_link.volume = ",
+                           pgEscapeParameter
+                             _tenv_aAiJ (PGTypeProxy :: PGTypeName "integer") _p_aAiK]))
+         (volumeId $ volumeRow vol))
+               (\ [_chead_aAiL, _curl_aAiM]
+                  -> (pgDecodeColumnNotNull
+                        _tenv_aAiJ (PGTypeProxy :: PGTypeName "text") _chead_aAiL, 
+                      pgDecodeColumnNotNull
+                        _tenv_aAiJ (PGTypeProxy :: PGTypeName "text") _curl_aAiM)))
+  pure
+    (fmap
+      (\ (vhead_aAiH, vurl_aAiI)
+         -> Citation vhead_aAiH vurl_aAiI Nothing Nothing)
+      rows)
 
 changeVolumeCitation :: (MonadAudit c m) => Volume -> Maybe Citation -> m Bool
 changeVolumeCitation vol citem = do
+  let _tenv_aAjY = unknownPGTypeEnv
+      _tenv_aAkr = unknownPGTypeEnv
+      _tenv_aAkZ = unknownPGTypeEnv
   ident <- getAuditIdentity
   (0 <) <$> maybe
-    (dbExecute $(deleteVolumeCitation 'ident 'vol))
+    (dbExecute -- (deleteVolumeCitation 'ident 'vol)
+     (mapQuery2
+       ((\ _p_aAjZ _p_aAk0 _p_aAk1 ->
+                    (Data.ByteString.concat
+                       [fromString
+                          "WITH audit_row AS (DELETE FROM volume_citation WHERE volume=",
+                        pgEscapeParameter
+                          _tenv_aAjY (PGTypeProxy :: PGTypeName "integer") _p_aAjZ,
+                        fromString
+                          " RETURNING *) INSERT INTO audit.volume_citation SELECT CURRENT_TIMESTAMP, ",
+                        pgEscapeParameter
+                          _tenv_aAjY (PGTypeProxy :: PGTypeName "integer") _p_aAk0,
+                        fromString ", ",
+                        pgEscapeParameter
+                          _tenv_aAjY (PGTypeProxy :: PGTypeName "inet") _p_aAk1,
+                        fromString ", 'remove'::audit.action, * FROM audit_row"]))
+        (volumeId $ volumeRow vol) (auditWho ident) (auditIp ident))
+       (\[] -> ())))
     (\cite -> fst <$> updateOrInsert
-      $(updateVolumeCitation 'ident 'vol 'cite)
-      $(insertVolumeCitation 'ident 'vol 'cite))
+      -- (updateVolumeCitation 'ident 'vol 'cite)
+      -- (insertVolumeCitation 'ident 'vol 'cite)
+      (mapQuery2
+       ((\ _p_aAks _p_aAkt _p_aAku _p_aAkv _p_aAkw _p_aAkx ->
+                    (Data.ByteString.concat
+                       [fromString "WITH audit_row AS (UPDATE volume_citation SET head=",
+                        pgEscapeParameter
+                          _tenv_aAkr (PGTypeProxy :: PGTypeName "text") _p_aAks,
+                        fromString ",url=",
+                        pgEscapeParameter
+                          _tenv_aAkr (PGTypeProxy :: PGTypeName "text") _p_aAkt,
+                        fromString ",year=",
+                        pgEscapeParameter
+                          _tenv_aAkr (PGTypeProxy :: PGTypeName "smallint") _p_aAku,
+                        fromString " WHERE volume=",
+                        pgEscapeParameter
+                          _tenv_aAkr (PGTypeProxy :: PGTypeName "integer") _p_aAkv,
+                        fromString
+                          " RETURNING *) INSERT INTO audit.volume_citation SELECT CURRENT_TIMESTAMP, ",
+                        pgEscapeParameter
+                          _tenv_aAkr (PGTypeProxy :: PGTypeName "integer") _p_aAkw,
+                        fromString ", ",
+                        pgEscapeParameter
+                          _tenv_aAkr (PGTypeProxy :: PGTypeName "inet") _p_aAkx,
+                        fromString ", 'change'::audit.action, * FROM audit_row"]))
+          (citationHead cite)
+          (citationURL cite)
+          (citationYear cite)
+          (volumeId $ volumeRow vol)
+          (auditWho ident)
+          (auditIp ident))
+            (\[] -> ()))
+      (mapQuery2
+        ((\ _p_aAl0 _p_aAl1 _p_aAl2 _p_aAl3 _p_aAl4 _p_aAl5 ->
+                    (Data.ByteString.concat
+                       [fromString
+                          "WITH audit_row AS (INSERT INTO volume_citation (volume,head,url,year) VALUES (",
+                        pgEscapeParameter
+                          _tenv_aAkZ (PGTypeProxy :: PGTypeName "integer") _p_aAl0,
+                        fromString ",",
+                        pgEscapeParameter
+                          _tenv_aAkZ (PGTypeProxy :: PGTypeName "text") _p_aAl1,
+                        fromString ",",
+                        pgEscapeParameter
+                          _tenv_aAkZ (PGTypeProxy :: PGTypeName "text") _p_aAl2,
+                        fromString ",",
+                        pgEscapeParameter
+                          _tenv_aAkZ (PGTypeProxy :: PGTypeName "smallint") _p_aAl3,
+                        fromString
+                          ") RETURNING *) INSERT INTO audit.volume_citation SELECT CURRENT_TIMESTAMP, ",
+                        pgEscapeParameter
+                          _tenv_aAkZ (PGTypeProxy :: PGTypeName "integer") _p_aAl4,
+                        fromString ", ",
+                        pgEscapeParameter
+                          _tenv_aAkZ (PGTypeProxy :: PGTypeName "inet") _p_aAl5,
+                        fromString ", 'add'::audit.action, * FROM audit_row"]))
+         (volumeId $ volumeRow vol)
+         (citationHead cite)
+         (citationURL cite)
+         (citationYear cite)
+         (auditWho ident)
+         (auditIp ident))
+            (\[] -> ())))
     citem
 
 changeVolumeLinks :: (MonadAudit c m) => Volume -> [Citation] -> m ()
 changeVolumeLinks vol links = do
   ident <- getAuditIdentity
   dbTransaction $ do
-    _ <- dbExecute $(deleteVolumeLink 'ident 'vol)
-    mapM_ (\link -> dbExecute $(insertVolumeLink 'ident 'vol 'link)) links
+    let _tenv_aAlq = unknownPGTypeEnv
+    let _tenv_aAm1 = unknownPGTypeEnv
+    _ <- dbExecute -- (deleteVolumeLink 'ident 'vol)
+     (mapQuery2
+       ((\ _p_aAlr _p_aAls _p_aAlt ->
+                    (Data.ByteString.concat
+                       [fromString
+                          "WITH audit_row AS (DELETE FROM volume_link WHERE volume=",
+                        pgEscapeParameter
+                          _tenv_aAlq (PGTypeProxy :: PGTypeName "integer") _p_aAlr,
+                        fromString
+                          " RETURNING *) INSERT INTO audit.volume_link SELECT CURRENT_TIMESTAMP, ",
+                        pgEscapeParameter
+                          _tenv_aAlq (PGTypeProxy :: PGTypeName "integer") _p_aAls,
+                        fromString ", ",
+                        pgEscapeParameter
+                          _tenv_aAlq (PGTypeProxy :: PGTypeName "inet") _p_aAlt,
+                        fromString ", 'remove'::audit.action, * FROM audit_row"]))
+       (volumeId $ volumeRow vol) (auditWho ident) (auditIp ident))
+       (\[] -> ()))
+    mapM_ (\link -> dbExecute -- (insertVolumeLink 'ident 'vol 'link)
+       (mapQuery2
+         ((\ _p_aAm2 _p_aAm3 _p_aAm4 _p_aAm5 _p_aAm6 ->
+                         (Data.ByteString.concat
+                            [fromString
+                               "WITH audit_row AS (INSERT INTO volume_link (volume,head,url) VALUES (",
+                             pgEscapeParameter
+                               _tenv_aAm1 (PGTypeProxy :: PGTypeName "integer") _p_aAm2,
+                             fromString ",",
+                             pgEscapeParameter
+                               _tenv_aAm1 (PGTypeProxy :: PGTypeName "text") _p_aAm3,
+                             fromString ",",
+                             pgEscapeParameter
+                               _tenv_aAm1 (PGTypeProxy :: PGTypeName "text") _p_aAm4,
+                             fromString
+                               ") RETURNING *) INSERT INTO audit.volume_link SELECT CURRENT_TIMESTAMP, ",
+                             pgEscapeParameter
+                               _tenv_aAm1 (PGTypeProxy :: PGTypeName "integer") _p_aAm5,
+                             fromString ", ",
+                             pgEscapeParameter
+                               _tenv_aAm1 (PGTypeProxy :: PGTypeName "inet") _p_aAm6,
+                             fromString ", 'add'::audit.action, * FROM audit_row"]))
+           (volumeId $ volumeRow vol)
+           (citationHead link)
+           (citationURL link)
+           (auditWho ident)
+           (auditIp ident))
+                 (\[] -> ())))
+       links

@@ -6,6 +6,7 @@ import Model.Age
 import Model.Asset.Types
 import Model.AssetSegment.Types
 import Model.AssetSlot.Types
+import Model.Citation.Types
 import Model.Format.Types
 import Model.Funding.Types
 import Model.GeoNames
@@ -13,7 +14,7 @@ import Model.Metric.Types
 import Model.ORCID
 import Model.Paginate
 import Model.Party.Types
-import Model.Permission.Types
+import Model.Permission
 import Model.Release.Types
 import Model.Record.Types
 import Model.Slot.Types
@@ -31,6 +32,9 @@ deriving instance Show Asset
 deriving instance Show AssetSlot
 
 deriving instance Show AssetSegment
+
+deriving instance Eq Citation
+deriving instance Show Citation
 
 deriving instance Eq ParticipantFieldMapping2
 deriving instance Show ParticipantFieldMapping2
@@ -66,8 +70,8 @@ deriving instance Show PartyRow
 deriving instance Eq PublicPolicy
 deriving instance Show PublicPolicy
 
--- deriving instance Eq RecordRow
--- deriving instance Show RecordRow
+deriving instance Eq RecordRow
+deriving instance Show RecordRow
 
 deriving instance Eq SharedPolicy
 deriving instance Show SharedPolicy
@@ -92,3 +96,6 @@ deriving instance Show VolumeRow
 
 deriving instance Show a => Show (LookupResult a)
 deriving instance Eq a => Eq (LookupResult a)
+
+deriving instance Show a => Show (PermissionResponse a)
+deriving instance Eq a => Eq (PermissionResponse a)

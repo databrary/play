@@ -1,14 +1,31 @@
 # Databrary 
 
-## Testing
+## Demo
 
-|                       | docs | results | coverage |
-|-----------------------|------|---------|----------|
-| functional            |      | [<img src="https://img.shields.io/badge/tests-master%20passed-brightgreen.svg">](http://databrary.github.io/databrary/Report.html)        | [<img src="https://img.shields.io/badge/functional%20coverage-37%25-yellow.svg">](http://databrary.github.io/databrary/coverage-comparison/katalon-coverage/hpc_index.html)          |
-| front end integration | WIP  |         |          |
-| front end unit        | [<img src="https://img.shields.io/badge/jsdoc-generated-brightgreen.svg">](http://databrary.github.io/databrary/frontend-doc/)     |         |          |
-| back end integration  | WIP  | [<img src="https://img.shields.io/badge/runscope%20results-master%20passed-brightgreen.svg">](https://www.runscope.com/radar/agq3bvszxaxe/b788db16-d63b-4ea9-ba98-5abc477dd03d/history/20b1a0c1-c94b-4568-acc3-853d0e3e248a)        | [<img src="https://img.shields.io/badge/integration%20coverage-29%25-yellow.svg">](http://databrary.github.io/databrary/coverage-comparison/runscope/hpc_index.html)          |
-| back end unit         | [<img src="https://img.shields.io/badge/haddocks-generated-brightgreen.svg">](http://databrary.github.io/databrary/haddocks/)     | [<img src="https://img.shields.io/badge/tests-master%20passed-brightgreen.svg">](https://github.com/databrary/databrary/blob/gh-pages/databrary-1-discovered.log)        | [<img src="https://img.shields.io/badge/unit%20coverage-21%25-yellow.svg">](http://databrary.github.io/databrary/coverage/hpc_index.html)         |
+Go for a test drive on http://dev1.databrary.org:8000/. We are excited to have your attention and interest.
+1. Login as test@databrary.org / unastan54
+2. Click on "Testarosa Tesla", in the upper right corner, and select "Create Volume"
+3. Select "No" at the bottom of the page and enter some text in boxes provided
+4. Click on the "Enter Data" tab
+5. Click on "add folder", enter a test date, e.g. "01/02/2017"
+6. Scroll to the top of the page and click the "eye" icon, to switch to view mode
+
+
+## Testing, Requirements, Implementation Documentation
+
+|            | docs  |
+|------------|---|
+| functional | [docs](https://github.com/databrary/design/blob/master/overview.md)  |
+| front end  | [<img src="https://img.shields.io/badge/jsdoc-generated-brightgreen.svg">](http://databrary.github.io/databrary/frontend-doc/)  |
+| back end   | [<img src="https://img.shields.io/badge/haddocks-generated-brightgreen.svg">](http://databrary.github.io/databrary/haddocks/) |
+
+|                       | results | coverage |
+|-----------------------|---------|----------|
+| functional            | [<img src="https://img.shields.io/badge/tests-passed-brightgreen.svg">](http://databrary.github.io/databrary/Report.html)        | [<img src="https://img.shields.io/badge/coverage-37%25-yellow.svg">](http://databrary.github.io/databrary/coverage-comparison/katalon-coverage/hpc_index.html)          |
+| front end integration |         |          |
+| front end unit        |         |          |
+| back end integration  | [<img src="https://img.shields.io/badge/runscope-passed-brightgreen.svg">](https://www.runscope.com/radar/agq3bvszxaxe/b788db16-d63b-4ea9-ba98-5abc477dd03d/history/20b1a0c1-c94b-4568-acc3-853d0e3e248a)        | [<img src="https://img.shields.io/badge/coverage-29%25-yellow.svg">](http://databrary.github.io/databrary/coverage-comparison/runscope/hpc_index.html)          |
+| back end unit         | [<img src="https://img.shields.io/badge/tests-passed-brightgreen.svg">](https://github.com/databrary/databrary/blob/gh-pages/databrary-1-discovered.log)        | [<img src="https://img.shields.io/badge/coverage-21%25-yellow.svg">](http://databrary.github.io/databrary/coverage/hpc_index.html)         |
 
 [<img src="https://img.shields.io/uptimerobot/ratio/m779481982-e616968da86ff263aea86978.svg">](https://stats.uptimerobot.com/J80YrsnzP)
 

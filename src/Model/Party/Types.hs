@@ -2,6 +2,8 @@
 module Model.Party.Types
   ( PartyRow(..)
   , Party(..)
+  , Loaded(..)
+  , loadedToMaybe
   , Account(..)
   , getPartyId
   , SiteAuth(..)
@@ -41,11 +43,23 @@ data Party = Party
   { partyRow :: !PartyRow
   , partyAccount :: Maybe Account
   -- , partySiteAccess :: Access -- site-level access this party is granted under root (currently SiteAuth only)
-  , partySiteAccess :: !(Maybe Permission) -- ^ site-level data access this party is granted under root.
-                                           -- Maybe is an indication of whether this value was loaded only.
+  , partySiteAccess :: !(Loaded Permission) -- ^ See accessSite' field of Access type.
+                                           -- Only some queries populate (load) this value.
   , partyPermission :: Permission -- ^ permission current user has over this party
   , partyAccess :: Maybe Access -- ^ direct authorization this party has granted to current user
   }
+
+-- | When loading a graph of objects, some queries will neglect loading
+-- all related objects. Use this type to indicate an object which isn't loaded
+-- by all queries.
+data Loaded a = -- TODO: move this to a utility module when used more widely
+    Loaded a
+  | NotLoaded
+
+-- | Transform a Loaded value into the a Maybe value
+loadedToMaybe :: Loaded a -> Maybe a
+loadedToMaybe (Loaded v) = Just v
+loadedToMaybe NotLoaded = Nothing
 
 data Account = Account
   { accountEmail :: BS.ByteString
@@ -86,7 +100,7 @@ instance Has (Id Party) SiteAuth where
 instance Has Access SiteAuth where
   view = siteAccess
 
-deriveLiftMany [''PartyRow, ''Party, ''Account]
+deriveLiftMany [''PartyRow, ''Party, ''Account, ''Loaded]
 
 -- The values below assume a minimalist loading of each object, with no
 -- related objects loaded.
@@ -95,21 +109,21 @@ nobodyParty =
    Party
          (PartyRow (Id (-1)) (T.pack "Everybody") Nothing Nothing Nothing Nothing)
          Nothing
-         Nothing
+         NotLoaded
          PermissionREAD
          Nothing
 rootParty =
    Party
          (PartyRow (Id 0) (T.pack "Databrary") Nothing Nothing Nothing Nothing)
          Nothing
-         Nothing
+         NotLoaded
          PermissionSHARED
          Nothing
 staffParty =
    Party
          (PartyRow (Id 2) (T.pack "Staff") Nothing Nothing (Just (T.pack "Databrary")) Nothing)
          Nothing
-         Nothing
+         NotLoaded
          PermissionPUBLIC
          Nothing
 
@@ -128,7 +142,7 @@ nobodySiteAuth = SiteAuth
         , partyURL = Nothing
         }
       , partyAccount = Nothing
-      , partySiteAccess = Nothing -- not loaded
+      , partySiteAccess = NotLoaded
       , partyPermission = PermissionREAD
       , partyAccess = Just minBound
       }
@@ -149,7 +163,7 @@ blankParty = Party
     , partyURL = Nothing
     }
   , partyAccount = Nothing
-  , partySiteAccess = Nothing -- not loaded
+  , partySiteAccess = NotLoaded
   , partyPermission = PermissionNONE
   , partyAccess = Nothing
   }
