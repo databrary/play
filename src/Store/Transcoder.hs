@@ -6,7 +6,6 @@ module Store.Transcoder
   , transcodeEnabled
   -- * Replacing initTranscoder
   , initTranscoder2
-  , TranscodeConfig (..)
   ) where
 
 import Data.Maybe (isJust)
@@ -19,26 +18,22 @@ import qualified Store.Config as C
 import Store.Types
 
 runTranscoder :: Transcoder -> [String] -> IO (ExitCode, String, String)
-runTranscoder (Transcoder cmd arg) args =
+runTranscoder (Transcoder cmd arg _) args =
   readProcessWithExitCode cmd (arg ++ args) ""
 
-data TranscodeConfig = TranscodeConfig
-    { transcodeHost :: Maybe String
-    , transcodeDir :: Maybe String
-    , transcodeMount :: Maybe String
-    }
-
-initTranscoder2 :: TranscodeConfig -> IO (Maybe Transcoder)
-initTranscoder2 TranscodeConfig {..} = case (transcodeHost, transcodeDir) of
+initTranscoder2 :: TranscoderConfig -> IO (Maybe Transcoder)
+initTranscoder2 tconf@TranscoderConfig {..} = case (transcoderHost, transcoderDir) of
     (Nothing, Nothing) -> return Nothing
     _ -> Just <$> do
         cmd <- getDataFileName "transctl.sh"
         let t =
                 Transcoder cmd
-                    $ ["-v", showVersion version]
-                    ++ maybe [] (\d -> ["-d", d]) transcodeDir
-                    ++ maybe [] (\h -> ["-h", h]) transcodeHost
-                    ++ maybe [] (\m -> ["-m", m]) transcodeMount
+                    (["-v", showVersion version]
+                    ++ maybe [] (\d -> ["-d", d]) transcoderDir
+                    ++ maybe [] (\h -> ["-h", h]) transcoderHost
+                    ++ maybe [] (\m -> ["-m", m]) transcoderMount
+                    )
+                    tconf
         (r, out, err) <- runTranscoder t ["-t"]
         case r of
             ExitSuccess -> return t
@@ -58,11 +53,12 @@ initTranscoder conf =
     (Nothing, Nothing) -> return Nothing
     _ -> Just <$> do
       cmd <- getDataFileName "transctl.sh"
-      let t = Transcoder cmd $
-                [ "-v", showVersion version ]
+      let t = Transcoder cmd
+                ([ "-v", showVersion version ]
                 ++ maybe [] (\d -> ["-d", d]) dir
                 ++ maybe [] (\h -> ["-h", h]) host
-                ++ maybe [] (\m -> ["-m", m]) mount
+                ++ maybe [] (\m -> ["-m", m]) mount)
+                (TranscoderConfig host dir mount)
       (r, out, err) <- runTranscoder t ["-t"]
       case r of
         ExitSuccess -> return t

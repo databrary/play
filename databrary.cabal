@@ -477,6 +477,7 @@ test-suite discovered
     , cookie
     , cryptonite
     , directory
+    , filepath
     , hedgehog
     , hspec-expectations >= 0.8.2
     , http-client

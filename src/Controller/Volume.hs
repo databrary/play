@@ -370,7 +370,7 @@ viewVolumeLinks = action GET (pathHTML >/> pathId </< "link") $ \vi -> withAuth 
   peeks $ blankForm . htmlVolumeLinksEdit v links
 -}
 
-data UpdateVolumeLinksRequest =
+newtype UpdateVolumeLinksRequest =
     UpdateVolumeLinksRequest [(T.Text, Maybe URI)]
 
 postVolumeLinks :: ActionRoute (Id Volume)

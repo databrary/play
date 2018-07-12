@@ -83,6 +83,7 @@ in
     base
     cookie
     directory
+    filepath
     hedgehog
     hspec-expectations
     http-types
@@ -102,6 +103,9 @@ in
     nodejs
     jdk
     coreutils # cat, cut, md5sum
+  ];
+  testPkgconfigDepends = [
+    ffmpeg
   ];
   description = "Databrary";
   license = stdenv.lib.licenses.agpl3;

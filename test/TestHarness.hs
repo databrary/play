@@ -78,8 +78,8 @@ import Static.Service (Static(..))
 import Store.AV
 import Store.Config as C (load, (!))
 import Store.Service
-import Store.Transcoder (TranscodeConfig (..), initTranscoder2)
-import Store.Types (Storage(..))
+import Store.Transcoder (initTranscoder2)
+import Store.Types (Storage(..), TranscoderConfig (..))
 import Web.Types (Web(..))
 
 -- Runtime dependencies
@@ -300,10 +300,10 @@ withStorage2 = do
     -- initStorage and initTranscoder expect these to exist.
     (liftIO  . mapM_ (flip createDirectory 0o755 . (dir </>)))
         ["tmp", "stage", "upload", "trans", "cache"]
-    let tc = initTranscoder2 TranscodeConfig
-            { transcodeHost = Nothing
-            , transcodeDir = Just (BS.unpack (dir </> "trans"))
-            , transcodeMount = Nothing
+    let tc = initTranscoder2 TranscoderConfig
+            { transcoderHost = Nothing
+            , transcoderDir = Just (BS.unpack (dir </> "trans"))
+            , transcoderMount = Nothing
             }
     (liftIO . mkStorage tc) dir
   where

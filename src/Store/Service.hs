@@ -43,8 +43,6 @@ data StorageLocationConfig = StorageLocationConfig
 -- However, it also creates resources (directories)
 --
 -- TODO:
--- * Understand why checkDirs (in the where clause) requires master, temp,
---   upload, and stage to all be on the same device
 -- * Combine initCache and initTemp, which are doing the same thing with quite
 --   different implementations: appending a subdirectory, and creating it if it
 --   doesn't exist
@@ -101,11 +99,13 @@ initStorage2 (Right StorageLocationConfig {..}) initTc = do
             (Just f')
         return $ Just d
     -- @initCache x = mkdir -p "${x}/tmp"@
+    initCache :: RawFilePath -> IO ()
     initCache c = do
         let tmp = c </> "tmp"
         tmpPath <- unRawFilePath tmp
         createDirectoryIfMissing False tmpPath
     -- @initTemp x = mkdir -p "${x}/participantUpload"@
+    initTemp :: RawFilePath -> IO RawFilePath
     initTemp t = do
         let tempPath = addTrailingPathSeparator t
         unTempPath <- unRawFilePath tempPath

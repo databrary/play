@@ -70,6 +70,7 @@ import Store.Transcode
 import Paths_databrary (getDataFileName)
 import TestHarness as Test
 import System.Directory (copyFile)
+import qualified System.FilePath as StringPath
 import System.Posix.FilePath ((</>))
 
 test_1 :: TestTree
@@ -354,7 +355,13 @@ test_12b = localOption NoTimeout $ Test.stepsWithResourceAndTransaction "test_12
                         (pure (transcodeAsset t))
                     else do
                         -- TODO (needs asset slot created above); needs sha1; how deal with determining exit code?
-                        () <- liftIO (detectJobDone (transcodeId trans))
+                        liftIO
+                            (detectJobDone
+                                (fromJust
+                                    (transcoderDir
+                                        (transcoderConfig
+                                            (fromJust (storageTranscoder storage)))))
+                                (transcodeId trans))
                         collectTranscode t 0 Nothing ""
                         Just t2 <- lookupTranscode (transcodeId trans)
                         pure (transcodeAsset t2))
@@ -367,12 +374,14 @@ test_12b = localOption NoTimeout $ Test.stepsWithResourceAndTransaction "test_12
 
 -- | Can either detect event in log, look for completed output, or wait for process to stop.
 -- Currently, detect event in log.
-detectJobDone :: Id Transcode -> IO ()
-detectJobDone transId@(Id idVal) = do
-    (exit, _, _) <- readProcessWithExitCode "grep" ["curl", "trans/" ++ show idVal ++ ".log"] ""
+detectJobDone :: FilePath -> Id Transcode -> IO ()
+detectJobDone transDir transId@(Id idVal) = do
+    (exit, _, _) <- readProcessWithExitCode "grep" ["curl", logPath] ""
     case exit of
         ExitSuccess -> pure ()
-        ExitFailure _ -> threadDelay 500000 >> detectJobDone transId
+        ExitFailure _ -> threadDelay 500000 >> detectJobDone transDir transId
+  where
+    logPath = transDir StringPath.</> (show idVal ++ ".log")
 
 ----- record ---
 test_13 :: TestTree
