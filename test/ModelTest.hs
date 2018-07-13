@@ -537,7 +537,7 @@ test_16 = ignoreTest $ -- TODO: enable this inside of nix build with solr binari
 -------- ezid --------------
 test_register_volume_with_ezid :: TestTree
 test_register_volume_with_ezid = localOption (mkTimeout (15 * 10^(6 :: Int))) $
-    Test.stepsWithResourceAndTransaction "test_17" $ \step ist cn2 -> do
+    Test.stepsWithResourceAndTransaction "" $ \step ist cn2 -> do
         step "Given an authorized investigator"
         (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
         step "When the AI creates a partially shared volume"
