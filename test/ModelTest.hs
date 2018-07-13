@@ -20,6 +20,7 @@ import qualified Hedgehog.Gen as Gen
 import qualified Network.HTTP.Client as HTTPC
 import System.Exit (ExitCode(..))
 import System.Process (readProcessWithExitCode)
+import Test.Hspec.Expectations
 import Test.Tasty
 import Test.Tasty.ExpectedFailure
 import Test.Tasty.HUnit
@@ -565,27 +566,34 @@ test_register_volume_with_ezid = localOption (mkTimeout (15 * 10^(6 :: Int))) $
         pure ()
 
 --------- ingest ------------
-test_18 :: TestTree
-test_18 = localOption (mkTimeout (10 * 10^(6 :: Int))) $ Test.stepsWithTransaction "test_18" $ \step cn2 -> do
+test_simple_ingest :: TestTree
+test_simple_ingest = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "Given an authorized investigator"
     step " and a volume"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
     step "When a superadmin user ingests a session"
-    aiCtxt2 <- withStorage aiCtxt
-    aiCtxt3 <- withAV aiCtxt2
-    let aiCtxt4 = withTimestamp (UTCTime (fromGregorian 2017 5 6) (secondsToDiffTime 0)) aiCtxt3
-    aiCtxt5 <- withLogs aiCtxt4
-    let aiCtxt7 = aiCtxt5 { ctxSecret = Just (Secret "abc")}
-    -- generate csv file to stage dir
-    let updateJson = mkIngestInput ((volumeName . volumeRow) vol)
-    Right _ <- runReaderT (ingestJSON vol updateJson True False) aiCtxt7
+    aiCtxt2 <-
+        (\st av ts lg sc ->
+             aiCtxt { ctxStorage = Just st, ctxAV = Just av, ctxTimestamp = Just ts, ctxLogs = Just lg, ctxSecret = Just sc })
+        <$> mkStorageStub
+        <*> mkAVStub -- TODO: use initAV when ingest starts referencing an asset
+        <*> pure (UTCTime (fromGregorian 2017 5 6) (secondsToDiffTime 0))
+        <*> mkLogsStub
+        <*> pure (Secret "abc")
+    -- TODO: place a generated CSV file into storage "stage" folder, reference as an asset in the ingest json
+    let volName = (volumeName . volumeRow) vol
+        (run, dontOverwrite) = (True, False)
+    Right _ <- runReaderT (ingestJSON vol (mkIngestInput volName) run dontOverwrite) aiCtxt2
     step "Then the user can view the created session"
     cntrs <- runReaderT (lookupVolumeContainers vol) aiCtxt -- TODO: extract logic from volumeJSONField "containers"
-    (Just "cont1") `elem` (fmap (containerName . containerRow) cntrs) @? "volume doesn't have container naemd cont1"
-    -- TODO: record; >>> non-AV asset <<< ;
-    --   container linked to record + non-AV asset; >>> AV asset <<< ; >>> container linked to record + AV asset <<<
-    --  NOTE: for each transcoded asset, need to wait and manually call collectTranscode based on log status
+    (fmap (containerName . containerRow) cntrs) `shouldContain` [Just "cont1"]
+    -- TODO: test record
+    -- TODO: test non-AV asset
+    -- TODO: test record linked to a container
+    -- TODO: test asset linked to a container
+    -- NOTE: once this test deals with AV (audio/video) assets, then it will have to detect completion and
+    --  and invoke collectTranscode for each AV asset
 
 --------- notifications ------------
 test_19 :: TestTree
@@ -631,10 +639,8 @@ test_19 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransactio
         aiCtxt2
     fmap notificationNotice nl @?= [NoticeAccountChange]  -- does this notification only use email?
     -- fmap notificationNotice nlAfter @?= []
-    -- TODO: connect to mailtrap API and fetch emails
     pure ()
-
--- TODO: daily notification logic (cleanNotifications + updateStateNotifications)
+    -- TODO: daily notification logic (cleanNotifications + updateStateNotifications)
 
 --------- upload ------------
 test_upload_small_csv :: TestTree
@@ -644,20 +650,20 @@ test_upload_small_csv = Test.stepsWithTransaction "" $ \step cn2 -> do
     vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
     step "When start upload and send all chunks"
     aiCtxt2 <- (\e s -> aiCtxt { ctxEntropy = Just e , ctxStorage = Just s })
-        -- refactor createUpload to take a list of generated ids, isolate entropy dependency to Upload controller?
+        -- refactor createUpload to take a conduit source of entropy values, isolate entropy dependency to Upload controller?
         <$> initEntropy
         <*> mkStorageStub
     tok <- runReaderT
         (do
             up <- createUploadSetSize vol (UploadStartRequest "abcde.csv" 16)
             let (chunk1, offset1, len1) = ("col1,col2\nv1,22\n", 0, 16)
-            file <- peeks $ uploadFile up -- TODO: generator for (req, [contentChunk, offset, len])
+            file <- peeks $ uploadFile up -- TODO: define a generator for (uploadstartrequest, [(contentChunk, offset, len)])
             let rb = pure chunk1
             _ <- liftIO (writeChunk offset1 len1 file rb)
             pure up) 
         aiCtxt2
     step "Then the investigator can view the upload"
-    -- TODO: implementation of processAsset
+    -- TODO: duplicates implementation of processAsset
     aiCtxt3 <- (\a -> aiCtxt2 { ctxAV = Just a }) <$> initAV
     (upload, filepath, Right (ProbePlain fmt)) <- runReaderT
         (do
@@ -666,11 +672,10 @@ test_upload_small_csv = Test.stepsWithTransaction "" $ \step cn2 -> do
              prb <- probeFile (uploadFilename upload) fp
              pure (upload, fp, prb))
         aiCtxt3
-    Just fmt @?= getFormatByExtension "csv"
+    fmt @?= fromJust (getFormatByExtension "csv")
     uploadFilename upload @?= "abcde.csv"
     uploadSize upload @?= 16
-    contents <- readFile (BSC.unpack filepath)
-    contents @?= "col1,col2\nv1,22\n"
+    readFile (BSC.unpack filepath) `shouldReturn` "col1,col2\nv1,22\n"
 
 ------------------------------------------------------ end of tests ---------------------------------
 

@@ -8,6 +8,7 @@ module TestHarness
     , withStorage
     , mkStorageStub
     , withAV
+    , mkAVStub
     , withTimestamp
     , withLogs
     , mkLogsStub
@@ -312,12 +313,8 @@ mkRequest = Wai.defaultRequest { Wai.requestHeaderHost = Just "invaliddomain.org
 
 withStorage :: TestContext -> IO TestContext
 withStorage ctxt = do
-    addCntxt ctxt <$> mkStorageContext
-
-mkStorageContext :: IO TestContext
-mkStorageContext = do
     stor <- mkStorageStub
-    pure (blankContext { ctxStorage = Just stor })
+    pure (addCntxt ctxt (blankContext { ctxStorage = Just stor }))
 
 mkStorageStub :: IO Storage
 mkStorageStub = do
@@ -349,6 +346,9 @@ mkAVContext :: IO TestContext
 mkAVContext = do
     av <- initAV
     pure (blankContext { ctxAV = Just av })
+
+mkAVStub :: IO AV   -- currently the same as initAV, but in the future can become simpler
+mkAVStub = initAV
 
 withInternalStateVal :: InternalState -> TestContext -> TestContext
 withInternalStateVal ist ctxt =
