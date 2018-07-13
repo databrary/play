@@ -9,6 +9,7 @@ module TestHarness
     , mkStorageStub
     , withAV
     , mkAVStub
+    , mkMailerMock
     , withTimestamp
     , withLogs
     , mkLogsStub
@@ -41,11 +42,12 @@ import Control.Applicative
 import Control.Exception (bracket)
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Resource (InternalState, runResourceT, withInternalState)
-import Data.IORef (newIORef)
+import Data.IORef (newIORef, IORef, modifyIORef)
 import Data.Maybe
 import Data.Time
 import Database.PostgreSQL.Typed.Protocol
 import qualified Hedgehog.Gen as Gen
+import Network.Mail.Mime (Mail)
 import Test.Tasty
 import Test.Tasty.HUnit
 import qualified Data.ByteString as BS
@@ -70,7 +72,7 @@ import Model.Token
 import Service.DB
 import Service.Entropy
 import Service.Log
-import Service.Mail (initMailer, Mailer)
+import Service.Mail (Mailer(..))
 import Service.Messages (loadMessages, Messages)
 import Service.Notification (initNotifications, Notifications)
 import Service.Passwd (initPasswd)
@@ -124,7 +126,7 @@ mkBackgroundContext ctxtFor ist cn =
     in do
     conf <- C.load "databrary.conf"
     logs <- initLogs (conf C.! "log")
-    mailer <- pure initMailer
+    mailer <- pure mkMailerStub
     httpc <- initHTTPClient
     (solr, ezid) <- case ctxtFor of
           ForEzid -> do
@@ -349,6 +351,15 @@ mkAVContext = do
 
 mkAVStub :: IO AV   -- currently the same as initAV, but in the future can become simpler
 mkAVStub = initAV
+
+mkMailerMock :: IO (Mailer, IORef [Mail]) -- TODO: change to StateT?
+mkMailerMock = do
+    ref <- newIORef []
+    mailer <- pure (Mailer (\_ _ _ _ mail -> modifyIORef ref (\ls -> ls ++ [mail])))
+    pure (mailer, ref)
+
+mkMailerStub :: Mailer
+mkMailerStub = Mailer (\_ _ _ _ _ -> pure ())
 
 withInternalStateVal :: InternalState -> TestContext -> TestContext
 withInternalStateVal ist ctxt =

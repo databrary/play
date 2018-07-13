@@ -12,12 +12,15 @@ import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy.Char8 as BSLC
 -- import qualified Data.HashMap.Strict as HM
+import Data.IORef (readIORef)
 import Data.Maybe
 import Data.Monoid ((<>))
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import Data.Time
 import qualified Hedgehog.Gen as Gen
 import qualified Network.HTTP.Client as HTTPC
+import Network.Mail.Mime
 import System.Exit (ExitCode(..))
 import System.Process (readProcessWithExitCode)
 import Test.Hspec.Expectations
@@ -63,7 +66,6 @@ import Model.VolumeAccess
 -- import Model.VolumeAccess.TypesTest
 import Service.DB (DBConn, MonadDB)
 import Service.Entropy (initEntropy)
-import Service.Mail (initMailer)
 import Service.Messages (loadMessages)
 import Service.Types (Secret(..))
 import Solr.Index (updateIndex)
@@ -599,7 +601,7 @@ test_simple_ingest = Test.stepsWithTransaction "" $ \step cn2 -> do
 test_simple_notification :: TestTree
 test_simple_notification = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "Given an authorized investigator"
-    (_, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     -- when create notification that account was updated and trigger deliveries
     step "When the investigator changes their account, triggering a notification and delivery"
     aiCtxt2 <-
@@ -613,6 +615,7 @@ test_simple_notification = Test.stepsWithTransaction "" $ \step cn2 -> do
             createNotification (blankNotification (siteAccount auth) NoticeAccountChange)
                 { notificationParty = Just $ partyRow $ accountParty $ siteAccount auth })
         aiCtxt2
+    (mailer, mailRef) <- mkMailerMock
     noIdentNotifyCtxt <-
         (\n m l ml -> (mkDbContext cn2) {
                 ctxNotifications = Just n
@@ -623,21 +626,25 @@ test_simple_notification = Test.stepsWithTransaction "" $ \step cn2 -> do
             <$> mkNotificationsStub
             <*> loadMessages
             <*> mkLogsStub
-            <*> pure initMailer
-    _ <- runReaderT (emitNotifications (periodicDelivery Nothing)) noIdentNotifyCtxt -- should this use runNotifier instead?
-    -- NOTE: this test depends on mailtrap and might become sensitive to rate limits
+            <*> pure mailer
+    -- should this use runNotifier instead?
+    _ <- runReaderT (emitNotifications (periodicDelivery Nothing)) noIdentNotifyCtxt
     step "Then the investigator gets a notification about the change"
     step "and the notification is removed"
-    (nl, nlAfter) <- runReaderT
+    nl <- runReaderT
         (do
-            nl <- lookupUserNotifications     -- TODO: repeating viewNotifications
+            -- TODO: repeats implementation of viewNotifications
+            nl <- lookupUserNotifications     
             _ <- changeNotificationsDelivery (filter ((DeliverySite >) . notificationDelivered) nl) DeliverySite
-            nlAfter <- lookupUserNotifications
-            pure (nl, nlAfter))
+            -- nlAfter <- lookupUserNotifications -- TODO: ensure only delivered once
+            pure nl)
         aiCtxt2
     fmap notificationNotice nl @?= [NoticeAccountChange]  -- does this notification only use email?
-    -- fmap notificationNotice nlAfter @?= []
-    pure ()
+    [Mail { mailTo = [toAddr], mailParts = [alt1] } ] <- readIORef mailRef
+    addressEmail toAddr @?= TE.decodeUtf8 (accountEmail aiAcct)
+    let [part1] = alt1
+    -- TODO: mock mailer at a higher level than Mail object, so check below can use a type instead of string match
+    BSLC.unpack (partContent part1) `shouldContain` "email or password has been changed" 
     -- TODO: daily notification logic (cleanNotifications + updateStateNotifications)
 
 --------- upload ------------
