@@ -596,11 +596,9 @@ test_simple_ingest = Test.stepsWithTransaction "" $ \step cn2 -> do
     --  and invoke collectTranscode for each AV asset
 
 --------- notifications ------------
-test_19 :: TestTree
-test_19 = localOption (mkTimeout (1 * 10^(6 :: Int))) $ Test.stepsWithTransaction "test_19" $ \step cn2 -> do
-    -- context needs: ...
+test_simple_notification :: TestTree
+test_simple_notification = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "Given an authorized investigator"
-    -- (aiAcct, aiCtxt)
     (_, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     -- when create notification that account was updated and trigger deliveries
     step "When the investigator changes their account, triggering a notification and delivery"
