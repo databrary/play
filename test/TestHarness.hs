@@ -50,7 +50,8 @@ import Test.Tasty.HUnit
 import qualified Data.ByteString as BS hiding (unpack)
 import qualified Data.ByteString.Char8 as BS
 import qualified Network.Wai as Wai
-import System.Posix.ByteString (mkdtemp, removeDirectory, getEnvDefault, createDirectory)
+import System.Directory (removeDirectoryRecursive)
+import System.Posix.ByteString (mkdtemp, getEnvDefault, createDirectory)
 import System.Posix.FilePath ((</>))
 
 import Context
@@ -296,7 +297,7 @@ withStorage2 = do
     -- will always be short-lived.
     (_, dir) <- allocate
         (mkdtemp (userTmpDir </> "databrary-storage-fixture-"))
-        removeDirectory
+        (removeDirectoryRecursive . BS.unpack)
     -- initStorage and initTranscoder expect these to exist.
     (liftIO  . mapM_ (flip createDirectory 0o755 . (dir </>)))
         ["tmp", "stage", "upload", "trans", "cache"]
