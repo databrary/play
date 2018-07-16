@@ -8,6 +8,7 @@ module Controller.Activity
 
 import Control.Arrow (second)
 import Control.Monad (when)
+import Control.Monad.IO.Class (liftIO)
 import Data.Function (on)
 import Data.IORef (readIORef)
 import Data.List (nubBy)
@@ -74,6 +75,7 @@ viewContainerActivity = action GET (pathAPI </> pathMaybe pathId </> pathSlotId 
   when (api == HTML && isJust vi) angular
   v <- getContainer PermissionEDIT vi ci True
   a <- lookupContainerActivity v
+  (liftIO . print) "before activity json"
   return $ case api of
     ~JSON -> okResponse [] $ JSON.toEncoding $ mapMaybe activityJSON a
     -- TODO: HTML
