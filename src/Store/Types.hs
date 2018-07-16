@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Store.Types
   ( Transcoder(..)
+  , TranscoderConfig (..)
   , Storage(..)
   , getStorageTempParticipantUpload'
   , getStorageTempParticipantUpload
@@ -15,9 +16,19 @@ import System.Posix.FilePath ((</>))
 import Has (MonadHas)
 import Files
 
+-- | Transcoder config options
+data TranscoderConfig = TranscoderConfig
+    { transcoderHost :: Maybe String
+    , transcoderDir :: Maybe FilePath
+    , transcoderMount :: Maybe String
+    }
+
+{-# DEPRECATED transcoderArgs "This should be built out of transcoderConfig when needed, rather than baked in." #-}
 data Transcoder = Transcoder
   { transcoderCmd :: !FilePath
   , transcoderArgs :: ![String]
+  , transcoderConfig :: TranscoderConfig
+  -- ^ Config options used to build this value via 'initTranscoder'
   }
 
 data Storage = Storage

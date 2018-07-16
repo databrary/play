@@ -9,7 +9,7 @@ module Model.URL
   , urlLink
   ) where
 
-import Control.Monad ((<=<), guard)
+import Control.Monad (guard)
 import Data.Aeson (ToJSON(..))
 import Data.Char (isDigit)
 import Data.Maybe (fromMaybe, isNothing)
@@ -17,8 +17,6 @@ import Database.PostgreSQL.Typed.Types (PGParameter(..), PGColumn(..))
 import Language.Haskell.TH.Lift (deriveLiftMany)
 import Network.URI
 import qualified Text.Blaze as H
-
-import qualified Store.Config as C
 
 -- | Prepare a URI value for using in a query or storing in a table
 toPG :: URI -> String
@@ -41,10 +39,6 @@ instance PGColumn "text" URI where
 -- | Format a URL value for inclusion in a JSON object
 instance ToJSON URI where
   toJSON = toJSON . show
-
--- | Extract a URI value from a configuration entry
-instance C.Configurable URI where
-  config = parseAbsoluteURI <=< C.config
 
 -- | Format a URI for display in a server side generated html page
 instance H.ToValue URI where

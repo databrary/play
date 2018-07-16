@@ -74,8 +74,8 @@ deriving instance Show PartyRow
 deriving instance Eq PublicPolicy
 deriving instance Show PublicPolicy
 
--- deriving instance Eq RecordRow
--- deriving instance Show RecordRow
+deriving instance Eq RecordRow
+deriving instance Show RecordRow
 
 deriving instance Eq SharedPolicy
 deriving instance Show SharedPolicy

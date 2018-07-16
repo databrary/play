@@ -7,6 +7,7 @@ module TestHarness
     , mkRequest
     , withStorage
     , mkStorageStub
+    , withStorage2
     , withAV
     , mkAVStub
     , mkMailerMock
@@ -40,9 +41,11 @@ module TestHarness
 
 import Control.Applicative
 import Control.Exception (bracket)
+import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Reader
-import Control.Monad.Trans.Resource (InternalState, runResourceT, withInternalState)
 import Data.IORef (newIORef, IORef, modifyIORef)
+import Control.Monad.Trans.Resource
+    (InternalState, runResourceT, withInternalState, ResourceT, allocate)
 import Data.Maybe
 import Data.Time
 import Database.PostgreSQL.Typed.Protocol
@@ -50,10 +53,12 @@ import qualified Hedgehog.Gen as Gen
 import Network.Mail.Mime (Mail)
 import Test.Tasty
 import Test.Tasty.HUnit
-import qualified Data.ByteString as BS
--- import qualified Data.Text as T
+import qualified Data.ByteString as BS hiding (unpack)
+import qualified Data.ByteString.Char8 as BS
 import qualified Network.Wai as Wai
--- import qualified Network.Wai.Internal as Wai
+import System.Directory (removeDirectoryRecursive)
+import System.Posix.ByteString (mkdtemp, getEnvDefault, createDirectory)
+import System.Posix.FilePath ((</>))
 
 import Context
 import EZID.Service (initEZID)
@@ -65,7 +70,6 @@ import Model.Factories
 import Model.Id
 import Model.Identity
 import Model.Party
--- import Model.Party.TypesTest
 import Model.Permission
 import Model.Time
 import Model.Token
@@ -82,7 +86,8 @@ import Static.Service (Static(..))
 import Store.AV
 import Store.Config as C (load, (!))
 import Store.Service
-import Store.Types (Storage(..))
+import Store.Transcoder (initTranscoder2)
+import Store.Types (Storage(..), TranscoderConfig (..))
 import Web.Types (Web(..))
 
 -- Runtime dependencies
@@ -312,6 +317,36 @@ instance Has Access TestContext where
 
 mkRequest :: Wai.Request
 mkRequest = Wai.defaultRequest { Wai.requestHeaderHost = Just "invaliddomain.org" }
+
+-- | Create a temp dir and use it for all Storage fields
+withStorage2 :: ResourceT IO Storage
+withStorage2 = do
+    -- XDG_RUNTIME_DIR, TMPDIR, or "/tmp", whichever is available first
+    userTmpDir <- liftIO
+        (getEnvDefault "XDG_RUNTIME_DIR" =<< getEnvDefault "TMPDIR" "/tmp")
+    -- Explicitly drop the release key, since the ResourceT in which this runs
+    -- will always be short-lived.
+    (_, dir) <- allocate
+        (mkdtemp (userTmpDir </> "databrary-storage-fixture-"))
+        (removeDirectoryRecursive . BS.unpack)
+    -- initStorage and initTranscoder expect these to exist.
+    (liftIO  . mapM_ (flip createDirectory 0o755 . (dir </>)))
+        ["tmp", "stage", "upload", "trans", "cache"]
+    let tc = initTranscoder2 TranscoderConfig
+            { transcoderHost = Nothing
+            , transcoderDir = Just (BS.unpack (dir </> "trans"))
+            , transcoderMount = Nothing
+            }
+    (liftIO . mkStorage tc) dir
+  where
+    mkStorage tc dir = (flip initStorage2 tc . Right) StorageLocationConfig
+        { storageLocTemp = Just (dir </> "tmp")
+        , storageLocMaster = dir </> "stage"
+        , storageLocUpload = dir </> "upload"
+        , storageLocCache = Just (dir </> "cache")
+        , storageLocStage = Just (dir </> "stage")
+        , storageLocFallback = Nothing
+        }
 
 withStorage :: TestContext -> IO TestContext
 withStorage ctxt = do

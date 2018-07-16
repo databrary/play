@@ -6,6 +6,7 @@ import Control.Concurrent (threadDelay)
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Reader
+import Control.Monad.Trans.Resource
 import Data.Aeson
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
@@ -64,6 +65,7 @@ import Model.Transcode
 import Model.Volume
 import Model.VolumeAccess
 -- import Model.VolumeAccess.TypesTest
+import Model.VolumeMetric
 import Service.DB (DBConn, MonadDB)
 import Service.Entropy (initEntropy)
 import Service.Messages (loadMessages)
@@ -73,6 +75,7 @@ import Solr.Search
 import Solr.Service (initSolr, finiSolr)
 import Store.AV (initAV)
 import Store.CSV (buildCSV)
+import Store.Types
 import qualified Store.Config as C
 -- import Store.Asset
 -- import Store.AV
@@ -81,6 +84,9 @@ import Store.Transcode
 import Store.Upload (uploadFile)
 import Paths_databrary (getDataFileName)
 import TestHarness as Test
+import System.Directory (copyFile)
+import qualified System.FilePath as StringPath
+import System.Posix.FilePath ((</>))
 
 test_1 :: TestTree
 test_1 = Test.stepsWithTransaction "test_1" $ \step cn2 -> do
@@ -361,55 +367,66 @@ test_12a = ignoreTest $ -- "Invalid cross-device link"
 
 -- same as above, but for video file that undergoes conversion
 test_12b :: TestTree
--- FIXME: ignored because it hangs indefinitely for bryan
-test_12b = ignoreTest $ localOption NoTimeout $ Test.stepsWithResourceAndTransaction "test_12b" $ \step ist cn2 -> do
+test_12b = localOption (mkTimeout (10 * 10^(6 :: Int))) $ Test.stepsWithResourceAndTransaction "test_12b" $ \step ist cn2 -> do
     step "Given a partially shared volume"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     -- TODO: should be lookup auth on rootParty
     vol <- runReaderT (addVolumeSetPublic aiAcct) aiCtxt
     step "When a publicly released video asset is added"
-    aiCtxt2 <- withStorage aiCtxt
-    aiCtxt3 <- withAV aiCtxt2
-    let aiCtxt4 = withTimestamp (UTCTime (fromGregorian 2017 5 6) (secondsToDiffTime 0)) aiCtxt3
-    aiCtxt5 <- withLogs aiCtxt4
-    let aiCtxt6 = withInternalStateVal ist aiCtxt5
-    foundAsset <- runReaderT
-        (do
-              (a, _) <- Gen.sample (genCreateAssetAfterUpload vol)
-              let a' = a { assetRow = (assetRow a) { assetRelease = Just ReleasePUBLIC, assetFormat = (fromJust . getFormatByExtension) "webm" } }
-              rpath <- liftIO (BSC.pack <$> getDataFileName "test/data/small.webm") -- TODO: touch timestamp to trigger new file
-              Right probe <- probeFile "small.webm" rpath
-              savedAsset <- addAsset a' (Just rpath)
-              let assetWithName = savedAsset { assetRow = (assetRow savedAsset) { assetName = Just "small.webm" } }
-              -- gen assetslot
-              -- change assetslot
-              trans <- addTranscode assetWithName fullSegment defaultTranscodeOptions probe
-              _ <- startTranscode trans
-              Just t <- lookupTranscode (transcodeId trans)
-              if (assetSHA1 . assetRow . transcodeAsset) t /= Nothing -- there was an existing matching transcode
-              then
-                 (pure (transcodeAsset t))
-              else do
-                  -- TODO (needs asset slot created above); needs sha1; how deal with determining exit code?
-                  () <- liftIO (detectJobDone (transcodeId trans))
-                  collectTranscode t 0 Nothing ""
-                  Just t2 <- lookupTranscode (transcodeId trans)
-                  pure (transcodeAsset t2))
-                  -- lookup assetslot or container w/contents
-        (aiCtxt6 { ctxSecret = Just (Secret "abc"), ctxRequest = Just mkRequest }) -- use mkRequest to override default domain
-    step "Then one can retrieve the resulting asset"
-    (assetRelease . assetRow) foundAsset @?= Just ReleasePUBLIC
-    (assetName . assetRow) foundAsset @?= Just "small.webm"
-    (assetDuration . assetRow) foundAsset @?= Just (Offset 5.62)
+    runResourceT $ do
+        storage <- withStorage2
+        let aiCtxt2 = aiCtxt { ctxStorage = Just storage }
+        liftIO $ do
+            aiCtxt3 <- withAV aiCtxt2
+            let aiCtxt4 = withTimestamp (UTCTime (fromGregorian 2017 5 6) (secondsToDiffTime 0)) aiCtxt3
+            aiCtxt5 <- withLogs aiCtxt4
+            let aiCtxt6 = withInternalStateVal ist aiCtxt5
+                rpath = storageUpload storage </> "small.webm"
+            flip copyFile (BSC.unpack rpath) =<< getDataFileName "test/data/small.webm"
+            foundAsset <- runReaderT
+                (do
+                    (a, _) <- Gen.sample (genCreateAssetAfterUpload vol)
+                    let a' = a { assetRow = (assetRow a) { assetRelease = Just ReleasePUBLIC, assetFormat = (fromJust . getFormatByExtension) "webm" } }
+                    Right probe <- probeFile "small.webm" rpath
+                    savedAsset <- addAsset a' (Just rpath)
+                    let assetWithName = savedAsset { assetRow = (assetRow savedAsset) { assetName = Just "small.webm" } }
+                    -- gen assetslot
+                    -- change assetslot
+                    trans <- addTranscode assetWithName fullSegment defaultTranscodeOptions probe
+                    _ <- startTranscode trans
+                    Just t <- lookupTranscode (transcodeId trans)
+                    if (assetSHA1 . assetRow . transcodeAsset) t /= Nothing -- there was an existing matching transcode
+                    then
+                        (pure (transcodeAsset t))
+                    else do
+                        -- TODO (needs asset slot created above); needs sha1; how deal with determining exit code?
+                        liftIO
+                            (detectJobDone
+                                (fromJust
+                                    (transcoderDir
+                                        (transcoderConfig
+                                            (fromJust (storageTranscoder storage)))))
+                                (transcodeId trans))
+                        collectTranscode t 0 Nothing ""
+                        Just t2 <- lookupTranscode (transcodeId trans)
+                        pure (transcodeAsset t2))
+                        -- lookup assetslot or container w/contents
+                (aiCtxt6 { ctxSecret = Just (Secret "abc"), ctxRequest = Just mkRequest }) -- use mkRequest to override default domain
+            step "Then one can retrieve the resulting asset"
+            (assetRelease . assetRow) foundAsset @?= Just ReleasePUBLIC
+            (assetName . assetRow) foundAsset @?= Just "small.webm"
+            (assetDuration . assetRow) foundAsset @?= Just (Offset 5.62)
 
 -- | Can either detect event in log, look for completed output, or wait for process to stop.
 -- Currently, detect event in log.
-detectJobDone :: Id Transcode -> IO ()
-detectJobDone transId@(Id idVal) = do
-    (exit, _, _) <- readProcessWithExitCode "grep" ["curl", "trans/" ++ show idVal ++ ".log"] ""
+detectJobDone :: FilePath -> Id Transcode -> IO ()
+detectJobDone transDir transId@(Id idVal) = do
+    (exit, _, _) <- readProcessWithExitCode "grep" ["curl", logPath] ""
     case exit of
         ExitSuccess -> pure ()
-        ExitFailure _ -> threadDelay 500000 >> detectJobDone transId
+        ExitFailure _ -> threadDelay 500000 >> detectJobDone transDir transId
+  where
+    logPath = transDir StringPath.</> (show idVal ++ ".log")
 
 ----- record ---
 test_13 :: TestTree
@@ -420,6 +437,9 @@ test_13 = Test.stepsWithTransaction "test_13" $ \step cn2 -> do
     rid <- runReaderT
          (do
               v <- addVolumeSetPrivate aiAcct
+              _ <- addVolumeCategory v (categoryId participantCategory)
+              -- TODO: add check in addRecord requiring some metrics for the category
+              -- to already be associated with the volume
               addParticipantRecordWithMeasures v [])
          aiCtxt
     step "When the public attempts to view the record"
@@ -436,7 +456,8 @@ test_14 = Test.stepsWithTransaction "test_14" $ \step cn2 -> do
     rid <- runReaderT
          (do
               v <- addVolumeWithAccess aiAcct
-              (someMeasure, someMeasure2) <- (,) <$> Gen.sample genCreateMeasure <*> Gen.sample genCreateMeasure
+              (someMeasure, someMeasure2) <- (,) <$> Gen.sample genCreateGenderMeasure <*> Gen.sample genCreateBirthdateMeasure
+              defineVolumeParticipantMetrics v (fmap measureMetric [someMeasure, someMeasure2])
               addParticipantRecordWithMeasures v [someMeasure, someMeasure2])
          aiCtxt
     step "When the public attempts to view the record"
@@ -444,6 +465,71 @@ test_14 = Test.stepsWithTransaction "test_14" $ \step cn2 -> do
     Just rcrdForAnon <- runWithNoIdent cn2 (lookupRecord rid)
     step "Then the public can't see the restricted measures like birthdate"
     (participantMetricBirthdate `notElem` (fmap measureMetric . getRecordMeasures) rcrdForAnon) @? "Expected birthdate to be removed"
+
+test_14b :: TestTree -- TODO: have more tests focused on record within a recordslot rather than record attached to a volume only
+test_14b = Test.stepsWithTransaction "test_14b" $ \step cn2 -> do
+    step "Given a volume"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    -- TODO: should be lookup auth on rootParty
+    vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
+    step "When you define a record's fields"
+    step "and add one record"
+    rid <- runReaderT
+         (do
+              someMeasure <- (\m -> m { measureDatum = "Male"}) <$> Gen.sample genCreateGenderMeasure
+              defineVolumeParticipantMetrics vol [measureMetric someMeasure]
+              addParticipantRecordWithMeasures vol [someMeasure])
+         aiCtxt
+    step "Then one can view the record under the volume"
+    -- TODO: duplicates volumJSONField "records"
+    [rcrd] <- runWithNoIdent cn2 (lookupVolumeRecords vol) -- TODO: don't fail when there is noise from other records
+    rid @?= (recordId . recordRow) rcrd
+    let [m1] = recordMeasures rcrd
+    measureDatum m1 @?= "Male"
+    -- TODO: check measure type, check record category
+
+test_14c :: TestTree
+test_14c = Test.stepsWithTransaction "test_14c" $ \step cn2 -> do
+    step "Given a volume record"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    -- TODO: should be lookup auth on rootParty
+    (_, vol) <- runReaderT
+         (do
+              vol <- addVolumeWithAccess aiAcct
+              someMeasure <- (\m -> m { measureDatum = "Male"}) <$> Gen.sample genCreateGenderMeasure
+              defineVolumeParticipantMetrics vol [measureMetric someMeasure]
+              rid <- addParticipantRecordWithMeasures vol [someMeasure]
+              pure (rid, vol))
+         aiCtxt
+    step "When one changes a measure"
+    _ <- runReaderT
+        (do
+            [[m1]] <- fmap recordMeasures <$> lookupVolumeRecords vol
+            changeRecordMeasure m1 { measureDatum = "Female" })
+        aiCtxt
+    step "Then one sees the updated measure"
+    [rcrd3] <- runWithNoIdent cn2 (lookupVolumeRecords vol)
+    (fmap measureDatum . recordMeasures) rcrd3 @?= ["Female"]
+    step "When one deletes a measure" -- any restrictions on deleting when volume metric exists?
+    deletedMeasure <- runReaderT
+        (do
+            [[m1]] <- fmap recordMeasures <$> lookupVolumeRecords vol
+            _ <- removeRecordMeasure m1 { measureDatum = "" }
+            pure m1)
+        aiCtxt
+    step "Then one doesn't see the measure when viewing"
+    [rcrd0] <- runWithNoIdent cn2 (lookupVolumeRecords vol)
+    measureMetric deletedMeasure `notElem` (fmap measureMetric . recordMeasures) rcrd0 @? "expected measure removed"
+    step "When one removes the record"  -- Assumes record hasn't been connected to a container slot
+    _ <- runReaderT
+        (do
+            [rcrd] <- lookupVolumeRecords vol
+            removeRecord rcrd)
+        aiCtxt
+    step "Then one doesn't see the record on the volume"
+    -- TODO: duplicates volumJSONField "records"
+    rs <- runWithNoIdent cn2 (lookupVolumeRecords vol)
+    fmap recordRow rs @?= []
 
 ------ miscellaneous -----
 test_15 :: TestTree
@@ -488,8 +574,8 @@ test_15b = Test.stepsWithTransaction "test_15b" $ \step cn2 -> do
     volLinks <- runWithNoIdent cn2 (lookupVolumeLinks v)
     volLinks @?= [link]
 
-test_15c :: TestTree
-test_15c = Test.stepsWithTransaction "test_15c" $ \step cn2 -> do
+test_change_volume_links :: TestTree
+test_change_volume_links = Test.stepsWithTransaction "" $ \step cn2 -> do
     step "Given a created volume with a link"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     -- TODO: should be lookup auth on rootParty
@@ -501,13 +587,15 @@ test_15c = Test.stepsWithTransaction "test_15c" $ \step cn2 -> do
             ls <- lookupVolumeLinks v
             pure (v, ls))
         aiCtxt
-    step "When the link is changed and removed"
-    step "Then one can see each change"
+    step "When the link is changed"
     let link2 = loadedLink { citationHead = "name corrected" }
     runReaderT (changeVolumeLinks v [link2]) aiCtxt -- TODO: test for ezid update for changed link in ezid test
+    step "Then one can see the change"
     volLinks <- runWithNoIdent cn2 (lookupVolumeLinks v)
     volLinks @?= [link2]
+    step "When the link is removed"
     runReaderT (changeVolumeLinks v []) aiCtxt
+    step "Then one can see the change"
     volLinks2 <- runWithNoIdent cn2 (lookupVolumeLinks v)
     volLinks2 @?= []
 
@@ -750,6 +838,13 @@ mkContainer v mRel mDate = do
            , containerVolume = v
            , containerRow = (containerRow c) { containerDate = mDate }
            })
+
+defineVolumeParticipantMetrics :: (MonadDB c m) => Volume -> [Metric] -> m ()
+defineVolumeParticipantMetrics vol metrics = do
+    -- should use add category + remove metric for each not used
+    forM_
+        metrics
+        (\m -> addVolumeMetric vol (metricId m))
 
 addParticipantRecordWithMeasures :: (MonadAudit c m) => Volume -> [Measure] -> m (Id Record)
 addParticipantRecordWithMeasures v measures = do

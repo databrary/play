@@ -92,7 +92,11 @@ instance Monoid Permission where
 
 -- | TODO: Figure out what this thing represents
 data Access = Access
-  { accessSite' :: !Permission -- ^ ??
+  { accessSite' :: !Permission -- ^ A given acting user's permission level on
+                               -- on the databrary site's data (e.g. volumes).
+                               -- The permission is computed through considering
+                               -- inherited permissions from the databrary site (party 0)
+                               -- down to the acting user.
   , accessMember' :: !Permission -- ^ ??
   } deriving (Eq) -- , Show)
 

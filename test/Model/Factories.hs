@@ -171,7 +171,7 @@ genPartySimple :: Gen Party
 genPartySimple = do
    let gPerm = pure PermissionPUBLIC
    let gAccess = pure Nothing
-   p <- Party <$> genPartyRowSimple <*> pure Nothing <*> pure Nothing <*> gPerm <*> gAccess
+   p <- Party <$> genPartyRowSimple <*> pure Nothing <*> pure NotLoaded <*> gPerm <*> gAccess
    a <- Account <$> genAccountEmail <*> pure p
    (let p2 = p { partyAccount = Just a2 } -- account expected below
         a2 = a { accountParty = p2 }
@@ -237,6 +237,9 @@ genVolumeBody = Gen.text (Range.constant 0 300) Gen.alphaNum
 
 genVolumeAlias :: Gen Text
 genVolumeAlias = Gen.text (Range.constant 0 60) Gen.alphaNum
+
+-- citation only uses head, url, and year fields of citation; start with a doi like 10.1145/2897518.2897542 which get site converts to hdl,
+--   hdl result example: hdl:10.1145/2897518.2897542
 
 {-
 genVolumeDOI :: Gen BS.ByteString
@@ -391,17 +394,24 @@ genGenderMeasure :: Gen (Metric, BS.ByteString)
 genGenderMeasure =
     pure (participantMetricGender, "Male")
 
-genParticipantMetricValue :: Gen (Metric, BS.ByteString)
-genParticipantMetricValue =
-    Gen.choice [genBirthdateMeasure, genGenderMeasure]
+-- TODO: genCreateMeasures :: Gen [(Metric, BS.ByteString)] -- will ensure each measure metric is distinct
 
-genCreateMeasure :: Gen Measure
-genCreateMeasure = do
-    (mtrc, val) <- genParticipantMetricValue
+genCreateGenderMeasure :: Gen Measure
+genCreateGenderMeasure = do
+    (mtrc, val) <- genGenderMeasure
     Measure
         <$> (pure . error) "measure record not set yet"
         <*> pure mtrc
         <*> pure val
+
+genCreateBirthdateMeasure :: Gen Measure
+genCreateBirthdateMeasure = do
+    (mtrc, val) <- genBirthdateMeasure
+    Measure
+        <$> (pure . error) "measure record not set yet"
+        <*> pure mtrc
+        <*> pure val
+
 -- record
 genCreateRecord :: Volume -> Gen Record
 genCreateRecord vol = do
@@ -423,9 +433,9 @@ genCreateRecord vol = do
 -- links
 genVolumeLink :: Gen Citation
 genVolumeLink =
-    -- TODO: use real generators below
-    -- TODO: some repetition from postVolumeLinks form parsing, create blankLink function
-    -- TODO: pass the link name into the URI generator
+    -- TODO: Create and use more realistic generators for head and uri values. Generate them together.
+    -- TODO: This logic repeats behavior from C.Volume.postVolumeLinks, create blankLink helper
+    --   function instead of repeating.
     Citation
         <$> Gen.text (Range.constant 0 50) Gen.alpha
         <*> (Just <$> genGeneralURI)
