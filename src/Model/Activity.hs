@@ -10,6 +10,7 @@ module Model.Activity
 import Control.Applicative ((<|>), empty, pure)
 import Control.Arrow ((&&&))
 import Control.Monad (forM)
+import Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString.Char8 as BSC
 import Data.Function (on)
 import qualified Data.HashMap.Strict as HM
@@ -150,14 +151,18 @@ mergeAssetAndSlot = joinActivitiesWith f1 where
 
 lookupContainerActivity :: (MonadDB c m, MonadHasIdentity c m) => Container -> m [Activity]
 lookupContainerActivity cont = do
+  (liftIO . print) "before act container"
   ca <- chainPrev (const ())
     <$> dbQuery $(selectQuery selectActivityContainer $ "WHERE container.id = ${containerId $ containerRow cont} AND " ++ activityQual)
+  (liftIO . print) "before act rel"
   ra <- chainPrev (slotSegmentId . activitySlotId)
     <$> dbQuery $(selectQuery selectActivityRelease $ "WHERE slot_release.container = ${containerId $ containerRow cont} AND " ++ activityQual)
-
+  
+  (liftIO . print) "before asset slot"
   asa <- mapM (addAssetRevision (containerVolume cont)) =<< chainPrev activityAssetId
     <$> dbQuery $(selectQuery selectActivityAssetSlot $ "WHERE slot_asset.container = ${containerId $ containerRow cont} AND " ++ activityQual)
 
+  (liftIO . print) "before act asset c"
   caa <- mergeAssetCreation . chainPrev (assetId . activityAssetRow)
     <$> dbQuery $(selectQuery selectActivityAsset $ "JOIN slot_asset ON asset.id = slot_asset.asset WHERE slot_asset.container = ${containerId $ containerRow cont} AND " ++ activityQual)
   let uam m Activity{ activityAudit = Audit{ auditAction = AuditActionRemove, auditWhen = t }, activityTarget = ActivityAssetSlot{ activityAssetId = a } } =
@@ -167,13 +172,16 @@ lookupContainerActivity cont = do
       uam m _ = m
       dam = flip $ Map.delete . assetId . activityAssetRow . activityTarget
       oal = Map.toList $ foldl' dam (foldl' uam Map.empty asa) caa
+  (liftIO . print) "before act asset o"
   oaa <- forM oal $ \(ai, at) ->
     mergeAssetCreation . chainPrev (const ())
       <$> dbQuery $(selectQuery selectActivityAsset $ "WHERE asset.id = ${ai} AND audit_time <= ${at} AND " ++ activityQual)
 
+  (liftIO . print) "before act asset exc"
   cea <- chainPrev (activityAssetId &&& activitySegment)
     <$> dbQuery $(selectQuery selectActivityExcerpt $ "JOIN slot_asset ON excerpt.asset = slot_asset.asset WHERE slot_asset.container = ${containerId $ containerRow cont} AND " ++ activityQual)
 
+  (liftIO . print) "before merge"
   return $ mergeAssetAndSlot $ mergeActivities (ca:ra:asa:cea:caa:oaa)
 
 -- EDIT permission assumed for all
