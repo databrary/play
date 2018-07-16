@@ -24,7 +24,7 @@ Go for a test drive on http://dev1.databrary.org:8000/. We are excited to have y
 | functional            | [<img src="https://img.shields.io/badge/tests-passed-brightgreen.svg">](http://databrary.github.io/databrary/Report.html)        | [<img src="https://img.shields.io/badge/coverage-37%25-yellow.svg">](http://databrary.github.io/databrary/coverage-comparison/katalon-coverage/hpc_index.html)          |
 | front end integration |         |          |
 | front end unit        |         |          |
-| back end integration  | [<img src="https://img.shields.io/badge/runscope-passed-brightgreen.svg">](https://www.runscope.com/radar/agq3bvszxaxe/b788db16-d63b-4ea9-ba98-5abc477dd03d/history/20b1a0c1-c94b-4568-acc3-853d0e3e248a)        | [<img src="https://img.shields.io/badge/coverage-29%25-yellow.svg">](http://databrary.github.io/databrary/coverage-comparison/runscope/hpc_index.html)          |
+| back end integration  | [<img src="https://img.shields.io/badge/runscope-passed-brightgreen.svg">](https://www.runscope.com/radar/agq3bvszxaxe/b788db16-d63b-4ea9-ba98-5abc477dd03d/history/4b833fe9-3aa3-4aab-ba66-f2094f22a6df)        | [<img src="https://img.shields.io/badge/coverage-29%25-yellow.svg">](http://databrary.github.io/databrary/coverage-comparison/runscope/hpc_index.html)          |
 | back end unit         | [<img src="https://img.shields.io/badge/tests-passed-brightgreen.svg">](https://github.com/databrary/databrary/blob/gh-pages/databrary-1-discovered.log)        | [<img src="https://img.shields.io/badge/coverage-21%25-yellow.svg">](http://databrary.github.io/databrary/coverage/hpc_index.html)         |
 
 [<img src="https://img.shields.io/uptimerobot/ratio/m779481982-e616968da86ff263aea86978.svg">](https://stats.uptimerobot.com/J80YrsnzP)
