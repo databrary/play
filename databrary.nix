@@ -82,11 +82,14 @@ in
     attoparsec
     base
     cookie
+    directory
+    filepath
     hedgehog
     hspec-expectations
     http-types
     mtl
     range-set-list
+    posix-paths
     tasty-discover
     tasty-expected-failure
     tasty-hedgehog
@@ -100,6 +103,9 @@ in
     nodejs
     jdk
     coreutils # cat, cut, md5sum
+  ];
+  testPkgconfigDepends = [
+    ffmpeg
   ];
   description = "Databrary";
   license = stdenv.lib.licenses.agpl3;

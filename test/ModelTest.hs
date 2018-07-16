@@ -6,6 +6,7 @@ import Control.Concurrent (threadDelay)
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Reader
+import Control.Monad.Trans.Resource
 import Data.Aeson
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
@@ -63,6 +64,7 @@ import Solr.Index (updateIndex)
 import Solr.Search
 import Solr.Service (initSolr, finiSolr)
 import Store.CSV (buildCSV)
+import Store.Types
 import qualified Store.Config as C
 -- import Store.Asset
 -- import Store.AV
@@ -70,6 +72,9 @@ import Store.Probe
 import Store.Transcode
 import Paths_databrary (getDataFileName)
 import TestHarness as Test
+import System.Directory (copyFile)
+import qualified System.FilePath as StringPath
+import System.Posix.FilePath ((</>))
 
 test_1 :: TestTree
 test_1 = Test.stepsWithTransaction "test_1" $ \step cn2 -> do
@@ -350,55 +355,66 @@ test_12a = ignoreTest $ -- "Invalid cross-device link"
 
 -- same as above, but for video file that undergoes conversion
 test_12b :: TestTree
--- FIXME: ignored because it hangs indefinitely for bryan
-test_12b = ignoreTest $ localOption NoTimeout $ Test.stepsWithResourceAndTransaction "test_12b" $ \step ist cn2 -> do
+test_12b = localOption (mkTimeout (10 * 10^(6 :: Int))) $ Test.stepsWithResourceAndTransaction "test_12b" $ \step ist cn2 -> do
     step "Given a partially shared volume"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     -- TODO: should be lookup auth on rootParty
     vol <- runReaderT (addVolumeSetPublic aiAcct) aiCtxt
     step "When a publicly released video asset is added"
-    aiCtxt2 <- withStorage aiCtxt
-    aiCtxt3 <- withAV aiCtxt2
-    let aiCtxt4 = withTimestamp (UTCTime (fromGregorian 2017 5 6) (secondsToDiffTime 0)) aiCtxt3
-    aiCtxt5 <- withLogs aiCtxt4
-    let aiCtxt6 = withInternalStateVal ist aiCtxt5
-    foundAsset <- runReaderT
-        (do
-              (a, _) <- Gen.sample (genCreateAssetAfterUpload vol)
-              let a' = a { assetRow = (assetRow a) { assetRelease = Just ReleasePUBLIC, assetFormat = (fromJust . getFormatByExtension) "webm" } }
-              rpath <- liftIO (BSC.pack <$> getDataFileName "test/data/small.webm") -- TODO: touch timestamp to trigger new file
-              Right probe <- probeFile "small.webm" rpath
-              savedAsset <- addAsset a' (Just rpath)
-              let assetWithName = savedAsset { assetRow = (assetRow savedAsset) { assetName = Just "small.webm" } }
-              -- gen assetslot
-              -- change assetslot
-              trans <- addTranscode assetWithName fullSegment defaultTranscodeOptions probe
-              _ <- startTranscode trans
-              Just t <- lookupTranscode (transcodeId trans)
-              if (assetSHA1 . assetRow . transcodeAsset) t /= Nothing -- there was an existing matching transcode
-              then
-                 (pure (transcodeAsset t))
-              else do
-                  -- TODO (needs asset slot created above); needs sha1; how deal with determining exit code?
-                  () <- liftIO (detectJobDone (transcodeId trans))
-                  collectTranscode t 0 Nothing ""
-                  Just t2 <- lookupTranscode (transcodeId trans)
-                  pure (transcodeAsset t2))
-                  -- lookup assetslot or container w/contents
-        (aiCtxt6 { ctxSecret = Just (Secret "abc"), ctxRequest = Just mkRequest }) -- use mkRequest to override default domain
-    step "Then one can retrieve the resulting asset"
-    (assetRelease . assetRow) foundAsset @?= Just ReleasePUBLIC
-    (assetName . assetRow) foundAsset @?= Just "small.webm"
-    (assetDuration . assetRow) foundAsset @?= Just (Offset 5.62)
+    runResourceT $ do
+        storage <- withStorage2
+        let aiCtxt2 = aiCtxt { ctxStorage = Just storage }
+        liftIO $ do
+            aiCtxt3 <- withAV aiCtxt2
+            let aiCtxt4 = withTimestamp (UTCTime (fromGregorian 2017 5 6) (secondsToDiffTime 0)) aiCtxt3
+            aiCtxt5 <- withLogs aiCtxt4
+            let aiCtxt6 = withInternalStateVal ist aiCtxt5
+                rpath = storageUpload storage </> "small.webm"
+            flip copyFile (BSC.unpack rpath) =<< getDataFileName "test/data/small.webm"
+            foundAsset <- runReaderT
+                (do
+                    (a, _) <- Gen.sample (genCreateAssetAfterUpload vol)
+                    let a' = a { assetRow = (assetRow a) { assetRelease = Just ReleasePUBLIC, assetFormat = (fromJust . getFormatByExtension) "webm" } }
+                    Right probe <- probeFile "small.webm" rpath
+                    savedAsset <- addAsset a' (Just rpath)
+                    let assetWithName = savedAsset { assetRow = (assetRow savedAsset) { assetName = Just "small.webm" } }
+                    -- gen assetslot
+                    -- change assetslot
+                    trans <- addTranscode assetWithName fullSegment defaultTranscodeOptions probe
+                    _ <- startTranscode trans
+                    Just t <- lookupTranscode (transcodeId trans)
+                    if (assetSHA1 . assetRow . transcodeAsset) t /= Nothing -- there was an existing matching transcode
+                    then
+                        (pure (transcodeAsset t))
+                    else do
+                        -- TODO (needs asset slot created above); needs sha1; how deal with determining exit code?
+                        liftIO
+                            (detectJobDone
+                                (fromJust
+                                    (transcoderDir
+                                        (transcoderConfig
+                                            (fromJust (storageTranscoder storage)))))
+                                (transcodeId trans))
+                        collectTranscode t 0 Nothing ""
+                        Just t2 <- lookupTranscode (transcodeId trans)
+                        pure (transcodeAsset t2))
+                        -- lookup assetslot or container w/contents
+                (aiCtxt6 { ctxSecret = Just (Secret "abc"), ctxRequest = Just mkRequest }) -- use mkRequest to override default domain
+            step "Then one can retrieve the resulting asset"
+            (assetRelease . assetRow) foundAsset @?= Just ReleasePUBLIC
+            (assetName . assetRow) foundAsset @?= Just "small.webm"
+            (assetDuration . assetRow) foundAsset @?= Just (Offset 5.62)
 
 -- | Can either detect event in log, look for completed output, or wait for process to stop.
 -- Currently, detect event in log.
-detectJobDone :: Id Transcode -> IO ()
-detectJobDone transId@(Id idVal) = do
-    (exit, _, _) <- readProcessWithExitCode "grep" ["curl", "trans/" ++ show idVal ++ ".log"] ""
+detectJobDone :: FilePath -> Id Transcode -> IO ()
+detectJobDone transDir transId@(Id idVal) = do
+    (exit, _, _) <- readProcessWithExitCode "grep" ["curl", logPath] ""
     case exit of
         ExitSuccess -> pure ()
-        ExitFailure _ -> threadDelay 500000 >> detectJobDone transId
+        ExitFailure _ -> threadDelay 500000 >> detectJobDone transDir transId
+  where
+    logPath = transDir StringPath.</> (show idVal ++ ".log")
 
 ----- record ---
 test_13 :: TestTree
