@@ -1,5 +1,14 @@
 # Databrary 
 
+Want to help out? Feel free to start right here with this underwhelming README!
+
+We have [preliminary library
+documentation](http://databrary.github.io/databrary/) on our GitHub Pages site.
+Haddocks coverage would be another excellent place to start contributing...
+
+A simple [code coverage report](http://databrary.github.io/databrary/) is also
+available on our GitHub pages site.
+
 ## Demo
 
 Go for a test drive on http://dev1.databrary.org:8000/. We are excited to have your attention and interest.
@@ -10,6 +19,9 @@ Go for a test drive on http://dev1.databrary.org:8000/. We are excited to have y
 5. Click on "add folder", enter a test date, e.g. "01/02/2017"
 6. Scroll to the top of the page and click the "eye" icon, to switch to view mode
 
+Try browsing around a site with example data here: http://sandbox1.databrary.org:8000/.
+
+You can get an understanding of the full scope of features offered in our feature catalog ([pdf](http://databrary.github.io/databrary/Databrary_Feature_Catalog.pdf)). Some pages have changed since this catalog was produced. 
 
 ## Testing, Requirements, Implementation Documentation
 
@@ -27,18 +39,11 @@ Go for a test drive on http://dev1.databrary.org:8000/. We are excited to have y
 | back end integration  | [<img src="https://img.shields.io/badge/runscope-passed-brightgreen.svg">](https://www.runscope.com/radar/agq3bvszxaxe/b788db16-d63b-4ea9-ba98-5abc477dd03d/history/4b833fe9-3aa3-4aab-ba66-f2094f22a6df)        | [<img src="https://img.shields.io/badge/coverage-29%25-yellow.svg">](http://databrary.github.io/databrary/coverage-comparison/runscope/hpc_index.html)          |
 | back end unit         | [<img src="https://img.shields.io/badge/tests-passed-brightgreen.svg">](https://github.com/databrary/databrary/blob/gh-pages/databrary-1-discovered.log)        | [<img src="https://img.shields.io/badge/coverage-21%25-yellow.svg">](http://databrary.github.io/databrary/coverage/hpc_index.html)         |
 
+## Service and Operations Status
+
 [<img src="https://img.shields.io/uptimerobot/ratio/m780713534-b4d455210e15c1c4ec4dc851.svg">](https://stats.uptimerobot.com/J80YrsnzP)
 
 Nix Cache - [<img src="https://img.shields.io/uptimerobot/ratio/7/m780713505-7d8d87840b9cd6213c96b467.svg">](https://stats.uptimerobot.com/K8JYvs7XW)
-
-Want to help out? Feel free to start right here with this underwhelming README!
-
-We have [preliminary library
-documentation](http://databrary.github.io/databrary/) on our GitHub Pages site.
-Haddocks coverage would be another excellent place to start contributing...
-
-A simple [code coverage report](http://databrary.github.io/databrary/) is also
-available on our GitHub pages site.
 
 ## License
 
