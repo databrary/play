@@ -17,6 +17,7 @@ import Store.Service (initStorage)
 import Store.AV (initAV)
 import Service.Passwd (initPasswd)
 import Service.Log (initLogs, finiLogs)
+import Service.Mail (initMailer)
 import Service.Messages (loadMessages)
 import Web.Service (initWeb)
 import Static.Service (initStatic)
@@ -37,6 +38,7 @@ initService
 initService fg conf = do
   time <- getCurrentTime
   logs <- initLogs (conf C.! (if fg then "log" else "log.bg"))
+  mailer <- pure initMailer
   entropy <- initEntropy
   passwd <- initPasswd
   messages <- loadMessages
@@ -58,6 +60,7 @@ initService fg conf = do
         , serviceEntropy = entropy
         , servicePasswd = passwd
         , serviceLogs = logs
+        , serviceMailer = mailer
         , serviceMessages = messages
         , serviceDB = db
         , serviceStorage = storage

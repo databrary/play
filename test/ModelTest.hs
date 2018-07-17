@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, ScopedTypeVariables, FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables, FlexibleContexts, RankNTypes #-}
 {-# LANGUAGE ViewPatterns #-}
 module ModelTest where
 
@@ -13,23 +13,29 @@ import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy.Char8 as BSLC
 -- import qualified Data.HashMap.Strict as HM
+import Data.IORef (readIORef)
 import Data.Maybe
 import Data.Monoid ((<>))
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import Data.Time
--- import qualified Data.Vector as V
 import qualified Hedgehog.Gen as Gen
 import qualified Network.HTTP.Client as HTTPC
+import Network.Mail.Mime
 import System.Exit (ExitCode(..))
 import System.Process (readProcessWithExitCode)
+import Test.Hspec.Expectations
 import Test.Tasty
 import Test.Tasty.ExpectedFailure
 import Test.Tasty.HUnit
 
 import Controller.CSV (volumeCSV)
+import Controller.Notification
+import Controller.Upload (createUploadSetSize, UploadStartRequest(..), writeChunk)
 import EZID.Volume (updateEZID)
 import Has
 import HTTP.Client
+import Ingest.JSON
 import Model.Asset
 import Model.Audit (MonadAudit)
 import Model.Authorize
@@ -42,6 +48,7 @@ import Model.Format
 import Model.Identity (MonadHasIdentity)
 import Model.Measure
 import Model.Metric
+import Model.Notification
 import Model.Offset
 import Model.Paginate
 import Model.Party
@@ -53,16 +60,20 @@ import Model.Record
 import Model.RecordSlot
 import Model.Segment
 import Model.Slot
+import Model.Token
 import Model.Transcode
 import Model.Volume
 import Model.VolumeAccess
 -- import Model.VolumeAccess.TypesTest
 import Model.VolumeMetric
 import Service.DB (DBConn, MonadDB)
+import Service.Entropy (initEntropy)
+import Service.Messages (loadMessages)
 import Service.Types (Secret(..))
 import Solr.Index (updateIndex)
 import Solr.Search
 import Solr.Service (initSolr, finiSolr)
+import Store.AV (initAV)
 import Store.CSV (buildCSV)
 import Store.Types
 import qualified Store.Config as C
@@ -70,6 +81,7 @@ import qualified Store.Config as C
 -- import Store.AV
 import Store.Probe
 import Store.Transcode
+import Store.Upload (uploadFile)
 import Paths_databrary (getDataFileName)
 import TestHarness as Test
 import System.Directory (copyFile)
@@ -614,35 +626,145 @@ test_16 = ignoreTest $ -- TODO: enable this inside of nix build with solr binari
         finiSolr solr
 
 -------- ezid --------------
-test_17 :: TestTree
-test_17 = localOption (mkTimeout (10 * 10^(6 :: Int))) $ Test.stepsWithResourceAndTransaction "test_17" $ \step ist cn2 -> do
+test_register_volume_with_ezid :: TestTree
+test_register_volume_with_ezid = localOption (mkTimeout (15 * 10^(6 :: Int))) $
+    Test.stepsWithResourceAndTransaction "register volume with ezid" $ \step ist cn2 -> do
+        step "Given an authorized investigator"
+        (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+        step "When the AI creates a partially shared volume"
+        step "and add data that will be indexed with ezid"
+        step "and the ezid generation runs"
+        -- TODO: should be lookup auth on rootParty
+        vol <- runReaderT
+            (do
+                v <- addVolumeWithAccess aiAcct
+                l <- liftIO (Gen.sample genVolumeLink)
+                changeVolumeLinks v [l]
+                pure v
+            )
+            aiCtxt
+        bctx <- mkBackgroundContext ForEzid ist cn2
+        mEzidWasUp <- runReaderT updateEZID bctx
+        step "Then the volume will have a valid doi" -- TODO; and ezid will expose registered info somehow?
+        mEzidWasUp @?= Just True  -- Nothing = ezid not initialized; Just False = initalized, but down
+        Just _vol' <- runReaderT (lookupVolume ((volumeId . volumeRow) vol)) aiCtxt
+        -- let Just doi = (volumeDOI . volumeRow) vol'
+        -- TODO: check doi link causes a redirect to Location: http://databrary.org/volume/801 with the volume id matching above
+        --   example - https://doi.org/10.5072/FK2.801
+        pure ()
+
+--------- ingest ------------
+test_simple_ingest :: TestTree
+test_simple_ingest = Test.stepsWithTransaction "simple ingest" $ \step cn2 -> do
+    step "Given an authorized investigator"
+    step " and a volume"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
+    step "When a superadmin user ingests a session"
+    aiCtxt2 <-
+        (\st av ts lg sc ->
+             aiCtxt
+                 { ctxStorage = Just st
+                 , ctxAV = Just av
+                 , ctxTimestamp = Just ts
+                 , ctxLogs = Just lg
+                 , ctxSecret = Just sc
+                 })
+        <$> mkStorageStub
+        <*> mkAVStub -- TODO: use initAV when ingest starts referencing an asset
+        <*> pure (UTCTime (fromGregorian 2017 5 6) (secondsToDiffTime 0))
+        <*> mkLogsStub
+        <*> pure (Secret "abc")
+    -- TODO: place a generated CSV file into storage "stage" folder, reference as an asset in the ingest json
+    let volName = (volumeName . volumeRow) vol
+        (run, dontOverwrite) = (True, False)
+    Right _ <- runReaderT (ingestJSON vol (mkIngestInput volName) run dontOverwrite) aiCtxt2
+    step "Then the user can view the created session"
+    cntrs <- runReaderT (lookupVolumeContainers vol) aiCtxt -- TODO: extract logic from volumeJSONField "containers"
+    (fmap (containerName . containerRow) cntrs) `shouldContain` [Just "cont1"]
+    -- TODO: test record
+    -- TODO: test non-AV asset
+    -- TODO: test record linked to a container
+    -- TODO: test asset linked to a container
+    -- NOTE: once this test deals with AV (audio/video) assets, then it will have to detect completion and
+    --  and invoke collectTranscode for each AV asset
+
+--------- notifications ------------
+test_simple_notification :: TestTree
+test_simple_notification = Test.stepsWithTransaction "simple notification" $ \step cn2 -> do
     step "Given an authorized investigator"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
-    step "When the AI creates a partially shared volume"
-    step "and add data that will be indexed with ezid"
-    step "and the ezid generation runs"
-    -- TODO: should be lookup auth on rootParty
-    vol <- runReaderT
-        (do
-            v <- addVolumeWithAccess aiAcct
-            l <- liftIO (Gen.sample genVolumeLink)
-            changeVolumeLinks v [l]
-            pure v
-        )
-        aiCtxt
-    -- updateEZID
-    -- type EZIDM a = CookiesT (ReaderT EZIDContext IO) a
-    bctx <- mkBackgroundContext ForEzid ist cn2
-    mEzidWasUp <- runReaderT updateEZID bctx
-    step "Then the volume will have a valid doi" -- TODO; and ezid will expose registered info somehow?
-    mEzidWasUp @?= Just True  -- Nothing = ezid not initialized; Just False = initalized, but down
-    Just _vol' <- runReaderT (lookupVolume ((volumeId . volumeRow) vol)) aiCtxt
-    -- let Just doi = (volumeDOI . volumeRow) vol'
-    -- TODO: check doi link causes a redirect to Location: http://databrary.org/volume/801 with the volume id matching above
-    --   example - https://doi.org/10.5072/FK2.801
-    pure ()
+    -- when create notification that account was updated and trigger deliveries
+    step "When the investigator changes their account, triggering a notification and delivery"
+    aiCtxt2 <-
+        (\n m l -> aiCtxt { ctxNotifications = Just n, ctxMessages = Just m, ctxLogs = Just l })
+            <$> mkNotificationsStub
+            <*> loadMessages
+            <*> mkLogsStub
+    let auth = view aiCtxt
+    _ <- (flip runReaderT) aiCtxt2 (do
+        createNotification (blankNotification (siteAccount auth) NoticeAccountChange)
+            { notificationParty = Just $ partyRow $ accountParty $ siteAccount auth })
+    (mailer, mailRef) <- mkMailerMock
+    noIdentNotifyCtxt <-
+        (\n m l ml -> (mkDbContext cn2) {
+                ctxNotifications = Just n
+              , ctxMessages = Just m
+              , ctxLogs = Just l
+              , ctxMailer = Just ml
+              })
+            <$> mkNotificationsStub
+            <*> loadMessages
+            <*> mkLogsStub
+            <*> pure mailer
+    -- should this use runNotifier instead?
+    _ <- runReaderT (emitNotifications (periodicDelivery Nothing)) noIdentNotifyCtxt
+    step "Then the investigator gets a notification about the change"
+    step "and the notification is removed"
+    nl <- (flip runReaderT) aiCtxt (do
+        -- TODO: repeats implementation of viewNotifications
+        nl <- lookupUserNotifications     
+        _ <- changeNotificationsDelivery (filter ((DeliverySite >) . notificationDelivered) nl) DeliverySite
+        -- nlAfter <- lookupUserNotifications -- TODO: ensure only delivered once
+        pure nl)
+    fmap notificationNotice nl @?= [NoticeAccountChange]  -- does this notification only use email?
+    [Mail { mailTo = [toAddr], mailParts = [alt1] } ] <- readIORef mailRef
+    addressEmail toAddr @?= TE.decodeUtf8 (accountEmail aiAcct)
+    let [part1] = alt1
+    -- TODO: mock mailer at a higher level than Mail object, so check below can use a type instead of string match
+    BSLC.unpack (partContent part1) `shouldContain` "email or password has been changed" 
+    -- TODO: daily notification logic (cleanNotifications + updateStateNotifications)
 
--- remaining complex subsystems to demonstrate using: notifications, upload, ingest
+--------- upload ------------
+test_upload_small_csv :: TestTree
+test_upload_small_csv = Test.stepsWithTransaction "upload small csv" $ \step cn2 -> do
+    step "Given an authorized investigator and their volume"
+    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
+    step "When start upload and send all chunks"
+    aiCtxt2 <- (\e s -> aiCtxt { ctxEntropy = Just e , ctxStorage = Just s })
+        -- refactor createUpload to take a conduit source of entropy values, isolate entropy dependency to Upload controller?
+        <$> initEntropy
+        <*> mkStorageStub
+    tok <- (flip runReaderT) aiCtxt2 (do
+        up <- createUploadSetSize vol (UploadStartRequest "abcde.csv" 16)
+        let (chunk1, offset1, len1) = ("col1,col2\nv1,22\n", 0, 16)
+        file <- peeks $ uploadFile up -- TODO: define a generator for (uploadstartrequest, [(contentChunk, offset, len)])
+        let rb = pure chunk1
+        _ <- liftIO (writeChunk offset1 len1 file rb)
+        pure up) 
+    step "Then the investigator can view the upload"
+    -- TODO: duplicates implementation of processAsset
+    aiCtxt3 <- (\a -> aiCtxt2 { ctxAV = Just a }) <$> initAV
+    (upload, filepath, Right (ProbePlain fmt)) <- (flip runReaderT) aiCtxt3 (do
+         Just upload <- lookupUpload ((unId . tokenId . accountToken . uploadAccountToken) tok)
+         fp <- peeks (uploadFile upload)
+         prb <- probeFile (uploadFilename upload) fp
+         pure (upload, fp, prb))
+    fmt @?= fromJust (getFormatByExtension "csv")
+    uploadFilename upload @?= "abcde.csv"
+    uploadSize upload @?= 16
+    readFile (BSC.unpack filepath) `shouldReturn` "col1,col2\nv1,22\n"
 
 ------------------------------------------------------ end of tests ---------------------------------
 

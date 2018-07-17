@@ -1,13 +1,16 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Model.Factories where
 
+import Data.Aeson
 import qualified Data.ByteString as BS
 import Data.Maybe
 import Data.Fixed
 import Data.Monoid ((<>))
 import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import Data.Time
+import qualified Data.Vector as V
 import Hedgehog
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
@@ -443,6 +446,20 @@ genVolumeLink =
 -- notification
 -- audit
 -- ingest
+mkIngestInput :: T.Text -> Value
+mkIngestInput volName =
+    object
+        [ ("name", String volName)
+        , ("containers"
+          , Array
+              (V.fromList
+                 [object
+                    [ ("name", "cont1")
+                    , ("key", "key1")
+                    , ("records", Array (V.fromList []))
+                    , ("assets", Array (V.fromList []))
+                    ]]))]
+
 -- vol state
 ---- genCreateVolumeState :: Volume -> Gen VolumeState
 ----    generate key value pair and is public

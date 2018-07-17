@@ -27,6 +27,7 @@ import Service.Log
 import Service.Types
 import Service.DB
 import Service.Entropy
+import Service.Mail
 import Service.Messages
 import Service.Notification
 import Service.Passwd
@@ -68,6 +69,8 @@ instance Has Service.Messages.Messages ActionContext where
   view = (view . contextService)
 instance Has Service.Log.Logs ActionContext where
   view = (view . contextService)
+instance Has Service.Mail.Mailer ActionContext where
+  view = (serviceMailer . contextService)
 instance Has Service.Passwd.Passwd ActionContext where
   view = (view . contextService)
 instance Has Service.Entropy.Entropy ActionContext where

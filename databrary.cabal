@@ -481,6 +481,7 @@ test-suite discovered
     , hspec-expectations >= 0.8.2
     , http-client
     , http-types
+    , mime-mail
     , mtl
     , network-uri
     , postgresql-typed

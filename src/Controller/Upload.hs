@@ -3,6 +3,10 @@ module Controller.Upload
   ( uploadStart
   , uploadChunk
   , testChunk
+  -- * for testing
+  , createUploadSetSize
+  , UploadStartRequest(..)
+  , writeChunk
   ) where
 
 import Control.Exception (bracket)
@@ -21,19 +25,24 @@ import Foreign.Ptr (castPtr)
 import Network.HTTP.Types (ok200, noContent204, badRequest400)
 import qualified Network.Wai as Wai
 import System.IO (SeekMode(AbsoluteSeek))
+import System.Posix.FilePath (RawFilePath)
 import System.Posix.Files.ByteString (setFdSize)
 import System.Posix.IO.ByteString (openFd, OpenMode(ReadOnly, WriteOnly), defaultFileFlags, exclusive, closeFd, fdSeek, fdWriteBuf, fdReadBuf)
 import System.Posix.Types (COff(..))
 
-import Has (view, peek, peeks, focusIO)
+import Has (view, peek, peeks, focusIO, MonadHas)
 import qualified JSON as JSON
+import Service.DB (MonadDB)
+import Service.Entropy (Entropy)
 import Service.Log
 import Model.Id
+import Model.Identity (MonadHasIdentity)
 import Model.Permission
 import Model.Volume hiding (getVolume)
 import Model.Format
 import Model.Token
 import Store.Upload
+import Store.Types (MonadStorage)
 import Store.Asset
 import HTTP.Form.Deform
 import HTTP.Path.Parser
@@ -51,21 +60,22 @@ data UploadStartRequest =
 
 uploadStart :: ActionRoute (Id Volume)
 uploadStart = action POST (pathJSON >/> pathId </< "upload") $ \vi -> withAuth $ do
-  liftIO $ print "inside of uploadStart..." --DEBUG
   vol <- getVolume PermissionEDIT vi
-  liftIO $ print "vol assigned...running form..." --DEBUG
-  UploadStartRequest filename size <- runForm Nothing $ UploadStartRequest
+  uploadStartRequest <- runForm Nothing $ UploadStartRequest
     <$> ("filename" .:> (deformCheck "File format not supported." (isJust . getFormatByFilename) =<< deform))
     <*> ("size" .:> (deformCheck "File too large." ((maxAssetSize >=) . fromIntegral) =<< fileSizeForm))
-  liftIO $ print "creating Upload..." --DEBUG
-  tok <- createUpload vol filename size
-  liftIO $ print "peeking..." --DEBUG
-  file <- peeks $ uploadFile tok
-  liftIO $ bracket
-    (openFd file WriteOnly (Just 0o640) defaultFileFlags{ exclusive = True })
-    closeFd
-    (`setFdSize` COff size)
+  tok <- createUploadSetSize vol uploadStartRequest
   return $ okResponse [] $ unId (view tok :: Id Token)
+
+createUploadSetSize :: (MonadHas Entropy c m, MonadDB c m, MonadHasIdentity c m, MonadStorage c m) => Volume -> UploadStartRequest -> m Upload
+createUploadSetSize vol (UploadStartRequest filename size) = do
+    tok <- createUpload vol filename size
+    file <- peeks $ uploadFile tok
+    liftIO $ bracket
+        (openFd file WriteOnly (Just 0o640) defaultFileFlags{ exclusive = True })
+        closeFd
+        (`setFdSize` COff size)
+    pure tok
 
 -- TODO: use this very soon
 -- data UploadStartResponse = UploadStartResponse { unwrap :: Id Token }
@@ -91,11 +101,8 @@ chunkForm = do
 
 uploadChunk :: ActionRoute ()
 uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
-  -- liftIO $ print "inside of uploadChunk..." --DEBUG
   (up, off, len) <- runForm Nothing chunkForm
-  -- liftIO $ print "uploadChunk: truple assigned..." --DEBUG
   file <- peeks $ uploadFile up
-  -- liftIO $ print "uploadChunk: file assigned..." --DEBUG
   let checkLength n
         | n /= len = do
           t <- peek
@@ -103,57 +110,48 @@ uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
           result $ response badRequest400 [] ("Incorrect content length: file being uploaded may have moved or changed" :: JSON.Value)
         | otherwise = return ()
   bl <- peeks Wai.requestBodyLength
-  liftIO $ print "uploadChunk: bl assigned..." --DEBUG
   case bl of
     Wai.KnownLength l -> checkLength l
     _ -> return ()
   rb <- peeks Wai.requestBody
-  -- liftIO $ putStrLn "request body length"
-  -- liftIO $ print . BS.length =<< rb
-  n <- liftIO $ bracket
+  n <- liftIO (writeChunk off len file rb)
+  checkLength n -- TODO: clear block (maybe wait for calloc)
+  return $ emptyResponse noContent204 []
+
+-- | Write one contiguous block of data to a file
+writeChunk
+  :: Int64 -- ^ Offset to start writing block into
+  -> Word64 -- ^ Length of block to be written
+  -> RawFilePath -- ^ The target file to write into
+  -> IO BS.ByteString -- ^ The data source that provides chunks of data for writing
+  -> IO Word64 -- ^ number of bytes written
+writeChunk off len file rb = bracket
     (openFd file WriteOnly Nothing defaultFileFlags)
     (\f -> putStrLn "closeFd..." >> closeFd f) $ \h -> do
       _ <- fdSeek h AbsoluteSeek (COff off)
-      liftIO $ print "uploadChunk:  fdSeek..." --DEBUG
-      liftIO $ print h --DEBUG
-      liftIO $ print off --DEBUG
       let block n = do
-            liftIO $ putStrLn $ "block:" ++ show n --DEBUG
             b <- rb
             if BS.null b
               then do
-                liftIO $ putStrLn "b is null" --DEBUG
                 return n
               else do
-                liftIO $ print "uploadChunk: b is not null, processing..." --DEBUG
                 let n' = n + fromIntegral (BS.length b)
                     write b' = do
-                      liftIO $ print "uploadChunk: performing unsafeUseAsCStringLen..." --DEBUG
                       w <- BSU.unsafeUseAsCStringLen b' $ \(buf, siz) -> fdWriteBuf h (castPtr buf) (fromIntegral siz)
-                      liftIO $ print "uploadChunk: w assigned  unsafeUseAsCStringLen..." --DEBUG
                       if w < fromIntegral (BS.length b')
                         then do
-                          liftIO $ print "uploadChunk: w < length b'..." --DEBUG
                           write $! BS.drop (fromIntegral w) b'
                         else do
-                          liftIO $ print "uploadChunk: !(w < length b')..." --DEBUG
                           block n'
                 if n' > len
                   then do
-                    liftIO $ putStrLn $ "n' > len" ++ show (n',len)   --DEBUG
                     return n'
                   else do
-                    liftIO $ putStrLn $ "n' > len" ++ show (n',len)   --DEBUG
                     write b
       block 0
-  liftIO $ putStrLn $ "n = " ++ show n --DEBUG
-  checkLength n -- TODO: clear block (maybe wait for calloc)
-  liftIO $ print "uploadChunk:  post checkLength..." --DEBUG
-  return $ emptyResponse noContent204 []
 
 testChunk :: ActionRoute ()
 testChunk = action GET (pathJSON </< "upload") $ \() -> withAuth $ do
-  liftIO $ print "inside of testChunk..." --DEBUG
   (up, off, len) <- runForm Nothing chunkForm
   file <- peeks $ uploadFile up
   r <- liftIO $ bracket

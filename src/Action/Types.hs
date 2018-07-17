@@ -30,6 +30,7 @@ import Store.Types
 import Service.DB
 import Service.Entropy
 import Service.Log
+import Service.Mail
 import Service.Messages
 import Service.Notification
 import Service.Passwd
@@ -61,6 +62,8 @@ instance Has Service.Passwd.Passwd RequestContext where
   view = (view . requestContext)
 instance Has Service.Log.Logs RequestContext where
   view = (view . requestContext)
+instance Has Service.Mail.Mailer RequestContext where
+  view = (serviceMailer . contextService . requestContext)
 instance Has Service.Messages.Messages RequestContext where
   view = (view . requestContext)
 -- instance Has Service.DB.DBPool RequestContext where

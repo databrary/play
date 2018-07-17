@@ -6,10 +6,15 @@ module TestHarness
     , TestContext ( .. )
     , mkRequest
     , withStorage
+    , mkStorageStub
     , withStorage2
     , withAV
+    , mkAVStub
+    , mkMailerMock
     , withTimestamp
     , withLogs
+    , mkLogsStub
+    , mkNotificationsStub
     , withInternalStateVal
     , mkDbContext
     , runContextReaderT
@@ -38,13 +43,14 @@ import Control.Applicative
 import Control.Exception (bracket)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Reader
+import Data.IORef (newIORef, IORef, modifyIORef)
 import Control.Monad.Trans.Resource
     (InternalState, runResourceT, withInternalState, ResourceT, allocate)
-import Data.IORef (newIORef)
 import Data.Maybe
 import Data.Time
 import Database.PostgreSQL.Typed.Protocol
 import qualified Hedgehog.Gen as Gen
+import Network.Mail.Mime (Mail)
 import Test.Tasty
 import Test.Tasty.HUnit
 import qualified Data.ByteString as BS hiding (unpack)
@@ -70,8 +76,9 @@ import Model.Token
 import Service.DB
 import Service.Entropy
 import Service.Log
-import Service.Messages (loadMessages)
-import Service.Notification (initNotifications)
+import Service.Mail (Mailer(..))
+import Service.Messages (loadMessages, Messages)
+import Service.Notification (initNotifications, Notifications)
 import Service.Passwd (initPasswd)
 import Service.Types
 import Solr.Service (Solr(..))
@@ -124,6 +131,7 @@ mkBackgroundContext ctxtFor ist cn =
     in do
     conf <- C.load "databrary.conf"
     logs <- initLogs (conf C.! "log")
+    mailer <- pure mkMailerStub
     httpc <- initHTTPClient
     (solr, ezid) <- case ctxtFor of
           ForEzid -> do
@@ -144,6 +152,7 @@ mkBackgroundContext ctxtFor ist cn =
                       , serviceEntropy = stubEntropy
                       , servicePasswd = stubPasswd
                       , serviceLogs = logs
+                      , serviceMailer = mailer
                       , serviceMessages = stubMessages
                       , serviceDB = stubDb
                       , serviceStorage = stubStorage
@@ -187,6 +196,8 @@ data TestContext = TestContext
     -- ^ for MonadStorage
     , ctxSolr :: Maybe Solr
     -- ^ for MonadSolr
+    , ctxMailer :: Maybe Mailer
+    -- ^ for MonadMail
     , ctxInternalState :: Maybe InternalState
     , ctxIdentity :: Maybe Identity
     , ctxSiteAuth :: Maybe SiteAuth
@@ -194,6 +205,8 @@ data TestContext = TestContext
     , ctxTimestamp :: Maybe Timestamp
     , ctxLogs :: Maybe Logs
     , ctxHttpClient :: Maybe HTTPClient
+    , ctxNotifications :: Maybe Notifications
+    , ctxMessages :: Maybe Messages
     }
 
 blankContext :: TestContext
@@ -205,6 +218,7 @@ blankContext = TestContext
     , ctxConn = Nothing
     , ctxStorage = Nothing
     , ctxSolr = Nothing
+    , ctxMailer = Nothing
     , ctxInternalState = Nothing
     , ctxIdentity = Nothing
     , ctxSiteAuth = Nothing
@@ -212,6 +226,8 @@ blankContext = TestContext
     , ctxTimestamp = Nothing
     , ctxLogs = Nothing
     , ctxHttpClient = Nothing
+    , ctxNotifications = Nothing
+    , ctxMessages = Nothing
     }
 
 addCntxt :: TestContext -> TestContext -> TestContext
@@ -224,6 +240,7 @@ addCntxt c1 c2 =
         , ctxConn = ctxConn c1 <|> ctxConn c2
         , ctxStorage = ctxStorage c1 <|> ctxStorage c2
         , ctxSolr = ctxSolr c1 <|> ctxSolr c2
+        , ctxMailer = ctxMailer c1 <|> ctxMailer c2
         , ctxInternalState = ctxInternalState c1 <|> ctxInternalState c2
         , ctxIdentity = ctxIdentity c1 <|> ctxIdentity c2
         , ctxSiteAuth = ctxSiteAuth c1 <|> ctxSiteAuth c2
@@ -231,6 +248,8 @@ addCntxt c1 c2 =
         , ctxTimestamp = ctxTimestamp c1 <|> ctxTimestamp c2
         , ctxLogs = ctxLogs c1 <|> ctxLogs c2
         , ctxHttpClient = ctxHttpClient c1 <|> ctxHttpClient c2
+        , ctxNotifications = ctxNotifications c1 <|> ctxNotifications c2
+        , ctxMessages = ctxMessages c1 <|> ctxMessages c2
        }
 
 instance Has Identity TestContext where
@@ -266,17 +285,29 @@ instance Has Timestamp TestContext where
 instance Has Logs TestContext where
     view = fromJust . ctxLogs
 
+instance Has Mailer TestContext where
+    view = fromJust . ctxMailer
+
 instance Has HTTPClient TestContext where
     view = fromJust . ctxHttpClient
+
+instance Has Notifications TestContext where
+    view = fromJust . ctxNotifications
+
+instance Has Messages TestContext where
+    view = fromJust . ctxMessages
+
+instance Has Party TestContext where
+    view = view . fromJust . ctxSiteAuth
+
+instance Has Account TestContext where
+    view = view . fromJust . ctxSiteAuth
 
 -- Needed for types, but unused so far
 
 -- prefer using SiteAuth instead of Identity for test contexts
 instance Has SiteAuth TestContext where
     view = fromJust . ctxSiteAuth
-
-instance Has Party TestContext where
-    view = undefined
 
 instance Has (Id Party) TestContext where
     view = fromJust . ctxPartyId
@@ -319,13 +350,13 @@ withStorage2 = do
 
 withStorage :: TestContext -> IO TestContext
 withStorage ctxt = do
-    addCntxt ctxt <$> mkStorageContext
+    stor <- mkStorageStub
+    pure (addCntxt ctxt (blankContext { ctxStorage = Just stor }))
 
-mkStorageContext :: IO TestContext
-mkStorageContext = do
+mkStorageStub :: IO Storage
+mkStorageStub = do
     conf <- load "databrary.conf"
-    stor <- initStorage (conf C.! "store")
-    pure (blankContext { ctxStorage = Just stor })
+    initStorage (conf C.! "store")
 
 withAV :: TestContext -> IO TestContext
 withAV ctxt = do
@@ -340,10 +371,30 @@ withLogs ctxt = do
     logs <- initLogs mempty
     pure (addCntxt ctxt (blankContext { ctxLogs = Just logs }))
 
+mkLogsStub :: IO Logs
+mkLogsStub = initLogs mempty
+
+mkNotificationsStub :: IO Notifications
+mkNotificationsStub = do
+    conf <- C.load "databrary.conf" -- alternatively, don't use config
+    initNotifications (conf C.! "notification")
+
 mkAVContext :: IO TestContext
 mkAVContext = do
     av <- initAV
     pure (blankContext { ctxAV = Just av })
+
+mkAVStub :: IO AV   -- currently the same as initAV, but in the future can become simpler
+mkAVStub = initAV
+
+mkMailerMock :: IO (Mailer, IORef [Mail]) -- TODO: change to StateT?
+mkMailerMock = do
+    ref <- newIORef []
+    mailer <- pure (Mailer (\_ _ _ _ mail -> modifyIORef ref (\ls -> ls ++ [mail])))
+    pure (mailer, ref)
+
+mkMailerStub :: Mailer
+mkMailerStub = Mailer (\_ _ _ _ _ -> pure ())
 
 withInternalStateVal :: InternalState -> TestContext -> TestContext
 withInternalStateVal ist ctxt =
