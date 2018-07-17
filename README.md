@@ -28,6 +28,7 @@ You can get an understanding of the full scope of features offered in our featur
 |            | docs  |
 |------------|---|
 | functional | [docs](https://github.com/databrary/design/blob/master/overview.md)  |
+| internal routes | [view in swagger editor](https://editor.swagger.io/#/?import=https://raw.githubusercontent.com/databrary/route-doc/master/databrary.json)  |
 | front end  | [<img src="https://img.shields.io/badge/jsdoc-generated-brightgreen.svg">](http://databrary.github.io/databrary/frontend-doc/)  |
 | back end   | [<img src="https://img.shields.io/badge/haddocks-generated-brightgreen.svg">](http://databrary.github.io/databrary/haddocks/) |
 
