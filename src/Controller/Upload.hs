@@ -118,7 +118,13 @@ uploadChunk = action POST (pathJSON </< "upload") $ \() -> withAuth $ do
   checkLength n -- TODO: clear block (maybe wait for calloc)
   return $ emptyResponse noContent204 []
 
-writeChunk :: Int64 -> Word64 -> RawFilePath -> IO BS.ByteString -> IO Word64
+-- | Write one contiguous block of data to a file
+writeChunk
+  :: Int64 -- ^ Offset to start writing block into
+  -> Word64 -- ^ Length of block to be written
+  -> RawFilePath -- ^ The target file to write into
+  -> IO BS.ByteString -- ^ The data source that provides chunks of data for writing
+  -> IO Word64 -- ^ number of bytes written
 writeChunk off len file rb = bracket
     (openFd file WriteOnly Nothing defaultFileFlags)
     (\f -> putStrLn "closeFd..." >> closeFd f) $ \h -> do
