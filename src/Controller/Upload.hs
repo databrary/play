@@ -72,9 +72,9 @@ createUploadSetSize vol (UploadStartRequest filename size) = do
     tok <- createUpload vol filename size
     file <- peeks $ uploadFile tok
     liftIO $ bracket
-      (openFd file WriteOnly (Just 0o640) defaultFileFlags{ exclusive = True })
-      closeFd
-      (`setFdSize` COff size)
+        (openFd file WriteOnly (Just 0o640) defaultFileFlags{ exclusive = True })
+        closeFd
+        (`setFdSize` COff size)
     pure tok
 
 -- TODO: use this very soon
