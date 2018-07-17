@@ -8,7 +8,7 @@ module Store.Service
   , StorageLocationConfig (..)
   ) where
 
-import Control.Monad (unless, foldM_, forM_)
+import Control.Monad (unless, foldM_)
 import Data.Maybe (catMaybes)
 import System.Directory (getTemporaryDirectory, createDirectoryIfMissing)
 import System.IO.Error (mkIOError, doesNotExistErrorType, illegalOperationErrorType)
@@ -16,7 +16,6 @@ import System.Posix.FilePath (addTrailingPathSeparator)
 import System.Posix.Files.ByteString (isDirectory, deviceID, getFileStatus)
 import System.Posix.Types (DeviceID)
 
-import Ops
 import qualified Store.Config as C
 import Files
 import Store.Types
@@ -116,45 +115,19 @@ initStorage2 (Right StorageLocationConfig {..}) initTc = do
 
 {-# DEPRECATED initStorage "Gradually being replaced by initStorage2" #-}
 initStorage :: C.Config -> IO Storage
-initStorage conf
-  | Just down <- conf C.! "DOWN" = return $ error $ "Storage unavailable: " ++ down
-  | otherwise = do
-      fp <- getTemporaryDirectory
-      temp <- fromMaybeM (rawFilePath fp) $ conf C.! "temp"
-
-      foldM_ (\dev f -> do
-        s <- getFileStatus f
-        f' <- unRawFilePath f
-        unless (isDirectory s)
-          $ ioError $ mkIOError doesNotExistErrorType "storage directory" Nothing (Just f')
-        let d = deviceID s
-        unless (all (d ==) dev)
-          $ ioError $ mkIOError illegalOperationErrorType "storage filesystem" Nothing (Just f')
-        return $ Just d)
-        Nothing $ catMaybes [Just master, Just temp, Just upload, stage]
-
-      forM_ cache $ \c -> do
-        let tmp = c </> "tmp"
-        tmpPath <- unRawFilePath tmp
-        createDirectoryIfMissing False tmpPath
-
-      let tempPath = addTrailingPathSeparator temp
-      unTempPath <- unRawFilePath tempPath
-      createDirectoryIfMissing False (getStorageTempParticipantUpload' unTempPath)
-
-      tc <- initTranscoder (conf C.! "transcode")
-
-      return $ Storage
-        { storageMaster = master
-        , storageFallback = conf C.! "fallback"
-        , storageTemp = tempPath
-        , storageUpload = upload
-        , storageCache = cache
-        , storageStage = stage
-        , storageTranscoder = tc
-        }
+initStorage = initStorage2 . mkLocConf <*> initTc
   where
-  master = conf C.! "master"
-  upload = conf C.! "upload"
-  cache = conf C.! "cache"
-  stage = conf C.! "stage"
+    initTc :: C.Config -> IO (Maybe Transcoder)
+    initTc = initTranscoder . (C.! "transcode")
+    -- TODO: Rename and export
+    mkLocConf :: C.Config -> Either String StorageLocationConfig
+    mkLocConf conf
+        | Just down <- conf C.! "DOWN" = Left down
+        | otherwise = Right StorageLocationConfig
+            { storageLocTemp = conf C.! "temp"
+            , storageLocMaster = conf C.! "master"
+            , storageLocUpload = conf C.! "upload"
+            , storageLocCache = conf C.! "cache"
+            , storageLocStage = conf C.! "stage"
+            , storageLocFallback = conf C.! "fallback"
+            }
