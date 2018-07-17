@@ -35,8 +35,10 @@ initMailer = Mailer
 
 -- | Default implementation of sendMail to be used in most environments besides unit tests
 sendMailImpl :: MailHost -> MailPort -> MailUser -> MailPass -> Mail -> IO ()
-sendMailImpl (MailHost host) (MailPort port) (MailUser "") (MailPass _) = sendMail' host (fromIntegral port)
-sendMailImpl (MailHost host) (MailPort port) (MailUser user) (MailPass pass) = sendMailWithLogin' host (fromIntegral port) user pass
+sendMailImpl (MailHost host) (MailPort port) (MailUser "") (MailPass _) =
+    sendMail' host (fromIntegral port)
+sendMailImpl (MailHost host) (MailPort port) (MailUser user) (MailPass pass) =
+    sendMailWithLogin' host (fromIntegral port) user pass
 
 -- | Server hostname for smtp mail delivery
 newtype MailHost = MailHost String
