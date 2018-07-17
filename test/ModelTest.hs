@@ -628,7 +628,7 @@ test_16 = ignoreTest $ -- TODO: enable this inside of nix build with solr binari
 -------- ezid --------------
 test_register_volume_with_ezid :: TestTree
 test_register_volume_with_ezid = localOption (mkTimeout (15 * 10^(6 :: Int))) $
-    Test.stepsWithResourceAndTransaction "" $ \step ist cn2 -> do
+    Test.stepsWithResourceAndTransaction "register volume with ezid" $ \step ist cn2 -> do
         step "Given an authorized investigator"
         (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
         step "When the AI creates a partially shared volume"
@@ -643,8 +643,6 @@ test_register_volume_with_ezid = localOption (mkTimeout (15 * 10^(6 :: Int))) $
                 pure v
             )
             aiCtxt
-        -- updateEZID
-        -- type EZIDM a = CookiesT (ReaderT EZIDContext IO) a
         bctx <- mkBackgroundContext ForEzid ist cn2
         mEzidWasUp <- runReaderT updateEZID bctx
         step "Then the volume will have a valid doi" -- TODO; and ezid will expose registered info somehow?
@@ -657,7 +655,7 @@ test_register_volume_with_ezid = localOption (mkTimeout (15 * 10^(6 :: Int))) $
 
 --------- ingest ------------
 test_simple_ingest :: TestTree
-test_simple_ingest = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_simple_ingest = Test.stepsWithTransaction "simple ingest" $ \step cn2 -> do
     step "Given an authorized investigator"
     step " and a volume"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
@@ -687,7 +685,7 @@ test_simple_ingest = Test.stepsWithTransaction "" $ \step cn2 -> do
 
 --------- notifications ------------
 test_simple_notification :: TestTree
-test_simple_notification = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_simple_notification = Test.stepsWithTransaction "simple notification" $ \step cn2 -> do
     step "Given an authorized investigator"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     -- when create notification that account was updated and trigger deliveries
@@ -737,7 +735,7 @@ test_simple_notification = Test.stepsWithTransaction "" $ \step cn2 -> do
 
 --------- upload ------------
 test_upload_small_csv :: TestTree
-test_upload_small_csv = Test.stepsWithTransaction "" $ \step cn2 -> do
+test_upload_small_csv = Test.stepsWithTransaction "upload small csv" $ \step cn2 -> do
     step "Given an authorized investigator and their volume"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
