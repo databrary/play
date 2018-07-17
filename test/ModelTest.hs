@@ -663,7 +663,13 @@ test_simple_ingest = Test.stepsWithTransaction "simple ingest" $ \step cn2 -> do
     step "When a superadmin user ingests a session"
     aiCtxt2 <-
         (\st av ts lg sc ->
-             aiCtxt { ctxStorage = Just st, ctxAV = Just av, ctxTimestamp = Just ts, ctxLogs = Just lg, ctxSecret = Just sc })
+             aiCtxt
+                 { ctxStorage = Just st
+                 , ctxAV = Just av
+                 , ctxTimestamp = Just ts
+                 , ctxLogs = Just lg
+                 , ctxSecret = Just sc
+                 })
         <$> mkStorageStub
         <*> mkAVStub -- TODO: use initAV when ingest starts referencing an asset
         <*> pure (UTCTime (fromGregorian 2017 5 6) (secondsToDiffTime 0))
