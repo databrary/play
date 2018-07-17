@@ -133,6 +133,8 @@ in
     # repeated from ghci-databrary
     mkdir -p cache/tmp stage tmp trans upload
     cp -R install/store-seed store
+    mkdir -p config # TODO: remove this, don't use config/email in mock mailer
+    cp install/config.email config/email
   '';
   postInstall = ''
     databrary_datadir=. $out/bin/databrary -w
