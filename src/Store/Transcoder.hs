@@ -48,32 +48,11 @@ initTranscoder2 tconf@TranscoderConfig {..} = case (transcoderHost, transcoderDi
 
 {-# DEPRECATED initTranscoder "Gradually being replaced by initTranscoder2" #-}
 initTranscoder :: C.Config -> IO (Maybe Transcoder)
-initTranscoder conf =
-  case (host, dir) of
-    (Nothing, Nothing) -> return Nothing
-    _ -> Just <$> do
-      cmd <- getDataFileName "transctl.sh"
-      let t = Transcoder cmd
-                ([ "-v", showVersion version ]
-                ++ maybe [] (\d -> ["-d", d]) dir
-                ++ maybe [] (\h -> ["-h", h]) host
-                ++ maybe [] (\m -> ["-m", m]) mount)
-                (TranscoderConfig host dir mount)
-      (r, out, err) <- runTranscoder t ["-t"]
-      case r of
-        ExitSuccess -> return t
-        ExitFailure e ->
-            fail
-                ("initTranscoder test: "
-                ++ show e
-                ++ "\n=== STDOUT ===\n"
-                ++ out
-                ++ "\n=== STDERR ===\n"
-                ++ err)
-  where
-  host = conf C.! "host"
-  dir = conf C.! "dir"
-  mount = conf C.! "mount"
+initTranscoder conf = initTranscoder2 TranscoderConfig
+    { transcoderHost = conf C.! "host"
+    , transcoderDir = conf C.! "dir"
+    , transcoderMount = conf C.! "mount"
+    }
 
 transcodeEnabled :: Storage -> Bool
 transcodeEnabled = isJust . storageTranscoder
