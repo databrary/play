@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, ScopedTypeVariables, FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables, FlexibleContexts, RankNTypes #-}
 {-# LANGUAGE ViewPatterns #-}
 module ModelTest where
 
@@ -702,11 +702,9 @@ test_simple_notification = Test.stepsWithTransaction "simple notification" $ \st
             <*> loadMessages
             <*> mkLogsStub
     let auth = view aiCtxt
-    _ <- runReaderT
-        (do
-            createNotification (blankNotification (siteAccount auth) NoticeAccountChange)
-                { notificationParty = Just $ partyRow $ accountParty $ siteAccount auth })
-        aiCtxt2
+    _ <- (flip runReaderT) aiCtxt2 (do
+        createNotification (blankNotification (siteAccount auth) NoticeAccountChange)
+            { notificationParty = Just $ partyRow $ accountParty $ siteAccount auth })
     (mailer, mailRef) <- mkMailerMock
     noIdentNotifyCtxt <-
         (\n m l ml -> (mkDbContext cn2) {
@@ -723,14 +721,12 @@ test_simple_notification = Test.stepsWithTransaction "simple notification" $ \st
     _ <- runReaderT (emitNotifications (periodicDelivery Nothing)) noIdentNotifyCtxt
     step "Then the investigator gets a notification about the change"
     step "and the notification is removed"
-    nl <- runReaderT
-        (do
-            -- TODO: repeats implementation of viewNotifications
-            nl <- lookupUserNotifications     
-            _ <- changeNotificationsDelivery (filter ((DeliverySite >) . notificationDelivered) nl) DeliverySite
-            -- nlAfter <- lookupUserNotifications -- TODO: ensure only delivered once
-            pure nl)
-        aiCtxt2
+    nl <- (flip runReaderT) aiCtxt (do
+        -- TODO: repeats implementation of viewNotifications
+        nl <- lookupUserNotifications     
+        _ <- changeNotificationsDelivery (filter ((DeliverySite >) . notificationDelivered) nl) DeliverySite
+        -- nlAfter <- lookupUserNotifications -- TODO: ensure only delivered once
+        pure nl)
     fmap notificationNotice nl @?= [NoticeAccountChange]  -- does this notification only use email?
     [Mail { mailTo = [toAddr], mailParts = [alt1] } ] <- readIORef mailRef
     addressEmail toAddr @?= TE.decodeUtf8 (accountEmail aiAcct)
@@ -750,25 +746,21 @@ test_upload_small_csv = Test.stepsWithTransaction "upload small csv" $ \step cn2
         -- refactor createUpload to take a conduit source of entropy values, isolate entropy dependency to Upload controller?
         <$> initEntropy
         <*> mkStorageStub
-    tok <- runReaderT
-        (do
-            up <- createUploadSetSize vol (UploadStartRequest "abcde.csv" 16)
-            let (chunk1, offset1, len1) = ("col1,col2\nv1,22\n", 0, 16)
-            file <- peeks $ uploadFile up -- TODO: define a generator for (uploadstartrequest, [(contentChunk, offset, len)])
-            let rb = pure chunk1
-            _ <- liftIO (writeChunk offset1 len1 file rb)
-            pure up) 
-        aiCtxt2
+    tok <- (flip runReaderT) aiCtxt2 (do
+        up <- createUploadSetSize vol (UploadStartRequest "abcde.csv" 16)
+        let (chunk1, offset1, len1) = ("col1,col2\nv1,22\n", 0, 16)
+        file <- peeks $ uploadFile up -- TODO: define a generator for (uploadstartrequest, [(contentChunk, offset, len)])
+        let rb = pure chunk1
+        _ <- liftIO (writeChunk offset1 len1 file rb)
+        pure up) 
     step "Then the investigator can view the upload"
     -- TODO: duplicates implementation of processAsset
     aiCtxt3 <- (\a -> aiCtxt2 { ctxAV = Just a }) <$> initAV
-    (upload, filepath, Right (ProbePlain fmt)) <- runReaderT
-        (do
-             Just upload <- lookupUpload ((unId . tokenId . accountToken . uploadAccountToken) tok)
-             fp <- peeks (uploadFile upload)
-             prb <- probeFile (uploadFilename upload) fp
-             pure (upload, fp, prb))
-        aiCtxt3
+    (upload, filepath, Right (ProbePlain fmt)) <- (flip runReaderT) aiCtxt3 (do
+         Just upload <- lookupUpload ((unId . tokenId . accountToken . uploadAccountToken) tok)
+         fp <- peeks (uploadFile upload)
+         prb <- probeFile (uploadFilename upload) fp
+         pure (upload, fp, prb))
     fmt @?= fromJust (getFormatByExtension "csv")
     uploadFilename upload @?= "abcde.csv"
     uploadSize upload @?= 16
