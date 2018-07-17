@@ -29,6 +29,8 @@ Go for a test drive on http://dev1.databrary.org:8000/. We are excited to have y
 
 [<img src="https://img.shields.io/uptimerobot/ratio/m779481982-e616968da86ff263aea86978.svg">](https://stats.uptimerobot.com/J80YrsnzP)
 
+Nix Cache - [<img src="https://img.shields.io/uptimerobot/ratio/7/m780713505-7d8d87840b9cd6213c96b467.svg">](https://stats.uptimerobot.com/K8JYvs7XW)
+
 Want to help out? Feel free to start right here with this underwhelming README!
 
 We have [preliminary library
