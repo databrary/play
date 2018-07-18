@@ -79,7 +79,7 @@ span.spaces    { background: white }
 <span class="lineno">   63 </span>useTDB
 <span class="lineno">   64 </span>
 <span class="lineno">   65 </span>partyName :: PartyRow -&gt; T.Text
-<span class="lineno">   66 </span><span class="decl"><span class="istickedoff">partyName PartyRow{ partyPreName = Just p, partySortName = n } = <span class="nottickedoff">p &lt;&gt; T.cons ' ' n</span></span>
+<span class="lineno">   66 </span><span class="decl"><span class="istickedoff">partyName PartyRow{ partyPreName = Just p, partySortName = n } = p &lt;&gt; T.cons ' ' n</span>
 <span class="lineno">   67 </span><span class="spaces"></span><span class="istickedoff">partyName PartyRow{ partySortName = n } = n</span></span>
 <span class="lineno">   68 </span>
 <span class="lineno">   69 </span>emailPermission :: Permission
@@ -147,7 +147,7 @@ span.spaces    { background: white }
 <span class="lineno">  131 </span><span class="spaces">    </span><span class="nottickedoff">, fpyInstitution = True `useWhen` (isNothing partyAccount)</span>
 <span class="lineno">  132 </span><span class="spaces">    </span><span class="nottickedoff">, fpyEmail = partyEmail p</span>
 <span class="lineno">  133 </span><span class="spaces">    </span><span class="nottickedoff">, fpyPermission = partyPermission `useWhen` (partyPermission &gt; PermissionREAD)</span>
-<span class="lineno">  134 </span><span class="spaces">    </span><span class="nottickedoff">, fpyAuthorization = partySiteAccess</span>
+<span class="lineno">  134 </span><span class="spaces">    </span><span class="nottickedoff">, fpyAuthorization = loadedToMaybe partySiteAccess</span>
 <span class="lineno">  135 </span><span class="spaces">    </span><span class="nottickedoff">}</span></span>
 <span class="lineno">  136 </span>
 <span class="lineno">  137 </span>changeParty :: MonadAudit c m =&gt; Party -&gt; m ()
@@ -367,7 +367,7 @@ span.spaces    { background: white }
 <span class="lineno">  351 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">vaffiliation_a6PKi</span></span>
 <span class="lineno">  352 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">vurl_a6PKj</span>)</span>
 <span class="lineno">  353 </span><span class="spaces">           </span><span class="istickedoff">row)</span>
-<span class="lineno">  354 </span><span class="spaces">  </span><span class="istickedoff">pure ((\p -&gt; Party p <span class="nottickedoff">Nothing</span> Nothing <span class="nottickedoff">PermissionREAD</span> <span class="nottickedoff">Nothing</span>) pRow)</span></span>
+<span class="lineno">  354 </span><span class="spaces">  </span><span class="istickedoff">pure ((\p -&gt; Party p <span class="nottickedoff">Nothing</span> NotLoaded <span class="nottickedoff">PermissionREAD</span> <span class="nottickedoff">Nothing</span>) pRow)</span></span>
 <span class="lineno">  355 </span>    
 <span class="lineno">  356 </span>-- | Create a new account without any authorizations, during registration, using the nobodySiteAuth.
 <span class="lineno">  357 </span>-- The account password will be blank. The party will not have any authorizations yet.
@@ -475,7 +475,7 @@ span.spaces    { background: white }
 <span class="lineno">  459 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">vaffiliation_a6PKi</span></span>
 <span class="lineno">  460 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">vurl_a6PKj</span>)</span>
 <span class="lineno">  461 </span><span class="spaces">           </span><span class="istickedoff">row</span>
-<span class="lineno">  462 </span><span class="spaces">      </span><span class="istickedoff">p = ((\pr -&gt; Party pr <span class="nottickedoff">Nothing</span> Nothing <span class="nottickedoff">PermissionREAD</span> <span class="nottickedoff">Nothing</span>) pRow)</span>
+<span class="lineno">  462 </span><span class="spaces">      </span><span class="istickedoff">p = ((\pr -&gt; Party pr <span class="nottickedoff">Nothing</span> NotLoaded <span class="nottickedoff">PermissionREAD</span> <span class="nottickedoff">Nothing</span>) pRow)</span>
 <span class="lineno">  463 </span><span class="spaces">  </span><span class="istickedoff">let pa = p{ partyAccount = <span class="nottickedoff">Just a</span> }</span>
 <span class="lineno">  464 </span><span class="spaces">      </span><span class="istickedoff">a = ba{ accountParty = pa }</span>
 <span class="lineno">  465 </span><span class="spaces">  </span><span class="istickedoff">-- Create an account with no password, and the email provided</span>
@@ -609,92 +609,92 @@ span.spaces    { background: white }
 <span class="lineno">  593 </span><span class="spaces">        </span><span class="nottickedoff">\  where p2.prename = party.prename and p2.name = party.name and party.id &lt; p2.id) &quot;)</span></span>
 <span class="lineno">  594 </span>
 <span class="lineno">  595 </span>lookupPartyAuthorizations :: (MonadDB c m, MonadHasIdentity c m) =&gt; m [(Party, Maybe Permission)]
-<span class="lineno">  596 </span><span class="decl"><span class="nottickedoff">lookupPartyAuthorizations = do</span>
-<span class="lineno">  597 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
-<span class="lineno">  598 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a6Qkm = unknownPGTypeEnv</span>
-<span class="lineno">  599 </span><span class="spaces">  </span><span class="nottickedoff">rows &lt;- dbQuery -- (selectQuery (selectPartyAuthorization 'ident) &quot;WHERE party.id &gt; 0&quot;)</span>
-<span class="lineno">  600 </span><span class="spaces">   </span><span class="nottickedoff">(mapQuery2</span>
-<span class="lineno">  601 </span><span class="spaces">                      </span><span class="nottickedoff">(BS.concat</span>
-<span class="lineno">  602 </span><span class="spaces">                         </span><span class="nottickedoff">[Data.String.fromString</span>
-<span class="lineno">  603 </span><span class="spaces">                            </span><span class="nottickedoff">&quot;SELECT party.id,party.name,party.prename,party.orcid,party.affiliation,party.url,account.email,authorize_view.site,authorize_view.member FROM party LEFT JOIN account USING (id) LEFT JOIN authorize_view ON party.id = authorize_view.child AND authorize_view.parent = 0 WHERE party.id &gt; 0&quot;])</span>
-<span class="lineno">  604 </span><span class="spaces">              </span><span class="nottickedoff">(\</span>
-<span class="lineno">  605 </span><span class="spaces">                 </span><span class="nottickedoff">[_cid_a6Qkn,</span>
-<span class="lineno">  606 </span><span class="spaces">                  </span><span class="nottickedoff">_cname_a6Qko,</span>
-<span class="lineno">  607 </span><span class="spaces">                  </span><span class="nottickedoff">_cprename_a6Qkp,</span>
-<span class="lineno">  608 </span><span class="spaces">                  </span><span class="nottickedoff">_corcid_a6Qkq,</span>
-<span class="lineno">  609 </span><span class="spaces">                  </span><span class="nottickedoff">_caffiliation_a6Qkr,</span>
-<span class="lineno">  610 </span><span class="spaces">                  </span><span class="nottickedoff">_curl_a6Qks,</span>
-<span class="lineno">  611 </span><span class="spaces">                  </span><span class="nottickedoff">_cemail_a6Qkt,</span>
-<span class="lineno">  612 </span><span class="spaces">                  </span><span class="nottickedoff">_csite_a6Qku,</span>
-<span class="lineno">  613 </span><span class="spaces">                  </span><span class="nottickedoff">_cmember_a6Qkv]</span>
-<span class="lineno">  614 </span><span class="spaces">                 </span><span class="nottickedoff">-&gt; (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
-<span class="lineno">  615 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
-<span class="lineno">  616 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  617 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
-<span class="lineno">  618 </span><span class="spaces">                       </span><span class="nottickedoff">_cid_a6Qkn, </span>
-<span class="lineno">  619 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
-<span class="lineno">  620 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
-<span class="lineno">  621 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  622 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
-<span class="lineno">  623 </span><span class="spaces">                       </span><span class="nottickedoff">_cname_a6Qko, </span>
-<span class="lineno">  624 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
-<span class="lineno">  625 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
-<span class="lineno">  626 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  627 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
-<span class="lineno">  628 </span><span class="spaces">                       </span><span class="nottickedoff">_cprename_a6Qkp, </span>
-<span class="lineno">  629 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
-<span class="lineno">  630 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
-<span class="lineno">  631 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  632 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;bpchar&quot;)</span>
-<span class="lineno">  633 </span><span class="spaces">                       </span><span class="nottickedoff">_corcid_a6Qkq, </span>
-<span class="lineno">  634 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
-<span class="lineno">  635 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
-<span class="lineno">  636 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  637 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
-<span class="lineno">  638 </span><span class="spaces">                       </span><span class="nottickedoff">_caffiliation_a6Qkr, </span>
-<span class="lineno">  639 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
-<span class="lineno">  640 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
-<span class="lineno">  641 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  642 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
-<span class="lineno">  643 </span><span class="spaces">                       </span><span class="nottickedoff">_curl_a6Qks, </span>
-<span class="lineno">  644 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
-<span class="lineno">  645 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
-<span class="lineno">  646 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  647 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;character varying&quot;)</span>
-<span class="lineno">  648 </span><span class="spaces">                       </span><span class="nottickedoff">_cemail_a6Qkt, </span>
-<span class="lineno">  649 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
-<span class="lineno">  650 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
-<span class="lineno">  651 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  652 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;permission&quot;)</span>
-<span class="lineno">  653 </span><span class="spaces">                       </span><span class="nottickedoff">_csite_a6Qku, </span>
-<span class="lineno">  654 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
-<span class="lineno">  655 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Qkm</span>
-<span class="lineno">  656 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  657 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;permission&quot;)</span>
-<span class="lineno">  658 </span><span class="spaces">                       </span><span class="nottickedoff">_cmember_a6Qkv)))</span>
-<span class="lineno">  659 </span><span class="spaces">  </span><span class="nottickedoff">pure </span>
-<span class="lineno">  660 </span><span class="spaces">     </span><span class="nottickedoff">(fmap</span>
-<span class="lineno">  661 </span><span class="spaces">      </span><span class="nottickedoff">(\ (vid_a6Qir, vname_a6Qis, vprename_a6Qit, vorcid_a6Qiu,</span>
-<span class="lineno">  662 </span><span class="spaces">          </span><span class="nottickedoff">vaffiliation_a6Qiv, vurl_a6Qiw, vemail_a6Qix, vsite_a6Qiz,</span>
-<span class="lineno">  663 </span><span class="spaces">          </span><span class="nottickedoff">vmember_a6QiA)</span>
-<span class="lineno">  664 </span><span class="spaces">         </span><span class="nottickedoff">-&gt; Model.Party.SQL.makePartyAuthorization</span>
-<span class="lineno">  665 </span><span class="spaces">              </span><span class="nottickedoff">(Model.Party.SQL.permissionParty</span>
-<span class="lineno">  666 </span><span class="spaces">                 </span><span class="nottickedoff">(Model.Party.SQL.makeParty</span>
-<span class="lineno">  667 </span><span class="spaces">                    </span><span class="nottickedoff">(PartyRow</span>
-<span class="lineno">  668 </span><span class="spaces">                       </span><span class="nottickedoff">vid_a6Qir</span>
-<span class="lineno">  669 </span><span class="spaces">                       </span><span class="nottickedoff">vname_a6Qis</span>
-<span class="lineno">  670 </span><span class="spaces">                       </span><span class="nottickedoff">vprename_a6Qit</span>
-<span class="lineno">  671 </span><span class="spaces">                       </span><span class="nottickedoff">vorcid_a6Qiu</span>
-<span class="lineno">  672 </span><span class="spaces">                       </span><span class="nottickedoff">vaffiliation_a6Qiv</span>
-<span class="lineno">  673 </span><span class="spaces">                       </span><span class="nottickedoff">vurl_a6Qiw)</span>
-<span class="lineno">  674 </span><span class="spaces">                    </span><span class="nottickedoff">(do { cm_a6QiP &lt;- vemail_a6Qix;</span>
-<span class="lineno">  675 </span><span class="spaces">                          </span><span class="nottickedoff">Just (Account cm_a6QiP) }))</span>
-<span class="lineno">  676 </span><span class="spaces">                 </span><span class="nottickedoff">Nothing</span>
-<span class="lineno">  677 </span><span class="spaces">                 </span><span class="nottickedoff">ident)</span>
-<span class="lineno">  678 </span><span class="spaces">              </span><span class="nottickedoff">(do { cm_a6QiV &lt;- vsite_a6Qiz;</span>
-<span class="lineno">  679 </span><span class="spaces">                    </span><span class="nottickedoff">cm_a6QiW &lt;- vmember_a6QiA;</span>
-<span class="lineno">  680 </span><span class="spaces">                    </span><span class="nottickedoff">Just (Access cm_a6QiV cm_a6QiW) }))</span>
-<span class="lineno">  681 </span><span class="spaces">      </span><span class="nottickedoff">rows)</span></span>
+<span class="lineno">  596 </span><span class="decl"><span class="istickedoff">lookupPartyAuthorizations = do</span>
+<span class="lineno">  597 </span><span class="spaces">  </span><span class="istickedoff">ident &lt;- peek</span>
+<span class="lineno">  598 </span><span class="spaces">  </span><span class="istickedoff">let <span class="nottickedoff">_tenv_a6Qkm = unknownPGTypeEnv</span></span>
+<span class="lineno">  599 </span><span class="spaces">  </span><span class="istickedoff">rows &lt;- dbQuery -- (selectQuery (selectPartyAuthorization 'ident) &quot;WHERE party.id &gt; 0&quot;)</span>
+<span class="lineno">  600 </span><span class="spaces">   </span><span class="istickedoff">(mapQuery2</span>
+<span class="lineno">  601 </span><span class="spaces">                      </span><span class="istickedoff">(BS.concat</span>
+<span class="lineno">  602 </span><span class="spaces">                         </span><span class="istickedoff">[Data.String.fromString</span>
+<span class="lineno">  603 </span><span class="spaces">                            </span><span class="istickedoff">&quot;SELECT party.id,party.name,party.prename,party.orcid,party.affiliation,party.url,account.email,authorize_view.site,authorize_view.member FROM party LEFT JOIN account USING (id) LEFT JOIN authorize_view ON party.id = authorize_view.child AND authorize_view.parent = 0 WHERE party.id &gt; 0&quot;])</span>
+<span class="lineno">  604 </span><span class="spaces">              </span><span class="istickedoff">(\</span>
+<span class="lineno">  605 </span><span class="spaces">                 </span><span class="istickedoff">[_cid_a6Qkn,</span>
+<span class="lineno">  606 </span><span class="spaces">                  </span><span class="istickedoff">_cname_a6Qko,</span>
+<span class="lineno">  607 </span><span class="spaces">                  </span><span class="istickedoff">_cprename_a6Qkp,</span>
+<span class="lineno">  608 </span><span class="spaces">                  </span><span class="istickedoff">_corcid_a6Qkq,</span>
+<span class="lineno">  609 </span><span class="spaces">                  </span><span class="istickedoff">_caffiliation_a6Qkr,</span>
+<span class="lineno">  610 </span><span class="spaces">                  </span><span class="istickedoff">_curl_a6Qks,</span>
+<span class="lineno">  611 </span><span class="spaces">                  </span><span class="istickedoff">_cemail_a6Qkt,</span>
+<span class="lineno">  612 </span><span class="spaces">                  </span><span class="istickedoff">_csite_a6Qku,</span>
+<span class="lineno">  613 </span><span class="spaces">                  </span><span class="istickedoff">_cmember_a6Qkv]</span>
+<span class="lineno">  614 </span><span class="spaces">                 </span><span class="istickedoff">-&gt; (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  615 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6Qkm</span></span>
+<span class="lineno">  616 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  617 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span></span>
+<span class="lineno">  618 </span><span class="spaces">                       </span><span class="istickedoff">_cid_a6Qkn, </span>
+<span class="lineno">  619 </span><span class="spaces">                     </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  620 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6Qkm</span></span>
+<span class="lineno">  621 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  622 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span></span>
+<span class="lineno">  623 </span><span class="spaces">                       </span><span class="istickedoff">_cname_a6Qko, </span>
+<span class="lineno">  624 </span><span class="spaces">                     </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  625 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6Qkm</span></span>
+<span class="lineno">  626 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  627 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span></span>
+<span class="lineno">  628 </span><span class="spaces">                       </span><span class="istickedoff">_cprename_a6Qkp, </span>
+<span class="lineno">  629 </span><span class="spaces">                     </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span></span>
+<span class="lineno">  630 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6Qkm</span></span>
+<span class="lineno">  631 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  632 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;bpchar&quot;)</span></span>
+<span class="lineno">  633 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">_corcid_a6Qkq</span>, </span>
+<span class="lineno">  634 </span><span class="spaces">                     </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  635 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6Qkm</span></span>
+<span class="lineno">  636 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  637 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span></span>
+<span class="lineno">  638 </span><span class="spaces">                       </span><span class="istickedoff">_caffiliation_a6Qkr, </span>
+<span class="lineno">  639 </span><span class="spaces">                     </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span></span>
+<span class="lineno">  640 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6Qkm</span></span>
+<span class="lineno">  641 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  642 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span></span>
+<span class="lineno">  643 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">_curl_a6Qks</span>, </span>
+<span class="lineno">  644 </span><span class="spaces">                     </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  645 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6Qkm</span></span>
+<span class="lineno">  646 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  647 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;character varying&quot;)</span></span>
+<span class="lineno">  648 </span><span class="spaces">                       </span><span class="istickedoff">_cemail_a6Qkt, </span>
+<span class="lineno">  649 </span><span class="spaces">                     </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  650 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6Qkm</span></span>
+<span class="lineno">  651 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  652 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;permission&quot;)</span></span>
+<span class="lineno">  653 </span><span class="spaces">                       </span><span class="istickedoff">_csite_a6Qku, </span>
+<span class="lineno">  654 </span><span class="spaces">                     </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  655 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6Qkm</span></span>
+<span class="lineno">  656 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  657 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;permission&quot;)</span></span>
+<span class="lineno">  658 </span><span class="spaces">                       </span><span class="istickedoff">_cmember_a6Qkv)))</span>
+<span class="lineno">  659 </span><span class="spaces">  </span><span class="istickedoff">pure </span>
+<span class="lineno">  660 </span><span class="spaces">     </span><span class="istickedoff">(fmap</span>
+<span class="lineno">  661 </span><span class="spaces">      </span><span class="istickedoff">(\ (vid_a6Qir, vname_a6Qis, vprename_a6Qit, vorcid_a6Qiu,</span>
+<span class="lineno">  662 </span><span class="spaces">          </span><span class="istickedoff">vaffiliation_a6Qiv, vurl_a6Qiw, vemail_a6Qix, vsite_a6Qiz,</span>
+<span class="lineno">  663 </span><span class="spaces">          </span><span class="istickedoff">vmember_a6QiA)</span>
+<span class="lineno">  664 </span><span class="spaces">         </span><span class="istickedoff">-&gt; Model.Party.SQL.makePartyAuthorization</span>
+<span class="lineno">  665 </span><span class="spaces">              </span><span class="istickedoff">(Model.Party.SQL.permissionParty</span>
+<span class="lineno">  666 </span><span class="spaces">                 </span><span class="istickedoff">(Model.Party.SQL.makeParty</span>
+<span class="lineno">  667 </span><span class="spaces">                    </span><span class="istickedoff">(PartyRow</span>
+<span class="lineno">  668 </span><span class="spaces">                       </span><span class="istickedoff">vid_a6Qir</span>
+<span class="lineno">  669 </span><span class="spaces">                       </span><span class="istickedoff">vname_a6Qis</span>
+<span class="lineno">  670 </span><span class="spaces">                       </span><span class="istickedoff">vprename_a6Qit</span>
+<span class="lineno">  671 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">vorcid_a6Qiu</span></span>
+<span class="lineno">  672 </span><span class="spaces">                       </span><span class="istickedoff">vaffiliation_a6Qiv</span>
+<span class="lineno">  673 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">vurl_a6Qiw</span>)</span>
+<span class="lineno">  674 </span><span class="spaces">                    </span><span class="istickedoff">(do { cm_a6QiP &lt;- vemail_a6Qix;</span>
+<span class="lineno">  675 </span><span class="spaces">                          </span><span class="istickedoff">Just <span class="nottickedoff">(Account cm_a6QiP)</span> }))</span>
+<span class="lineno">  676 </span><span class="spaces">                 </span><span class="istickedoff"><span class="nottickedoff">Nothing</span></span>
+<span class="lineno">  677 </span><span class="spaces">                 </span><span class="istickedoff"><span class="nottickedoff">ident</span>)</span>
+<span class="lineno">  678 </span><span class="spaces">              </span><span class="istickedoff">(do { cm_a6QiV &lt;- vsite_a6Qiz;</span>
+<span class="lineno">  679 </span><span class="spaces">                    </span><span class="istickedoff">cm_a6QiW &lt;- vmember_a6QiA;</span>
+<span class="lineno">  680 </span><span class="spaces">                    </span><span class="istickedoff">Just (Access cm_a6QiV cm_a6QiW) }))</span>
+<span class="lineno">  681 </span><span class="spaces">      </span><span class="istickedoff">rows)</span></span>
 <span class="lineno">  682 </span>
 <span class="lineno">  683 </span>-- | Find a party by id, populating the party's permission based on
 <span class="lineno">  684 </span>-- a complicated set of cascading rules that determines the current viewer's
@@ -1092,7 +1092,7 @@ span.spaces    { background: white }
 <span class="lineno"> 1076 </span><span class="spaces">                    </span><span class="nottickedoff">vurl_a6R3W)</span>
 <span class="lineno"> 1077 </span><span class="spaces">                 </span><span class="nottickedoff">(do { cm_a6R44 &lt;- vemail_a6R3X;</span>
 <span class="lineno"> 1078 </span><span class="spaces">                       </span><span class="nottickedoff">Just (Account cm_a6R44) })</span>
-<span class="lineno"> 1079 </span><span class="spaces">                 </span><span class="nottickedoff">site)</span>
+<span class="lineno"> 1079 </span><span class="spaces">                 </span><span class="nottickedoff">(Loaded site))</span>
 <span class="lineno"> 1080 </span><span class="spaces">              </span><span class="nottickedoff">Nothing</span>
 <span class="lineno"> 1081 </span><span class="spaces">              </span><span class="nottickedoff">ident)</span>
 <span class="lineno"> 1082 </span><span class="spaces">      </span><span class="nottickedoff">rows)</span></span>

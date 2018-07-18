@@ -15,67 +15,116 @@ span.spaces    { background: white }
 <body>
 <pre>
 <span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
-<span class="lineno">    2 </span>module Store.Service
-<span class="lineno">    3 </span>  ( Storage
-<span class="lineno">    4 </span>  , initStorage
-<span class="lineno">    5 </span>  ) where
-<span class="lineno">    6 </span>
-<span class="lineno">    7 </span>import Control.Monad (unless, foldM_, forM_)
-<span class="lineno">    8 </span>import Data.Maybe (catMaybes)
-<span class="lineno">    9 </span>import System.Directory (getTemporaryDirectory, createDirectoryIfMissing)
-<span class="lineno">   10 </span>import System.IO.Error (mkIOError, doesNotExistErrorType, illegalOperationErrorType)
-<span class="lineno">   11 </span>import System.Posix.FilePath (addTrailingPathSeparator)
-<span class="lineno">   12 </span>import System.Posix.Files.ByteString (isDirectory, deviceID, getFileStatus)
-<span class="lineno">   13 </span>
-<span class="lineno">   14 </span>import Ops
-<span class="lineno">   15 </span>import qualified Store.Config as C
-<span class="lineno">   16 </span>import Files
-<span class="lineno">   17 </span>import Store.Types
-<span class="lineno">   18 </span>import Store.Transcoder
+<span class="lineno">    2 </span>{-# LANGUAGE RecordWildCards #-}
+<span class="lineno">    3 </span>module Store.Service
+<span class="lineno">    4 </span>  ( Storage
+<span class="lineno">    5 </span>  , initStorage
+<span class="lineno">    6 </span>  , StorageLocationConfig (..)
+<span class="lineno">    7 </span>  ) where
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import Control.Monad (unless, foldM_)
+<span class="lineno">   10 </span>import Data.Maybe (catMaybes)
+<span class="lineno">   11 </span>import System.Directory (getTemporaryDirectory, createDirectoryIfMissing)
+<span class="lineno">   12 </span>import System.IO.Error (mkIOError, doesNotExistErrorType, illegalOperationErrorType)
+<span class="lineno">   13 </span>import System.Posix.FilePath (addTrailingPathSeparator)
+<span class="lineno">   14 </span>import System.Posix.Files.ByteString (isDirectory, deviceID, getFileStatus)
+<span class="lineno">   15 </span>import System.Posix.Types (DeviceID)
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>import Files
+<span class="lineno">   18 </span>import Store.Types
 <span class="lineno">   19 </span>
-<span class="lineno">   20 </span>initStorage :: C.Config -&gt; IO Storage
-<span class="lineno">   21 </span><span class="decl"><span class="nottickedoff">initStorage conf</span>
-<span class="lineno">   22 </span><span class="spaces">  </span><span class="nottickedoff">| Just down &lt;- conf C.! &quot;DOWN&quot; = return $ error $ &quot;Storage unavailable: &quot; ++ down</span>
-<span class="lineno">   23 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = do</span>
-<span class="lineno">   24 </span><span class="spaces">      </span><span class="nottickedoff">fp &lt;- getTemporaryDirectory</span>
-<span class="lineno">   25 </span><span class="spaces">      </span><span class="nottickedoff">temp &lt;- fromMaybeM (rawFilePath fp) $ conf C.! &quot;temp&quot;</span>
-<span class="lineno">   26 </span><span class="spaces"></span><span class="nottickedoff"></span>
-<span class="lineno">   27 </span><span class="spaces">      </span><span class="nottickedoff">foldM_ (\dev f -&gt; do</span>
-<span class="lineno">   28 </span><span class="spaces">        </span><span class="nottickedoff">s &lt;- getFileStatus f</span>
-<span class="lineno">   29 </span><span class="spaces">        </span><span class="nottickedoff">f' &lt;- unRawFilePath f</span>
-<span class="lineno">   30 </span><span class="spaces">        </span><span class="nottickedoff">unless (isDirectory s)</span>
-<span class="lineno">   31 </span><span class="spaces">          </span><span class="nottickedoff">$ ioError $ mkIOError doesNotExistErrorType &quot;storage directory&quot; Nothing (Just f')</span>
-<span class="lineno">   32 </span><span class="spaces">        </span><span class="nottickedoff">let d = deviceID s</span>
-<span class="lineno">   33 </span><span class="spaces">        </span><span class="nottickedoff">unless (all (d ==) dev)</span>
-<span class="lineno">   34 </span><span class="spaces">          </span><span class="nottickedoff">$ ioError $ mkIOError illegalOperationErrorType &quot;storage filesystem&quot; Nothing (Just f')</span>
-<span class="lineno">   35 </span><span class="spaces">        </span><span class="nottickedoff">return $ Just d)</span>
-<span class="lineno">   36 </span><span class="spaces">        </span><span class="nottickedoff">Nothing $ catMaybes [Just master, Just temp, Just upload, stage]</span>
-<span class="lineno">   37 </span><span class="spaces"></span><span class="nottickedoff"></span>
-<span class="lineno">   38 </span><span class="spaces">      </span><span class="nottickedoff">forM_ cache $ \c -&gt; do</span>
-<span class="lineno">   39 </span><span class="spaces">        </span><span class="nottickedoff">let tmp = c &lt;/&gt; &quot;tmp&quot;</span>
-<span class="lineno">   40 </span><span class="spaces">        </span><span class="nottickedoff">tmpPath &lt;- unRawFilePath tmp</span>
-<span class="lineno">   41 </span><span class="spaces">        </span><span class="nottickedoff">createDirectoryIfMissing False tmpPath</span>
-<span class="lineno">   42 </span><span class="spaces"></span><span class="nottickedoff"></span>
-<span class="lineno">   43 </span><span class="spaces">      </span><span class="nottickedoff">let tempPath = addTrailingPathSeparator temp</span>
-<span class="lineno">   44 </span><span class="spaces">      </span><span class="nottickedoff">unTempPath &lt;- unRawFilePath tempPath</span>
-<span class="lineno">   45 </span><span class="spaces">      </span><span class="nottickedoff">createDirectoryIfMissing False (getStorageTempParticipantUpload' unTempPath)</span>
-<span class="lineno">   46 </span><span class="spaces"></span><span class="nottickedoff"></span>
-<span class="lineno">   47 </span><span class="spaces">      </span><span class="nottickedoff">tc &lt;- initTranscoder (conf C.! &quot;transcode&quot;)</span>
-<span class="lineno">   48 </span><span class="spaces"></span><span class="nottickedoff"></span>
-<span class="lineno">   49 </span><span class="spaces">      </span><span class="nottickedoff">return $ Storage</span>
-<span class="lineno">   50 </span><span class="spaces">        </span><span class="nottickedoff">{ storageMaster = master</span>
-<span class="lineno">   51 </span><span class="spaces">        </span><span class="nottickedoff">, storageFallback = conf C.! &quot;fallback&quot;</span>
-<span class="lineno">   52 </span><span class="spaces">        </span><span class="nottickedoff">, storageTemp = tempPath</span>
-<span class="lineno">   53 </span><span class="spaces">        </span><span class="nottickedoff">, storageUpload = upload</span>
-<span class="lineno">   54 </span><span class="spaces">        </span><span class="nottickedoff">, storageCache = cache</span>
-<span class="lineno">   55 </span><span class="spaces">        </span><span class="nottickedoff">, storageStage = stage</span>
-<span class="lineno">   56 </span><span class="spaces">        </span><span class="nottickedoff">, storageTranscoder = tc</span>
-<span class="lineno">   57 </span><span class="spaces">        </span><span class="nottickedoff">}</span>
-<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
-<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">master = conf C.! &quot;master&quot;</span>
-<span class="lineno">   60 </span><span class="spaces">  </span><span class="nottickedoff">upload = conf C.! &quot;upload&quot;</span>
-<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">cache = conf C.! &quot;cache&quot;</span>
-<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">stage = conf C.! &quot;stage&quot;</span></span>
+<span class="lineno">   20 </span>-- | Locations used by Storage. This is almost /identical/ to 'Storage', except
+<span class="lineno">   21 </span>-- in how it's used and what it represents. Future work might merge the two
+<span class="lineno">   22 </span>-- types.
+<span class="lineno">   23 </span>data StorageLocationConfig = StorageLocationConfig
+<span class="lineno">   24 </span>    { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">storageLocTemp</span></span></span> :: Maybe RawFilePath
+<span class="lineno">   25 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">storageLocMaster</span></span></span> :: RawFilePath
+<span class="lineno">   26 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">storageLocUpload</span></span></span> :: RawFilePath
+<span class="lineno">   27 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">storageLocCache</span></span></span> :: Maybe RawFilePath
+<span class="lineno">   28 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">storageLocStage</span></span></span> :: Maybe RawFilePath
+<span class="lineno">   29 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">storageLocFallback</span></span></span> :: Maybe RawFilePath
+<span class="lineno">   30 </span>    }
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>-- | Initialize the configured storage location. It checks for the existence of
+<span class="lineno">   33 </span>-- certain directories and adds subdirectories. Primarily, this allows us to
+<span class="lineno">   34 </span>-- interface with third party services (NYU HPC) that have set up certain
+<span class="lineno">   35 </span>-- directories for us to use.
+<span class="lineno">   36 </span>--
+<span class="lineno">   37 </span>-- This may throw a variety of unchecked exceptions, which is probably the right
+<span class="lineno">   38 </span>-- thing to do for initialization.
+<span class="lineno">   39 </span>--
+<span class="lineno">   40 </span>-- TODO:
+<span class="lineno">   41 </span>-- * Combine initCache and initTemp, which are doing the same thing with quite
+<span class="lineno">   42 </span>--   different implementations: appending a subdirectory, and creating it if it
+<span class="lineno">   43 </span>--   doesn't exist
+<span class="lineno">   44 </span>-- * Commit to reordering execution steps, purifying the second arg
+<span class="lineno">   45 </span>-- * Use throwIO instead of error
+<span class="lineno">   46 </span>initStorage
+<span class="lineno">   47 </span>    :: Either String StorageLocationConfig
+<span class="lineno">   48 </span>    -- ^ Either the set of paths to use for storage, or a message explaining why
+<span class="lineno">   49 </span>    -- storage isn't available. This Either will collapse very soon, once use
+<span class="lineno">   50 </span>    -- sites of initStorage are rewritten.
+<span class="lineno">   51 </span>    -&gt; IO (Maybe Transcoder)
+<span class="lineno">   52 </span>    -- ^ An action that might produce a transcoder. I kept this is IO to keep
+<span class="lineno">   53 </span>    -- the implementation identical, without reordering error messages. I highly
+<span class="lineno">   54 </span>    -- suspect that is overkill, and this will get moved out of IO.
+<span class="lineno">   55 </span>    -&gt; IO Storage
+<span class="lineno">   56 </span>    -- ^ The 'Storage' resource (presuming no exceptions were thrown).
+<span class="lineno">   57 </span><span class="decl"><span class="istickedoff">initStorage (Left e) _ = <span class="nottickedoff">return $ error $ &quot;Storage unavailable: &quot; ++ e</span></span>
+<span class="lineno">   58 </span><span class="spaces"></span><span class="istickedoff">initStorage (Right StorageLocationConfig {..}) initTc = do</span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="istickedoff">temp &lt;- maybe <span class="nottickedoff">(rawFilePath =&lt;&lt; getTemporaryDirectory)</span> pure storageLocTemp</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="istickedoff">foldM_</span>
+<span class="lineno">   61 </span><span class="spaces">        </span><span class="istickedoff">checkDirs</span>
+<span class="lineno">   62 </span><span class="spaces">        </span><span class="istickedoff">Nothing</span>
+<span class="lineno">   63 </span><span class="spaces">        </span><span class="istickedoff">([storageLocMaster, temp, storageLocUpload]</span>
+<span class="lineno">   64 </span><span class="spaces">        </span><span class="istickedoff">++ catMaybes [storageLocStage]</span>
+<span class="lineno">   65 </span><span class="spaces">        </span><span class="istickedoff">)</span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="istickedoff">mapM_ initCache storageLocCache</span>
+<span class="lineno">   67 </span><span class="spaces">    </span><span class="istickedoff">tempPath &lt;- initTemp temp</span>
+<span class="lineno">   68 </span><span class="spaces">    </span><span class="istickedoff">tc &lt;- initTc</span>
+<span class="lineno">   69 </span><span class="spaces">    </span><span class="istickedoff">pure Storage</span>
+<span class="lineno">   70 </span><span class="spaces">        </span><span class="istickedoff">{ storageMaster = storageLocMaster</span>
+<span class="lineno">   71 </span><span class="spaces">        </span><span class="istickedoff">, storageFallback = storageLocFallback</span>
+<span class="lineno">   72 </span><span class="spaces">        </span><span class="istickedoff">, storageTemp = tempPath</span>
+<span class="lineno">   73 </span><span class="spaces">        </span><span class="istickedoff">, storageUpload = storageLocUpload</span>
+<span class="lineno">   74 </span><span class="spaces">        </span><span class="istickedoff">, storageCache = storageLocCache</span>
+<span class="lineno">   75 </span><span class="spaces">        </span><span class="istickedoff">, storageStage = storageLocStage</span>
+<span class="lineno">   76 </span><span class="spaces">        </span><span class="istickedoff">, storageTranscoder = tc</span>
+<span class="lineno">   77 </span><span class="spaces">        </span><span class="istickedoff">}</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   79 </span><span class="spaces">    </span><span class="istickedoff">-- Check the dir exists (2nd arg) and it's on the same device as the 1st</span>
+<span class="lineno">   80 </span><span class="spaces">    </span><span class="istickedoff">-- arg (if Just).</span>
+<span class="lineno">   81 </span><span class="spaces">    </span><span class="istickedoff">checkDirs :: Maybe DeviceID -&gt; RawFilePath -&gt; IO (Maybe DeviceID)</span>
+<span class="lineno">   82 </span><span class="spaces">    </span><span class="istickedoff">checkDirs dev f = do</span>
+<span class="lineno">   83 </span><span class="spaces">        </span><span class="istickedoff">s &lt;- getFileStatus f</span>
+<span class="lineno">   84 </span><span class="spaces">        </span><span class="istickedoff">f' &lt;- unRawFilePath f</span>
+<span class="lineno">   85 </span><span class="spaces">        </span><span class="istickedoff">unless (isDirectory s) $ <span class="nottickedoff">ioError $ mkIOError</span></span>
+<span class="lineno">   86 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">doesNotExistErrorType</span></span>
+<span class="lineno">   87 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">&quot;storage directory&quot;</span></span>
+<span class="lineno">   88 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">Nothing</span></span>
+<span class="lineno">   89 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">(Just f')</span></span>
+<span class="lineno">   90 </span><span class="spaces">        </span><span class="istickedoff">let d = deviceID s</span>
+<span class="lineno">   91 </span><span class="spaces">        </span><span class="istickedoff">unless (all (d ==) dev) $ <span class="nottickedoff">ioError $ mkIOError</span></span>
+<span class="lineno">   92 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">illegalOperationErrorType</span></span>
+<span class="lineno">   93 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">&quot;storage filesystem&quot;</span></span>
+<span class="lineno">   94 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">Nothing</span></span>
+<span class="lineno">   95 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">(Just f')</span></span>
+<span class="lineno">   96 </span><span class="spaces">        </span><span class="istickedoff">return $ Just d</span>
+<span class="lineno">   97 </span><span class="spaces">    </span><span class="istickedoff">-- @initCache x = mkdir -p &quot;${x}/tmp&quot;@</span>
+<span class="lineno">   98 </span><span class="spaces">    </span><span class="istickedoff">initCache :: RawFilePath -&gt; IO ()</span>
+<span class="lineno">   99 </span><span class="spaces">    </span><span class="istickedoff">initCache c = do</span>
+<span class="lineno">  100 </span><span class="spaces">        </span><span class="istickedoff">let tmp = c &lt;/&gt; &quot;tmp&quot;</span>
+<span class="lineno">  101 </span><span class="spaces">        </span><span class="istickedoff">tmpPath &lt;- unRawFilePath tmp</span>
+<span class="lineno">  102 </span><span class="spaces">        </span><span class="istickedoff">createDirectoryIfMissing False tmpPath</span>
+<span class="lineno">  103 </span><span class="spaces">    </span><span class="istickedoff">-- @initTemp x = mkdir -p &quot;${x}/participantUpload&quot;@</span>
+<span class="lineno">  104 </span><span class="spaces">    </span><span class="istickedoff">initTemp :: RawFilePath -&gt; IO RawFilePath</span>
+<span class="lineno">  105 </span><span class="spaces">    </span><span class="istickedoff">initTemp t = do</span>
+<span class="lineno">  106 </span><span class="spaces">        </span><span class="istickedoff">let tempPath = addTrailingPathSeparator t</span>
+<span class="lineno">  107 </span><span class="spaces">        </span><span class="istickedoff">unTempPath &lt;- unRawFilePath tempPath</span>
+<span class="lineno">  108 </span><span class="spaces">        </span><span class="istickedoff">createDirectoryIfMissing</span>
+<span class="lineno">  109 </span><span class="spaces">            </span><span class="istickedoff">False</span>
+<span class="lineno">  110 </span><span class="spaces">            </span><span class="istickedoff">(getStorageTempParticipantUpload' unTempPath)</span>
+<span class="lineno">  111 </span><span class="spaces">        </span><span class="istickedoff">pure tempPath</span></span>
 
 </pre>
 </body>

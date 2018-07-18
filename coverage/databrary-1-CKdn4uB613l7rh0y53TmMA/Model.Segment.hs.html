@@ -50,8 +50,8 @@ span.spaces    { background: white }
 <span class="lineno">   34 </span>import Model.Offset
 <span class="lineno">   35 </span>
 <span class="lineno">   36 </span>lowerBound, upperBound :: Range.Range a -&gt; Maybe a
-<span class="lineno">   37 </span><span class="decl"><span class="nottickedoff">lowerBound = Range.bound . Range.lowerBound</span></span>
-<span class="lineno">   38 </span><span class="decl"><span class="nottickedoff">upperBound = Range.bound . Range.upperBound</span></span>
+<span class="lineno">   37 </span><span class="decl"><span class="istickedoff">lowerBound = Range.bound . Range.lowerBound</span></span>
+<span class="lineno">   38 </span><span class="decl"><span class="istickedoff">upperBound = Range.bound . Range.upperBound</span></span>
 <span class="lineno">   39 </span>
 <span class="lineno">   40 </span>newtype Segment = Segment { <span class="istickedoff"><span class="decl"><span class="istickedoff">segmentRange</span></span></span> :: Range.Range Offset } deriving ( <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, Typeable)
 <span class="lineno">   41 </span>
@@ -63,20 +63,20 @@ span.spaces    { background: white }
 <span class="lineno">   47 </span>instance PGParameter &quot;segment&quot; Segment where
 <span class="lineno">   48 </span>  <span class="decl"><span class="istickedoff">pgEncode t (Segment r) = pgEncode <span class="nottickedoff">t</span> r</span></span>
 <span class="lineno">   49 </span>instance PGColumn &quot;segment&quot; Segment where
-<span class="lineno">   50 </span>  <span class="decl"><span class="nottickedoff">pgDecode t = Segment . pgDecode t</span></span>
+<span class="lineno">   50 </span>  <span class="decl"><span class="istickedoff">pgDecode t = Segment . pgDecode <span class="nottickedoff">t</span></span></span>
 <span class="lineno">   51 </span>
 <span class="lineno">   52 </span>segmentLength :: Segment -&gt; Maybe Offset
-<span class="lineno">   53 </span><span class="decl"><span class="nottickedoff">segmentLength (Segment r) =</span>
-<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">liftM2 (-) (upperBound r) (lowerBound r)</span></span>
+<span class="lineno">   53 </span><span class="decl"><span class="istickedoff">segmentLength (Segment r) =</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="istickedoff">liftM2 (-) (upperBound r) (lowerBound r)</span></span>
 <span class="lineno">   55 </span>
 <span class="lineno">   56 </span>showSegmentWith :: (Offset -&gt; ShowS) -&gt; Segment -&gt; ShowS
 <span class="lineno">   57 </span><span class="decl"><span class="istickedoff">showSegmentWith _ (Segment Range.Empty) = showString &quot;empty&quot;</span>
 <span class="lineno">   58 </span><span class="spaces"></span><span class="istickedoff">showSegmentWith sf (Segment r)</span>
-<span class="lineno">   59 </span><span class="spaces">  </span><span class="istickedoff">| Just x &lt;- <span class="nottickedoff">Range.getPoint r</span> = <span class="nottickedoff">sf x</span></span>
-<span class="lineno">   60 </span><span class="spaces">  </span><span class="istickedoff">| <span class="nottickedoff">otherwise</span> =</span>
-<span class="lineno">   61 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">maybe id (((if Range.lowerClosed r then id else showChar '(') .) . sf) (lowerBound r)</span></span>
-<span class="lineno">   62 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">. showChar ',' . maybe id sf (upperBound r)</span></span>
-<span class="lineno">   63 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">. (if Range.upperClosed r then showChar ']' else id)</span></span></span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="istickedoff">| Just x &lt;- Range.getPoint r = <span class="nottickedoff">sf x</span></span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> =</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="istickedoff">maybe id (((if <span class="tickonlytrue">Range.lowerClosed r</span> then id else <span class="nottickedoff">showChar '('</span>) .) . sf) (lowerBound r)</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="istickedoff">. showChar ',' . maybe id sf (upperBound r)</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="istickedoff">. (if <span class="tickonlyfalse">Range.upperClosed r</span> then <span class="nottickedoff">showChar ']'</span> else id)</span></span>
 <span class="lineno">   64 </span>
 <span class="lineno">   65 </span>instance Show Segment where
 <span class="lineno">   66 </span>  <span class="decl"><span class="nottickedoff">showsPrec = showSegmentWith . showsPrec</span></span>

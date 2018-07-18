@@ -90,81 +90,81 @@ span.spaces    { background: white }
 <span class="lineno">   74 </span>allFormats :: [Format]
 <span class="lineno">   75 </span><span class="decl"><span class="istickedoff">allFormats</span>
 <span class="lineno">   76 </span><span class="spaces">    </span><span class="istickedoff">= [ Format (Id (-800)) &quot;video/mp4&quot;  [&quot;mp4&quot;]         &quot;MPEG-4 video&quot;</span>
-<span class="lineno">   77 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id (-700)) <span class="nottickedoff">&quot;image/jpeg&quot;</span> <span class="nottickedoff">[&quot;jpg&quot;, &quot;jpeg&quot;]</span> <span class="nottickedoff">&quot;JPEG image&quot;</span></span>
+<span class="lineno">   77 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id (-700)) <span class="nottickedoff">&quot;image/jpeg&quot;</span> [&quot;jpg&quot;, &quot;jpeg&quot;] <span class="nottickedoff">&quot;JPEG image&quot;</span></span>
 <span class="lineno">   78 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id (-600))</span>
 <span class="lineno">   79 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;audio/mpeg&quot;</span></span>
-<span class="lineno">   80 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">[&quot;mp3&quot;]</span></span>
+<span class="lineno">   80 </span><span class="spaces">               </span><span class="istickedoff">[&quot;mp3&quot;]</span>
 <span class="lineno">   81 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;MPEG-1 or MPEG-2 audio layer III&quot;</span></span>
-<span class="lineno">   82 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 1) <span class="nottickedoff">&quot;text/plain&quot;</span>         <span class="nottickedoff">[&quot;txt&quot;]</span> <span class="nottickedoff">&quot;Plain text&quot;</span></span>
-<span class="lineno">   83 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 2) <span class="nottickedoff">&quot;text/csv&quot;</span>           <span class="nottickedoff">[&quot;csv&quot;]</span> <span class="nottickedoff">&quot;Comma-separated values&quot;</span></span>
-<span class="lineno">   84 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 4) <span class="nottickedoff">&quot;text/rtf&quot;</span>           <span class="nottickedoff">[&quot;rtf&quot;]</span> <span class="nottickedoff">&quot;Rich text format&quot;</span></span>
-<span class="lineno">   85 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 5) <span class="nottickedoff">&quot;image/png&quot;</span>          <span class="nottickedoff">[&quot;png&quot;]</span> <span class="nottickedoff">&quot;Portable network graphics&quot;</span></span>
-<span class="lineno">   86 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 6) <span class="nottickedoff">&quot;application/pdf&quot;</span>    <span class="nottickedoff">[&quot;pdf&quot;]</span> <span class="nottickedoff">&quot;Portable document&quot;</span></span>
-<span class="lineno">   87 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 7) <span class="nottickedoff">&quot;application/msword&quot;</span> <span class="nottickedoff">[&quot;doc&quot;]</span> <span class="nottickedoff">&quot;Microsoft Word document&quot;</span></span>
+<span class="lineno">   82 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 1) <span class="nottickedoff">&quot;text/plain&quot;</span>         [&quot;txt&quot;] <span class="nottickedoff">&quot;Plain text&quot;</span></span>
+<span class="lineno">   83 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 2) &quot;text/csv&quot;           [&quot;csv&quot;] <span class="nottickedoff">&quot;Comma-separated values&quot;</span></span>
+<span class="lineno">   84 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 4) <span class="nottickedoff">&quot;text/rtf&quot;</span>           [&quot;rtf&quot;] <span class="nottickedoff">&quot;Rich text format&quot;</span></span>
+<span class="lineno">   85 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 5) <span class="nottickedoff">&quot;image/png&quot;</span>          [&quot;png&quot;] <span class="nottickedoff">&quot;Portable network graphics&quot;</span></span>
+<span class="lineno">   86 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 6) <span class="nottickedoff">&quot;application/pdf&quot;</span>    [&quot;pdf&quot;] <span class="nottickedoff">&quot;Portable document&quot;</span></span>
+<span class="lineno">   87 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 7) <span class="nottickedoff">&quot;application/msword&quot;</span> [&quot;doc&quot;] <span class="nottickedoff">&quot;Microsoft Word document&quot;</span></span>
 <span class="lineno">   88 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 8)</span>
 <span class="lineno">   89 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;application/vnd.oasis.opendocument.text&quot;</span></span>
-<span class="lineno">   90 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">[&quot;odf&quot;]</span></span>
+<span class="lineno">   90 </span><span class="spaces">               </span><span class="istickedoff">[&quot;odf&quot;]</span>
 <span class="lineno">   91 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;OpenDocument text&quot;</span></span>
 <span class="lineno">   92 </span><span class="spaces">      </span><span class="istickedoff">, Format</span>
 <span class="lineno">   93 </span><span class="spaces">          </span><span class="istickedoff">(Id 9)</span>
 <span class="lineno">   94 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">&quot;application/vnd.openxmlformats-officedocument.wordprocessingml.document&quot;</span></span>
-<span class="lineno">   95 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">[&quot;docx&quot;]</span></span>
+<span class="lineno">   95 </span><span class="spaces">          </span><span class="istickedoff">[&quot;docx&quot;]</span>
 <span class="lineno">   96 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">&quot;Microsoft Word (Office Open XML) document&quot;</span></span>
 <span class="lineno">   97 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 10)</span>
 <span class="lineno">   98 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;application/vnd.ms-excel&quot;</span></span>
-<span class="lineno">   99 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">[&quot;xls&quot;]</span></span>
+<span class="lineno">   99 </span><span class="spaces">               </span><span class="istickedoff">[&quot;xls&quot;]</span>
 <span class="lineno">  100 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;Microsoft Excel spreadsheet&quot;</span></span>
 <span class="lineno">  101 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 11)</span>
 <span class="lineno">  102 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;application/vnd.oasis.opendocument.spreadsheet&quot;</span></span>
-<span class="lineno">  103 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">[&quot;ods&quot;]</span></span>
+<span class="lineno">  103 </span><span class="spaces">               </span><span class="istickedoff">[&quot;ods&quot;]</span>
 <span class="lineno">  104 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;OpenDocument spreadsheet&quot;</span></span>
 <span class="lineno">  105 </span><span class="spaces">      </span><span class="istickedoff">, Format</span>
 <span class="lineno">  106 </span><span class="spaces">          </span><span class="istickedoff">(Id 12)</span>
 <span class="lineno">  107 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">&quot;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&quot;</span></span>
-<span class="lineno">  108 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">[&quot;xlsx&quot;]</span></span>
+<span class="lineno">  108 </span><span class="spaces">          </span><span class="istickedoff">[&quot;xlsx&quot;]</span>
 <span class="lineno">  109 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">&quot;Microsoft Excel (Office Open XML) workbook&quot;</span></span>
 <span class="lineno">  110 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 13)</span>
 <span class="lineno">  111 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;application/vnd.ms-powerpoint&quot;</span></span>
-<span class="lineno">  112 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">[&quot;ppt&quot;]</span></span>
+<span class="lineno">  112 </span><span class="spaces">               </span><span class="istickedoff">[&quot;ppt&quot;]</span>
 <span class="lineno">  113 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;Microsoft PowerPoint presentation&quot;</span></span>
 <span class="lineno">  114 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 14)</span>
 <span class="lineno">  115 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;application/vnd.oasis.opendocument.presentation&quot;</span></span>
-<span class="lineno">  116 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">[&quot;odp&quot;]</span></span>
+<span class="lineno">  116 </span><span class="spaces">               </span><span class="istickedoff">[&quot;odp&quot;]</span>
 <span class="lineno">  117 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;OpenDocument presentation&quot;</span></span>
 <span class="lineno">  118 </span><span class="spaces">      </span><span class="istickedoff">, Format</span>
 <span class="lineno">  119 </span><span class="spaces">          </span><span class="istickedoff">(Id 15)</span>
 <span class="lineno">  120 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">&quot;application/vnd.openxmlformats-officedocument.presentationml.presentation&quot;</span></span>
-<span class="lineno">  121 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">[&quot;pptx&quot;]</span></span>
+<span class="lineno">  121 </span><span class="spaces">          </span><span class="istickedoff">[&quot;pptx&quot;]</span>
 <span class="lineno">  122 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">&quot;Microsoft PowerPoint (Office Open XML) presentation&quot;</span></span>
-<span class="lineno">  123 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 16) <span class="nottickedoff">&quot;application/vnd.datavyu&quot;</span> <span class="nottickedoff">[&quot;opf&quot;]</span>  <span class="nottickedoff">&quot;Datavyu&quot;</span></span>
-<span class="lineno">  124 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 18) <span class="nottickedoff">&quot;video/webm&quot;</span>              <span class="nottickedoff">[&quot;webm&quot;]</span> <span class="nottickedoff">&quot;WebM video&quot;</span></span>
+<span class="lineno">  123 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 16) <span class="nottickedoff">&quot;application/vnd.datavyu&quot;</span> [&quot;opf&quot;]  <span class="nottickedoff">&quot;Datavyu&quot;</span></span>
+<span class="lineno">  124 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 18) &quot;video/webm&quot;              [&quot;webm&quot;] <span class="nottickedoff">&quot;WebM video&quot;</span></span>
 <span class="lineno">  125 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 19)</span>
 <span class="lineno">  126 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;video/mpeg&quot;</span></span>
-<span class="lineno">  127 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">[&quot;mpg&quot;, &quot;mpeg&quot;]</span></span>
+<span class="lineno">  127 </span><span class="spaces">               </span><span class="istickedoff">[&quot;mpg&quot;, &quot;mpeg&quot;]</span>
 <span class="lineno">  128 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;MPEG program stream (MPEG-1/MPEG-2 video)&quot;</span></span>
-<span class="lineno">  129 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 20) <span class="nottickedoff">&quot;video/quicktime&quot;</span> <span class="nottickedoff">[&quot;mov&quot;]</span> <span class="nottickedoff">&quot;QuickTime video&quot;</span></span>
-<span class="lineno">  130 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 21) <span class="nottickedoff">&quot;video/mp2t&quot;</span> <span class="nottickedoff">[&quot;mts&quot;, &quot;m2ts&quot;]</span> <span class="nottickedoff">&quot;MPEG transport stream&quot;</span></span>
-<span class="lineno">  131 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 22) <span class="nottickedoff">&quot;video/avi&quot;</span> <span class="nottickedoff">[&quot;avi&quot;]</span> <span class="nottickedoff">&quot;Audio Video Interleave&quot;</span></span>
-<span class="lineno">  132 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 23) <span class="nottickedoff">&quot;application/x-spss-sav&quot;</span> <span class="nottickedoff">[&quot;sav&quot;]</span> <span class="nottickedoff">&quot;SPSS System File&quot;</span></span>
-<span class="lineno">  133 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 24) <span class="nottickedoff">&quot;audio/wav&quot;</span> <span class="nottickedoff">[&quot;wav&quot;]</span> <span class="nottickedoff">&quot;Waveform audio&quot;</span></span>
-<span class="lineno">  134 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 25) <span class="nottickedoff">&quot;video/x-ms-wmv&quot;</span> <span class="nottickedoff">[&quot;wmv&quot;]</span> <span class="nottickedoff">&quot;Windows Media video&quot;</span></span>
+<span class="lineno">  129 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 20) <span class="nottickedoff">&quot;video/quicktime&quot;</span> [&quot;mov&quot;] <span class="nottickedoff">&quot;QuickTime video&quot;</span></span>
+<span class="lineno">  130 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 21) <span class="nottickedoff">&quot;video/mp2t&quot;</span> [&quot;mts&quot;, &quot;m2ts&quot;] <span class="nottickedoff">&quot;MPEG transport stream&quot;</span></span>
+<span class="lineno">  131 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 22) <span class="nottickedoff">&quot;video/avi&quot;</span> [&quot;avi&quot;] <span class="nottickedoff">&quot;Audio Video Interleave&quot;</span></span>
+<span class="lineno">  132 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 23) <span class="nottickedoff">&quot;application/x-spss-sav&quot;</span> [&quot;sav&quot;] <span class="nottickedoff">&quot;SPSS System File&quot;</span></span>
+<span class="lineno">  133 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 24) <span class="nottickedoff">&quot;audio/wav&quot;</span> [&quot;wav&quot;] <span class="nottickedoff">&quot;Waveform audio&quot;</span></span>
+<span class="lineno">  134 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 25) <span class="nottickedoff">&quot;video/x-ms-wmv&quot;</span> [&quot;wmv&quot;] <span class="nottickedoff">&quot;Windows Media video&quot;</span></span>
 <span class="lineno">  135 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 26)</span>
 <span class="lineno">  136 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;text/x-chat&quot;</span></span>
-<span class="lineno">  137 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">[&quot;cha&quot;, &quot;chat&quot;]</span></span>
+<span class="lineno">  137 </span><span class="spaces">               </span><span class="istickedoff">[&quot;cha&quot;, &quot;chat&quot;]</span>
 <span class="lineno">  138 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;Codes for the Human Analysis of Transcripts&quot;</span></span>
-<span class="lineno">  139 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 27) <span class="nottickedoff">&quot;audio/aac&quot;</span>      <span class="nottickedoff">[&quot;aac&quot;]</span> <span class="nottickedoff">&quot;Advanced Audio Coding&quot;</span></span>
-<span class="lineno">  140 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 28) <span class="nottickedoff">&quot;audio/x-ms-wma&quot;</span> <span class="nottickedoff">[&quot;wma&quot;]</span> <span class="nottickedoff">&quot;Windows Media audio&quot;</span></span>
+<span class="lineno">  139 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 27) <span class="nottickedoff">&quot;audio/aac&quot;</span>      [&quot;aac&quot;] <span class="nottickedoff">&quot;Advanced Audio Coding&quot;</span></span>
+<span class="lineno">  140 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 28) <span class="nottickedoff">&quot;audio/x-ms-wma&quot;</span> [&quot;wma&quot;] <span class="nottickedoff">&quot;Windows Media audio&quot;</span></span>
 <span class="lineno">  141 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 29)</span>
 <span class="lineno">  142 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;application/vnd.lena.interpreted-time-segments&quot;</span></span>
-<span class="lineno">  143 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">[&quot;its&quot;]</span></span>
+<span class="lineno">  143 </span><span class="spaces">               </span><span class="istickedoff">[&quot;its&quot;]</span>
 <span class="lineno">  144 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;LENA Interpreted Time Segments&quot;</span></span>
 <span class="lineno">  145 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 30)</span>
 <span class="lineno">  146 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;video/x-dv&quot;</span></span>
-<span class="lineno">  147 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">[&quot;dv&quot;, &quot;dif&quot;]</span></span>
+<span class="lineno">  147 </span><span class="spaces">               </span><span class="istickedoff">[&quot;dv&quot;, &quot;dif&quot;]</span>
 <span class="lineno">  148 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;Digital Interface Format video&quot;</span></span>
 <span class="lineno">  149 </span><span class="spaces">      </span><span class="istickedoff">, Format (Id 31)</span>
 <span class="lineno">  150 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;text/elan&quot;</span></span>
-<span class="lineno">  151 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">[&quot;eaf&quot;, &quot;pfsx&quot;, &quot;etf&quot;]</span></span>
+<span class="lineno">  151 </span><span class="spaces">               </span><span class="istickedoff">[&quot;eaf&quot;, &quot;pfsx&quot;, &quot;etf&quot;]</span>
 <span class="lineno">  152 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">&quot;ELAN - Linguistic Annotator&quot;</span></span>
 <span class="lineno">  153 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
 <span class="lineno">  154 </span>
@@ -178,10 +178,10 @@ span.spaces    { background: white }
 <span class="lineno">  162 </span><span class="decl"><span class="istickedoff">getFormat' (Id i) = formatsById IntMap.! fromIntegral i</span></span>
 <span class="lineno">  163 </span>
 <span class="lineno">  164 </span>formatsByExtension :: Map.Map BS.ByteString Format
-<span class="lineno">  165 </span><span class="decl"><span class="nottickedoff">formatsByExtension = Map.fromList [ (e, a) | a &lt;- allFormats, e &lt;- formatExtension a ]</span></span>
+<span class="lineno">  165 </span><span class="decl"><span class="istickedoff">formatsByExtension = Map.fromList [ (e, a) | a &lt;- allFormats, e &lt;- formatExtension a ]</span></span>
 <span class="lineno">  166 </span>
 <span class="lineno">  167 </span>getFormatByExtension :: BS.ByteString -&gt; Maybe Format
-<span class="lineno">  168 </span><span class="decl"><span class="nottickedoff">getFormatByExtension e = Map.lookup (BSC.map toLower e) formatsByExtension</span></span>
+<span class="lineno">  168 </span><span class="decl"><span class="istickedoff">getFormatByExtension e = Map.lookup (BSC.map toLower e) formatsByExtension</span></span>
 <span class="lineno">  169 </span>
 <span class="lineno">  170 </span>addFormatExtension :: RawFilePath -&gt; Format -&gt; RawFilePath
 <span class="lineno">  171 </span><span class="decl"><span class="nottickedoff">addFormatExtension p (formatExtension -&gt; (e:_)) = addExtension p e</span>
@@ -190,7 +190,7 @@ span.spaces    { background: white }
 <span class="lineno">  174 </span>getFormatByFilename :: RawFilePath -&gt; Maybe Format
 <span class="lineno">  175 </span><span class="decl"><span class="istickedoff">getFormatByFilename n = do</span>
 <span class="lineno">  176 </span><span class="spaces">  </span><span class="istickedoff">('.',e) &lt;- BSC.uncons $ takeExtension n</span>
-<span class="lineno">  177 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">getFormatByExtension e</span></span></span>
+<span class="lineno">  177 </span><span class="spaces">  </span><span class="istickedoff">getFormatByExtension e</span></span>
 <span class="lineno">  178 </span>
 <span class="lineno">  179 </span>dropFormatExtension :: Format -&gt; RawFilePath -&gt; RawFilePath
 <span class="lineno">  180 </span><span class="decl"><span class="nottickedoff">dropFormatExtension fmt n</span>
@@ -219,7 +219,7 @@ span.spaces    { background: white }
 <span class="lineno">  203 </span>
 <span class="lineno">  204 </span>-- | Is this an audio format
 <span class="lineno">  205 </span>formatIsAudio :: Format -&gt; Bool
-<span class="lineno">  206 </span><span class="decl"><span class="nottickedoff">formatIsAudio Format{ formatMimeType = t } = &quot;audio/&quot; `BS.isPrefixOf` t</span></span>
+<span class="lineno">  206 </span><span class="decl"><span class="istickedoff">formatIsAudio Format{ formatMimeType = t } = &quot;audio/&quot; `BS.isPrefixOf` t</span></span>
 <span class="lineno">  207 </span>
 <span class="lineno">  208 </span>-- | Is this an Audio or Video format
 <span class="lineno">  209 </span>formatIsAV :: Format -&gt; Bool
@@ -232,9 +232,9 @@ span.spaces    { background: white }
 <span class="lineno">  216 </span>-- then provide the format it will be transcoded into
 <span class="lineno">  217 </span>formatTranscodable :: Format -&gt; Maybe Format
 <span class="lineno">  218 </span><span class="decl"><span class="istickedoff">formatTranscodable f</span>
-<span class="lineno">  219 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">formatIsVideo f</span> = Just videoFormat</span>
-<span class="lineno">  220 </span><span class="spaces">  </span><span class="istickedoff">| <span class="nottickedoff">formatIsAudio f</span> = <span class="nottickedoff">Just audioFormat</span></span>
-<span class="lineno">  221 </span><span class="spaces">  </span><span class="istickedoff">| <span class="nottickedoff">otherwise</span> = <span class="nottickedoff">Nothing</span></span></span>
+<span class="lineno">  219 </span><span class="spaces">  </span><span class="istickedoff">| formatIsVideo f = Just videoFormat</span>
+<span class="lineno">  220 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlyfalse">formatIsAudio f</span> = <span class="nottickedoff">Just audioFormat</span></span>
+<span class="lineno">  221 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = Nothing</span></span>
 <span class="lineno">  222 </span>
 <span class="lineno">  223 </span>-- | For formats where we can produce samples, determine the type for sample output
 <span class="lineno">  224 </span>formatSample :: Format -&gt; Maybe Format

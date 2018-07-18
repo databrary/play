@@ -57,7 +57,7 @@ span.spaces    { background: white }
 <span class="lineno">   41 </span>    DeliveryDaily |
 <span class="lineno">   42 </span>    DeliveryAsync
 <span class="lineno">   43 </span>  deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>,
-<span class="lineno">   44 </span>            <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span>,
+<span class="lineno">   44 </span>            <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Ord</span></span></span></span></span></span></span></span></span></span>,
 <span class="lineno">   45 </span>            <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Enum</span></span></span></span></span></span></span></span></span></span></span></span>,
 <span class="lineno">   46 </span>            <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">GHC.Arr.Ix</span></span></span></span></span></span>,
 <span class="lineno">   47 </span>            <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Bounded</span></span></span></span>,
@@ -70,23 +70,23 @@ span.spaces    { background: white }
 <span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">show DeliveryAsync = &quot;async&quot;</span></span>
 <span class="lineno">   55 </span>instance Database.PostgreSQL.Typed.Types.PGType &quot;notice_delivery&quot;
 <span class="lineno">   56 </span>instance PGParameter &quot;notice_delivery&quot; Delivery where
-<span class="lineno">   57 </span>  <span class="decl"><span class="nottickedoff">pgEncode _ DeliveryNone = Data.ByteString.pack [110, 111, 110, 101]</span>
-<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">pgEncode _ DeliverySite = Data.ByteString.pack [115, 105, 116, 101]</span>
-<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">pgEncode _ DeliveryWeekly</span>
-<span class="lineno">   60 </span><span class="spaces">    </span><span class="nottickedoff">= Data.ByteString.pack [119, 101, 101, 107, 108, 121]</span>
-<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">pgEncode _ DeliveryDaily</span>
-<span class="lineno">   62 </span><span class="spaces">    </span><span class="nottickedoff">= Data.ByteString.pack [100, 97, 105, 108, 121]</span>
-<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">pgEncode _ DeliveryAsync</span>
-<span class="lineno">   64 </span><span class="spaces">    </span><span class="nottickedoff">= Data.ByteString.pack [97, 115, 121, 110, 99]</span></span>
+<span class="lineno">   57 </span>  <span class="decl"><span class="istickedoff">pgEncode _ DeliveryNone = Data.ByteString.pack [110, 111, 110, 101]</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="istickedoff">pgEncode _ DeliverySite = Data.ByteString.pack [115, 105, 116, 101]</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="istickedoff">pgEncode _ DeliveryWeekly</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="istickedoff">= <span class="nottickedoff">Data.ByteString.pack [119, 101, 101, 107, 108, 121]</span></span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="istickedoff">pgEncode _ DeliveryDaily</span>
+<span class="lineno">   62 </span><span class="spaces">    </span><span class="istickedoff">= <span class="nottickedoff">Data.ByteString.pack [100, 97, 105, 108, 121]</span></span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="istickedoff">pgEncode _ DeliveryAsync</span>
+<span class="lineno">   64 </span><span class="spaces">    </span><span class="istickedoff">= Data.ByteString.pack [97, 115, 121, 110, 99]</span></span>
 <span class="lineno">   65 </span>instance PGColumn &quot;notice_delivery&quot; Delivery where
-<span class="lineno">   66 </span>  <span class="decl"><span class="nottickedoff">pgDecode _ x_a42l0</span>
-<span class="lineno">   67 </span><span class="spaces">    </span><span class="nottickedoff">= case Data.ByteString.unpack x_a42l0 of</span>
-<span class="lineno">   68 </span><span class="spaces">        </span><span class="nottickedoff">[110, 111, 110, 101] -&gt; DeliveryNone</span>
-<span class="lineno">   69 </span><span class="spaces">        </span><span class="nottickedoff">[115, 105, 116, 101] -&gt; DeliverySite</span>
-<span class="lineno">   70 </span><span class="spaces">        </span><span class="nottickedoff">[119, 101, 101, 107, 108, 121] -&gt; DeliveryWeekly</span>
-<span class="lineno">   71 </span><span class="spaces">        </span><span class="nottickedoff">[100, 97, 105, 108, 121] -&gt; DeliveryDaily</span>
-<span class="lineno">   72 </span><span class="spaces">        </span><span class="nottickedoff">[97, 115, 121, 110, 99] -&gt; DeliveryAsync</span>
-<span class="lineno">   73 </span><span class="spaces">        </span><span class="nottickedoff">_ -&gt; error (&quot;pgDecode notice_delivery: &quot; ++ (BSC.unpack x_a42l0))</span></span>
+<span class="lineno">   66 </span>  <span class="decl"><span class="istickedoff">pgDecode _ x_a42l0</span>
+<span class="lineno">   67 </span><span class="spaces">    </span><span class="istickedoff">= case Data.ByteString.unpack x_a42l0 of</span>
+<span class="lineno">   68 </span><span class="spaces">        </span><span class="istickedoff">[110, 111, 110, 101] -&gt; DeliveryNone</span>
+<span class="lineno">   69 </span><span class="spaces">        </span><span class="istickedoff">[115, 105, 116, 101] -&gt; <span class="nottickedoff">DeliverySite</span></span>
+<span class="lineno">   70 </span><span class="spaces">        </span><span class="istickedoff">[119, 101, 101, 107, 108, 121] -&gt; <span class="nottickedoff">DeliveryWeekly</span></span>
+<span class="lineno">   71 </span><span class="spaces">        </span><span class="istickedoff">[100, 97, 105, 108, 121] -&gt; <span class="nottickedoff">DeliveryDaily</span></span>
+<span class="lineno">   72 </span><span class="spaces">        </span><span class="istickedoff">[97, 115, 121, 110, 99] -&gt; DeliveryAsync</span>
+<span class="lineno">   73 </span><span class="spaces">        </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">error (&quot;pgDecode notice_delivery: &quot; ++ (BSC.unpack x_a42l0))</span></span></span>
 <span class="lineno">   74 </span>instance PGRep &quot;notice_delivery&quot; Delivery
 <span class="lineno">   75 </span>instance Database.PostgreSQL.Typed.Enum.PGEnum Delivery
 <span class="lineno">   76 </span>instance Kinded Delivery where
@@ -100,32 +100,32 @@ span.spaces    { background: white }
 <span class="lineno">   84 </span>  <span class="decl"><span class="nottickedoff">deform = enumForm</span></span>
 <span class="lineno">   85 </span>
 <span class="lineno">   86 </span>fromMaybeDelivery :: Maybe Delivery -&gt; Delivery
-<span class="lineno">   87 </span><span class="decl"><span class="nottickedoff">fromMaybeDelivery (Just d) = d</span>
-<span class="lineno">   88 </span><span class="spaces"></span><span class="nottickedoff">fromMaybeDelivery Nothing = DeliveryNone</span></span>
+<span class="lineno">   87 </span><span class="decl"><span class="istickedoff">fromMaybeDelivery (Just d) = d</span>
+<span class="lineno">   88 </span><span class="spaces"></span><span class="istickedoff">fromMaybeDelivery Nothing = <span class="nottickedoff">DeliveryNone</span></span></span>
 <span class="lineno">   89 </span>
 <span class="lineno">   90 </span>periodicDelivery :: Maybe Period -&gt; Delivery
-<span class="lineno">   91 </span><span class="decl"><span class="nottickedoff">periodicDelivery (Just PeriodDaily) = DeliveryDaily</span>
-<span class="lineno">   92 </span><span class="spaces"></span><span class="nottickedoff">periodicDelivery (Just PeriodWeekly) = DeliveryWeekly</span>
-<span class="lineno">   93 </span><span class="spaces"></span><span class="nottickedoff">periodicDelivery Nothing = DeliveryAsync</span></span>
+<span class="lineno">   91 </span><span class="decl"><span class="istickedoff">periodicDelivery (Just PeriodDaily) = <span class="nottickedoff">DeliveryDaily</span></span>
+<span class="lineno">   92 </span><span class="spaces"></span><span class="istickedoff">periodicDelivery (Just PeriodWeekly) = <span class="nottickedoff">DeliveryWeekly</span></span>
+<span class="lineno">   93 </span><span class="spaces"></span><span class="istickedoff">periodicDelivery Nothing = DeliveryAsync</span></span>
 <span class="lineno">   94 </span>
-<span class="lineno">   95 </span><span class="nottickedoff">makeNotice</span>
+<span class="lineno">   95 </span><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff">makeNotice</span></span></span></span></span>
 <span class="lineno">   96 </span>
 <span class="lineno">   97 </span>noticeFromId' :: Int16 -&gt; Notice
-<span class="lineno">   98 </span><span class="decl"><span class="nottickedoff">noticeFromId' = fromMaybe (error &quot;noticeFromId'&quot;) . noticeFromId</span></span>
+<span class="lineno">   98 </span><span class="decl"><span class="istickedoff">noticeFromId' = fromMaybe <span class="nottickedoff">(error &quot;noticeFromId'&quot;)</span> . noticeFromId</span></span>
 <span class="lineno">   99 </span>
 <span class="lineno">  100 </span>instance PGParameter &quot;smallint&quot; Notice where
 <span class="lineno">  101 </span>  <span class="decl"><span class="nottickedoff">pgEncode t = pgEncode t . noticeToId</span></span>
-<span class="lineno">  102 </span>  <span class="decl"><span class="nottickedoff">pgEncodeValue e t = pgEncodeValue e t . noticeId</span></span>
-<span class="lineno">  103 </span>  <span class="decl"><span class="nottickedoff">pgLiteral t = pgLiteral t . noticeToId</span></span>
+<span class="lineno">  102 </span>  <span class="decl"><span class="istickedoff">pgEncodeValue e t = pgEncodeValue <span class="nottickedoff">e</span> <span class="nottickedoff">t</span> . noticeId</span></span>
+<span class="lineno">  103 </span>  <span class="decl"><span class="istickedoff">pgLiteral t = pgLiteral <span class="nottickedoff">t</span> . noticeToId</span></span>
 <span class="lineno">  104 </span>instance PGColumn &quot;smallint&quot; Notice where
 <span class="lineno">  105 </span>  <span class="decl"><span class="nottickedoff">pgDecode t = noticeFromId' . pgDecode t</span></span>
-<span class="lineno">  106 </span>  <span class="decl"><span class="nottickedoff">pgDecodeValue e t = noticeFromId' . pgDecodeValue e t</span></span>
+<span class="lineno">  106 </span>  <span class="decl"><span class="istickedoff">pgDecodeValue e t = noticeFromId' . pgDecodeValue <span class="nottickedoff">e</span> <span class="nottickedoff">t</span></span></span>
 <span class="lineno">  107 </span>instance PGRep &quot;smallint&quot; Notice
 <span class="lineno">  108 </span>
 <span class="lineno">  109 </span>type instance IdType Notice = Int16
 <span class="lineno">  110 </span>
 <span class="lineno">  111 </span>noticeId :: Notice -&gt; Id Notice
-<span class="lineno">  112 </span><span class="decl"><span class="nottickedoff">noticeId = Id . noticeToId</span></span>
+<span class="lineno">  112 </span><span class="decl"><span class="istickedoff">noticeId = Id . noticeToId</span></span>
 <span class="lineno">  113 </span>
 <span class="lineno">  114 </span>getNotice :: Id Notice -&gt; Maybe Notice
 <span class="lineno">  115 </span><span class="decl"><span class="nottickedoff">getNotice (Id i) = noticeFromId i</span></span>

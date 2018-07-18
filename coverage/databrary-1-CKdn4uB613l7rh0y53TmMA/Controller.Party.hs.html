@@ -205,10 +205,10 @@ span.spaces    { background: white }
 <span class="lineno">  189 </span><span class="spaces">  </span><span class="nottickedoff">bp = fromMaybe blankParty p</span></span>
 <span class="lineno">  190 </span>
 <span class="lineno">  191 </span>viewPartyEdit :: ActionRoute PartyTarget
-<span class="lineno">  192 </span><span class="decl"><span class="nottickedoff">viewPartyEdit = action GET (pathHTML &gt;/&gt; pathPartyTarget &lt;/&lt; &quot;edit&quot;) $ \i -&gt; withAuth $ do</span>
-<span class="lineno">  193 </span><span class="spaces">  </span><span class="nottickedoff">angular</span>
-<span class="lineno">  194 </span><span class="spaces">  </span><span class="nottickedoff">p &lt;- getParty (Just PermissionEDIT) i</span>
-<span class="lineno">  195 </span><span class="spaces">  </span><span class="nottickedoff">peeks $ blankForm . htmlPartyEdit (Just p)</span></span>
+<span class="lineno">  192 </span><span class="decl"><span class="istickedoff">viewPartyEdit = action GET (pathHTML &gt;/&gt; pathPartyTarget &lt;/&lt; &quot;edit&quot;) $ \i -&gt; <span class="nottickedoff">withAuth $ do</span></span>
+<span class="lineno">  193 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">angular</span></span>
+<span class="lineno">  194 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">p &lt;- getParty (Just PermissionEDIT) i</span></span>
+<span class="lineno">  195 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">peeks $ blankForm . htmlPartyEdit (Just p)</span></span></span>
 <span class="lineno">  196 </span>
 <span class="lineno">  197 </span>viewPartyCreateHandler :: Action
 <span class="lineno">  198 </span><span class="decl"><span class="nottickedoff">viewPartyCreateHandler = withAuth $ do</span>

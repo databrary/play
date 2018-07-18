@@ -386,7 +386,7 @@ span.spaces    { background: white }
 <span class="lineno">  370 </span>  peeks $ blankForm . htmlVolumeLinksEdit v links
 <span class="lineno">  371 </span>-}
 <span class="lineno">  372 </span>
-<span class="lineno">  373 </span>data UpdateVolumeLinksRequest =
+<span class="lineno">  373 </span>newtype UpdateVolumeLinksRequest =
 <span class="lineno">  374 </span>    UpdateVolumeLinksRequest [(T.Text, Maybe URI)]
 <span class="lineno">  375 </span>
 <span class="lineno">  376 </span>postVolumeLinks :: ActionRoute (Id Volume)

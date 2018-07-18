@@ -43,141 +43,144 @@ span.spaces    { background: white }
 <span class="lineno">   27 </span>import Service.Types
 <span class="lineno">   28 </span>import Service.DB
 <span class="lineno">   29 </span>import Service.Entropy
-<span class="lineno">   30 </span>import Service.Messages
-<span class="lineno">   31 </span>import Service.Notification
-<span class="lineno">   32 </span>import Service.Passwd
-<span class="lineno">   33 </span>import Solr.Service
-<span class="lineno">   34 </span>import Static.Service
-<span class="lineno">   35 </span>import Ingest.Service
-<span class="lineno">   36 </span>import Store.AV
-<span class="lineno">   37 </span>import Store.Types
-<span class="lineno">   38 </span>import Web.Types
-<span class="lineno">   39 </span>
-<span class="lineno">   40 </span>-- | This is the context for when you don't have an identity, but you have a
-<span class="lineno">   41 </span>-- fully initialized, &quot;command line&quot; access to the system.
-<span class="lineno">   42 </span>data ActionContext = ActionContext
-<span class="lineno">   43 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">contextService</span></span></span> :: !Service -- ^ All initialized services; &quot;the imperative shell&quot;
-<span class="lineno">   44 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">contextTimestamp</span></span></span> :: !Timestamp -- ^ When the ActionContextM action is running (i.e., NOW)
-<span class="lineno">   45 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">contextResourceState</span></span></span> :: !InternalState -- ^ Optimization for MonadResource
-<span class="lineno">   46 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">contextDB</span></span></span> :: !DBConn -- ^ The specific connection chosen for the running action?
-<span class="lineno">   47 </span>  }
-<span class="lineno">   48 </span>
-<span class="lineno">   49 </span>instance Has Service ActionContext where
-<span class="lineno">   50 </span>  <span class="decl"><span class="nottickedoff">view = contextService</span></span>
-<span class="lineno">   51 </span>instance Has Service.Notification.Notifications ActionContext where
-<span class="lineno">   52 </span>   <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
-<span class="lineno">   53 </span>instance Has Solr.Service.Solr ActionContext where
-<span class="lineno">   54 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
-<span class="lineno">   55 </span>instance Has Ingest.Service.Ingest ActionContext where
-<span class="lineno">   56 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
-<span class="lineno">   57 </span>instance Has Static.Service.Static ActionContext where
-<span class="lineno">   58 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
-<span class="lineno">   59 </span>instance Has HTTP.Client.HTTPClient ActionContext where
-<span class="lineno">   60 </span>  <span class="decl"><span class="istickedoff">view = (view . contextService)</span></span>
-<span class="lineno">   61 </span>instance Has Web.Types.Web ActionContext where
-<span class="lineno">   62 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
-<span class="lineno">   63 </span>instance Has Store.AV.AV ActionContext where
-<span class="lineno">   64 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
-<span class="lineno">   65 </span>instance Has Store.Types.Storage ActionContext where
-<span class="lineno">   66 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
-<span class="lineno">   67 </span>instance Has Service.Messages.Messages ActionContext where
-<span class="lineno">   68 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
-<span class="lineno">   69 </span>instance Has Service.Log.Logs ActionContext where
-<span class="lineno">   70 </span>  <span class="decl"><span class="istickedoff">view = (view . contextService)</span></span>
-<span class="lineno">   71 </span>instance Has Service.Passwd.Passwd ActionContext where
-<span class="lineno">   72 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
-<span class="lineno">   73 </span>instance Has Service.Entropy.Entropy ActionContext where
-<span class="lineno">   74 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
-<span class="lineno">   75 </span>instance Has Secret ActionContext where
-<span class="lineno">   76 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
-<span class="lineno">   77 </span>instance Has InternalState ActionContext where
-<span class="lineno">   78 </span>  <span class="decl"><span class="nottickedoff">view = contextResourceState</span></span>
-<span class="lineno">   79 </span>instance Has DBConn ActionContext where
-<span class="lineno">   80 </span>  <span class="decl"><span class="istickedoff">view = contextDB</span></span>
-<span class="lineno">   81 </span>
-<span class="lineno">   82 </span>type ActionContextM a = ReaderT ActionContext IO a
-<span class="lineno">   83 </span>
-<span class="lineno">   84 </span>-- | Perform an atomic action without an identity with a guaranteed database
-<span class="lineno">   85 </span>-- connection and a fixed version of 'now'.
-<span class="lineno">   86 </span>runContextM
-<span class="lineno">   87 </span>    :: ActionContextM a
-<span class="lineno">   88 </span>    -&gt; Service
-<span class="lineno">   89 </span>    -&gt; IO a
-<span class="lineno">   90 </span><span class="decl"><span class="nottickedoff">runContextM action rc = do</span>
-<span class="lineno">   91 </span><span class="spaces">    </span><span class="nottickedoff">t &lt;- getCurrentTime</span>
-<span class="lineno">   92 </span><span class="spaces">    </span><span class="nottickedoff">runResourceT $ withInternalState $ \is -&gt;</span>
-<span class="lineno">   93 </span><span class="spaces">        </span><span class="nottickedoff">withDB (serviceDB rc) $ runReaderT action . ActionContext rc t is</span></span>
-<span class="lineno">   94 </span>
-<span class="lineno">   95 </span>-- | A ActionContext with no Identity.
-<span class="lineno">   96 </span>newtype BackgroundContext = BackgroundContext { <span class="istickedoff"><span class="decl"><span class="istickedoff">backgroundContext</span></span></span> :: ActionContext }
-<span class="lineno">   97 </span>    deriving
-<span class="lineno">   98 </span>        ( <span class="decl"><span class="nottickedoff">Has Service</span></span>
-<span class="lineno">   99 </span>        , <span class="decl"><span class="nottickedoff">Has Notifications</span></span>
-<span class="lineno">  100 </span>        , <span class="decl"><span class="nottickedoff">Has Solr</span></span>
-<span class="lineno">  101 </span>        , <span class="decl"><span class="nottickedoff">Has Ingest</span></span>
-<span class="lineno">  102 </span>        , <span class="decl"><span class="istickedoff">Has HTTPClient</span></span>
-<span class="lineno">  103 </span>        , <span class="decl"><span class="nottickedoff">Has Storage</span></span>
-<span class="lineno">  104 </span>        , <span class="decl"><span class="istickedoff">Has Logs</span></span>
-<span class="lineno">  105 </span>        , <span class="decl"><span class="istickedoff">Has DBConn</span></span>
-<span class="lineno">  106 </span>        )
-<span class="lineno">  107 </span>
-<span class="lineno">  108 </span>instance Has Timestamp BackgroundContext where
-<span class="lineno">  109 </span>  <span class="decl"><span class="nottickedoff">view = (contextTimestamp . backgroundContext)</span></span>
-<span class="lineno">  110 </span>instance Has Identity BackgroundContext where
-<span class="lineno">  111 </span>  <span class="decl"><span class="istickedoff">view _ = IdentityNotNeeded</span></span>
-<span class="lineno">  112 </span>instance Has SiteAuth BackgroundContext where
-<span class="lineno">  113 </span>  <span class="decl"><span class="nottickedoff">view _ = view IdentityNotNeeded</span></span>
-<span class="lineno">  114 </span>instance Has Party BackgroundContext where
-<span class="lineno">  115 </span>  <span class="decl"><span class="nottickedoff">view _ = view IdentityNotNeeded</span></span>
-<span class="lineno">  116 </span>instance Has (Id Party) BackgroundContext where
-<span class="lineno">  117 </span>  <span class="decl"><span class="nottickedoff">view _ = view IdentityNotNeeded</span></span>
-<span class="lineno">  118 </span>instance Has Access BackgroundContext where
-<span class="lineno">  119 </span>  <span class="decl"><span class="nottickedoff">view _ = view IdentityNotNeeded</span></span>
-<span class="lineno">  120 </span>
-<span class="lineno">  121 </span>type BackgroundContextM a = ReaderT BackgroundContext IO a
-<span class="lineno">  122 </span>
-<span class="lineno">  123 </span>withBackgroundContextM :: BackgroundContextM a -&gt; ActionContextM a
-<span class="lineno">  124 </span><span class="decl"><span class="nottickedoff">withBackgroundContextM = withReaderT BackgroundContext</span></span>
+<span class="lineno">   30 </span>import Service.Mail
+<span class="lineno">   31 </span>import Service.Messages
+<span class="lineno">   32 </span>import Service.Notification
+<span class="lineno">   33 </span>import Service.Passwd
+<span class="lineno">   34 </span>import Solr.Service
+<span class="lineno">   35 </span>import Static.Service
+<span class="lineno">   36 </span>import Ingest.Service
+<span class="lineno">   37 </span>import Store.AV
+<span class="lineno">   38 </span>import Store.Types
+<span class="lineno">   39 </span>import Web.Types
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>-- | This is the context for when you don't have an identity, but you have a
+<span class="lineno">   42 </span>-- fully initialized, &quot;command line&quot; access to the system.
+<span class="lineno">   43 </span>data ActionContext = ActionContext
+<span class="lineno">   44 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">contextService</span></span></span> :: !Service -- ^ All initialized services; &quot;the imperative shell&quot;
+<span class="lineno">   45 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">contextTimestamp</span></span></span> :: !Timestamp -- ^ When the ActionContextM action is running (i.e., NOW)
+<span class="lineno">   46 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">contextResourceState</span></span></span> :: !InternalState -- ^ Optimization for MonadResource
+<span class="lineno">   47 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">contextDB</span></span></span> :: !DBConn -- ^ The specific connection chosen for the running action?
+<span class="lineno">   48 </span>  }
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>instance Has Service ActionContext where
+<span class="lineno">   51 </span>  <span class="decl"><span class="nottickedoff">view = contextService</span></span>
+<span class="lineno">   52 </span>instance Has Service.Notification.Notifications ActionContext where
+<span class="lineno">   53 </span>   <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
+<span class="lineno">   54 </span>instance Has Solr.Service.Solr ActionContext where
+<span class="lineno">   55 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
+<span class="lineno">   56 </span>instance Has Ingest.Service.Ingest ActionContext where
+<span class="lineno">   57 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
+<span class="lineno">   58 </span>instance Has Static.Service.Static ActionContext where
+<span class="lineno">   59 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
+<span class="lineno">   60 </span>instance Has HTTP.Client.HTTPClient ActionContext where
+<span class="lineno">   61 </span>  <span class="decl"><span class="istickedoff">view = (view . contextService)</span></span>
+<span class="lineno">   62 </span>instance Has Web.Types.Web ActionContext where
+<span class="lineno">   63 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
+<span class="lineno">   64 </span>instance Has Store.AV.AV ActionContext where
+<span class="lineno">   65 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
+<span class="lineno">   66 </span>instance Has Store.Types.Storage ActionContext where
+<span class="lineno">   67 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
+<span class="lineno">   68 </span>instance Has Service.Messages.Messages ActionContext where
+<span class="lineno">   69 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
+<span class="lineno">   70 </span>instance Has Service.Log.Logs ActionContext where
+<span class="lineno">   71 </span>  <span class="decl"><span class="istickedoff">view = (view . contextService)</span></span>
+<span class="lineno">   72 </span>instance Has Service.Mail.Mailer ActionContext where
+<span class="lineno">   73 </span>  <span class="decl"><span class="nottickedoff">view = (serviceMailer . contextService)</span></span>
+<span class="lineno">   74 </span>instance Has Service.Passwd.Passwd ActionContext where
+<span class="lineno">   75 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
+<span class="lineno">   76 </span>instance Has Service.Entropy.Entropy ActionContext where
+<span class="lineno">   77 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
+<span class="lineno">   78 </span>instance Has Secret ActionContext where
+<span class="lineno">   79 </span>  <span class="decl"><span class="nottickedoff">view = (view . contextService)</span></span>
+<span class="lineno">   80 </span>instance Has InternalState ActionContext where
+<span class="lineno">   81 </span>  <span class="decl"><span class="nottickedoff">view = contextResourceState</span></span>
+<span class="lineno">   82 </span>instance Has DBConn ActionContext where
+<span class="lineno">   83 </span>  <span class="decl"><span class="istickedoff">view = contextDB</span></span>
+<span class="lineno">   84 </span>
+<span class="lineno">   85 </span>type ActionContextM a = ReaderT ActionContext IO a
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>-- | Perform an atomic action without an identity with a guaranteed database
+<span class="lineno">   88 </span>-- connection and a fixed version of 'now'.
+<span class="lineno">   89 </span>runContextM
+<span class="lineno">   90 </span>    :: ActionContextM a
+<span class="lineno">   91 </span>    -&gt; Service
+<span class="lineno">   92 </span>    -&gt; IO a
+<span class="lineno">   93 </span><span class="decl"><span class="nottickedoff">runContextM action rc = do</span>
+<span class="lineno">   94 </span><span class="spaces">    </span><span class="nottickedoff">t &lt;- getCurrentTime</span>
+<span class="lineno">   95 </span><span class="spaces">    </span><span class="nottickedoff">runResourceT $ withInternalState $ \is -&gt;</span>
+<span class="lineno">   96 </span><span class="spaces">        </span><span class="nottickedoff">withDB (serviceDB rc) $ runReaderT action . ActionContext rc t is</span></span>
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>-- | A ActionContext with no Identity.
+<span class="lineno">   99 </span>newtype BackgroundContext = BackgroundContext { <span class="istickedoff"><span class="decl"><span class="istickedoff">backgroundContext</span></span></span> :: ActionContext }
+<span class="lineno">  100 </span>    deriving
+<span class="lineno">  101 </span>        ( <span class="decl"><span class="nottickedoff">Has Service</span></span>
+<span class="lineno">  102 </span>        , <span class="decl"><span class="nottickedoff">Has Notifications</span></span>
+<span class="lineno">  103 </span>        , <span class="decl"><span class="nottickedoff">Has Solr</span></span>
+<span class="lineno">  104 </span>        , <span class="decl"><span class="nottickedoff">Has Ingest</span></span>
+<span class="lineno">  105 </span>        , <span class="decl"><span class="istickedoff">Has HTTPClient</span></span>
+<span class="lineno">  106 </span>        , <span class="decl"><span class="nottickedoff">Has Storage</span></span>
+<span class="lineno">  107 </span>        , <span class="decl"><span class="istickedoff">Has Logs</span></span>
+<span class="lineno">  108 </span>        , <span class="decl"><span class="istickedoff">Has DBConn</span></span>
+<span class="lineno">  109 </span>        )
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>instance Has Timestamp BackgroundContext where
+<span class="lineno">  112 </span>  <span class="decl"><span class="nottickedoff">view = (contextTimestamp . backgroundContext)</span></span>
+<span class="lineno">  113 </span>instance Has Identity BackgroundContext where
+<span class="lineno">  114 </span>  <span class="decl"><span class="istickedoff">view _ = IdentityNotNeeded</span></span>
+<span class="lineno">  115 </span>instance Has SiteAuth BackgroundContext where
+<span class="lineno">  116 </span>  <span class="decl"><span class="nottickedoff">view _ = view IdentityNotNeeded</span></span>
+<span class="lineno">  117 </span>instance Has Party BackgroundContext where
+<span class="lineno">  118 </span>  <span class="decl"><span class="nottickedoff">view _ = view IdentityNotNeeded</span></span>
+<span class="lineno">  119 </span>instance Has (Id Party) BackgroundContext where
+<span class="lineno">  120 </span>  <span class="decl"><span class="nottickedoff">view _ = view IdentityNotNeeded</span></span>
+<span class="lineno">  121 </span>instance Has Access BackgroundContext where
+<span class="lineno">  122 </span>  <span class="decl"><span class="nottickedoff">view _ = view IdentityNotNeeded</span></span>
+<span class="lineno">  123 </span>
+<span class="lineno">  124 </span>type BackgroundContextM a = ReaderT BackgroundContext IO a
 <span class="lineno">  125 </span>
-<span class="lineno">  126 </span>-- | A ActionContext with no Identity, for running Solr indexing.
-<span class="lineno">  127 </span>data SolrIndexingContext = SolrIndexingContext
-<span class="lineno">  128 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">slcLogs</span></span></span> :: !Logs
-<span class="lineno">  129 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">slcHTTPClient</span></span></span> :: !HTTPClient
-<span class="lineno">  130 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">slcSolr</span></span></span> :: !Solr
-<span class="lineno">  131 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">slcDB</span></span></span> :: !DBConn -- ^ The specific connection chosen for the running action?
-<span class="lineno">  132 </span>  }
-<span class="lineno">  133 </span>
-<span class="lineno">  134 </span>instance Has Solr SolrIndexingContext where
-<span class="lineno">  135 </span>  <span class="decl"><span class="nottickedoff">view = slcSolr</span></span>
-<span class="lineno">  136 </span>instance Has Logs SolrIndexingContext where
-<span class="lineno">  137 </span>  <span class="decl"><span class="nottickedoff">view = slcLogs</span></span>
-<span class="lineno">  138 </span>instance Has HTTPClient SolrIndexingContext where
-<span class="lineno">  139 </span>  <span class="decl"><span class="nottickedoff">view = slcHTTPClient</span></span>
-<span class="lineno">  140 </span>instance Has DBConn SolrIndexingContext where
-<span class="lineno">  141 </span>  <span class="decl"><span class="nottickedoff">view = slcDB</span></span>
-<span class="lineno">  142 </span>
-<span class="lineno">  143 </span>instance Has Identity SolrIndexingContext where
-<span class="lineno">  144 </span>  <span class="decl"><span class="nottickedoff">view _ = IdentityNotNeeded</span></span>
-<span class="lineno">  145 </span>instance Has SiteAuth SolrIndexingContext where
-<span class="lineno">  146 </span>  <span class="decl"><span class="nottickedoff">view _ = view IdentityNotNeeded</span></span>
-<span class="lineno">  147 </span>instance Has Party SolrIndexingContext where
-<span class="lineno">  148 </span>  <span class="decl"><span class="nottickedoff">view _ = view IdentityNotNeeded</span></span>
-<span class="lineno">  149 </span>instance Has (Id Party) SolrIndexingContext where
-<span class="lineno">  150 </span>  <span class="decl"><span class="nottickedoff">view _ = view IdentityNotNeeded</span></span>
-<span class="lineno">  151 </span>instance Has Access SolrIndexingContext where
-<span class="lineno">  152 </span>  <span class="decl"><span class="nottickedoff">view _ = view IdentityNotNeeded</span></span>
-<span class="lineno">  153 </span>
-<span class="lineno">  154 </span>type SolrIndexingContextM a = ReaderT SolrIndexingContext IO a
-<span class="lineno">  155 </span>
-<span class="lineno">  156 </span>-- | Build a simpler SolrIndexingContext from a complete ActionContext
-<span class="lineno">  157 </span>mkSolrIndexingContext :: ActionContext -&gt; SolrIndexingContext
-<span class="lineno">  158 </span><span class="decl"><span class="nottickedoff">mkSolrIndexingContext ac =</span>
-<span class="lineno">  159 </span><span class="spaces">    </span><span class="nottickedoff">SolrIndexingContext {</span>
-<span class="lineno">  160 </span><span class="spaces">          </span><span class="nottickedoff">slcLogs = (serviceLogs . contextService) ac</span>
-<span class="lineno">  161 </span><span class="spaces">        </span><span class="nottickedoff">, slcHTTPClient = (serviceHTTPClient . contextService) ac</span>
-<span class="lineno">  162 </span><span class="spaces">        </span><span class="nottickedoff">, slcSolr = (serviceSolr . contextService) ac</span>
-<span class="lineno">  163 </span><span class="spaces">        </span><span class="nottickedoff">, slcDB = contextDB ac</span>
-<span class="lineno">  164 </span><span class="spaces">    </span><span class="nottickedoff">}</span></span>
+<span class="lineno">  126 </span>withBackgroundContextM :: BackgroundContextM a -&gt; ActionContextM a
+<span class="lineno">  127 </span><span class="decl"><span class="nottickedoff">withBackgroundContextM = withReaderT BackgroundContext</span></span>
+<span class="lineno">  128 </span>
+<span class="lineno">  129 </span>-- | A ActionContext with no Identity, for running Solr indexing.
+<span class="lineno">  130 </span>data SolrIndexingContext = SolrIndexingContext
+<span class="lineno">  131 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">slcLogs</span></span></span> :: !Logs
+<span class="lineno">  132 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">slcHTTPClient</span></span></span> :: !HTTPClient
+<span class="lineno">  133 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">slcSolr</span></span></span> :: !Solr
+<span class="lineno">  134 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">slcDB</span></span></span> :: !DBConn -- ^ The specific connection chosen for the running action?
+<span class="lineno">  135 </span>  }
+<span class="lineno">  136 </span>
+<span class="lineno">  137 </span>instance Has Solr SolrIndexingContext where
+<span class="lineno">  138 </span>  <span class="decl"><span class="istickedoff">view = slcSolr</span></span>
+<span class="lineno">  139 </span>instance Has Logs SolrIndexingContext where
+<span class="lineno">  140 </span>  <span class="decl"><span class="istickedoff">view = slcLogs</span></span>
+<span class="lineno">  141 </span>instance Has HTTPClient SolrIndexingContext where
+<span class="lineno">  142 </span>  <span class="decl"><span class="istickedoff">view = slcHTTPClient</span></span>
+<span class="lineno">  143 </span>instance Has DBConn SolrIndexingContext where
+<span class="lineno">  144 </span>  <span class="decl"><span class="istickedoff">view = slcDB</span></span>
+<span class="lineno">  145 </span>
+<span class="lineno">  146 </span>instance Has Identity SolrIndexingContext where
+<span class="lineno">  147 </span>  <span class="decl"><span class="istickedoff">view _ = IdentityNotNeeded</span></span>
+<span class="lineno">  148 </span>instance Has SiteAuth SolrIndexingContext where
+<span class="lineno">  149 </span>  <span class="decl"><span class="nottickedoff">view _ = view IdentityNotNeeded</span></span>
+<span class="lineno">  150 </span>instance Has Party SolrIndexingContext where
+<span class="lineno">  151 </span>  <span class="decl"><span class="nottickedoff">view _ = view IdentityNotNeeded</span></span>
+<span class="lineno">  152 </span>instance Has (Id Party) SolrIndexingContext where
+<span class="lineno">  153 </span>  <span class="decl"><span class="nottickedoff">view _ = view IdentityNotNeeded</span></span>
+<span class="lineno">  154 </span>instance Has Access SolrIndexingContext where
+<span class="lineno">  155 </span>  <span class="decl"><span class="nottickedoff">view _ = view IdentityNotNeeded</span></span>
+<span class="lineno">  156 </span>
+<span class="lineno">  157 </span>type SolrIndexingContextM a = ReaderT SolrIndexingContext IO a
+<span class="lineno">  158 </span>
+<span class="lineno">  159 </span>-- | Build a simpler SolrIndexingContext from a complete ActionContext
+<span class="lineno">  160 </span>mkSolrIndexingContext :: ActionContext -&gt; SolrIndexingContext
+<span class="lineno">  161 </span><span class="decl"><span class="nottickedoff">mkSolrIndexingContext ac =</span>
+<span class="lineno">  162 </span><span class="spaces">    </span><span class="nottickedoff">SolrIndexingContext {</span>
+<span class="lineno">  163 </span><span class="spaces">          </span><span class="nottickedoff">slcLogs = (serviceLogs . contextService) ac</span>
+<span class="lineno">  164 </span><span class="spaces">        </span><span class="nottickedoff">, slcHTTPClient = (serviceHTTPClient . contextService) ac</span>
+<span class="lineno">  165 </span><span class="spaces">        </span><span class="nottickedoff">, slcSolr = (serviceSolr . contextService) ac</span>
+<span class="lineno">  166 </span><span class="spaces">        </span><span class="nottickedoff">, slcDB = contextDB ac</span>
+<span class="lineno">  167 </span><span class="spaces">    </span><span class="nottickedoff">}</span></span>
 
 </pre>
 </body>

@@ -33,69 +33,73 @@ span.spaces    { background: white }
 <span class="lineno">   17 </span>import Store.AV (AV)
 <span class="lineno">   18 </span>import Service.Passwd (Passwd)
 <span class="lineno">   19 </span>import Service.Log (Logs)
-<span class="lineno">   20 </span>import Service.Messages (Messages)
-<span class="lineno">   21 </span>import Web.Types (Web)
-<span class="lineno">   22 </span>import Static.Service (Static)
-<span class="lineno">   23 </span>import Solr.Service (Solr)
-<span class="lineno">   24 </span>import Ingest.Service (Ingest)
-<span class="lineno">   25 </span>import EZID.Service (EZID)
-<span class="lineno">   26 </span>import Service.Notification (Notifications)
-<span class="lineno">   27 </span>import Model.Time
-<span class="lineno">   28 </span>import Model.Stats.Types
-<span class="lineno">   29 </span>
-<span class="lineno">   30 </span>newtype Secret = Secret BS.ByteString
-<span class="lineno">   31 </span>
-<span class="lineno">   32 </span>data Service = Service
-<span class="lineno">   33 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceStartTime</span></span></span> :: !Timestamp
-<span class="lineno">   34 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceSecret</span></span></span> :: !Secret
-<span class="lineno">   35 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceEntropy</span></span></span> :: !Entropy
-<span class="lineno">   36 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">servicePasswd</span></span></span> :: !Passwd
-<span class="lineno">   37 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">serviceLogs</span></span></span> :: !Logs
-<span class="lineno">   38 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceMessages</span></span></span> :: !Messages
-<span class="lineno">   39 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceDB</span></span></span> :: !DBPool
-<span class="lineno">   40 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceStorage</span></span></span> :: Storage -- may be down
-<span class="lineno">   41 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceAV</span></span></span> :: !AV
-<span class="lineno">   42 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceWeb</span></span></span> :: !Web
-<span class="lineno">   43 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">serviceHTTPClient</span></span></span> :: !HTTPClient
-<span class="lineno">   44 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceStatic</span></span></span> :: !Static
-<span class="lineno">   45 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceStats</span></span></span> :: !(IORef SiteStats)
-<span class="lineno">   46 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceIngest</span></span></span> :: !Ingest
-<span class="lineno">   47 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceSolr</span></span></span> :: !Solr
-<span class="lineno">   48 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">serviceEZID</span></span></span> :: !(Maybe EZID)
-<span class="lineno">   49 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">servicePeriodic</span></span></span> :: !(Maybe ThreadId)
-<span class="lineno">   50 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceNotification</span></span></span> :: !Notifications
-<span class="lineno">   51 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceDown</span></span></span> :: !(Maybe T.Text)
-<span class="lineno">   52 </span>  }
-<span class="lineno">   53 </span>
-<span class="lineno">   54 </span>-- makeHasRec ''Service ['serviceSecret, 'serviceEntropy, 'servicePasswd, 'serviceLogs, 'serviceMessages, 'serviceDB, 'serviceStorage, 'serviceAV, 'serviceWeb, 'serviceHTTPClient, 'serviceStatic, 'serviceIngest, 'serviceSolr, 'serviceNotification]
-<span class="lineno">   55 </span>instance Has Secret Service where
-<span class="lineno">   56 </span>  <span class="decl"><span class="nottickedoff">view = serviceSecret</span></span>
-<span class="lineno">   57 </span>instance Has Entropy Service where
-<span class="lineno">   58 </span>  <span class="decl"><span class="nottickedoff">view = serviceEntropy</span></span>
-<span class="lineno">   59 </span>instance Has Passwd Service where
-<span class="lineno">   60 </span>  <span class="decl"><span class="nottickedoff">view = servicePasswd</span></span>
-<span class="lineno">   61 </span>instance Has Logs Service where
-<span class="lineno">   62 </span>  <span class="decl"><span class="istickedoff">view = serviceLogs</span></span>
-<span class="lineno">   63 </span>instance Has Messages Service where
-<span class="lineno">   64 </span>  <span class="decl"><span class="nottickedoff">view = serviceMessages</span></span>
-<span class="lineno">   65 </span>-- instance Has DBPool Service where
-<span class="lineno">   66 </span>--    view = serviceDB
-<span class="lineno">   67 </span>instance Has Storage Service where
-<span class="lineno">   68 </span>  <span class="decl"><span class="nottickedoff">view = serviceStorage</span></span>
-<span class="lineno">   69 </span>instance Has AV Service where
-<span class="lineno">   70 </span>  <span class="decl"><span class="nottickedoff">view = serviceAV</span></span>
-<span class="lineno">   71 </span>instance Has Web Service where
-<span class="lineno">   72 </span>  <span class="decl"><span class="nottickedoff">view = serviceWeb</span></span>
-<span class="lineno">   73 </span>instance Has HTTPClient Service where
-<span class="lineno">   74 </span>  <span class="decl"><span class="istickedoff">view = serviceHTTPClient</span></span>
-<span class="lineno">   75 </span>instance Has Static Service where
-<span class="lineno">   76 </span>  <span class="decl"><span class="nottickedoff">view = serviceStatic</span></span>
-<span class="lineno">   77 </span>instance Has Ingest Service where
-<span class="lineno">   78 </span>  <span class="decl"><span class="nottickedoff">view = serviceIngest</span></span>
-<span class="lineno">   79 </span>instance Has Solr Service where
-<span class="lineno">   80 </span>  <span class="decl"><span class="nottickedoff">view = serviceSolr</span></span>
-<span class="lineno">   81 </span>instance Has Notifications Service where
-<span class="lineno">   82 </span>  <span class="decl"><span class="nottickedoff">view = serviceNotification</span></span>
+<span class="lineno">   20 </span>import Service.Mail (Mailer)
+<span class="lineno">   21 </span>import Service.Messages (Messages)
+<span class="lineno">   22 </span>import Web.Types (Web)
+<span class="lineno">   23 </span>import Static.Service (Static)
+<span class="lineno">   24 </span>import Solr.Service (Solr)
+<span class="lineno">   25 </span>import Ingest.Service (Ingest)
+<span class="lineno">   26 </span>import EZID.Service (EZID)
+<span class="lineno">   27 </span>import Service.Notification (Notifications)
+<span class="lineno">   28 </span>import Model.Time
+<span class="lineno">   29 </span>import Model.Stats.Types
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>newtype Secret = Secret BS.ByteString
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>data Service = Service
+<span class="lineno">   34 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceStartTime</span></span></span> :: !Timestamp
+<span class="lineno">   35 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceSecret</span></span></span> :: !Secret
+<span class="lineno">   36 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceEntropy</span></span></span> :: !Entropy
+<span class="lineno">   37 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">servicePasswd</span></span></span> :: !Passwd
+<span class="lineno">   38 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">serviceLogs</span></span></span> :: !Logs
+<span class="lineno">   39 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceMailer</span></span></span> :: !Mailer
+<span class="lineno">   40 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceMessages</span></span></span> :: !Messages
+<span class="lineno">   41 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceDB</span></span></span> :: !DBPool
+<span class="lineno">   42 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceStorage</span></span></span> :: Storage -- may be down
+<span class="lineno">   43 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceAV</span></span></span> :: !AV
+<span class="lineno">   44 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceWeb</span></span></span> :: !Web
+<span class="lineno">   45 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">serviceHTTPClient</span></span></span> :: !HTTPClient
+<span class="lineno">   46 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceStatic</span></span></span> :: !Static
+<span class="lineno">   47 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceStats</span></span></span> :: !(IORef SiteStats)
+<span class="lineno">   48 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceIngest</span></span></span> :: !Ingest
+<span class="lineno">   49 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceSolr</span></span></span> :: !Solr
+<span class="lineno">   50 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">serviceEZID</span></span></span> :: !(Maybe EZID)
+<span class="lineno">   51 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">servicePeriodic</span></span></span> :: !(Maybe ThreadId)
+<span class="lineno">   52 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceNotification</span></span></span> :: !Notifications
+<span class="lineno">   53 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">serviceDown</span></span></span> :: !(Maybe T.Text)
+<span class="lineno">   54 </span>  }
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>-- makeHasRec ''Service ['serviceSecret, 'serviceEntropy, 'servicePasswd, 'serviceLogs, 'serviceMessages, 'serviceDB, 'serviceStorage, 'serviceAV, 'serviceWeb, 'serviceHTTPClient, 'serviceStatic, 'serviceIngest, 'serviceSolr, 'serviceNotification]
+<span class="lineno">   57 </span>instance Has Secret Service where
+<span class="lineno">   58 </span>  <span class="decl"><span class="nottickedoff">view = serviceSecret</span></span>
+<span class="lineno">   59 </span>instance Has Entropy Service where
+<span class="lineno">   60 </span>  <span class="decl"><span class="nottickedoff">view = serviceEntropy</span></span>
+<span class="lineno">   61 </span>instance Has Passwd Service where
+<span class="lineno">   62 </span>  <span class="decl"><span class="nottickedoff">view = servicePasswd</span></span>
+<span class="lineno">   63 </span>instance Has Logs Service where
+<span class="lineno">   64 </span>  <span class="decl"><span class="istickedoff">view = serviceLogs</span></span>
+<span class="lineno">   65 </span>instance Has Mailer Service where
+<span class="lineno">   66 </span>  <span class="decl"><span class="nottickedoff">view = serviceMailer</span></span>
+<span class="lineno">   67 </span>instance Has Messages Service where
+<span class="lineno">   68 </span>  <span class="decl"><span class="nottickedoff">view = serviceMessages</span></span>
+<span class="lineno">   69 </span>-- instance Has DBPool Service where
+<span class="lineno">   70 </span>--    view = serviceDB
+<span class="lineno">   71 </span>instance Has Storage Service where
+<span class="lineno">   72 </span>  <span class="decl"><span class="nottickedoff">view = serviceStorage</span></span>
+<span class="lineno">   73 </span>instance Has AV Service where
+<span class="lineno">   74 </span>  <span class="decl"><span class="nottickedoff">view = serviceAV</span></span>
+<span class="lineno">   75 </span>instance Has Web Service where
+<span class="lineno">   76 </span>  <span class="decl"><span class="nottickedoff">view = serviceWeb</span></span>
+<span class="lineno">   77 </span>instance Has HTTPClient Service where
+<span class="lineno">   78 </span>  <span class="decl"><span class="istickedoff">view = serviceHTTPClient</span></span>
+<span class="lineno">   79 </span>instance Has Static Service where
+<span class="lineno">   80 </span>  <span class="decl"><span class="nottickedoff">view = serviceStatic</span></span>
+<span class="lineno">   81 </span>instance Has Ingest Service where
+<span class="lineno">   82 </span>  <span class="decl"><span class="nottickedoff">view = serviceIngest</span></span>
+<span class="lineno">   83 </span>instance Has Solr Service where
+<span class="lineno">   84 </span>  <span class="decl"><span class="nottickedoff">view = serviceSolr</span></span>
+<span class="lineno">   85 </span>instance Has Notifications Service where
+<span class="lineno">   86 </span>  <span class="decl"><span class="nottickedoff">view = serviceNotification</span></span>
 
 </pre>
 </body>

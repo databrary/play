@@ -83,8 +83,8 @@ span.spaces    { background: white }
 <span class="lineno">   67 </span><span class="spaces">    </span><span class="nottickedoff">dbQuery (($ v) &lt;$&gt; $(selectQuery selectVolumeSlotMaybeRecordId &quot;$WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container.id, slot_record.segment, slot_record.record&quot;))</span></span>
 <span class="lineno">   68 </span>
 <span class="lineno">   69 </span>lookupVolumeRecordSlotIds :: (MonadDB c m) =&gt; Volume -&gt; m [(Record, SlotId)]
-<span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">lookupVolumeRecordSlotIds v =</span>
-<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery (($ v) &lt;$&gt; $(selectQuery selectVolumeSlotIdRecord &quot;WHERE record.volume = ${volumeId $ volumeRow v} ORDER BY container&quot;))</span></span>
+<span class="lineno">   70 </span><span class="decl"><span class="istickedoff">lookupVolumeRecordSlotIds v =</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="istickedoff">dbQuery (($ v) &lt;$&gt; $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery selectVolumeSlotIdRecord &quot;WHERE record.volume = ${volumeId $ volumeRow v} ORDER BY container&quot;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>))</span></span>
 <span class="lineno">   72 </span>
 <span class="lineno">   73 </span>moveRecordSlot :: (MonadAudit c m) =&gt; RecordSlot -&gt; Segment -&gt; m Bool
 <span class="lineno">   74 </span><span class="decl"><span class="nottickedoff">moveRecordSlot rs@RecordSlot{ recordSlot = s@Slot{ slotSegment = src } } dst = do</span>
@@ -105,12 +105,12 @@ span.spaces    { background: white }
 <span class="lineno">   89 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute $(auditDelete 'ident &quot;slot_record&quot; &quot;record = ${recordId $ recordRow r} AND segment = '(,)'&quot; Nothing)</span></span>
 <span class="lineno">   90 </span>
 <span class="lineno">   91 </span>recordSlotAge :: RecordSlot -&gt; Maybe Age
-<span class="lineno">   92 </span><span class="decl"><span class="nottickedoff">recordSlotAge rs@RecordSlot{..} =</span>
-<span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">clip &lt;$&gt; liftM2 age (decodeMeasure (PGTypeProxy :: PGTypeName &quot;date&quot;) =&lt;&lt; getMeasure birthdateMetric (recordMeasures slotRecord)) (containerDate $ containerRow $ slotContainer recordSlot)</span>
-<span class="lineno">   94 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
-<span class="lineno">   95 </span><span class="spaces">  </span><span class="nottickedoff">clip a</span>
-<span class="lineno">   96 </span><span class="spaces">    </span><span class="nottickedoff">| not (canReadData2 getRecordSlotRelease getRecordSlotVolumePermission rs) = a `min` ageLimit</span>
-<span class="lineno">   97 </span><span class="spaces">    </span><span class="nottickedoff">| otherwise = a</span></span>
+<span class="lineno">   92 </span><span class="decl"><span class="istickedoff">recordSlotAge rs@RecordSlot{..} =</span>
+<span class="lineno">   93 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">clip</span> &lt;$&gt; liftM2 <span class="nottickedoff">age</span> (<span class="nottickedoff">decodeMeasure (PGTypeProxy :: PGTypeName &quot;date&quot;)</span> =&lt;&lt; getMeasure birthdateMetric (recordMeasures slotRecord)) <span class="nottickedoff">(containerDate $ containerRow $ slotContainer recordSlot)</span></span>
+<span class="lineno">   94 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   95 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">clip a</span></span>
+<span class="lineno">   96 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">| not (canReadData2 getRecordSlotRelease getRecordSlotVolumePermission rs) = a `min` ageLimit</span></span>
+<span class="lineno">   97 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">| otherwise = a</span></span></span>
 <span class="lineno">   98 </span>
 <span class="lineno">   99 </span>recordSlotJSON :: JSON.ToObject o =&gt; Bool -&gt; RecordSlot -&gt; JSON.Record (Id Record) o
 <span class="lineno">  100 </span><span class="decl"><span class="nottickedoff">recordSlotJSON _ rs@RecordSlot{..} = JSON.Record (recordId $ recordRow slotRecord) $</span>

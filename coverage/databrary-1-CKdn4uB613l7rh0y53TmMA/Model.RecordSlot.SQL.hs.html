@@ -87,7 +87,7 @@ span.spaces    { background: white }
 <span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
 <span class="lineno">   72 </span>
 <span class="lineno">   73 </span>makeVolumeSlotIdRecord :: SlotId -&gt; (Volume -&gt; Record) -&gt; Volume -&gt; (Record, SlotId)
-<span class="lineno">   74 </span><span class="decl"><span class="nottickedoff">makeVolumeSlotIdRecord s rf v = (rf v, s)</span></span>
+<span class="lineno">   74 </span><span class="decl"><span class="istickedoff">makeVolumeSlotIdRecord s rf v = (rf v, s)</span></span>
 <span class="lineno">   75 </span>
 <span class="lineno">   76 </span>selectVolumeSlotIdRecord :: Selector -- ^ @'Volume' -&gt; ('Record', 'SlotId')@
 <span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">selectVolumeSlotIdRecord = selectJoin 'makeVolumeSlotIdRecord</span>

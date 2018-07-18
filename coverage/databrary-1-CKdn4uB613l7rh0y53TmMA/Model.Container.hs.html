@@ -66,7 +66,7 @@ span.spaces    { background: white }
 <span class="lineno">   50 </span><span class="spaces">    </span><span class="istickedoff">, containerDate = <span class="nottickedoff">Nothing</span></span>
 <span class="lineno">   51 </span><span class="spaces">    </span><span class="istickedoff">}</span>
 <span class="lineno">   52 </span><span class="spaces">  </span><span class="istickedoff">, containerRelease = Nothing</span>
-<span class="lineno">   53 </span><span class="spaces">  </span><span class="istickedoff">, containerVolume = <span class="nottickedoff">vol</span></span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="istickedoff">, containerVolume = vol</span>
 <span class="lineno">   54 </span><span class="spaces">  </span><span class="istickedoff">}</span></span>
 <span class="lineno">   55 </span>
 <span class="lineno">   56 </span>lookupContainer :: (MonadDB c m, MonadHasIdentity c m) =&gt; Id Container -&gt; m (Maybe Container)
@@ -79,8 +79,8 @@ span.spaces    { background: white }
 <span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 $ fmap ($ vol) $(selectQuery selectVolumeContainer &quot;$WHERE container.id = ${ci} AND container.volume = ${volumeId $ volumeRow vol}&quot;)</span></span>
 <span class="lineno">   64 </span>
 <span class="lineno">   65 </span>lookupVolumeContainers :: MonadDB c m =&gt; Volume -&gt; m [Container]
-<span class="lineno">   66 </span><span class="decl"><span class="nottickedoff">lookupVolumeContainers vol =</span>
-<span class="lineno">   67 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ fmap ($ vol) $(selectQuery selectVolumeContainer &quot;$WHERE container.volume = ${volumeId $ volumeRow vol} ORDER BY container.id&quot;)</span></span>
+<span class="lineno">   66 </span><span class="decl"><span class="istickedoff">lookupVolumeContainers vol =</span>
+<span class="lineno">   67 </span><span class="spaces">  </span><span class="istickedoff">dbQuery $ fmap ($ vol) $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery selectVolumeContainer &quot;$WHERE container.volume = ${volumeId $ volumeRow vol} ORDER BY container.id&quot;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)</span></span>
 <span class="lineno">   68 </span>
 <span class="lineno">   69 </span>lookupVolumeTopContainer :: MonadDB c m =&gt; Volume -&gt; m Container
 <span class="lineno">   70 </span><span class="decl"><span class="istickedoff">lookupVolumeTopContainer vol =</span>

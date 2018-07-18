@@ -37,20 +37,20 @@ span.spaces    { background: white }
 <span class="lineno">   21 </span>type instance IdType Token = BS.ByteString
 <span class="lineno">   22 </span>
 <span class="lineno">   23 </span>data Token = Token
-<span class="lineno">   24 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tokenId</span></span></span> :: Id Token
+<span class="lineno">   24 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">tokenId</span></span></span> :: Id Token
 <span class="lineno">   25 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">tokenExpires</span></span></span> :: Timestamp
 <span class="lineno">   26 </span>  }
 <span class="lineno">   27 </span>
 <span class="lineno">   28 </span>instance Has (Id Token) Token where
-<span class="lineno">   29 </span>  <span class="decl"><span class="nottickedoff">view = tokenId</span></span>
+<span class="lineno">   29 </span>  <span class="decl"><span class="istickedoff">view = tokenId</span></span>
 <span class="lineno">   30 </span>
 <span class="lineno">   31 </span>data AccountToken = AccountToken
-<span class="lineno">   32 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">accountToken</span></span></span> :: !Token
+<span class="lineno">   32 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">accountToken</span></span></span> :: !Token
 <span class="lineno">   33 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">tokenAccount</span></span></span> :: SiteAuth
 <span class="lineno">   34 </span>  }
 <span class="lineno">   35 </span>
 <span class="lineno">   36 </span>instance Has (Id Token) AccountToken where
-<span class="lineno">   37 </span>  <span class="decl"><span class="nottickedoff">view = (view . accountToken)</span></span>
+<span class="lineno">   37 </span>  <span class="decl"><span class="istickedoff">view = (view . accountToken)</span></span>
 <span class="lineno">   38 </span>instance Has SiteAuth AccountToken where
 <span class="lineno">   39 </span>  <span class="decl"><span class="nottickedoff">view = tokenAccount</span></span>
 <span class="lineno">   40 </span>instance Has Access AccountToken where
@@ -92,16 +92,16 @@ span.spaces    { background: white }
 <span class="lineno">   76 </span>  <span class="decl"><span class="nottickedoff">view = (view . sessionAccountToken)</span></span>
 <span class="lineno">   77 </span>
 <span class="lineno">   78 </span>data Upload = Upload
-<span class="lineno">   79 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">uploadAccountToken</span></span></span> :: AccountToken
-<span class="lineno">   80 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">uploadFilename</span></span></span> :: BS.ByteString
-<span class="lineno">   81 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">uploadSize</span></span></span> :: Int64
+<span class="lineno">   79 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">uploadAccountToken</span></span></span> :: AccountToken
+<span class="lineno">   80 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">uploadFilename</span></span></span> :: BS.ByteString
+<span class="lineno">   81 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">uploadSize</span></span></span> :: Int64
 <span class="lineno">   82 </span>  }
 <span class="lineno">   83 </span>
 <span class="lineno">   84 </span>instance Has (Id Token) Upload where
-<span class="lineno">   85 </span>  <span class="decl"><span class="nottickedoff">view = (view . uploadAccountToken)</span></span>
+<span class="lineno">   85 </span>  <span class="decl"><span class="istickedoff">view = (view . uploadAccountToken)</span></span>
 <span class="lineno">   86 </span>
 <span class="lineno">   87 </span>makeUpload :: Token -&gt; BS.ByteString -&gt; Int64 -&gt; SiteAuth -&gt; Upload
-<span class="lineno">   88 </span><span class="decl"><span class="nottickedoff">makeUpload t n z u = Upload (AccountToken t u) n z</span></span>
+<span class="lineno">   88 </span><span class="decl"><span class="istickedoff">makeUpload t n z u = Upload (AccountToken t <span class="nottickedoff">u</span>) n z</span></span>
 
 </pre>
 </body>

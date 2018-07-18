@@ -137,7 +137,7 @@ span.spaces    { background: white }
 <span class="lineno">  121 </span><span class="decl"><span class="nottickedoff">runDBM p = withDB p . runReaderT</span></span>
 <span class="lineno">  122 </span>
 <span class="lineno">  123 </span>liftDBM :: MonadDB c m =&gt; DBM a -&gt; m a
-<span class="lineno">  124 </span><span class="decl"><span class="nottickedoff">liftDBM = liftDB . runReaderT</span></span>
+<span class="lineno">  124 </span><span class="decl"><span class="istickedoff">liftDBM = liftDB . runReaderT</span></span>
 <span class="lineno">  125 </span>
 <span class="lineno">  126 </span>-- |Combination of 'liftDBM' and lifted 'tryJust'
 <span class="lineno">  127 </span>dbTryJust :: MonadDB c m =&gt; (PGError -&gt; Maybe e) -&gt; DBM a -&gt; m (Either e a)
@@ -156,7 +156,7 @@ span.spaces    { background: white }
 <span class="lineno">  140 </span><span class="decl"><span class="istickedoff">dbExecute1 q = do</span>
 <span class="lineno">  141 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- dbExecute q</span>
 <span class="lineno">  142 </span><span class="spaces">  </span><span class="istickedoff">case r of</span>
-<span class="lineno">  143 </span><span class="spaces">    </span><span class="istickedoff">0 -&gt; <span class="nottickedoff">return False</span></span>
+<span class="lineno">  143 </span><span class="spaces">    </span><span class="istickedoff">0 -&gt; return <span class="nottickedoff">False</span></span>
 <span class="lineno">  144 </span><span class="spaces">    </span><span class="istickedoff">1 -&gt; return True</span>
 <span class="lineno">  145 </span><span class="spaces">    </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">fail $ &quot;pgExecute1 &quot; ++ show q ++ &quot;: &quot; ++ show r ++ &quot; rows&quot;</span></span></span>
 <span class="lineno">  146 </span>
@@ -232,16 +232,16 @@ span.spaces    { background: white }
 <span class="lineno">  216 </span>
 <span class="lineno">  217 </span>mapRunPrepQuery :: (MonadDB c m) =&gt; (BS.ByteString, [PGValue], [Bool]) -&gt; ([PGValue] -&gt; a) -&gt; m [a]
 <span class="lineno">  218 </span><span class="decl"><span class="istickedoff">mapRunPrepQuery (qry, params, bc) mkResult = do</span>
-<span class="lineno">  219 </span><span class="spaces">  </span><span class="istickedoff">rows &lt;- liftDB $ \c -&gt; <span class="nottickedoff">snd</span> &lt;$&gt; pgPreparedQuery c qry [] params bc</span>
-<span class="lineno">  220 </span><span class="spaces">  </span><span class="istickedoff">pure <span class="nottickedoff">(fmap mkResult rows)</span></span></span>
+<span class="lineno">  219 </span><span class="spaces">  </span><span class="istickedoff">rows &lt;- liftDB $ \c -&gt; snd &lt;$&gt; pgPreparedQuery c qry [] params bc</span>
+<span class="lineno">  220 </span><span class="spaces">  </span><span class="istickedoff">pure (fmap mkResult rows)</span></span>
 <span class="lineno">  221 </span>
 <span class="lineno">  222 </span>mapRunPrepQuery1 :: (MonadDB c m) =&gt; (BS.ByteString, [PGValue], [Bool]) -&gt; ([PGValue] -&gt; a) -&gt; m (Maybe a)
-<span class="lineno">  223 </span><span class="decl"><span class="nottickedoff">mapRunPrepQuery1 args@(q, _, _) mkResult = do</span>
-<span class="lineno">  224 </span><span class="spaces">  </span><span class="nottickedoff">rows &lt;- mapRunPrepQuery args mkResult</span>
-<span class="lineno">  225 </span><span class="spaces">  </span><span class="nottickedoff">case rows of</span>
-<span class="lineno">  226 </span><span class="spaces">    </span><span class="nottickedoff">[] -&gt; return $ Nothing</span>
-<span class="lineno">  227 </span><span class="spaces">    </span><span class="nottickedoff">[x] -&gt; return $ Just x</span>
-<span class="lineno">  228 </span><span class="spaces">    </span><span class="nottickedoff">_ -&gt; fail $ &quot;pgQuery1 &quot; ++ show q ++ &quot;: too many results&quot;</span></span>
+<span class="lineno">  223 </span><span class="decl"><span class="istickedoff">mapRunPrepQuery1 args@(q, _, _) mkResult = do</span>
+<span class="lineno">  224 </span><span class="spaces">  </span><span class="istickedoff">rows &lt;- mapRunPrepQuery args mkResult</span>
+<span class="lineno">  225 </span><span class="spaces">  </span><span class="istickedoff">case rows of</span>
+<span class="lineno">  226 </span><span class="spaces">    </span><span class="istickedoff">[] -&gt; <span class="nottickedoff">return $ Nothing</span></span>
+<span class="lineno">  227 </span><span class="spaces">    </span><span class="istickedoff">[x] -&gt; return $ Just x</span>
+<span class="lineno">  228 </span><span class="spaces">    </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">fail $ &quot;pgQuery1 &quot; ++ show q ++ &quot;: too many results&quot;</span></span></span>
 
 </pre>
 </body>

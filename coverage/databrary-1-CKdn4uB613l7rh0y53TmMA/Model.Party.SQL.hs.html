@@ -61,15 +61,15 @@ span.spaces    { background: white }
 <span class="lineno">   45 </span>
 <span class="lineno">   46 </span>-- | Build party, with a circular connection to an account if an account creation function is provided
 <span class="lineno">   47 </span>makeParty :: PartyRow -&gt; Maybe (Party -&gt; Account) -&gt; Permission -&gt; Maybe Access -&gt; Party
-<span class="lineno">   48 </span><span class="decl"><span class="istickedoff">makeParty pr mMkAcct perm mAccess = makeParty2 pr mMkAcct Nothing perm mAccess</span></span>
+<span class="lineno">   48 </span><span class="decl"><span class="istickedoff">makeParty pr mMkAcct perm mAccess = makeParty2 pr mMkAcct NotLoaded perm mAccess</span></span>
 <span class="lineno">   49 </span>
 <span class="lineno">   50 </span>-- | Build party, with a circular connection to an account if an account creation function is provided.
 <span class="lineno">   51 </span>-- Transition function taking mSiteAccess until all queries use this.
-<span class="lineno">   52 </span>makeParty2 :: PartyRow -&gt; Maybe (Party -&gt; Account) -&gt; Maybe Permission -&gt; Permission -&gt; Maybe Access -&gt; Party
-<span class="lineno">   53 </span><span class="decl"><span class="istickedoff">makeParty2 pr mMkAcct mSiteAccess perm mAccess = -- TODO: take site auth permission</span>
+<span class="lineno">   52 </span>makeParty2 :: PartyRow -&gt; Maybe (Party -&gt; Account) -&gt; Loaded Permission -&gt; Permission -&gt; Maybe Access -&gt; Party
+<span class="lineno">   53 </span><span class="decl"><span class="istickedoff">makeParty2 pr mMkAcct lSiteAccess perm mAccess =</span>
 <span class="lineno">   54 </span><span class="spaces">    </span><span class="istickedoff">p</span>
 <span class="lineno">   55 </span><span class="spaces">  </span><span class="istickedoff">where</span>
-<span class="lineno">   56 </span><span class="spaces">    </span><span class="istickedoff">p = Party pr (fmap <span class="nottickedoff">(\mkAcct -&gt; mkAcct p)</span> mMkAcct) mSiteAccess perm mAccess</span></span>
+<span class="lineno">   56 </span><span class="spaces">    </span><span class="istickedoff">p = Party pr (fmap <span class="nottickedoff">(\mkAcct -&gt; mkAcct p)</span> mMkAcct) lSiteAccess perm mAccess</span></span>
 <span class="lineno">   57 </span>
 <span class="lineno">   58 </span>selectPermissionParty :: Selector -- ^ @'Permission' -&gt; Maybe 'Access' -&gt; 'Party'@
 <span class="lineno">   59 </span><span class="decl"><span class="nottickedoff">selectPermissionParty = selectJoin 'makeParty</span>
@@ -137,7 +137,7 @@ span.spaces    { background: white }
 <span class="lineno">  121 </span><span class="spaces">  </span><span class="nottickedoff">selectPermissionParty</span></span>
 <span class="lineno">  122 </span>
 <span class="lineno">  123 </span>makePartyAuthorization :: Party -&gt; Maybe Access -&gt; (Party, Maybe Permission)
-<span class="lineno">  124 </span><span class="decl"><span class="nottickedoff">makePartyAuthorization p a = (p, accessSite &lt;$&gt; a)</span></span>
+<span class="lineno">  124 </span><span class="decl"><span class="istickedoff">makePartyAuthorization p a = (p, accessSite &lt;$&gt; a)</span></span>
 <span class="lineno">  125 </span>
 <span class="lineno">  126 </span>selectPartyAuthorization :: TH.Name -- ^ 'Identity'
 <span class="lineno">  127 </span>  -&gt; Selector -- ^ @('Party', Maybe 'Permission')@
@@ -157,8 +157,8 @@ span.spaces    { background: white }
 <span class="lineno">  141 </span>
 <span class="lineno">  142 </span>-- | Used by 'makeUserAccount' and 'selectPermissionAccount'. This finishes building the circular Party and Account structure.
 <span class="lineno">  143 </span>makeAccount :: PartyRow -&gt; (Party -&gt; Account) -&gt; Permission -&gt; Maybe Access -&gt; Account
-<span class="lineno">  144 </span><span class="decl"><span class="istickedoff">makeAccount pr ac perm ma = a where -- TODO: take site auth permission</span>
-<span class="lineno">  145 </span><span class="spaces">  </span><span class="istickedoff">a = ac $ Party pr <span class="nottickedoff">(Just a)</span> Nothing perm ma</span></span>
+<span class="lineno">  144 </span><span class="decl"><span class="istickedoff">makeAccount pr ac perm ma = a where -- TODO: receive Loaded Permission for site authorization value</span>
+<span class="lineno">  145 </span><span class="spaces">  </span><span class="istickedoff">a = ac $ Party pr <span class="nottickedoff">(Just a)</span> NotLoaded perm ma</span></span>
 <span class="lineno">  146 </span>
 <span class="lineno">  147 </span>selectPermissionAccount :: Selector -- ^ @'Permission' -&gt; Maybe 'Access' -&gt; 'Account'@
 <span class="lineno">  148 </span><span class="decl"><span class="nottickedoff">selectPermissionAccount = selectJoin 'makeAccount</span>

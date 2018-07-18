@@ -92,28 +92,28 @@ span.spaces    { background: white }
 <span class="lineno">   76 </span><span class="spaces">  </span><span class="nottickedoff">lb = lowerBound rng</span></span>
 <span class="lineno">   77 </span>
 <span class="lineno">   78 </span>startTranscode :: (MonadStorage c m, MonadHas Secret c m, MonadAudit c m, MonadHas Timestamp c m, MonadLog c m) =&gt; Transcode -&gt; m (Maybe TranscodePID)
-<span class="lineno">   79 </span><span class="decl"><span class="nottickedoff">startTranscode tc = do</span>
-<span class="lineno">   80 </span><span class="spaces">  </span><span class="nottickedoff">tc' &lt;- updateTranscode tc lock Nothing</span>
-<span class="lineno">   81 </span><span class="spaces">  </span><span class="nottickedoff">unless (transcodeProcess tc' == lock) $ fail $ &quot;startTranscode &quot; ++ show (transcodeId tc)</span>
-<span class="lineno">   82 </span><span class="spaces">  </span><span class="nottickedoff">findMatchingTranscode tc &gt;&gt;= maybe</span>
-<span class="lineno">   83 </span><span class="spaces">    </span><span class="nottickedoff">(do</span>
-<span class="lineno">   84 </span><span class="spaces">      </span><span class="nottickedoff">args &lt;- transcodeArgs tc</span>
-<span class="lineno">   85 </span><span class="spaces">      </span><span class="nottickedoff">(r, out, err) &lt;- ctlTranscode tc' args</span>
-<span class="lineno">   86 </span><span class="spaces">      </span><span class="nottickedoff">let pid = guard (r == ExitSuccess) &gt;&gt; readMaybe out</span>
-<span class="lineno">   87 </span><span class="spaces">      </span><span class="nottickedoff">_ &lt;- updateTranscode tc' pid $ ((isNothing pid) `thenUse` out) &lt;&gt; ((null err) `unlessUse` err)</span>
-<span class="lineno">   88 </span><span class="spaces">      </span><span class="nottickedoff">return pid)</span>
-<span class="lineno">   89 </span><span class="spaces">    </span><span class="nottickedoff">(\(transcodeAsset -&gt; match) -&gt; do</span>
-<span class="lineno">   90 </span><span class="spaces">      </span><span class="nottickedoff">a &lt;- changeAsset (transcodeAsset tc)</span>
-<span class="lineno">   91 </span><span class="spaces">        </span><span class="nottickedoff">{ assetRow = (assetRow $ transcodeAsset tc)</span>
-<span class="lineno">   92 </span><span class="spaces">          </span><span class="nottickedoff">{ assetSHA1 = assetSHA1 $ assetRow match</span>
-<span class="lineno">   93 </span><span class="spaces">          </span><span class="nottickedoff">, assetDuration = assetDuration $ assetRow match</span>
-<span class="lineno">   94 </span><span class="spaces">          </span><span class="nottickedoff">, assetSize = assetSize $ assetRow match</span>
-<span class="lineno">   95 </span><span class="spaces">          </span><span class="nottickedoff">}</span>
-<span class="lineno">   96 </span><span class="spaces">        </span><span class="nottickedoff">} Nothing</span>
-<span class="lineno">   97 </span><span class="spaces">      </span><span class="nottickedoff">void $ changeAssetSlotDuration a</span>
-<span class="lineno">   98 </span><span class="spaces">      </span><span class="nottickedoff">_ &lt;- updateTranscode tc' Nothing (Just $ &quot;reuse &quot; ++ show (assetId $ assetRow match))</span>
-<span class="lineno">   99 </span><span class="spaces">      </span><span class="nottickedoff">return Nothing)</span>
-<span class="lineno">  100 </span><span class="spaces">  </span><span class="nottickedoff">where lock = Just (-1)</span></span>
+<span class="lineno">   79 </span><span class="decl"><span class="istickedoff">startTranscode tc = do</span>
+<span class="lineno">   80 </span><span class="spaces">  </span><span class="istickedoff">tc' &lt;- updateTranscode tc lock Nothing</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="istickedoff">unless (transcodeProcess tc' == lock) $ <span class="nottickedoff">fail $ &quot;startTranscode &quot; ++ show (transcodeId tc)</span></span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="istickedoff">findMatchingTranscode tc &gt;&gt;= maybe</span>
+<span class="lineno">   83 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(do</span></span>
+<span class="lineno">   84 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">args &lt;- transcodeArgs tc</span></span>
+<span class="lineno">   85 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(r, out, err) &lt;- ctlTranscode tc' args</span></span>
+<span class="lineno">   86 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">let pid = guard (r == ExitSuccess) &gt;&gt; readMaybe out</span></span>
+<span class="lineno">   87 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">_ &lt;- updateTranscode tc' pid $ ((isNothing pid) `thenUse` out) &lt;&gt; ((null err) `unlessUse` err)</span></span>
+<span class="lineno">   88 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">return pid)</span></span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="istickedoff">(\(transcodeAsset -&gt; match) -&gt; do</span>
+<span class="lineno">   90 </span><span class="spaces">      </span><span class="istickedoff">a &lt;- changeAsset (transcodeAsset tc)</span>
+<span class="lineno">   91 </span><span class="spaces">        </span><span class="istickedoff">{ assetRow = (assetRow $ transcodeAsset tc)</span>
+<span class="lineno">   92 </span><span class="spaces">          </span><span class="istickedoff">{ assetSHA1 = assetSHA1 $ assetRow match</span>
+<span class="lineno">   93 </span><span class="spaces">          </span><span class="istickedoff">, assetDuration = assetDuration $ assetRow match</span>
+<span class="lineno">   94 </span><span class="spaces">          </span><span class="istickedoff">, assetSize = assetSize $ assetRow match</span>
+<span class="lineno">   95 </span><span class="spaces">          </span><span class="istickedoff">}</span>
+<span class="lineno">   96 </span><span class="spaces">        </span><span class="istickedoff">} Nothing</span>
+<span class="lineno">   97 </span><span class="spaces">      </span><span class="istickedoff">void $ changeAssetSlotDuration a</span>
+<span class="lineno">   98 </span><span class="spaces">      </span><span class="istickedoff">_ &lt;- updateTranscode tc' Nothing (Just $ &quot;reuse &quot; ++ show (assetId $ assetRow match))</span>
+<span class="lineno">   99 </span><span class="spaces">      </span><span class="istickedoff">return <span class="nottickedoff">Nothing</span>)</span>
+<span class="lineno">  100 </span><span class="spaces">  </span><span class="istickedoff">where lock = Just (-1)</span></span>
 <span class="lineno">  101 </span>
 <span class="lineno">  102 </span>forkTranscode :: Transcode -&gt; Handler ThreadId
 <span class="lineno">  103 </span><span class="decl"><span class="nottickedoff">forkTranscode tc = focusIO $ \ctx -&gt;</span>

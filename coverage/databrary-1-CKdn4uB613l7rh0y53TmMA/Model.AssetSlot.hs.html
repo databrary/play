@@ -176,8 +176,8 @@ span.spaces    { background: white }
 <span class="lineno">  160 </span><span class="spaces">    </span><span class="nottickedoff">originFinder (AssetSlot { slotAsset = Asset {assetRow = AssetRow { assetId = aid }}}) = lookupOrigAssetSlot aid</span></span>
 <span class="lineno">  161 </span>
 <span class="lineno">  162 </span>lookupVolumeAssetSlotIds :: (MonadDB c m) =&gt; Volume -&gt; m [(Asset, SlotId)]
-<span class="lineno">  163 </span><span class="decl"><span class="nottickedoff">lookupVolumeAssetSlotIds v =</span>
-<span class="lineno">  164 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ ($ v) &lt;$&gt; $(selectQuery selectVolumeSlotIdAsset &quot;$WHERE asset.volume = ${volumeId $ volumeRow v} ORDER BY container&quot;)</span></span>
+<span class="lineno">  163 </span><span class="decl"><span class="istickedoff">lookupVolumeAssetSlotIds v =</span>
+<span class="lineno">  164 </span><span class="spaces">  </span><span class="istickedoff">dbQuery $ ($ v) &lt;$&gt; $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery selectVolumeSlotIdAsset &quot;$WHERE asset.volume = ${volumeId $ volumeRow v} ORDER BY container&quot;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)</span></span>
 <span class="lineno">  165 </span>
 <span class="lineno">  166 </span>{- lookupOrigVolumeAssetSlotIds :: (MonadDB c m) =&gt; Volume -&gt; m [(Asset, SlotId)]
 <span class="lineno">  167 </span>lookupOrigVolumeAssetSlotIds v =
@@ -313,23 +313,23 @@ span.spaces    { background: white }
 <span class="lineno">  297 </span><span class="spaces">      </span><span class="nottickedoff">return True</span></span>
 <span class="lineno">  298 </span>
 <span class="lineno">  299 </span>changeAssetSlotDuration :: MonadDB c m =&gt; Asset -&gt; m Bool
-<span class="lineno">  300 </span><span class="decl"><span class="nottickedoff">changeAssetSlotDuration a</span>
-<span class="lineno">  301 </span><span class="spaces">  </span><span class="nottickedoff">| Just dur &lt;- assetDuration $ assetRow a = do</span>
-<span class="lineno">  302 </span><span class="spaces">     </span><span class="nottickedoff">let _tenv_ablLj = unknownPGTypeEnv</span>
-<span class="lineno">  303 </span><span class="spaces">     </span><span class="nottickedoff">dbExecute1 -- [pgSQL|UPDATE slot_asset SET segment = segment(lower(segment), lower(segment) + ${dur}) WHERE asset = ${assetId $ assetRow a}|]</span>
-<span class="lineno">  304 </span><span class="spaces">      </span><span class="nottickedoff">(mapQuery2</span>
-<span class="lineno">  305 </span><span class="spaces">        </span><span class="nottickedoff">((\ _p_ablLk _p_ablLl -&gt;</span>
-<span class="lineno">  306 </span><span class="spaces">                        </span><span class="nottickedoff">(Data.ByteString.concat</span>
-<span class="lineno">  307 </span><span class="spaces">                           </span><span class="nottickedoff">[fromString</span>
-<span class="lineno">  308 </span><span class="spaces">                              </span><span class="nottickedoff">&quot;UPDATE slot_asset SET segment = segment(lower(segment), lower(segment) + &quot;,</span>
-<span class="lineno">  309 </span><span class="spaces">                            </span><span class="nottickedoff">pgEscapeParameter</span>
-<span class="lineno">  310 </span><span class="spaces">                              </span><span class="nottickedoff">_tenv_ablLj (PGTypeProxy :: PGTypeName &quot;interval&quot;) _p_ablLk,</span>
-<span class="lineno">  311 </span><span class="spaces">                            </span><span class="nottickedoff">fromString &quot;) WHERE asset = &quot;,</span>
-<span class="lineno">  312 </span><span class="spaces">                            </span><span class="nottickedoff">pgEscapeParameter</span>
-<span class="lineno">  313 </span><span class="spaces">                              </span><span class="nottickedoff">_tenv_ablLj (PGTypeProxy :: PGTypeName &quot;integer&quot;) _p_ablLl]))</span>
-<span class="lineno">  314 </span><span class="spaces">          </span><span class="nottickedoff">dur (assetId $ assetRow a))</span>
-<span class="lineno">  315 </span><span class="spaces">        </span><span class="nottickedoff">(\[] -&gt; ()))</span>
-<span class="lineno">  316 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = return False</span></span>
+<span class="lineno">  300 </span><span class="decl"><span class="istickedoff">changeAssetSlotDuration a</span>
+<span class="lineno">  301 </span><span class="spaces">  </span><span class="istickedoff">| Just dur &lt;- assetDuration $ assetRow a = do</span>
+<span class="lineno">  302 </span><span class="spaces">     </span><span class="istickedoff">let <span class="nottickedoff">_tenv_ablLj = unknownPGTypeEnv</span></span>
+<span class="lineno">  303 </span><span class="spaces">     </span><span class="istickedoff">dbExecute1 -- [pgSQL|UPDATE slot_asset SET segment = segment(lower(segment), lower(segment) + ${dur}) WHERE asset = ${assetId $ assetRow a}|]</span>
+<span class="lineno">  304 </span><span class="spaces">      </span><span class="istickedoff">(mapQuery2</span>
+<span class="lineno">  305 </span><span class="spaces">        </span><span class="istickedoff">((\ _p_ablLk _p_ablLl -&gt;</span>
+<span class="lineno">  306 </span><span class="spaces">                        </span><span class="istickedoff">(Data.ByteString.concat</span>
+<span class="lineno">  307 </span><span class="spaces">                           </span><span class="istickedoff">[fromString</span>
+<span class="lineno">  308 </span><span class="spaces">                              </span><span class="istickedoff">&quot;UPDATE slot_asset SET segment = segment(lower(segment), lower(segment) + &quot;,</span>
+<span class="lineno">  309 </span><span class="spaces">                            </span><span class="istickedoff">pgEscapeParameter</span>
+<span class="lineno">  310 </span><span class="spaces">                              </span><span class="istickedoff"><span class="nottickedoff">_tenv_ablLj</span> <span class="nottickedoff">(PGTypeProxy :: PGTypeName &quot;interval&quot;)</span> _p_ablLk,</span>
+<span class="lineno">  311 </span><span class="spaces">                            </span><span class="istickedoff">fromString &quot;) WHERE asset = &quot;,</span>
+<span class="lineno">  312 </span><span class="spaces">                            </span><span class="istickedoff">pgEscapeParameter</span>
+<span class="lineno">  313 </span><span class="spaces">                              </span><span class="istickedoff"><span class="nottickedoff">_tenv_ablLj</span> <span class="nottickedoff">(PGTypeProxy :: PGTypeName &quot;integer&quot;)</span> _p_ablLl]))</span>
+<span class="lineno">  314 </span><span class="spaces">          </span><span class="istickedoff">dur (assetId $ assetRow a))</span>
+<span class="lineno">  315 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">(\[] -&gt; ())</span>)</span>
+<span class="lineno">  316 </span><span class="spaces">  </span><span class="istickedoff">| <span class="nottickedoff">otherwise</span> = <span class="nottickedoff">return False</span></span></span>
 <span class="lineno">  317 </span>
 <span class="lineno">  318 </span>fixAssetSlotDuration :: AssetSlot -&gt; AssetSlot
 <span class="lineno">  319 </span><span class="decl"><span class="nottickedoff">fixAssetSlotDuration as</span>
@@ -356,11 +356,11 @@ span.spaces    { background: white }
 <span class="lineno">  340 </span><span class="spaces">                       </span><span class="nottickedoff">_ccolumn_ablQV)))</span></span>
 <span class="lineno">  341 </span>
 <span class="lineno">  342 </span>assetSlotName :: AssetSlot -&gt; Maybe T.Text
-<span class="lineno">  343 </span><span class="decl"><span class="nottickedoff">assetSlotName a =</span>
-<span class="lineno">  344 </span><span class="spaces">  </span><span class="nottickedoff">guard</span>
-<span class="lineno">  345 </span><span class="spaces">    </span><span class="nottickedoff">(any (containerTop . containerRow . slotContainer) (assetSlot a)</span>
-<span class="lineno">  346 </span><span class="spaces">     </span><span class="nottickedoff">|| canReadData2 getAssetSlotRelease2 getAssetSlotVolumePermission2 a)</span>
-<span class="lineno">  347 </span><span class="spaces">  </span><span class="nottickedoff">&gt;&gt; assetName (assetRow $ slotAsset a)</span></span>
+<span class="lineno">  343 </span><span class="decl"><span class="istickedoff">assetSlotName a =</span>
+<span class="lineno">  344 </span><span class="spaces">  </span><span class="istickedoff">guard</span>
+<span class="lineno">  345 </span><span class="spaces">    </span><span class="istickedoff">(any (containerTop . containerRow . slotContainer) (assetSlot a)</span>
+<span class="lineno">  346 </span><span class="spaces">     </span><span class="istickedoff">|| canReadData2 getAssetSlotRelease2 getAssetSlotVolumePermission2 a)</span>
+<span class="lineno">  347 </span><span class="spaces">  </span><span class="istickedoff">&gt;&gt; assetName (assetRow $ slotAsset a)</span></span>
 <span class="lineno">  348 </span>
 <span class="lineno">  349 </span>assetSlotJSON :: JSON.ToObject o =&gt; Bool -&gt; AssetSlot -&gt; JSON.Record (Id Asset) o
 <span class="lineno">  350 </span><span class="decl"><span class="nottickedoff">assetSlotJSON publicRestricted as@AssetSlot{..} = assetJSON publicRestricted slotAsset `JSON.foldObjectIntoRec`</span>

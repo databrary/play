@@ -101,62 +101,66 @@
 <a name="line-92"></a>
 <a name="line-93"></a><a name="Access"></a><span class='hs-comment'>-- | TODO: Figure out what this thing represents</span>
 <a name="line-94"></a><a name="Access"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Access</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Access</span>
-<a name="line-95"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>accessSite'</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>Permission</span> <span class='hs-comment'>-- ^ ??</span>
-<a name="line-96"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>accessMember'</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>Permission</span> <span class='hs-comment'>-- ^ ??</span>
-<a name="line-97"></a>  <span class='hs-layout'>}</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Eq</span><span class='hs-layout'>)</span> <span class='hs-comment'>-- , Show)</span>
-<a name="line-98"></a>
-<a name="line-99"></a><a name="accessPermission'"></a><span class='hs-definition'>accessPermission'</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Access</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Permission</span>
-<a name="line-100"></a><span class='hs-definition'>accessPermission'</span> <span class='hs-layout'>(</span><span class='hs-conid'>Access</span> <span class='hs-varid'>s</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>min</span> <span class='hs-varid'>s</span> <span class='hs-varid'>m</span>
-<a name="line-101"></a>
-<a name="line-102"></a><a name="accessSite"></a><span class='hs-definition'>accessSite</span><span class='hs-layout'>,</span> <span class='hs-varid'>accessMember</span><span class='hs-layout'>,</span> <span class='hs-varid'>accessPermission</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Access</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Permission</span>
-<a name="line-103"></a><span class='hs-definition'>accessSite</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>accessSite'</span> <span class='hs-varop'>.</span> <span class='hs-varid'>view</span>
-<a name="line-104"></a><a name="accessMember"></a><span class='hs-definition'>accessMember</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>accessMember'</span> <span class='hs-varop'>.</span> <span class='hs-varid'>view</span>
-<a name="line-105"></a><a name="accessPermission"></a><span class='hs-definition'>accessPermission</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>accessPermission'</span> <span class='hs-varop'>.</span> <span class='hs-varid'>view</span>
-<a name="line-106"></a>
-<a name="line-107"></a><a name="instance%20Bounded%20Access"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Bounded</span> <span class='hs-conid'>Access</span> <span class='hs-keyword'>where</span>
-<a name="line-108"></a>  <span class='hs-varid'>minBound</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Access</span> <span class='hs-varid'>minBound</span> <span class='hs-varid'>minBound</span>
-<a name="line-109"></a>  <span class='hs-varid'>maxBound</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Access</span> <span class='hs-varid'>maxBound</span> <span class='hs-varid'>maxBound</span>
+<a name="line-95"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>accessSite'</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>Permission</span> <span class='hs-comment'>-- ^ A given acting user's permission level on</span>
+<a name="line-96"></a>                               <span class='hs-comment'>-- on the databrary site's data (e.g. volumes).</span>
+<a name="line-97"></a>                               <span class='hs-comment'>-- The permission is computed through considering</span>
+<a name="line-98"></a>                               <span class='hs-comment'>-- inherited permissions from the databrary site (party 0)</span>
+<a name="line-99"></a>                               <span class='hs-comment'>-- down to the acting user.</span>
+<a name="line-100"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>accessMember'</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>Permission</span> <span class='hs-comment'>-- ^ ??</span>
+<a name="line-101"></a>  <span class='hs-layout'>}</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Eq</span><span class='hs-layout'>)</span> <span class='hs-comment'>-- , Show)</span>
+<a name="line-102"></a>
+<a name="line-103"></a><a name="accessPermission'"></a><span class='hs-definition'>accessPermission'</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Access</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Permission</span>
+<a name="line-104"></a><span class='hs-definition'>accessPermission'</span> <span class='hs-layout'>(</span><span class='hs-conid'>Access</span> <span class='hs-varid'>s</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>min</span> <span class='hs-varid'>s</span> <span class='hs-varid'>m</span>
+<a name="line-105"></a>
+<a name="line-106"></a><a name="accessSite"></a><span class='hs-definition'>accessSite</span><span class='hs-layout'>,</span> <span class='hs-varid'>accessMember</span><span class='hs-layout'>,</span> <span class='hs-varid'>accessPermission</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Access</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Permission</span>
+<a name="line-107"></a><span class='hs-definition'>accessSite</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>accessSite'</span> <span class='hs-varop'>.</span> <span class='hs-varid'>view</span>
+<a name="line-108"></a><a name="accessMember"></a><span class='hs-definition'>accessMember</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>accessMember'</span> <span class='hs-varop'>.</span> <span class='hs-varid'>view</span>
+<a name="line-109"></a><a name="accessPermission"></a><span class='hs-definition'>accessPermission</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>accessPermission'</span> <span class='hs-varop'>.</span> <span class='hs-varid'>view</span>
 <a name="line-110"></a>
-<a name="line-111"></a><a name="instance%20Monoid%20Access"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monoid</span> <span class='hs-conid'>Access</span> <span class='hs-keyword'>where</span>
-<a name="line-112"></a>  <span class='hs-varid'>mempty</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Access</span> <span class='hs-varid'>mempty</span> <span class='hs-varid'>mempty</span>
-<a name="line-113"></a>  <span class='hs-varid'>mappend</span> <span class='hs-layout'>(</span><span class='hs-conid'>Access</span> <span class='hs-varid'>s1</span> <span class='hs-varid'>m1</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Access</span> <span class='hs-varid'>s2</span> <span class='hs-varid'>m2</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Access</span> <span class='hs-layout'>(</span><span class='hs-varid'>mappend</span> <span class='hs-varid'>s1</span> <span class='hs-varid'>s2</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>mappend</span> <span class='hs-varid'>m1</span> <span class='hs-varid'>m2</span><span class='hs-layout'>)</span>
+<a name="line-111"></a><a name="instance%20Bounded%20Access"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Bounded</span> <span class='hs-conid'>Access</span> <span class='hs-keyword'>where</span>
+<a name="line-112"></a>  <span class='hs-varid'>minBound</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Access</span> <span class='hs-varid'>minBound</span> <span class='hs-varid'>minBound</span>
+<a name="line-113"></a>  <span class='hs-varid'>maxBound</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Access</span> <span class='hs-varid'>maxBound</span> <span class='hs-varid'>maxBound</span>
 <a name="line-114"></a>
-<a name="line-115"></a><a name="deriveLiftMany"></a><span class='hs-definition'>deriveLiftMany</span> <span class='hs-keyglyph'>[</span><span class='hs-chr'>'</span><span class='hs-chr'>'</span><span class='hs-conid'>Permission</span><span class='hs-layout'>,</span> <span class='hs-chr'>'</span><span class='hs-chr'>'</span><span class='hs-conid'>Access</span><span class='hs-keyglyph'>]</span>
-<a name="line-116"></a>
-<a name="line-117"></a><a name="PublicPolicy"></a><span class='hs-comment'>-- | A PublicPolicy represents a set of rules that customize the public viewer role</span>
-<a name="line-118"></a><a name="PublicPolicy"></a><span class='hs-comment'>-- for a given volume. Restricted is the only current policy. It signifies</span>
-<a name="line-119"></a><a name="PublicPolicy"></a><span class='hs-comment'>-- hiding all data, except high level summary information and highlights.</span>
-<a name="line-120"></a><a name="PublicPolicy"></a><span class='hs-comment'>-- The word policy is a reference to the term used in attribute-based access control.</span>
-<a name="line-121"></a><a name="PublicPolicy"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>PublicPolicy</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>PublicRestrictedPolicy</span> <span class='hs-keyglyph'>|</span> <span class='hs-conid'>PublicNoPolicy</span> <span class='hs-comment'>-- deriving (Show, Eq)</span>
-<a name="line-122"></a>
-<a name="line-123"></a><a name="SharedPolicy"></a><span class='hs-comment'>-- | A SharedPolicy is the same as PublicPolicy currently, but applied to the shared</span>
-<a name="line-124"></a><a name="SharedPolicy"></a><span class='hs-comment'>-- viewer role.</span>
-<a name="line-125"></a><a name="SharedPolicy"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>SharedPolicy</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>SharedRestrictedPolicy</span> <span class='hs-keyglyph'>|</span> <span class='hs-conid'>SharedNoPolicy</span> <span class='hs-comment'>-- deriving (Show, Eq)</span>
+<a name="line-115"></a><a name="instance%20Monoid%20Access"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monoid</span> <span class='hs-conid'>Access</span> <span class='hs-keyword'>where</span>
+<a name="line-116"></a>  <span class='hs-varid'>mempty</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Access</span> <span class='hs-varid'>mempty</span> <span class='hs-varid'>mempty</span>
+<a name="line-117"></a>  <span class='hs-varid'>mappend</span> <span class='hs-layout'>(</span><span class='hs-conid'>Access</span> <span class='hs-varid'>s1</span> <span class='hs-varid'>m1</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Access</span> <span class='hs-varid'>s2</span> <span class='hs-varid'>m2</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Access</span> <span class='hs-layout'>(</span><span class='hs-varid'>mappend</span> <span class='hs-varid'>s1</span> <span class='hs-varid'>s2</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>mappend</span> <span class='hs-varid'>m1</span> <span class='hs-varid'>m2</span><span class='hs-layout'>)</span>
+<a name="line-118"></a>
+<a name="line-119"></a><a name="deriveLiftMany"></a><span class='hs-definition'>deriveLiftMany</span> <span class='hs-keyglyph'>[</span><span class='hs-chr'>'</span><span class='hs-chr'>'</span><span class='hs-conid'>Permission</span><span class='hs-layout'>,</span> <span class='hs-chr'>'</span><span class='hs-chr'>'</span><span class='hs-conid'>Access</span><span class='hs-keyglyph'>]</span>
+<a name="line-120"></a>
+<a name="line-121"></a><a name="PublicPolicy"></a><span class='hs-comment'>-- | A PublicPolicy represents a set of rules that customize the public viewer role</span>
+<a name="line-122"></a><a name="PublicPolicy"></a><span class='hs-comment'>-- for a given volume. Restricted is the only current policy. It signifies</span>
+<a name="line-123"></a><a name="PublicPolicy"></a><span class='hs-comment'>-- hiding all data, except high level summary information and highlights.</span>
+<a name="line-124"></a><a name="PublicPolicy"></a><span class='hs-comment'>-- The word policy is a reference to the term used in attribute-based access control.</span>
+<a name="line-125"></a><a name="PublicPolicy"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>PublicPolicy</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>PublicRestrictedPolicy</span> <span class='hs-keyglyph'>|</span> <span class='hs-conid'>PublicNoPolicy</span> <span class='hs-comment'>-- deriving (Show, Eq)</span>
 <a name="line-126"></a>
-<a name="line-127"></a><a name="VolumeRolePolicy"></a><span class='hs-comment'>-- | A user's effective access to a given volume.</span>
-<a name="line-128"></a><a name="VolumeRolePolicy"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>VolumeRolePolicy</span> <span class='hs-keyglyph'>=</span>
-<a name="line-129"></a>    <span class='hs-conid'>RoleNone</span>
-<a name="line-130"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>RolePublicViewer</span> <span class='hs-conid'>PublicPolicy</span>
-<a name="line-131"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>RoleSharedViewer</span> <span class='hs-conid'>SharedPolicy</span>
-<a name="line-132"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>RoleReader</span>
-<a name="line-133"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>RoleEditor</span>
-<a name="line-134"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>RoleAdmin</span>
-<a name="line-135"></a>  <span class='hs-comment'>-- deriving (Show, Eq)</span>
-<a name="line-136"></a>
-<a name="line-137"></a><a name="deriveLift"></a><span class='hs-definition'>deriveLift</span> <span class='hs-chr'>'</span><span class='hs-chr'>'</span><span class='hs-conid'>PublicPolicy</span>
-<a name="line-138"></a><span class='hs-definition'>deriveLift</span> <span class='hs-chr'>'</span><span class='hs-chr'>'</span><span class='hs-conid'>SharedPolicy</span>
-<a name="line-139"></a><span class='hs-definition'>deriveLift</span> <span class='hs-chr'>'</span><span class='hs-chr'>'</span><span class='hs-conid'>VolumeRolePolicy</span>
+<a name="line-127"></a><a name="SharedPolicy"></a><span class='hs-comment'>-- | A SharedPolicy is the same as PublicPolicy currently, but applied to the shared</span>
+<a name="line-128"></a><a name="SharedPolicy"></a><span class='hs-comment'>-- viewer role.</span>
+<a name="line-129"></a><a name="SharedPolicy"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>SharedPolicy</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>SharedRestrictedPolicy</span> <span class='hs-keyglyph'>|</span> <span class='hs-conid'>SharedNoPolicy</span> <span class='hs-comment'>-- deriving (Show, Eq)</span>
+<a name="line-130"></a>
+<a name="line-131"></a><a name="VolumeRolePolicy"></a><span class='hs-comment'>-- | A user's effective access to a given volume.</span>
+<a name="line-132"></a><a name="VolumeRolePolicy"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>VolumeRolePolicy</span> <span class='hs-keyglyph'>=</span>
+<a name="line-133"></a>    <span class='hs-conid'>RoleNone</span>
+<a name="line-134"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>RolePublicViewer</span> <span class='hs-conid'>PublicPolicy</span>
+<a name="line-135"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>RoleSharedViewer</span> <span class='hs-conid'>SharedPolicy</span>
+<a name="line-136"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>RoleReader</span>
+<a name="line-137"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>RoleEditor</span>
+<a name="line-138"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>RoleAdmin</span>
+<a name="line-139"></a>  <span class='hs-comment'>-- deriving (Show, Eq)</span>
 <a name="line-140"></a>
-<a name="line-141"></a><a name="extractPermissionIgnorePolicy"></a><span class='hs-comment'>-- | Transition function used until all call sites take into Policy</span>
-<a name="line-142"></a><span class='hs-comment'>-- value into consideration.</span>
-<a name="line-143"></a><span class='hs-definition'>extractPermissionIgnorePolicy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>VolumeRolePolicy</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Permission</span>
-<a name="line-144"></a><span class='hs-definition'>extractPermissionIgnorePolicy</span> <span class='hs-varid'>rp</span> <span class='hs-keyglyph'>=</span>
-<a name="line-145"></a>  <span class='hs-keyword'>case</span> <span class='hs-varid'>rp</span> <span class='hs-keyword'>of</span>
-<a name="line-146"></a>      <span class='hs-conid'>RoleNone</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PermissionNONE</span>
-<a name="line-147"></a>      <span class='hs-conid'>RolePublicViewer</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PermissionPUBLIC</span>
-<a name="line-148"></a>      <span class='hs-conid'>RoleSharedViewer</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PermissionSHARED</span>
-<a name="line-149"></a>      <span class='hs-conid'>RoleReader</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PermissionREAD</span>
-<a name="line-150"></a>      <span class='hs-conid'>RoleEditor</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PermissionEDIT</span>
-<a name="line-151"></a>      <span class='hs-conid'>RoleAdmin</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PermissionADMIN</span>
+<a name="line-141"></a><a name="deriveLift"></a><span class='hs-definition'>deriveLift</span> <span class='hs-chr'>'</span><span class='hs-chr'>'</span><span class='hs-conid'>PublicPolicy</span>
+<a name="line-142"></a><span class='hs-definition'>deriveLift</span> <span class='hs-chr'>'</span><span class='hs-chr'>'</span><span class='hs-conid'>SharedPolicy</span>
+<a name="line-143"></a><span class='hs-definition'>deriveLift</span> <span class='hs-chr'>'</span><span class='hs-chr'>'</span><span class='hs-conid'>VolumeRolePolicy</span>
+<a name="line-144"></a>
+<a name="line-145"></a><a name="extractPermissionIgnorePolicy"></a><span class='hs-comment'>-- | Transition function used until all call sites take into Policy</span>
+<a name="line-146"></a><span class='hs-comment'>-- value into consideration.</span>
+<a name="line-147"></a><span class='hs-definition'>extractPermissionIgnorePolicy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>VolumeRolePolicy</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Permission</span>
+<a name="line-148"></a><span class='hs-definition'>extractPermissionIgnorePolicy</span> <span class='hs-varid'>rp</span> <span class='hs-keyglyph'>=</span>
+<a name="line-149"></a>  <span class='hs-keyword'>case</span> <span class='hs-varid'>rp</span> <span class='hs-keyword'>of</span>
+<a name="line-150"></a>      <span class='hs-conid'>RoleNone</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PermissionNONE</span>
+<a name="line-151"></a>      <span class='hs-conid'>RolePublicViewer</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PermissionPUBLIC</span>
+<a name="line-152"></a>      <span class='hs-conid'>RoleSharedViewer</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PermissionSHARED</span>
+<a name="line-153"></a>      <span class='hs-conid'>RoleReader</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PermissionREAD</span>
+<a name="line-154"></a>      <span class='hs-conid'>RoleEditor</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PermissionEDIT</span>
+<a name="line-155"></a>      <span class='hs-conid'>RoleAdmin</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PermissionADMIN</span>
 </pre></body>
 </html>

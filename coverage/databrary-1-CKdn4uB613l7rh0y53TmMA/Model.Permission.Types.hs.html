@@ -108,63 +108,67 @@ span.spaces    { background: white }
 <span class="lineno">   92 </span>
 <span class="lineno">   93 </span>-- | TODO: Figure out what this thing represents
 <span class="lineno">   94 </span>data Access = Access
-<span class="lineno">   95 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">accessSite'</span></span></span> :: !Permission -- ^ ??
-<span class="lineno">   96 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">accessMember'</span></span></span> :: !Permission -- ^ ??
-<span class="lineno">   97 </span>  } deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>) -- , Show)
-<span class="lineno">   98 </span>
-<span class="lineno">   99 </span>accessPermission' :: Access -&gt; Permission
-<span class="lineno">  100 </span><span class="decl"><span class="istickedoff">accessPermission' (Access s m) = min s m</span></span>
-<span class="lineno">  101 </span>
-<span class="lineno">  102 </span>accessSite, accessMember, accessPermission :: Has Access a =&gt; a -&gt; Permission
-<span class="lineno">  103 </span><span class="decl"><span class="istickedoff">accessSite = accessSite' . view</span></span>
-<span class="lineno">  104 </span><span class="decl"><span class="istickedoff">accessMember = accessMember' . view</span></span>
-<span class="lineno">  105 </span><span class="decl"><span class="istickedoff">accessPermission = accessPermission' . view</span></span>
-<span class="lineno">  106 </span>
-<span class="lineno">  107 </span>instance Bounded Access where
-<span class="lineno">  108 </span>  <span class="decl"><span class="nottickedoff">minBound = Access minBound minBound</span></span>
-<span class="lineno">  109 </span>  <span class="decl"><span class="istickedoff">maxBound = Access maxBound maxBound</span></span>
+<span class="lineno">   95 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">accessSite'</span></span></span> :: !Permission -- ^ A given acting user's permission level on
+<span class="lineno">   96 </span>                               -- on the databrary site's data (e.g. volumes).
+<span class="lineno">   97 </span>                               -- The permission is computed through considering
+<span class="lineno">   98 </span>                               -- inherited permissions from the databrary site (party 0)
+<span class="lineno">   99 </span>                               -- down to the acting user.
+<span class="lineno">  100 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">accessMember'</span></span></span> :: !Permission -- ^ ??
+<span class="lineno">  101 </span>  } deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>) -- , Show)
+<span class="lineno">  102 </span>
+<span class="lineno">  103 </span>accessPermission' :: Access -&gt; Permission
+<span class="lineno">  104 </span><span class="decl"><span class="istickedoff">accessPermission' (Access s m) = min s m</span></span>
+<span class="lineno">  105 </span>
+<span class="lineno">  106 </span>accessSite, accessMember, accessPermission :: Has Access a =&gt; a -&gt; Permission
+<span class="lineno">  107 </span><span class="decl"><span class="istickedoff">accessSite = accessSite' . view</span></span>
+<span class="lineno">  108 </span><span class="decl"><span class="istickedoff">accessMember = accessMember' . view</span></span>
+<span class="lineno">  109 </span><span class="decl"><span class="istickedoff">accessPermission = accessPermission' . view</span></span>
 <span class="lineno">  110 </span>
-<span class="lineno">  111 </span>instance Monoid Access where
-<span class="lineno">  112 </span>  <span class="decl"><span class="istickedoff">mempty = Access mempty mempty</span></span>
-<span class="lineno">  113 </span>  <span class="decl"><span class="istickedoff">mappend (Access s1 m1) (Access s2 m2) = Access (mappend s1 s2) (mappend m1 m2)</span></span>
+<span class="lineno">  111 </span>instance Bounded Access where
+<span class="lineno">  112 </span>  <span class="decl"><span class="nottickedoff">minBound = Access minBound minBound</span></span>
+<span class="lineno">  113 </span>  <span class="decl"><span class="istickedoff">maxBound = Access maxBound maxBound</span></span>
 <span class="lineno">  114 </span>
-<span class="lineno">  115 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLiftMany [''Permission, ''Access]</span></span></span></span></span>
-<span class="lineno">  116 </span>
-<span class="lineno">  117 </span>-- | A PublicPolicy represents a set of rules that customize the public viewer role
-<span class="lineno">  118 </span>-- for a given volume. Restricted is the only current policy. It signifies
-<span class="lineno">  119 </span>-- hiding all data, except high level summary information and highlights.
-<span class="lineno">  120 </span>-- The word policy is a reference to the term used in attribute-based access control.
-<span class="lineno">  121 </span>data PublicPolicy = PublicRestrictedPolicy | PublicNoPolicy -- deriving (Show, Eq)
-<span class="lineno">  122 </span>
-<span class="lineno">  123 </span>-- | A SharedPolicy is the same as PublicPolicy currently, but applied to the shared
-<span class="lineno">  124 </span>-- viewer role.
-<span class="lineno">  125 </span>data SharedPolicy = SharedRestrictedPolicy | SharedNoPolicy -- deriving (Show, Eq)
+<span class="lineno">  115 </span>instance Monoid Access where
+<span class="lineno">  116 </span>  <span class="decl"><span class="istickedoff">mempty = Access mempty mempty</span></span>
+<span class="lineno">  117 </span>  <span class="decl"><span class="istickedoff">mappend (Access s1 m1) (Access s2 m2) = Access (mappend s1 s2) (mappend m1 m2)</span></span>
+<span class="lineno">  118 </span>
+<span class="lineno">  119 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLiftMany [''Permission, ''Access]</span></span></span></span></span>
+<span class="lineno">  120 </span>
+<span class="lineno">  121 </span>-- | A PublicPolicy represents a set of rules that customize the public viewer role
+<span class="lineno">  122 </span>-- for a given volume. Restricted is the only current policy. It signifies
+<span class="lineno">  123 </span>-- hiding all data, except high level summary information and highlights.
+<span class="lineno">  124 </span>-- The word policy is a reference to the term used in attribute-based access control.
+<span class="lineno">  125 </span>data PublicPolicy = PublicRestrictedPolicy | PublicNoPolicy -- deriving (Show, Eq)
 <span class="lineno">  126 </span>
-<span class="lineno">  127 </span>-- | A user's effective access to a given volume.
-<span class="lineno">  128 </span>data VolumeRolePolicy =
-<span class="lineno">  129 </span>    RoleNone
-<span class="lineno">  130 </span>  | RolePublicViewer PublicPolicy
-<span class="lineno">  131 </span>  | RoleSharedViewer SharedPolicy
-<span class="lineno">  132 </span>  | RoleReader
-<span class="lineno">  133 </span>  | RoleEditor
-<span class="lineno">  134 </span>  | RoleAdmin
-<span class="lineno">  135 </span>  -- deriving (Show, Eq)
-<span class="lineno">  136 </span>
-<span class="lineno">  137 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLift ''PublicPolicy</span></span></span>
-<span class="lineno">  138 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLift ''SharedPolicy</span></span></span>
-<span class="lineno">  139 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLift ''VolumeRolePolicy</span></span></span>
+<span class="lineno">  127 </span>-- | A SharedPolicy is the same as PublicPolicy currently, but applied to the shared
+<span class="lineno">  128 </span>-- viewer role.
+<span class="lineno">  129 </span>data SharedPolicy = SharedRestrictedPolicy | SharedNoPolicy -- deriving (Show, Eq)
+<span class="lineno">  130 </span>
+<span class="lineno">  131 </span>-- | A user's effective access to a given volume.
+<span class="lineno">  132 </span>data VolumeRolePolicy =
+<span class="lineno">  133 </span>    RoleNone
+<span class="lineno">  134 </span>  | RolePublicViewer PublicPolicy
+<span class="lineno">  135 </span>  | RoleSharedViewer SharedPolicy
+<span class="lineno">  136 </span>  | RoleReader
+<span class="lineno">  137 </span>  | RoleEditor
+<span class="lineno">  138 </span>  | RoleAdmin
+<span class="lineno">  139 </span>  -- deriving (Show, Eq)
 <span class="lineno">  140 </span>
-<span class="lineno">  141 </span>-- | Transition function used until all call sites take into Policy
-<span class="lineno">  142 </span>-- value into consideration.
-<span class="lineno">  143 </span>extractPermissionIgnorePolicy :: VolumeRolePolicy -&gt; Permission
-<span class="lineno">  144 </span><span class="decl"><span class="istickedoff">extractPermissionIgnorePolicy rp =</span>
-<span class="lineno">  145 </span><span class="spaces">  </span><span class="istickedoff">case rp of</span>
-<span class="lineno">  146 </span><span class="spaces">      </span><span class="istickedoff">RoleNone -&gt; PermissionNONE</span>
-<span class="lineno">  147 </span><span class="spaces">      </span><span class="istickedoff">RolePublicViewer _ -&gt; PermissionPUBLIC</span>
-<span class="lineno">  148 </span><span class="spaces">      </span><span class="istickedoff">RoleSharedViewer _ -&gt; PermissionSHARED</span>
-<span class="lineno">  149 </span><span class="spaces">      </span><span class="istickedoff">RoleReader -&gt; <span class="nottickedoff">PermissionREAD</span></span>
-<span class="lineno">  150 </span><span class="spaces">      </span><span class="istickedoff">RoleEditor -&gt; <span class="nottickedoff">PermissionEDIT</span></span>
-<span class="lineno">  151 </span><span class="spaces">      </span><span class="istickedoff">RoleAdmin -&gt; PermissionADMIN</span></span>
+<span class="lineno">  141 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLift ''PublicPolicy</span></span></span>
+<span class="lineno">  142 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLift ''SharedPolicy</span></span></span>
+<span class="lineno">  143 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriveLift ''VolumeRolePolicy</span></span></span>
+<span class="lineno">  144 </span>
+<span class="lineno">  145 </span>-- | Transition function used until all call sites take into Policy
+<span class="lineno">  146 </span>-- value into consideration.
+<span class="lineno">  147 </span>extractPermissionIgnorePolicy :: VolumeRolePolicy -&gt; Permission
+<span class="lineno">  148 </span><span class="decl"><span class="istickedoff">extractPermissionIgnorePolicy rp =</span>
+<span class="lineno">  149 </span><span class="spaces">  </span><span class="istickedoff">case rp of</span>
+<span class="lineno">  150 </span><span class="spaces">      </span><span class="istickedoff">RoleNone -&gt; PermissionNONE</span>
+<span class="lineno">  151 </span><span class="spaces">      </span><span class="istickedoff">RolePublicViewer _ -&gt; PermissionPUBLIC</span>
+<span class="lineno">  152 </span><span class="spaces">      </span><span class="istickedoff">RoleSharedViewer _ -&gt; PermissionSHARED</span>
+<span class="lineno">  153 </span><span class="spaces">      </span><span class="istickedoff">RoleReader -&gt; <span class="nottickedoff">PermissionREAD</span></span>
+<span class="lineno">  154 </span><span class="spaces">      </span><span class="istickedoff">RoleEditor -&gt; <span class="nottickedoff">PermissionEDIT</span></span>
+<span class="lineno">  155 </span><span class="spaces">      </span><span class="istickedoff">RoleAdmin -&gt; PermissionADMIN</span></span>
 
 </pre>
 </body>

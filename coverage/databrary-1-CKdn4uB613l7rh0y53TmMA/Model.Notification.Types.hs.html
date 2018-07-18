@@ -38,11 +38,11 @@ span.spaces    { background: white }
 <span class="lineno">   22 </span>type instance IdType Notification = Int32
 <span class="lineno">   23 </span>
 <span class="lineno">   24 </span>data Notification = Notification
-<span class="lineno">   25 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">notificationId</span></span></span> :: Id Notification
-<span class="lineno">   26 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">notificationTarget</span></span></span> :: !Account
-<span class="lineno">   27 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">notificationNotice</span></span></span> :: !Notice
+<span class="lineno">   25 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">notificationId</span></span></span> :: Id Notification
+<span class="lineno">   26 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">notificationTarget</span></span></span> :: !Account
+<span class="lineno">   27 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">notificationNotice</span></span></span> :: !Notice
 <span class="lineno">   28 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">notificationTime</span></span></span> :: Timestamp
-<span class="lineno">   29 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">notificationDelivered</span></span></span> :: !Delivery
+<span class="lineno">   29 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">notificationDelivered</span></span></span> :: !Delivery
 <span class="lineno">   30 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">notificationAgent</span></span></span> :: PartyRow
 <span class="lineno">   31 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">notificationParty</span></span></span> :: Maybe PartyRow
 <span class="lineno">   32 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">notificationVolume</span></span></span> :: Maybe VolumeRow
@@ -59,23 +59,23 @@ span.spaces    { background: white }
 <span class="lineno">   43 </span>  <span class="decl"><span class="nottickedoff">kindOf _ = &quot;notification&quot;</span></span>
 <span class="lineno">   44 </span>
 <span class="lineno">   45 </span>blankNotification :: Account -&gt; Notice -&gt; Notification
-<span class="lineno">   46 </span><span class="decl"><span class="nottickedoff">blankNotification target notice = Notification</span>
-<span class="lineno">   47 </span><span class="spaces">  </span><span class="nottickedoff">{ notificationId = error &quot;blankNotification&quot;</span>
-<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">, notificationTarget = target</span>
-<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">, notificationNotice = notice</span>
-<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">, notificationTime = error &quot;blankNotification&quot;</span>
-<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">, notificationDelivered = DeliveryNone</span>
-<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">, notificationAgent = partyRow nobodyParty</span>
-<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">, notificationParty = Nothing</span>
-<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">, notificationVolume = Nothing</span>
-<span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">, notificationPermission = Nothing</span>
-<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">, notificationContainerId = Nothing</span>
-<span class="lineno">   57 </span><span class="spaces">  </span><span class="nottickedoff">, notificationSegment = Nothing</span>
-<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">, notificationAssetId = Nothing</span>
-<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">, notificationRelease = Nothing</span>
-<span class="lineno">   60 </span><span class="spaces">  </span><span class="nottickedoff">, notificationCommentId = Nothing</span>
-<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">, notificationTag = Nothing</span>
-<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">}</span></span>
+<span class="lineno">   46 </span><span class="decl"><span class="istickedoff">blankNotification target notice = Notification</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">{ notificationId = <span class="nottickedoff">error &quot;blankNotification&quot;</span></span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">, notificationTarget = target</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff">, notificationNotice = notice</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="istickedoff">, notificationTime = <span class="nottickedoff">error &quot;blankNotification&quot;</span></span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff">, notificationDelivered = DeliveryNone</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="istickedoff">, notificationAgent = <span class="nottickedoff">partyRow nobodyParty</span></span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="istickedoff">, notificationParty = <span class="nottickedoff">Nothing</span></span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="istickedoff">, notificationVolume = Nothing</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="istickedoff">, notificationPermission = Nothing</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="istickedoff">, notificationContainerId = Nothing</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="istickedoff">, notificationSegment = Nothing</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="istickedoff">, notificationAssetId = Nothing</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="istickedoff">, notificationRelease = Nothing</span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="istickedoff">, notificationCommentId = Nothing</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="istickedoff">, notificationTag = Nothing</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="istickedoff">}</span></span>
 
 </pre>
 </body>

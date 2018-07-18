@@ -72,11 +72,11 @@ span.spaces    { background: white }
 <span class="lineno">   56 </span>instance Has Volume AssetSlot where
 <span class="lineno">   57 </span>  <span class="decl"><span class="nottickedoff">view = view . slotAsset</span></span>
 <span class="lineno">   58 </span>getAssetSlotVolume :: AssetSlot -&gt; Volume
-<span class="lineno">   59 </span><span class="decl"><span class="nottickedoff">getAssetSlotVolume = assetVolume . slotAsset</span></span>
+<span class="lineno">   59 </span><span class="decl"><span class="istickedoff">getAssetSlotVolume = assetVolume . slotAsset</span></span>
 <span class="lineno">   60 </span>instance Has (Id Volume) AssetSlot where
 <span class="lineno">   61 </span>  <span class="decl"><span class="nottickedoff">view = view . slotAsset</span></span>
 <span class="lineno">   62 </span>getAssetSlotVolumePermission2 :: AssetSlot -&gt; VolumeRolePolicy
-<span class="lineno">   63 </span><span class="decl"><span class="nottickedoff">getAssetSlotVolumePermission2 = volumeRolePolicy . getAssetSlotVolume</span></span>
+<span class="lineno">   63 </span><span class="decl"><span class="istickedoff">getAssetSlotVolumePermission2 = volumeRolePolicy . getAssetSlotVolume</span></span>
 <span class="lineno">   64 </span>getAssetSlotFormat :: AssetSlot -&gt; Format
 <span class="lineno">   65 </span><span class="decl"><span class="nottickedoff">getAssetSlotFormat = getAssetFormat . slotAsset</span></span>
 <span class="lineno">   66 </span>

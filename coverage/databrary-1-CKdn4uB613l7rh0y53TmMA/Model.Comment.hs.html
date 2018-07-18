@@ -352,74 +352,74 @@ span.spaces    { background: white }
 <span class="lineno">  336 </span><span class="spaces">      </span><span class="nottickedoff">rows)</span></span>
 <span class="lineno">  337 </span>
 <span class="lineno">  338 </span>mapQuery :: ByteString -&gt; ([PGValue] -&gt; a) -&gt; PGSimpleQuery a
-<span class="lineno">  339 </span><span class="decl"><span class="nottickedoff">mapQuery qry mkResult =</span>
-<span class="lineno">  340 </span><span class="spaces">  </span><span class="nottickedoff">fmap mkResult (rawPGSimpleQuery qry)</span></span>
+<span class="lineno">  339 </span><span class="decl"><span class="istickedoff">mapQuery qry mkResult =</span>
+<span class="lineno">  340 </span><span class="spaces">  </span><span class="istickedoff">fmap <span class="nottickedoff">mkResult</span> (rawPGSimpleQuery qry)</span></span>
 <span class="lineno">  341 </span>
 <span class="lineno">  342 </span>makeCommentRow :: Id Comment -&gt; Id Container -&gt; Segment -&gt; Id Party -&gt; Timestamp -&gt; T.Text -&gt; CommentRow
 <span class="lineno">  343 </span><span class="decl"><span class="nottickedoff">makeCommentRow i c s w t x = CommentRow i w (SlotId c s) t x</span></span>
 <span class="lineno">  344 </span>
 <span class="lineno">  345 </span>lookupVolumeCommentRows :: MonadDB c m =&gt; Volume -&gt; m [CommentRow]
-<span class="lineno">  346 </span><span class="decl"><span class="nottickedoff">lookupVolumeCommentRows v = do</span>
-<span class="lineno">  347 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a8I48 = unknownPGTypeEnv</span>
-<span class="lineno">  348 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery -- .(selectQuery selectCommentRow &quot;JOIN container ON comment.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container&quot;)</span>
-<span class="lineno">  349 </span><span class="spaces">   </span><span class="nottickedoff">(fmap</span>
-<span class="lineno">  350 </span><span class="spaces">      </span><span class="nottickedoff">(\ (vid_a8I38, vcontainer_a8I39, vsegment_a8I3a, vwho_a8I3b,</span>
-<span class="lineno">  351 </span><span class="spaces">          </span><span class="nottickedoff">vtime_a8I3c, vtext_a8I3d)</span>
-<span class="lineno">  352 </span><span class="spaces">         </span><span class="nottickedoff">-&gt; makeCommentRow</span>
-<span class="lineno">  353 </span><span class="spaces">              </span><span class="nottickedoff">vid_a8I38</span>
-<span class="lineno">  354 </span><span class="spaces">              </span><span class="nottickedoff">vcontainer_a8I39</span>
-<span class="lineno">  355 </span><span class="spaces">              </span><span class="nottickedoff">vsegment_a8I3a</span>
-<span class="lineno">  356 </span><span class="spaces">              </span><span class="nottickedoff">vwho_a8I3b</span>
-<span class="lineno">  357 </span><span class="spaces">              </span><span class="nottickedoff">vtime_a8I3c</span>
-<span class="lineno">  358 </span><span class="spaces">              </span><span class="nottickedoff">vtext_a8I3d)</span>
-<span class="lineno">  359 </span><span class="spaces">      </span><span class="nottickedoff">(mapQuery</span>
-<span class="lineno">  360 </span><span class="spaces">        </span><span class="nottickedoff">((\ _p_a8I49 -&gt;</span>
-<span class="lineno">  361 </span><span class="spaces">                       </span><span class="nottickedoff">(Data.ByteString.concat</span>
-<span class="lineno">  362 </span><span class="spaces">                          </span><span class="nottickedoff">[Data.String.fromString</span>
-<span class="lineno">  363 </span><span class="spaces">                             </span><span class="nottickedoff">&quot;SELECT comment.id,comment.container,comment.segment,comment.who,comment.time,comment.text FROM comment JOIN container ON comment.container = container.id WHERE container.volume = &quot;,</span>
-<span class="lineno">  364 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
-<span class="lineno">  365 </span><span class="spaces">                             </span><span class="nottickedoff">_tenv_a8I48</span>
-<span class="lineno">  366 </span><span class="spaces">                             </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  367 </span><span class="spaces">                                </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
-<span class="lineno">  368 </span><span class="spaces">                             </span><span class="nottickedoff">_p_a8I49,</span>
-<span class="lineno">  369 </span><span class="spaces">                           </span><span class="nottickedoff">Data.String.fromString &quot; ORDER BY container&quot;]))</span>
-<span class="lineno">  370 </span><span class="spaces">         </span><span class="nottickedoff">(volumeId $ volumeRow v))</span>
-<span class="lineno">  371 </span><span class="spaces">               </span><span class="nottickedoff">(\ [_cid_a8I4a,</span>
-<span class="lineno">  372 </span><span class="spaces">                   </span><span class="nottickedoff">_ccontainer_a8I4b,</span>
-<span class="lineno">  373 </span><span class="spaces">                   </span><span class="nottickedoff">_csegment_a8I4c,</span>
-<span class="lineno">  374 </span><span class="spaces">                   </span><span class="nottickedoff">_cwho_a8I4d,</span>
-<span class="lineno">  375 </span><span class="spaces">                   </span><span class="nottickedoff">_ctime_a8I4e,</span>
-<span class="lineno">  376 </span><span class="spaces">                   </span><span class="nottickedoff">_ctext_a8I4f]</span>
-<span class="lineno">  377 </span><span class="spaces">                  </span><span class="nottickedoff">-&gt; (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
-<span class="lineno">  378 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a8I48</span>
-<span class="lineno">  379 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  380 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
-<span class="lineno">  381 </span><span class="spaces">                        </span><span class="nottickedoff">_cid_a8I4a, </span>
-<span class="lineno">  382 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
-<span class="lineno">  383 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a8I48</span>
-<span class="lineno">  384 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  385 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
-<span class="lineno">  386 </span><span class="spaces">                        </span><span class="nottickedoff">_ccontainer_a8I4b, </span>
-<span class="lineno">  387 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
-<span class="lineno">  388 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a8I48</span>
-<span class="lineno">  389 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  390 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;segment&quot;)</span>
-<span class="lineno">  391 </span><span class="spaces">                        </span><span class="nottickedoff">_csegment_a8I4c, </span>
-<span class="lineno">  392 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
-<span class="lineno">  393 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a8I48</span>
-<span class="lineno">  394 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  395 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
-<span class="lineno">  396 </span><span class="spaces">                        </span><span class="nottickedoff">_cwho_a8I4d, </span>
-<span class="lineno">  397 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
-<span class="lineno">  398 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a8I48</span>
-<span class="lineno">  399 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  400 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;timestamp with time zone&quot;)</span>
-<span class="lineno">  401 </span><span class="spaces">                        </span><span class="nottickedoff">_ctime_a8I4e, </span>
-<span class="lineno">  402 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
-<span class="lineno">  403 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a8I48</span>
-<span class="lineno">  404 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
-<span class="lineno">  405 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span>
-<span class="lineno">  406 </span><span class="spaces">                        </span><span class="nottickedoff">_ctext_a8I4f))))</span></span>
+<span class="lineno">  346 </span><span class="decl"><span class="istickedoff">lookupVolumeCommentRows v = do</span>
+<span class="lineno">  347 </span><span class="spaces">  </span><span class="istickedoff">let <span class="nottickedoff">_tenv_a8I48 = unknownPGTypeEnv</span></span>
+<span class="lineno">  348 </span><span class="spaces">  </span><span class="istickedoff">dbQuery -- .(selectQuery selectCommentRow &quot;JOIN container ON comment.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container&quot;)</span>
+<span class="lineno">  349 </span><span class="spaces">   </span><span class="istickedoff">(fmap</span>
+<span class="lineno">  350 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(\ (vid_a8I38, vcontainer_a8I39, vsegment_a8I3a, vwho_a8I3b,</span></span>
+<span class="lineno">  351 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">vtime_a8I3c, vtext_a8I3d)</span></span>
+<span class="lineno">  352 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">-&gt; makeCommentRow</span></span>
+<span class="lineno">  353 </span><span class="spaces">              </span><span class="istickedoff"><span class="nottickedoff">vid_a8I38</span></span>
+<span class="lineno">  354 </span><span class="spaces">              </span><span class="istickedoff"><span class="nottickedoff">vcontainer_a8I39</span></span>
+<span class="lineno">  355 </span><span class="spaces">              </span><span class="istickedoff"><span class="nottickedoff">vsegment_a8I3a</span></span>
+<span class="lineno">  356 </span><span class="spaces">              </span><span class="istickedoff"><span class="nottickedoff">vwho_a8I3b</span></span>
+<span class="lineno">  357 </span><span class="spaces">              </span><span class="istickedoff"><span class="nottickedoff">vtime_a8I3c</span></span>
+<span class="lineno">  358 </span><span class="spaces">              </span><span class="istickedoff"><span class="nottickedoff">vtext_a8I3d)</span></span>
+<span class="lineno">  359 </span><span class="spaces">      </span><span class="istickedoff">(mapQuery</span>
+<span class="lineno">  360 </span><span class="spaces">        </span><span class="istickedoff">((\ _p_a8I49 -&gt;</span>
+<span class="lineno">  361 </span><span class="spaces">                       </span><span class="istickedoff">(Data.ByteString.concat</span>
+<span class="lineno">  362 </span><span class="spaces">                          </span><span class="istickedoff">[Data.String.fromString</span>
+<span class="lineno">  363 </span><span class="spaces">                             </span><span class="istickedoff">&quot;SELECT comment.id,comment.container,comment.segment,comment.who,comment.time,comment.text FROM comment JOIN container ON comment.container = container.id WHERE container.volume = &quot;,</span>
+<span class="lineno">  364 </span><span class="spaces">                           </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  365 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">_tenv_a8I48</span></span>
+<span class="lineno">  366 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  367 </span><span class="spaces">                                </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span></span>
+<span class="lineno">  368 </span><span class="spaces">                             </span><span class="istickedoff">_p_a8I49,</span>
+<span class="lineno">  369 </span><span class="spaces">                           </span><span class="istickedoff">Data.String.fromString &quot; ORDER BY container&quot;]))</span>
+<span class="lineno">  370 </span><span class="spaces">         </span><span class="istickedoff">(volumeId $ volumeRow v))</span>
+<span class="lineno">  371 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">(\ [_cid_a8I4a,</span></span>
+<span class="lineno">  372 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">_ccontainer_a8I4b,</span></span>
+<span class="lineno">  373 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">_csegment_a8I4c,</span></span>
+<span class="lineno">  374 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">_cwho_a8I4d,</span></span>
+<span class="lineno">  375 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">_ctime_a8I4e,</span></span>
+<span class="lineno">  376 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">_ctext_a8I4f]</span></span>
+<span class="lineno">  377 </span><span class="spaces">                  </span><span class="istickedoff"><span class="nottickedoff">-&gt; (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span></span>
+<span class="lineno">  378 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a8I48</span></span>
+<span class="lineno">  379 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  380 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span></span>
+<span class="lineno">  381 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_cid_a8I4a, </span></span>
+<span class="lineno">  382 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span></span>
+<span class="lineno">  383 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a8I48</span></span>
+<span class="lineno">  384 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  385 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span></span>
+<span class="lineno">  386 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_ccontainer_a8I4b, </span></span>
+<span class="lineno">  387 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span></span>
+<span class="lineno">  388 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a8I48</span></span>
+<span class="lineno">  389 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  390 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;segment&quot;)</span></span>
+<span class="lineno">  391 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_csegment_a8I4c, </span></span>
+<span class="lineno">  392 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span></span>
+<span class="lineno">  393 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a8I48</span></span>
+<span class="lineno">  394 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  395 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span></span>
+<span class="lineno">  396 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_cwho_a8I4d, </span></span>
+<span class="lineno">  397 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span></span>
+<span class="lineno">  398 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a8I48</span></span>
+<span class="lineno">  399 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  400 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;timestamp with time zone&quot;)</span></span>
+<span class="lineno">  401 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_ctime_a8I4e, </span></span>
+<span class="lineno">  402 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span></span>
+<span class="lineno">  403 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a8I48</span></span>
+<span class="lineno">  404 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
+<span class="lineno">  405 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span></span>
+<span class="lineno">  406 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_ctext_a8I4f))</span>))</span></span>
 <span class="lineno">  407 </span>
 <span class="lineno">  408 </span>addComment :: MonadDB c m =&gt; Comment -&gt; m Comment
 <span class="lineno">  409 </span><span class="decl"><span class="nottickedoff">addComment c@Comment{..} = do</span>

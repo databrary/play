@@ -24,7 +24,7 @@
 <a name="line-15"></a>
 <a name="line-16"></a><a name="Notifications"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Notifications</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Notifications</span>
 <a name="line-17"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>notificationsTrigger</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-layout'>(</span><span class='hs-conid'>MVar</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-conid'>Period</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-<a name="line-18"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>notificationsFilter</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>Regex</span><span class='hs-varop'>.</span><span class='hs-conid'>Regex</span>
+<a name="line-18"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>notificationsFilter</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-conid'>Regex</span><span class='hs-varop'>.</span><span class='hs-conid'>Regex</span> <span class='hs-comment'>-- TODO: get rid of this</span>
 <a name="line-19"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>notificationsCopy</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>!</span><span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-layout'>)</span>
 <a name="line-20"></a>  <span class='hs-layout'>}</span>
 <a name="line-21"></a>

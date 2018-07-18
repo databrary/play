@@ -78,7 +78,7 @@ span.spaces    { background: white }
 <span class="lineno">   62 </span>-- TODO: get rid of this
 <span class="lineno">   63 </span>fromMaybeM :: Monad m =&gt; m a -&gt; Maybe a -&gt; m a
 <span class="lineno">   64 </span><span class="decl"><span class="istickedoff">fromMaybeM _ (Just a) = return a</span>
-<span class="lineno">   65 </span><span class="spaces"></span><span class="istickedoff">fromMaybeM m Nothing = <span class="nottickedoff">m</span></span></span>
+<span class="lineno">   65 </span><span class="spaces"></span><span class="istickedoff">fromMaybeM m Nothing = m</span></span>
 <span class="lineno">   66 </span>
 <span class="lineno">   67 </span>infixl 3 `orElseM`
 <span class="lineno">   68 </span>

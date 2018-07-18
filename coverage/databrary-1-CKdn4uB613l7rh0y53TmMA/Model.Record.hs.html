@@ -82,7 +82,7 @@ span.spaces    { background: white }
 <span class="lineno">   66 </span>
 <span class="lineno">   67 </span>lookupVolumeRecords :: MonadDB c m =&gt; Volume -&gt; m [Record]
 <span class="lineno">   68 </span><span class="decl"><span class="istickedoff">lookupVolumeRecords vol =</span>
-<span class="lineno">   69 </span><span class="spaces">  </span><span class="istickedoff">dbQuery $ fmap ($ <span class="nottickedoff">vol</span>) $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery selectVolumeRecord &quot;$WHERE record.volume = ${volumeId $ volumeRow vol}&quot;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)</span></span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="istickedoff">dbQuery $ fmap ($ <span class="nottickedoff">vol</span>) $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery selectVolumeRecord &quot;$WHERE record.volume = ${volumeId $ volumeRow vol}&quot;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)</span></span>
 <span class="lineno">   70 </span>
 <span class="lineno">   71 </span>addRecord :: MonadAudit c m =&gt; Record -&gt; m Record
 <span class="lineno">   72 </span><span class="decl"><span class="istickedoff">addRecord br = do</span>
@@ -95,9 +95,9 @@ span.spaces    { background: white }
 <span class="lineno">   79 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute1' $(updateRecord 'ident 'r)</span></span>
 <span class="lineno">   80 </span>
 <span class="lineno">   81 </span>removeRecord :: MonadAudit c m =&gt; Record -&gt; m Bool
-<span class="lineno">   82 </span><span class="decl"><span class="nottickedoff">removeRecord r = do</span>
-<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- getAuditIdentity</span>
-<span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">isRight &lt;$&gt; dbTryJust (guard . isForeignKeyViolation) (dbExecute1 $(deleteRecord 'ident 'r))</span></span>
+<span class="lineno">   82 </span><span class="decl"><span class="istickedoff">removeRecord r = do</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="istickedoff">ident &lt;- getAuditIdentity</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">isRight</span> &lt;$&gt; dbTryJust <span class="nottickedoff">(guard . isForeignKeyViolation)</span> (dbExecute1 $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">deleteRecord 'ident 'r</span></span></span></span></span></span></span></span>))</span></span>
 <span class="lineno">   85 </span>
 <span class="lineno">   86 </span>recordJSON :: JSON.ToNestedObject o u =&gt; Bool -&gt; Record -&gt; JSON.Record (Id Record) o
 <span class="lineno">   87 </span><span class="decl"><span class="nottickedoff">recordJSON publicRestricted r@Record{ recordRow = RecordRow{..}, ..} = JSON.Record recordId $</span>
