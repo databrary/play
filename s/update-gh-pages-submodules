@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+
+#
+# Update submodules within gh-pages.
+#
+#
+# There are currently two submodules: one for route docs, and one for frontend
+# docs.
+#
+
+die () {
+    >&2 echo $@
+    exit 1
+}
+
+if [ "$0" != "./s/update-gh-pages-submodules" ]; then
+    die "Must be run as ./s/update-gh-pages from the project root"
+fi
+startdir=$(pwd)
+
+workdir=$(mktemp -d)
+trap "rm -r $workdir; cd $startdir; git worktree prune" EXIT
+
+git worktree add "$workdir" gh-pages
+cd $workdir
+git pull
+git submodule update --remote
+git commit -am 'Update submodules'
+git push
