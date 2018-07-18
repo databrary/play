@@ -1,34 +1,58 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
 <style>
 /* Copied from http://bettermotherfuckingwebsite.com/, with color and background
 tweaks. But what's with all the 'px'? I thought that was a no-no. *Shrug* */
-body{margin:40px auto;max-width:650px;line-height:1.6;font-size:18px;color:#4d4e53;background:#ffffff;padding:0 10px}h1,h2,h3{line-height:1.2}
-.foo{font-size:20px}
+body
+  { margin:40px auto
+  ; max-width:650px
+  ; line-height:1.6
+  ; font-size:18px
+  ; color:#4d4e53
+  ; background:#ffffff
+  ; padding:0 10px
+  }
+h1,h2,h3 { line-height:1.2 }
+.bigger {font-size:20px }
+.item-note
+  { font-style: italic
+  ; font-size: 16px
+  ; margin: 0 0 5px 0.5em
+  /* fixme: vertical rhythm */
+  ; line-height:1.5
+  }
 </style>
 
 <title>Databrary Internal Docs</title>
 <h1>Databrary Internal Docs</h1>
 <p>
-Welcome! This is the index page for Databrary's developer-focused code
-documentation. We have:
+Welcome! This is our developer documentation index.
 
 <ul>
   <li>
-    <a class="foo" href="frontend-doc/">Frontend library documentation</a>
-    generated with JSDoc.
+    <a class="bigger" href="frontend-doc/">Frontend library documentation</a>
+    generated with JSDoc
+    (<a href="https://github.com/databrary/frontend-doc">source</a>).
   <li>
-    <a class="foo" href="haddocks/">Backend library documentation</a>
+    <a class="bigger" href="haddocks/">Backend library documentation</a>
     generated with Haddock.
   <li>
-    <a class="foo" href="coverage/hpc_index.html">A backend test coverage report</a>
-    generated with hpc.
-    <br><i>There are some <a href="coverage-comparison/">other coverage reports</a>,
-    too.</i>
+    Tying it together is
+    <a class="bigger" href="route-doc/">API-level documentation</a> generated with
+    ReDoc
+    (<a href="https://github.com/databrary/route-doc">source</a>).
+    <p class="item-note">
+    Please note that this API is a <b>developer preview</b>. We hardly know
+    what it looks like, ourselves.
   <li>
-    <a class="foo" href="hlint.html">HLint hints for the backend Haskell
-    code</a>. (Unfortunately, this report doesn't seem to work very well in
-    Firefox.)
+    <a class="bigger" href="coverage/hpc_index.html">A backend test coverage report</a>
+    generated with hpc.
+    <p class="item-note">There are some <a href="coverage-comparison/">other coverage reports</a>,
+    too, though they are becoming dated.
+  <li>
+    <a class="bigger" href="hlint.html">HLint hints for the backend Haskell
+    code</a>.
 </ul>
 <hr>
 <p>
