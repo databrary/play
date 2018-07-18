@@ -105,11 +105,19 @@ app.directive 'releaseTable', [
       tbody = table.find('tbody')
       for key, value of $scope.volume.releasesummary
         if Object.keys(value).length > 0
-          for k, v of value
+          for k, v of value 
             if k == Object.keys(value)[0]
+              if k == 'excerpts'
+                k = 'learning audiences'
+              if k == 'shared'
+                k = 'authorized users'
               th = '<tr><th rowspan="' + Object.keys(value).length + '">' + key + '</th><th>' + k + '</th><td>' + v + '</td></tr>'
               tbody.append(th)
             else if Object.keys(value).length > 1
+              if k == 'excerpts'
+                k = 'learning audiences'
+              if k == 'shared'
+                k = 'authorized users'
               trow = '<tr><th>' + k + '</th><td>' + v + '</td></tr>'
               tbody.append(trow)
             else 
