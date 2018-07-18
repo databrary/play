@@ -3,8 +3,6 @@
 module Store.Service
   ( Storage
   , initStorage
-  -- * Replacing initStorage
-  , initStorage2
   , StorageLocationConfig (..)
   ) where
 
@@ -16,10 +14,8 @@ import System.Posix.FilePath (addTrailingPathSeparator)
 import System.Posix.Files.ByteString (isDirectory, deviceID, getFileStatus)
 import System.Posix.Types (DeviceID)
 
-import qualified Store.Config as C
 import Files
 import Store.Types
-import Store.Transcoder
 
 -- | Locations used by Storage. This is almost /identical/ to 'Storage', except
 -- in how it's used and what it represents. Future work might merge the two
@@ -33,20 +29,21 @@ data StorageLocationConfig = StorageLocationConfig
     , storageLocFallback :: Maybe RawFilePath
     }
 
--- | A new version of 'initStorage' that is faithful to the original's
--- implementation.
+-- | Initialize the configured storage location. It checks for the existence of
+-- certain directories and adds subdirectories. Primarily, this allows us to
+-- interface with third party services (NYU HPC) that have set up certain
+-- directories for us to use.
 --
 -- This may throw a variety of unchecked exceptions, which is probably the right
 -- thing to do for initialization.
---
--- However, it also creates resources (directories)
 --
 -- TODO:
 -- * Combine initCache and initTemp, which are doing the same thing with quite
 --   different implementations: appending a subdirectory, and creating it if it
 --   doesn't exist
 -- * Commit to reordering execution steps, purifying the second arg
-initStorage2
+-- * Use throwIO instead of error
+initStorage
     :: Either String StorageLocationConfig
     -- ^ Either the set of paths to use for storage, or a message explaining why
     -- storage isn't available. This Either will collapse very soon, once use
@@ -57,8 +54,8 @@ initStorage2
     -- suspect that is overkill, and this will get moved out of IO.
     -> IO Storage
     -- ^ The 'Storage' resource (presuming no exceptions were thrown).
-initStorage2 (Left e) _ = return $ error $ "Storage unavailable: " ++ e
-initStorage2 (Right StorageLocationConfig {..}) initTc = do
+initStorage (Left e) _ = return $ error $ "Storage unavailable: " ++ e
+initStorage (Right StorageLocationConfig {..}) initTc = do
     temp <- maybe (rawFilePath =<< getTemporaryDirectory) pure storageLocTemp
     foldM_
         checkDirs
@@ -112,22 +109,3 @@ initStorage2 (Right StorageLocationConfig {..}) initTc = do
             False
             (getStorageTempParticipantUpload' unTempPath)
         pure tempPath
-
-{-# DEPRECATED initStorage "Gradually being replaced by initStorage2" #-}
-initStorage :: C.Config -> IO Storage
-initStorage = initStorage2 . mkLocConf <*> initTc
-  where
-    initTc :: C.Config -> IO (Maybe Transcoder)
-    initTc = initTranscoder . (C.! "transcode")
-    -- TODO: Rename and export
-    mkLocConf :: C.Config -> Either String StorageLocationConfig
-    mkLocConf conf
-        | Just down <- conf C.! "DOWN" = Left down
-        | otherwise = Right StorageLocationConfig
-            { storageLocTemp = conf C.! "temp"
-            , storageLocMaster = conf C.! "master"
-            , storageLocUpload = conf C.! "upload"
-            , storageLocCache = conf C.! "cache"
-            , storageLocStage = conf C.! "stage"
-            , storageLocFallback = conf C.! "fallback"
-            }

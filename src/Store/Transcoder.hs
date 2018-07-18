@@ -4,8 +4,6 @@ module Store.Transcoder
   ( runTranscoder
   , initTranscoder
   , transcodeEnabled
-  -- * Replacing initTranscoder
-  , initTranscoder2
   ) where
 
 import Data.Maybe (isJust)
@@ -14,15 +12,16 @@ import System.Process (readProcessWithExitCode)
 import System.Exit (ExitCode(..))
 
 import Paths_databrary (version, getDataFileName)
-import qualified Store.Config as C
 import Store.Types
 
 runTranscoder :: Transcoder -> [String] -> IO (ExitCode, String, String)
 runTranscoder (Transcoder cmd arg _) args =
   readProcessWithExitCode cmd (arg ++ args) ""
 
-initTranscoder2 :: TranscoderConfig -> IO (Maybe Transcoder)
-initTranscoder2 tconf@TranscoderConfig {..} = case (transcoderHost, transcoderDir) of
+-- | Ensures the configured transcoder works, returning it as a capability. Will
+-- throw a synchronous exception if the transcoder can't be run.
+initTranscoder :: TranscoderConfig -> IO (Maybe Transcoder)
+initTranscoder tconf@TranscoderConfig {..} = case (transcoderHost, transcoderDir) of
     (Nothing, Nothing) -> return Nothing
     _ -> Just <$> do
         cmd <- getDataFileName "transctl.sh"
@@ -45,14 +44,6 @@ initTranscoder2 tconf@TranscoderConfig {..} = case (transcoderHost, transcoderDi
                     ++ out
                     ++ "\n=== STDERR ===\n"
                     ++ err)
-
-{-# DEPRECATED initTranscoder "Gradually being replaced by initTranscoder2" #-}
-initTranscoder :: C.Config -> IO (Maybe Transcoder)
-initTranscoder conf = initTranscoder2 TranscoderConfig
-    { transcoderHost = conf C.! "host"
-    , transcoderDir = conf C.! "dir"
-    , transcoderMount = conf C.! "mount"
-    }
 
 transcodeEnabled :: Storage -> Bool
 transcodeEnabled = isJust . storageTranscoder

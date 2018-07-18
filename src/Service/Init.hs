@@ -13,7 +13,7 @@ import qualified Store.Config as C
 import Service.DB (initDB, finiDB, runDBM)
 import Service.Entropy (initEntropy)
 import HTTP.Client (initHTTPClient)
-import Store.Service (initStorage)
+import Store.Service (initStorage, StorageLocationConfig (..))
 import Store.AV (initAV)
 import Service.Passwd (initPasswd)
 import Service.Log (initLogs, finiLogs)
@@ -29,6 +29,9 @@ import Service.Notification
 import Service.Periodic (forkPeriodic)
 import Service.Types
 import Controller.Notification (forkNotifier)
+import Store.Transcoder (initTranscoder)
+import Store.Types
+    (Transcoder, TranscoderConfig (..), Storage)
 
 -- | Initialize a Service from a Config
 initService
@@ -43,7 +46,7 @@ initService fg conf = do
   passwd <- initPasswd
   messages <- loadMessages
   db <- initDB (conf C.! "db")
-  storage <- initStorage (conf C.! "store")
+  storage <- initStorage_ (conf C.! "store")
   av <- initAV
   web <- initWeb
   httpc <- initHTTPClient
@@ -81,6 +84,26 @@ initService fg conf = do
   return $! rc
     { servicePeriodic = periodic
     }
+  where
+  initTranscoder_ :: C.Config -> IO (Maybe Transcoder)
+  initTranscoder_ c = initTranscoder TranscoderConfig
+      { transcoderHost = c C.! "host"
+      , transcoderDir = c C.! "dir"
+      , transcoderMount = c C.! "mount"
+      }
+  initStorage_ :: C.Config -> IO Storage
+  initStorage_ = initStorage . mkLocConf <*> initTranscoder_ . (C.! "transcode")
+  mkLocConf :: C.Config -> Either String StorageLocationConfig
+  mkLocConf c
+      | Just down <- c C.! "DOWN" = Left down
+      | otherwise = Right StorageLocationConfig
+          { storageLocTemp = c C.! "temp"
+          , storageLocMaster = c C.! "master"
+          , storageLocUpload = c C.! "upload"
+          , storageLocCache = c C.! "cache"
+          , storageLocStage = c C.! "stage"
+          , storageLocFallback = c C.! "fallback"
+          }
 
 -- | Close up Solr, database, and logs
 finiService :: Service -> IO ()
