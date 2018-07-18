@@ -21,10 +21,10 @@ fi
 startdir=$(pwd)
 
 workdir=$(mktemp -d)
-trap "rm -r $workdir; cd $startdir; git worktree prune" EXIT
+trap "rm -r '$workdir'; cd '$startdir'; git worktree prune" EXIT
 
 git worktree add "$workdir" gh-pages
-cd $workdir
+cd "$workdir"
 git pull
 git submodule update --remote
 git commit -am 'Update submodules'
