@@ -1,3 +1,6 @@
 [submodule "frontend-doc"]
 	path = frontend-doc
 	url = https://github.com/databrary/frontend-doc
+[submodule "route-doc"]
+	path = route-doc
+	url = https://github.com/databrary/route-doc
