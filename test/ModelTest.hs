@@ -26,7 +26,6 @@ import System.Exit (ExitCode(..))
 import System.Process (readProcessWithExitCode)
 import Test.Hspec.Expectations
 import Test.Tasty
-import Test.Tasty.ExpectedFailure
 import Test.Tasty.HUnit
 
 import Controller.CSV (volumeCSV)
@@ -333,21 +332,23 @@ _test_storage = Test.stepsWithTransaction "" $ \step cn2 -> do
 -}
 
 test_12a :: TestTree
-test_12a = ignoreTest $ -- "Invalid cross-device link"
-  Test.stepsWithTransaction "test_12a" $ \step cn2 -> do
+test_12a =
+  Test.stepsWithTransaction "test_12a" $ \step cn2 -> runResourceT $ withStorage >>= \storage -> liftIO $ do
     step "Given a partially shared volume"
-    (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+    (aiAcct, aiCtxt) <- do
+        (a, c) <- addAuthorizedInvestigatorWithInstitution' cn2
+        pure (a, c { ctxStorage = Just storage })
     -- TODO: should be lookup auth on rootParty
     vol <- runReaderT (addVolumeSetPublic aiAcct) aiCtxt
     step "When a publicly released asset is added"
-    aiCtxt2 <- withStorage aiCtxt
+    aiCtxt2 <- pure aiCtxt -- :D
     foundAsset <- runReaderT
         (do
               (a, contents) <- Gen.sample (genCreateAssetAfterUpload vol)
               let a' = a { assetRow = (assetRow a) { assetRelease = Just ReleasePUBLIC } }
-              let path = "/tmp/test1.csv" -- save contents to tmpdir
+                  rpath = (storageTemp storage) </> "test1.csv"
+                  path = BSC.unpack rpath
               liftIO (BS.writeFile path contents)
-              let rpath = "/tmp/test1.csv" -- TODO: convert from filepath to rawfilepath
               savedAsset <- addAsset a' (Just rpath)
               pure savedAsset
               -- change asset
@@ -374,7 +375,7 @@ test_12b = localOption (mkTimeout (10 * 10^(6 :: Int))) $ Test.stepsWithResource
     vol <- runReaderT (addVolumeSetPublic aiAcct) aiCtxt
     step "When a publicly released video asset is added"
     runResourceT $ do
-        storage <- withStorage2
+        storage <- withStorage
         let aiCtxt2 = aiCtxt { ctxStorage = Just storage }
         liftIO $ do
             aiCtxt3 <- withAV aiCtxt2
@@ -601,10 +602,12 @@ test_change_volume_links = Test.stepsWithTransaction "" $ \step cn2 -> do
 
 ------- search -------------
 test_16 :: TestTree
-test_16 = ignoreTest $ -- TODO: enable this inside of nix build with solr binaries and core installed in precheck
-    Test.stepsWithTransaction "test_16" $ \step cn2 -> do
+test_16 = localOption (mkTimeout (10 * 10^(6 :: Int))) $
+    Test.stepsWithTransaction "test_16" $ \step cn2 -> runResourceT $ withStorage >>= \storage -> liftIO $ do
         step "Given an authorized investigator"
-        (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
+        (aiAcct, aiCtxt) <- do
+            (a, c) <- addAuthorizedInvestigatorWithInstitution' cn2
+            pure (a, c { ctxStorage = Just storage })
         step "When the AI creates a partially shared volume and the search index is updated"
         -- TODO: should be lookup auth on rootParty
         vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
@@ -655,23 +658,22 @@ test_register_volume_with_ezid = localOption (mkTimeout (15 * 10^(6 :: Int))) $
 
 --------- ingest ------------
 test_simple_ingest :: TestTree
-test_simple_ingest = Test.stepsWithTransaction "simple ingest" $ \step cn2 -> do
+test_simple_ingest = Test.stepsWithTransaction "simple ingest" $ \step cn2 -> runResourceT $ withStorage >>= \storage -> liftIO $ do
     step "Given an authorized investigator"
     step " and a volume"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
     step "When a superadmin user ingests a session"
     aiCtxt2 <-
-        (\st av ts lg sc ->
-             aiCtxt
-                 { ctxStorage = Just st
-                 , ctxAV = Just av
-                 , ctxTimestamp = Just ts
-                 , ctxLogs = Just lg
-                 , ctxSecret = Just sc
-                 })
-        <$> mkStorageStub
-        <*> mkAVStub -- TODO: use initAV when ingest starts referencing an asset
+        (\av ts lg sc ->
+            aiCtxt
+                { ctxStorage = Just storage
+                , ctxAV = Just av
+                , ctxTimestamp = Just ts
+                , ctxLogs = Just lg
+                , ctxSecret = Just sc
+                })
+        <$> mkAVStub -- TODO: use initAV when ingest starts referencing an asset
         <*> pure (UTCTime (fromGregorian 2017 5 6) (secondsToDiffTime 0))
         <*> mkLogsStub
         <*> pure (Secret "abc")
@@ -723,7 +725,7 @@ test_simple_notification = Test.stepsWithTransaction "simple notification" $ \st
     step "and the notification is removed"
     nl <- (flip runReaderT) aiCtxt (do
         -- TODO: repeats implementation of viewNotifications
-        nl <- lookupUserNotifications     
+        nl <- lookupUserNotifications
         _ <- changeNotificationsDelivery (filter ((DeliverySite >) . notificationDelivered) nl) DeliverySite
         -- nlAfter <- lookupUserNotifications -- TODO: ensure only delivered once
         pure nl)
@@ -732,35 +734,34 @@ test_simple_notification = Test.stepsWithTransaction "simple notification" $ \st
     addressEmail toAddr @?= TE.decodeUtf8 (accountEmail aiAcct)
     let [part1] = alt1
     -- TODO: mock mailer at a higher level than Mail object, so check below can use a type instead of string match
-    BSLC.unpack (partContent part1) `shouldContain` "email or password has been changed" 
+    BSLC.unpack (partContent part1) `shouldContain` "email or password has been changed"
     -- TODO: daily notification logic (cleanNotifications + updateStateNotifications)
 
 --------- upload ------------
 test_upload_small_csv :: TestTree
-test_upload_small_csv = Test.stepsWithTransaction "upload small csv" $ \step cn2 -> do
+test_upload_small_csv = Test.stepsWithTransaction "upload small csv" $ \step cn2 -> runResourceT $ withStorage >>= \storage -> liftIO $ do
     step "Given an authorized investigator and their volume"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     vol <- runReaderT (addVolumeWithAccess aiAcct) aiCtxt
     step "When start upload and send all chunks"
-    aiCtxt2 <- (\e s -> aiCtxt { ctxEntropy = Just e , ctxStorage = Just s })
+    aiCtxt2 <- (\e -> aiCtxt { ctxEntropy = Just e , ctxStorage = Just storage })
         -- refactor createUpload to take a conduit source of entropy values, isolate entropy dependency to Upload controller?
         <$> initEntropy
-        <*> mkStorageStub
     tok <- (flip runReaderT) aiCtxt2 (do
         up <- createUploadSetSize vol (UploadStartRequest "abcde.csv" 16)
         let (chunk1, offset1, len1) = ("col1,col2\nv1,22\n", 0, 16)
         file <- peeks $ uploadFile up -- TODO: define a generator for (uploadstartrequest, [(contentChunk, offset, len)])
         let rb = pure chunk1
         _ <- liftIO (writeChunk offset1 len1 file rb)
-        pure up) 
+        pure up)
     step "Then the investigator can view the upload"
     -- TODO: duplicates implementation of processAsset
     aiCtxt3 <- (\a -> aiCtxt2 { ctxAV = Just a }) <$> initAV
     (upload, filepath, Right (ProbePlain fmt)) <- (flip runReaderT) aiCtxt3 (do
-         Just upload <- lookupUpload ((unId . tokenId . accountToken . uploadAccountToken) tok)
-         fp <- peeks (uploadFile upload)
-         prb <- probeFile (uploadFilename upload) fp
-         pure (upload, fp, prb))
+        Just upload <- lookupUpload ((unId . tokenId . accountToken . uploadAccountToken) tok)
+        fp <- peeks (uploadFile upload)
+        prb <- probeFile (uploadFilename upload) fp
+        pure (upload, fp, prb))
     fmt @?= fromJust (getFormatByExtension "csv")
     uploadFilename upload @?= "abcde.csv"
     uploadSize upload @?= 16

@@ -6,8 +6,6 @@ module TestHarness
     , TestContext ( .. )
     , mkRequest
     , withStorage
-    , mkStorageStub
-    , withStorage2
     , withAV
     , mkAVStub
     , mkMailerMock
@@ -86,7 +84,7 @@ import Static.Service (Static(..))
 import Store.AV
 import Store.Config as C (load, (!))
 import Store.Service
-import Store.Transcoder (initTranscoder2)
+import Store.Transcoder (initTranscoder)
 import Store.Types (Storage(..), TranscoderConfig (..))
 import Web.Types (Web(..))
 
@@ -319,8 +317,8 @@ mkRequest :: Wai.Request
 mkRequest = Wai.defaultRequest { Wai.requestHeaderHost = Just "invaliddomain.org" }
 
 -- | Create a temp dir and use it for all Storage fields
-withStorage2 :: ResourceT IO Storage
-withStorage2 = do
+withStorage :: ResourceT IO Storage
+withStorage = do
     -- XDG_RUNTIME_DIR, TMPDIR, or "/tmp", whichever is available first
     userTmpDir <- liftIO
         (getEnvDefault "XDG_RUNTIME_DIR" =<< getEnvDefault "TMPDIR" "/tmp")
@@ -332,14 +330,14 @@ withStorage2 = do
     -- initStorage and initTranscoder expect these to exist.
     (liftIO  . mapM_ (flip createDirectory 0o755 . (dir </>)))
         ["tmp", "stage", "upload", "trans", "cache"]
-    let tc = initTranscoder2 TranscoderConfig
+    let tc = initTranscoder TranscoderConfig
             { transcoderHost = Nothing
             , transcoderDir = Just (BS.unpack (dir </> "trans"))
             , transcoderMount = Nothing
             }
     (liftIO . mkStorage tc) dir
   where
-    mkStorage tc dir = (flip initStorage2 tc . Right) StorageLocationConfig
+    mkStorage tc dir = (flip initStorage tc . Right) StorageLocationConfig
         { storageLocTemp = Just (dir </> "tmp")
         , storageLocMaster = dir </> "stage"
         , storageLocUpload = dir </> "upload"
@@ -347,16 +345,6 @@ withStorage2 = do
         , storageLocStage = Just (dir </> "stage")
         , storageLocFallback = Nothing
         }
-
-withStorage :: TestContext -> IO TestContext
-withStorage ctxt = do
-    stor <- mkStorageStub
-    pure (addCntxt ctxt (blankContext { ctxStorage = Just stor }))
-
-mkStorageStub :: IO Storage
-mkStorageStub = do
-    conf <- load "databrary.conf"
-    initStorage (conf C.! "store")
 
 withAV :: TestContext -> IO TestContext
 withAV ctxt = do
