@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, TypeFamilies, OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies, OverloadedStrings #-}
 module Model.Comment.Types
   ( Comment(..)
   , CommentRow(..)

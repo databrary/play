@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, DataKinds #-}
+{-# LANGUAGE DataKinds #-}
 module Model.Release
   ( module Model.Release.Types
   , changeRelease

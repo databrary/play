@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, DataKinds #-}
+{-# LANGUAGE OverloadedStrings, DataKinds #-}
 module Model.Token
   ( module Model.Token.Types
   , loginTokenId

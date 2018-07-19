@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies #-}
+{-# LANGUAGE OverloadedStrings, TypeFamilies #-}
 module Model.Asset.Types
   ( AssetRow(..)
   , Asset(..)

@@ -1,4 +1,4 @@
-{-# LANGUAGE ExistentialQuantification, RecordWildCards, ImpredicativeTypes, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ExistentialQuantification, ImpredicativeTypes #-}
 module HTTP.Route
   ( Route
   , routeURL

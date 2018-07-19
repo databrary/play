@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds, OverloadedStrings #-}
+{-# LANGUAGE DataKinds, OverloadedStrings #-}
 module Model.Ingest
   ( IngestKey
   , lookupIngestContainer

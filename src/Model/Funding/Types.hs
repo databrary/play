@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards, TemplateHaskell, TypeFamilies #-}
+{-# LANGUAGE OverloadedStrings, TypeFamilies #-}
 module Model.Funding.Types
   ( Funder(..)
   , Funding(..)

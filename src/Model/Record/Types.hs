@@ -1,7 +1,7 @@
-{-# LANGUAGE TemplateHaskell #-}
+
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveFunctor #-}
+
 
 module Model.Record.Types
   ( RecordRow(..)

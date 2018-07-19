@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds, OverloadedStrings #-}
+{-# LANGUAGE DataKinds, OverloadedStrings #-}
 module Model.Stats
   ( lookupSiteStats
   ) where
@@ -33,9 +33,9 @@ mapQuery qry mkResult =
 lookupSiteStats :: MonadDB c m => m SiteStats
 lookupSiteStats = do
   ac <- dbQuery
-           (fmap 
+           (fmap
                (\[csite, ccount]
-                    -> (pgDecodeColumn' (PGTypeProxy :: PGTypeName "permission") csite, 
+                    -> (pgDecodeColumn' (PGTypeProxy :: PGTypeName "permission") csite,
                         pgDecodeColumn' (PGTypeProxy :: PGTypeBigInt) ccount))
                (rawPGSimpleQuery "SELECT site, count(child) FROM authorize_view WHERE parent = 0 AND child > 4 GROUP BY site"))
   v <- dbQuery1'

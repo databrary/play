@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, RecordWildCards, DataKinds #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards, DataKinds #-}
 module Model.Metric
   ( module Model.Metric.Types
   , allMetrics

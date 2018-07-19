@@ -1,5 +1,5 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies, DataKinds, GeneralizedNewtypeDeriving, DeriveDataTypeable #-}
-module Model.Tag.Types
+{-# LANGUAGE OverloadedStrings, TypeFamilies, DataKinds,
+  GeneralizedNewtypeDeriving, DeriveDataTypeable #-}module Model.Tag.Types
   ( TagName(..)
   , validateTag
   , Tag(..)

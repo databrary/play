@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, DeriveDataTypeable, TupleSections, Rank2Types, ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections, Rank2Types, ScopedTypeVariables #-}
 module Service.Periodic
   ( forkPeriodic
   ) where
@@ -48,7 +48,7 @@ run p = runContextM $ withReaderT BackgroundContext $ do
     void updateEZID
   _ <- cleanNotifications
   updateStateNotifications
-  focusIO $ triggerNotifications (Just p) 
+  focusIO $ triggerNotifications (Just p)
 
 runPeriodic :: Service -> (forall a . IO a -> IO a) -> IO ()
 runPeriodic rc unmask = loop (if s <= st then d s else s) where

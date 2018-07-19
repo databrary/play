@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, RecordWildCards, OverloadedStrings, DataKinds #-}
+{-# LANGUAGE RecordWildCards, OverloadedStrings, DataKinds #-}
 module Model.Comment
   ( module Model.Comment.Types
   , blankComment

@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards, ViewPatterns #-}
+{-# LANGUAGE OverloadedStrings, ViewPatterns #-}
 module Model.Format
   ( module Model.Format.Types
   , mimeTypeTop

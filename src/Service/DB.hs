@@ -1,5 +1,6 @@
-{-# LANGUAGE FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, ConstraintKinds, DefaultSignatures, GeneralizedNewtypeDeriving, TypeFamilies, OverloadedStrings, StandaloneDeriving #-}
-module Service.DB
+{-# LANGUAGE FlexibleInstances, FlexibleContexts,
+  MultiParamTypeClasses, ConstraintKinds, TypeFamilies,
+  OverloadedStrings #-}module Service.DB
   ( DBPool
   , DBConn
   , initDB

@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, LambdaCase #-}
 module Model.Identity.Types
   ( Identity(..)
   , MonadHasIdentity

@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, DataKinds #-}
+{-# LANGUAGE OverloadedStrings, DataKinds #-}
 module Model.Measure
   ( getRecordMeasures
   , getMeasure

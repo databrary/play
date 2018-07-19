@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds #-}
+{-# LANGUAGE DataKinds #-}
 module Model.AssetRevision
   ( module Model.AssetRevision.Types
   , replaceAsset

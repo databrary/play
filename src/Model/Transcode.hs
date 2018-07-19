@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards, TemplateHaskell, QuasiQuotes, DataKinds #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards, DataKinds #-}
 module Model.Transcode
   ( module Model.Transcode.Types
   , defaultTranscodeOptions

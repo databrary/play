@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, RecordWildCards, OverloadedStrings, DataKinds #-}
+{-# LANGUAGE RecordWildCards, OverloadedStrings, DataKinds #-}
 module Model.Funding
   ( module Model.Funding.Types
   , lookupFunder

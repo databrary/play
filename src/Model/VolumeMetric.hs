@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds #-}
+{-# LANGUAGE DataKinds #-}
 module Model.VolumeMetric
   ( lookupVolumeMetrics
   , lookupVolumeParticipantMetrics

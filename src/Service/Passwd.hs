@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface, OverloadedStrings, TemplateHaskell #-}
+{-# LANGUAGE ForeignFunctionInterface, OverloadedStrings #-}
 module Service.Passwd
   ( passwordPolicy
   , passwdCheck

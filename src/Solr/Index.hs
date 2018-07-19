@@ -1,5 +1,5 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards, GeneralizedNewtypeDeriving, ScopedTypeVariables, TemplateHaskell #-}
-module Solr.Index
+{-# LANGUAGE OverloadedStrings, RecordWildCards,
+  ScopedTypeVariables #-}module Solr.Index
   ( updateIndex
   ) where
 

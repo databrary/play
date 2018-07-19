@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, ViewPatterns, TupleSections, CPP #-}
+{-# LANGUAGE OverloadedStrings, CPP #-}
 module Web.Rules
   ( generateWebFile
   , generateWebFiles

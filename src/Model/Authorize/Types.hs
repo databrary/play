@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+
 module Model.Authorize.Types
   ( Authorization(..)
   , Authorize(..)

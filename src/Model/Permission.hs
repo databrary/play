@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Model.Permission
   ( module Model.Permission.Types

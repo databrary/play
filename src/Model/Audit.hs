@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, RecordWildCards, DataKinds #-}
+{-# LANGUAGE DataKinds #-}
 module Model.Audit
   ( module Model.Audit.Types
   , MonadAudit
