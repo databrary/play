@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards, ViewPatterns #-}
+{-# LANGUAGE OverloadedStrings, ViewPatterns #-}
 module Model.Format
   ( module Model.Format.Types
   , mimeTypeTop
@@ -32,7 +32,7 @@ import Data.Maybe (listToMaybe)
 import Data.Monoid ((<>))
 import System.Posix.FilePath (RawFilePath, splitExtension, takeExtension, addExtension)
 
-import qualified JSON as JSON
+import qualified JSON
 import Model.Id
 import Model.Format.Types
 

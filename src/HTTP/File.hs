@@ -38,7 +38,7 @@ fileResponse file fmt save etag = do
   when notmod $ result $ emptyResponse notModified304 fh
   return (fh,
     -- allow range detection or force full file:
-    (any ((etag /=) . unquoteHTTP) (lookupRequestHeader hIfRange req)) `thenUse` sz)
+    any ((etag /=) . unquoteHTTP) (lookupRequestHeader hIfRange req) `thenUse` sz)
 
 serveFile :: RawFilePath -> Format -> Maybe BS.ByteString -> BS.ByteString -> Handler Response
 serveFile file fmt save etag = do

@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, TupleSections, QuasiQuotes, TypeOperators #-}
+{-# LANGUAGE GADTs, TypeOperators #-}
 module HTTP.Path.Parser
   ( PathParser
   , (>$<)

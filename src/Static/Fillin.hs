@@ -20,7 +20,7 @@ import Model.Party
 import Static.Service
 
 staticSendInvestigator :: Party -> ActionContext -> IO ()
-staticSendInvestigator p ActionContext{ contextTimestamp = t, contextService = rc@Service{ serviceStatic = Static{ staticAuthorizeAddr = a, staticInvestigator = Just req, staticKey = key } } } = void $ forkIO $ do
+staticSendInvestigator p ActionContext{ contextTimestamp = t, contextService = rc@Service{ serviceStatic = Static{ staticAuthorizeAddr = a, staticInvestigator = Just req, staticKey = key } } } = void $ forkIO $
   handle
     (\(e :: HC.HttpException) -> logMsg t ("staticSendInvestigator: " ++ show e) (serviceLogs rc))
     $ void $ HC.httpNoBody req

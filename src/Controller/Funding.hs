@@ -9,7 +9,7 @@ import Control.Monad (liftM2)
 import qualified Data.Text as T
 
 import Has (focusIO)
-import qualified JSON as JSON
+import qualified JSON
 import Model.Id
 import Model.Permission
 import Model.Volume hiding (getVolume)
@@ -54,7 +54,7 @@ postVolumeFunding = action POST (pathJSON >/> pathId </> pathId) $ \(vi, fi) -> 
   return $ okResponse [] $ JSON.pairs $ (fundingJSON . avfUnwrap) resp
 
 -- | Body of add volume funding response
-newtype AddVolumeFundingResponse = AddVolumeFundingResponse { avfUnwrap :: Funding } 
+newtype AddVolumeFundingResponse = AddVolumeFundingResponse { avfUnwrap :: Funding }
 
 deleteVolumeFunder :: ActionRoute (Id Volume, Id Funder)
 deleteVolumeFunder = action DELETE (pathJSON >/> pathId </> pathId) $ \(vi, fi) -> withAuth $ do

@@ -107,4 +107,4 @@ angular = do
     (servWeb :: Web) <- peek
     let version = getWebVersion servWeb
     (b :: Maybe BSB.Builder) <- peeks angularRequest
-    mapM_ (\nojsBldr -> focusIO (angularResult version nojsBldr)) b
+    mapM_ (focusIO . angularResult version) b

@@ -35,7 +35,7 @@ import Store.AV
 -- import Action.Types
 
 assetSegmentTag :: AssetSegment -> Maybe Word16 -> String
-assetSegmentTag as sz = m ':' ((assetSegmentFull as) `unlessUse` s) ++ m '@' (show <$> sz) where
+assetSegmentTag as sz = m ':' (assetSegmentFull as `unlessUse` s) ++ m '@' (show <$> sz) where
   m = maybe "" . (:)
   c = assetSegmentRange as
   s = maybe (b (Range.lowerBound c) ++ '-' : b (Range.upperBound c)) (show . offsetMillis) (Range.getPoint c)
@@ -59,7 +59,7 @@ genVideoClip _ src (Just clip) _ dst | Nothing <- Range.getPoint clip = do
   dstfp <- case dst of
     Left _ -> return "-"
     Right rp -> unRawFilePath rp
-  print ("about to slice video file")
+  print "about to slice video file"
   let upperBoundArgs = maybe [] (\u -> ["-t", sb $ u - lb]) ub
   print ("ffmpeg","-y", "-accurate_seek", "-ss", sb lb, "-i", srcfp, upperBoundArgs, "-codec copy"
         , "-f mp4")
@@ -102,7 +102,7 @@ getAssetSegmentStore as sz
   liftIO $ maybe
     (return $ Left $ gen . Left) -- cache disabled or segment file missing(how could it be missing?)
     (\f -> do -- cache enabled
-      print ("attempt to fetch prior cached slice or generate and cache slice")
+      print "attempt to fetch prior cached slice or generate and cache slice"
       fe <- fileExist f
       when fe (print "found a cached slice, reusing!")
       unless fe $ do

@@ -59,7 +59,7 @@ allHeaders =
     V.fromList
         ["id","info","description","birthdate","gender","race"
         ,"ethnicity","gestationalage","pregnancyterm","birthweight"
-        ,"disability","language","country","state","setting"]  
+        ,"disability","language","country","state","setting"]
 
 allValuesOneRow :: BS.ByteString
 allValuesOneRow =

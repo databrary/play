@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns #-}
+
 module Store.Asset
   ( maxAssetSize
   , assetFile

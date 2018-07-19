@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TupleSections #-}
+{-# LANGUAGE TupleSections #-}
 module Web.Info
   ( makeWebFileInfo
   , loadWebFileMap

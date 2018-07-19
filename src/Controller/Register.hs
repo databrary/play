@@ -71,7 +71,7 @@ viewRegisterAction = withAuth $ do
 postRegister :: ActionRoute API
 postRegister = action POST (pathAPI </< "user" </< "register") $ postRegisterAction
 
-data RegisterRequest = RegisterRequest T.Text (Maybe T.Text) (BSC.ByteString) (Maybe T.Text) Bool
+data RegisterRequest = RegisterRequest T.Text (Maybe T.Text) BSC.ByteString (Maybe T.Text) Bool
 
 postRegisterAction :: API -> Action
 postRegisterAction = \api -> withoutAuth $ do
@@ -140,7 +140,7 @@ data PasswordResetRequest = PasswordResetRequest BSC.ByteString
 
 postPasswordResetAction :: API -> Action
 postPasswordResetAction = \api -> withoutAuth $ do
-  PasswordResetRequest email <- runForm ((api == HTML) `thenUse` htmlPasswordReset) $ do
+  PasswordResetRequest email <- runForm ((api == HTML) `thenUse` htmlPasswordReset) $
     PasswordResetRequest <$> ("email" .:> emailTextForm)
   auth <- lookupPasswordResetAccount email
   resetPasswordMail (maybe (Left email) Right auth)

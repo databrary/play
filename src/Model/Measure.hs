@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, DataKinds #-}
+{-# LANGUAGE OverloadedStrings, DataKinds #-}
 module Model.Measure
   ( getRecordMeasures
   , getMeasure
@@ -25,7 +25,7 @@ import qualified Data.String
 import Ops
 import Has (view)
 import Service.DB
-import qualified JSON as JSON
+import qualified JSON
 import Model.SQL
 import Model.Permission
 import Model.Audit
@@ -77,9 +77,8 @@ changeRecordMeasure m = do
   r <- tryUpdateOrInsert (guard . isInvalidInputException)
     -- .(updateMeasure 'ident 'm)
     (fmap
-      (\ (vdatum_a6DoR)
-         -> setMeasureDatum
-              m vdatum_a6DoR)
+      (setMeasureDatum
+              m)
       (mapQuery
           ((\ _p_a6DoT _p_a6DoU _p_a6DoV _p_a6DoW _p_a6DoX ->
                            (Data.ByteString.concat
@@ -127,9 +126,8 @@ changeRecordMeasure m = do
                             _cdatum_a6DoY))))
     -- .(insertMeasure 'ident 'm)
     (fmap
-      (\ (vdatum_a6Dpm)
-         -> setMeasureDatum
-              m vdatum_a6Dpm)
+      (setMeasureDatum
+              m)
       (mapQuery
          ((\ _p_a6DpC _p_a6DpD _p_a6DpE _p_a6DpF _p_a6DpG ->
                        (Data.ByteString.concat
@@ -240,7 +238,7 @@ getRecordMeasures r =
     requiredRelease m =
         let
             mMsrRel = view m
-        in 
+        in
             fromMaybe rcrdRel mMsrRel
     viewerCanView :: Release -> Measure -> Bool
     viewerCanView viewerDeepestAllowedRelease m =
@@ -248,7 +246,7 @@ getRecordMeasures r =
 
 decodeMeasure :: PGColumn t d => PGTypeName t -> Measure -> Maybe d
 decodeMeasure t Measure{ measureMetric = Metric{ metricType = m }, measureDatum = d } =
-  (pgTypeName t == show m) `thenUse` (pgDecode t d)
+  (pgTypeName t == show m) `thenUse` pgDecode t d
 
 measureJSONPair :: JSON.KeyValue kv => Bool -> Measure -> kv
 measureJSONPair publicRestricted m =

@@ -46,6 +46,6 @@ getStorageTempParticipantUpload' tempPath = tempPath <> "participantUpload"
 
 getStorageTempParticipantUpload :: String -> Storage -> RawFilePath
 getStorageTempParticipantUpload uploadFile s =
-    (storageTemp s) </> "participantUpload" </> BSC.pack uploadFile
+    storageTemp s </> "participantUpload" </> BSC.pack uploadFile
 
 type MonadStorage c m = (MonadHas Storage c m, MonadIO m)

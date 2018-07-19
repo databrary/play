@@ -27,7 +27,7 @@ import qualified Data.String
 
 import Ops
 import Has (view, peek)
-import qualified JSON as JSON
+import qualified JSON
 import Service.DB
 import Files
 import Store.Types
@@ -104,32 +104,32 @@ lookupVolumeAsset vol ai = do
                         _tenv_a87rh
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a87rk, 
+                        _cid_a87rk,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a87rh
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "smallint")
-                        _cformat_a87rl, 
+                        _cformat_a87rl,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a87rh
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "release")
-                        _crelease_a87rm, 
+                        _crelease_a87rm,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a87rh
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "interval")
-                        _cduration_a87rn, 
+                        _cduration_a87rn,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a87rh
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a87ro, 
+                        _cname_a87ro,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a87rh
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bytea")
-                        _csha1_a87rp, 
+                        _csha1_a87rp,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a87rh
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -143,8 +143,7 @@ addAsset ba fp = do
   let _tenv_a87Hi = unknownPGTypeEnv
   dbQuery1' -- .(insertAsset 'ident 'ba')
     (fmap
-      (\ (vid_a87Bv)
-         -> setAssetId ba' vid_a87Bv)
+      (setAssetId ba')
       (mapQuery
         ((\ _p_a87Hj
           _p_a87Hk
@@ -334,7 +333,7 @@ assetRowJSON AssetRow{..} = JSON.Record assetId $
      "format" JSON..= formatId assetFormat
   <> "classification" `JSON.kvObjectOrEmpty` assetRelease
   <> "duration" `JSON.kvObjectOrEmpty` assetDuration
-  <> "pending" `JSON.kvObjectOrEmpty` ((isNothing assetSize) `useWhen` (isNothing assetSHA1))
+  <> "pending" `JSON.kvObjectOrEmpty` (isNothing assetSize `useWhen` isNothing assetSHA1)
 
 assetJSON :: JSON.ToObject o => Bool -> Asset -> JSON.Record (Id Asset) o
 assetJSON _ Asset{..} = assetRowJSON assetRow -- first parameter is publicRestricted

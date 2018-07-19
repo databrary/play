@@ -43,7 +43,7 @@ import Database.PostgreSQL.Typed.Types
 import Ops
 import Has (Has(..), peek)
 import Service.DB
-import qualified JSON as JSON
+import qualified JSON
 import HTTP.Request
 import Model.Id
 import Model.SQL
@@ -115,7 +115,7 @@ partyRowJSON PartyRow{..} = JSON.Record partyId $
 
 partyJSON :: JSON.ToObject o => Party -> JSON.Record (Id Party) o
 partyJSON p@Party{..} = partyRowJSON partyRow `JSON.foldObjectIntoRec`
- (   "institution" `JSON.kvObjectOrEmpty` (True `useWhen` (isNothing partyAccount))
+ (   "institution" `JSON.kvObjectOrEmpty` (True `useWhen` isNothing partyAccount)
   <> "email" `JSON.kvObjectOrEmpty` partyEmail p
   <> "permission" `JSON.kvObjectOrEmpty` (partyPermission `useWhen` (partyPermission > PermissionREAD)))
 
@@ -128,7 +128,7 @@ toFormattedParty p@Party{..} = FormattedParty {
     , fpyOrcid = show <$> partyORCID partyRow
     , fpyAffiliation = partyAffiliation partyRow
     , fpyUrl = partyURL partyRow
-    , fpyInstitution = True `useWhen` (isNothing partyAccount)
+    , fpyInstitution = True `useWhen` isNothing partyAccount
     , fpyEmail = partyEmail p
     , fpyPermission = partyPermission `useWhen` (partyPermission > PermissionREAD)
     , fpyAuthorization = loadedToMaybe partySiteAccess
@@ -303,7 +303,7 @@ addParty bp = do
          (partyURL $ partyRow bp)
          (auditWho ident)
          (auditIp ident))
-               (\ 
+               (\
                   [_cid_a6PKU,
                    _cname_a6PKV,
                    _cprename_a6PKX,
@@ -314,34 +314,34 @@ addParty bp = do
                         _tenv_a6PKN
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a6PKU, 
+                        _cid_a6PKU,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a6PKN
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a6PKV, 
+                        _cname_a6PKV,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6PKN
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cprename_a6PKX, 
+                        _cprename_a6PKX,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6PKN
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                        _corcid_a6PKY, 
+                        _corcid_a6PKY,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6PKN
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _caffiliation_a6PKZ, 
+                        _caffiliation_a6PKZ,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6PKN
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
                         _curl_a6PL0)))
   let pRow =
-          ((\ (vid_a6PKd, vname_a6PKe, vprename_a6PKf, vorcid_a6PKh,
+          (\ (vid_a6PKd, vname_a6PKe, vprename_a6PKf, vorcid_a6PKh,
              vaffiliation_a6PKi, vurl_a6PKj)
            -> PartyRow
                 vid_a6PKd
@@ -350,9 +350,9 @@ addParty bp = do
                 vorcid_a6PKh
                 vaffiliation_a6PKi
                 vurl_a6PKj)
-           row)
+           row
   pure ((\p -> Party p Nothing NotLoaded PermissionREAD Nothing) pRow)
-    
+
 -- | Create a new account without any authorizations, during registration, using the nobodySiteAuth.
 -- The account password will be blank. The party will not have any authorizations yet.
 addAccount :: MonadAudit c m => Account -> m Account
@@ -411,7 +411,7 @@ addAccount ba@Account{ accountParty = bp } = do
          (partyURL $ partyRow bp)
          (auditWho ident)
          (auditIp ident))
-               (\ 
+               (\
                   [_cid_a6PKU,
                    _cname_a6PKV,
                    _cprename_a6PKX,
@@ -422,27 +422,27 @@ addAccount ba@Account{ accountParty = bp } = do
                         _tenv_a6PKN
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a6PKU, 
+                        _cid_a6PKU,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a6PKN
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a6PKV, 
+                        _cname_a6PKV,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6PKN
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cprename_a6PKX, 
+                        _cprename_a6PKX,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6PKN
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                        _corcid_a6PKY, 
+                        _corcid_a6PKY,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6PKN
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _caffiliation_a6PKZ, 
+                        _caffiliation_a6PKZ,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6PKN
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -459,7 +459,7 @@ addAccount ba@Account{ accountParty = bp } = do
                    vaffiliation_a6PKi
                    vurl_a6PKj)
            row
-      p = ((\pr -> Party pr Nothing NotLoaded PermissionREAD Nothing) pRow)
+      p = (\pr -> Party pr Nothing NotLoaded PermissionREAD Nothing) pRow
   let pa = p{ partyAccount = Just a }
       a = ba{ accountParty = pa }
   -- Create an account with no password, and the email provided
@@ -569,8 +569,8 @@ lookupFixedParty (Id (-1)) _ = Just nobodyParty
 lookupFixedParty (Id 0) i =
   Just rootParty{
     partyPermission = accessPermission i `max` PermissionSHARED
-  , partyAccess = (accessMember i > PermissionNONE) `thenUse` (view i) }
-lookupFixedParty i a = (view a) `useWhen` (i == view a)
+  , partyAccess = (accessMember i > PermissionNONE) `thenUse` view i }
+lookupFixedParty i a = view a `useWhen` (i == view a)
 
 isNobodyParty :: Party -> Bool
 isNobodyParty = (0 <) . unId . partyId . partyRow
@@ -584,9 +584,9 @@ lookupParty i = do
     dbQuery1 $(selectQuery (selectParty 'ident) "$WHERE party.id = ${i}")
 
 getDuplicateParties :: MonadDB c m => m [PartyRow]
-getDuplicateParties = do
+getDuplicateParties =
   dbQuery
-    $(selectQuery (selectPartyRow)
+    $(selectQuery selectPartyRow
         "$WHERE exists \
         \ (select * \
         \  from party p2 \
@@ -615,48 +615,48 @@ lookupPartyAuthorizations = do
                        _tenv_a6Qkm
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                       _cid_a6Qkn, 
+                       _cid_a6Qkn,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                        _tenv_a6Qkm
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                       _cname_a6Qko, 
+                       _cname_a6Qko,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a6Qkm
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                       _cprename_a6Qkp, 
+                       _cprename_a6Qkp,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a6Qkm
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                       _corcid_a6Qkq, 
+                       _corcid_a6Qkq,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a6Qkm
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                       _caffiliation_a6Qkr, 
+                       _caffiliation_a6Qkr,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a6Qkm
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                       _curl_a6Qks, 
+                       _curl_a6Qks,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                        _tenv_a6Qkm
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                       _cemail_a6Qkt, 
+                       _cemail_a6Qkt,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a6Qkm
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "permission")
-                       _csite_a6Qku, 
+                       _csite_a6Qku,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a6Qkm
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "permission")
                        _cmember_a6Qkv)))
-  pure 
+  pure
      (fmap
       (\ (vid_a6Qir, vname_a6Qis, vprename_a6Qit, vorcid_a6Qiu,
           vaffiliation_a6Qiv, vurl_a6Qiw, vemail_a6Qix, vsite_a6Qiz,
@@ -700,16 +700,16 @@ lookupSiteAuthByEmail caseInsensitive e = do
   mRow <- dbQuery1 -- (selectQuery selectSiteAuth "WHERE account.email = ${e}")
     (mapQuery2
       ((\ _p_a6QFH ->
-                       (BS.concat
+                       BS.concat
                           [Data.String.fromString
                              "SELECT party.id,party.name,party.prename,party.orcid,party.affiliation,party.url,account.email,account.password,authorize_view.site,authorize_view.member FROM party JOIN account USING (id) LEFT JOIN authorize_view ON account.id = authorize_view.child AND authorize_view.parent = 0 WHERE account.email = ",
                            Database.PostgreSQL.Typed.Types.pgEscapeParameter
                              _tenv_a6QFG
                              (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                                 Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                             _p_a6QFH]))
+                             _p_a6QFH])
          e)
-               (\ 
+               (\
                   [_cid_a6QFI,
                    _cname_a6QFJ,
                    _cprename_a6QFK,
@@ -724,47 +724,47 @@ lookupSiteAuthByEmail caseInsensitive e = do
                         _tenv_a6QFG
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a6QFI, 
+                        _cid_a6QFI,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a6QFG
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a6QFJ, 
+                        _cname_a6QFJ,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6QFG
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cprename_a6QFK, 
+                        _cprename_a6QFK,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6QFG
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                        _corcid_a6QFM, 
+                        _corcid_a6QFM,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6QFG
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _caffiliation_a6QFN, 
+                        _caffiliation_a6QFN,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6QFG
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _curl_a6QFP, 
+                        _curl_a6QFP,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a6QFG
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                        _cemail_a6QFR, 
+                        _cemail_a6QFR,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6QFG
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                        _cpassword_a6QFT, 
+                        _cpassword_a6QFT,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6QFG
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "permission")
-                        _csite_a6QFU, 
+                        _csite_a6QFU,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6QFG
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -797,7 +797,7 @@ lookupSiteAuthByEmail caseInsensitive e = do
       rows <- dbQuery -- (selectQuery selectSiteAuth "WHERE lower(account.email) = lower(${e}) LIMIT 2")
          (mapQuery2
            ((\ _p_a6QNa ->
-                       (BS.concat
+                       BS.concat
                           [Data.String.fromString
                              "SELECT party.id,party.name,party.prename,party.orcid,party.affiliation,party.url,account.email,account.password,authorize_view.site,authorize_view.member FROM party JOIN account USING (id) LEFT JOIN authorize_view ON account.id = authorize_view.child AND authorize_view.parent = 0 WHERE lower(account.email) = lower(",
                            Database.PostgreSQL.Typed.Types.pgEscapeParameter
@@ -805,9 +805,9 @@ lookupSiteAuthByEmail caseInsensitive e = do
                              (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                                 Database.PostgreSQL.Typed.Types.PGTypeName "text")
                              _p_a6QNa,
-                           Data.String.fromString ") LIMIT 2"]))
+                           Data.String.fromString ") LIMIT 2"])
             e)
-               (\ 
+               (\
                   [_cid_a6QNb,
                    _cname_a6QNc,
                    _cprename_a6QNd,
@@ -822,47 +822,47 @@ lookupSiteAuthByEmail caseInsensitive e = do
                         _tenv_a6QN9
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a6QNb, 
+                        _cid_a6QNb,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a6QN9
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a6QNc, 
+                        _cname_a6QNc,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6QN9
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cprename_a6QNd, 
+                        _cprename_a6QNd,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6QN9
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                        _corcid_a6QNf, 
+                        _corcid_a6QNf,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6QN9
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _caffiliation_a6QNg, 
+                        _caffiliation_a6QNg,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6QN9
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _curl_a6QNh, 
+                        _curl_a6QNh,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a6QN9
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                        _cemail_a6QNi, 
+                        _cemail_a6QNi,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6QN9
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                        _cpassword_a6QNj, 
+                        _cpassword_a6QNj,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6QN9
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "permission")
-                        _csite_a6QNk, 
+                        _csite_a6QNk,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6QN9
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -940,8 +940,8 @@ recentAccountLogins :: MonadDB c m => Party -> m Int64
 recentAccountLogins who = fromMaybe 0 <$>
   dbQuery1 -- [pgSQL|!SELECT count(*) FROM audit.account WHERE audit_action = 'attempt' AND id = ${partyId $ partyRow who} AND audit_time > CURRENT_TIMESTAMP - interval '1 hour'|]
     (let _tenv_a6QXO = unknownPGTypeEnv
-     in 
-       (mapQuery2
+     in
+       mapQuery2
         ((\ _p_a6QXP ->
                     (BS.concat
                        [Data.String.fromString
@@ -959,7 +959,7 @@ recentAccountLogins who = fromMaybe 0 <$>
                      _tenv_a6QXO
                      (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                         Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
-                     _ccount_a6QXQ))))
+                     _ccount_a6QXQ)))
 
 -- | Filter criteria and result paging options
 data PartyFilter = PartyFilter
@@ -1003,7 +1003,7 @@ findParties pf = do
     (mapQuery2
        (BS.concat
              -- TODO: this duplicates logic in lookupAuthorization slightly
-            [Data.String.fromString 
+            [Data.String.fromString
                 "SELECT \
                 \  party.id,party.name,party.prename,party.orcid,party.affiliation,party.url,account.email \
                 \ ,COALESCE(av.site, 'NONE') \
@@ -1011,7 +1011,7 @@ findParties pf = do
                 \   LEFT JOIN account USING (id) \
                 \   LEFT JOIN authorize_view av \
                 \      ON party.id = av.child AND av.parent = 0 "])
-        (\ 
+        (\
            [_cid_a6R7m,
             _cname_a6R7o,
             _cprename_a6R7p,
@@ -1024,32 +1024,32 @@ findParties pf = do
                  _tenv_a6R7j
                  (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                     Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                 _cid_a6R7m, 
+                 _cid_a6R7m,
                Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                  _tenv_a6R7j
                  (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                     Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                 _cname_a6R7o, 
+                 _cname_a6R7o,
                Database.PostgreSQL.Typed.Types.pgDecodeColumn
                  _tenv_a6R7j
                  (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                     Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                 _cprename_a6R7p, 
+                 _cprename_a6R7p,
                Database.PostgreSQL.Typed.Types.pgDecodeColumn
                  _tenv_a6R7j
                  (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                     Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                 _corcid_a6R7q, 
+                 _corcid_a6R7q,
                Database.PostgreSQL.Typed.Types.pgDecodeColumn
                  _tenv_a6R7j
                  (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                     Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                 _caffiliation_a6R7r, 
+                 _caffiliation_a6R7r,
                Database.PostgreSQL.Typed.Types.pgDecodeColumn
                  _tenv_a6R7j
                  (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                     Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                 _curl_a6R7s, 
+                 _curl_a6R7s,
                Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                  _tenv_a6R7j
                  (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -1080,7 +1080,7 @@ findParties pf = do
               Nothing
               ident)
       rows)
-    
+
 lookupAvatar :: MonadDB c m => Id Party -> m (Maybe Asset)
 lookupAvatar p =
   dbQuery1 $ (`Asset` coreVolume) <$> $(selectQuery selectAssetRow $ "$JOIN avatar ON asset.id = avatar.asset WHERE avatar.party = ${p} AND asset.volume = " ++ pgLiteralString (volumeId $ volumeRow coreVolume))
@@ -1194,4 +1194,4 @@ changeAvatar p (Just a) = do
           (auditWho ident)
           (auditIp ident))
        (\ [] -> ()))
-    
+

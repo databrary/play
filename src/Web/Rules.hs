@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, ViewPatterns, TupleSections, CPP #-}
+{-# LANGUAGE OverloadedStrings, CPP #-}
 module Web.Rules
   ( generateWebFile
   , generateWebFiles
@@ -55,7 +55,7 @@ fixedGenerators =
   ]
 
 generateFixed :: Bool -> WebGenerator
-generateFixed includeStatic = \fo@(f, _) -> do
+generateFixed includeStatic = \fo@(f, _) ->
   case lookup (webFileRel f) $ (if includeStatic then (staticGenerators ++) else id) fixedGenerators of
     Just g -> g fo
     _ -> mzero
@@ -65,7 +65,7 @@ generateStatic fo@(f, _) = fileNewer (webFileAbs f) fo
 
 generateRules :: Bool -> WebGenerator
 generateRules includeStatic (fileToGen, mPriorFileInfo) = msum $ map (\gen -> gen (fileToGen, mPriorFileInfo))
-  ([ 
+  ([
      generateFixed includeStatic
    , generateCoffeeJS
    , generateLib
@@ -81,7 +81,7 @@ updateWebInfo f = do
 
 generateWebFile :: Bool -> WebFilePath -> WebGeneratorM WebFileInfo
 generateWebFile includeStatic f =
-  withExceptT (\val -> label (show (webFileRel f)) val) $ do
+  withExceptT (label (show (webFileRel f))) $ do
       mExistingInfo <- gets $ HM.lookup f
       r <- generateRules includeStatic (f, mExistingInfo)
       fromMaybeM
@@ -94,13 +94,13 @@ generateWebFile includeStatic f =
 generateAll :: WebGeneratorM ()
 generateAll = do
   svg <- liftIO $ findWebFiles ".svg"
-  (    mapM_ (\webFilePath -> generateWebFile True webFilePath)
+  mapM_ (generateWebFile True)
    <=< mapM (liftIO . makeWebFilePath)
       $ mconcat
           [ (map fst staticGenerators)
           , ["constants.json.gz", "all.min.js.gz", "all.min.css.gz"]
           , map ((RF.<.> ".gz") . webFileRel) svg
-          ])
+          ]
 
 generateWebFiles :: IO WebFileMap
 generateWebFiles = do

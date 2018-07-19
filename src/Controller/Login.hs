@@ -24,7 +24,7 @@ import qualified Network.HTTP.Types.Method as HTM
 
 import Ops
 import Has
-import qualified JSON as JSON
+import qualified JSON
 import Model.Id.Types
 import Model.Party
 import Model.Identity
@@ -146,10 +146,10 @@ postUserAction :: API -> Handler Response
 postUserAction api = do
   auth <- peek
   let acct = siteAccount auth
-  auth' <- runForm ((api == HTML) `thenUse` (htmlUserForm acct)) $ do
+  auth' <- runForm ((api == HTML) `thenUse` htmlUserForm acct) $ do
     csrfForm
     -- TODO: pass old password into UpdateUserRequest
-    "auth" .:> (deformGuard "Incorrect password" . (\pw -> pw `checkPassword` auth) =<< deform)
+    "auth" .:> (deformGuard "Incorrect password" . (`checkPassword` auth) =<< deform)
     email <- "email" .:> deformNonEmpty emailTextForm
     passwd <- "password" .:> deformNonEmpty (passwordForm acct)
     let _ = UpdateUserRequest () email passwd

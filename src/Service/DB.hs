@@ -1,5 +1,6 @@
-{-# LANGUAGE FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, ConstraintKinds, DefaultSignatures, GeneralizedNewtypeDeriving, TypeFamilies, OverloadedStrings, StandaloneDeriving #-}
-module Service.DB
+{-# LANGUAGE FlexibleInstances, FlexibleContexts,
+  MultiParamTypeClasses, ConstraintKinds, TypeFamilies,
+  OverloadedStrings #-}module Service.DB
   ( DBPool
   , DBConn
   , initDB
@@ -77,8 +78,8 @@ type DBConn = PGConnection
 initDB :: C.Config -> IO DBPool
 initDB conf =
     DBPool
-        <$> (createPool' (pgConnect db) pgDisconnect)
-        <*> (createPool' (PGSimple.connect simpleConnInfo) (PGSimple.close))
+        <$> createPool' (pgConnect db) pgDisconnect
+        <*> createPool' (PGSimple.connect simpleConnInfo) (PGSimple.close)
   where
     createPool' :: IO a -> (a -> IO ()) -> IO (Pool a)
     createPool' get release =

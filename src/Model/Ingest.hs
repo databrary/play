@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds, OverloadedStrings #-}
+{-# LANGUAGE DataKinds, OverloadedStrings #-}
 module Model.Ingest
   ( IngestKey
   , lookupIngestContainer
@@ -37,7 +37,7 @@ import Data.Vector (Vector)
 
 import Data.Csv.Contrib (extractColumnsDistinctSample, decodeCsvByNameWith, extractColumnsInitialRows)
 import Service.DB
-import qualified JSON as JSON
+import qualified JSON
 import JSON (FromJSON(..), ToJSON(..))
 import Model.Volume.Types
 import Model.Container.Types
@@ -66,7 +66,7 @@ lookupIngestContainer vol k = do
               (ContainerRow vid_a6Dph vtop_a6Dpi vname_a6Dpj vdate_a6Dpk)
               vrelease_a6Dpl)
       (mapQuery
-        ((\ _p_a6Dpq _p_a6Dpr -> 
+        ((\ _p_a6Dpq _p_a6Dpr ->
                        (Data.ByteString.concat
                           [Data.String.fromString
                              "SELECT container.id,container.top,container.name,container.date,slot_release.release FROM container LEFT JOIN slot_release ON container.id = slot_release.container AND slot_release.segment = '(,)' JOIN ingest.container AS ingest USING (id, volume) WHERE ingest.key = ",
@@ -91,22 +91,22 @@ lookupIngestContainer vol k = do
                         _tenv_a6Dpp
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a6Dps, 
+                        _cid_a6Dps,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a6Dpp
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "boolean")
-                        _ctop_a6Dpt, 
+                        _ctop_a6Dpt,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6Dpp
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a6Dpu, 
+                        _cname_a6Dpu,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6Dpp
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "date")
-                        _cdate_a6Dpv, 
+                        _cdate_a6Dpv,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a6Dpp
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -180,17 +180,17 @@ lookupIngestRecord vol k = do
                         _tenv_a6GtF
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a6GtI, 
+                        _cid_a6GtI,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a6GtF
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "smallint")
-                        _ccategory_a6GtJ, 
+                        _ccategory_a6GtJ,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a6GtF
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text[]")
-                        _cmeasures_a6GtK, 
+                        _cmeasures_a6GtK,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6GtF
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -270,32 +270,32 @@ lookupIngestAsset vol k = do
                         _tenv_a6PDv
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a6PDy, 
+                        _cid_a6PDy,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a6PDv
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "smallint")
-                        _cformat_a6PDz, 
+                        _cformat_a6PDz,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6PDv
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "release")
-                        _crelease_a6PDA, 
+                        _crelease_a6PDA,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6PDv
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "interval")
-                        _cduration_a6PDB, 
+                        _cduration_a6PDB,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6PDv
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a6PDC, 
+                        _cname_a6PDC,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6PDv
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bytea")
-                        _csha1_a6PDD, 
+                        _csha1_a6PDD,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6PDv
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -378,7 +378,7 @@ participantRecordParseNamedRecord fieldMap m = do
     mState <- extractIfUsed2 (lookupField participantMetricState) validateParticipantState
     mSetting <- extractIfUsed2 (lookupField participantMetricSetting) validateParticipantSetting
     pure
-        (ParticipantRecord
+        ParticipantRecord
             { prdId = mId
             , prdInfo = mInfo
             , prdDescription = mDescription
@@ -394,22 +394,22 @@ participantRecordParseNamedRecord fieldMap m = do
             , prdCountry = mCountry
             , prdState = mState
             , prdSetting = mSetting
-            } )
+            }
   where
     extractIfUsed2
       :: (ParticipantFieldMapping2 -> Maybe Text)
       -> (BS.ByteString -> Maybe (Maybe a))
       -> Parser (FieldUse a)
-    extractIfUsed2 maybeGetField validateValue = do
+    extractIfUsed2 maybeGetField validateValue =
         case maybeGetField fieldMap of
             Just colName -> do
-                contents <- m .: (TE.encodeUtf8 colName)
+                contents <- m .: TE.encodeUtf8 colName
                 maybe
                     (fail ("invalid value for " ++ show colName ++ ", found " ++ show contents))
-                    (\mV -> pure (maybe FieldEmpty (Field contents) mV))
+                    (pure . maybe FieldEmpty (Field contents))
                     (validateValue contents)
             Nothing -> pure FieldUnused
-    
+
 
 -- verify that all expected columns are present, with some leniency in matching
 -- left if no match possible
@@ -420,7 +420,7 @@ determineMapping participantActiveMetrics csvHeaders = do
   where
     detectMetricMatch :: [Text] -> Metric -> Either String Text
     detectMetricMatch hdrs metric =
-        case L.find (\h -> columnMetricCompatible h metric) hdrs of
+        case L.find (`columnMetricCompatible` metric) hdrs of
             Just hdr -> Right hdr
             Nothing -> Left ("no compatible header found for metric: " ++ (show . metricName) metric)
 
@@ -466,10 +466,10 @@ participantFieldMappingToJSON fldMap =
   where
     fieldToEntry :: (Metric, Text) -> JSON.Value
     fieldToEntry (metric, colName) =
-        (JSON.object
+        JSON.object
             [ "metric" JSON..= (T.filter (/= ' ') . T.toLower . metricName) metric -- TODO: use shared function
             , "compatible_csv_fields" JSON..= [colName] -- change to single value soon
-            ])
+            ]
 
 parseParticipantFieldMapping :: [Metric] -> [(Metric, Text)] -> Either String ParticipantFieldMapping2
 parseParticipantFieldMapping volParticipantActiveMetrics requestedMapping = do

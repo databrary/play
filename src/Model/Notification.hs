@@ -22,7 +22,7 @@ import Data.Monoid ((<>))
 import Database.PostgreSQL.Typed (pgSQL)
 
 import Has
-import qualified JSON as JSON
+import qualified JSON
 import Service.DB
 import Model.SQL
 import Model.Id.Types
@@ -87,12 +87,12 @@ removeMatchingNotifications :: MonadDB c m => Notification -> m Int
 removeMatchingNotifications Notification{..} =
   dbExecute [pgSQL|DELETE FROM notification
     WHERE notice = ${notificationNotice}
-      AND target = COALESCE(${mfilter (no /=) $ Just $ partyId $ partyRow $ accountParty notificationTarget}, target) 
-      AND agent = COALESCE(${mfilter (no /=) $ Just $ partyId notificationAgent}, agent) 
+      AND target = COALESCE(${mfilter (no /=) $ Just $ partyId $ partyRow $ accountParty notificationTarget}, target)
+      AND agent = COALESCE(${mfilter (no /=) $ Just $ partyId notificationAgent}, agent)
       AND COALESCE(party, -1) = COALESCE(${partyId <$> notificationParty}, party, -1)
       AND COALESCE(volume, -1) = COALESCE(${volumeId <$> notificationVolume}, volume, -1)
       AND COALESCE(container, -1) = COALESCE(${notificationContainerId}, container, -1)
-      AND COALESCE(segment, 'empty') <@ ${fromMaybe fullSegment notificationSegment} 
+      AND COALESCE(segment, 'empty') <@ ${fromMaybe fullSegment notificationSegment}
       AND COALESCE(asset, -1) = COALESCE(${notificationAssetId}, asset, -1)
       AND COALESCE(comment, -1) = COALESCE(${notificationCommentId}, comment, -1)
       AND COALESCE(tag, -1) = COALESCE(${tagId <$> notificationTag}, tag, -1)

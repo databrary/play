@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, TypeFamilies, OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies, OverloadedStrings #-}
 module Model.Token.Types
   ( Token(..)
   , AccountToken(..)
@@ -34,15 +34,15 @@ data AccountToken = AccountToken
   }
 
 instance Has (Id Token) AccountToken where
-  view = (view . accountToken)
+  view = view . accountToken
 instance Has SiteAuth AccountToken where
   view = tokenAccount
 instance Has Access AccountToken where
-  view = (view . tokenAccount)
+  view = view . tokenAccount
 instance Has (Id Party) AccountToken where
-  view = (view . tokenAccount)
+  view = view . tokenAccount
 instance Has Account AccountToken where
-  view = (view . tokenAccount)
+  view = view . tokenAccount
 
 data LoginToken = LoginToken
   { loginAccountToken :: !AccountToken
@@ -56,9 +56,9 @@ instance Kinded LoginToken where
   kindOf _ = "token"
 
 instance Has (Id Token) LoginToken where
-  view = (view . loginAccountToken)
+  view = view . loginAccountToken
 instance Has SiteAuth LoginToken where
-  view = (view . loginAccountToken)
+  view = view . loginAccountToken
 
 data Session = Session
   { sessionAccountToken :: !AccountToken
@@ -67,13 +67,13 @@ data Session = Session
   }
 
 instance Has (Id Token) Session where
-  view = (view . sessionAccountToken)
+  view = view . sessionAccountToken
 instance Has Access Session where
-  view = (view . sessionAccountToken)
+  view = view . sessionAccountToken
 instance Has (Id Party) Session where
-  view = (view . sessionAccountToken)
+  view = view . sessionAccountToken
 instance Has Account Session where
-  view = (view . sessionAccountToken)
+  view = view . sessionAccountToken
 
 data Upload = Upload
   { uploadAccountToken :: AccountToken
@@ -82,7 +82,7 @@ data Upload = Upload
   }
 
 instance Has (Id Token) Upload where
-  view = (view . uploadAccountToken)
+  view = view . uploadAccountToken
 
 makeUpload :: Token -> BS.ByteString -> Int64 -> SiteAuth -> Upload
 makeUpload t n z u = Upload (AccountToken t u) n z

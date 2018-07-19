@@ -23,7 +23,7 @@ import qualified Database.PostgreSQL.Typed.Range as Range
 import Database.PostgreSQL.Typed.Types (PGTypeName(..))
 
 import Ops
-import qualified JSON as JSON
+import qualified JSON
 import Service.DB
 import Model.Id.Types
 import Model.Segment

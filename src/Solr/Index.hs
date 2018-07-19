@@ -1,5 +1,5 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards, GeneralizedNewtypeDeriving, ScopedTypeVariables, TemplateHaskell #-}
-module Solr.Index
+{-# LANGUAGE OverloadedStrings, RecordWildCards,
+  ScopedTypeVariables #-}module Solr.Index
   ( updateIndex
   ) where
 
@@ -222,7 +222,7 @@ updateIndex = do
               (w :: IO (Maybe BSC.ByteString)) <-
                   runInvert $
                       (runReaderT (writeUpdate writeAllDocuments) ctx :: InvertM BS.ByteString ())
-              (wf $ (fold <$> w :: IO BSC.ByteString) :: IO ())
+              wf $ (fold <$> w :: IO BSC.ByteString) :: IO ()
             , HC.requestHeaders = (hContentType, "application/json") : HC.requestHeaders req
             , HC.responseTimeout = HC.responseTimeoutMicro 100000000
             }

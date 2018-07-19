@@ -105,7 +105,7 @@ jsRoutes =
   , rt "\"downloadAssetSegment\":{method:\"GET\",route:function(int320,segment1,int322){return \"/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/download\";}},"
   -- , jsRoute "downloadAssetSegment" downloadAssetSegment (slot, asset) --download transcoded asset segment
   , rt "\"downloadOrigAssetSegment\":{method:\"GET\",route:function(int320,segment1,int322){return \"/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/downloadOrig\";}},"
-  -- , jsRoute "downloadOrigAssetSegment" downloadOrigAssetSegment (slot, asset) --download original asset segment 
+  -- , jsRoute "downloadOrigAssetSegment" downloadOrigAssetSegment (slot, asset) --download original asset segment
   , rt "\"thumbAssetSegment\":{method:\"GET\",route:function(int320,segment1,int322){return \"/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/thumb\";}},"
   -- , jsRoute "thumbAssetSegment" (thumbAssetSegment False) (slot, asset)
   , rt "\"thumbOrigAssetSegment\":{method:\"GET\",route:function(int320,segment1,int322){return \"/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/thumb\";}},"
@@ -195,7 +195,7 @@ jsRoutes =
 
   , rt "\"postSearch\":{method:\"GET\",route:function(){return \"/api/search\";}},"
   -- , jsRoute "postSearch" postSearch (JSON)
-  , rt "\"getFunders\":{method:\"GET\",route:function(){return \"/api/funder\";}},"  
+  , rt "\"getFunders\":{method:\"GET\",route:function(){return \"/api/funder\";}},"
   -- , jsRoute "getFunders" queryFunder ()
   , rt "\"getCitation\":{method:\"GET\",route:function(){return \"/api/cite\";}},"
   -- , jsRoute "getCitation" getCitation ()
@@ -329,7 +329,7 @@ fakeBackendDepend1 =
   , viewVolume :: ActionRoute (API, Id Volume)
   , viewVolumeCreateHandler :: Action
   , viewVolumeEdit :: ActionRoute (Id Volume)
-  , queryVolumes :: ActionRoute (API)
+  , queryVolumes :: ActionRoute API
   , thumbVolume :: ActionRoute (Id Volume)
   , csvVolume :: ActionRoute (Id Volume)
   , viewVolumeActivity :: ActionRoute (API, Id Volume)

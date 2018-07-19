@@ -29,7 +29,7 @@ import qualified Text.Regex.Posix as Regex
 
 import Has
 import Ops
-import qualified JSON as JSON
+import qualified JSON
 import Service.Types
 import Service.DB
 import Service.Notification
@@ -70,7 +70,7 @@ postNotify = action POST (pathJSON </< "notify") $ \() -> withAuth $ do
     UpdateNotifyRequest
       <$> ("notice" .:> return <$> deform <|> withSubDeforms (const deform))
       <*> ("delivery" .:> deformNonEmpty deform)
-  mapM_ (maybe (void . removeNotify u) (\d n -> changeNotify u n d) md) nl
+  mapM_ (maybe (void . removeNotify u) (flip (changeNotify u)) md) nl
   return $ emptyResponse noContent204 []
 
 createNotification

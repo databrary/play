@@ -18,7 +18,7 @@ import qualified Network.HTTP.Client as HC
 import qualified Network.URI as URI
 
 import Ops
-import qualified JSON as JSON
+import qualified JSON
 import HTTP.Client
 import Model.URL
 import Model.Citation.Types
@@ -44,7 +44,7 @@ parseCitation = JSON.withObject "citation" $ \o ->
     <*> optional (o JSON..: "issued" >>= (JSON..: "date-parts") >>= (`JSON.lookupAtParse` 0) >>= (`JSON.lookupAtParse` 0))
     <*> o JSON..:? "title"
   where
-  parseDOI d = (hdlURL d) `useWhen` (validHDL d)
+  parseDOI d = hdlURL d `useWhen` validHDL d
 
 lookupCitation :: URI.URI -> HTTPClient -> IO (Maybe Citation)
 lookupCitation uri hcm = runMaybeT $ do

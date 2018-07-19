@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, ViewPatterns #-}
+{-# LANGUAGE ViewPatterns #-}
 -- |
 -- FIXME: There is a lot of duplication of standard library tools in here.
 module Ops

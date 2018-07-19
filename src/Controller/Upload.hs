@@ -31,7 +31,7 @@ import System.Posix.IO.ByteString (openFd, OpenMode(ReadOnly, WriteOnly), defaul
 import System.Posix.Types (COff(..))
 
 import Has (view, peek, peeks, focusIO, MonadHas)
-import qualified JSON as JSON
+import qualified JSON
 import Service.DB (MonadDB)
 import Service.Entropy (Entropy)
 import Service.Log
@@ -132,21 +132,21 @@ writeChunk off len file rb = bracket
       let block n = do
             b <- rb
             if BS.null b
-              then do
+              then
                 return n
               else do
                 let n' = n + fromIntegral (BS.length b)
                     write b' = do
                       w <- BSU.unsafeUseAsCStringLen b' $ \(buf, siz) -> fdWriteBuf h (castPtr buf) (fromIntegral siz)
                       if w < fromIntegral (BS.length b')
-                        then do
+                        then
                           write $! BS.drop (fromIntegral w) b'
-                        else do
+                        else
                           block n'
                 if n' > len
-                  then do
+                  then
                     return n'
-                  else do
+                  else
                     write b
       block 0
 

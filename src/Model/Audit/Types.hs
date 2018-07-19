@@ -1,4 +1,4 @@
-{-# LANGUAGE DataKinds, TemplateHaskell, DeriveDataTypeable, OverloadedStrings #-}
+{-# LANGUAGE DataKinds, DeriveDataTypeable, OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Model.Audit.Types
   ( AuditAction(..)
@@ -77,7 +77,7 @@ instance Database.PostgreSQL.Typed.Types.PGColumn "audit.action" AuditAction whe
           -> AuditActionSuperuser
         _ -> error
                ("pgDecode audit.action: "
-                ++ (Data.ByteString.Char8.unpack x_a4NXQ))
+                ++ Data.ByteString.Char8.unpack x_a4NXQ)
 instance Database.PostgreSQL.Typed.Dynamic.PGRep "audit.action" AuditAction
 instance Database.PostgreSQL.Typed.Enum.PGEnum AuditAction
 instance Model.Kind.Kinded AuditAction where
@@ -85,7 +85,7 @@ instance Model.Kind.Kinded AuditAction where
 instance DBEnum AuditAction
 instance Data.Aeson.Types.ToJSON AuditAction where
   toJSON
-    = (Data.Aeson.Types.toJSON . fromEnum)
+    = Data.Aeson.Types.toJSON . fromEnum
 instance Data.Aeson.Types.FromJSON AuditAction where
   parseJSON = parseJSONEnum
 instance HTTP.Form.Deform.Deform f_a4NXR AuditAction where

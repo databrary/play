@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, RecordWildCards #-}
+
 module Model.VolumeAccess.Types
   ( VolumeAccess(..)
   , getShareFullDefault

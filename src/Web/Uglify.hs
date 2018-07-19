@@ -35,12 +35,12 @@ generateUglifyJS = \fileToGenInfo@(fileToGen, _) -> do
   guard (not $ null inputFiles)
   inputFilesAbs <- mapM ((liftIO . unRawFilePath) . webFileAbs) inputFiles
   fileToGenAbs <- liftIO $ unRawFilePath $ webFileAbs fileToGen
-  let fileToGenMap = (webFileAbs fileToGen) RF.<.> ".map"
+  let fileToGenMap = webFileAbs fileToGen RF.<.> ".map"
   fileToGenMapAbs <- liftIO $ unRawFilePath fileToGenMap
   webRegenerate (do
     print "making minified with command..."
-    print 
-      ("uglifyjs", 
+    print
+      ("uglifyjs",
       ["--output", fileToGenAbs
       , "--source-map", fileToGenMapAbs
       , "--prefix", "relative"

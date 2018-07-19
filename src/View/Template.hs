@@ -50,13 +50,13 @@ htmlHeader canon hasjs = do
 htmlAddress :: H.Html
 htmlAddress =
   H.p H.! HA.class_ "footer-address" $ do
-    H.strong $ do
+    H.strong $
       void "Databrary"
     H.br
     void "196 Mercer Street, Room 807 | New York, NY 10012"
     H.br
     void "212.998.5800"
-    
+
 htmlSocialMedia :: H.Html
 htmlSocialMedia =
   H.p H.! HA.class_ "footer-social-media" $ do
@@ -83,10 +83,10 @@ htmlFooter = H.footer H.! HA.id "site-footer" H.! HA.class_ "site-footer" $
         htmlSocialMedia
       H.ul H.! HA.class_ "site-footer-grants" $ do
         H.li $
-          H.a H.! HA.href "http://www.nyu.edu" $ do
+          H.a H.! HA.href "http://www.nyu.edu" $
             H.img H.! HA.src "/web/images/grants/nyu-small.jpg" H.! HA.class_ "nyu"
         H.li $
-          H.a H.! HA.href "http://www.psu.edu" $ do
+          H.a H.! HA.href "http://www.psu.edu" $
             H.img H.! HA.src "/web/images/grants/pennstate.png" H.! HA.class_ "psu"
         H.li $
           H.a H.! HA.href "http://www.nsf.gov/awardsearch/showAward?AWD_ID=1238599&HistoricalAwards=false" $ do
@@ -97,15 +97,15 @@ htmlFooter = H.footer H.! HA.id "site-footer" H.! HA.class_ "site-footer" $
             H.img H.! HA.src "/web/images/grants/nih.png" H.! HA.class_ "nih"
             " U01-HD-076595"
         H.li $
-          H.a H.! HA.href "https://www.srcd.org/" $ do
+          H.a H.! HA.href "https://www.srcd.org/" $
             H.img H.! HA.src "/web/images/grants/srcd.png" H.! HA.class_ "srcd"
         H.li $
-          H.a H.! HA.href "https://sloan.org/" $ do
+          H.a H.! HA.href "https://sloan.org/" $
             H.img H.! HA.src "/web/images/grants/sloan.png" H.! HA.class_ "sloan"
         H.li $
-          H.a H.! HA.href "http://www.legofoundation.com" $ do
+          H.a H.! HA.href "http://www.legofoundation.com" $
             H.img H.! HA.src "/web/images/grants/lego.png" H.! HA.class_ "lego"
-      H.div H.! HA.class_ "site-footer-legal col" $ do
+      H.div H.! HA.class_ "site-footer-legal col" $
         H.p $ do
           void "Each dataset on Databrary represents an individual work owned by the party who contributed it. Data on Databrary are provided for non-commercial use and are subject to the terms of use outlined in the "
           H.a H.! HA.href "//databrary.org/access/policies/agreement.html" H.! HA.target "_blank" $
@@ -142,7 +142,7 @@ htmlTemplate req title body = H.docTypeHtml $ do
                     H.! actionLink viewRoot HTML hasjs
                     $ "Databrary"
                   forM_ ["news", "about", "access", "community"] $ \l ->
-                    H.li $ H.a H.! HA.href (H.stringValue $ "//databrary.org/" ++ l ++ ".html") $ do
+                    H.li $ H.a H.! HA.href (H.stringValue $ "//databrary.org/" ++ l ++ ".html") $
                       H.string l
               H.ul
                 H.! HA.class_ "toolbar-user inline-block flat cf"

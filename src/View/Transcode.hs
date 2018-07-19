@@ -21,7 +21,7 @@ import Controller.Party
 import {-# SOURCE #-} Controller.Transcode
 
 htmlTranscodes :: [Transcode] -> RequestContext -> H.Html
-htmlTranscodes tl req = htmlTemplate req (Just "transcodes") $ \js -> do
+htmlTranscodes tl req = htmlTemplate req (Just "transcodes") $ \js ->
   H.table $ do
     H.thead $ H.tr $
       mapM_ H.th

@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards, ViewPatterns, TemplateHaskell, QuasiQuotes, DataKinds #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards, DataKinds #-}
 module Model.Slot
   ( module Model.Slot.Types
   , lookupSlot
@@ -10,7 +10,7 @@ module Model.Slot
 import Database.PostgreSQL.Typed.Types
 import qualified Data.String
 
-import qualified JSON as JSON
+import qualified JSON
 import Service.DB
 import Model.Id
 import Model.Identity
@@ -70,4 +70,4 @@ auditSlotDownload success Slot{ slotContainer = c, slotSegment = seg } = do
 
 slotJSON :: JSON.ToObject o => Slot -> JSON.Record (Id Container) o
 slotJSON Slot{..} = containerJSON False slotContainer -- probably add bool to slotJSON
-  `JSON.foldObjectIntoRec` (segmentJSON slotSegment)
+  `JSON.foldObjectIntoRec` segmentJSON slotSegment

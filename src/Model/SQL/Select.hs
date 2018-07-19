@@ -84,7 +84,7 @@ outputParser (OutputMap False f o) =
   f <$> outputParser o
 outputParser (OutputMap True f o) = do
   x <- lift $ TH.newName "x"
-  ((TH.VarE 'fmap `TH.AppE` (TH.LamE [TH.VarP x] $ f $ TH.VarE x)) `TH.AppE`)
+  ((TH.VarE 'fmap `TH.AppE` TH.LamE [TH.VarP x] (f $ TH.VarE x)) `TH.AppE`)
     <$> outputParser (outputMaybe o)
 outputParser _ = StateT st where
   st (i:l) = return (TH.VarE i, l)
@@ -162,7 +162,7 @@ selectMap f s = s{ selectOutput = OutputMap False f (selectOutput s) }
 
 
 takeWhileEnd :: (a -> Bool) -> [a] -> [a]
-takeWhileEnd p = fst . foldr go ([], False) where
+takeWhileEnd p = fst . foldr go ([], False) where
   go x (rest, done)
     | not done && p x = (x:rest, False)
     | otherwise = (rest, True)
@@ -181,7 +181,7 @@ makeQuery flags sql output = do
   cols = outputColumns output
 
 selectDistinctQuery :: Maybe [String] -> Selector -> String -> TH.ExpQ
-selectDistinctQuery dist (Selector{ selectOutput = o, selectSource = s }) sqlf =
+selectDistinctQuery dist Selector{ selectOutput = o, selectSource = s } sqlf =
   makeQuery flags (\c -> select dist ++ c ++ " FROM " ++ s ++ ' ':sql) o
   where
   (flags, sql) = parseQueryFlags sqlf

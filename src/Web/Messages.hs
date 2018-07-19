@@ -8,7 +8,7 @@ import qualified Data.Aeson.Encoding as JSON
 import qualified Data.ByteString.Builder as BSB
 import System.IO (withBinaryFile, IOMode(WriteMode), hPutStr)
 
-import qualified JSON as JSON
+import qualified JSON
 import Service.Messages
 import Files
 import Web

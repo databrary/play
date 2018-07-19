@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
+
 module View.Volume
   (
     htmlVolumeViewLink

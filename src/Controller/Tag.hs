@@ -13,7 +13,7 @@ import qualified Web.Route.Invertible as R
 
 import Has
 import Ops
-import qualified JSON as JSON
+import qualified JSON
 import Model.Permission
 import Model.Id
 import Model.Container
@@ -58,7 +58,7 @@ postTag = action POST (pathAPI </>> pathSlotId </> pathTagId) $ \(api, si, TagId
     response conflict409 [] ("The requested tag overlaps your existing tag." :: T.Text)
   top <- containerIsVolumeTop (slotContainer s)
   createVolumeNotification (view tu) $ \n -> (n NoticeTagVolume)
-    { notificationContainerId = top `unlessUse` (view tu)
+    { notificationContainerId = top `unlessUse` view tu
     , notificationSegment = Just $ (view . tagSlot) tu
     , notificationTag = Just $ useTag tu
     }

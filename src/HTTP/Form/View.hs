@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TypeFamilies #-}
+{-# LANGUAGE TypeFamilies #-}
 module HTTP.Form.View
   ( FormViewT
   , runFormView

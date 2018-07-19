@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards, TemplateHaskell, QuasiQuotes, DataKinds #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards, DataKinds #-}
 module Model.Transcode
   ( module Model.Transcode.Types
   , defaultTranscodeOptions
@@ -60,7 +60,7 @@ lookupTranscode a = do
     -- dbQuery1 $(selectQuery selectTranscode "WHERE transcode.asset = ${a}")
     let _tenv_a9v0o = unknownPGTypeEnv
     mRow <-
-      (dbQuery1
+      dbQuery1
         (mapQuery2
           ((\ _p_a9v0p ->
                            (BS.concat
@@ -72,7 +72,7 @@ lookupTranscode a = do
                                     Database.PostgreSQL.Typed.Types.PGTypeName "integer")
                                  _p_a9v0p]))
             a)
-               (\ 
+               (\
                   [_csegment_a9v0q,
                    _coptions_a9v0r,
                    _cstart_a9v0s,
@@ -112,177 +112,177 @@ lookupTranscode a = do
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "segment")
-                        _csegment_a9v0q, 
+                        _csegment_a9v0q,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text[]")
-                        _coptions_a9v0r, 
+                        _coptions_a9v0r,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
-                        _cstart_a9v0s, 
+                        _cstart_a9v0s,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cprocess_a9v0t, 
+                        _cprocess_a9v0t,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _clog_a9v0u, 
+                        _clog_a9v0u,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a9v0v, 
+                        _cid_a9v0v,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a9v0w, 
+                        _cname_a9v0w,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cprename_a9v0x, 
+                        _cprename_a9v0x,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                        _corcid_a9v0y, 
+                        _corcid_a9v0y,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _caffiliation_a9v0z, 
+                        _caffiliation_a9v0z,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _curl_a9v0A, 
+                        _curl_a9v0A,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                        _cemail_a9v0B, 
+                        _cemail_a9v0B,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                        _cpassword_a9v0C, 
+                        _cpassword_a9v0C,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "permission")
-                        _csite_a9v0D, 
+                        _csite_a9v0D,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "permission")
-                        _cmember_a9v0E, 
+                        _cmember_a9v0E,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a9v0F, 
+                        _cid_a9v0F,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "smallint")
-                        _cformat_a9v0G, 
+                        _cformat_a9v0G,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "release")
-                        _crelease_a9v0H, 
+                        _crelease_a9v0H,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "interval")
-                        _cduration_a9v0I, 
+                        _cduration_a9v0I,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a9v0J, 
+                        _cname_a9v0J,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bytea")
-                        _csha1_a9v0K, 
+                        _csha1_a9v0K,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
-                        _csize_a9v0L, 
+                        _csize_a9v0L,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a9v0M, 
+                        _cid_a9v0M,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "smallint")
-                        _cformat_a9v0N, 
+                        _cformat_a9v0N,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "release")
-                        _crelease_a9v0O, 
+                        _crelease_a9v0O,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "interval")
-                        _cduration_a9v0P, 
+                        _cduration_a9v0P,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a9v0Q, 
+                        _cname_a9v0Q,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bytea")
-                        _csha1_a9v0R, 
+                        _csha1_a9v0R,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
-                        _csize_a9v0S, 
+                        _csize_a9v0S,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a9v0T, 
+                        _cid_a9v0T,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a9v0U, 
+                        _cname_a9v0U,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cbody_a9v0V, 
+                        _cbody_a9v0V,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                        _calias_a9v0W, 
+                        _calias_a9v0W,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                        _cdoi_a9v0X, 
+                        _cdoi_a9v0X,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v0o
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
-                        _cvolume_creation_a9v0Y))))
+                        _cvolume_creation_a9v0Y)))
     pure
      (fmap
       (\ (vsegment_a9uZh, voptions_a9uZi, vstart_a9uZj, vprocess_a9uZk,
@@ -391,172 +391,172 @@ lookupActiveTranscodes = do
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "segment")
-                       _csegment_a9v39, 
+                       _csegment_a9v39,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "text[]")
-                       _coptions_a9v3a, 
+                       _coptions_a9v3a,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
-                       _cstart_a9v3b, 
+                       _cstart_a9v3b,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                       _cprocess_a9v3c, 
+                       _cprocess_a9v3c,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                       _clog_a9v3d, 
+                       _clog_a9v3d,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                       _cid_a9v3e, 
+                       _cid_a9v3e,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                       _cname_a9v3f, 
+                       _cname_a9v3f,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                       _cprename_a9v3g, 
+                       _cprename_a9v3g,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                       _corcid_a9v3h, 
+                       _corcid_a9v3h,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                       _caffiliation_a9v3i, 
+                       _caffiliation_a9v3i,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                       _curl_a9v3j, 
+                       _curl_a9v3j,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                       _cemail_a9v3k, 
+                       _cemail_a9v3k,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                       _cpassword_a9v3l, 
+                       _cpassword_a9v3l,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "permission")
-                       _csite_a9v3m, 
+                       _csite_a9v3m,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "permission")
-                       _cmember_a9v3n, 
+                       _cmember_a9v3n,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                       _cid_a9v3o, 
+                       _cid_a9v3o,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "smallint")
-                       _cformat_a9v3p, 
+                       _cformat_a9v3p,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "release")
-                       _crelease_a9v3q, 
+                       _crelease_a9v3q,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "interval")
-                       _cduration_a9v3r, 
+                       _cduration_a9v3r,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                       _cname_a9v3s, 
+                       _cname_a9v3s,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "bytea")
-                       _csha1_a9v3t, 
+                       _csha1_a9v3t,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
-                       _csize_a9v3u, 
+                       _csize_a9v3u,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                       _cid_a9v3v, 
+                       _cid_a9v3v,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "smallint")
-                       _cformat_a9v3w, 
+                       _cformat_a9v3w,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "release")
-                       _crelease_a9v3x, 
+                       _crelease_a9v3x,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "interval")
-                       _cduration_a9v3y, 
+                       _cduration_a9v3y,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                       _cname_a9v3z, 
+                       _cname_a9v3z,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "bytea")
-                       _csha1_a9v3A, 
+                       _csha1_a9v3A,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
-                       _csize_a9v3B, 
+                       _csize_a9v3B,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                       _cid_a9v3C, 
+                       _cid_a9v3C,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                       _cname_a9v3D, 
+                       _cname_a9v3D,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                       _cbody_a9v3E, 
+                       _cbody_a9v3E,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                       _calias_a9v3F, 
+                       _calias_a9v3F,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                       _cdoi_a9v3G, 
+                       _cdoi_a9v3G,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumn
                        _tenv_a9v38
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -709,7 +709,7 @@ addTranscode orig seg@(Segment rng) opts (ProbeAV _ fmt av) = do
                                 Database.PostgreSQL.Typed.Types.PGTypeName "integer")
                              _p_a9v7e]))
          (assetId $ assetRow a)
-         ((fromMaybe 0) $ lowerBound rng)
+         (fromMaybe 0 $ lowerBound rng)
          (upperBound rng)
          (assetId $ assetRow orig))
             (\[] -> ()))
@@ -721,7 +721,7 @@ addTranscode orig seg@(Segment rng) opts (ProbeAV _ fmt av) = do
     , transcodeOwner = own
     , transcodeSegment = seg
     , transcodeOptions = opts
-    , transcodeStart = Nothing 
+    , transcodeStart = Nothing
     , transcodeProcess = Nothing
     , transcodeLog = Nothing
     }
@@ -766,7 +766,7 @@ updateTranscode tc pid logs = do
         pid
         logs
         (assetId $ assetRow $ transcodeAsset tc)
-        ((fromMaybe 0) $ transcodeProcess tc))
+        (fromMaybe 0 $ transcodeProcess tc))
             (\[_clog_a9v81]
                -> (Database.PostgreSQL.Typed.Types.pgDecodeColumn
                      _tenv_a9v7W
@@ -816,7 +816,7 @@ findTranscode orig seg opts = do
          seg
          (map Just opts)
          (volumeId $ volumeRow $ assetVolume orig))
-               (\ 
+               (\
                   [_csegment_a9v9b,
                    _coptions_a9v9c,
                    _cstart_a9v9d,
@@ -843,107 +843,107 @@ findTranscode orig seg opts = do
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "segment")
-                        _csegment_a9v9b, 
+                        _csegment_a9v9b,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text[]")
-                        _coptions_a9v9c, 
+                        _coptions_a9v9c,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
-                        _cstart_a9v9d, 
+                        _cstart_a9v9d,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cprocess_a9v9e, 
+                        _cprocess_a9v9e,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _clog_a9v9f, 
+                        _clog_a9v9f,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a9v9g, 
+                        _cid_a9v9g,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a9v9h, 
+                        _cname_a9v9h,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cprename_a9v9i, 
+                        _cprename_a9v9i,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                        _corcid_a9v9j, 
+                        _corcid_a9v9j,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _caffiliation_a9v9k, 
+                        _caffiliation_a9v9k,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _curl_a9v9l, 
+                        _curl_a9v9l,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                        _cemail_a9v9m, 
+                        _cemail_a9v9m,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                        _cpassword_a9v9n, 
+                        _cpassword_a9v9n,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "permission")
-                        _csite_a9v9o, 
+                        _csite_a9v9o,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "permission")
-                        _cmember_a9v9p, 
+                        _cmember_a9v9p,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a9v9q, 
+                        _cid_a9v9q,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "smallint")
-                        _cformat_a9v9r, 
+                        _cformat_a9v9r,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "release")
-                        _crelease_a9v9s, 
+                        _crelease_a9v9s,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "interval")
-                        _cduration_a9v9t, 
+                        _cduration_a9v9t,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a9v9u, 
+                        _cname_a9v9u,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bytea")
-                        _csha1_a9v9v, 
+                        _csha1_a9v9v,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9v93
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -1029,7 +1029,7 @@ findMatchingTranscode t@Transcode{..} = do
          transcodeSegment
          (map Just transcodeOptions)
          (assetId $ assetRow $ transcodeAsset t))
-               (\ 
+               (\
                   [_csegment_a9vgq,
                    _coptions_a9vgr,
                    _cstart_a9vgs,
@@ -1069,172 +1069,172 @@ findMatchingTranscode t@Transcode{..} = do
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "segment")
-                        _csegment_a9vgq, 
+                        _csegment_a9vgq,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text[]")
-                        _coptions_a9vgr, 
+                        _coptions_a9vgr,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
-                        _cstart_a9vgs, 
+                        _cstart_a9vgs,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cprocess_a9vgt, 
+                        _cprocess_a9vgt,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _clog_a9vgu, 
+                        _clog_a9vgu,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a9vgv, 
+                        _cid_a9vgv,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a9vgw, 
+                        _cname_a9vgw,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cprename_a9vgx, 
+                        _cprename_a9vgx,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                        _corcid_a9vgy, 
+                        _corcid_a9vgy,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _caffiliation_a9vgz, 
+                        _caffiliation_a9vgz,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _curl_a9vgA, 
+                        _curl_a9vgA,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                        _cemail_a9vgB, 
+                        _cemail_a9vgB,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                        _cpassword_a9vgC, 
+                        _cpassword_a9vgC,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "permission")
-                        _csite_a9vgD, 
+                        _csite_a9vgD,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "permission")
-                        _cmember_a9vgE, 
+                        _cmember_a9vgE,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a9vgF, 
+                        _cid_a9vgF,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "smallint")
-                        _cformat_a9vgG, 
+                        _cformat_a9vgG,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "release")
-                        _crelease_a9vgH, 
+                        _crelease_a9vgH,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "interval")
-                        _cduration_a9vgI, 
+                        _cduration_a9vgI,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a9vgJ, 
+                        _cname_a9vgJ,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bytea")
-                        _csha1_a9vgK, 
+                        _csha1_a9vgK,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
-                        _csize_a9vgL, 
+                        _csize_a9vgL,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a9vgM, 
+                        _cid_a9vgM,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "smallint")
-                        _cformat_a9vgN, 
+                        _cformat_a9vgN,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "release")
-                        _crelease_a9vgO, 
+                        _crelease_a9vgO,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "interval")
-                        _cduration_a9vgP, 
+                        _cduration_a9vgP,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a9vgQ, 
+                        _cname_a9vgQ,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bytea")
-                        _csha1_a9vgR, 
+                        _csha1_a9vgR,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bigint")
-                        _csize_a9vgS, 
+                        _csize_a9vgS,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a9vgT, 
+                        _cid_a9vgT,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a9vgU, 
+                        _cname_a9vgU,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cbody_a9vgV, 
+                        _cbody_a9vgV,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                        _calias_a9vgW, 
+                        _calias_a9vgW,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                        _cdoi_a9vgX, 
+                        _cdoi_a9vgX,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a9vgl
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::

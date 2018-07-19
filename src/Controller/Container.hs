@@ -19,7 +19,7 @@ import Network.HTTP.Types (noContent204, movedPermanently301, conflict409)
 import qualified Web.Route.Invertible as R
 
 import Has
-import qualified JSON as JSON
+import qualified JSON
 import Model.Id
 import Model.Permission hiding (checkPermission)
 import Model.Volume hiding (getVolume)
@@ -58,7 +58,7 @@ containerDownloadName Container{ containerRow = ContainerRow{..} } =
     T.pack (show containerId) : maybeToList containerName
 
 viewContainer :: ActionRoute (API, (Maybe (Id Volume), Id Container))
-viewContainer = second (second $ slotContainerId . unId I.:<->: containerSlotId) `R.mapActionRoute` (viewSlot False)
+viewContainer = second (second $ slotContainerId . unId I.:<->: containerSlotId) `R.mapActionRoute` viewSlot False
 
 data CreateOrUpdateContainerRequest =
     CreateOrUpdateContainerRequest (Maybe (Maybe T.Text)) (Maybe Bool) (Maybe (Maybe Day)) (Maybe (Maybe Release))
@@ -100,7 +100,7 @@ createContainer = action POST (pathJSON >/> pathId </< "slot") $ \vi -> withAuth
   -- HTML -> peeks $ otherRouteResponse [] viewContainer (api, (Just vi, containerId $ containerRow c))
 
 postContainer :: ActionRoute (Id Slot)
-postContainer = action POST (pathJSON >/> pathSlotId) $ \(ci) -> withAuth $ do
+postContainer = action POST (pathJSON >/> pathSlotId) $ \ci -> withAuth $ do
   c <- getContainer PermissionEDIT Nothing ci False
   c' <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ containerForm c
   changeContainer c'
@@ -121,7 +121,7 @@ deleteContainer = action DELETE (pathJSON >/> pathSlotId) $ \ci -> withAuth $ do
   guardVerfHeader
   c <- getContainer PermissionEDIT Nothing ci False
   r <- removeContainer c
-  unless r $ result $ 
+  unless r $ result $
     response conflict409 [] $ JSON.recordEncoding $ containerJSON False c -- False because level EDIT
     -- HTML -> response conflict409 [] ("This container is not empty." :: T.Text)
   return $ emptyResponse noContent204 []

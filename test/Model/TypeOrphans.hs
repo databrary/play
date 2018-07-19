@@ -81,7 +81,7 @@ deriving instance Eq SharedPolicy
 deriving instance Show SharedPolicy
 
 -- deriving instance Eq Slot
-instance Show Slot where 
+instance Show Slot where
   show _ = "Slot"
 -- deriving instance Show Slot
 

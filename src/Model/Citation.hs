@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, ScopedTypeVariables, DataKinds #-}
+{-# LANGUAGE ScopedTypeVariables, DataKinds #-}
 module Model.Citation
   ( module Model.Citation.Types
   , lookupVolumeCitation
@@ -27,19 +27,19 @@ lookupVolumeCitation :: (MonadDB c m) => Volume -> m (Maybe Citation)
 lookupVolumeCitation vol = do
   let _tenv_aAhX = unknownPGTypeEnv
   mRow <- dbQuery1 -- . fmap ($ Just (volumeName $ volumeRow vol)) $(selectQuery selectVolumeCitation "WHERE volume_citation.volume = ${volumeId $ volumeRow vol}")
-   (mapQuery2 
+   (mapQuery2
       ((\ _p_aAhY ->
-                       (Data.ByteString.concat
+                       Data.ByteString.concat
                           [fromString
                              "SELECT volume_citation.head,volume_citation.url,volume_citation.year FROM volume_citation WHERE volume_citation.volume = ",
                            pgEscapeParameter
-                             _tenv_aAhX (PGTypeProxy :: PGTypeName "integer") _p_aAhY]))
+                             _tenv_aAhX (PGTypeProxy :: PGTypeName "integer") _p_aAhY])
          (volumeId $ volumeRow vol))
                (\[_chead_aAhZ, _curl_aAi0, _cyear_aAi1]
                   -> (pgDecodeColumnNotNull
-                        _tenv_aAhX (PGTypeProxy :: PGTypeName "text") _chead_aAhZ, 
+                        _tenv_aAhX (PGTypeProxy :: PGTypeName "text") _chead_aAhZ,
                       pgDecodeColumn
-                        _tenv_aAhX (PGTypeProxy :: PGTypeName "text") _curl_aAi0, 
+                        _tenv_aAhX (PGTypeProxy :: PGTypeName "text") _curl_aAi0,
                       pgDecodeColumn
                         _tenv_aAhX (PGTypeProxy :: PGTypeName "smallint") _cyear_aAi1)))
   pure
@@ -107,57 +107,57 @@ lookupVolumesCitations = do
                         _tenv_a1iKm
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a1iKy, 
+                        _cid_a1iKy,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a1iKm
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a1iKA, 
+                        _cname_a1iKA,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a1iKm
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cbody_a1iKB, 
+                        _cbody_a1iKB,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a1iKm
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                        _calias_a1iKC, 
+                        _calias_a1iKC,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a1iKm
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                        _cdoi_a1iKD, 
+                        _cdoi_a1iKD,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a1iKm
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
-                        _cvolume_creation_a1iKE, 
+                        _cvolume_creation_a1iKE,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a1iKm
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text[]")
-                        _cowners_a1iKF, 
+                        _cowners_a1iKF,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a1iKm
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "permission")
-                        _cpermission_a1iKG, 
+                        _cpermission_a1iKG,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a1iKm
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "boolean")
-                        _cshare_full_a1iKH, 
+                        _cshare_full_a1iKH,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a1iKm
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _chead_a1iKI, 
+                        _chead_a1iKI,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a1iKm
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _curl_a1iKJ, 
+                        _curl_a1iKJ,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a1iKm
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -186,15 +186,15 @@ lookupVolumeLinks vol = do
   rows <- dbQuery -- (selectQuery selectVolumeLink "WHERE volume_link.volume = ${volumeId $ volumeRow vol}")
    (mapQuery2
       ((\ _p_aAiK ->
-                       (Data.ByteString.concat
+                       Data.ByteString.concat
                           [fromString
                              "SELECT volume_link.head,volume_link.url FROM volume_link WHERE volume_link.volume = ",
                            pgEscapeParameter
-                             _tenv_aAiJ (PGTypeProxy :: PGTypeName "integer") _p_aAiK]))
+                             _tenv_aAiJ (PGTypeProxy :: PGTypeName "integer") _p_aAiK])
          (volumeId $ volumeRow vol))
                (\ [_chead_aAiL, _curl_aAiM]
                   -> (pgDecodeColumnNotNull
-                        _tenv_aAiJ (PGTypeProxy :: PGTypeName "text") _chead_aAiL, 
+                        _tenv_aAiJ (PGTypeProxy :: PGTypeName "text") _chead_aAiL,
                       pgDecodeColumnNotNull
                         _tenv_aAiJ (PGTypeProxy :: PGTypeName "text") _curl_aAiM)))
   pure

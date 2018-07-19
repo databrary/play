@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, RankNTypes #-}
 module Model.Enum
   ( DBEnum
   , readDBEnum

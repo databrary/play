@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 module Model.Category
   ( module Model.Category.Types
   , allCategories
@@ -12,7 +12,7 @@ import qualified Data.IntMap.Strict as IntMap
 import Data.Monoid ((<>))
 import qualified Data.Text
 
-import qualified JSON as JSON
+import qualified JSON
 import Model.Id
 import Model.Category.Types
 

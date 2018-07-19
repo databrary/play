@@ -142,7 +142,7 @@ mailNotification msg Notification{..} = case notificationNotice of
     "A new Databrary newsletter has been posted. Te see it, go to: http://databrary.org/news.html"
   where
   target = partyRow (accountParty notificationTarget)
-  person p = (on (/=) partyId p target) `thenUse` (TL.fromStrict (partyName p))
+  person p = on (/=) partyId p target `thenUse` TL.fromStrict (partyName p)
   agent = fromMaybe "You" $ person notificationAgent
   partyp = person =<< notificationParty
   party = fromMaybe "you" partyp
@@ -222,13 +222,13 @@ htmlNotification msg Notification{..} = case notificationNotice of
     agent >> " created a " >> assetSegment "highlight"
     >> " in " >> volume >> "."
   NoticeCommentVolume ->
-    agent >> " " >> (slotVolume [] ("#comment-" <> foldMap (H.toValue . unId) notificationCommentId)) "commented"
+    agent >> " " >> slotVolume [] ("#comment-" <> foldMap (H.toValue . unId) notificationCommentId) "commented"
     >> " on " >> volume >> "."
   NoticeCommentReply ->
-    agent >> " " >> (slotVolume [] ("#comment-" <> foldMap (H.toValue . unId) notificationCommentId)) "replied"
+    agent >> " " >> slotVolume [] ("#comment-" <> foldMap (H.toValue . unId) notificationCommentId) "replied"
     >> " to your comment on " >> volume >> "."
   NoticeTagVolume ->
-    agent >> " " >> (slotVolume [("tag", foldMap (tagNameBS . tagName) notificationTag)] "#panel-tags") "tagged"
+    agent >> " " >> slotVolume [("tag", foldMap (tagNameBS . tagName) notificationTag)] "#panel-tags" "tagged"
     >> " " >> volume >> " with " >> H.em (mapM_ (byteStringHtml . tagNameBS . tagName) notificationTag) >> "."
   NoticeSharedVolume ->
     agent >> " shared " >> volume >> "."
@@ -236,9 +236,9 @@ htmlNotification msg Notification{..} = case notificationNotice of
     "A new " >> (H.a H.! HA.href "//databrary.org/news.html") "Databrary newsletter" >> " has been posted."
   where
   target = partyRow (accountParty notificationTarget)
-  person p = (on (/=) partyId p target) `thenUse` (htmlPartyViewLink p ([] :: Query))
+  person p = on (/=) partyId p target `thenUse` htmlPartyViewLink p ([] :: Query)
   agent = fromMaybe "You" $ person notificationAgent
-  partyp = fmap ((any (on (/=) partyId notificationAgent) notificationParty) `thenUse`) $ person =<< notificationParty
+  partyp = fmap (any (on (/=) partyId notificationAgent) notificationParty `thenUse`) $ person =<< notificationParty
   party = maybe "you" (fromMaybe "themselves") partyp
   party'sOr your their = maybe your (maybe their (>> "'s")) partyp
   party's = party'sOr "your" "their own"
@@ -258,4 +258,4 @@ htmlNotification msg Notification{..} = case notificationNotice of
     else actionValue viewVolume (HTML, maybe noId volumeId notificationVolume) q <> t)
 
 noId :: Num (IdType a) => Id a
-noId = (Id $ -1)
+noId = Id $ -1

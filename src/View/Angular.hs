@@ -13,7 +13,7 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as HA
 
 import Has (view)
-import qualified JSON as JSON
+import qualified JSON
 import Service.Types
 import Model.Identity
 import Action.Types
@@ -63,7 +63,7 @@ htmlAngular assetsVersion cssDeps jsDeps nojs reqCtx = H.docTypeHtml H.! ngAttri
     H.link
       H.! HA.rel "stylesheet"
       H.! HA.href "https://fonts.googleapis.com/css?family=Questrial"
-    H.script $ do
+    H.script $
       H.preEscapedString "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src= 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f); })(window,document,'script','dataLayer','GTM-NW6PSFL');"
     H.script $ do
       H.preEscapedString "window.$play={user:"

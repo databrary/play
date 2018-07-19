@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, TypeFamilies, TemplateHaskell #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, TypeFamilies #-}
 module Action.Types
   ( RequestContext(..)
   , Handler(..)
@@ -47,59 +47,59 @@ data RequestContext = RequestContext
 instance Has ActionContext RequestContext where
   view = requestContext
 instance Has Service.DB.DBConn RequestContext where
-  view = (view . requestContext)
+  view = view . requestContext
 instance Has Control.Monad.Trans.Resource.InternalState RequestContext where
-  view = (view . requestContext)
+  view = view . requestContext
 -- instance Has time-1.6.0.1:Data.Time.Calendar.Days.Day RequestContext where
 --   view = (view . requestContext)
 instance Has Model.Time.Timestamp RequestContext where
-  view = (contextTimestamp . requestContext)
+  view = contextTimestamp . requestContext
 instance Has Service.Types.Secret RequestContext where
-  view = (view . requestContext)
+  view = view . requestContext
 instance Has Service.Entropy.Entropy RequestContext where
-  view = (view . requestContext)
+  view = view . requestContext
 instance Has Service.Passwd.Passwd RequestContext where
-  view = (view . requestContext)
+  view = view . requestContext
 instance Has Service.Log.Logs RequestContext where
-  view = (view . requestContext)
+  view = view . requestContext
 instance Has Service.Mail.Mailer RequestContext where
-  view = (serviceMailer . contextService . requestContext)
+  view = serviceMailer . contextService . requestContext
 instance Has Service.Messages.Messages RequestContext where
-  view = (view . requestContext)
+  view = view . requestContext
 -- instance Has Service.DB.DBPool RequestContext where
 --   view = (view . requestContext)
 instance Has Store.Types.Storage RequestContext where
-  view = (view . requestContext)
+  view = view . requestContext
 instance Has Store.AV.AV RequestContext where
-  view = (view . requestContext)
+  view = view . requestContext
 instance Has Web.Types.Web RequestContext where
-  view = (view . requestContext)
+  view = view . requestContext
 instance Has HTTP.Client.HTTPClient RequestContext where
-  view = (view . requestContext)
+  view = view . requestContext
 instance Has Static.Service.Static RequestContext where
-  view = (view . requestContext)
+  view = view . requestContext
 instance Has Ingest.Service.Ingest RequestContext where
-  view = (view . requestContext)
+  view = view . requestContext
 instance Has Solr.Service.Solr RequestContext where
-  view = (view . requestContext)
+  view = view . requestContext
 instance Has Service.Notification.Notifications RequestContext where
-  view = (view . requestContext)
+  view = view . requestContext
 instance Has Service.Types.Service RequestContext where
-  view = (view . requestContext)
+  view = view . requestContext
 instance Has Request RequestContext where
   view = contextRequest
 instance Has Identity RequestContext where
   view = requestIdentity
 instance Has Model.Permission.Types.Access RequestContext where
-  view = (view . requestIdentity)
+  view = view . requestIdentity
 instance Has (Model.Id.Types.Id Model.Party.Types.Party) RequestContext where
-  view = (view . requestIdentity)
+  view = view . requestIdentity
 instance Has Model.Party.Types.Account RequestContext where
-   view = (siteAccount . view . requestIdentity)
+   view = siteAccount . view . requestIdentity
 instance Has Model.Party.Types.Party RequestContext where
-  view = (view . requestIdentity)
+  view = view . requestIdentity
 instance Has Model.Party.Types.SiteAuth RequestContext where
-  view = (view . requestIdentity)
+  view = view . requestIdentity
 
 -- | The monad in which route handlers run. At the top, each route 'Action'
 -- returns a 'Handler' 'Response'

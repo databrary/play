@@ -13,7 +13,7 @@ import Data.Version (showVersion)
 import System.IO (withBinaryFile, IOMode(WriteMode))
 
 import Paths_databrary (version)
-import qualified JSON as JSON
+import qualified JSON
 import Model.Enum
 import Model.Permission.Types
 import Model.Release.Types

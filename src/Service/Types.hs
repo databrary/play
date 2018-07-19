@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, RecordWildCards #-}
+
 module Service.Types
   ( Secret(..)
   , Service(..)

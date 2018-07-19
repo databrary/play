@@ -72,7 +72,7 @@ instance Database.PostgreSQL.Typed.Types.PGColumn "permission" Permission where
         [65, 68, 77, 73, 78] -> PermissionADMIN
         _ -> error
                ("pgDecode permission: "
-                ++ (Data.ByteString.Char8.unpack x_a42l2))
+                ++ Data.ByteString.Char8.unpack x_a42l2)
 instance Database.PostgreSQL.Typed.Dynamic.PGRep "permission" Permission
 instance Database.PostgreSQL.Typed.Enum.PGEnum Permission
 instance Model.Kind.Kinded Permission where
@@ -80,7 +80,7 @@ instance Model.Kind.Kinded Permission where
 instance DBEnum Permission
 instance Data.Aeson.Types.ToJSON Permission where
   toJSON
-    = (Data.Aeson.Types.toJSON . fromEnum)
+    = Data.Aeson.Types.toJSON . fromEnum
 instance Data.Aeson.Types.FromJSON Permission where  -- not used
   parseJSON = parseJSONEnum
 instance HTTP.Form.Deform.Deform f_a42l3 Permission where

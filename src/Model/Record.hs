@@ -26,7 +26,7 @@ import Data.Vector (Vector)
 import Data.Csv.Contrib (extractColumnDefaulting)
 import Has (peek, view)
 import Service.DB
-import qualified JSON as JSON
+import qualified JSON
 import Model.SQL
 import Model.Audit
 import Model.Id
@@ -91,7 +91,7 @@ recordJSON publicRestricted r@Record{ recordRow = RecordRow{..}, ..} = JSON.Reco
 
 extractParticipantFieldRows :: [BS.ByteString] -> Vector CSV.NamedRecord -> [(BS.ByteString, [BS.ByteString])]
 extractParticipantFieldRows participantFieldHeaders records =
-    (zip participantFieldHeaders . fmap (\hdr -> extractColumnDefaulting hdr records)) participantFieldHeaders
+    (zip participantFieldHeaders . fmap (`extractColumnDefaulting` records)) participantFieldHeaders
 
 columnSampleJson :: BS.ByteString -> [BS.ByteString] -> JSON.Value
 columnSampleJson hdr sampleValues =

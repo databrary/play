@@ -7,7 +7,7 @@ import Test.Tasty.HUnit
 import Model.Kind
 
 unit_kindOf :: Assertion
-unit_kindOf = 
+unit_kindOf =
     -- example
     (kindOf SomeObject :: String) @?= "someobject"
 

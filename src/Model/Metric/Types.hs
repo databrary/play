@@ -66,14 +66,14 @@ instance Database.PostgreSQL.Typed.Types.PGParameter "data_type" MeasureType whe
     = BS.pack [118, 111, 105, 100]
 instance Database.PostgreSQL.Typed.Types.PGColumn "data_type" MeasureType where
   pgDecode _ x_a4zCt
-    = case BS.unpack x_a4zCt of 
+    = case BS.unpack x_a4zCt of
         [116, 101, 120, 116] -> MeasureTypeText
         [110, 117, 109, 101, 114, 105, 99] -> MeasureTypeNumeric
         [100, 97, 116, 101] -> MeasureTypeDate
         [118, 111, 105, 100] -> MeasureTypeVoid
         _ -> error
                ("pgDecode data_type: "
-                ++ (Data.ByteString.Char8.unpack x_a4zCt)) 
+                ++ Data.ByteString.Char8.unpack x_a4zCt)
 instance Database.PostgreSQL.Typed.Dynamic.PGRep "data_type" MeasureType
 instance Database.PostgreSQL.Typed.Enum.PGEnum MeasureType
 instance Kinded MeasureType where
@@ -81,7 +81,7 @@ instance Kinded MeasureType where
 instance DBEnum MeasureType
 instance Data.Aeson.Types.ToJSON MeasureType where
   toJSON
-    = (Data.Aeson.Types.toJSON . fromEnum)
+    = Data.Aeson.Types.toJSON . fromEnum
 instance Data.Aeson.Types.FromJSON MeasureType where
   parseJSON = parseJSONEnum
 instance HTTP.Form.Deform.Deform f_a4zCu MeasureType where
@@ -126,5 +126,5 @@ mkParticipantFieldMapping2 metricColumn = do
 lookupField :: Metric -> ParticipantFieldMapping2 -> Maybe Text
 lookupField m (ParticipantFieldMapping2 mp) = Map.lookup m mp
 
-newtype ParticipantFieldMapping2 = ParticipantFieldMapping2 { pfmGetMapping :: (Map Metric Text) }
+newtype ParticipantFieldMapping2 = ParticipantFieldMapping2 { pfmGetMapping :: Map Metric Text }
     -- deriving (Eq, Show)

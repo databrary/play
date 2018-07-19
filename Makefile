@@ -28,7 +28,7 @@ nix-build = nix-build $(nix-build-args)
 #
 
 ## The default action is to run tests
-cabal-test: ; $(nix-shell) --run 'cabal -j test --ghc-options="-O0"  --test-options="--color always --hide-successes --timeout 1s"'
+cabal-test: ; $(nix-shell) --run 'cabal -j test --test-options="--color always --hide-successes --timeout 1s"'
 .PHONY: cabal-test
 
 ## Start the db (needed for cabal.test and cabal.build, but that relationship is
@@ -44,6 +44,8 @@ repl: ; $(nix-shell) --run ./ghci-databrary.sh
 repl-test: ; $(nix-shell) --run 'cabal repl test:discovered'
 .PHONY: repl-test
 
+## Run configure for repltastic tasks
+repl-config: ; $(nix-shell) --run 'cabal configure --datadir=. --datasubdir=. --disable-optimization --enable-tests'
 ## One can always build with Nix.
 nix-build: ; $(nix-build)
 .PHONY: nix-build

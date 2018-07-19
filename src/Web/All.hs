@@ -24,14 +24,13 @@ generateMerged inputFiles = \fileToGenInfo@(fileToGen, _) -> do
       withBinaryFile fp WriteMode $ \generatingFileWriteHandle ->
         forM_ inputFiles $ \inputFile -> do
           fps <- unRawFilePath $ webFileAbs inputFile
-          withBinaryFile fps ReadMode $ (\inputFileReadHandle ->
-            bufferedCopy allocatedPtr generatingFileWriteHandle inputFileReadHandle)
+          withBinaryFile fps ReadMode $ bufferedCopy allocatedPtr generatingFileWriteHandle
           hPutChar generatingFileWriteHandle '\n')
     []
     inputFiles
     fileToGenInfo
   where
-  bufferedCopy :: (Ptr a) -> Handle -> Handle -> IO ()
+  bufferedCopy :: Ptr a -> Handle -> Handle -> IO ()
   bufferedCopy buffer output input = do
     n <- hGetBufSome input buffer totalAlloc
     when (n > 0) $ do

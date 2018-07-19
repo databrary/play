@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Model.Permission
   ( module Model.Permission.Types
@@ -16,7 +16,7 @@ module Model.Permission
 
 import Data.Monoid ((<>))
 
-import qualified JSON as JSON
+import qualified JSON
 import Model.Release.Types
 import Model.Permission.Types
 
@@ -54,7 +54,7 @@ dataPermission4 :: (a -> EffectiveRelease) -> (a -> VolumeRolePolicy) -> a -> Pe
 dataPermission4 getObjEffectiveRelease getCurrentUserVolumeRole obj =
   let
    effRelease = getObjEffectiveRelease obj
-  in 
+  in
     case getCurrentUserVolumeRole obj of
       RolePublicViewer PublicRestrictedPolicy ->
         releasePermission (effRelPrivate effRelease) PermissionPUBLIC

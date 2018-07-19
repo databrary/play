@@ -62,7 +62,7 @@ webDeps :: Bool -> IO [WebFilePath]
 webDeps debug = webJS (not debug) jsDeps
 
 cssWebDeps :: Bool -> IO [WebFilePath]
-cssWebDeps debug = makeWebFilePaths $ map ((<.> if debug then ".css" else ".min.css")) ["lib/pivot", "app"]
+cssWebDeps debug = makeWebFilePaths $ map (<.> if debug then ".css" else ".min.css") ["lib/pivot", "app"]
 
 webLibs :: IO [WebFilePath]
 webLibs = do

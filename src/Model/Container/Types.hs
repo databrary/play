@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies #-}
+{-# LANGUAGE OverloadedStrings, TypeFamilies #-}
 module Model.Container.Types
   ( ContainerRow(..)
   , Container(..)
@@ -36,7 +36,7 @@ getContainerVolumeRole :: Container -> VolumeRolePolicy
 getContainerVolumeRole = volumeRolePolicy . containerVolume
 
 getContainerRelease :: Container -> EffectiveRelease
-getContainerRelease c =  
+getContainerRelease c =
   EffectiveRelease {
       effRelPublic = (fold . containerRelease) c
     , effRelPrivate = ReleasePRIVATE -- TODO: name hardcoded default level for Private release centrally
@@ -49,11 +49,11 @@ instance Has (Id Container) ContainerRow where
   view = containerId
 
 instance Has (Id Container) Container where
-  view = (view . containerRow)
+  view = view . containerRow
 instance Has (Maybe Release) Container where
   view = containerRelease
 instance Has Volume Container where
   view = containerVolume
 instance Has Permission Container where
-  view = (view . containerVolume)
+  view = view . containerVolume
 

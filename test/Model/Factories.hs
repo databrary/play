@@ -134,7 +134,7 @@ genCategory = Gen.element allCategories
 
 -- tag
 
------ entities ------ 
+----- entities ------
 
 -- party
 genPartyId :: Gen (Id Party)
@@ -351,7 +351,7 @@ genCreateSlotAssetAfterUpload _ _ = do  -- modeled after processAsset (AssetTarg
     -- lookupVolContainer -> slotContainer -> build up segment into slot
     -- fix asset slot duration
     --   assetName = read name
-    -- 
+    --
     pure undefined
 
 -- mkTranscodeFromInputAsset :: Asset -> a -> Transcode

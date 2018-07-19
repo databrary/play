@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+
 module View.Html
   ( unsafeBuilder
   , lazyByteStringHtml

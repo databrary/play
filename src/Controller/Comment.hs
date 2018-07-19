@@ -10,7 +10,7 @@ import Data.Text (Text)
 
 import Ops
 -- import Has
-import qualified JSON as JSON
+import qualified JSON
 import Model.Permission
 import Model.Id
 import Model.Container
@@ -48,12 +48,12 @@ postComment = action POST (pathJSON >/> pathSlotId </< "comment") $ \si -> withA
   top <- containerIsVolumeTop (slotContainer s)
   forM_ p $ \r -> when (on (/=) (partyId . partyRow . accountParty) (commentWho r) u) $
     createNotification (blankNotification (commentWho r) NoticeCommentReply)
-      { notificationContainerId = top `unlessUse` ((containerId . containerRow . slotContainer . commentSlot) c')
+      { notificationContainerId = top `unlessUse` (containerId . containerRow . slotContainer . commentSlot) c'
       , notificationSegment = Just $ (slotSegment . commentSlot) c'
       , notificationCommentId = Just $ commentId c'
       }
   createVolumeNotification ((containerVolume . slotContainer . commentSlot) c') $ \n -> (n NoticeCommentVolume)
-    { notificationContainerId = top `unlessUse` ((containerId . containerRow . slotContainer . commentSlot) c')
+    { notificationContainerId = top `unlessUse` (containerId . containerRow . slotContainer . commentSlot) c'
     , notificationSegment = Just $ (slotSegment . commentSlot) c'
     , notificationCommentId = Just $ commentId c'
     }

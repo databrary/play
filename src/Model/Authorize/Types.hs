@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+
 module Model.Authorize.Types
   ( Authorization(..)
   , Authorize(..)
@@ -32,7 +32,7 @@ data Authorize = Authorize
 -- instance Has Authorization Authorize where
 --   view = authorization
 instance Has Access Authorize where
-  view = (view . authorization)
+  view = view . authorization
 
 mkAuthorizeRequest :: Party -> Party -> Authorize
 mkAuthorizeRequest child parent =

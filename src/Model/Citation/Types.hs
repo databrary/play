@@ -9,7 +9,7 @@ import Data.Int (Int16)
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 
-import qualified JSON as JSON
+import qualified JSON
 import Model.URL (URI)
 import Model.Volume.Types
 

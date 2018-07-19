@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+
 module Blaze.ByteString.Builder.Html.Word
   (-- wordHtmlEscaped
   -- , fromHtmlEscapedWord

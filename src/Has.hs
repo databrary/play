@@ -1,5 +1,5 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, ConstraintKinds, TemplateHaskell, TypeSynonymInstances, LiberalTypeSynonyms #-}
-module Has
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances,
+  ConstraintKinds, TypeSynonymInstances, LiberalTypeSynonyms #-}module Has
   ( Has(..)
   , MonadHas
   , peek

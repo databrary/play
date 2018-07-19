@@ -6,7 +6,7 @@ module Controller.Citation
 import Network.URI (URI)
 
 import Has (focusIO)
-import qualified JSON as JSON
+import qualified JSON
 import HTTP.Form.Deform
 import Action
 import Controller.Form

@@ -23,12 +23,12 @@ generateStylusCSS = \fo@(f, _) -> do
   webRegenerate
     (callProcess
       "stylus" $
-    (if takeExtensions fpRel == ".min.css" then ("-c":) else id) 
+    (if takeExtensions fpRel == ".min.css" then ("-c":) else id)
     [ "-u", "nib"
     , "-u", "autoprefixer-stylus"
     , "-o", fpAbs
     , srcAbs
     ])
-    [] 
-    sl 
+    []
+    sl
     fo

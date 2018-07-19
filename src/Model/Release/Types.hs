@@ -54,7 +54,7 @@ instance Database.PostgreSQL.Typed.Types.PGColumn "release" Release where
         [69, 88, 67, 69, 82, 80, 84, 83] -> ReleaseEXCERPTS
         [80, 85, 66, 76, 73, 67] -> ReleasePUBLIC
         _ -> error
-               ("pgDecode release: " ++ (Data.ByteString.Char8.unpack x_a2Skv))
+               ("pgDecode release: " ++ Data.ByteString.Char8.unpack x_a2Skv)
 instance Database.PostgreSQL.Typed.Dynamic.PGRep "release" Release
 instance Database.PostgreSQL.Typed.Enum.PGEnum Release
 instance Model.Kind.Kinded Release where
@@ -62,7 +62,7 @@ instance Model.Kind.Kinded Release where
 instance DBEnum Release
 instance Data.Aeson.Types.ToJSON Release where
   toJSON
-    = (Data.Aeson.Types.toJSON . fromEnum)
+    = Data.Aeson.Types.toJSON . fromEnum
 instance Data.Aeson.Types.FromJSON Release where
   parseJSON = parseJSONEnum
 instance HTTP.Form.Deform.Deform f_a2Skw Release where

@@ -49,7 +49,7 @@ dataCiteXML DataCite{..} =
       ) "Databrary Access Agreement"
     , Just $ "titles" <.> "title" <.> T.unpack dataCiteTitle
     , "creators" <?> dataCiteAuthors $ \Party{ partyRow = PartyRow{..} } -> "creator" <.> catMaybes
-      [ Just $ "creatorName" <.> (T.unpack $ partySortName <> foldMap (T.pack ", " <>) partyPreName)
+      [ Just $ "creatorName" <.> T.unpack (partySortName <> foldMap (T.pack ", " <>) partyPreName)
       , ("nameIdentifier" <=>
         [ "schemeURI" =. "http://orcid.org/"
         , "nameIdentifierScheme" =. "ORCID"
@@ -71,8 +71,7 @@ dataCiteXML DataCite{..} =
     , "subjects" <?> dataCiteSubjects $ ("subject" <.>) . BSC.unpack
     , (isNothing dataCitePublication || null dataCiteReferences) `unlessUse`
       ("relatedIdentifiers" <.>
-        (maybe id ((:) . ur "IsSupplementTo") dataCitePublication
-        $ map (ur "References") dataCiteReferences))
+        maybe id ((:) . ur "IsSupplementTo") dataCitePublication (map (ur "References") dataCiteReferences))
     ]
   where
   infixr 5 <.>, <=>

@@ -25,7 +25,7 @@ periodicHandler :: HTM.Method -> [(BS.ByteString, BS.ByteString)] -> Action
 periodicHandler method _
     | method == methodGet = viewPeriodicHandler
     | method == methodPost = postPeriodicHandler
-    | otherwise = error "unhandled api/method combo" -- TODO: better error 
+    | otherwise = error "unhandled api/method combo" -- TODO: better error
 
 {-
 viewPeriodic :: ActionRoute ()

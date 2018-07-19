@@ -31,7 +31,7 @@ import Network.Wai.Parse (FileInfo(..))
 import System.Posix.FilePath (takeExtension)
 
 import Data.Csv.Contrib (parseCsvWithHeader, getHeaders, removeBomPrefixText)
-import qualified JSON as JSON
+import qualified JSON
 import Ops
 import Has
 import Model.Category
@@ -84,10 +84,10 @@ postIngest = multipartAction $ action POST (pathId </< "ingest") $ \vi -> withAu
       <*> ("overwrite" .:> deform)
       <*> ("json" .:> do
               (fileInfo :: FileInfo JSON.Value) <- deform
-              (deformCheck
+              deformCheck
                    "Must be JSON."
                    (\f -> fileContentType f `elem` ["text/json", "application/json"] || takeExtension (fileName f) == ".json")
-                   fileInfo)))
+                   fileInfo))
   r <- maybe
     (True <$ focusIO abortIngest)
     (\(RunIngest r o j) -> runIngest $ right (map (unId . containerId . containerRow)) <$> ingestJSON v (fileContent j) r o)
@@ -117,15 +117,13 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
     -- liftIO (print "uploaded contents below")
     -- liftIO (print uploadFileContents')
     case parseCsvWithHeader uploadFileContents' of
-        Left err -> do
-            -- liftIO (print ("csv parse error", err))
+        Left err ->
             pure (response badRequest400 [] err)
         Right (hdrs, records) -> do
             metrics <- lookupVolumeParticipantMetrics v
             -- liftIO (print ("before check determine", show hdrs))
             case checkDetermineMapping metrics ((fmap TE.decodeUtf8 . getHeaders) hdrs) uploadFileContents' of
-                Left err -> do
-                    -- liftIO (print ("failed to determine mapping", err))
+                Left err ->
                     -- if column check failed, then don't save csv file and response is error
                     pure (response badRequest400 [] err)
                 Right participantFieldMapping -> do
@@ -165,7 +163,7 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
     v <- getVolume PermissionEDIT vi
     (store :: Storage) <- peek
     -- reqCtxt <- peek
-    RunParticipantUploadRequest csvUploadId selectedMapping <- runForm (Nothing) $ do
+    RunParticipantUploadRequest csvUploadId selectedMapping <- runForm Nothing $ do
         csrfForm
         (uploadId :: String) <- "csv_upload_id" .:> deform
         mapping <- "selected_mapping" .:> deform
@@ -181,8 +179,7 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
             case parseParticipantFieldMapping participantActiveMetrics mpngVal of
                 Left err ->
                     pure (response badRequest400 [] err) -- mapping of inactive metrics or missing metric
-                Right mpngs -> do
-                    -- liftIO $ print ("upload id", csvUploadId, "mapping", mpngs)
+                Right mpngs ->
                     case attemptParseRows mpngs uploadFileContents of
                         Left err ->   -- invalid value in row
                             pure (response badRequest400 [] err)

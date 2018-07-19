@@ -84,7 +84,7 @@ startTranscode tc = do
       args <- transcodeArgs tc
       (r, out, err) <- ctlTranscode tc' args
       let pid = guard (r == ExitSuccess) >> readMaybe out
-      _ <- updateTranscode tc' pid $ ((isNothing pid) `thenUse` out) <> ((null err) `unlessUse` err)
+      _ <- updateTranscode tc' pid $ (isNothing pid `thenUse` out) <> (null err `unlessUse` err)
       return pid)
     (\(transcodeAsset -> match) -> do
       a <- changeAsset (transcodeAsset tc)

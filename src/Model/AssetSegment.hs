@@ -22,7 +22,7 @@ import qualified Data.String
 
 import Ops
 import Has (peek, view)
-import qualified JSON as JSON
+import qualified JSON
 import Service.DB
 import Model.SQL
 import Model.Audit
@@ -48,26 +48,26 @@ lookupAssetSegment seg ai = do
 lookupSlotAssetSegment :: (MonadHasIdentity c m, MonadDB c m) => Id Slot -> Id Asset -> m (Maybe AssetSegment)
 lookupSlotAssetSegment (Id (SlotId ci seg)) ai = do
   ident :: Identity <- peek
-  dbQuery1 $(selectQuery (selectAssetSegment 'ident 'seg) 
+  dbQuery1 $(selectQuery (selectAssetSegment 'ident 'seg)
     "$WHERE slot_asset.container = ${ci} AND slot_asset.asset = ${ai} AND slot_asset.segment && ${seg}")
 
 lookupOrigSlotAssetSegment :: (MonadHasIdentity c m, MonadDB c m) => Id Slot -> Id Asset -> m (Maybe AssetSegment)
 lookupOrigSlotAssetSegment (Id (SlotId ci seg)) ai = do
   ident :: Identity <- peek
-  dbQuery1 $(selectQuery (selectAssetSegment 'ident 'seg) 
+  dbQuery1 $(selectQuery (selectAssetSegment 'ident 'seg)
     "$inner join asset_revision ar on ar.asset = asset.id WHERE slot_asset.container = ${ci} AND slot_asset.asset = ${ai} AND slot_asset.segment && ${seg}")
 
 
 lookupAssetSlotSegment :: MonadDB c m => AssetSlot -> Segment -> m (Maybe AssetSegment)
 lookupAssetSlotSegment a s =
-  (segmentEmpty seg) `unlessReturn` (as <$>
+  segmentEmpty seg `unlessReturn` (as <$>
     dbQuery1 $(selectQuery excerptRow "$WHERE asset = ${view a :: Id Asset} AND segment @> ${seg}"))
   where
   as = makeExcerpt a s
   seg = assetSegment $ as Nothing
 
 lookupSlotSegmentThumb :: MonadDB c m => Slot -> m (Maybe AssetSegment)
-lookupSlotSegmentThumb (Slot c s) = do
+lookupSlotSegmentThumb (Slot c s) =
   dbQuery1 $ assetSegmentInterp 0.25 . ($ c) <$> $(selectQuery (selectContainerAssetSegment 's) "$\
     \JOIN format ON asset.format = format.id \
     \WHERE slot_asset.container = ${containerId $ containerRow c} AND slot_asset.segment && ${s} \
@@ -80,7 +80,7 @@ mapQuery qry mkResult =
   fmap mkResult (rawPGSimpleQuery qry)
 
 auditAssetSegmentDownload :: MonadAudit c m => Bool -> AssetSegment -> m ()
-auditAssetSegmentDownload success AssetSegment{ segmentAsset = AssetSlot{ slotAsset = a, assetSlot = as }, assetSegment = seg } = do  
+auditAssetSegmentDownload success AssetSegment{ segmentAsset = AssetSlot{ slotAsset = a, assetSlot = as }, assetSegment = seg } = do
   ai <- getAuditIdentity
   let _tenv_a9v9T = unknownPGTypeEnv
   maybe

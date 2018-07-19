@@ -40,7 +40,7 @@ import qualified Network.HTTP.Client as HC
 import qualified Text.Blaze.Html as Html
 import qualified Text.Blaze.Html.Renderer.Utf8 as Html
 
-import qualified JSON as JSON
+import qualified JSON
 
 -- | This class captures Databrary's mechanism for creating 'Response's from the
 -- values actually returned by handlers.
@@ -72,11 +72,11 @@ instance ResponseData BS.ByteString where
 instance ResponseData (Source (CND.ResourceT IO) BS.ByteString) where
     response s h src =
         responseStream s h
-            (\send _ -> do
+            (\send _ ->
                 CND.runConduitRes
                     (src
-                    .| (CND.mapM_C
-                        (\bs -> CND.lift (send (DBB.fromByteString bs))))))
+                    .| CND.mapM_C
+                        (CND.lift . send . DBB.fromByteString)))
 
 instance ResponseData StreamingBody where
   response = responseStream

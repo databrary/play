@@ -35,7 +35,7 @@ import qualified System.FilePath.Windows as FPW (makeValid)
 
 import Ops
 import Has
-import qualified JSON as JSON
+import qualified JSON
 import Model.Segment
 import Model.Permission hiding (checkPermission)
 import Model.Release
@@ -84,19 +84,14 @@ getAsset getOrig p checkDataPerm i = do
   mAssetSlot <- (if getOrig then lookupOrigAssetSlot else lookupAssetSlot) i
   slot <- maybeAction mAssetSlot
   void (checkPermission (extractPermissionIgnorePolicy . getAssetSlotVolumePermission2) p slot)
-  when checkDataPerm $ do
-    -- TODO: delete
-    -- liftIO $ print ("checking data perm", "assetSlot", slot)
-    -- liftIO $ print ("checking data perm", "seg rlses", getAssetSlotRelease2 slot,
-    --                 "vol prm", getAssetSlotVolumePermission2 slot)
-    -- liftIO $ print ("result perm", dataPermission4 getAssetSlotRelease2 getAssetSlotVolumePermission2 slot)
+  when checkDataPerm $
     void (userCanReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 slot)
   pure slot
 
 assetJSONField :: AssetSlot -> BS.ByteString -> Maybe BS.ByteString -> Handler (Maybe JSON.Encoding)
 assetJSONField a "container" _ =
   return $ JSON.recordEncoding . containerJSON False . slotContainer <$> assetSlot a -- containerJSON should consult volume
-assetJSONField a "creation" _ | ((extractPermissionIgnorePolicy . getAssetSlotVolumePermission2) a) >= PermissionEDIT = do
+assetJSONField a "creation" _ | (extractPermissionIgnorePolicy . getAssetSlotVolumePermission2) a >= PermissionEDIT = do
   (t, n) <- assetCreation $ slotAsset a
   return $ Just $ JSON.pairs $
        "date" `JSON.kvObjectOrEmpty` t
@@ -282,15 +277,15 @@ processAsset target = do
       , notificationAssetId = Just $ assetId $ assetRow a'
       , notificationRelease = assetRelease $ assetRow a'
       }
-  (do
+  do
       liftIO $ putStrLn "JSON ok response..." --DEBUG
-      return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON False as'') -- publicrestrict false because EDIT
+      return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON False as'' -- publicrestrict false because EDIT
   -- HTML -> do
   --    liftIO $ putStrLn "returning HTML other route reponse..." --DEBUG
   --    peeks $ otherRouteResponse [] viewAsset (api, assetId $ assetRow $ slotAsset as'')
 
 postAsset :: ActionRoute (Id Asset)
-postAsset = multipartAction $ action POST (pathJSON >/> pathId) $ \(ai) -> withAuth $ do
+postAsset = multipartAction $ action POST (pathJSON >/> pathId) $ \ai -> withAuth $ do
   asset <- getAsset False PermissionEDIT False ai
   r <- assetIsReplaced (slotAsset asset)
   when r $ result $
@@ -319,7 +314,7 @@ viewAssetCreate = action GET (pathHTML >/> pathId </< "asset") $ \vi -> withAuth
 -}
 
 createSlotAsset :: ActionRoute (Id Slot)
-createSlotAsset = multipartAction $ action POST (pathJSON >/> pathSlotId </< "asset") $ \(si) -> withAuth $ do
+createSlotAsset = multipartAction $ action POST (pathJSON >/> pathSlotId </< "asset") $ \si -> withAuth $ do
   v <- getSlot PermissionEDIT Nothing si
   processAsset $ AssetTargetSlot v
 

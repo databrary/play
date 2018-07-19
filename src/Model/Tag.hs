@@ -27,7 +27,7 @@ import qualified Data.String
 import Database.PostgreSQL.Typed.Types
 
 import Has (peek)
-import qualified JSON as JSON
+import qualified JSON
 import Service.DB
 import Model.SQL
 import Model.Party.Types
@@ -54,7 +54,7 @@ lookupTags = do
                        _tenv_a6Dq8
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                       _cid_a6Dq9, 
+                       _cid_a6Dq9,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                        _tenv_a6Dq8
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -75,14 +75,14 @@ addTag n = do
   row <- dbQuery1' -- [pgSQL|!SELECT get_tag(${n})|]
     (mapQuery2
       ((\ _p_a6GtN ->
-                    (BSC.concat
+                    BSC.concat
                        [Data.String.fromString "SELECT get_tag(",
                         Database.PostgreSQL.Typed.Types.pgEscapeParameter
                           _tenv_a6GtM
                           (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                              Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
                           _p_a6GtN,
-                        Data.String.fromString ")"]))
+                        Data.String.fromString ")"])
       n)
       (\ [_cget_tag_a6GtO]
                -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
@@ -98,7 +98,7 @@ lookupVolumeTagUseRows v = do
   rows <- dbQuery -- (selectQuery selectTagUseRow "JOIN container ON tag_use.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container.id")
    (mapQuery2
       ((\ _p_a6PCs ->
-                       (BSC.concat
+                       BSC.concat
                           [Data.String.fromString
                              "SELECT tag_use.who,tag_use.container,tag_use.segment,tag_use.tableoid = 'keyword_use'::regclass,tag.id,tag.name FROM tag_use JOIN tag ON tag_use.tag = tag.id JOIN container ON tag_use.container = container.id WHERE container.volume = ",
                            Database.PostgreSQL.Typed.Types.pgEscapeParameter
@@ -106,9 +106,9 @@ lookupVolumeTagUseRows v = do
                              (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                                 Database.PostgreSQL.Typed.Types.PGTypeName "integer")
                              _p_a6PCs,
-                           Data.String.fromString " ORDER BY container.id"]))
+                           Data.String.fromString " ORDER BY container.id"])
          (volumeId $ volumeRow v))
-               (\ 
+               (\
                   [_cwho_a6PCt,
                    _ccontainer_a6PCu,
                    _csegment_a6PCv,
@@ -119,27 +119,27 @@ lookupVolumeTagUseRows v = do
                         _tenv_a6PCr
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cwho_a6PCt, 
+                        _cwho_a6PCt,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a6PCr
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _ccontainer_a6PCu, 
+                        _ccontainer_a6PCu,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a6PCr
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "segment")
-                        _csegment_a6PCv, 
+                        _csegment_a6PCv,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumn
                         _tenv_a6PCr
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "boolean")
-                        _ccolumn_a6PCw, 
+                        _ccolumn_a6PCw,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a6PCr
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a6PCx, 
+                        _cid_a6PCx,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a6PCr
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -156,7 +156,7 @@ lookupVolumeTagUseRows v = do
                  vregclass_a6PC4)
               (Tag vid_a6PC5 vname_a6PC6))
       rows)
-     
+
 
 addTagUse :: MonadDB c m => TagUse -> m Bool
 addTagUse t = either (const False) id <$> do
@@ -164,7 +164,7 @@ addTagUse t = either (const False) id <$> do
   dbTryJust (guard . isExclusionViolation)
     $ dbExecute1 (if tagKeyword t
       then -- (insertTagUse True 't)
-       (mapQuery2
+       mapQuery2
          ((\ _p_a6PDK _p_a6PDL _p_a6PDM _p_a6PDN ->
                          (BSC.concat
                             [Data.String.fromString
@@ -197,9 +197,9 @@ addTagUse t = either (const False) id <$> do
            (containerId $ containerRow $ slotContainer $ tagSlot t)
            (slotSegment $ tagSlot t)
            (partyId $ partyRow $ accountParty $ tagWho t))
-         (\[] -> ()))
+         (\[] -> ())
       else -- (insertTagUse False 't))
-       (mapQuery2
+       mapQuery2
          ((\ _p_a6PEI _p_a6PEJ _p_a6PEK _p_a6PEL ->
                     (BSC.concat
                        [Data.String.fromString
@@ -232,7 +232,7 @@ addTagUse t = either (const False) id <$> do
            (containerId $ containerRow $ slotContainer $ tagSlot t)
            (slotSegment $ tagSlot t)
            (partyId $ partyRow $ accountParty $ tagWho t))
-          (\[] -> ())))
+          (\[] -> ()))
 
 removeTagUse :: MonadDB c m => TagUse -> m Int
 removeTagUse t = do
@@ -240,7 +240,7 @@ removeTagUse t = do
   dbExecute
     (if tagKeyword t
       then -- (deleteTagUse True 't)
-       (mapQuery2
+       mapQuery2
           ((\ _p_a6PFs _p_a6PFt _p_a6PFu ->
                     (BSC.concat
                        [Data.String.fromString
@@ -265,9 +265,9 @@ removeTagUse t = do
             (tagId $ useTag t)
             (containerId $ containerRow $ slotContainer $ tagSlot t)
             (slotSegment $ tagSlot t))
-          (\[] -> ()))
+          (\[] -> ())
       else -- (deleteTagUse False 't))
-       (mapQuery2
+       mapQuery2
          ((\ _p_a6PGC _p_a6PGD _p_a6PGE _p_a6PGF ->
                     (BSC.concat
                        [Data.String.fromString "DELETE FROM ONLY tag_use WHERE tag = ",
@@ -298,7 +298,7 @@ removeTagUse t = do
            (containerId $ containerRow $ slotContainer $ tagSlot t)
            (slotSegment $ tagSlot t)
            (partyId $ partyRow $ accountParty $ tagWho t))
-          (\[] -> ())))
+          (\[] -> ()))
 
 lookupTopTagWeight :: MonadDB c m => Int -> m [TagWeight]
 lookupTopTagWeight lim =
@@ -343,7 +343,7 @@ lookupSlotKeywords Slot{..} = do
                         _tenv_a6Q2M
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a6Q2P, 
+                        _cid_a6Q2P,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a6Q2M
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::

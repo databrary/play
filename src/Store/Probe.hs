@@ -72,7 +72,7 @@ probeAutoPosition
     return $ diffTimeOffset dt
   where
     dd = diffDays d' d
-    dt = (fromInteger dd)*day + timeOfDayToTime t
+    dt = fromInteger dd*day + timeOfDayToTime t
     day2 = 43200
     day = 2*day2
 probeAutoPosition c _ = findAssetContainerEnd c

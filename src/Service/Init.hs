@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 module Service.Init
   ( withService
   ) where
@@ -79,7 +79,7 @@ initService fg conf = do
         , serviceNotification = notify
         , serviceDown = conf C.! "store.DOWN"
         }
-  periodic <- fg `thenReturn` (forkPeriodic rc)
+  periodic <- fg `thenReturn` forkPeriodic rc
   when fg $ void $ forkNotifier rc
   return $! rc
     { servicePeriodic = periodic

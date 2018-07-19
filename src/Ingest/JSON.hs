@@ -90,7 +90,7 @@ asRelease = JE.perhaps JE.fromAesonParser
 
 asCategory :: (Monad m) => JE.ParseT T.Text m Category
 asCategory =
-  JE.withIntegral (err . getCategory . Id) `catchError` \_ -> do
+  JE.withIntegral (err . getCategory . Id) `catchError` \_ ->
     JE.withText (\n -> err $ find ((n ==) . categoryName) allCategories)
   where err = maybe (Left "category not found") Right
 
@@ -162,7 +162,7 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
         inObj c $ lift $ addIngestContainer c key
         return c)
       (\c -> inObj c $ do
-        unless (all (containerId (containerRow c) ==) cid) $ do
+        unless (all (containerId (containerRow c) ==) cid) $
           throwPE "id mismatch"
         top <- fmap join . JE.keyMay "top" $ check (containerTop $ containerRow c) =<< JE.asBool
         name <- fmap join . JE.keyMay "name" $ check (containerName $ containerRow c) =<< JE.perhaps JE.asText
@@ -235,7 +235,7 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
         return r)
       -- there has been a prior ingest using the same key for this record
       (\priorIngestRecord -> inObj priorIngestRecord $ do
-        unless (all (recordId (recordRow priorIngestRecord) ==) rid) $ do -- all here refers to either value in maybe or nothing
+        unless (all (recordId (recordRow priorIngestRecord) ==) rid) $ -- all here refers to either value in maybe or nothing
           throwPE "id mismatch"
         _ <- JE.key "category" $ do
           (category :: Category) <- asCategory
@@ -280,7 +280,7 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
           <$> (either throwPE return
             =<< lift (probeFile stageFileRelRaw stageFileRelAbs))
           <*> lift (lookupIngestAsset vol $ stageFileRel file))
-      =<< (JE.keyMay "id" $ do
+      =<< JE.keyMay "id" (
         maybe (throwPE "asset not found") (return . (,) Nothing . Just) =<< lift . lookupVolumeAsset vol . Id =<< JE.asIntegral)
     when (isNothing $ fst sa) $ noKey "file"
     orig <- JE.keyMay "replace" $

@@ -13,13 +13,13 @@ import Has (peeks)
 import HTTP.Form.Data
 import HTTP.Parse
 import Action.Types
-import qualified JSON as JSON
+import qualified JSON
 
 getFormData :: FileContent a => [(BS.ByteString, Word64)] -> Handler (FormData a)
 getFormData fileLimits = do
   (mkFormData
    :: Map.Map BS.ByteString BS.ByteString -> Maybe JSON.Value -> Map.Map BS.ByteString (FileInfo a) -> FormData a)
-    <- peeks $ (\httpReq -> (FormData . Map.fromList . Wai.queryString) httpReq)
+    <- peeks $ (FormData . Map.fromList . Wai.queryString)
   (c :: Content a) <- parseRequestContent getFileMaxSizeByFieldName
   return $ case c of
     ContentForm formParams formFiles -> mkFormData (Map.fromList formParams) Nothing    (Map.fromList formFiles)

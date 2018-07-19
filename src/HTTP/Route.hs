@@ -1,4 +1,4 @@
-{-# LANGUAGE ExistentialQuantification, RecordWildCards, ImpredicativeTypes, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ExistentialQuantification, ImpredicativeTypes #-}
 module HTTP.Route
   ( Route
   , routeURL
@@ -25,7 +25,7 @@ type Route a r = R.RouteAction r a
 routeURL :: Maybe Request -> R.Request -> Query -> BSB.Builder
 routeURL w r q = bh (R.requestHost r)
   <> encodePath' (R.requestPath r)
-    ((simpleQueryToQuery $ R.paramsQuerySimple $ R.requestQuery r) ++ q)
+    (simpleQueryToQuery (R.paramsQuerySimple $ R.requestQuery r) ++ q)
   where
   bh [] = foldMap (BSB.byteString . requestHost) w
   bh [x] = BSB.byteString x
@@ -34,7 +34,7 @@ routeURL w r q = bh (R.requestHost r)
 routeURI :: Maybe Wai.Request -> R.Request -> Query -> URI
 routeURI req r q = (maybe nullURI requestURI req)
   { uriPath = uriPath ruri
-  , uriQuery = BSC.unpack $ renderQuery True $ (simpleQueryToQuery $ R.paramsQuerySimple $ R.requestQuery r) ++ q
+  , uriQuery = BSC.unpack $ renderQuery True $ simpleQueryToQuery (R.paramsQuerySimple $ R.requestQuery r) ++ q
   } where
   ruri = R.requestURI r
 

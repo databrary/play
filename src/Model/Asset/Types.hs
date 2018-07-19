@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies #-}
+{-# LANGUAGE OverloadedStrings, TypeFamilies #-}
 module Model.Asset.Types
   ( AssetRow(..)
   , Asset(..)
@@ -44,20 +44,20 @@ instance Has (Id Asset) AssetRow where
 instance Has Format AssetRow where
   view = assetFormat
 instance Has (Id Format) AssetRow where
-  view = (formatId . assetFormat)
+  view = formatId . assetFormat
 
 instance Has AssetRow Asset where
   view = assetRow
 instance Has (Id Asset) Asset where
-  view = (view . assetRow)
+  view = view . assetRow
 instance Has Format Asset where
-  view = (view . assetRow)
+  view = view . assetRow
 instance Has (Id Format) Asset where
-  view = (view . assetRow)
+  view = view . assetRow
 instance Has Volume Asset where
    view = assetVolume
 instance Has (Id Volume) Asset where
-  view = (volumeId . volumeRow . assetVolume)
+  view = volumeId . volumeRow . assetVolume
 
 getAssetReleaseMaybe :: Asset -> Maybe Release
 getAssetReleaseMaybe = assetRelease . assetRow

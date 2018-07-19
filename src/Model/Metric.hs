@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, RecordWildCards, DataKinds #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards, DataKinds #-}
 module Model.Metric
   ( module Model.Metric.Types
   , allMetrics
@@ -55,7 +55,7 @@ import qualified Data.Time as Time
 import qualified Text.Read as TR
 
 import Ops
-import qualified JSON as JSON
+import qualified JSON
 import Model.Id
 import Model.Category
 import Model.Metric.Types
@@ -71,7 +71,7 @@ metricRow = selectColumns 'makeMetric "metric" ["id", "category", "name", "relea
 
 -- TODO: db coherence
 allMetrics :: [Metric]
-allMetrics = 
+allMetrics =
     [Metric
        (Id 1)
        (Category
@@ -738,7 +738,7 @@ allMetrics =
 
 participantMetricId :: Metric
 participantMetricId = getMetric' (Id 1)
-  
+
 participantMetricInfo :: Metric
 participantMetricInfo = getMetric' (Id 2)
 
@@ -849,7 +849,7 @@ validateParticipantGestationalAge val =
     if val == ""
     then pure Nothing
     else do
-        age <- (TR.readMaybe (BSC.unpack val) :: Maybe Double)
+        age <- TR.readMaybe (BSC.unpack val) :: Maybe Double
         pure (Just age)
 
 validateParticipantBirthWeight :: BS.ByteString -> Maybe (Maybe Double)
@@ -857,11 +857,11 @@ validateParticipantBirthWeight val =
     if val == ""
     then pure Nothing
     else do
-        weight <- (TR.readMaybe (BSC.unpack val) :: Maybe Double)
+        weight <- TR.readMaybe (BSC.unpack val) :: Maybe Double
         pure (Just weight)
 
 validateParticipantBirthdate :: BS.ByteString -> Maybe (Maybe Time.Day)
-validateParticipantBirthdate val = do
+validateParticipantBirthdate val =
     if val == ""
     then pure Nothing
     else do
@@ -869,7 +869,7 @@ validateParticipantBirthdate val = do
         pure (Just time)
 
 validateParticipantLanguage :: BS.ByteString -> Maybe (Maybe BS.ByteString)
-validateParticipantLanguage val = do
+validateParticipantLanguage val =
     pure (valToMaybe val)
 
 validateInOptions :: BS.ByteString -> Metric -> Maybe BS.ByteString
@@ -901,7 +901,7 @@ metricJSON m@Metric{..} = JSON.Record metricId $
   <> "type" JSON..= show metricType
   <> "options" `JSON.kvObjectOrEmpty` (if null metricOptions then empty else pure metricOptions)
   <> "assumed" `JSON.kvObjectOrEmpty` metricAssumed
-  <> "long" `JSON.kvObjectOrEmpty` (True `useWhen` (metricLong m))
+  <> "long" `JSON.kvObjectOrEmpty` (True `useWhen` metricLong m)
   <> "description" `JSON.kvObjectOrEmpty` metricDescription
   <> "required" `JSON.kvObjectOrEmpty` metricRequired
 

@@ -136,7 +136,7 @@ htmlVolumeDescription inzip Volume{ volumeRow = VolumeRow{..}, ..} cite fund glo
     H.h3 "Sessions"
     atable abl
   where
-  link r a = builderValue $ actionURL (inzip `thenUse` (view req)) r a []
+  link r a = builderValue $ actionURL (inzip `thenUse` view req) r a []
   msg m = H.text $ getMessage m $ view req
   atable acl = H.table H.! H4A.border "1" $ do
     H.thead $ H.tr $ do
@@ -155,7 +155,7 @@ htmlVolumeDescription inzip Volume{ volumeRow = VolumeRow{..}, ..} cite fund glo
   -- never evaluates.
   abody (~(a@AssetSlot{ assetSlot = Just Slot{ slotContainer = c } }:l):al) = do
     H.tr $ do
-      H.td H.! rs $ H.a !? (inzip `thenUse` (HA.href (byteStringValue fn))) $
+      H.td H.! rs $ H.a !? (inzip `thenUse` HA.href (byteStringValue fn)) $
         byteStringHtml dn
       H.td H.! rs $ H.a H.! HA.href (link viewContainer (HTML, (Just volumeId, containerId $ containerRow c))) $ do
         mapM_ H.string $ formatContainerDate c
@@ -170,7 +170,7 @@ htmlVolumeDescription inzip Volume{ volumeRow = VolumeRow{..}, ..} cite fund glo
       | containerTop (containerRow c) = dn
       | otherwise = "sessions" </> dn
   arow bf as@AssetSlot{ slotAsset = Asset{ assetRow = a } } = do
-    H.td $ H.a !? (inzip `thenUse` (HA.href (byteStringValue $ bf </> fn))) $
+    H.td $ H.a !? (inzip `thenUse` HA.href (byteStringValue $ bf </> fn)) $
       byteStringHtml fn
     H.td $ H.a H.! HA.href (link viewAsset (HTML, assetId a)) $
       H.text $ fromMaybe (formatName $ assetFormat a) $ assetName a

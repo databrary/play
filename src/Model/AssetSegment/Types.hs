@@ -103,11 +103,11 @@ getAssetSegmentRelease2 as =
   case as of
     AssetSegment{ segmentAsset = a, assetExcerpt = Just e } ->
       let
-        rel = 
+        rel =
            fold (
                 excerptRelease e  -- Maybe Release monoid takes the first just, if both just, then max of values
              <> getAssetSlotReleaseMaybe a) -- TODO: should I expose the guts of getAssetSlotRelease2?
-      in 
+      in
         EffectiveRelease {
           effRelPublic = rel
         , effRelPrivate = rel

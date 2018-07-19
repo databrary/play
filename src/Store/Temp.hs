@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TupleSections #-}
+
 module Store.Temp
   ( TempFile(..)
   , makeTempFileAs

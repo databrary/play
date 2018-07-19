@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, RecordWildCards, DataKinds #-}
+{-# LANGUAGE RecordWildCards, DataKinds #-}
 module Model.VolumeState
   ( module Model.VolumeState.Types
   , lookupVolumeState
@@ -22,7 +22,7 @@ import Model.VolumeState.Types
 lookupVolumeState :: (MonadDB c m) => Id Volume -> VolumeRolePolicy -> m [VolumeState]
 lookupVolumeState vid volRolePolicy = do
   let _tenv_a7xjl = unknownPGTypeEnv
-  rows <- 
+  rows <-
     -- (selectQuery selectVolumeState "$WHERE volume = ${volumeId $ volumeRow v} AND (public OR ${(extractPermissionIgnorePolicy . volumeRolePolicy) v >= PermissionEDIT})")
      mapRunPrepQuery
       ((\ _p_a7xjm _p_a7xjn ->
@@ -41,9 +41,9 @@ lookupVolumeState vid volRolePolicy = do
                   -> (pgDecodeColumnNotNull
                         _tenv_a7xjl
                         (PGTypeProxy :: PGTypeName "character varying")
-                        _ckey_a7xjo, 
+                        _ckey_a7xjo,
                       pgDecodeColumnNotNull
-                        _tenv_a7xjl (PGTypeProxy :: PGTypeName "jsonb") _cvalue_a7xjp, 
+                        _tenv_a7xjl (PGTypeProxy :: PGTypeName "jsonb") _cvalue_a7xjp,
                       pgDecodeColumnNotNull
                         _tenv_a7xjl (PGTypeProxy :: PGTypeName "boolean") _cpublic_a7xjq))
   pure
