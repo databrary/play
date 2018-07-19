@@ -40,7 +40,7 @@ import qualified Network.HTTP.Client as HC
 import qualified Text.Blaze.Html as Html
 import qualified Text.Blaze.Html.Renderer.Utf8 as Html
 
-import qualified JSON as JSON
+import qualified JSON
 
 -- | This class captures Databrary's mechanism for creating 'Response's from the
 -- values actually returned by handlers.

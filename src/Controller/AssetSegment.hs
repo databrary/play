@@ -26,7 +26,7 @@ import System.Posix.Types (FileOffset)
 import Files (unRawFilePath, RawFilePath)
 import Ops
 import Has (view, peeks)
-import qualified JSON as JSON
+import qualified JSON
 import Files (fileInfo)
 import Model.Id
 import Model.Permission hiding (checkPermission)

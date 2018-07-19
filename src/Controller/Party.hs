@@ -32,7 +32,7 @@ import Network.Wai.Parse (FileInfo(..))
 
 import Ops
 import Has
-import qualified JSON as JSON
+import qualified JSON
 import Model.Enum
 import Model.Id
 import Model.Permission hiding (checkPermission)

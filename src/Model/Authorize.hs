@@ -24,7 +24,7 @@ import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 
 import Has (peek)
-import qualified JSON as JSON
+import qualified JSON
 import Service.DB
 import Model.SQL
 import Model.Time

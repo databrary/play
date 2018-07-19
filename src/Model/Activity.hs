@@ -21,7 +21,7 @@ import Data.Time.Clock (diffUTCTime)
 
 import Ops
 import Has
-import qualified JSON as JSON
+import qualified JSON
 import Service.DB
 import Model.SQL
 import Model.Identity

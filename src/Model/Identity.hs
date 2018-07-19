@@ -10,7 +10,7 @@ import Data.Monoid ((<>))
 
 import Ops
 import Has
-import qualified JSON as JSON
+import qualified JSON
 import Model.Id
 import Model.Token
 import HTTP.Request

@@ -19,7 +19,7 @@ import Network.HTTP.Types (noContent204)
 
 import Ops
 import Has (peek, peeks)
-import qualified JSON as JSON
+import qualified JSON
 import Service.DB (MonadDB)
 import Service.Mail
 import Static.Service

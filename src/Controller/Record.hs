@@ -19,7 +19,7 @@ import Network.HTTP.Types (noContent204, conflict409)
 
 -- import Ops
 -- import Has
-import qualified JSON as JSON
+import qualified JSON
 import Action.Route
 import Action.Response
 import Action

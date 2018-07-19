@@ -25,7 +25,7 @@ import qualified Data.String
 import Ops
 import Has (view)
 import Service.DB
-import qualified JSON as JSON
+import qualified JSON
 import Model.SQL
 import Model.Permission
 import Model.Audit

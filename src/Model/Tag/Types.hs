@@ -20,7 +20,7 @@ import qualified Web.Route.Invertible as R
 
 import Ops
 import Has (Has(..))
-import qualified JSON as JSON
+import qualified JSON
 import Model.Kind
 import Model.Id.Types
 import Model.Party.Types

@@ -43,7 +43,7 @@ import Database.PostgreSQL.Typed.Types
 import Ops
 import Has (Has(..), peek)
 import Service.DB
-import qualified JSON as JSON
+import qualified JSON
 import HTTP.Request
 import Model.Id
 import Model.SQL

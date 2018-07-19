@@ -13,7 +13,7 @@ import qualified Web.Route.Invertible as R
 
 import Has
 import Ops
-import qualified JSON as JSON
+import qualified JSON
 import Model.Permission
 import Model.Id
 import Model.Container

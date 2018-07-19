@@ -28,7 +28,7 @@ import Database.PostgreSQL.Typed.Types
 import Ops
 import Has (view, peek)
 import Service.DB
-import qualified JSON as JSON
+import qualified JSON
 import Model.SQL (selectQuery, isForeignKeyViolation)
 import Model.Time
 import Model.Permission

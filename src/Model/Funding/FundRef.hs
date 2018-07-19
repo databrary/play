@@ -27,7 +27,7 @@ import Text.Read (readMaybe)
 
 import Ops
 import Has (MonadHas, focusIO)
-import qualified JSON as JSON
+import qualified JSON
 import HTTP.Client
 import Service.DB
 import Model.Id.Types

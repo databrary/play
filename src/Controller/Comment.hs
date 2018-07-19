@@ -10,7 +10,7 @@ import Data.Text (Text)
 
 import Ops
 -- import Has
-import qualified JSON as JSON
+import qualified JSON
 import Model.Permission
 import Model.Id
 import Model.Container

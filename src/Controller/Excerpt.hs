@@ -10,7 +10,7 @@ import qualified Data.Text as T
 import Network.HTTP.Types (conflict409)
 
 import Has
-import qualified JSON as JSON
+import qualified JSON
 import Model.Id
 import Model.Permission
 import Model.Release (EffectiveRelease(..))

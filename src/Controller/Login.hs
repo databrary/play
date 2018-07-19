@@ -24,7 +24,7 @@ import qualified Network.HTTP.Types.Method as HTM
 
 import Ops
 import Has
-import qualified JSON as JSON
+import qualified JSON
 import Model.Id.Types
 import Model.Party
 import Model.Identity

@@ -13,7 +13,7 @@ import qualified Data.Text.Encoding as TE
 
 import Paths_databrary (getDataFileName)
 import qualified Store.Config as C
-import qualified JSON as JSON
+import qualified JSON
 
 newtype Messages = Messages C.Config
   deriving (JSON.ToJSON)

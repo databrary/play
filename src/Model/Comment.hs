@@ -21,7 +21,7 @@ import qualified Data.String
 import qualified Data.Text as T
 
 import Has (peek, view)
-import qualified JSON as JSON
+import qualified JSON
 import Service.DB
 -- import Model.SQL
 import Model.Id.Types

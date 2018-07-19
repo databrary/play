@@ -26,7 +26,7 @@ import Data.Vector (Vector)
 import Data.Csv.Contrib (extractColumnDefaulting)
 import Has (peek, view)
 import Service.DB
-import qualified JSON as JSON
+import qualified JSON
 import Model.SQL
 import Model.Audit
 import Model.Id

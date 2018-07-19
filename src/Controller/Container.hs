@@ -19,7 +19,7 @@ import Network.HTTP.Types (noContent204, movedPermanently301, conflict409)
 import qualified Web.Route.Invertible as R
 
 import Has
-import qualified JSON as JSON
+import qualified JSON
 import Model.Id
 import Model.Permission hiding (checkPermission)
 import Model.Volume hiding (getVolume)

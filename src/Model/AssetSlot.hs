@@ -33,7 +33,7 @@ import Database.PostgreSQL.Typed.Types
 
 import Ops
 import Has (peek, view)
-import qualified JSON as JSON
+import qualified JSON
 import Service.DB
 import Model.Offset
 import Model.Permission

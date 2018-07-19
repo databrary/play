@@ -35,7 +35,7 @@ import qualified System.FilePath.Windows as FPW (makeValid)
 
 import Ops
 import Has
-import qualified JSON as JSON
+import qualified JSON
 import Model.Segment
 import Model.Permission hiding (checkPermission)
 import Model.Release

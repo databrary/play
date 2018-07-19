@@ -17,7 +17,7 @@ import Data.Ord (comparing)
 
 import Ops
 import Has
-import qualified JSON as JSON
+import qualified JSON
 import Service.Types
 import Model.Id
 import Model.Permission

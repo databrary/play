@@ -38,7 +38,7 @@ import qualified Network.Wai as Wai
 
 import Ops
 import Has
-import qualified JSON as JSON
+import qualified JSON
 import Model.Asset (Asset)
 import Model.Enum
 import Model.Id

@@ -9,7 +9,7 @@ module Model.Age
 
 import Data.Time (diffDays, DiffTime, secondsToDiffTime)
 
-import qualified JSON as JSON
+import qualified JSON
 import Model.Time
 
 newtype Age =

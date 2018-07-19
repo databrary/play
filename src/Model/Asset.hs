@@ -27,7 +27,7 @@ import qualified Data.String
 
 import Ops
 import Has (view, peek)
-import qualified JSON as JSON
+import qualified JSON
 import Service.DB
 import Files
 import Store.Types

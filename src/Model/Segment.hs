@@ -30,7 +30,7 @@ import qualified Text.ParserCombinators.ReadPrec as RP (lift, readPrec_to_P, min
 import Text.Read (readMaybe, readPrec)
 import qualified Web.Route.Invertible as R
 
-import qualified JSON as JSON
+import qualified JSON
 import Model.Offset
 
 lowerBound, upperBound :: Range.Range a -> Maybe a

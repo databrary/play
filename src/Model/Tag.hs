@@ -27,7 +27,7 @@ import qualified Data.String
 import Database.PostgreSQL.Typed.Types
 
 import Has (peek)
-import qualified JSON as JSON
+import qualified JSON
 import Service.DB
 import Model.SQL
 import Model.Party.Types

@@ -14,7 +14,7 @@ import Data.Maybe (isNothing, isJust)
 
 import Ops
 import Has
-import qualified JSON as JSON
+import qualified JSON
 import Model.Id
 import Model.Token
 import Model.Party

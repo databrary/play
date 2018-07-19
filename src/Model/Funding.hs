@@ -19,7 +19,7 @@ import qualified Data.ByteString
 import Data.ByteString (ByteString)
 import qualified Data.String
 
-import qualified JSON as JSON
+import qualified JSON
 import Service.DB
 import Model.SQL
 import Model.Id.Types

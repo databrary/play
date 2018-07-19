@@ -22,7 +22,7 @@ import Data.Monoid ((<>))
 import Database.PostgreSQL.Typed (pgSQL)
 
 import Has
-import qualified JSON as JSON
+import qualified JSON
 import Service.DB
 import Model.SQL
 import Model.Id.Types

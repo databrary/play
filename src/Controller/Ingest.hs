@@ -31,7 +31,7 @@ import Network.Wai.Parse (FileInfo(..))
 import System.Posix.FilePath (takeExtension)
 
 import Data.Csv.Contrib (parseCsvWithHeader, getHeaders, removeBomPrefixText)
-import qualified JSON as JSON
+import qualified JSON
 import Ops
 import Has
 import Model.Category

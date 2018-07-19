@@ -31,7 +31,7 @@ import System.Posix.IO.ByteString (openFd, OpenMode(ReadOnly, WriteOnly), defaul
 import System.Posix.Types (COff(..))
 
 import Has (view, peek, peeks, focusIO, MonadHas)
-import qualified JSON as JSON
+import qualified JSON
 import Service.DB (MonadDB)
 import Service.Entropy (Entropy)
 import Service.Log

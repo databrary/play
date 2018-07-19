@@ -55,7 +55,7 @@ import qualified Data.Time as Time
 import qualified Text.Read as TR
 
 import Ops
-import qualified JSON as JSON
+import qualified JSON
 import Model.Id
 import Model.Category
 import Model.Metric.Types

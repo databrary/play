@@ -29,7 +29,7 @@ import qualified Text.Regex.Posix as Regex
 
 import Has
 import Ops
-import qualified JSON as JSON
+import qualified JSON
 import Service.Types
 import Service.DB
 import Service.Notification

@@ -16,7 +16,7 @@ import Network.HTTP.Types.Status (movedPermanently301)
 import qualified Network.Wai as Wai
 
 import Has (view, peeks)
-import qualified JSON as JSON
+import qualified JSON
 import Model.Id
 import Model.Permission hiding (checkPermission)
 import Model.Volume

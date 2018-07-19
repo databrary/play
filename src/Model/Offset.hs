@@ -19,7 +19,7 @@ import qualified Text.ParserCombinators.ReadPrec as RP (lift)
 import Text.Read (readMaybe, Read(readPrec))
 import qualified Web.Route.Invertible as R
 
-import qualified JSON as JSON
+import qualified JSON
 
 newtype Offset = Offset { offsetMilli :: Milli } deriving (Eq, Ord, Num, Real, Fractional, RealFrac, Typeable)
 

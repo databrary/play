@@ -16,7 +16,7 @@ import Data.Maybe (fromJust, fromMaybe, listToMaybe)
 import qualified Data.Text as T
 import qualified Network.HTTP.Client as HC
 
-import qualified JSON as JSON
+import qualified JSON
 import HTTP.Client
 import Model.Id.Types
 

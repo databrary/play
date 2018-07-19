@@ -13,7 +13,7 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as HA
 
 import Has (view)
-import qualified JSON as JSON
+import qualified JSON
 import Service.Types
 import Model.Identity
 import Action.Types

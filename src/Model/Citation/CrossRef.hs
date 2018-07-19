@@ -18,7 +18,7 @@ import qualified Network.HTTP.Client as HC
 import qualified Network.URI as URI
 
 import Ops
-import qualified JSON as JSON
+import qualified JSON
 import HTTP.Client
 import Model.URL
 import Model.Citation.Types

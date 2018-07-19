@@ -10,7 +10,7 @@ module Model.Slot
 import Database.PostgreSQL.Typed.Types
 import qualified Data.String
 
-import qualified JSON as JSON
+import qualified JSON
 import Service.DB
 import Model.Id
 import Model.Identity

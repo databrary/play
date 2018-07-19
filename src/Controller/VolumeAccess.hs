@@ -11,7 +11,7 @@ import Data.Int (Int16)
 
 -- import Ops
 import Has
-import qualified JSON as JSON
+import qualified JSON
 import Model.Id
 import Model.Permission
 import Model.Identity

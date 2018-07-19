@@ -37,7 +37,7 @@ import Data.Vector (Vector)
 
 import Data.Csv.Contrib (extractColumnsDistinctSample, decodeCsvByNameWith, extractColumnsInitialRows)
 import Service.DB
-import qualified JSON as JSON
+import qualified JSON
 import JSON (FromJSON(..), ToJSON(..))
 import Model.Volume.Types
 import Model.Container.Types

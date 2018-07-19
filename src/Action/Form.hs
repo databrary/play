@@ -13,7 +13,7 @@ import Has (peeks)
 import HTTP.Form.Data
 import HTTP.Parse
 import Action.Types
-import qualified JSON as JSON
+import qualified JSON
 
 getFormData :: FileContent a => [(BS.ByteString, Word64)] -> Handler (FormData a)
 getFormData fileLimits = do
