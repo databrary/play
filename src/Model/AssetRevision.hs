@@ -63,7 +63,7 @@ assetIsReplaced a = do
   dbExecute1 -- [pgSQL|SELECT ''::void FROM asset_replace WHERE orig = ${assetId $ assetRow a} LIMIT 1|]
     (mapQuery
       ((\ _p_a8FgY ->
-                    (Data.ByteString.concat
+                    Data.ByteString.concat
                        [Data.String.fromString
                           "SELECT ''::void FROM asset_replace WHERE orig = ",
                         Database.PostgreSQL.Typed.Types.pgEscapeParameter
@@ -71,7 +71,7 @@ assetIsReplaced a = do
                           (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                              Database.PostgreSQL.Typed.Types.PGTypeName "integer")
                           _p_a8FgY,
-                        Data.String.fromString " LIMIT 1"]))
+                        Data.String.fromString " LIMIT 1"])
        (assetId $ assetRow a))
             (\[_cvoid_a8FgZ]
                -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
@@ -86,7 +86,7 @@ lookupAssetReplace a = do
   let _tenv_abkQ9 = unknownPGTypeEnv
   ident <- peek
   mRow <- -- dbQuery1 ($ a) <$> $(selectQuery (selectAssetRevision "asset_replace" 'ident) "$WHERE asset_replace.asset = ${assetId $ assetRow a}")
-   (mapRunPrepQuery1
+   mapRunPrepQuery1
       ((\ _p_abkQa _p_abkQb _p_abkQc _p_abkQd _p_abkQe ->
                        (Data.String.fromString
                           "SELECT asset.id,asset.format,asset.release,asset.duration,asset.name,asset.sha1,asset.size,volume.id,volume.name,volume.body,volume.alias,volume.doi,volume_creation(volume.id),volume_owners.owners,volume_permission.permission,volume_permission.share_full FROM asset_replace JOIN asset JOIN volume LEFT JOIN volume_owners ON volume.id = volume_owners.volume JOIN LATERAL   (VALUES      ( CASE WHEN $1              THEN enum_last(NULL::permission)              ELSE volume_access_check(volume.id, $2) END      , CASE WHEN $3              THEN null              ELSE (select share_full                    from volume_access_view                    where volume = volume.id and party = $4                    limit 1) END )   ) AS volume_permission (permission, share_full) ON volume_permission.permission >= 'PUBLIC'::permission ON asset.volume = volume.id ON asset_replace.orig = asset.id WHERE asset_replace.asset = $5",
@@ -143,49 +143,49 @@ lookupAssetReplace a = do
                    _cpermission_abkQt,
                    _cshare_full_abkQu]
                   -> (pgDecodeColumnNotNull
-                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "integer") _cid_abkQf, 
+                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "integer") _cid_abkQf,
                       pgDecodeColumnNotNull
-                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "smallint") _cformat_abkQg, 
+                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "smallint") _cformat_abkQg,
                       pgDecodeColumn
-                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "release") _crelease_abkQh, 
+                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "release") _crelease_abkQh,
                       pgDecodeColumn
                         _tenv_abkQ9
                         (PGTypeProxy :: PGTypeName "interval")
-                        _cduration_abkQi, 
+                        _cduration_abkQi,
                       pgDecodeColumn
-                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "text") _cname_abkQj, 
+                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "text") _cname_abkQj,
                       pgDecodeColumn
-                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "bytea") _csha1_abkQk, 
+                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "bytea") _csha1_abkQk,
                       pgDecodeColumn
-                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "bigint") _csize_abkQl, 
+                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "bigint") _csize_abkQl,
                       pgDecodeColumnNotNull
-                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "integer") _cid_abkQm, 
+                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "integer") _cid_abkQm,
                       pgDecodeColumnNotNull
-                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "text") _cname_abkQn, 
+                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "text") _cname_abkQn,
                       pgDecodeColumn
-                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "text") _cbody_abkQo, 
+                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "text") _cbody_abkQo,
                       pgDecodeColumn
                         _tenv_abkQ9
                         (PGTypeProxy :: PGTypeName "character varying")
-                        _calias_abkQp, 
+                        _calias_abkQp,
                       pgDecodeColumn
                         _tenv_abkQ9
                         (PGTypeProxy :: PGTypeName "character varying")
-                        _cdoi_abkQq, 
+                        _cdoi_abkQq,
                       pgDecodeColumn
                         _tenv_abkQ9
                         (PGTypeProxy :: PGTypeName "timestamp with time zone")
-                        _cvolume_creation_abkQr, 
+                        _cvolume_creation_abkQr,
                       pgDecodeColumnNotNull
-                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "text[]") _cowners_abkQs, 
+                        _tenv_abkQ9 (PGTypeProxy :: PGTypeName "text[]") _cowners_abkQs,
                       pgDecodeColumn
                         _tenv_abkQ9
                         (PGTypeProxy :: PGTypeName "permission")
-                        _cpermission_abkQt, 
+                        _cpermission_abkQt,
                       pgDecodeColumn
                         _tenv_abkQ9
                         (PGTypeProxy :: PGTypeName "boolean")
-                        _cshare_full_abkQu)))
+                        _cshare_full_abkQu))
   pure
     (fmap
       (\ (vid_abkPn, vformat_abkPo, vrelease_abkPp, vduration_abkPq,
@@ -212,7 +212,7 @@ lookupAssetReplace a = do
                        vpermission_abkPB vfull_abkPC)))
               a)
       mRow)
-   
+
 lookupAssetTranscode :: (MonadHasIdentity c m, MonadDB c m) => Asset -> m (Maybe AssetRevision)
 lookupAssetTranscode a = do
   let _tenv_abkVg = unknownPGTypeEnv
@@ -275,45 +275,45 @@ lookupAssetTranscode a = do
                    _cpermission_abkVA,
                    _cshare_full_abkVB]
                   -> (pgDecodeColumnNotNull
-                        _tenv_abkVg (PGTypeProxy :: PGTypeName "integer") _cid_abkVm, 
+                        _tenv_abkVg (PGTypeProxy :: PGTypeName "integer") _cid_abkVm,
                       pgDecodeColumnNotNull
-                        _tenv_abkVg (PGTypeProxy :: PGTypeName "smallint") _cformat_abkVn, 
+                        _tenv_abkVg (PGTypeProxy :: PGTypeName "smallint") _cformat_abkVn,
                       pgDecodeColumn
-                        _tenv_abkVg (PGTypeProxy :: PGTypeName "release") _crelease_abkVo, 
+                        _tenv_abkVg (PGTypeProxy :: PGTypeName "release") _crelease_abkVo,
                       pgDecodeColumn
                         _tenv_abkVg
                         (PGTypeProxy :: PGTypeName "interval")
-                        _cduration_abkVp, 
+                        _cduration_abkVp,
                       pgDecodeColumn
-                        _tenv_abkVg (PGTypeProxy :: PGTypeName "text") _cname_abkVq, 
+                        _tenv_abkVg (PGTypeProxy :: PGTypeName "text") _cname_abkVq,
                       pgDecodeColumn
-                        _tenv_abkVg (PGTypeProxy :: PGTypeName "bytea") _csha1_abkVr, 
+                        _tenv_abkVg (PGTypeProxy :: PGTypeName "bytea") _csha1_abkVr,
                       pgDecodeColumn
-                        _tenv_abkVg (PGTypeProxy :: PGTypeName "bigint") _csize_abkVs, 
+                        _tenv_abkVg (PGTypeProxy :: PGTypeName "bigint") _csize_abkVs,
                       pgDecodeColumnNotNull
-                        _tenv_abkVg (PGTypeProxy :: PGTypeName "integer") _cid_abkVt, 
+                        _tenv_abkVg (PGTypeProxy :: PGTypeName "integer") _cid_abkVt,
                       pgDecodeColumnNotNull
-                        _tenv_abkVg (PGTypeProxy :: PGTypeName "text") _cname_abkVu, 
+                        _tenv_abkVg (PGTypeProxy :: PGTypeName "text") _cname_abkVu,
                       pgDecodeColumn
-                        _tenv_abkVg (PGTypeProxy :: PGTypeName "text") _cbody_abkVv, 
+                        _tenv_abkVg (PGTypeProxy :: PGTypeName "text") _cbody_abkVv,
                       pgDecodeColumn
                         _tenv_abkVg
                         (PGTypeProxy :: PGTypeName "character varying")
-                        _calias_abkVw, 
+                        _calias_abkVw,
                       pgDecodeColumn
                         _tenv_abkVg
                         (PGTypeProxy :: PGTypeName "character varying")
-                        _cdoi_abkVx, 
+                        _cdoi_abkVx,
                       pgDecodeColumn
                         _tenv_abkVg
                         (PGTypeProxy :: PGTypeName "timestamp with time zone")
-                        _cvolume_creation_abkVy, 
+                        _cvolume_creation_abkVy,
                       pgDecodeColumnNotNull
-                        _tenv_abkVg (PGTypeProxy :: PGTypeName "text[]") _cowners_abkVz, 
+                        _tenv_abkVg (PGTypeProxy :: PGTypeName "text[]") _cowners_abkVz,
                       pgDecodeColumn
                         _tenv_abkVg
                         (PGTypeProxy :: PGTypeName "permission")
-                        _cpermission_abkVA, 
+                        _cpermission_abkVA,
                       pgDecodeColumn
                         _tenv_abkVg
                         (PGTypeProxy :: PGTypeName "boolean")

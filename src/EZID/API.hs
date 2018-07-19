@@ -48,21 +48,21 @@ data EZIDContext = EZIDContext
   }
 
 instance Has Model.Permission.Types.Access EZIDContext where
-  view = (view . ezidContext)
+  view = view . ezidContext
 instance Has (Model.Id.Types.Id Model.Party.Types.Party) EZIDContext where
-  view = (view . ezidContext)
+  view = view . ezidContext
 instance Has Model.Party.Types.Party EZIDContext where
-   view = (view . ezidContext)
+   view = view . ezidContext
 instance Has Model.Party.Types.SiteAuth EZIDContext where
-  view = (view . ezidContext)
+  view = view . ezidContext
 instance Has Model.Identity.Types.Identity EZIDContext where
-  view = (view . ezidContext)
+  view = view . ezidContext
 instance Has Service.DB.DBConn EZIDContext where
-  view = (view . ezidContext)
+  view = view . ezidContext
 instance Has Logs EZIDContext where
-  view = (view . ezidContext)
+  view = view . ezidContext
 instance Has HTTPClient EZIDContext where
-  view = (view . ezidContext)
+  view = view . ezidContext
 instance Has EZID EZIDContext where
   view = contextEZID
 

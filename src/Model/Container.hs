@@ -157,7 +157,7 @@ addContainer bc = do
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
                         _cid_a87rB)))
   pure
-      ((Model.Container.SQL.setContainerId bc)
+      (Model.Container.SQL.setContainerId bc
       row)
 
 
@@ -231,14 +231,14 @@ removeContainer c = do
   top <- dbQuery1' -- [pgSQL|SELECT id FROM container WHERE volume = ${volumeId $ volumeRow $ containerVolume c} ORDER BY id LIMIT 1|]
     (mapQuery2
        ((\ _p_a87HP ->
-                    (Data.ByteString.concat
+                    Data.ByteString.concat
                        [Data.String.fromString "SELECT id FROM container WHERE volume = ",
                         Database.PostgreSQL.Typed.Types.pgEscapeParameter
                           _tenv_a87HO
                           (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                              Database.PostgreSQL.Typed.Types.PGTypeName "integer")
                           _p_a87HP,
-                        Data.String.fromString " ORDER BY id LIMIT 1"]))
+                        Data.String.fromString " ORDER BY id LIMIT 1"])
           (volumeId $ volumeRow $ containerVolume c))
        (\[_cid_a87HR]
                -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
@@ -293,7 +293,7 @@ formatContainerDate c = formatTime defaultTimeLocale "%Y-%m-%d" <$> getContainer
 containerRowJSON :: JSON.ToObject o => Bool -> ContainerRow -> JSON.Record (Id Container) o
 containerRowJSON publicRestricted ContainerRow{..} = JSON.Record containerId $
      "top" `JSON.kvObjectOrEmpty` (True `useWhen` containerTop)
-  <> "name" `JSON.kvObjectOrEmpty` if publicRestricted then (fmap maskRestrictedString containerName) else containerName
+  <> "name" `JSON.kvObjectOrEmpty` if publicRestricted then fmap maskRestrictedString containerName else containerName
 
 containerJSON :: JSON.ToObject o => Bool -> Container -> JSON.Record (Id Container) o
 containerJSON publicRestricted c@Container{..} = containerRowJSON publicRestricted containerRow `JSON.foldObjectIntoRec`

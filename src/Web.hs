@@ -41,7 +41,7 @@ getWebDir = do
   rawFilePath webDir
 
 withWebDir :: (WebDir -> IO a) -> IO a
-withWebDir f = getWebDir >>= (f)
+withWebDir f = getWebDir >>= f
 
 -- | Convert a relative path from the web root into an expanded path including web root
 makeWebFilePath :: RawFilePath -> IO WebFilePath

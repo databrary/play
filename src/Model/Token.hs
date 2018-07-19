@@ -55,7 +55,7 @@ loginTokenId tok = Id <$> sign (unId (view tok :: Id Token))
 -- Wrap the AccountToken in a LoginToken with a boolean indicating ???? . Seems to be always true.
 lookupLoginToken :: (MonadDB c m, MonadHas Secret c m) => Id LoginToken -> m (Maybe LoginToken)
 lookupLoginToken =
-  flatMapM (getToken) -- dbQuery1 $(selectQuery selectLoginToken "$!WHERE login_token.token = ${t} AND expires > CURRENT_TIMESTAMP"))
+  flatMapM getToken -- dbQuery1 $(selectQuery selectLoginToken "$!WHERE login_token.token = ${t} AND expires > CURRENT_TIMESTAMP"))
     <=< unSign . unId
 
 getToken :: (MonadDB c m) => BS.ByteString -> m (Maybe LoginToken)
@@ -180,7 +180,7 @@ lookupSession tok = do
     dbQuery1
       (mapPrepQuery
         ((\ _p_a7Eto ->
-                       ((Data.String.fromString
+                       (Data.String.fromString
                           " SELECT \
                           \   session.token,session.expires \
                           \  ,party.id,party.name,party.prename,party.orcid,party.affiliation,party.url\
@@ -193,7 +193,7 @@ lookupSession tok = do
                           \      LEFT JOIN authorize_view ON account.id = authorize_view.child AND authorize_view.parent = 0\
                           \    ON session.account = account.id\
                           \ WHERE session.token = $1\
-                          \ AND expires > CURRENT_TIMESTAMP"),
+                          \ AND expires > CURRENT_TIMESTAMP",
                        [Database.PostgreSQL.Typed.Types.pgEncodeParameter
                           _tenv_a7Etn
                           (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -368,13 +368,13 @@ createToken insert = do
         r <- dbQuery1 -- [pgSQL|SELECT token FROM token WHERE token = ${tok}|]
           (mapQuery2
             ((\ _p_a7EwO ->
-                            (BS.concat
+                            BS.concat
                                [Data.String.fromString "SELECT token FROM token WHERE token = ",
                                 Database.PostgreSQL.Typed.Types.pgEscapeParameter
                                   _tenv_a7EwN
                                   (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                                      Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                                  _p_a7EwO]))
+                                  _p_a7EwO])
               tok)
                     (\ [_ctoken_a7EwP]
                        -> (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
@@ -397,14 +397,14 @@ createLoginToken auth passwd = do
   when passwd $ void $ dbExecute -- [pgSQL|DELETE FROM login_token WHERE account = ${view auth :: Id Party} AND password|]
     (mapQuery2
        ((\ _p_a7Ey4 ->
-                        (BS.concat
+                        BS.concat
                            [Data.String.fromString "DELETE FROM login_token WHERE account = ",
                             Database.PostgreSQL.Typed.Types.pgEscapeParameter
                               _tenv_a7Ey3
                               (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                                  Database.PostgreSQL.Typed.Types.PGTypeName "integer")
                               _p_a7Ey4,
-                            Data.String.fromString " AND password"]))
+                            Data.String.fromString " AND password"])
           (view auth :: Id Party))
        (\[] -> ()))
   (tok, ex) <- createToken $ \tok ->
@@ -596,13 +596,13 @@ removeLoginToken tok = do
   dbExecute1 -- [pgSQL|DELETE FROM login_token WHERE token = ${view tok :: Id Token}|]
    (mapQuery2
     ((\ _p_a7EBR ->
-                    (BS.concat
+                    BS.concat
                        [Data.String.fromString "DELETE FROM login_token WHERE token = ",
                         Database.PostgreSQL.Typed.Types.pgEscapeParameter
                           _tenv_a7EBQ
                           (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                              Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                          _p_a7EBR]))
+                          _p_a7EBR])
       (view tok :: Id Token))
             (\[] -> ()))
 
@@ -612,13 +612,13 @@ removeSession tok = do
   dbExecute1 -- [pgSQL|DELETE FROM session WHERE token = ${view tok :: Id Token}|]
    (mapQuery2
     ((\ _p_a7EDi ->
-                    (BS.concat
+                    BS.concat
                        [Data.String.fromString "DELETE FROM session WHERE token = ",
                         Database.PostgreSQL.Typed.Types.pgEscapeParameter
                           _tenv_a7EDh
                           (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                              Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                          _p_a7EDi]))
+                          _p_a7EDi])
       (view tok :: Id Token))
             (\ [] -> ()))
 
@@ -631,13 +631,13 @@ removeUpload tok = do
   r <- dbExecute1 --[pgSQL|DELETE FROM upload WHERE token = ${view tok :: Id Token}|]
     (mapQuery2
       ((\ _p_a7ER1 ->
-                    (BS.concat
+                    BS.concat
                        [Data.String.fromString "DELETE FROM upload WHERE token = ",
                         Database.PostgreSQL.Typed.Types.pgEscapeParameter
                           _tenv_a7ER0
                           (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                              Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                          _p_a7ER1]))
+                          _p_a7ER1])
       (view tok :: Id Token))
             (\[] -> ()))
   when r $ void $ removeUploadFile tok

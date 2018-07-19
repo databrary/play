@@ -378,7 +378,7 @@ participantRecordParseNamedRecord fieldMap m = do
     mState <- extractIfUsed2 (lookupField participantMetricState) validateParticipantState
     mSetting <- extractIfUsed2 (lookupField participantMetricSetting) validateParticipantSetting
     pure
-        (ParticipantRecord
+        ParticipantRecord
             { prdId = mId
             , prdInfo = mInfo
             , prdDescription = mDescription
@@ -394,7 +394,7 @@ participantRecordParseNamedRecord fieldMap m = do
             , prdCountry = mCountry
             , prdState = mState
             , prdSetting = mSetting
-            } )
+            }
   where
     extractIfUsed2
       :: (ParticipantFieldMapping2 -> Maybe Text)
@@ -403,7 +403,7 @@ participantRecordParseNamedRecord fieldMap m = do
     extractIfUsed2 maybeGetField validateValue = do
         case maybeGetField fieldMap of
             Just colName -> do
-                contents <- m .: (TE.encodeUtf8 colName)
+                contents <- m .: TE.encodeUtf8 colName
                 maybe
                     (fail ("invalid value for " ++ show colName ++ ", found " ++ show contents))
                     (pure . maybe FieldEmpty (Field contents))
@@ -420,7 +420,7 @@ determineMapping participantActiveMetrics csvHeaders = do
   where
     detectMetricMatch :: [Text] -> Metric -> Either String Text
     detectMetricMatch hdrs metric =
-        case L.find ((`columnMetricCompatible` metric)) hdrs of
+        case L.find (`columnMetricCompatible` metric) hdrs of
             Just hdr -> Right hdr
             Nothing -> Left ("no compatible header found for metric: " ++ (show . metricName) metric)
 
@@ -466,10 +466,10 @@ participantFieldMappingToJSON fldMap =
   where
     fieldToEntry :: (Metric, Text) -> JSON.Value
     fieldToEntry (metric, colName) =
-        (JSON.object
+        JSON.object
             [ "metric" JSON..= (T.filter (/= ' ') . T.toLower . metricName) metric -- TODO: use shared function
             , "compatible_csv_fields" JSON..= [colName] -- change to single value soon
-            ])
+            ]
 
 parseParticipantFieldMapping :: [Metric] -> [(Metric, Text)] -> Either String ParticipantFieldMapping2
 parseParticipantFieldMapping volParticipantActiveMetrics requestedMapping = do

@@ -80,13 +80,13 @@ getAssetSlotRelease as =
   fold (getAssetSlotReleaseMaybe as)
 getAssetSlotReleaseMaybe :: AssetSlot -> Maybe Release
 getAssetSlotReleaseMaybe as =
-  (case as of
-     AssetSlot a (Just s) ->
-       getAssetReleaseMaybe a <|> getSlotReleaseMaybe s
-     AssetSlot a Nothing ->
-       if not (assetSlotIsDeletedFromItsContainer as)
-       then getAssetReleaseMaybe a
-       else Nothing) -- "deleted" assets are always unreleased (private?), not view a
+  case as of
+    AssetSlot a (Just s) ->
+      getAssetReleaseMaybe a <|> getSlotReleaseMaybe s
+    AssetSlot a Nothing ->
+      if not (assetSlotIsDeletedFromItsContainer as)
+      then getAssetReleaseMaybe a
+      else Nothing -- "deleted" assets are always unreleased (private?), not view a
 
 assetSlotIsDeletedFromItsContainer :: AssetSlot -> Bool
 assetSlotIsDeletedFromItsContainer (AssetSlot a Nothing) = volumeId (volumeRow $ assetVolume a) /= coreVolumeId
@@ -98,4 +98,4 @@ getAssetSlotRelease2 as =
     pubRel = fold (getAssetSlotReleaseMaybe as)
   in
     EffectiveRelease { effRelPublic = pubRel, effRelPrivate = ReleasePRIVATE }
-      
+

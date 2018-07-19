@@ -24,12 +24,12 @@ postVolumeMetric = action PUT (pathJSON >/> pathId </> (pathId >|< pathId)) $ \(
   v <- getVolume PermissionEDIT vi
   addedMetrics <-
       AddVolumeCategoryOrMetricResponse <$>
-         (either
+         either
               (addVolumeCategory v)
               (\metricId' -> do
                   metricAdded <- addVolumeMetric v metricId'
                   return $ if metricAdded then [metricId'] else [])
-              cm)
+              cm
   return $ okResponse [] $ (Aeson.encode . unwrap) addedMetrics
 
 newtype AddVolumeMetricsResponse = AddVolumeCategoryOrMetricResponse { unwrap :: [Id Metric] }

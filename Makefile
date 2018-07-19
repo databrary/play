@@ -44,6 +44,8 @@ repl: ; $(nix-shell) --run ./ghci-databrary.sh
 repl-test: ; $(nix-shell) --run 'cabal repl test:discovered'
 .PHONY: repl-test
 
+## Run configure for repltastic tasks
+repl-config: ; $(nix-shell) --run 'cabal configure --datadir=. --datasubdir=. --disable-optimization --enable-tests'
 ## One can always build with Nix.
 nix-build: ; $(nix-build)
 .PHONY: nix-build

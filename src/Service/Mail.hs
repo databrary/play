@@ -98,8 +98,8 @@ sendMail to cc subj body = do
   t <- liftIO getCurrentTime
   liftIO $ putStrLn "Retrieving mail config..."
   Just (host, port :: Int, user, pass) <- fmap decode $ liftIO $ LBS.readFile "config/email"
-  focusIO $ logMsg t $ "mail " <> BS.intercalate ", " (map (either id accountEmail) to) <> ": " <> TE.encodeUtf8 subj 
-  liftIO $ (mlr mailer) (MailHost host) (MailPort port) (MailUser user) (MailPass pass) $ addPart
+  focusIO $ logMsg t $ "mail " <> BS.intercalate ", " (map (either id accountEmail) to) <> ": " <> TE.encodeUtf8 subj
+  liftIO $ mlr mailer (MailHost host) (MailPort port) (MailUser user) (MailPass pass) $ addPart
     [Part "text/plain; charset=utf-8" None Nothing [] $ TLE.encodeUtf8 $ mailHeader <> wrapText 78 body <> mailFooter] baseMail
     { mailTo = map addr to
     , mailCc = map addr cc

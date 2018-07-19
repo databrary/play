@@ -36,7 +36,7 @@ validTag = Regex.makeRegex
   ("^[a-z][-a-z ]+[a-z]$" :: BS.ByteString)
 
 validateTag :: BS.ByteString -> Maybe TagName
-validateTag t = (Regex.matchTest validTag tt) `thenUse` (TagName tt) where
+validateTag t = Regex.matchTest validTag tt `thenUse` TagName tt where
   tt = BSC.map toLower $ BSC.unwords $ BSC.words t
 
 instance R.Parameter R.PathString TagName where
@@ -69,11 +69,11 @@ data TagUse = TagUse
   }
 
 instance Has (Id Container) TagUse where
-  view = (view . tagSlot)
+  view = view . tagSlot
 instance Has Model.Volume.Types.Volume TagUse where
-  view = (view . tagSlot)
+  view = view . tagSlot
 instance Has (Id Model.Volume.Types.Volume) TagUse where
-  view = (volumeId . volumeRow . containerVolume . slotContainer . tagSlot)
+  view = volumeId . volumeRow . containerVolume . slotContainer . tagSlot
 
 data TagUseRow = TagUseRow
   { useTagRow :: Tag

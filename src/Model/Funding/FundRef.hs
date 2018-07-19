@@ -98,7 +98,7 @@ lookupFundRef fi hcm = runMaybeT $ do
   req <- HC.parseRequest $ "http://data.fundref.org/fundref/funder/" ++ fundRefDOI ++ show fi
   j <- MaybeT $ httpRequestJSON req hcm
   (f, gi) <- MaybeT $ return $ JSON.parseMaybe parseFundRef j
-  g <- lift $ flatMapM ((`lookupGeoName` hcm)) gi
+  g <- lift $ flatMapM (`lookupGeoName` hcm) gi
   return $ annotateFunder f [] (geoName <$> g)
 
 lookupFunderRef :: (MonadIO m, MonadDB c m, MonadHas HTTPClient c m) => Id Funder -> m (Maybe Funder)

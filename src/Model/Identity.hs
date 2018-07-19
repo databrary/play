@@ -45,4 +45,4 @@ identityJSON :: JSON.ToObject o => Identity -> JSON.Record (Id Party) o
 identityJSON i = partyJSON (view i) `JSON.foldObjectIntoRec`
  (   "authorization" JSON..= accessSite i
   <> "csverf" `JSON.kvObjectOrEmpty` identityVerf i
-  <> "superuser" `JSON.kvObjectOrEmpty` (True `useWhen` (identityAdmin i)))
+  <> "superuser" `JSON.kvObjectOrEmpty` (True `useWhen` identityAdmin i))

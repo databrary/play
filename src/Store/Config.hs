@@ -148,7 +148,7 @@ parser = whiteSpace *> block mempty HM.empty <* P.eof where
     , PT.commentLine = "#"
     , PT.nestedComments = False
     , PT.identStart = P.letter
-    , PT.identLetter = (P.alphaNum <|> P.oneOf "-_")
+    , PT.identLetter = P.alphaNum <|> P.oneOf "-_"
     , PT.opStart = P.unexpected "operator"
     , PT.opLetter = P.unexpected "operator"
     , PT.reservedNames = []
@@ -207,7 +207,7 @@ instance {-# OVERLAPPING #-} Configurable String where
 
 configBoundedInt :: forall a . (Integral a, Bounded a) => Value -> Maybe a
 configBoundedInt = f <=< config where
-  f i = (i >= toInteger (minBound :: a) && i <= toInteger (maxBound :: a)) `thenUse` (fromInteger i)
+  f i = (i >= toInteger (minBound :: a) && i <= toInteger (maxBound :: a)) `thenUse` fromInteger i
 
 instance Configurable Int where
   config = configBoundedInt

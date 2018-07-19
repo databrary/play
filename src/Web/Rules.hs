@@ -94,13 +94,13 @@ generateWebFile includeStatic f =
 generateAll :: WebGeneratorM ()
 generateAll = do
   svg <- liftIO $ findWebFiles ".svg"
-  (    mapM_ (generateWebFile True)
+  mapM_ (generateWebFile True)
    <=< mapM (liftIO . makeWebFilePath)
       $ mconcat
           [ (map fst staticGenerators)
           , ["constants.json.gz", "all.min.js.gz", "all.min.css.gz"]
           , map ((RF.<.> ".gz") . webFileRel) svg
-          ])
+          ]
 
 generateWebFiles :: IO WebFileMap
 generateWebFiles = do

@@ -2,7 +2,7 @@
 module Model.AssetSlot
   ( module Model.AssetSlot.Types
   , lookupAssetSlot
-  , lookupOrigAssetSlot 
+  , lookupOrigAssetSlot
   , lookupAssetAssetSlot
   , lookupSlotAssets
   , lookupOrigSlotAssets
@@ -62,9 +62,9 @@ lookupOrigAssetSlot :: (MonadHasIdentity c m, MonadDB c m) => Id Asset -> m (May
 lookupOrigAssetSlot ai = do
   initAsset <- lookupAssetSlot ai
   let format = formatName . assetFormat . assetRow . slotAsset $ fromJust initAsset
-  case format of 
+  case format of
     ".pdf" -> lookupAssetSlot ai --TODO format name should support all doc types
-    _ -> do 
+    _ -> do
       ident <- peek
       dbQuery1 $(selectQuery (selectAssetSlot 'ident) "$left join transcode tc on tc.orig = asset.id WHERE tc.asset = ${ai}")
 
@@ -90,7 +90,7 @@ lookupOrigSlotAssets slot@(Slot c _) = do
     |] -}
    (mapQuery2
     ((\ _p_ablnp ->
-                    (Data.ByteString.concat
+                    Data.ByteString.concat
                        [fromString
                           "\n\
                           \    SELECT asset.id,asset.format,output_asset.release,asset.duration,asset.name,asset.sha1,asset.size \n\
@@ -103,7 +103,7 @@ lookupOrigSlotAssets slot@(Slot c _) = do
                           _tenv_ablno (PGTypeProxy :: PGTypeName "integer") _p_ablnp,
                         fromString
                           "\n\
-                          \    "]))
+                          \    "])
      (containerId $ containerRow c))
             (\
                [_cid_ablnq,
@@ -114,19 +114,19 @@ lookupOrigSlotAssets slot@(Slot c _) = do
                 _csha1_ablnv,
                 _csize_ablnw]
                -> (pgDecodeColumnNotNull
-                     _tenv_ablno (PGTypeProxy :: PGTypeName "integer") _cid_ablnq, 
+                     _tenv_ablno (PGTypeProxy :: PGTypeName "integer") _cid_ablnq,
                    pgDecodeColumnNotNull
-                     _tenv_ablno (PGTypeProxy :: PGTypeName "smallint") _cformat_ablnr, 
+                     _tenv_ablno (PGTypeProxy :: PGTypeName "smallint") _cformat_ablnr,
                    pgDecodeColumn
-                     _tenv_ablno (PGTypeProxy :: PGTypeName "release") _crelease_ablns, 
+                     _tenv_ablno (PGTypeProxy :: PGTypeName "release") _crelease_ablns,
                    pgDecodeColumn
                      _tenv_ablno
                      (PGTypeProxy :: PGTypeName "interval")
-                     _cduration_ablnt, 
+                     _cduration_ablnt,
                    pgDecodeColumn
-                     _tenv_ablno (PGTypeProxy :: PGTypeName "text") _cname_ablnu, 
+                     _tenv_ablno (PGTypeProxy :: PGTypeName "text") _cname_ablnu,
                    pgDecodeColumn
-                     _tenv_ablno (PGTypeProxy :: PGTypeName "bytea") _csha1_ablnv, 
+                     _tenv_ablno (PGTypeProxy :: PGTypeName "bytea") _csha1_ablnv,
                    pgDecodeColumn
                      _tenv_ablno (PGTypeProxy :: PGTypeName "bigint") _csize_ablnw)))
   return $ flip fmap xs $ \(assetId,formatId,release,duration,name,sha1,size) ->
@@ -156,8 +156,8 @@ lookupOrigVolumeAssetSlots v top = do
 lookupOrigVolumeAssetSlots' :: (MonadDB c m, MonadHasIdentity c m) => [AssetSlot] -> m [AssetSlot]
 lookupOrigVolumeAssetSlots' slotList = do
   catMaybes <$> mapM originFinder slotList
-  where 
-    originFinder (AssetSlot { slotAsset = Asset {assetRow = AssetRow { assetId = aid }}}) = lookupOrigAssetSlot aid
+  where
+    originFinder AssetSlot { slotAsset = Asset {assetRow = AssetRow { assetId = aid }}} = lookupOrigAssetSlot aid
 
 lookupVolumeAssetSlotIds :: (MonadDB c m) => Volume -> m [(Asset, SlotId)]
 lookupVolumeAssetSlotIds v =
@@ -327,11 +327,11 @@ findAssetContainerEnd c = do
     dbQuery1' -- [pgSQL|SELECT max(upper(segment))+'1s' FROM slot_asset WHERE container = ${containerId $ containerRow c}|]
      (mapQuery2
       ((\ _p_ablQU ->
-                      (Data.ByteString.concat
+                      Data.ByteString.concat
                          [fromString
                             "SELECT max(upper(segment))+'1s' FROM slot_asset WHERE container = ",
                           pgEscapeParameter
-                            _tenv_ablQT (PGTypeProxy :: PGTypeName "integer") _p_ablQU]))
+                            _tenv_ablQT (PGTypeProxy :: PGTypeName "integer") _p_ablQU])
         (containerId $ containerRow c))
               (\[_ccolumn_ablQV]
                  -> (pgDecodeColumn

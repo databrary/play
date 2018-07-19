@@ -71,7 +71,7 @@ metricRow = selectColumns 'makeMetric "metric" ["id", "category", "name", "relea
 
 -- TODO: db coherence
 allMetrics :: [Metric]
-allMetrics = 
+allMetrics =
     [Metric
        (Id 1)
        (Category
@@ -738,7 +738,7 @@ allMetrics =
 
 participantMetricId :: Metric
 participantMetricId = getMetric' (Id 1)
-  
+
 participantMetricInfo :: Metric
 participantMetricInfo = getMetric' (Id 2)
 
@@ -849,7 +849,7 @@ validateParticipantGestationalAge val =
     if val == ""
     then pure Nothing
     else do
-        age <- (TR.readMaybe (BSC.unpack val) :: Maybe Double)
+        age <- TR.readMaybe (BSC.unpack val) :: Maybe Double
         pure (Just age)
 
 validateParticipantBirthWeight :: BS.ByteString -> Maybe (Maybe Double)
@@ -857,7 +857,7 @@ validateParticipantBirthWeight val =
     if val == ""
     then pure Nothing
     else do
-        weight <- (TR.readMaybe (BSC.unpack val) :: Maybe Double)
+        weight <- TR.readMaybe (BSC.unpack val) :: Maybe Double
         pure (Just weight)
 
 validateParticipantBirthdate :: BS.ByteString -> Maybe (Maybe Time.Day)
@@ -901,7 +901,7 @@ metricJSON m@Metric{..} = JSON.Record metricId $
   <> "type" JSON..= show metricType
   <> "options" `JSON.kvObjectOrEmpty` (if null metricOptions then empty else pure metricOptions)
   <> "assumed" `JSON.kvObjectOrEmpty` metricAssumed
-  <> "long" `JSON.kvObjectOrEmpty` (True `useWhen` (metricLong m))
+  <> "long" `JSON.kvObjectOrEmpty` (True `useWhen` metricLong m)
   <> "description" `JSON.kvObjectOrEmpty` metricDescription
   <> "required" `JSON.kvObjectOrEmpty` metricRequired
 

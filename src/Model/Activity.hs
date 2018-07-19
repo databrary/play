@@ -130,7 +130,7 @@ mergeAssetCreation = joinActivitiesWith f1 where
 
 mergeActivityAssetAndSlot :: ActivityTarget -> ActivityTarget -> Maybe ActivityTarget
 mergeActivityAssetAndSlot (ActivityAsset ar) (ActivityAssetSlot ai si) =
-  (assetId ar == ai) `thenUse` (ActivityAssetAndSlot ar si)
+  (assetId ar == ai) `thenUse` ActivityAssetAndSlot ar si
 mergeActivityAssetAndSlot _ _ = Nothing
 
 mergeAssetAndSlot :: [Activity] -> [Activity]
@@ -222,7 +222,7 @@ activityJSON :: Activity -> Maybe JSON.Object
 activityJSON Activity{ activityAudit = Audit{..}, ..} = (auditAction == AuditActionChange && HM.null new && HM.null old) `unlessUse`
   (new <> key
     <> "when" JSON..= auditWhen
-    <> "action" JSON..= show (auditAction)
+    <> "action" JSON..= show auditAction
     <> "ip" JSON..= show (auditIp auditIdentity)
     <> "user" JSON..= auditWho auditIdentity
     <> "type" JSON..= typ

@@ -35,7 +35,7 @@ extractColumnsInitialRows :: Int -> Csv.Header -> Vector Csv.NamedRecord -> [(BS
 extractColumnsInitialRows maxRows hdrs records =
     zip
         hdrs'
-        (fmap ((`extractColumnDefaulting` truncatedRecords)) hdrs')
+        (fmap (`extractColumnDefaulting` truncatedRecords) hdrs')
   where
     truncatedRecords = V.take maxRows records
     hdrs' :: [BS.ByteString]
@@ -46,7 +46,7 @@ extractColumnsDistinctSample maxSamples hdrs records =
     zip hdrs'
         ( fmap
               ( getSample
-              . ((`extractColumnDefaulting` records)))
+              . (`extractColumnDefaulting` records))
               hdrs' )
   where
     getSample :: [BS.ByteString] -> [BS.ByteString]
@@ -62,7 +62,7 @@ extractColumnDefaulting hdr records =
 extractColumn :: BS.ByteString -> Vector Csv.NamedRecord -> (Maybe BS.ByteString -> a) -> [a]
 extractColumn hdr records applyDefault =
    ( V.toList
-   . fmap ((applyDefault . HMP.lookup hdr)))
+   . fmap (applyDefault . HMP.lookup hdr))
    records
 
 -- similar to decodeByName with except make parser parameter explicity
@@ -95,7 +95,7 @@ scrub rows =
   where
     scrubRow :: Csv.NamedRecord -> Csv.NamedRecord
     scrubRow row =
-        HMP.map (\v -> if (BSC.all (== ' ') v) then "" else v) row
+        HMP.map (\v -> if BSC.all (== ' ') v then "" else v) row
 
 -- | some programs introduce a byte order mark when generating a CSV, remove this per cassava issue recipe
 removeBomPrefix :: BS.ByteString -> BS.ByteString

@@ -38,4 +38,4 @@ passwdCheck passwd _ _ (Passwd lock) =
       pw_dict <- getDataFileName "cracklib/pw_dict"
       BS.useAsCString (BSC.pack pw_dict) $ \dict -> do
         r <- cracklibCheck p dict
-        (r /= nullPtr) `thenReturn` (BS.packCString r)
+        (r /= nullPtr) `thenReturn` BS.packCString r

@@ -84,10 +84,10 @@ postIngest = multipartAction $ action POST (pathId </< "ingest") $ \vi -> withAu
       <*> ("overwrite" .:> deform)
       <*> ("json" .:> do
               (fileInfo :: FileInfo JSON.Value) <- deform
-              (deformCheck
+              deformCheck
                    "Must be JSON."
                    (\f -> fileContentType f `elem` ["text/json", "application/json"] || takeExtension (fileName f) == ".json")
-                   fileInfo)))
+                   fileInfo))
   r <- maybe
     (True <$ focusIO abortIngest)
     (\(RunIngest r o j) -> runIngest $ right (map (unId . containerId . containerRow)) <$> ingestJSON v (fileContent j) r o)
@@ -165,7 +165,7 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
     v <- getVolume PermissionEDIT vi
     (store :: Storage) <- peek
     -- reqCtxt <- peek
-    RunParticipantUploadRequest csvUploadId selectedMapping <- runForm (Nothing) $ do
+    RunParticipantUploadRequest csvUploadId selectedMapping <- runForm Nothing $ do
         csrfForm
         (uploadId :: String) <- "csv_upload_id" .:> deform
         mapping <- "selected_mapping" .:> deform

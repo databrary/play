@@ -136,7 +136,7 @@ postAuthorize = action POST (pathAPI </>> pathPartyTarget </> pathAuthorizeTarge
       let maxexp = addGregorianYearsRollOver 2 $ utctDay now -- TODO: use timestamp from actioncontext instead of now?
           minexp = fromGregorian 2000 1 1
       -- the new version of this authorization (possibly first) should either be ...
-      a <- runForm ((api == HTML) `thenUse` (htmlAuthorizeForm c')) $ do
+      a <- runForm ((api == HTML) `thenUse` htmlAuthorizeForm c') $ do
         csrfForm
         ParentDeleteAuthorizeRequest delete <- ParentDeleteAuthorizeRequest <$> ("delete" .:> deform)
         -- 1. Nothing (causing deletion if there was a request or old auth)
@@ -188,7 +188,7 @@ data AuthorizeNotFoundRequest =
 -- Databrary yet, this route enables a user to submit some information on which target parent (AI or institution)
 -- they are seeking, to trigger an email to the Databrary site admins, with the hope that the site admins are able
 -- to manually get the intended parties into Databrary.
-postAuthorizeNotFound :: ActionRoute (PartyTarget)
+postAuthorizeNotFound :: ActionRoute PartyTarget
 postAuthorizeNotFound = action POST (pathJSON >/> pathPartyTarget </< "notfound") $ \i -> withAuth $ do
   p <- getParty (Just PermissionADMIN) i
   agent <- peeks $ fmap accountEmail . partyAccount

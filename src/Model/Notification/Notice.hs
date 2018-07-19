@@ -70,14 +70,14 @@ instance PGColumn "notice_delivery" Delivery where
         [119, 101, 101, 107, 108, 121] -> DeliveryWeekly
         [100, 97, 105, 108, 121] -> DeliveryDaily
         [97, 115, 121, 110, 99] -> DeliveryAsync
-        _ -> error ("pgDecode notice_delivery: " ++ (BSC.unpack x_a42l0))
+        _ -> error ("pgDecode notice_delivery: " ++ BSC.unpack x_a42l0)
 instance PGRep "notice_delivery" Delivery
 instance Database.PostgreSQL.Typed.Enum.PGEnum Delivery
 instance Kinded Delivery where
   kindOf _ = "notice_delivery"
 instance DBEnum Delivery
 instance JSON.ToJSON Delivery where
-  toJSON = (JSON.toJSON . fromEnum)
+  toJSON = JSON.toJSON . fromEnum
 instance JSON.FromJSON Delivery where
   parseJSON = parseJSONEnum
 instance Deform f_a42l1 Delivery where

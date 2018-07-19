@@ -195,7 +195,7 @@ jsRoutes =
 
   , rt "\"postSearch\":{method:\"GET\",route:function(){return \"/api/search\";}},"
   -- , jsRoute "postSearch" postSearch (JSON)
-  , rt "\"getFunders\":{method:\"GET\",route:function(){return \"/api/funder\";}},"  
+  , rt "\"getFunders\":{method:\"GET\",route:function(){return \"/api/funder\";}},"
   -- , jsRoute "getFunders" queryFunder ()
   , rt "\"getCitation\":{method:\"GET\",route:function(){return \"/api/cite\";}},"
   -- , jsRoute "getCitation" getCitation ()
@@ -329,7 +329,7 @@ fakeBackendDepend1 =
   , viewVolume :: ActionRoute (API, Id Volume)
   , viewVolumeCreateHandler :: Action
   , viewVolumeEdit :: ActionRoute (Id Volume)
-  , queryVolumes :: ActionRoute (API)
+  , queryVolumes :: ActionRoute API
   , thumbVolume :: ActionRoute (Id Volume)
   , csvVolume :: ActionRoute (Id Volume)
   , viewVolumeActivity :: ActionRoute (API, Id Volume)

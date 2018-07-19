@@ -77,8 +77,8 @@ type DBConn = PGConnection
 initDB :: C.Config -> IO DBPool
 initDB conf =
     DBPool
-        <$> (createPool' (pgConnect db) pgDisconnect)
-        <*> (createPool' (PGSimple.connect simpleConnInfo) (PGSimple.close))
+        <$> createPool' (pgConnect db) pgDisconnect
+        <*> createPool' (PGSimple.connect simpleConnInfo) (PGSimple.close)
   where
     createPool' :: IO a -> (a -> IO ()) -> IO (Pool a)
     createPool' get release =

@@ -131,71 +131,71 @@ lookupComment i = do
                    _cpermission_acxxn,
                    _cshare_full_acxxo]
                   -> (pgDecodeColumnNotNull
-                        _tenv_acxwT (PGTypeProxy :: PGTypeName "integer") _cid_acxwZ, 
+                        _tenv_acxwT (PGTypeProxy :: PGTypeName "integer") _cid_acxwZ,
                       pgDecodeColumnNotNull
-                        _tenv_acxwT (PGTypeProxy :: PGTypeName "segment") _csegment_acxx0, 
+                        _tenv_acxwT (PGTypeProxy :: PGTypeName "segment") _csegment_acxx0,
                       pgDecodeColumnNotNull
                         _tenv_acxwT
                         (PGTypeProxy :: PGTypeName "timestamp with time zone")
-                        _ctime_acxx1, 
+                        _ctime_acxx1,
                       pgDecodeColumnNotNull
-                        _tenv_acxwT (PGTypeProxy :: PGTypeName "text") _ctext_acxx2, 
+                        _tenv_acxwT (PGTypeProxy :: PGTypeName "text") _ctext_acxx2,
                       pgDecodeColumnNotNull
                         _tenv_acxwT
                         (PGTypeProxy :: PGTypeName "integer[]")
-                        _cthread_acxx3, 
+                        _cthread_acxx3,
                       pgDecodeColumnNotNull
-                        _tenv_acxwT (PGTypeProxy :: PGTypeName "integer") _cid_acxx4, 
+                        _tenv_acxwT (PGTypeProxy :: PGTypeName "integer") _cid_acxx4,
                       pgDecodeColumnNotNull
-                        _tenv_acxwT (PGTypeProxy :: PGTypeName "text") _cname_acxx5, 
+                        _tenv_acxwT (PGTypeProxy :: PGTypeName "text") _cname_acxx5,
                       pgDecodeColumnNotNull
-                        _tenv_acxwT (PGTypeProxy :: PGTypeName "text") _cprename_acxx6, 
+                        _tenv_acxwT (PGTypeProxy :: PGTypeName "text") _cprename_acxx6,
                       pgDecodeColumnNotNull
-                        _tenv_acxwT (PGTypeProxy :: PGTypeName "bpchar") _corcid_acxx7, 
+                        _tenv_acxwT (PGTypeProxy :: PGTypeName "bpchar") _corcid_acxx7,
                       pgDecodeColumnNotNull
                         _tenv_acxwT
                         (PGTypeProxy :: PGTypeName "text")
-                        _caffiliation_acxx8, 
+                        _caffiliation_acxx8,
                       pgDecodeColumnNotNull
-                        _tenv_acxwT (PGTypeProxy :: PGTypeName "text") _curl_acxx9, 
-                      pgDecodeColumnNotNull
-                        _tenv_acxwT
-                        (PGTypeProxy :: PGTypeName "character varying")
-                        _cemail_acxxa, 
-                      pgDecodeColumnNotNull
-                        _tenv_acxwT (PGTypeProxy :: PGTypeName "integer") _cid_acxxb, 
-                      pgDecodeColumnNotNull
-                        _tenv_acxwT (PGTypeProxy :: PGTypeName "boolean") _ctop_acxxc, 
-                      pgDecodeColumnNotNull
-                        _tenv_acxwT (PGTypeProxy :: PGTypeName "text") _cname_acxxd, 
-                      pgDecodeColumnNotNull
-                        _tenv_acxwT (PGTypeProxy :: PGTypeName "date") _cdate_acxxe, 
-                      pgDecodeColumnNotNull
-                        _tenv_acxwT (PGTypeProxy :: PGTypeName "release") _crelease_acxxf, 
-                      pgDecodeColumnNotNull
-                        _tenv_acxwT (PGTypeProxy :: PGTypeName "integer") _cid_acxxg, 
-                      pgDecodeColumnNotNull
-                        _tenv_acxwT (PGTypeProxy :: PGTypeName "text") _cname_acxxh, 
-                      pgDecodeColumnNotNull
-                        _tenv_acxwT (PGTypeProxy :: PGTypeName "text") _cbody_acxxi, 
+                        _tenv_acxwT (PGTypeProxy :: PGTypeName "text") _curl_acxx9,
                       pgDecodeColumnNotNull
                         _tenv_acxwT
                         (PGTypeProxy :: PGTypeName "character varying")
-                        _calias_acxxj, 
+                        _cemail_acxxa,
+                      pgDecodeColumnNotNull
+                        _tenv_acxwT (PGTypeProxy :: PGTypeName "integer") _cid_acxxb,
+                      pgDecodeColumnNotNull
+                        _tenv_acxwT (PGTypeProxy :: PGTypeName "boolean") _ctop_acxxc,
+                      pgDecodeColumnNotNull
+                        _tenv_acxwT (PGTypeProxy :: PGTypeName "text") _cname_acxxd,
+                      pgDecodeColumnNotNull
+                        _tenv_acxwT (PGTypeProxy :: PGTypeName "date") _cdate_acxxe,
+                      pgDecodeColumnNotNull
+                        _tenv_acxwT (PGTypeProxy :: PGTypeName "release") _crelease_acxxf,
+                      pgDecodeColumnNotNull
+                        _tenv_acxwT (PGTypeProxy :: PGTypeName "integer") _cid_acxxg,
+                      pgDecodeColumnNotNull
+                        _tenv_acxwT (PGTypeProxy :: PGTypeName "text") _cname_acxxh,
+                      pgDecodeColumnNotNull
+                        _tenv_acxwT (PGTypeProxy :: PGTypeName "text") _cbody_acxxi,
                       pgDecodeColumnNotNull
                         _tenv_acxwT
                         (PGTypeProxy :: PGTypeName "character varying")
-                        _cdoi_acxxk, 
+                        _calias_acxxj,
+                      pgDecodeColumnNotNull
+                        _tenv_acxwT
+                        (PGTypeProxy :: PGTypeName "character varying")
+                        _cdoi_acxxk,
                       pgDecodeColumnNotNull
                         _tenv_acxwT
                         (PGTypeProxy :: PGTypeName "timestamp with time zone")
-                        _cvolume_creation_acxxl, 
+                        _cvolume_creation_acxxl,
                       pgDecodeColumnNotNull
-                        _tenv_acxwT (PGTypeProxy :: PGTypeName "text[]") _cowners_acxxm, 
+                        _tenv_acxwT (PGTypeProxy :: PGTypeName "text[]") _cowners_acxxm,
                       pgDecodeColumnNotNull
                         _tenv_acxwT
                         (PGTypeProxy :: PGTypeName "permission")
-                        _cpermission_acxxn, 
+                        _cpermission_acxxn,
                       pgDecodeColumnNotNull
                         _tenv_acxwT
                         (PGTypeProxy :: PGTypeName "boolean")
@@ -282,33 +282,33 @@ lookupSlotComments (Slot c s) n = do
                    _curl_acBuQ,
                    _cemail_acBuR]
                   -> (pgDecodeColumnNotNull
-                        _tenv_acBuC (PGTypeProxy :: PGTypeName "integer") _cid_acBuG, 
+                        _tenv_acBuC (PGTypeProxy :: PGTypeName "integer") _cid_acBuG,
                       pgDecodeColumnNotNull
-                        _tenv_acBuC (PGTypeProxy :: PGTypeName "segment") _csegment_acBuH, 
+                        _tenv_acBuC (PGTypeProxy :: PGTypeName "segment") _csegment_acBuH,
                       pgDecodeColumnNotNull
                         _tenv_acBuC
                         (PGTypeProxy :: PGTypeName "timestamp with time zone")
-                        _ctime_acBuI, 
+                        _ctime_acBuI,
                       pgDecodeColumnNotNull
-                        _tenv_acBuC (PGTypeProxy :: PGTypeName "text") _ctext_acBuJ, 
+                        _tenv_acBuC (PGTypeProxy :: PGTypeName "text") _ctext_acBuJ,
                       pgDecodeColumnNotNull
                         _tenv_acBuC
                         (PGTypeProxy :: PGTypeName "integer[]")
-                        _cthread_acBuK, 
+                        _cthread_acBuK,
                       pgDecodeColumnNotNull
-                        _tenv_acBuC (PGTypeProxy :: PGTypeName "integer") _cid_acBuL, 
+                        _tenv_acBuC (PGTypeProxy :: PGTypeName "integer") _cid_acBuL,
                       pgDecodeColumnNotNull
-                        _tenv_acBuC (PGTypeProxy :: PGTypeName "text") _cname_acBuM, 
+                        _tenv_acBuC (PGTypeProxy :: PGTypeName "text") _cname_acBuM,
                       pgDecodeColumnNotNull
-                        _tenv_acBuC (PGTypeProxy :: PGTypeName "text") _cprename_acBuN, 
+                        _tenv_acBuC (PGTypeProxy :: PGTypeName "text") _cprename_acBuN,
                       pgDecodeColumnNotNull
-                        _tenv_acBuC (PGTypeProxy :: PGTypeName "bpchar") _corcid_acBuO, 
+                        _tenv_acBuC (PGTypeProxy :: PGTypeName "bpchar") _corcid_acBuO,
                       pgDecodeColumnNotNull
                         _tenv_acBuC
                         (PGTypeProxy :: PGTypeName "text")
-                        _caffiliation_acBuP, 
+                        _caffiliation_acBuP,
                       pgDecodeColumnNotNull
-                        _tenv_acBuC (PGTypeProxy :: PGTypeName "text") _curl_acBuQ, 
+                        _tenv_acBuC (PGTypeProxy :: PGTypeName "text") _curl_acBuQ,
                       pgDecodeColumnNotNull
                         _tenv_acBuC
                         (PGTypeProxy :: PGTypeName "character varying")
@@ -318,8 +318,8 @@ lookupSlotComments (Slot c s) n = do
       (\ (vid_acBu6, vsegment_acBu7, vtime_acBu8, vtext_acBu9,
           vthread_acBua, vid_acBub, vname_acBuc, vprename_acBud,
           vorcid_acBue, vaffiliation_acBuf, vurl_acBug, vemail_acBuh)
-         -> (makeComment
-                 vid_acBu6 vsegment_acBu7 vtime_acBu8 vtext_acBu9 vthread_acBua)
+         -> makeComment
+                 vid_acBu6 vsegment_acBu7 vtime_acBu8 vtext_acBu9 vthread_acBua
               (Model.Party.SQL.permissionParty
                  (Model.Party.SQL.makeAccount
                     (PartyRow
@@ -358,7 +358,7 @@ lookupVolumeCommentRows v = do
               vtext_a8I3d)
       (mapQuery
         ((\ _p_a8I49 ->
-                       (Data.ByteString.concat
+                       Data.ByteString.concat
                           [Data.String.fromString
                              "SELECT comment.id,comment.container,comment.segment,comment.who,comment.time,comment.text FROM comment JOIN container ON comment.container = container.id WHERE container.volume = ",
                            Database.PostgreSQL.Typed.Types.pgEscapeParameter
@@ -366,7 +366,7 @@ lookupVolumeCommentRows v = do
                              (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                                 Database.PostgreSQL.Typed.Types.PGTypeName "integer")
                              _p_a8I49,
-                           Data.String.fromString " ORDER BY container"]))
+                           Data.String.fromString " ORDER BY container"])
          (volumeId $ volumeRow v))
                (\ [_cid_a8I4a,
                    _ccontainer_a8I4b,
@@ -378,27 +378,27 @@ lookupVolumeCommentRows v = do
                         _tenv_a8I48
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a8I4a, 
+                        _cid_a8I4a,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a8I48
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _ccontainer_a8I4b, 
+                        _ccontainer_a8I4b,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a8I48
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "segment")
-                        _csegment_a8I4c, 
+                        _csegment_a8I4c,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a8I48
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cwho_a8I4d, 
+                        _cwho_a8I4d,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a8I48
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
-                        _ctime_a8I4e, 
+                        _ctime_a8I4e,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a8I48
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -454,7 +454,7 @@ addComment c@Comment{..} = do
                      _tenv_a8Iah
                      (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                         Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                     _cid_a8Iap, 
+                     _cid_a8Iap,
                    Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                      _tenv_a8Iah
                      (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -473,4 +473,4 @@ commentJSON Comment{ commentSlot = Slot{..}, ..} = JSON.Record commentId $
   <> "time" JSON..= commentTime
   <> "text" JSON..= commentText
   <> "parents" `JSON.kvObjectOrEmpty` (if null commentParents then empty else pure commentParents)
-   
+

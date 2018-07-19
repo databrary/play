@@ -33,17 +33,17 @@ lookupFunder fi = do
   rows <- dbQuery1 -- (selectQuery selectFunder "WHERE funder.fundref_id = ${fi}")
     (mapQuery
       ((\ _p_a13FH ->
-                       (Data.ByteString.concat
+                       Data.ByteString.concat
                           [Data.String.fromString
                              "SELECT funder.fundref_id,funder.name FROM funder WHERE funder.fundref_id = ",
                            pgEscapeParameter
-                             _tenv_a13FG (PGTypeProxy :: PGTypeName "bigint") _p_a13FH]))
+                             _tenv_a13FG (PGTypeProxy :: PGTypeName "bigint") _p_a13FH])
          fi)
                (\ [_cfundref_id_a13FI, _cname_a13FJ]
                   -> (pgDecodeColumnNotNull
                         _tenv_a13FG
                         (PGTypeProxy :: PGTypeName "bigint")
-                        _cfundref_id_a13FI, 
+                        _cfundref_id_a13FI,
                       pgDecodeColumnNotNull
                         _tenv_a13FG (PGTypeProxy :: PGTypeName "text") _cname_a13FJ)))
   pure
@@ -57,18 +57,18 @@ findFunders q = do
   rows <- dbQuery -- (selectQuery selectFunder "WHERE funder.name ILIKE '%' || ${q} || '%'")
     (mapQuery
       ((\ _p_a1vMZ ->
-                       (Data.ByteString.concat
+                       Data.ByteString.concat
                           [Data.String.fromString
                              "SELECT funder.fundref_id,funder.name FROM funder WHERE funder.name ILIKE '%' || ",
                            pgEscapeParameter
                              _tenv_a1vMY (PGTypeProxy :: PGTypeName "text") _p_a1vMZ,
-                           Data.String.fromString " || '%'"]))
+                           Data.String.fromString " || '%'"])
          q)
                (\ [_cfundref_id_a1vN0, _cname_a1vN1]
                   -> (pgDecodeColumnNotNull
                         _tenv_a1vMY
                         (PGTypeProxy :: PGTypeName "bigint")
-                        _cfundref_id_a1vN0, 
+                        _cfundref_id_a1vN0,
                       pgDecodeColumnNotNull
                         _tenv_a1vMY (PGTypeProxy :: PGTypeName "text") _cname_a1vN1)))
   pure
@@ -103,19 +103,19 @@ lookupVolumeFunding vol = do
   rows <- dbQuery -- (selectQuery selectVolumeFunding "WHERE volume_funding.volume = ${volumeId $ volumeRow vol}")
    (mapQuery
       ((\ _p_a13ph ->
-                       (Data.ByteString.concat
+                       Data.ByteString.concat
                           [Data.String.fromString
                              "SELECT volume_funding.awards,funder.fundref_id,funder.name FROM volume_funding JOIN funder ON volume_funding.funder = funder.fundref_id WHERE volume_funding.volume = ",
                            pgEscapeParameter
-                             _tenv_a13pg (PGTypeProxy :: PGTypeName "integer") _p_a13ph]))
+                             _tenv_a13pg (PGTypeProxy :: PGTypeName "integer") _p_a13ph])
          (volumeId $ volumeRow vol))
                (\ [_cawards_a13pi, _cfundref_id_a13pj, _cname_a13pk]
                   -> (pgDecodeColumnNotNull
-                        _tenv_a13pg (PGTypeProxy :: PGTypeName "text[]") _cawards_a13pi, 
+                        _tenv_a13pg (PGTypeProxy :: PGTypeName "text[]") _cawards_a13pi,
                       pgDecodeColumnNotNull
                         _tenv_a13pg
                         (PGTypeProxy :: PGTypeName "bigint")
-                        _cfundref_id_a13pj, 
+                        _cfundref_id_a13pj,
                       pgDecodeColumnNotNull
                         _tenv_a13pg (PGTypeProxy :: PGTypeName "text") _cname_a13pk)))
   pure

@@ -49,13 +49,13 @@ instance Has Container Slot where
 {- instance Has (Id Model.Volume.Types.Volume) Slot where
   view = (view . slotContainer) -}
 instance Has Model.Permission.Types.Permission Slot where
-  view = (view . slotContainer)
+  view = view . slotContainer
 instance Has Model.Volume.Types.Volume Slot where
-  view = (view . slotContainer)
+  view = view . slotContainer
 instance Has (Maybe Model.Release.Types.Release) Slot where
-  view = (view . slotContainer)
+  view = view . slotContainer
 instance Has (Id Container) Slot where
-  view = (view . slotContainer)
+  view = view . slotContainer
 instance Has Segment Slot where
   view = slotSegment
 

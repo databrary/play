@@ -69,7 +69,7 @@ getParty
   -> PartyTarget
   -> Handler Party
 getParty (Just p) (TargetParty i) =
-  (checkPermission partyPermission p) =<< maybeAction =<< lookupAuthParty i
+  checkPermission partyPermission p =<< maybeAction =<< lookupAuthParty i
 getParty _ mi = do
   u <- accountParty <$> authAccount
   let isme TargetProfile = True
@@ -110,7 +110,7 @@ partyJSONField p "volumes" o = thenReturn (partyPermission p >= PermissionADMIN)
       accesses <- lookupVolumeAccess v PermissionNONE  -- TODO: why different perm level
       return $
         volumeJSON v (Just accesses) `JSON.foldObjectIntoRec`
-          (JSON.nestObject "access" (\u -> map (u . volumeAccessPartyJSON) a))
+          JSON.nestObject "access" (\u -> map (u . volumeAccessPartyJSON) a)
     | otherwise = return $ volumeJSONSimple v
 partyJSONField p "access" ma = do
   Just . JSON.mapObjects volumeAccessVolumeJSON
@@ -144,7 +144,7 @@ processParty
   -> Maybe Party -- ^ The existing version of the party, before any updates
   -> Handler (Party, Maybe (Maybe Asset)) -- ^ A party object populated with the request input and a possible avatar asset.
 processParty api p = do
-  (p', a) <- runFormFiles [("avatar", maxAvatarSize)] ((api == HTML) `thenUse` (htmlPartyEdit p)) $ do
+  (p', a) <- runFormFiles [("avatar", maxAvatarSize)] ((api == HTML) `thenUse` htmlPartyEdit p) $ do
     csrfForm
     name <- "sortname" .:> (deformRequired =<< deform)
     prename <- "prename" .:> deformNonEmpty deform
@@ -153,7 +153,7 @@ processParty api p = do
     url <- "url" .:> deformNonEmpty deform
     (avatar :: (Maybe (Maybe (FileInfo TempFile, Format)))) <- "avatar" .:> do
       mFileInfo <- deform
-      (maybe
+      maybe
          (deformOptional $ return Nothing)
          (\avatarFileInfo -> do
             format <- do
@@ -161,7 +161,7 @@ processParty api p = do
                 deformMaybe' "Unknown or unsupported file format." (getFormatByFilename (fileName avatarFileInfo))
               deformCheck "Must be an image." formatIsImage fmt
             return $ Just $ Just (avatarFileInfo, format))
-         mFileInfo)
+         mFileInfo
     let _ = ProcessPartyRequest name prename mOrcid affiliation url avatar
     return (bp
       { partyRow = (partyRow bp)
@@ -255,7 +255,7 @@ partySearchForm = PartyFilter
 queryParties :: ActionRoute API
 queryParties = action GET (pathAPI </< "party") $ \api -> withAuth $ do
   when (api == HTML) angular
-  pf <- runForm ((api == HTML) `thenUse` (htmlPartySearch mempty [])) partySearchForm
+  pf <- runForm ((api == HTML) `thenUse` htmlPartySearch mempty []) partySearchForm
   p <- findParties pf
   case api of
     JSON -> return $ okResponse [] $ (JSON.encode . fmap toFormattedParty) p

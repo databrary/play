@@ -79,8 +79,8 @@ selectVolume i = selectJoin 'makeVolume
         (OutputJoin
            False
            'makePermInfo
-           [ (SelectColumn "volume_permission" "permission")
-           , (SelectColumn "volume_permission" "share_full")]))
+           [ SelectColumn "volume_permission" "permission"
+           , SelectColumn "volume_permission" "share_full"]))
   ]
   where is = nameRef i
 

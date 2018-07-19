@@ -55,7 +55,7 @@ staticPath = StaticPath . joinPath . map component where
 
 parseStaticPath :: [T.Text] -> Maybe StaticPath
 parseStaticPath = fmap (StaticPath . joinPath) . mapM component where
-  component c = (TE.encodeUtf8 c) `useWhen` (not (T.null c) && T.head c /= '.' && T.all ok c)
+  component c = TE.encodeUtf8 c `useWhen` (not (T.null c) && T.head c /= '.' && T.all ok c)
 
 pathStatic :: PathParser (Maybe StaticPath)
 pathStatic = (parseStaticPath I.:<->: maybe [] (map TE.decodeLatin1 . splitDirectories . staticFilePath)) >$< R.manyI R.parameter

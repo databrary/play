@@ -70,7 +70,7 @@ postNotify = action POST (pathJSON </< "notify") $ \() -> withAuth $ do
     UpdateNotifyRequest
       <$> ("notice" .:> return <$> deform <|> withSubDeforms (const deform))
       <*> ("delivery" .:> deformNonEmpty deform)
-  mapM_ (maybe (void . removeNotify u) (flip changeNotify u) md) nl
+  mapM_ (maybe (void . removeNotify u) (flip (changeNotify u)) md) nl
   return $ emptyResponse noContent204 []
 
 createNotification

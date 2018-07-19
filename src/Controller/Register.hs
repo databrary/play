@@ -71,7 +71,7 @@ viewRegisterAction = withAuth $ do
 postRegister :: ActionRoute API
 postRegister = action POST (pathAPI </< "user" </< "register") $ postRegisterAction
 
-data RegisterRequest = RegisterRequest T.Text (Maybe T.Text) (BSC.ByteString) (Maybe T.Text) Bool
+data RegisterRequest = RegisterRequest T.Text (Maybe T.Text) BSC.ByteString (Maybe T.Text) Bool
 
 postRegisterAction :: API -> Action
 postRegisterAction = \api -> withoutAuth $ do

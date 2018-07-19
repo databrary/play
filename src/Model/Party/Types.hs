@@ -73,7 +73,7 @@ getPartyId = partyId . partyRow
 instance Has Party Account where
   view = accountParty
 instance Has (Id Party) Account where
-  view = (getPartyId . accountParty)
+  view = getPartyId . accountParty
 
 instance Has Access Party where
   view Party{ partyAccess = Just a } = a
@@ -94,9 +94,9 @@ data SiteAuth = SiteAuth
 instance Has Account SiteAuth where
   view = siteAccount
 instance Has Party SiteAuth where
-  view = (view . siteAccount)
+  view = view . siteAccount
 instance Has (Id Party) SiteAuth where
-  view = (view . siteAccount)
+  view = view . siteAccount
 instance Has Access SiteAuth where
   view = siteAccess
 

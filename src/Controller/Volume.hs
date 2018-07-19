@@ -169,17 +169,17 @@ volumeJSONField vol "links" _ =
 volumeJSONField vol "funding" _ =
   Just . JSON.mapObjects fundingJSON <$> lookupVolumeFunding vol
 volumeJSONField vol "containers" mContainersVal = do
-  (cl :: [((Container, [(Segment, Id Record)]))]) <- if records
-    then lookupVolumeContainersRecordIds vol
-    else nope <$> lookupVolumeContainers vol
+  (cl :: [(Container, [(Segment, Id Record)])]) <- if records
+  then lookupVolumeContainersRecordIds vol
+  else nope <$> lookupVolumeContainers vol
   (cl' :: [((Container, [(Segment, Id Record)]), [(Asset, SlotId)])]) <- if assets
     then leftJoin (\(c, _) (_, SlotId a _) -> containerId (containerRow c) == a) cl <$> lookupVolumeAssetSlotIds vol
     else return $ nope cl
   rm <- if records then snd <$> cacheVolumeRecords vol else return HM.empty
   let publicRestricted = volumeIsPublicRestricted vol
       br = blankRecord undefined vol
-      rjs c (s, r)          = JSON.recordObject $ (recordSlotJSON publicRestricted) $ RecordSlot (HML.lookupDefault br{ recordRow = (recordRow br){ recordId = r } } r rm) (Slot c s)
-      ajs c (a, SlotId _ s) = JSON.recordObject $ (assetSlotJSON publicRestricted) $ AssetSlot a (Just (Slot c s))
+      rjs c (s, r)          = JSON.recordObject $ recordSlotJSON publicRestricted $ RecordSlot (HML.lookupDefault br{ recordRow = (recordRow br){ recordId = r } } r rm) (Slot c s)
+      ajs c (a, SlotId _ s) = JSON.recordObject $ assetSlotJSON publicRestricted $ AssetSlot a (Just (Slot c s))
   return $ Just $ JSON.mapRecords (\((c, rl), al) ->
       containerJSON publicRestricted c
       `JSON.foldObjectIntoRec`
@@ -243,9 +243,9 @@ viewVolume = action GET (pathAPI </> pathId) $ \(api, vi) -> withAuth $ do
   accesses <- lookupVolumeAccess v PermissionNONE
   -- (liftIO . print) ("num accesses", length accesses)
   -- case api of
-  (let idSeriesRecAct :: Handler (JSON.Record (Id Volume) JSON.Series)
-       idSeriesRecAct = volumeJSONQuery v (Just accesses) =<< peeks Wai.queryString
-   in okResponse [] . JSON.recordEncoding <$> idSeriesRecAct)
+  let idSeriesRecAct :: Handler (JSON.Record (Id Volume) JSON.Series)
+      idSeriesRecAct = volumeJSONQuery v (Just accesses) =<< peeks Wai.queryString
+  okResponse [] . JSON.recordEncoding <$> idSeriesRecAct
   {-
     HTML -> do
       top <- lookupVolumeTopContainer v
@@ -258,7 +258,7 @@ data CreateOrUpdateVolumeCitationRequest =
         T.Text
         (Maybe T.Text)
         (Maybe T.Text)
-        (T.Text)
+        T.Text
         (Maybe URI)
         (Maybe Int16)
 
@@ -415,7 +415,7 @@ queryVolumes = action GET (pathAPI </< "volume") $ \api -> withAuth $ do
   when (api == HTML) angular
   vf <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) volumeSearchForm
   p <- findVolumes vf
-  return $ okResponse [] $ JSON.mapRecords (volumeJSONSimple) p
+  return $ okResponse [] $ JSON.mapRecords volumeJSONSimple p
   -- HTML -> peeks $ blankForm . htmlVolumeSearch vf p
 
 thumbVolume :: ActionRoute (Id Volume)

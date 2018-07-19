@@ -77,7 +77,7 @@ postRecordMeasure = action POST (pathJSON >/> pathId </> pathId) $ \(ri, mi) -> 
   let mkMeasure datum = Measure record met datum
   rec' <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ do
     csrfForm
-    ManageRecordMeasureRequest mDatum <- ManageRecordMeasureRequest <$> (deformSync' ("datum" .:> deformNonEmpty deform))
+    ManageRecordMeasureRequest mDatum <- ManageRecordMeasureRequest <$> deformSync' ("datum" .:> deformNonEmpty deform)
     maybe
       (lift $ removeRecordMeasure $ mkMeasure "") -- delete measure data
       (\d -> do  -- add or update measure data

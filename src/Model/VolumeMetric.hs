@@ -41,14 +41,14 @@ lookupVolumeMetrics v = do
                         _tenv_a80O7 (PGTypeProxy :: PGTypeName "integer") _cmetric_a80O9))
   pure
     (fmap
-      (id)
+      id
       rows)
 
 lookupVolumeParticipantMetrics :: (MonadDB c m) => Volume -> m [Metric]
 lookupVolumeParticipantMetrics vol = do
     volumeActiveMetricIds <- lookupVolumeMetrics vol
     -- liftIO (print ("metric ids", metricIds))
-    pure ((fmap getMetric' volumeActiveMetricIds) `L.intersect` participantMetrics)
+    pure (fmap getMetric' volumeActiveMetricIds `L.intersect` participantMetrics)
 
 mapQuery :: ByteString -> ([PGValue] -> a) -> PGSimpleQuery a
 mapQuery qry mkResult =

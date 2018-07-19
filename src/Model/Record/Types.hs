@@ -71,7 +71,7 @@ data ParticipantRecord =
         , prdCountry :: FieldUse ByteString
         , prdState :: FieldUse ByteString
         , prdSetting :: FieldUse ByteString
-        } 
+        }
 
 data Measure = Measure
   { measureRecord :: Record
@@ -87,19 +87,19 @@ data Measure = Measure
 type Measures = [Measure]
 
 instance Has (Id Record) Record where
-  view = (recordId . recordRow)
+  view = recordId . recordRow
 instance Has Category Record where
-  view = (recordCategory . recordRow)
+  view = recordCategory . recordRow
 instance Has (Id Category) Record where
-  view = (categoryId . recordCategory . recordRow)
+  view = categoryId . recordCategory . recordRow
 instance Has Volume Record where
   view = recordVolume
 instance Has Permission Record where
-  view = (view . recordVolume)
+  view = view . recordVolume
 instance Has (Maybe Release) Record where
   view = recordRelease
 instance Has Release Record where
-  view = (view . recordRelease)
+  view = view . recordRelease
 
 getRecordVolumePermission :: Record -> VolumeRolePolicy
 getRecordVolumePermission = volumeRolePolicy . recordVolume

@@ -38,7 +38,7 @@ import Controller.Container
 viewSiteActivityHandler :: Action -- TODO: GET only
 viewSiteActivityHandler = withAuth $ do
   ss <- focusIO $ readIORef . serviceStats
-  vl <- map (second $ ("volume" JSON..=:) . (volumeJSONSimple)) . nubBy ((==) `on` volumeId . volumeRow . snd) <$> lookupVolumeShareActivity 8
+  vl <- map (second $ ("volume" JSON..=:) . volumeJSONSimple) . nubBy ((==) `on` volumeId . volumeRow . snd) <$> lookupVolumeShareActivity 8
   al <- map (second $ ("party"  JSON..=:) . partyJSON)  . nubBy ((==) `on` partyId  . partyRow  . snd) <$> lookupAuthorizeActivity 8
   return
     $ okResponse []

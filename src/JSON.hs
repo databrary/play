@@ -106,7 +106,7 @@ recordEncoding :: ToJSON k => Record k Series -> Encoding
 recordEncoding = pairs . recordObject
 
 mapRecords :: (Functor t, Foldable t, ToJSON k) => (a -> Record k Series) -> t a -> Encoding
-mapRecords toRecord objs = mapObjects ((recordObject . toRecord)) objs
+mapRecords toRecord objs = mapObjects (recordObject . toRecord) objs
 
 infixr 8 .=:
 (.=:) :: (ToJSON k, ToNestedObject o u) => T.Text -> Record k o -> o
@@ -139,11 +139,11 @@ jsonQuery _ [] =
 jsonQuery f ((k,mVal):qryPairs) = do
   mEncoded :: Maybe Encoding <- f k mVal
   let jsonQueryRestAct = jsonQuery f qryPairs
-  (maybe
+  maybe
      (id :: Series -> Series)
      (\encodedObj seriesRest -> (objToPair k encodedObj) <> seriesRest)
-     mEncoded)
+     mEncoded
     <$> jsonQueryRestAct
   where
     objToPair :: (KeyValue kv) => BS.ByteString -> Encoding -> kv
-    objToPair key encObj = (((TE.decodeLatin1 key) .=) . UnsafeEncoding) encObj
+    objToPair key encObj = ((TE.decodeLatin1 key .=) . UnsafeEncoding) encObj

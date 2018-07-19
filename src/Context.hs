@@ -50,33 +50,33 @@ data ActionContext = ActionContext
 instance Has Service ActionContext where
   view = contextService
 instance Has Service.Notification.Notifications ActionContext where
-   view = (view . contextService)
+   view = view . contextService
 instance Has Solr.Service.Solr ActionContext where
-  view = (view . contextService)
+  view = view . contextService
 instance Has Ingest.Service.Ingest ActionContext where
-  view = (view . contextService)
+  view = view . contextService
 instance Has Static.Service.Static ActionContext where
-  view = (view . contextService)
+  view = view . contextService
 instance Has HTTP.Client.HTTPClient ActionContext where
-  view = (view . contextService)
+  view = view . contextService
 instance Has Web.Types.Web ActionContext where
-  view = (view . contextService)
+  view = view . contextService
 instance Has Store.AV.AV ActionContext where
-  view = (view . contextService)
+  view = view . contextService
 instance Has Store.Types.Storage ActionContext where
-  view = (view . contextService)
+  view = view . contextService
 instance Has Service.Messages.Messages ActionContext where
-  view = (view . contextService)
+  view = view . contextService
 instance Has Service.Log.Logs ActionContext where
-  view = (view . contextService)
+  view = view . contextService
 instance Has Service.Mail.Mailer ActionContext where
-  view = (serviceMailer . contextService)
+  view = serviceMailer . contextService
 instance Has Service.Passwd.Passwd ActionContext where
-  view = (view . contextService)
+  view = view . contextService
 instance Has Service.Entropy.Entropy ActionContext where
-  view = (view . contextService)
+  view = view . contextService
 instance Has Secret ActionContext where
-  view = (view . contextService)
+  view = view . contextService
 instance Has InternalState ActionContext where
   view = contextResourceState
 instance Has DBConn ActionContext where
@@ -109,7 +109,7 @@ newtype BackgroundContext = BackgroundContext { backgroundContext :: ActionConte
         )
 
 instance Has Timestamp BackgroundContext where
-  view = (contextTimestamp . backgroundContext)
+  view = contextTimestamp . backgroundContext
 instance Has Identity BackgroundContext where
   view _ = IdentityNotNeeded
 instance Has SiteAuth BackgroundContext where
