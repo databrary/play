@@ -32,7 +32,7 @@ data Slot = Slot
   , slotSegment :: !Segment
   }
 {-
-instance Show Slot where 
+instance Show Slot where
   show _ = "Slot"
 -}
 slotId :: Slot -> Id Slot

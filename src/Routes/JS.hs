@@ -105,7 +105,7 @@ jsRoutes =
   , rt "\"downloadAssetSegment\":{method:\"GET\",route:function(int320,segment1,int322){return \"/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/download\";}},"
   -- , jsRoute "downloadAssetSegment" downloadAssetSegment (slot, asset) --download transcoded asset segment
   , rt "\"downloadOrigAssetSegment\":{method:\"GET\",route:function(int320,segment1,int322){return \"/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/downloadOrig\";}},"
-  -- , jsRoute "downloadOrigAssetSegment" downloadOrigAssetSegment (slot, asset) --download original asset segment 
+  -- , jsRoute "downloadOrigAssetSegment" downloadOrigAssetSegment (slot, asset) --download original asset segment
   , rt "\"thumbAssetSegment\":{method:\"GET\",route:function(int320,segment1,int322){return \"/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/thumb\";}},"
   -- , jsRoute "thumbAssetSegment" (thumbAssetSegment False) (slot, asset)
   , rt "\"thumbOrigAssetSegment\":{method:\"GET\",route:function(int320,segment1,int322){return \"/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/thumb\";}},"

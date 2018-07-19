@@ -3,7 +3,7 @@ module Model.AssetSlot.SQL
   ( slotAssetRow
   , makeSlotAsset
   , selectContainerSlotAsset
-  -- , selectOrigContainerSlotAsset 
+  -- , selectOrigContainerSlotAsset
   , selectAssetSlotAsset
   , selectVolumeSlotAsset
   , selectVolumeSlotIdAsset

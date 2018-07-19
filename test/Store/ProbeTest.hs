@@ -37,7 +37,7 @@ mkDatedContainer d =
 
 mkZTime :: Day -> Integer -> ZonedTime
 mkZTime d secs = utcToZonedTime utc (UTCTime d (secondsToDiffTime secs))
-      
+
 -- TODO: generalize this to construct a variety of formats
 mkAVProbe :: AVProbe
 mkAVProbe =

@@ -53,7 +53,7 @@ main = do
     l -> l)
   case (flags', args', err) of
     ([FlagWeb], [], []) -> do
-      putStrLn "generating files..." 
+      putStrLn "generating files..."
       void generateWebFiles
       putStrLn "finished generating web files..."
     {- seems like a good idea for testing and generally factoring out monolith, add back when used
@@ -63,7 +63,7 @@ main = do
       putStrLn "update EZID finished..."
       if r == Just True then pure () else exitFailure
     -}
-    ([], [], []) -> do 
+    ([], [], []) -> do
       putStrLn "No flags or args...."
       putStrLn "evaluating routemap..."
       routes <- evaluate routeMapInvertible
