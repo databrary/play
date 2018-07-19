@@ -24,8 +24,7 @@ generateMerged inputFiles = \fileToGenInfo@(fileToGen, _) -> do
       withBinaryFile fp WriteMode $ \generatingFileWriteHandle ->
         forM_ inputFiles $ \inputFile -> do
           fps <- unRawFilePath $ webFileAbs inputFile
-          withBinaryFile fps ReadMode $ (\inputFileReadHandle ->
-            bufferedCopy allocatedPtr generatingFileWriteHandle inputFileReadHandle)
+          withBinaryFile fps ReadMode $ (bufferedCopy allocatedPtr generatingFileWriteHandle)
           hPutChar generatingFileWriteHandle '\n')
     []
     inputFiles

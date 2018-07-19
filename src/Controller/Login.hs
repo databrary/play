@@ -149,7 +149,7 @@ postUserAction api = do
   auth' <- runForm ((api == HTML) `thenUse` (htmlUserForm acct)) $ do
     csrfForm
     -- TODO: pass old password into UpdateUserRequest
-    "auth" .:> (deformGuard "Incorrect password" . (\pw -> pw `checkPassword` auth) =<< deform)
+    "auth" .:> (deformGuard "Incorrect password" . ((`checkPassword` auth)) =<< deform)
     email <- "email" .:> deformNonEmpty emailTextForm
     passwd <- "password" .:> deformNonEmpty (passwordForm acct)
     let _ = UpdateUserRequest () email passwd

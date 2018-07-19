@@ -76,7 +76,7 @@ instance ResponseData (Source (CND.ResourceT IO) BS.ByteString) where
                 CND.runConduitRes
                     (src
                     .| (CND.mapM_C
-                        (\bs -> CND.lift (send (DBB.fromByteString bs))))))
+                        (CND.lift . send . DBB.fromByteString))))
 
 instance ResponseData StreamingBody where
   response = responseStream

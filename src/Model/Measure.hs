@@ -77,9 +77,8 @@ changeRecordMeasure m = do
   r <- tryUpdateOrInsert (guard . isInvalidInputException)
     -- .(updateMeasure 'ident 'm)
     (fmap
-      (\ (vdatum_a6DoR)
-         -> setMeasureDatum
-              m vdatum_a6DoR)
+      (setMeasureDatum
+              m)
       (mapQuery
           ((\ _p_a6DoT _p_a6DoU _p_a6DoV _p_a6DoW _p_a6DoX ->
                            (Data.ByteString.concat
@@ -127,9 +126,8 @@ changeRecordMeasure m = do
                             _cdatum_a6DoY))))
     -- .(insertMeasure 'ident 'm)
     (fmap
-      (\ (vdatum_a6Dpm)
-         -> setMeasureDatum
-              m vdatum_a6Dpm)
+      (setMeasureDatum
+              m)
       (mapQuery
          ((\ _p_a6DpC _p_a6DpD _p_a6DpE _p_a6DpF _p_a6DpG ->
                        (Data.ByteString.concat
@@ -240,7 +238,7 @@ getRecordMeasures r =
     requiredRelease m =
         let
             mMsrRel = view m
-        in 
+        in
             fromMaybe rcrdRel mMsrRel
     viewerCanView :: Release -> Measure -> Bool
     viewerCanView viewerDeepestAllowedRelease m =

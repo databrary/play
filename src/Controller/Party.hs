@@ -69,7 +69,7 @@ getParty
   -> PartyTarget
   -> Handler Party
 getParty (Just p) (TargetParty i) =
-  (\party -> checkPermission partyPermission p party) =<< maybeAction =<< lookupAuthParty i
+  (checkPermission partyPermission p) =<< maybeAction =<< lookupAuthParty i
 getParty _ mi = do
   u <- accountParty <$> authAccount
   let isme TargetProfile = True

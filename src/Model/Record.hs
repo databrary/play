@@ -91,7 +91,7 @@ recordJSON publicRestricted r@Record{ recordRow = RecordRow{..}, ..} = JSON.Reco
 
 extractParticipantFieldRows :: [BS.ByteString] -> Vector CSV.NamedRecord -> [(BS.ByteString, [BS.ByteString])]
 extractParticipantFieldRows participantFieldHeaders records =
-    (zip participantFieldHeaders . fmap (\hdr -> extractColumnDefaulting hdr records)) participantFieldHeaders
+    (zip participantFieldHeaders . fmap ((`extractColumnDefaulting` records))) participantFieldHeaders
 
 columnSampleJson :: BS.ByteString -> [BS.ByteString] -> JSON.Value
 columnSampleJson hdr sampleValues =

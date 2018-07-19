@@ -41,14 +41,14 @@ checkPermission
     -- ^ Just returns the 3rd arg, unless it short-circuits with a 403.
 checkPermission getCurrentUserPermLevel requestingAccessAtPermLevel obj = do
   unless (getCurrentUserPermLevel obj >= requestingAccessAtPermLevel) $ do
-    resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)
+    resp <- peeks (forbiddenResponse)
     result resp
   return obj
 
 userCanReadData :: (a -> EffectiveRelease) -> (a -> VolumeRolePolicy) -> a -> Handler a
 userCanReadData getObjEffectiveRelease getCurrentUserPermLevel obj = do
   unless (canReadData2 getObjEffectiveRelease getCurrentUserPermLevel obj) $ do
-    resp <- peeks (\reqCtxt -> forbiddenResponse reqCtxt)
+    resp <- peeks (forbiddenResponse)
     result resp
   return obj
 

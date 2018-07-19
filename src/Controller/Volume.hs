@@ -415,7 +415,7 @@ queryVolumes = action GET (pathAPI </< "volume") $ \api -> withAuth $ do
   when (api == HTML) angular
   vf <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) volumeSearchForm
   p <- findVolumes vf
-  return $ okResponse [] $ JSON.mapRecords (\v -> volumeJSONSimple v) p
+  return $ okResponse [] $ JSON.mapRecords (volumeJSONSimple) p
   -- HTML -> peeks $ blankForm . htmlVolumeSearch vf p
 
 thumbVolume :: ActionRoute (Id Volume)

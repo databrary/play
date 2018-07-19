@@ -25,7 +25,7 @@ postVolumeMetric = action PUT (pathJSON >/> pathId </> (pathId >|< pathId)) $ \(
   addedMetrics <-
       AddVolumeCategoryOrMetricResponse <$>
          (either
-              (\catId -> addVolumeCategory v catId)
+              (addVolumeCategory v)
               (\metricId' -> do
                   metricAdded <- addVolumeMetric v metricId'
                   return $ if metricAdded then [metricId'] else [])

@@ -55,7 +55,7 @@ loginTokenId tok = Id <$> sign (unId (view tok :: Id Token))
 -- Wrap the AccountToken in a LoginToken with a boolean indicating ???? . Seems to be always true.
 lookupLoginToken :: (MonadDB c m, MonadHas Secret c m) => Id LoginToken -> m (Maybe LoginToken)
 lookupLoginToken =
-  flatMapM (\t -> getToken t) -- dbQuery1 $(selectQuery selectLoginToken "$!WHERE login_token.token = ${t} AND expires > CURRENT_TIMESTAMP"))
+  flatMapM (getToken) -- dbQuery1 $(selectQuery selectLoginToken "$!WHERE login_token.token = ${t} AND expires > CURRENT_TIMESTAMP"))
     <=< unSign . unId
 
 getToken :: (MonadDB c m) => BS.ByteString -> m (Maybe LoginToken)
@@ -101,39 +101,39 @@ getToken t = do
                    _cmember_aar47,
                    _cpassword_aar48]
                   -> (pgDecodeColumnNotNull
-                        _tenv_aar3U (PGTypeProxy :: PGTypeName "bpchar") _ctoken_aar3W, 
+                        _tenv_aar3U (PGTypeProxy :: PGTypeName "bpchar") _ctoken_aar3W,
                       pgDecodeColumnNotNull
                         _tenv_aar3U
                         (PGTypeProxy :: PGTypeName "timestamp with time zone")
-                        _cexpires_aar3X, 
+                        _cexpires_aar3X,
                       pgDecodeColumnNotNull
-                        _tenv_aar3U (PGTypeProxy :: PGTypeName "integer") _cid_aar3Y, 
+                        _tenv_aar3U (PGTypeProxy :: PGTypeName "integer") _cid_aar3Y,
                       pgDecodeColumnNotNull
-                        _tenv_aar3U (PGTypeProxy :: PGTypeName "text") _cname_aar3Z, 
+                        _tenv_aar3U (PGTypeProxy :: PGTypeName "text") _cname_aar3Z,
                       pgDecodeColumnNotNull
-                        _tenv_aar3U (PGTypeProxy :: PGTypeName "text") _cprename_aar40, 
+                        _tenv_aar3U (PGTypeProxy :: PGTypeName "text") _cprename_aar40,
                       pgDecodeColumnNotNull
-                        _tenv_aar3U (PGTypeProxy :: PGTypeName "bpchar") _corcid_aar41, 
+                        _tenv_aar3U (PGTypeProxy :: PGTypeName "bpchar") _corcid_aar41,
                       pgDecodeColumnNotNull
                         _tenv_aar3U
                         (PGTypeProxy :: PGTypeName "text")
-                        _caffiliation_aar42, 
+                        _caffiliation_aar42,
                       pgDecodeColumnNotNull
-                        _tenv_aar3U (PGTypeProxy :: PGTypeName "text") _curl_aar43, 
-                      pgDecodeColumnNotNull
-                        _tenv_aar3U
-                        (PGTypeProxy :: PGTypeName "character varying")
-                        _cemail_aar44, 
+                        _tenv_aar3U (PGTypeProxy :: PGTypeName "text") _curl_aar43,
                       pgDecodeColumnNotNull
                         _tenv_aar3U
                         (PGTypeProxy :: PGTypeName "character varying")
-                        _cpassword_aar45, 
+                        _cemail_aar44,
                       pgDecodeColumnNotNull
-                        _tenv_aar3U (PGTypeProxy :: PGTypeName "permission") _csite_aar46, 
+                        _tenv_aar3U
+                        (PGTypeProxy :: PGTypeName "character varying")
+                        _cpassword_aar45,
+                      pgDecodeColumnNotNull
+                        _tenv_aar3U (PGTypeProxy :: PGTypeName "permission") _csite_aar46,
                       pgDecodeColumnNotNull
                         _tenv_aar3U
                         (PGTypeProxy :: PGTypeName "permission")
-                        _cmember_aar47, 
+                        _cmember_aar47,
                       pgDecodeColumnNotNull
                         _tenv_aar3U
                         (PGTypeProxy :: PGTypeName "boolean")
@@ -200,7 +200,7 @@ lookupSession tok = do
                              Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
                           _p_a7Eto]))
          tok)
-               (\ 
+               (\
                   [_ctoken_a7Etp,
                    _cexpires_a7Etq,
                    _cid_a7Etr,
@@ -219,67 +219,67 @@ lookupSession tok = do
                         _tenv_a7Etn
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                        _ctoken_a7Etp, 
+                        _ctoken_a7Etp,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a7Etn
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
-                        _cexpires_a7Etq, 
+                        _cexpires_a7Etq,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a7Etn
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
-                        _cid_a7Etr, 
+                        _cid_a7Etr,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a7Etn
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cname_a7Ets, 
+                        _cname_a7Ets,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a7Etn
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _cprename_a7Ett, 
+                        _cprename_a7Ett,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a7Etn
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                        _corcid_a7Etu, 
+                        _corcid_a7Etu,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a7Etn
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _caffiliation_a7Etv, 
+                        _caffiliation_a7Etv,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a7Etn
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                        _curl_a7Etw, 
+                        _curl_a7Etw,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a7Etn
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                        _cemail_a7Etx, 
+                        _cemail_a7Etx,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a7Etn
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "character varying")
-                        _cpassword_a7Ety, 
+                        _cpassword_a7Ety,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a7Etn
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "permission")
-                        _csite_a7Etz, 
+                        _csite_a7Etz,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a7Etn
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "permission")
-                        _cmember_a7EtA, 
+                        _cmember_a7EtA,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a7Etn
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                            Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                        _cverf_a7EtB, 
+                        _cverf_a7EtB,
                       Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                         _tenv_a7Etn
                         (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -339,13 +339,13 @@ lookupUpload tok = do
                (\
                   [_ctoken_aar6H, _cexpires_aar6I, _cfilename_aar6J, _csize_aar6K]
                   -> (pgDecodeColumnNotNull
-                        _tenv_aar6E (PGTypeProxy :: PGTypeName "bpchar") _ctoken_aar6H, 
+                        _tenv_aar6E (PGTypeProxy :: PGTypeName "bpchar") _ctoken_aar6H,
                       pgDecodeColumnNotNull
                         _tenv_aar6E
                         (PGTypeProxy :: PGTypeName "timestamp with time zone")
-                        _cexpires_aar6I, 
+                        _cexpires_aar6I,
                       pgDecodeColumnNotNull
-                        _tenv_aar6E (PGTypeProxy :: PGTypeName "text") _cfilename_aar6J, 
+                        _tenv_aar6E (PGTypeProxy :: PGTypeName "text") _cfilename_aar6J,
                       pgDecodeColumnNotNull
                         _tenv_aar6E (PGTypeProxy :: PGTypeName "bigint") _csize_aar6K))
   pure
@@ -367,7 +367,7 @@ createToken insert = do
         let _tenv_a7EwN = unknownPGTypeEnv
         r <- dbQuery1 -- [pgSQL|SELECT token FROM token WHERE token = ${tok}|]
           (mapQuery2
-            ((\ _p_a7EwO -> 
+            ((\ _p_a7EwO ->
                             (BS.concat
                                [Data.String.fromString "SELECT token FROM token WHERE token = ",
                                 Database.PostgreSQL.Typed.Types.pgEscapeParameter
@@ -438,7 +438,7 @@ createLoginToken auth passwd = do
                      _tenv_a7Ez6
                      (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                         Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                     _ctoken_a7Eza, 
+                     _ctoken_a7Eza,
                    Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                      _tenv_a7Ez6
                      (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -508,12 +508,12 @@ createSession auth su = do
                      _tenv_a7EzQ
                      (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                         Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                     _ctoken_a7EzW, 
+                     _ctoken_a7EzW,
                    Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                      _tenv_a7EzQ
                      (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                         Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
-                     _cexpires_a7EzX, 
+                     _cexpires_a7EzX,
                    Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                      _tenv_a7EzQ
                      (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -575,7 +575,7 @@ createUpload vol name size = do
                      _tenv_a7EBb
                      (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                         Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                     _ctoken_a7EBh, 
+                     _ctoken_a7EBh,
                    Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                      _tenv_a7EBb
                      (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
@@ -621,7 +621,7 @@ removeSession tok = do
                           _p_a7EDi]))
       (view tok :: Id Token))
             (\ [] -> ()))
-    
+
 removeUploadFile :: (MonadStorage c m) => Upload -> m Bool
 removeUploadFile tok = liftIO . removeFile =<< peeks (uploadFile tok)
 
@@ -658,17 +658,17 @@ cleanTokens = do
                        _tenv_a7EWZ
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "bpchar")
-                       _ctoken_a7EX0, 
+                       _ctoken_a7EX0,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                        _tenv_a7EWZ
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "timestamp with time zone")
-                       _cexpires_a7EX1, 
+                       _cexpires_a7EX1,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                        _tenv_a7EWZ
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                           Database.PostgreSQL.Typed.Types.PGTypeName "text")
-                       _cfilename_a7EX2, 
+                       _cfilename_a7EX2,
                      Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull
                        _tenv_a7EWZ
                        (Database.PostgreSQL.Typed.Types.PGTypeProxy ::

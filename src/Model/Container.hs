@@ -157,8 +157,7 @@ addContainer bc = do
                            Database.PostgreSQL.Typed.Types.PGTypeName "integer")
                         _cid_a87rB)))
   pure
-      ((\ (vid_a87re)
-         -> Model.Container.SQL.setContainerId bc vid_a87re)
+      ((Model.Container.SQL.setContainerId bc)
       row)
 
 

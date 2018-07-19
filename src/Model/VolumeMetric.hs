@@ -41,7 +41,7 @@ lookupVolumeMetrics v = do
                         _tenv_a80O7 (PGTypeProxy :: PGTypeName "integer") _cmetric_a80O9))
   pure
     (fmap
-      (\ (vmetric_a80O2) -> id vmetric_a80O2)
+      (id)
       rows)
 
 lookupVolumeParticipantMetrics :: (MonadDB c m) => Volume -> m [Metric]
@@ -58,7 +58,7 @@ addVolumeCategory :: (MonadDB c m) => Volume -> Id Category -> m [Id Metric]
 addVolumeCategory v c = do
   let _tenv_a6Dpx = unknownPGTypeEnv
   dbQuery -- [pgSQL|INSERT INTO volume_metric SELECT ${volumeId $ volumeRow v}, id FROM metric WHERE category = ${c} AND required IS NOT NULL RETURNING metric|]
-    (mapQuery 
+    (mapQuery
       ((\ _p_a6Dpy _p_a6Dpz ->
                     (Data.ByteString.concat
                        [Data.String.fromString "INSERT INTO volume_metric SELECT ",

@@ -35,7 +35,7 @@ extractColumnsInitialRows :: Int -> Csv.Header -> Vector Csv.NamedRecord -> [(BS
 extractColumnsInitialRows maxRows hdrs records =
     zip
         hdrs'
-        (fmap (\hdr -> extractColumnDefaulting hdr truncatedRecords) hdrs')
+        (fmap ((`extractColumnDefaulting` truncatedRecords)) hdrs')
   where
     truncatedRecords = V.take maxRows records
     hdrs' :: [BS.ByteString]
@@ -46,7 +46,7 @@ extractColumnsDistinctSample maxSamples hdrs records =
     zip hdrs'
         ( fmap
               ( getSample
-              . (\hdr -> extractColumnDefaulting hdr records))
+              . ((`extractColumnDefaulting` records)))
               hdrs' )
   where
     getSample :: [BS.ByteString] -> [BS.ByteString]
@@ -62,7 +62,7 @@ extractColumnDefaulting hdr records =
 extractColumn :: BS.ByteString -> Vector Csv.NamedRecord -> (Maybe BS.ByteString -> a) -> [a]
 extractColumn hdr records applyDefault =
    ( V.toList
-   . fmap (\rowMap -> (applyDefault . HMP.lookup hdr) rowMap))
+   . fmap ((applyDefault . HMP.lookup hdr)))
    records
 
 -- similar to decodeByName with except make parser parameter explicity
