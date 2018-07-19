@@ -22,7 +22,7 @@ searchForm = SearchQuery
   <$> ("q" .:> deformNonEmpty deform)
   <*> ("f" .:> withSubDeforms (\k -> (view k, ) <$> deform))
   <*> ("m" .:> withSubDeforms (\k -> (,)
-    <$> (either deformError' return $ maybe (Left "Metric ID not found") Right . getMetric . Id =<< case k of
+    <$> either deformError' return (maybe (Left "Metric ID not found") Right . getMetric . Id =<< case k of
       FormField t -> textInteger t
       FormIndex i -> Right (fromIntegral i))
     <*> deform))

@@ -280,7 +280,7 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
           <$> (either throwPE return
             =<< lift (probeFile stageFileRelRaw stageFileRelAbs))
           <*> lift (lookupIngestAsset vol $ stageFileRel file))
-      =<< (JE.keyMay "id" $ do
+      =<< JE.keyMay "id" (do
         maybe (throwPE "asset not found") (return . (,) Nothing . Just) =<< lift . lookupVolumeAsset vol . Id =<< JE.asIntegral)
     when (isNothing $ fst sa) $ noKey "file"
     orig <- JE.keyMay "replace" $

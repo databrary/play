@@ -84,7 +84,7 @@ outputParser (OutputMap False f o) =
   f <$> outputParser o
 outputParser (OutputMap True f o) = do
   x <- lift $ TH.newName "x"
-  ((TH.VarE 'fmap `TH.AppE` (TH.LamE [TH.VarP x] $ f $ TH.VarE x)) `TH.AppE`)
+  ((TH.VarE 'fmap `TH.AppE` TH.LamE [TH.VarP x] (f $ TH.VarE x)) `TH.AppE`)
     <$> outputParser (outputMaybe o)
 outputParser _ = StateT st where
   st (i:l) = return (TH.VarE i, l)

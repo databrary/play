@@ -101,7 +101,7 @@ volumeDescription inzip v (_, glob) cs al = do
 volumeZipEntry2 :: Bool -> Volume -> (Container, [RecordSlot]) -> IdSet Container -> Maybe BSB.Builder -> [AssetSlot] -> Handler (ZIP.ZipArchive ())
 volumeZipEntry2 isOrig v top cs csv al = do
   (desc, at, ab) <- volumeDescription True v top cs al -- the actual asset slot's assets arent' used any more for containers, now container zip entry does that
-  let zipDir = (makeFilename $ volumeDownloadName v ++ if idSetIsFull cs then [] else ["PARTIAL"]) <> "/"
+  let zipDir = makeFilename (volumeDownloadName v ++ if idSetIsFull cs then [] else ["PARTIAL"]) <> "/"
   zt <- mapM (ent zipDir) at
   zb <- mapM (ent (zipDir <> "sessions/")) ab
   descEntrySelector <- liftIO $ (parseRelFile (BSC.unpack zipDir <> "description.html") >>= ZIP.mkEntrySelector)

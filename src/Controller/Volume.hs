@@ -232,7 +232,7 @@ volumeJSONQuery vol mAccesses q =
 
 volumeDownloadName :: Volume -> [T.Text]
 volumeDownloadName v =
-  (T.pack $ "databrary" ++ show (volumeId $ volumeRow v))
+  T.pack ("databrary" ++ show (volumeId $ volumeRow v))
     : map (T.takeWhile (',' /=) . snd) (volumeOwners v)
     ++ [fromMaybe (volumeName $ volumeRow v) (getVolumeAlias v)]
 
