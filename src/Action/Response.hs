@@ -72,7 +72,7 @@ instance ResponseData BS.ByteString where
 instance ResponseData (Source (CND.ResourceT IO) BS.ByteString) where
     response s h src =
         responseStream s h
-            (\send _ -> do
+            (\send _ ->
                 CND.runConduitRes
                     (src
                     .| CND.mapM_C

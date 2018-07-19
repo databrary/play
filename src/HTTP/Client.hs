@@ -58,7 +58,7 @@ contentTypeEq = (==) `on` f where
     | otherwise = s
 
 checkContentOk :: BS.ByteString -> HC.Request -> HC.Response HC.BodyReader -> IO ()
-checkContentOk ct _ rsp = do
+checkContentOk ct _ rsp =
   if | not $ statusIsSuccessful $ HC.responseStatus rsp -> fail "checkContentOk: status unsuccessful"
      | not $ any (contentTypeEq ct) ht -> fail "checkContentOk: bad content type"
      | otherwise -> return ()

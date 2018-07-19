@@ -34,7 +34,7 @@ data Logs = Logs
 type MonadLog c m = (MonadHas Logs c m, MonadIO m)
 
 initLog :: FilePath -> C.Config -> IO (Maybe LoggerSet)
-initLog def conf = do
+initLog def conf =
   case file of
     "" -> return Nothing
     "stdout" -> Just <$> newStdoutLoggerSet buf
@@ -106,7 +106,7 @@ requestLog qt q u r = do
   rh = Wai.responseHeaders r
 
 logMsg :: ToLogStr a => Timestamp -> a -> Logs -> IO ()
-logMsg t m Logs{ loggerMessages = Just l } = do
+logMsg t m Logs{ loggerMessages = Just l } =
   logStr l t $ str m
 logMsg _ _ _ = return ()
 

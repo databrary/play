@@ -117,15 +117,13 @@ detectParticipantCSV = action POST (pathJSON >/> pathId </< "detectParticipantCS
     -- liftIO (print "uploaded contents below")
     -- liftIO (print uploadFileContents')
     case parseCsvWithHeader uploadFileContents' of
-        Left err -> do
-            -- liftIO (print ("csv parse error", err))
+        Left err ->
             pure (response badRequest400 [] err)
         Right (hdrs, records) -> do
             metrics <- lookupVolumeParticipantMetrics v
             -- liftIO (print ("before check determine", show hdrs))
             case checkDetermineMapping metrics ((fmap TE.decodeUtf8 . getHeaders) hdrs) uploadFileContents' of
-                Left err -> do
-                    -- liftIO (print ("failed to determine mapping", err))
+                Left err ->
                     -- if column check failed, then don't save csv file and response is error
                     pure (response badRequest400 [] err)
                 Right participantFieldMapping -> do
@@ -181,8 +179,7 @@ runParticipantUpload = action POST (pathJSON >/> pathId </< "runParticipantUploa
             case parseParticipantFieldMapping participantActiveMetrics mpngVal of
                 Left err ->
                     pure (response badRequest400 [] err) -- mapping of inactive metrics or missing metric
-                Right mpngs -> do
-                    -- liftIO $ print ("upload id", csvUploadId, "mapping", mpngs)
+                Right mpngs ->
                     case attemptParseRows mpngs uploadFileContents of
                         Left err ->   -- invalid value in row
                             pure (response badRequest400 [] err)

@@ -67,7 +67,7 @@ lookupAssetSlotSegment a s =
   seg = assetSegment $ as Nothing
 
 lookupSlotSegmentThumb :: MonadDB c m => Slot -> m (Maybe AssetSegment)
-lookupSlotSegmentThumb (Slot c s) = do
+lookupSlotSegmentThumb (Slot c s) =
   dbQuery1 $ assetSegmentInterp 0.25 . ($ c) <$> $(selectQuery (selectContainerAssetSegment 's) "$\
     \JOIN format ON asset.format = format.id \
     \WHERE slot_asset.container = ${containerId $ containerRow c} AND slot_asset.segment && ${s} \

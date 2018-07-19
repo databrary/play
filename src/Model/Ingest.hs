@@ -400,7 +400,7 @@ participantRecordParseNamedRecord fieldMap m = do
       :: (ParticipantFieldMapping2 -> Maybe Text)
       -> (BS.ByteString -> Maybe (Maybe a))
       -> Parser (FieldUse a)
-    extractIfUsed2 maybeGetField validateValue = do
+    extractIfUsed2 maybeGetField validateValue =
         case maybeGetField fieldMap of
             Just colName -> do
                 contents <- m .: TE.encodeUtf8 colName

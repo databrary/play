@@ -584,7 +584,7 @@ lookupParty i = do
     dbQuery1 $(selectQuery (selectParty 'ident) "$WHERE party.id = ${i}")
 
 getDuplicateParties :: MonadDB c m => m [PartyRow]
-getDuplicateParties = do
+getDuplicateParties =
   dbQuery
     $(selectQuery selectPartyRow
         "$WHERE exists \

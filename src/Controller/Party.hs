@@ -112,10 +112,10 @@ partyJSONField p "volumes" o = thenReturn (partyPermission p >= PermissionADMIN)
         volumeJSON v (Just accesses) `JSON.foldObjectIntoRec`
           JSON.nestObject "access" (\u -> map (u . volumeAccessPartyJSON) a)
     | otherwise = return $ volumeJSONSimple v
-partyJSONField p "access" ma = do
+partyJSONField p "access" ma =
   Just . JSON.mapObjects volumeAccessVolumeJSON
     <$> lookupPartyVolumeAccess p (fromMaybe PermissionEDIT $ readDBEnum . BSC.unpack =<< ma)
-partyJSONField p "authorization" _ = do
+partyJSONField p "authorization" _ =
   Just . JSON.toEncoding . accessSite <$> lookupAuthorization p rootParty
 partyJSONField _ _ _ = return Nothing
 

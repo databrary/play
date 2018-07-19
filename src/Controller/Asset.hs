@@ -84,12 +84,7 @@ getAsset getOrig p checkDataPerm i = do
   mAssetSlot <- (if getOrig then lookupOrigAssetSlot else lookupAssetSlot) i
   slot <- maybeAction mAssetSlot
   void (checkPermission (extractPermissionIgnorePolicy . getAssetSlotVolumePermission2) p slot)
-  when checkDataPerm $ do
-    -- TODO: delete
-    -- liftIO $ print ("checking data perm", "assetSlot", slot)
-    -- liftIO $ print ("checking data perm", "seg rlses", getAssetSlotRelease2 slot,
-    --                 "vol prm", getAssetSlotVolumePermission2 slot)
-    -- liftIO $ print ("result perm", dataPermission4 getAssetSlotRelease2 getAssetSlotVolumePermission2 slot)
+  when checkDataPerm $
     void (userCanReadData getAssetSlotRelease2 getAssetSlotVolumePermission2 slot)
   pure slot
 

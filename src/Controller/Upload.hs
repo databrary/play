@@ -132,21 +132,21 @@ writeChunk off len file rb = bracket
       let block n = do
             b <- rb
             if BS.null b
-              then do
+              then
                 return n
               else do
                 let n' = n + fromIntegral (BS.length b)
                     write b' = do
                       w <- BSU.unsafeUseAsCStringLen b' $ \(buf, siz) -> fdWriteBuf h (castPtr buf) (fromIntegral siz)
                       if w < fromIntegral (BS.length b')
-                        then do
+                        then
                           write $! BS.drop (fromIntegral w) b'
-                        else do
+                        else
                           block n'
                 if n' > len
-                  then do
+                  then
                     return n'
-                  else do
+                  else
                     write b
       block 0
 

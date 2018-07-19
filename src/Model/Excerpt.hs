@@ -39,7 +39,7 @@ lookupVolumeExcerpts v =
   dbQuery $ ($ v) <$> $(selectQuery selectVolumeExcerpt "$WHERE asset.volume = ${volumeId $ volumeRow v}")
 
 lookupSlotThumb :: MonadDB c m => Slot -> m (Maybe AssetSegment)
-lookupSlotThumb (Slot c s) = do
+lookupSlotThumb (Slot c s) =
   dbQuery1 $ assetSegmentInterp 0 . excerptAsset . ($ c) <$> $(selectQuery selectContainerExcerpt "$\
     \JOIN format ON asset.format = format.id \
     \WHERE slot_asset.container = ${containerId $ containerRow c} AND excerpt.segment && ${s} \
@@ -49,7 +49,7 @@ lookupSlotThumb (Slot c s) = do
     \LIMIT 1")
 
 lookupVolumeThumb :: MonadDB c m => Volume -> m (Maybe AssetSegment)
-lookupVolumeThumb v = do
+lookupVolumeThumb v =
   dbQuery1 $ assetSegmentInterp 0 . excerptAsset . ($ v) <$> $(selectQuery selectVolumeExcerpt "$\
     \JOIN format ON asset.format = format.id \
     \WHERE asset.volume = ${volumeId $ volumeRow v} \

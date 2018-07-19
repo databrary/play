@@ -81,8 +81,8 @@ lookupOrigSlotAssets :: (MonadDB c m) => Slot -> m [AssetSlot]
 lookupOrigSlotAssets slot@(Slot c _) = do
   let _tenv_ablno = unknownPGTypeEnv
   xs <-  dbQuery {- [pgSQL|
-    SELECT asset.id,asset.format,output_asset.release,asset.duration,asset.name,asset.sha1,asset.size 
-    FROM slot_asset 
+    SELECT asset.id,asset.format,output_asset.release,asset.duration,asset.name,asset.sha1,asset.size
+    FROM slot_asset
     INNER JOIN transcode ON slot_asset.asset = transcode.asset
     INNER JOIN asset ON transcode.orig = asset.id
     INNER JOIN asset output_asset ON transcode.asset = output_asset.id
@@ -154,7 +154,7 @@ lookupOrigVolumeAssetSlots v top = do
   lookupOrigVolumeAssetSlots' fromVol -}
 
 lookupOrigVolumeAssetSlots' :: (MonadDB c m, MonadHasIdentity c m) => [AssetSlot] -> m [AssetSlot]
-lookupOrigVolumeAssetSlots' slotList = do
+lookupOrigVolumeAssetSlots' slotList =
   catMaybes <$> mapM originFinder slotList
   where
     originFinder AssetSlot { slotAsset = Asset {assetRow = AssetRow { assetId = aid }}} = lookupOrigAssetSlot aid

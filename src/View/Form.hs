@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, RankNTypes #-}
 module View.Form
   ( FormHtml
   , field
@@ -154,7 +154,7 @@ csrfForm =
     lift . extractFromIdentifiedSessOrDefault mempty (\s -> inputHidden (byteStringValue $ sessionVerf s) "csverf" Nothing) . view
 
 htmlForm :: T.Text -> ActionRoute a -> a -> FormHtml f -> (JSOpt -> H.Html) -> RequestContext -> FormHtml f
-htmlForm title act arg form body req = liftWith $ \run -> do
+htmlForm title act arg form body req = liftWith $ \run ->
   htmlTemplate req (Just title) $ \js -> do
     actionForm act arg js $ do
       (_, err) <- run $ when (actionMethod act arg /= GET) (csrfForm req) >> form

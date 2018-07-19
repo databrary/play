@@ -55,7 +55,7 @@ fixedGenerators =
   ]
 
 generateFixed :: Bool -> WebGenerator
-generateFixed includeStatic = \fo@(f, _) -> do
+generateFixed includeStatic = \fo@(f, _) ->
   case lookup (webFileRel f) $ (if includeStatic then (staticGenerators ++) else id) fixedGenerators of
     Just g -> g fo
     _ -> mzero

@@ -154,7 +154,7 @@ volumeIsPublicRestricted v =
     _ -> False
 
 volumeJSONField :: Volume -> BS.ByteString -> Maybe BS.ByteString -> StateT VolumeCache Handler (Maybe JSON.Encoding)
-volumeJSONField vol "access" ma = do
+volumeJSONField vol "access" ma =
   Just . JSON.mapObjects volumeAccessPartyJSON
     <$> cacheVolumeAccess vol (fromMaybe PermissionNONE $ readDBEnum . BSC.unpack =<< ma)
 {-
@@ -202,7 +202,7 @@ volumeJSONField vol "records" _ = do
 volumeJSONField vol "metrics" _ =
   let metricsCaching = lookupVolumeMetrics vol
   in (Just . JSON.toEncoding) <$> metricsCaching
-volumeJSONField vol "excerpts" _ = do
+volumeJSONField vol "excerpts" _ =
   Just . JSON.mapObjects (\e -> excerptJSON e
     <> "asset" JSON..=: (assetSlotJSON False (view e) -- should publicRestricted be set based on volume?
       `JSON.foldObjectIntoRec` ("container" JSON..= (view e :: Id Container))))

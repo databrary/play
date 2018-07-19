@@ -861,7 +861,7 @@ validateParticipantBirthWeight val =
         pure (Just weight)
 
 validateParticipantBirthdate :: BS.ByteString -> Maybe (Maybe Time.Day)
-validateParticipantBirthdate val = do
+validateParticipantBirthdate val =
     if val == ""
     then pure Nothing
     else do
@@ -869,7 +869,7 @@ validateParticipantBirthdate val = do
         pure (Just time)
 
 validateParticipantLanguage :: BS.ByteString -> Maybe (Maybe BS.ByteString)
-validateParticipantLanguage val = do
+validateParticipantLanguage val =
     pure (valToMaybe val)
 
 validateInOptions :: BS.ByteString -> Metric -> Maybe BS.ByteString
