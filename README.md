@@ -9,9 +9,13 @@ Haddocks coverage would be another excellent place to start contributing...
 A simple [code coverage report](http://databrary.github.io/databrary/) is also
 available on our GitHub pages site.
 
+## Why?
+
+Accelerate the pace of sharing and reusing recorded, annotated video, to increase the pace of analysis and discovery in behaviorial science. Sharing restricted videos without burdening researchers heavily requires a sophisticated, yet simple, approach to entering release level information and authorizing networks of users to datasets. It also requires convenient mechanisms for uploading large collections of video files. It requires allowing for a very flexible model of meta-data to allow a large variety of attributes to be attached to a given dataset.
+
 ## Demo
 
-<img width="32%" src="http://databrary.github.io/databrary/screenshots/Screen%20Shot%202018-07-18%20at%209.27.55%20AM.png"> <img width="32%" src="http://databrary.github.io/databrary/screenshots/Screen Shot 2018-07-18 at 9.28.02 AM.png"> <img width="32%" src="http://databrary.github.io/databrary/screenshots/Screen Shot 2018-07-18 at 9.28.18 AM.png">
+<img width="32%" src="http://databrary.github.io/databrary/screenshots/Screen Shot 2018-07-18 at 9.27.55 AM.png"> <img width="32%" src="http://databrary.github.io/databrary/screenshots/Screen Shot 2018-07-18 at 9.28.02 AM.png"> <img width="32%" src="http://databrary.github.io/databrary/screenshots/Screen Shot 2018-07-18 at 9.28.18 AM.png">
 
 <img width="32%" src="http://databrary.github.io/databrary/screenshots/Screen Shot 2018-07-18 at 9.28.48 AM.png"> <img width="32%" src="http://databrary.github.io/databrary/screenshots/Screen Shot 2018-07-18 at 9.29.01 AM.png">
  
@@ -43,6 +47,24 @@ You can get an understanding of the full scope of features offered in our featur
 | front end unit        |         |          |
 | back end integration  | [<img src="https://img.shields.io/badge/runscope-passed-brightgreen.svg">](https://www.runscope.com/radar/agq3bvszxaxe/b788db16-d63b-4ea9-ba98-5abc477dd03d/history/4b833fe9-3aa3-4aab-ba66-f2094f22a6df)        | [<img src="https://img.shields.io/badge/coverage-29%25-yellow.svg">](http://databrary.github.io/databrary/coverage-comparison/runscope/hpc_index.html)          |
 | back end unit         | [<img src="https://img.shields.io/badge/tests-passed-brightgreen.svg">](https://github.com/databrary/databrary/blob/gh-pages/databrary-1-discovered.log)        | [<img src="https://img.shields.io/badge/coverage-28%25-yellow.svg">](http://databrary.github.io/databrary/coverage/hpc_index.html)         |
+
+## Upstream - Anticipating and Contributing
+
+Anticipating features and libraries:
+
+- https://github.com/qfpl/sv/issues/6
+- https://github.com/bos/aeson/issues/578
+- https://github.com/jhickner/smtp-mail/issues/2
+- https://github.com/mrkkrp/zip/issues/20
+- https://github.com/tathougies/beam
+- https://github.com/haskell-servant/servant-swagger
+- https://github.com/hedgehogqa/haskell-hedgehog/issues/113
+- https://github.com/ezyang/ldap-haskell
+
+Recent contributions:
+
+- https://git.coop/lwm/tasty-discover/issues/145
+- https://github.com/lspitzner/brittany/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+chreekat
 
 ## Service and Operations Status
 
