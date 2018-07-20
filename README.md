@@ -32,7 +32,7 @@ You can get an understanding of the full scope of features offered in our featur
 |            | docs  |
 |------------|---|
 | functional | [docs](https://github.com/databrary/design/blob/master/overview.md)  |
-| internal routes | [view in swagger editor](https://editor.swagger.io/#/?import=https://raw.githubusercontent.com/databrary/route-doc/master/databrary.json)  |
+| internal routes | [docs](http://databrary.github.io/databrary/route-doc/#)  |
 | front end  | [<img src="https://img.shields.io/badge/jsdoc-generated-brightgreen.svg">](http://databrary.github.io/databrary/frontend-doc/)  |
 | back end   | [<img src="https://img.shields.io/badge/haddocks-generated-brightgreen.svg">](http://databrary.github.io/databrary/haddocks/) |
 
@@ -48,7 +48,7 @@ You can get an understanding of the full scope of features offered in our featur
 
 [<img src="https://img.shields.io/uptimerobot/ratio/m780713534-b4d455210e15c1c4ec4dc851.svg">](https://stats.uptimerobot.com/J80YrsnzP)
 
-Nix Cache - [<img src="https://img.shields.io/uptimerobot/ratio/7/m780713505-7d8d87840b9cd6213c96b467.svg">](https://stats.uptimerobot.com/K8JYvs7XW)
+Nix Cache - [<img src="https://img.shields.io/uptimerobot/status/m780713505-7d8d87840b9cd6213c96b467.svg">](https://stats.uptimerobot.com/K8JYvs7XW)
 
 ## License
 
