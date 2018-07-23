@@ -7,7 +7,7 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE OverloadedStrings, ViewPatterns, TupleSections, CPP #-}</span>
+<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE OverloadedStrings, CPP #-}</span>
 <a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Web</span><span class='hs-varop'>.</span><span class='hs-conid'>Rules</span>
 <a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>generateWebFile</span>
 <a name="line-4"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>generateWebFiles</span>
@@ -64,7 +64,7 @@
 <a name="line-55"></a>  <span class='hs-keyglyph'>]</span>
 <a name="line-56"></a>
 <a name="line-57"></a><a name="generateFixed"></a><span class='hs-definition'>generateFixed</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>WebGenerator</span>
-<a name="line-58"></a><span class='hs-definition'>generateFixed</span> <span class='hs-varid'>includeStatic</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>fo</span><span class='hs-keyglyph'>@</span><span class='hs-layout'>(</span><span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-keyword'>_</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>do</span>
+<a name="line-58"></a><span class='hs-definition'>generateFixed</span> <span class='hs-varid'>includeStatic</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>fo</span><span class='hs-keyglyph'>@</span><span class='hs-layout'>(</span><span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-keyword'>_</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span>
 <a name="line-59"></a>  <span class='hs-keyword'>case</span> <span class='hs-varid'>lookup</span> <span class='hs-layout'>(</span><span class='hs-varid'>webFileRel</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-layout'>(</span><span class='hs-keyword'>if</span> <span class='hs-varid'>includeStatic</span> <span class='hs-keyword'>then</span> <span class='hs-layout'>(</span><span class='hs-varid'>staticGenerators</span> <span class='hs-varop'>++</span><span class='hs-layout'>)</span> <span class='hs-keyword'>else</span> <span class='hs-varid'>id</span><span class='hs-layout'>)</span> <span class='hs-varid'>fixedGenerators</span> <span class='hs-keyword'>of</span>
 <a name="line-60"></a>    <span class='hs-conid'>Just</span> <span class='hs-varid'>g</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>g</span> <span class='hs-varid'>fo</span>
 <a name="line-61"></a>    <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>mzero</span>
@@ -74,7 +74,7 @@
 <a name="line-65"></a>
 <a name="line-66"></a><a name="generateRules"></a><span class='hs-definition'>generateRules</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>WebGenerator</span>
 <a name="line-67"></a><span class='hs-definition'>generateRules</span> <span class='hs-varid'>includeStatic</span> <span class='hs-layout'>(</span><span class='hs-varid'>fileToGen</span><span class='hs-layout'>,</span> <span class='hs-varid'>mPriorFileInfo</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>msum</span> <span class='hs-varop'>$</span> <span class='hs-varid'>map</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>gen</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>gen</span> <span class='hs-layout'>(</span><span class='hs-varid'>fileToGen</span><span class='hs-layout'>,</span> <span class='hs-varid'>mPriorFileInfo</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-<a name="line-68"></a>  <span class='hs-layout'>(</span><span class='hs-keyglyph'>[</span> 
+<a name="line-68"></a>  <span class='hs-layout'>(</span><span class='hs-keyglyph'>[</span>
 <a name="line-69"></a>     <span class='hs-varid'>generateFixed</span> <span class='hs-varid'>includeStatic</span>
 <a name="line-70"></a>   <span class='hs-layout'>,</span> <span class='hs-varid'>generateCoffeeJS</span>
 <a name="line-71"></a>   <span class='hs-layout'>,</span> <span class='hs-varid'>generateLib</span>
@@ -90,7 +90,7 @@
 <a name="line-81"></a>
 <a name="line-82"></a><a name="generateWebFile"></a><span class='hs-definition'>generateWebFile</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>WebFilePath</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>WebGeneratorM</span> <span class='hs-conid'>WebFileInfo</span>
 <a name="line-83"></a><span class='hs-definition'>generateWebFile</span> <span class='hs-varid'>includeStatic</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span>
-<a name="line-84"></a>  <span class='hs-varid'>withExceptT</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>val</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>label</span> <span class='hs-layout'>(</span><span class='hs-varid'>show</span> <span class='hs-layout'>(</span><span class='hs-varid'>webFileRel</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>val</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>do</span>
+<a name="line-84"></a>  <span class='hs-varid'>withExceptT</span> <span class='hs-layout'>(</span><span class='hs-varid'>label</span> <span class='hs-layout'>(</span><span class='hs-varid'>show</span> <span class='hs-layout'>(</span><span class='hs-varid'>webFileRel</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>do</span>
 <a name="line-85"></a>      <span class='hs-varid'>mExistingInfo</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>gets</span> <span class='hs-varop'>$</span> <span class='hs-conid'>HM</span><span class='hs-varop'>.</span><span class='hs-varid'>lookup</span> <span class='hs-varid'>f</span>
 <a name="line-86"></a>      <span class='hs-varid'>r</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>generateRules</span> <span class='hs-varid'>includeStatic</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-varid'>mExistingInfo</span><span class='hs-layout'>)</span>
 <a name="line-87"></a>      <span class='hs-varid'>fromMaybeM</span>
@@ -103,13 +103,13 @@
 <a name="line-94"></a><a name="generateAll"></a><span class='hs-definition'>generateAll</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>WebGeneratorM</span> <span class='hs-conid'>()</span>
 <a name="line-95"></a><span class='hs-definition'>generateAll</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
 <a name="line-96"></a>  <span class='hs-varid'>svg</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>liftIO</span> <span class='hs-varop'>$</span> <span class='hs-varid'>findWebFiles</span> <span class='hs-str'>".svg"</span>
-<a name="line-97"></a>  <span class='hs-layout'>(</span>    <span class='hs-varid'>mapM_</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>webFilePath</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>generateWebFile</span> <span class='hs-conid'>True</span> <span class='hs-varid'>webFilePath</span><span class='hs-layout'>)</span>
+<a name="line-97"></a>  <span class='hs-varid'>mapM_</span> <span class='hs-layout'>(</span><span class='hs-varid'>generateWebFile</span> <span class='hs-conid'>True</span><span class='hs-layout'>)</span>
 <a name="line-98"></a>   <span class='hs-varop'>&lt;=&lt;</span> <span class='hs-varid'>mapM</span> <span class='hs-layout'>(</span><span class='hs-varid'>liftIO</span> <span class='hs-varop'>.</span> <span class='hs-varid'>makeWebFilePath</span><span class='hs-layout'>)</span>
 <a name="line-99"></a>      <span class='hs-varop'>$</span> <span class='hs-varid'>mconcat</span>
 <a name="line-100"></a>          <span class='hs-keyglyph'>[</span> <span class='hs-layout'>(</span><span class='hs-varid'>map</span> <span class='hs-varid'>fst</span> <span class='hs-varid'>staticGenerators</span><span class='hs-layout'>)</span>
 <a name="line-101"></a>          <span class='hs-layout'>,</span> <span class='hs-keyglyph'>[</span><span class='hs-str'>"constants.json.gz"</span><span class='hs-layout'>,</span> <span class='hs-str'>"all.min.js.gz"</span><span class='hs-layout'>,</span> <span class='hs-str'>"all.min.css.gz"</span><span class='hs-keyglyph'>]</span>
 <a name="line-102"></a>          <span class='hs-layout'>,</span> <span class='hs-varid'>map</span> <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-conid'>RF</span><span class='hs-varop'>.&lt;.&gt;</span> <span class='hs-str'>".gz"</span><span class='hs-layout'>)</span> <span class='hs-varop'>.</span> <span class='hs-varid'>webFileRel</span><span class='hs-layout'>)</span> <span class='hs-varid'>svg</span>
-<a name="line-103"></a>          <span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span>
+<a name="line-103"></a>          <span class='hs-keyglyph'>]</span>
 <a name="line-104"></a>
 <a name="line-105"></a><a name="generateWebFiles"></a><span class='hs-definition'>generateWebFiles</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IO</span> <span class='hs-conid'>WebFileMap</span>
 <a name="line-106"></a><span class='hs-definition'>generateWebFiles</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>

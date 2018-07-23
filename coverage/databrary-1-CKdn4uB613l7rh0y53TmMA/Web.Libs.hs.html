@@ -78,7 +78,7 @@ span.spaces    { background: white }
 <span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">webDeps debug = webJS (not debug) jsDeps</span></span>
 <span class="lineno">   63 </span>
 <span class="lineno">   64 </span>cssWebDeps :: Bool -&gt; IO [WebFilePath]
-<span class="lineno">   65 </span><span class="decl"><span class="nottickedoff">cssWebDeps debug = makeWebFilePaths $ map ((&lt;.&gt; if debug then &quot;.css&quot; else &quot;.min.css&quot;)) [&quot;lib/pivot&quot;, &quot;app&quot;]</span></span>
+<span class="lineno">   65 </span><span class="decl"><span class="nottickedoff">cssWebDeps debug = makeWebFilePaths $ map (&lt;.&gt; if debug then &quot;.css&quot; else &quot;.min.css&quot;) [&quot;lib/pivot&quot;, &quot;app&quot;]</span></span>
 <span class="lineno">   66 </span>
 <span class="lineno">   67 </span>webLibs :: IO [WebFilePath]
 <span class="lineno">   68 </span><span class="decl"><span class="nottickedoff">webLibs = do</span>

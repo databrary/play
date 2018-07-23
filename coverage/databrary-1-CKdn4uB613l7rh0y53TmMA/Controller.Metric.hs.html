@@ -40,12 +40,12 @@ span.spaces    { background: white }
 <span class="lineno">   24 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
 <span class="lineno">   25 </span><span class="spaces">  </span><span class="nottickedoff">addedMetrics &lt;-</span>
 <span class="lineno">   26 </span><span class="spaces">      </span><span class="nottickedoff">AddVolumeCategoryOrMetricResponse &lt;$&gt;</span>
-<span class="lineno">   27 </span><span class="spaces">         </span><span class="nottickedoff">(either</span>
-<span class="lineno">   28 </span><span class="spaces">              </span><span class="nottickedoff">(\catId -&gt; addVolumeCategory v catId)</span>
+<span class="lineno">   27 </span><span class="spaces">         </span><span class="nottickedoff">either</span>
+<span class="lineno">   28 </span><span class="spaces">              </span><span class="nottickedoff">(addVolumeCategory v)</span>
 <span class="lineno">   29 </span><span class="spaces">              </span><span class="nottickedoff">(\metricId' -&gt; do</span>
 <span class="lineno">   30 </span><span class="spaces">                  </span><span class="nottickedoff">metricAdded &lt;- addVolumeMetric v metricId'</span>
 <span class="lineno">   31 </span><span class="spaces">                  </span><span class="nottickedoff">return $ if metricAdded then [metricId'] else [])</span>
-<span class="lineno">   32 </span><span class="spaces">              </span><span class="nottickedoff">cm)</span>
+<span class="lineno">   32 </span><span class="spaces">              </span><span class="nottickedoff">cm</span>
 <span class="lineno">   33 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ (Aeson.encode . unwrap) addedMetrics</span></span>
 <span class="lineno">   34 </span>
 <span class="lineno">   35 </span>newtype AddVolumeMetricsResponse = AddVolumeCategoryOrMetricResponse { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unwrap</span></span></span> :: [Id Metric] }

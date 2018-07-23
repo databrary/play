@@ -65,7 +65,7 @@ span.spaces    { background: white }
 <span class="lineno">   49 </span><span class="spaces">      </span><span class="istickedoff">) &quot;Databrary Access Agreement&quot;</span>
 <span class="lineno">   50 </span><span class="spaces">    </span><span class="istickedoff">, Just $ &quot;titles&quot; &lt;.&gt; &quot;title&quot; &lt;.&gt; T.unpack dataCiteTitle</span>
 <span class="lineno">   51 </span><span class="spaces">    </span><span class="istickedoff">, &quot;creators&quot; &lt;?&gt; dataCiteAuthors $ \Party{ partyRow = PartyRow{..} } -&gt; &quot;creator&quot; &lt;.&gt; catMaybes</span>
-<span class="lineno">   52 </span><span class="spaces">      </span><span class="istickedoff">[ Just $ &quot;creatorName&quot; &lt;.&gt; (T.unpack $ partySortName &lt;&gt; foldMap (T.pack &quot;, &quot; &lt;&gt;) partyPreName)</span>
+<span class="lineno">   52 </span><span class="spaces">      </span><span class="istickedoff">[ Just $ &quot;creatorName&quot; &lt;.&gt; T.unpack (partySortName &lt;&gt; foldMap (T.pack &quot;, &quot; &lt;&gt;) partyPreName)</span>
 <span class="lineno">   53 </span><span class="spaces">      </span><span class="istickedoff">, <span class="nottickedoff">(&quot;nameIdentifier&quot; &lt;=&gt;</span></span>
 <span class="lineno">   54 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">[ &quot;schemeURI&quot; =. &quot;http://orcid.org/&quot;</span></span>
 <span class="lineno">   55 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">, &quot;nameIdentifierScheme&quot; =. &quot;ORCID&quot;</span></span>
@@ -87,28 +87,27 @@ span.spaces    { background: white }
 <span class="lineno">   71 </span><span class="spaces">    </span><span class="istickedoff">, <span class="nottickedoff">&quot;subjects&quot;</span> &lt;?&gt; dataCiteSubjects $ <span class="nottickedoff">(&quot;subject&quot; &lt;.&gt;) . BSC.unpack</span></span>
 <span class="lineno">   72 </span><span class="spaces">    </span><span class="istickedoff">, (isNothing dataCitePublication || <span class="nottickedoff">null dataCiteReferences</span>) `unlessUse`</span>
 <span class="lineno">   73 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(&quot;relatedIdentifiers&quot; &lt;.&gt;</span></span>
-<span class="lineno">   74 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">(maybe id ((:) . ur &quot;IsSupplementTo&quot;) dataCitePublication</span></span>
-<span class="lineno">   75 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">$ map (ur &quot;References&quot;) dataCiteReferences))</span></span>
-<span class="lineno">   76 </span><span class="spaces">    </span><span class="istickedoff">]</span>
-<span class="lineno">   77 </span><span class="spaces">  </span><span class="istickedoff">where</span>
-<span class="lineno">   78 </span><span class="spaces">  </span><span class="istickedoff">infixr 5 &lt;.&gt;, &lt;=&gt;</span>
-<span class="lineno">   79 </span><span class="spaces">  </span><span class="istickedoff">(&lt;.&gt;) :: XML.Node a =&gt; String -&gt; a -&gt; XML.Element</span>
-<span class="lineno">   80 </span><span class="spaces">  </span><span class="istickedoff">(&lt;.&gt;) = XML.unode</span>
-<span class="lineno">   81 </span><span class="spaces">  </span><span class="istickedoff">(&lt;=&gt;) :: XML.Node (a, b) =&gt; String -&gt; a -&gt; b -&gt; XML.Element</span>
-<span class="lineno">   82 </span><span class="spaces">  </span><span class="istickedoff">(&lt;=&gt;) = curry . XML.unode</span>
-<span class="lineno">   83 </span><span class="spaces">  </span><span class="istickedoff">(&lt;?&gt;) :: XML.Node [b] =&gt; String -&gt; [a] -&gt; (a -&gt; b) -&gt; Maybe XML.Element</span>
-<span class="lineno">   84 </span><span class="spaces">  </span><span class="istickedoff">(&lt;?&gt;) _ [] _ = Nothing</span>
-<span class="lineno">   85 </span><span class="spaces">  </span><span class="istickedoff">(&lt;?&gt;) n l f = Just $ n &lt;.&gt; map f l</span>
-<span class="lineno">   86 </span><span class="spaces">  </span><span class="istickedoff">(=.) :: String -&gt; String -&gt; XML.Attr</span>
-<span class="lineno">   87 </span><span class="spaces">  </span><span class="istickedoff">(=.) = XML.Attr . q</span>
-<span class="lineno">   88 </span><span class="spaces">  </span><span class="istickedoff">q = XML.unqual</span>
-<span class="lineno">   89 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">ur t u = &quot;relatedIdentifier&quot; &lt;.&gt;</span></span>
-<span class="lineno">   90 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">first ((&quot;relationType&quot; =. t :) . return . (&quot;relatedIdentifierType&quot; =.))</span></span>
-<span class="lineno">   91 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(case uriScheme u of</span></span>
-<span class="lineno">   92 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">&quot;doi:&quot; -&gt; (&quot;DOI&quot;, uriPath u)</span></span>
-<span class="lineno">   93 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">&quot;hdl:&quot; -&gt; (&quot;Handle&quot;, uriPath u)</span></span>
-<span class="lineno">   94 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">_ -&gt; (&quot;URL&quot;, show u))</span></span></span>
-<span class="lineno">   95 </span>
+<span class="lineno">   74 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">maybe id ((:) . ur &quot;IsSupplementTo&quot;) dataCitePublication (map (ur &quot;References&quot;) dataCiteReferences))</span></span>
+<span class="lineno">   75 </span><span class="spaces">    </span><span class="istickedoff">]</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   77 </span><span class="spaces">  </span><span class="istickedoff">infixr 5 &lt;.&gt;, &lt;=&gt;</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="istickedoff">(&lt;.&gt;) :: XML.Node a =&gt; String -&gt; a -&gt; XML.Element</span>
+<span class="lineno">   79 </span><span class="spaces">  </span><span class="istickedoff">(&lt;.&gt;) = XML.unode</span>
+<span class="lineno">   80 </span><span class="spaces">  </span><span class="istickedoff">(&lt;=&gt;) :: XML.Node (a, b) =&gt; String -&gt; a -&gt; b -&gt; XML.Element</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="istickedoff">(&lt;=&gt;) = curry . XML.unode</span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="istickedoff">(&lt;?&gt;) :: XML.Node [b] =&gt; String -&gt; [a] -&gt; (a -&gt; b) -&gt; Maybe XML.Element</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="istickedoff">(&lt;?&gt;) _ [] _ = Nothing</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="istickedoff">(&lt;?&gt;) n l f = Just $ n &lt;.&gt; map f l</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="istickedoff">(=.) :: String -&gt; String -&gt; XML.Attr</span>
+<span class="lineno">   86 </span><span class="spaces">  </span><span class="istickedoff">(=.) = XML.Attr . q</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="istickedoff">q = XML.unqual</span>
+<span class="lineno">   88 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">ur t u = &quot;relatedIdentifier&quot; &lt;.&gt;</span></span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">first ((&quot;relationType&quot; =. t :) . return . (&quot;relatedIdentifierType&quot; =.))</span></span>
+<span class="lineno">   90 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(case uriScheme u of</span></span>
+<span class="lineno">   91 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">&quot;doi:&quot; -&gt; (&quot;DOI&quot;, uriPath u)</span></span>
+<span class="lineno">   92 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">&quot;hdl:&quot; -&gt; (&quot;Handle&quot;, uriPath u)</span></span>
+<span class="lineno">   93 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">_ -&gt; (&quot;URL&quot;, show u))</span></span></span>
+<span class="lineno">   94 </span>
 
 </pre>
 </body>

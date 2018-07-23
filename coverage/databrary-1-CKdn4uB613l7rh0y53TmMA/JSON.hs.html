@@ -122,7 +122,7 @@ span.spaces    { background: white }
 <span class="lineno">  106 </span><span class="decl"><span class="istickedoff">recordEncoding = pairs . recordObject</span></span>
 <span class="lineno">  107 </span>
 <span class="lineno">  108 </span>mapRecords :: (Functor t, Foldable t, ToJSON k) =&gt; (a -&gt; Record k Series) -&gt; t a -&gt; Encoding
-<span class="lineno">  109 </span><span class="decl"><span class="nottickedoff">mapRecords toRecord objs = mapObjects (\obj -&gt; (recordObject . toRecord) obj) objs</span></span>
+<span class="lineno">  109 </span><span class="decl"><span class="nottickedoff">mapRecords toRecord objs = mapObjects (recordObject . toRecord) objs</span></span>
 <span class="lineno">  110 </span>
 <span class="lineno">  111 </span>infixr 8 .=:
 <span class="lineno">  112 </span>(.=:) :: (ToJSON k, ToNestedObject o u) =&gt; T.Text -&gt; Record k o -&gt; o
@@ -155,14 +155,14 @@ span.spaces    { background: white }
 <span class="lineno">  139 </span><span class="spaces"></span><span class="nottickedoff">jsonQuery f ((k,mVal):qryPairs) = do</span>
 <span class="lineno">  140 </span><span class="spaces">  </span><span class="nottickedoff">mEncoded :: Maybe Encoding &lt;- f k mVal</span>
 <span class="lineno">  141 </span><span class="spaces">  </span><span class="nottickedoff">let jsonQueryRestAct = jsonQuery f qryPairs</span>
-<span class="lineno">  142 </span><span class="spaces">  </span><span class="nottickedoff">(maybe</span>
+<span class="lineno">  142 </span><span class="spaces">  </span><span class="nottickedoff">maybe</span>
 <span class="lineno">  143 </span><span class="spaces">     </span><span class="nottickedoff">(id :: Series -&gt; Series)</span>
 <span class="lineno">  144 </span><span class="spaces">     </span><span class="nottickedoff">(\encodedObj seriesRest -&gt; (objToPair k encodedObj) &lt;&gt; seriesRest)</span>
-<span class="lineno">  145 </span><span class="spaces">     </span><span class="nottickedoff">mEncoded)</span>
+<span class="lineno">  145 </span><span class="spaces">     </span><span class="nottickedoff">mEncoded</span>
 <span class="lineno">  146 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; jsonQueryRestAct</span>
 <span class="lineno">  147 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
 <span class="lineno">  148 </span><span class="spaces">    </span><span class="nottickedoff">objToPair :: (KeyValue kv) =&gt; BS.ByteString -&gt; Encoding -&gt; kv</span>
-<span class="lineno">  149 </span><span class="spaces">    </span><span class="nottickedoff">objToPair key encObj = (((TE.decodeLatin1 key) .=) . UnsafeEncoding) encObj</span></span>
+<span class="lineno">  149 </span><span class="spaces">    </span><span class="nottickedoff">objToPair key encObj = ((TE.decodeLatin1 key .=) . UnsafeEncoding) encObj</span></span>
 
 </pre>
 </body>

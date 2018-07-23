@@ -100,7 +100,7 @@ span.spaces    { background: white }
 <span class="lineno">   84 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">args &lt;- transcodeArgs tc</span></span>
 <span class="lineno">   85 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(r, out, err) &lt;- ctlTranscode tc' args</span></span>
 <span class="lineno">   86 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">let pid = guard (r == ExitSuccess) &gt;&gt; readMaybe out</span></span>
-<span class="lineno">   87 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">_ &lt;- updateTranscode tc' pid $ ((isNothing pid) `thenUse` out) &lt;&gt; ((null err) `unlessUse` err)</span></span>
+<span class="lineno">   87 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">_ &lt;- updateTranscode tc' pid $ (isNothing pid `thenUse` out) &lt;&gt; (null err `unlessUse` err)</span></span>
 <span class="lineno">   88 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">return pid)</span></span>
 <span class="lineno">   89 </span><span class="spaces">    </span><span class="istickedoff">(\(transcodeAsset -&gt; match) -&gt; do</span>
 <span class="lineno">   90 </span><span class="spaces">      </span><span class="istickedoff">a &lt;- changeAsset (transcodeAsset tc)</span>

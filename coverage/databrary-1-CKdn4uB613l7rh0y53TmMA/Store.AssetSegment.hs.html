@@ -51,7 +51,7 @@ span.spaces    { background: white }
 <span class="lineno">   35 </span>-- import Action.Types
 <span class="lineno">   36 </span>
 <span class="lineno">   37 </span>assetSegmentTag :: AssetSegment -&gt; Maybe Word16 -&gt; String
-<span class="lineno">   38 </span><span class="decl"><span class="nottickedoff">assetSegmentTag as sz = m ':' ((assetSegmentFull as) `unlessUse` s) ++ m '@' (show &lt;$&gt; sz) where</span>
+<span class="lineno">   38 </span><span class="decl"><span class="nottickedoff">assetSegmentTag as sz = m ':' (assetSegmentFull as `unlessUse` s) ++ m '@' (show &lt;$&gt; sz) where</span>
 <span class="lineno">   39 </span><span class="spaces">  </span><span class="nottickedoff">m = maybe &quot;&quot; . (:)</span>
 <span class="lineno">   40 </span><span class="spaces">  </span><span class="nottickedoff">c = assetSegmentRange as</span>
 <span class="lineno">   41 </span><span class="spaces">  </span><span class="nottickedoff">s = maybe (b (Range.lowerBound c) ++ '-' : b (Range.upperBound c)) (show . offsetMillis) (Range.getPoint c)</span>
@@ -75,7 +75,7 @@ span.spaces    { background: white }
 <span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">dstfp &lt;- case dst of</span>
 <span class="lineno">   60 </span><span class="spaces">    </span><span class="nottickedoff">Left _ -&gt; return &quot;-&quot;</span>
 <span class="lineno">   61 </span><span class="spaces">    </span><span class="nottickedoff">Right rp -&gt; unRawFilePath rp</span>
-<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">print (&quot;about to slice video file&quot;)</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">print &quot;about to slice video file&quot;</span>
 <span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">let upperBoundArgs = maybe [] (\u -&gt; [&quot;-t&quot;, sb $ u - lb]) ub</span>
 <span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">print (&quot;ffmpeg&quot;,&quot;-y&quot;, &quot;-accurate_seek&quot;, &quot;-ss&quot;, sb lb, &quot;-i&quot;, srcfp, upperBoundArgs, &quot;-codec copy&quot;</span>
 <span class="lineno">   65 </span><span class="spaces">        </span><span class="nottickedoff">, &quot;-f mp4&quot;)</span>
@@ -118,7 +118,7 @@ span.spaces    { background: white }
 <span class="lineno">  102 </span><span class="spaces">  </span><span class="nottickedoff">liftIO $ maybe</span>
 <span class="lineno">  103 </span><span class="spaces">    </span><span class="nottickedoff">(return $ Left $ gen . Left) -- cache disabled or segment file missing(how could it be missing?)</span>
 <span class="lineno">  104 </span><span class="spaces">    </span><span class="nottickedoff">(\f -&gt; do -- cache enabled</span>
-<span class="lineno">  105 </span><span class="spaces">      </span><span class="nottickedoff">print (&quot;attempt to fetch prior cached slice or generate and cache slice&quot;)</span>
+<span class="lineno">  105 </span><span class="spaces">      </span><span class="nottickedoff">print &quot;attempt to fetch prior cached slice or generate and cache slice&quot;</span>
 <span class="lineno">  106 </span><span class="spaces">      </span><span class="nottickedoff">fe &lt;- fileExist f</span>
 <span class="lineno">  107 </span><span class="spaces">      </span><span class="nottickedoff">when fe (print &quot;found a cached slice, reusing!&quot;)</span>
 <span class="lineno">  108 </span><span class="spaces">      </span><span class="nottickedoff">unless fe $ do</span>

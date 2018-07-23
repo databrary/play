@@ -7,10 +7,10 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE TemplateHaskell #-}</span>
+<pre><a name="line-1"></a>
 <a name="line-2"></a><span class='hs-comment'>{-# LANGUAGE TypeFamilies #-}</span>
 <a name="line-3"></a><span class='hs-comment'>{-# LANGUAGE OverloadedStrings #-}</span>
-<a name="line-4"></a><span class='hs-comment'>{-# LANGUAGE DeriveFunctor #-}</span>
+<a name="line-4"></a>
 <a name="line-5"></a>
 <a name="line-6"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Record</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
 <a name="line-7"></a>  <span class='hs-layout'>(</span> <span class='hs-conid'>RecordRow</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
@@ -80,7 +80,7 @@
 <a name="line-71"></a>        <span class='hs-layout'>,</span> <span class='hs-varid'>prdCountry</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>FieldUse</span> <span class='hs-conid'>ByteString</span>
 <a name="line-72"></a>        <span class='hs-layout'>,</span> <span class='hs-varid'>prdState</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>FieldUse</span> <span class='hs-conid'>ByteString</span>
 <a name="line-73"></a>        <span class='hs-layout'>,</span> <span class='hs-varid'>prdSetting</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>FieldUse</span> <span class='hs-conid'>ByteString</span>
-<a name="line-74"></a>        <span class='hs-layout'>}</span> 
+<a name="line-74"></a>        <span class='hs-layout'>}</span>
 <a name="line-75"></a>
 <a name="line-76"></a><a name="Measure"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Measure</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Measure</span>
 <a name="line-77"></a>  <span class='hs-layout'>{</span> <span class='hs-varid'>measureRecord</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Record</span>
@@ -96,19 +96,19 @@
 <a name="line-87"></a><a name="Measures"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>Measures</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Measure</span><span class='hs-keyglyph'>]</span>
 <a name="line-88"></a>
 <a name="line-89"></a><a name="instance%20Has%20(Id%20Record)%20Record"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Record</span><span class='hs-layout'>)</span> <span class='hs-conid'>Record</span> <span class='hs-keyword'>where</span>
-<a name="line-90"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>recordId</span> <span class='hs-varop'>.</span> <span class='hs-varid'>recordRow</span><span class='hs-layout'>)</span>
+<a name="line-90"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>recordId</span> <span class='hs-varop'>.</span> <span class='hs-varid'>recordRow</span>
 <a name="line-91"></a><a name="instance%20Has%20Category%20Record"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Category</span> <span class='hs-conid'>Record</span> <span class='hs-keyword'>where</span>
-<a name="line-92"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>recordCategory</span> <span class='hs-varop'>.</span> <span class='hs-varid'>recordRow</span><span class='hs-layout'>)</span>
+<a name="line-92"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>recordCategory</span> <span class='hs-varop'>.</span> <span class='hs-varid'>recordRow</span>
 <a name="line-93"></a><a name="instance%20Has%20(Id%20Category)%20Record"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Category</span><span class='hs-layout'>)</span> <span class='hs-conid'>Record</span> <span class='hs-keyword'>where</span>
-<a name="line-94"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>categoryId</span> <span class='hs-varop'>.</span> <span class='hs-varid'>recordCategory</span> <span class='hs-varop'>.</span> <span class='hs-varid'>recordRow</span><span class='hs-layout'>)</span>
+<a name="line-94"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>categoryId</span> <span class='hs-varop'>.</span> <span class='hs-varid'>recordCategory</span> <span class='hs-varop'>.</span> <span class='hs-varid'>recordRow</span>
 <a name="line-95"></a><a name="instance%20Has%20Volume%20Record"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Volume</span> <span class='hs-conid'>Record</span> <span class='hs-keyword'>where</span>
 <a name="line-96"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>recordVolume</span>
 <a name="line-97"></a><a name="instance%20Has%20Permission%20Record"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Permission</span> <span class='hs-conid'>Record</span> <span class='hs-keyword'>where</span>
-<a name="line-98"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>recordVolume</span><span class='hs-layout'>)</span>
+<a name="line-98"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>recordVolume</span>
 <a name="line-99"></a><a name="instance%20Has%20(Maybe%20Release)%20Record"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-conid'>Release</span><span class='hs-layout'>)</span> <span class='hs-conid'>Record</span> <span class='hs-keyword'>where</span>
 <a name="line-100"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>recordRelease</span>
 <a name="line-101"></a><a name="instance%20Has%20Release%20Record"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Release</span> <span class='hs-conid'>Record</span> <span class='hs-keyword'>where</span>
-<a name="line-102"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>recordRelease</span><span class='hs-layout'>)</span>
+<a name="line-102"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>recordRelease</span>
 <a name="line-103"></a>
 <a name="line-104"></a><a name="getRecordVolumePermission"></a><span class='hs-definition'>getRecordVolumePermission</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Record</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>VolumeRolePolicy</span>
 <a name="line-105"></a><span class='hs-definition'>getRecordVolumePermission</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>volumeRolePolicy</span> <span class='hs-varop'>.</span> <span class='hs-varid'>recordVolume</span>

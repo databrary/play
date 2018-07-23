@@ -39,7 +39,7 @@ span.spaces    { background: white }
 <span class="lineno">   23 </span><span class="spaces"></span><span class="nottickedoff">take' n (x:l) = first (x:) $ take' (pred n) l</span></span>
 <span class="lineno">   24 </span>
 <span class="lineno">   25 </span>paginateContent :: Paginate -&gt; [a] -&gt; (Maybe Paginate, [a], Maybe Paginate)
-<span class="lineno">   26 </span><span class="decl"><span class="nottickedoff">paginateContent (Paginate o l) x = ((o &gt; 0) `thenUse` (Paginate (o-l' `max` 0) l), x', m `thenUse` (Paginate (o+l') l))</span>
+<span class="lineno">   26 </span><span class="decl"><span class="nottickedoff">paginateContent (Paginate o l) x = ((o &gt; 0) `thenUse` Paginate (o-l' `max` 0) l, x', m `thenUse` Paginate (o+l') l)</span>
 <span class="lineno">   27 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
 <span class="lineno">   28 </span><span class="spaces">  </span><span class="nottickedoff">l' = pred l</span>
 <span class="lineno">   29 </span><span class="spaces">  </span><span class="nottickedoff">(x', m) = take' l' x</span></span>

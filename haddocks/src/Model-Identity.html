@@ -19,7 +19,7 @@
 <a name="line-10"></a>
 <a name="line-11"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Ops</span>
 <a name="line-12"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Has</span>
-<a name="line-13"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>JSON</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>JSON</span>
+<a name="line-13"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>JSON</span>
 <a name="line-14"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Id</span>
 <a name="line-15"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Token</span>
 <a name="line-16"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>HTTP</span><span class='hs-varop'>.</span><span class='hs-conid'>Request</span>
@@ -54,6 +54,6 @@
 <a name="line-45"></a><span class='hs-definition'>identityJSON</span> <span class='hs-varid'>i</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>partyJSON</span> <span class='hs-layout'>(</span><span class='hs-varid'>view</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-varop'>`</span><span class='hs-conid'>JSON</span><span class='hs-varop'>.</span><span class='hs-varid'>foldObjectIntoRec</span><span class='hs-varop'>`</span>
 <a name="line-46"></a> <span class='hs-layout'>(</span>   <span class='hs-str'>"authorization"</span> <span class='hs-conid'>JSON</span><span class='hs-varop'>..=</span> <span class='hs-varid'>accessSite</span> <span class='hs-varid'>i</span>
 <a name="line-47"></a>  <span class='hs-varop'>&lt;&gt;</span> <span class='hs-str'>"csverf"</span> <span class='hs-varop'>`</span><span class='hs-conid'>JSON</span><span class='hs-varop'>.</span><span class='hs-varid'>kvObjectOrEmpty</span><span class='hs-varop'>`</span> <span class='hs-varid'>identityVerf</span> <span class='hs-varid'>i</span>
-<a name="line-48"></a>  <span class='hs-varop'>&lt;&gt;</span> <span class='hs-str'>"superuser"</span> <span class='hs-varop'>`</span><span class='hs-conid'>JSON</span><span class='hs-varop'>.</span><span class='hs-varid'>kvObjectOrEmpty</span><span class='hs-varop'>`</span> <span class='hs-layout'>(</span><span class='hs-conid'>True</span> <span class='hs-varop'>`useWhen`</span> <span class='hs-layout'>(</span><span class='hs-varid'>identityAdmin</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-48"></a>  <span class='hs-varop'>&lt;&gt;</span> <span class='hs-str'>"superuser"</span> <span class='hs-varop'>`</span><span class='hs-conid'>JSON</span><span class='hs-varop'>.</span><span class='hs-varid'>kvObjectOrEmpty</span><span class='hs-varop'>`</span> <span class='hs-layout'>(</span><span class='hs-conid'>True</span> <span class='hs-varop'>`useWhen`</span> <span class='hs-varid'>identityAdmin</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
 </pre></body>
 </html>

@@ -14,7 +14,7 @@ span.spaces    { background: white }
 </head>
 <body>
 <pre>
-<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell, DeriveDataTypeable, TupleSections, Rank2Types, ScopedTypeVariables #-}
+<span class="lineno">    1 </span>{-# LANGUAGE TupleSections, Rank2Types, ScopedTypeVariables #-}
 <span class="lineno">    2 </span>module Service.Periodic
 <span class="lineno">    3 </span>  ( forkPeriodic
 <span class="lineno">    4 </span>  ) where
@@ -64,7 +64,7 @@ span.spaces    { background: white }
 <span class="lineno">   48 </span><span class="spaces">    </span><span class="nottickedoff">void updateEZID</span>
 <span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- cleanNotifications</span>
 <span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">updateStateNotifications</span>
-<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">focusIO $ triggerNotifications (Just p)</span></span> 
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">focusIO $ triggerNotifications (Just p)</span></span>
 <span class="lineno">   52 </span>
 <span class="lineno">   53 </span>runPeriodic :: Service -&gt; (forall a . IO a -&gt; IO a) -&gt; IO ()
 <span class="lineno">   54 </span><span class="decl"><span class="nottickedoff">runPeriodic rc unmask = loop (if s &lt;= st then d s else s) where</span>

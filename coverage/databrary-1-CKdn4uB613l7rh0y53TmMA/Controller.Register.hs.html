@@ -87,7 +87,7 @@ span.spaces    { background: white }
 <span class="lineno">   71 </span>postRegister :: ActionRoute API
 <span class="lineno">   72 </span><span class="decl"><span class="nottickedoff">postRegister = action POST (pathAPI &lt;/&lt; &quot;user&quot; &lt;/&lt; &quot;register&quot;) $ postRegisterAction</span></span>
 <span class="lineno">   73 </span>
-<span class="lineno">   74 </span>data RegisterRequest = RegisterRequest T.Text (Maybe T.Text) (BSC.ByteString) (Maybe T.Text) Bool
+<span class="lineno">   74 </span>data RegisterRequest = RegisterRequest T.Text (Maybe T.Text) BSC.ByteString (Maybe T.Text) Bool
 <span class="lineno">   75 </span>
 <span class="lineno">   76 </span>postRegisterAction :: API -&gt; Action
 <span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">postRegisterAction = \api -&gt; withoutAuth $ do</span>
@@ -156,7 +156,7 @@ span.spaces    { background: white }
 <span class="lineno">  140 </span>
 <span class="lineno">  141 </span>postPasswordResetAction :: API -&gt; Action
 <span class="lineno">  142 </span><span class="decl"><span class="nottickedoff">postPasswordResetAction = \api -&gt; withoutAuth $ do</span>
-<span class="lineno">  143 </span><span class="spaces">  </span><span class="nottickedoff">PasswordResetRequest email &lt;- runForm ((api == HTML) `thenUse` htmlPasswordReset) $ do</span>
+<span class="lineno">  143 </span><span class="spaces">  </span><span class="nottickedoff">PasswordResetRequest email &lt;- runForm ((api == HTML) `thenUse` htmlPasswordReset) $</span>
 <span class="lineno">  144 </span><span class="spaces">    </span><span class="nottickedoff">PasswordResetRequest &lt;$&gt; (&quot;email&quot; .:&gt; emailTextForm)</span>
 <span class="lineno">  145 </span><span class="spaces">  </span><span class="nottickedoff">auth &lt;- lookupPasswordResetAccount email</span>
 <span class="lineno">  146 </span><span class="spaces">  </span><span class="nottickedoff">resetPasswordMail (maybe (Left email) Right auth)</span>

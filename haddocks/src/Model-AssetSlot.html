@@ -11,7 +11,7 @@
 <a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>AssetSlot</span>
 <a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-keyword'>module</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>AssetSlot</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
 <a name="line-4"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>lookupAssetSlot</span>
-<a name="line-5"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>lookupOrigAssetSlot</span> 
+<a name="line-5"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>lookupOrigAssetSlot</span>
 <a name="line-6"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>lookupAssetAssetSlot</span>
 <a name="line-7"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>lookupSlotAssets</span>
 <a name="line-8"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>lookupOrigSlotAssets</span>
@@ -42,7 +42,7 @@
 <a name="line-33"></a>
 <a name="line-34"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Ops</span>
 <a name="line-35"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-varid'>peek</span><span class='hs-layout'>,</span> <span class='hs-varid'>view</span><span class='hs-layout'>)</span>
-<a name="line-36"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>JSON</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>JSON</span>
+<a name="line-36"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>JSON</span>
 <a name="line-37"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Service</span><span class='hs-varop'>.</span><span class='hs-conid'>DB</span>
 <a name="line-38"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Offset</span>
 <a name="line-39"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Permission</span>
@@ -71,9 +71,9 @@
 <a name="line-62"></a><span class='hs-definition'>lookupOrigAssetSlot</span> <span class='hs-varid'>ai</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
 <a name="line-63"></a>  <span class='hs-varid'>initAsset</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>lookupAssetSlot</span> <span class='hs-varid'>ai</span>
 <a name="line-64"></a>  <span class='hs-keyword'>let</span> <span class='hs-varid'>format</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>formatName</span> <span class='hs-varop'>.</span> <span class='hs-varid'>assetFormat</span> <span class='hs-varop'>.</span> <span class='hs-varid'>assetRow</span> <span class='hs-varop'>.</span> <span class='hs-varid'>slotAsset</span> <span class='hs-varop'>$</span> <span class='hs-varid'>fromJust</span> <span class='hs-varid'>initAsset</span>
-<a name="line-65"></a>  <span class='hs-keyword'>case</span> <span class='hs-varid'>format</span> <span class='hs-keyword'>of</span> 
+<a name="line-65"></a>  <span class='hs-keyword'>case</span> <span class='hs-varid'>format</span> <span class='hs-keyword'>of</span>
 <a name="line-66"></a>    <span class='hs-str'>".pdf"</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>lookupAssetSlot</span> <span class='hs-varid'>ai</span> <span class='hs-comment'>--TODO format name should support all doc types</span>
-<a name="line-67"></a>    <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>do</span> 
+<a name="line-67"></a>    <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>do</span>
 <a name="line-68"></a>      <span class='hs-varid'>ident</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>peek</span>
 <a name="line-69"></a>      <span class='hs-varid'>dbQuery1</span> <span class='hs-varop'>$</span><span class='hs-layout'>(</span><span class='hs-varid'>selectQuery</span> <span class='hs-layout'>(</span><span class='hs-varid'>selectAssetSlot</span> <span class='hs-chr'>'</span><span class='hs-varid'>ident</span><span class='hs-layout'>)</span> <span class='hs-str'>"$left join transcode tc on tc.orig = asset.id WHERE tc.asset = ${ai}"</span><span class='hs-layout'>)</span>
 <a name="line-70"></a>
@@ -90,8 +90,8 @@
 <a name="line-81"></a><span class='hs-definition'>lookupOrigSlotAssets</span> <span class='hs-varid'>slot</span><span class='hs-keyglyph'>@</span><span class='hs-layout'>(</span><span class='hs-conid'>Slot</span> <span class='hs-varid'>c</span> <span class='hs-keyword'>_</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
 <a name="line-82"></a>  <span class='hs-keyword'>let</span> <span class='hs-sel'>_tenv_ablno</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>unknownPGTypeEnv</span>
 <a name="line-83"></a>  <span class='hs-varid'>xs</span> <span class='hs-keyglyph'>&lt;-</span>  <span class='hs-varid'>dbQuery</span> <span class='hs-comment'>{- [pgSQL|
-<a name="line-84"></a>    SELECT asset.id,asset.format,output_asset.release,asset.duration,asset.name,asset.sha1,asset.size 
-<a name="line-85"></a>    FROM slot_asset 
+<a name="line-84"></a>    SELECT asset.id,asset.format,output_asset.release,asset.duration,asset.name,asset.sha1,asset.size
+<a name="line-85"></a>    FROM slot_asset
 <a name="line-86"></a>    INNER JOIN transcode ON slot_asset.asset = transcode.asset
 <a name="line-87"></a>    INNER JOIN asset ON transcode.orig = asset.id
 <a name="line-88"></a>    INNER JOIN asset output_asset ON transcode.asset = output_asset.id
@@ -99,7 +99,7 @@
 <a name="line-90"></a>    |] -}</span>
 <a name="line-91"></a>   <span class='hs-layout'>(</span><span class='hs-varid'>mapQuery2</span>
 <a name="line-92"></a>    <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span> <span class='hs-sel'>_p_ablnp</span> <span class='hs-keyglyph'>-&gt;</span>
-<a name="line-93"></a>                    <span class='hs-layout'>(</span><span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-varop'>.</span><span class='hs-varid'>concat</span>
+<a name="line-93"></a>                    <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-varop'>.</span><span class='hs-varid'>concat</span>
 <a name="line-94"></a>                       <span class='hs-keyglyph'>[</span><span class='hs-varid'>fromString</span>
 <a name="line-95"></a>                          <span class='hs-str'>"\n\
 <a name="line-96"></a>                          \    SELECT asset.id,asset.format,output_asset.release,asset.duration,asset.name,asset.sha1,asset.size \n\
@@ -112,7 +112,7 @@
 <a name="line-103"></a>                          <span class='hs-sel'>_tenv_ablno</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"integer"</span><span class='hs-layout'>)</span> <span class='hs-sel'>_p_ablnp</span><span class='hs-layout'>,</span>
 <a name="line-104"></a>                        <span class='hs-varid'>fromString</span>
 <a name="line-105"></a>                          <span class='hs-str'>"\n\
-<a name="line-106"></a>                          \    "</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-106"></a>                          \    "</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span>
 <a name="line-107"></a>     <span class='hs-layout'>(</span><span class='hs-varid'>containerId</span> <span class='hs-varop'>$</span> <span class='hs-varid'>containerRow</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
 <a name="line-108"></a>            <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span>
 <a name="line-109"></a>               <span class='hs-keyglyph'>[</span><span class='hs-sel'>_cid_ablnq</span><span class='hs-layout'>,</span>
@@ -123,19 +123,19 @@
 <a name="line-114"></a>                <span class='hs-sel'>_csha1_ablnv</span><span class='hs-layout'>,</span>
 <a name="line-115"></a>                <span class='hs-sel'>_csize_ablnw</span><span class='hs-keyglyph'>]</span>
 <a name="line-116"></a>               <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>pgDecodeColumnNotNull</span>
-<a name="line-117"></a>                     <span class='hs-sel'>_tenv_ablno</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"integer"</span><span class='hs-layout'>)</span> <span class='hs-sel'>_cid_ablnq</span><span class='hs-layout'>,</span> 
+<a name="line-117"></a>                     <span class='hs-sel'>_tenv_ablno</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"integer"</span><span class='hs-layout'>)</span> <span class='hs-sel'>_cid_ablnq</span><span class='hs-layout'>,</span>
 <a name="line-118"></a>                   <span class='hs-varid'>pgDecodeColumnNotNull</span>
-<a name="line-119"></a>                     <span class='hs-sel'>_tenv_ablno</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"smallint"</span><span class='hs-layout'>)</span> <span class='hs-sel'>_cformat_ablnr</span><span class='hs-layout'>,</span> 
+<a name="line-119"></a>                     <span class='hs-sel'>_tenv_ablno</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"smallint"</span><span class='hs-layout'>)</span> <span class='hs-sel'>_cformat_ablnr</span><span class='hs-layout'>,</span>
 <a name="line-120"></a>                   <span class='hs-varid'>pgDecodeColumn</span>
-<a name="line-121"></a>                     <span class='hs-sel'>_tenv_ablno</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"release"</span><span class='hs-layout'>)</span> <span class='hs-sel'>_crelease_ablns</span><span class='hs-layout'>,</span> 
+<a name="line-121"></a>                     <span class='hs-sel'>_tenv_ablno</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"release"</span><span class='hs-layout'>)</span> <span class='hs-sel'>_crelease_ablns</span><span class='hs-layout'>,</span>
 <a name="line-122"></a>                   <span class='hs-varid'>pgDecodeColumn</span>
 <a name="line-123"></a>                     <span class='hs-sel'>_tenv_ablno</span>
 <a name="line-124"></a>                     <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"interval"</span><span class='hs-layout'>)</span>
-<a name="line-125"></a>                     <span class='hs-sel'>_cduration_ablnt</span><span class='hs-layout'>,</span> 
+<a name="line-125"></a>                     <span class='hs-sel'>_cduration_ablnt</span><span class='hs-layout'>,</span>
 <a name="line-126"></a>                   <span class='hs-varid'>pgDecodeColumn</span>
-<a name="line-127"></a>                     <span class='hs-sel'>_tenv_ablno</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"text"</span><span class='hs-layout'>)</span> <span class='hs-sel'>_cname_ablnu</span><span class='hs-layout'>,</span> 
+<a name="line-127"></a>                     <span class='hs-sel'>_tenv_ablno</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"text"</span><span class='hs-layout'>)</span> <span class='hs-sel'>_cname_ablnu</span><span class='hs-layout'>,</span>
 <a name="line-128"></a>                   <span class='hs-varid'>pgDecodeColumn</span>
-<a name="line-129"></a>                     <span class='hs-sel'>_tenv_ablno</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"bytea"</span><span class='hs-layout'>)</span> <span class='hs-sel'>_csha1_ablnv</span><span class='hs-layout'>,</span> 
+<a name="line-129"></a>                     <span class='hs-sel'>_tenv_ablno</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"bytea"</span><span class='hs-layout'>)</span> <span class='hs-sel'>_csha1_ablnv</span><span class='hs-layout'>,</span>
 <a name="line-130"></a>                   <span class='hs-varid'>pgDecodeColumn</span>
 <a name="line-131"></a>                     <span class='hs-sel'>_tenv_ablno</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"bigint"</span><span class='hs-layout'>)</span> <span class='hs-sel'>_csize_ablnw</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
 <a name="line-132"></a>  <span class='hs-varid'>return</span> <span class='hs-varop'>$</span> <span class='hs-varid'>flip</span> <span class='hs-varid'>fmap</span> <span class='hs-varid'>xs</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-layout'>(</span><span class='hs-varid'>assetId</span><span class='hs-layout'>,</span><span class='hs-varid'>formatId</span><span class='hs-layout'>,</span><span class='hs-varid'>release</span><span class='hs-layout'>,</span><span class='hs-varid'>duration</span><span class='hs-layout'>,</span><span class='hs-varid'>name</span><span class='hs-layout'>,</span><span class='hs-varid'>sha1</span><span class='hs-layout'>,</span><span class='hs-varid'>size</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span>
@@ -163,10 +163,10 @@
 <a name="line-154"></a>  lookupOrigVolumeAssetSlots' fromVol -}</span>
 <a name="line-155"></a>
 <a name="line-156"></a><a name="lookupOrigVolumeAssetSlots'"></a><span class='hs-definition'>lookupOrigVolumeAssetSlots'</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadDB</span> <span class='hs-varid'>c</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>MonadHasIdentity</span> <span class='hs-varid'>c</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>AssetSlot</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>AssetSlot</span><span class='hs-keyglyph'>]</span>
-<a name="line-157"></a><span class='hs-definition'>lookupOrigVolumeAssetSlots'</span> <span class='hs-varid'>slotList</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
+<a name="line-157"></a><span class='hs-definition'>lookupOrigVolumeAssetSlots'</span> <span class='hs-varid'>slotList</span> <span class='hs-keyglyph'>=</span>
 <a name="line-158"></a>  <span class='hs-varid'>catMaybes</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>mapM</span> <span class='hs-varid'>originFinder</span> <span class='hs-varid'>slotList</span>
-<a name="line-159"></a>  <span class='hs-keyword'>where</span> 
-<a name="line-160"></a>    <span class='hs-varid'>originFinder</span> <span class='hs-layout'>(</span><span class='hs-conid'>AssetSlot</span> <span class='hs-layout'>{</span> <span class='hs-varid'>slotAsset</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Asset</span> <span class='hs-layout'>{</span><span class='hs-varid'>assetRow</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>AssetRow</span> <span class='hs-layout'>{</span> <span class='hs-varid'>assetId</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>aid</span> <span class='hs-layout'>}</span><span class='hs-layout'>}</span><span class='hs-layout'>}</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lookupOrigAssetSlot</span> <span class='hs-varid'>aid</span>
+<a name="line-159"></a>  <span class='hs-keyword'>where</span>
+<a name="line-160"></a>    <span class='hs-varid'>originFinder</span> <span class='hs-conid'>AssetSlot</span> <span class='hs-layout'>{</span> <span class='hs-varid'>slotAsset</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Asset</span> <span class='hs-layout'>{</span><span class='hs-varid'>assetRow</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>AssetRow</span> <span class='hs-layout'>{</span> <span class='hs-varid'>assetId</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>aid</span> <span class='hs-layout'>}</span><span class='hs-layout'>}</span><span class='hs-layout'>}</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lookupOrigAssetSlot</span> <span class='hs-varid'>aid</span>
 <a name="line-161"></a>
 <a name="line-162"></a><a name="lookupVolumeAssetSlotIds"></a><span class='hs-definition'>lookupVolumeAssetSlotIds</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadDB</span> <span class='hs-varid'>c</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Volume</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>[</span><span class='hs-layout'>(</span><span class='hs-conid'>Asset</span><span class='hs-layout'>,</span> <span class='hs-conid'>SlotId</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>]</span>
 <a name="line-163"></a><span class='hs-definition'>lookupVolumeAssetSlotIds</span> <span class='hs-varid'>v</span> <span class='hs-keyglyph'>=</span>
@@ -336,11 +336,11 @@
 <a name="line-327"></a>    <span class='hs-varid'>dbQuery1'</span> <span class='hs-comment'>-- [pgSQL|SELECT max(upper(segment))+'1s' FROM slot_asset WHERE container = ${containerId $ containerRow c}|]</span>
 <a name="line-328"></a>     <span class='hs-layout'>(</span><span class='hs-varid'>mapQuery2</span>
 <a name="line-329"></a>      <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span> <span class='hs-sel'>_p_ablQU</span> <span class='hs-keyglyph'>-&gt;</span>
-<a name="line-330"></a>                      <span class='hs-layout'>(</span><span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-varop'>.</span><span class='hs-varid'>concat</span>
+<a name="line-330"></a>                      <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-varop'>.</span><span class='hs-varid'>concat</span>
 <a name="line-331"></a>                         <span class='hs-keyglyph'>[</span><span class='hs-varid'>fromString</span>
 <a name="line-332"></a>                            <span class='hs-str'>"SELECT max(upper(segment))+'1s' FROM slot_asset WHERE container = "</span><span class='hs-layout'>,</span>
 <a name="line-333"></a>                          <span class='hs-varid'>pgEscapeParameter</span>
-<a name="line-334"></a>                            <span class='hs-sel'>_tenv_ablQT</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"integer"</span><span class='hs-layout'>)</span> <span class='hs-sel'>_p_ablQU</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-334"></a>                            <span class='hs-sel'>_tenv_ablQT</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"integer"</span><span class='hs-layout'>)</span> <span class='hs-sel'>_p_ablQU</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span>
 <a name="line-335"></a>        <span class='hs-layout'>(</span><span class='hs-varid'>containerId</span> <span class='hs-varop'>$</span> <span class='hs-varid'>containerRow</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
 <a name="line-336"></a>              <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-keyglyph'>[</span><span class='hs-sel'>_ccolumn_ablQV</span><span class='hs-keyglyph'>]</span>
 <a name="line-337"></a>                 <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>pgDecodeColumn</span>

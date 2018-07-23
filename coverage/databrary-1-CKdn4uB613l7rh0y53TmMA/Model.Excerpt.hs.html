@@ -29,7 +29,7 @@ span.spaces    { background: white }
 <span class="lineno">   13 </span>import Control.Monad (guard)
 <span class="lineno">   14 </span>
 <span class="lineno">   15 </span>import Has (view)
-<span class="lineno">   16 </span>import qualified JSON as JSON
+<span class="lineno">   16 </span>import qualified JSON
 <span class="lineno">   17 </span>import Service.DB
 <span class="lineno">   18 </span>import Model.SQL
 <span class="lineno">   19 </span>import Model.Permission
@@ -51,11 +51,11 @@ span.spaces    { background: white }
 <span class="lineno">   35 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ ($ c) &lt;$&gt; $(selectQuery selectContainerExcerpt &quot;$WHERE slot_asset.container = ${containerId $ containerRow c} AND excerpt.segment &amp;&amp; ${s}&quot;)</span></span>
 <span class="lineno">   36 </span>
 <span class="lineno">   37 </span>lookupVolumeExcerpts :: MonadDB c m =&gt; Volume -&gt; m [Excerpt]
-<span class="lineno">   38 </span><span class="decl"><span class="istickedoff">lookupVolumeExcerpts v =</span>
-<span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">dbQuery $ <span class="nottickedoff">($ v)</span> &lt;$&gt; $(<span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">selectQuery selectVolumeExcerpt &quot;$WHERE asset.volume = ${volumeId $ volumeRow v}&quot;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)</span></span>
+<span class="lineno">   38 </span><span class="decl"><span class="nottickedoff">lookupVolumeExcerpts v =</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery $ ($ v) &lt;$&gt; $(selectQuery selectVolumeExcerpt &quot;$WHERE asset.volume = ${volumeId $ volumeRow v}&quot;)</span></span>
 <span class="lineno">   40 </span>
 <span class="lineno">   41 </span>lookupSlotThumb :: MonadDB c m =&gt; Slot -&gt; m (Maybe AssetSegment)
-<span class="lineno">   42 </span><span class="decl"><span class="nottickedoff">lookupSlotThumb (Slot c s) = do</span>
+<span class="lineno">   42 </span><span class="decl"><span class="nottickedoff">lookupSlotThumb (Slot c s) =</span>
 <span class="lineno">   43 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 $ assetSegmentInterp 0 . excerptAsset . ($ c) &lt;$&gt; $(selectQuery selectContainerExcerpt &quot;$\</span>
 <span class="lineno">   44 </span><span class="spaces">    </span><span class="nottickedoff">\JOIN format ON asset.format = format.id \</span>
 <span class="lineno">   45 </span><span class="spaces">    </span><span class="nottickedoff">\WHERE slot_asset.container = ${containerId $ containerRow c} AND excerpt.segment &amp;&amp; ${s} \</span>
@@ -65,7 +65,7 @@ span.spaces    { background: white }
 <span class="lineno">   49 </span><span class="spaces">    </span><span class="nottickedoff">\LIMIT 1&quot;)</span></span>
 <span class="lineno">   50 </span>
 <span class="lineno">   51 </span>lookupVolumeThumb :: MonadDB c m =&gt; Volume -&gt; m (Maybe AssetSegment)
-<span class="lineno">   52 </span><span class="decl"><span class="nottickedoff">lookupVolumeThumb v = do</span>
+<span class="lineno">   52 </span><span class="decl"><span class="nottickedoff">lookupVolumeThumb v =</span>
 <span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 $ assetSegmentInterp 0 . excerptAsset . ($ v) &lt;$&gt; $(selectQuery selectVolumeExcerpt &quot;$\</span>
 <span class="lineno">   54 </span><span class="spaces">    </span><span class="nottickedoff">\JOIN format ON asset.format = format.id \</span>
 <span class="lineno">   55 </span><span class="spaces">    </span><span class="nottickedoff">\WHERE asset.volume = ${volumeId $ volumeRow v} \</span>

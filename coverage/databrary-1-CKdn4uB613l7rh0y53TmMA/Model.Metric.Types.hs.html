@@ -82,14 +82,14 @@ span.spaces    { background: white }
 <span class="lineno">   66 </span><span class="spaces">    </span><span class="nottickedoff">= BS.pack [118, 111, 105, 100]</span></span>
 <span class="lineno">   67 </span>instance Database.PostgreSQL.Typed.Types.PGColumn &quot;data_type&quot; MeasureType where
 <span class="lineno">   68 </span>  <span class="decl"><span class="nottickedoff">pgDecode _ x_a4zCt</span>
-<span class="lineno">   69 </span><span class="spaces">    </span><span class="nottickedoff">= case BS.unpack x_a4zCt of </span>
+<span class="lineno">   69 </span><span class="spaces">    </span><span class="nottickedoff">= case BS.unpack x_a4zCt of</span>
 <span class="lineno">   70 </span><span class="spaces">        </span><span class="nottickedoff">[116, 101, 120, 116] -&gt; MeasureTypeText</span>
 <span class="lineno">   71 </span><span class="spaces">        </span><span class="nottickedoff">[110, 117, 109, 101, 114, 105, 99] -&gt; MeasureTypeNumeric</span>
 <span class="lineno">   72 </span><span class="spaces">        </span><span class="nottickedoff">[100, 97, 116, 101] -&gt; MeasureTypeDate</span>
 <span class="lineno">   73 </span><span class="spaces">        </span><span class="nottickedoff">[118, 111, 105, 100] -&gt; MeasureTypeVoid</span>
 <span class="lineno">   74 </span><span class="spaces">        </span><span class="nottickedoff">_ -&gt; error</span>
 <span class="lineno">   75 </span><span class="spaces">               </span><span class="nottickedoff">(&quot;pgDecode data_type: &quot;</span>
-<span class="lineno">   76 </span><span class="spaces">                </span><span class="nottickedoff">++ (Data.ByteString.Char8.unpack x_a4zCt))</span></span> 
+<span class="lineno">   76 </span><span class="spaces">                </span><span class="nottickedoff">++ Data.ByteString.Char8.unpack x_a4zCt)</span></span>
 <span class="lineno">   77 </span>instance Database.PostgreSQL.Typed.Dynamic.PGRep &quot;data_type&quot; MeasureType
 <span class="lineno">   78 </span>instance Database.PostgreSQL.Typed.Enum.PGEnum MeasureType
 <span class="lineno">   79 </span>instance Kinded MeasureType where
@@ -97,7 +97,7 @@ span.spaces    { background: white }
 <span class="lineno">   81 </span>instance DBEnum MeasureType
 <span class="lineno">   82 </span>instance Data.Aeson.Types.ToJSON MeasureType where
 <span class="lineno">   83 </span>  <span class="decl"><span class="nottickedoff">toJSON</span>
-<span class="lineno">   84 </span><span class="spaces">    </span><span class="nottickedoff">= (Data.Aeson.Types.toJSON . fromEnum)</span></span>
+<span class="lineno">   84 </span><span class="spaces">    </span><span class="nottickedoff">= Data.Aeson.Types.toJSON . fromEnum</span></span>
 <span class="lineno">   85 </span>instance Data.Aeson.Types.FromJSON MeasureType where
 <span class="lineno">   86 </span>  <span class="decl"><span class="nottickedoff">parseJSON = parseJSONEnum</span></span>
 <span class="lineno">   87 </span>instance HTTP.Form.Deform.Deform f_a4zCu MeasureType where
@@ -142,7 +142,7 @@ span.spaces    { background: white }
 <span class="lineno">  126 </span>lookupField :: Metric -&gt; ParticipantFieldMapping2 -&gt; Maybe Text
 <span class="lineno">  127 </span><span class="decl"><span class="istickedoff">lookupField m (ParticipantFieldMapping2 mp) = Map.lookup m mp</span></span>
 <span class="lineno">  128 </span>
-<span class="lineno">  129 </span>newtype ParticipantFieldMapping2 = ParticipantFieldMapping2 { <span class="istickedoff"><span class="decl"><span class="istickedoff">pfmGetMapping</span></span></span> :: (Map Metric Text) }
+<span class="lineno">  129 </span>newtype ParticipantFieldMapping2 = ParticipantFieldMapping2 { <span class="istickedoff"><span class="decl"><span class="istickedoff">pfmGetMapping</span></span></span> :: Map Metric Text }
 <span class="lineno">  130 </span>    -- deriving (Eq, Show)
 
 </pre>

@@ -7,7 +7,7 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE TemplateHaskell, DeriveDataTypeable, TupleSections, Rank2Types, ScopedTypeVariables #-}</span>
+<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE TupleSections, Rank2Types, ScopedTypeVariables #-}</span>
 <a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Service</span><span class='hs-varop'>.</span><span class='hs-conid'>Periodic</span>
 <a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>forkPeriodic</span>
 <a name="line-4"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
@@ -57,7 +57,7 @@
 <a name="line-48"></a>    <span class='hs-varid'>void</span> <span class='hs-varid'>updateEZID</span>
 <a name="line-49"></a>  <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>cleanNotifications</span>
 <a name="line-50"></a>  <span class='hs-varid'>updateStateNotifications</span>
-<a name="line-51"></a>  <span class='hs-varid'>focusIO</span> <span class='hs-varop'>$</span> <span class='hs-varid'>triggerNotifications</span> <span class='hs-layout'>(</span><span class='hs-conid'>Just</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span> 
+<a name="line-51"></a>  <span class='hs-varid'>focusIO</span> <span class='hs-varop'>$</span> <span class='hs-varid'>triggerNotifications</span> <span class='hs-layout'>(</span><span class='hs-conid'>Just</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span>
 <a name="line-52"></a>
 <a name="line-53"></a><a name="runPeriodic"></a><span class='hs-definition'>runPeriodic</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Service</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-keyword'>forall</span> <span class='hs-varid'>a</span> <span class='hs-varop'>.</span> <span class='hs-conid'>IO</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IO</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IO</span> <span class='hs-conid'>()</span>
 <a name="line-54"></a><span class='hs-definition'>runPeriodic</span> <span class='hs-varid'>rc</span> <span class='hs-varid'>unmask</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>loop</span> <span class='hs-layout'>(</span><span class='hs-keyword'>if</span> <span class='hs-varid'>s</span> <span class='hs-varop'>&lt;=</span> <span class='hs-varid'>st</span> <span class='hs-keyword'>then</span> <span class='hs-varid'>d</span> <span class='hs-varid'>s</span> <span class='hs-keyword'>else</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>

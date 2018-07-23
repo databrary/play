@@ -7,7 +7,7 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE TemplateHaskell, QuasiQuotes, RecordWildCards, DataKinds #-}</span>
+<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE RecordWildCards, DataKinds #-}</span>
 <a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>VolumeState</span>
 <a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-keyword'>module</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>VolumeState</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
 <a name="line-4"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>lookupVolumeState</span>
@@ -31,7 +31,7 @@
 <a name="line-22"></a><a name="lookupVolumeState"></a><span class='hs-definition'>lookupVolumeState</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadDB</span> <span class='hs-varid'>c</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Id</span> <span class='hs-conid'>Volume</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>VolumeRolePolicy</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>VolumeState</span><span class='hs-keyglyph'>]</span>
 <a name="line-23"></a><span class='hs-definition'>lookupVolumeState</span> <span class='hs-varid'>vid</span> <span class='hs-varid'>volRolePolicy</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
 <a name="line-24"></a>  <span class='hs-keyword'>let</span> <span class='hs-sel'>_tenv_a7xjl</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>unknownPGTypeEnv</span>
-<a name="line-25"></a>  <span class='hs-varid'>rows</span> <span class='hs-keyglyph'>&lt;-</span> 
+<a name="line-25"></a>  <span class='hs-varid'>rows</span> <span class='hs-keyglyph'>&lt;-</span>
 <a name="line-26"></a>    <span class='hs-comment'>-- (selectQuery selectVolumeState "$WHERE volume = ${volumeId $ volumeRow v} AND (public OR ${(extractPermissionIgnorePolicy . volumeRolePolicy) v &gt;= PermissionEDIT})")</span>
 <a name="line-27"></a>     <span class='hs-varid'>mapRunPrepQuery</span>
 <a name="line-28"></a>      <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span> <span class='hs-sel'>_p_a7xjm</span> <span class='hs-sel'>_p_a7xjn</span> <span class='hs-keyglyph'>-&gt;</span>
@@ -50,9 +50,9 @@
 <a name="line-41"></a>                  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>pgDecodeColumnNotNull</span>
 <a name="line-42"></a>                        <span class='hs-sel'>_tenv_a7xjl</span>
 <a name="line-43"></a>                        <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"character varying"</span><span class='hs-layout'>)</span>
-<a name="line-44"></a>                        <span class='hs-sel'>_ckey_a7xjo</span><span class='hs-layout'>,</span> 
+<a name="line-44"></a>                        <span class='hs-sel'>_ckey_a7xjo</span><span class='hs-layout'>,</span>
 <a name="line-45"></a>                      <span class='hs-varid'>pgDecodeColumnNotNull</span>
-<a name="line-46"></a>                        <span class='hs-sel'>_tenv_a7xjl</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"jsonb"</span><span class='hs-layout'>)</span> <span class='hs-sel'>_cvalue_a7xjp</span><span class='hs-layout'>,</span> 
+<a name="line-46"></a>                        <span class='hs-sel'>_tenv_a7xjl</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"jsonb"</span><span class='hs-layout'>)</span> <span class='hs-sel'>_cvalue_a7xjp</span><span class='hs-layout'>,</span>
 <a name="line-47"></a>                      <span class='hs-varid'>pgDecodeColumnNotNull</span>
 <a name="line-48"></a>                        <span class='hs-sel'>_tenv_a7xjl</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"boolean"</span><span class='hs-layout'>)</span> <span class='hs-sel'>_cpublic_a7xjq</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
 <a name="line-49"></a>  <span class='hs-varid'>pure</span>

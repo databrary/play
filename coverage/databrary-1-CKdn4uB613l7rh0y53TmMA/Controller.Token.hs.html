@@ -30,7 +30,7 @@ span.spaces    { background: white }
 <span class="lineno">   14 </span>
 <span class="lineno">   15 </span>import Ops
 <span class="lineno">   16 </span>import Has
-<span class="lineno">   17 </span>import qualified JSON as JSON
+<span class="lineno">   17 </span>import qualified JSON
 <span class="lineno">   18 </span>import Model.Id
 <span class="lineno">   19 </span>import Model.Token
 <span class="lineno">   20 </span>import Model.Party
@@ -74,7 +74,7 @@ span.spaces    { background: white }
 <span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">unless (loginPasswordToken tok) $ result =&lt;&lt; peeks notFoundResponse</span>
 <span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">let auth :: SiteAuth</span>
 <span class="lineno">   60 </span><span class="spaces">      </span><span class="nottickedoff">auth = view tok</span>
-<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">pw &lt;- runForm ((api == HTML) `thenUse` (htmlPasswordToken ti)) $</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">pw &lt;- runForm ((api == HTML) `thenUse` htmlPasswordToken ti) $</span>
 <span class="lineno">   62 </span><span class="spaces">    </span><span class="nottickedoff">passwordForm (siteAccount auth)</span>
 <span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">changeAccount auth{ accountPasswd = Just pw } -- or should this be withAuth?</span>
 <span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- removeLoginToken tok</span>

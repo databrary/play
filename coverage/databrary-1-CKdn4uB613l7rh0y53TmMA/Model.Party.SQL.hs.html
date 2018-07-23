@@ -133,11 +133,11 @@ span.spaces    { background: white }
 <span class="lineno">  117 </span>
 <span class="lineno">  118 </span>selectParty :: TH.Name -- ^ 'Identity'
 <span class="lineno">  119 </span>  -&gt; Selector -- ^ @'Party'@
-<span class="lineno">  120 </span><span class="decl"><span class="nottickedoff">selectParty ident = selectMap ((`TH.AppE` TH.VarE ident) . (`TH.AppE` (TH.ConE 'Nothing)) . (TH.VarE 'permissionParty `TH.AppE`)) $</span>
+<span class="lineno">  120 </span><span class="decl"><span class="nottickedoff">selectParty ident = selectMap ((`TH.AppE` TH.VarE ident) . (`TH.AppE` TH.ConE 'Nothing) . (TH.VarE 'permissionParty `TH.AppE`)) $</span>
 <span class="lineno">  121 </span><span class="spaces">  </span><span class="nottickedoff">selectPermissionParty</span></span>
 <span class="lineno">  122 </span>
 <span class="lineno">  123 </span>makePartyAuthorization :: Party -&gt; Maybe Access -&gt; (Party, Maybe Permission)
-<span class="lineno">  124 </span><span class="decl"><span class="istickedoff">makePartyAuthorization p a = (p, accessSite &lt;$&gt; a)</span></span>
+<span class="lineno">  124 </span><span class="decl"><span class="nottickedoff">makePartyAuthorization p a = (p, accessSite &lt;$&gt; a)</span></span>
 <span class="lineno">  125 </span>
 <span class="lineno">  126 </span>selectPartyAuthorization :: TH.Name -- ^ 'Identity'
 <span class="lineno">  127 </span>  -&gt; Selector -- ^ @('Party', Maybe 'Permission')@
@@ -168,7 +168,7 @@ span.spaces    { background: white }
 <span class="lineno">  152 </span>
 <span class="lineno">  153 </span>selectAccount :: TH.Name -- ^ 'Identity'
 <span class="lineno">  154 </span>  -&gt; Selector -- ^ @'Account'@
-<span class="lineno">  155 </span><span class="decl"><span class="nottickedoff">selectAccount ident = selectMap ((`TH.AppE` TH.VarE ident) . (`TH.AppE` (TH.ConE 'Nothing)) . (TH.VarE 'permissionParty `TH.AppE`)) $</span>
+<span class="lineno">  155 </span><span class="decl"><span class="nottickedoff">selectAccount ident = selectMap ((`TH.AppE` TH.VarE ident) . (`TH.AppE` TH.ConE 'Nothing) . (TH.VarE 'permissionParty `TH.AppE`)) $</span>
 <span class="lineno">  156 </span><span class="spaces">  </span><span class="nottickedoff">selectPermissionAccount</span></span>
 <span class="lineno">  157 </span>
 <span class="lineno">  158 </span>-- | Build an account, using ADMIN permission and (ADMIN,ADMIN) access object.

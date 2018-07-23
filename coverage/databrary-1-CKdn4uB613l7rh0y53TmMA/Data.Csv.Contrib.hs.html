@@ -51,7 +51,7 @@ span.spaces    { background: white }
 <span class="lineno">   35 </span><span class="decl"><span class="nottickedoff">extractColumnsInitialRows maxRows hdrs records =</span>
 <span class="lineno">   36 </span><span class="spaces">    </span><span class="nottickedoff">zip</span>
 <span class="lineno">   37 </span><span class="spaces">        </span><span class="nottickedoff">hdrs'</span>
-<span class="lineno">   38 </span><span class="spaces">        </span><span class="nottickedoff">(fmap (\hdr -&gt; extractColumnDefaulting hdr truncatedRecords) hdrs')</span>
+<span class="lineno">   38 </span><span class="spaces">        </span><span class="nottickedoff">(fmap (`extractColumnDefaulting` truncatedRecords) hdrs')</span>
 <span class="lineno">   39 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
 <span class="lineno">   40 </span><span class="spaces">    </span><span class="nottickedoff">truncatedRecords = V.take maxRows records</span>
 <span class="lineno">   41 </span><span class="spaces">    </span><span class="nottickedoff">hdrs' :: [BS.ByteString]</span>
@@ -62,7 +62,7 @@ span.spaces    { background: white }
 <span class="lineno">   46 </span><span class="spaces">    </span><span class="istickedoff">zip hdrs'</span>
 <span class="lineno">   47 </span><span class="spaces">        </span><span class="istickedoff">( fmap</span>
 <span class="lineno">   48 </span><span class="spaces">              </span><span class="istickedoff">( getSample</span>
-<span class="lineno">   49 </span><span class="spaces">              </span><span class="istickedoff">. (\hdr -&gt; extractColumnDefaulting hdr records))</span>
+<span class="lineno">   49 </span><span class="spaces">              </span><span class="istickedoff">. (`extractColumnDefaulting` records))</span>
 <span class="lineno">   50 </span><span class="spaces">              </span><span class="istickedoff">hdrs' )</span>
 <span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff">where</span>
 <span class="lineno">   52 </span><span class="spaces">    </span><span class="istickedoff">getSample :: [BS.ByteString] -&gt; [BS.ByteString]</span>
@@ -78,7 +78,7 @@ span.spaces    { background: white }
 <span class="lineno">   62 </span>extractColumn :: BS.ByteString -&gt; Vector Csv.NamedRecord -&gt; (Maybe BS.ByteString -&gt; a) -&gt; [a]
 <span class="lineno">   63 </span><span class="decl"><span class="istickedoff">extractColumn hdr records applyDefault =</span>
 <span class="lineno">   64 </span><span class="spaces">   </span><span class="istickedoff">( V.toList</span>
-<span class="lineno">   65 </span><span class="spaces">   </span><span class="istickedoff">. fmap (\rowMap -&gt; (applyDefault . HMP.lookup hdr) rowMap))</span>
+<span class="lineno">   65 </span><span class="spaces">   </span><span class="istickedoff">. fmap (applyDefault . HMP.lookup hdr))</span>
 <span class="lineno">   66 </span><span class="spaces">   </span><span class="istickedoff">records</span></span>
 <span class="lineno">   67 </span>
 <span class="lineno">   68 </span>-- similar to decodeByName with except make parser parameter explicity
@@ -111,7 +111,7 @@ span.spaces    { background: white }
 <span class="lineno">   95 </span><span class="spaces">  </span><span class="istickedoff">where</span>
 <span class="lineno">   96 </span><span class="spaces">    </span><span class="istickedoff">scrubRow :: Csv.NamedRecord -&gt; Csv.NamedRecord</span>
 <span class="lineno">   97 </span><span class="spaces">    </span><span class="istickedoff">scrubRow row =</span>
-<span class="lineno">   98 </span><span class="spaces">        </span><span class="istickedoff">HMP.map (\v -&gt; if (BSC.all (== ' ') v) then &quot;&quot; else v) row</span></span>
+<span class="lineno">   98 </span><span class="spaces">        </span><span class="istickedoff">HMP.map (\v -&gt; if BSC.all (== ' ') v then &quot;&quot; else v) row</span></span>
 <span class="lineno">   99 </span>
 <span class="lineno">  100 </span>-- | some programs introduce a byte order mark when generating a CSV, remove this per cassava issue recipe
 <span class="lineno">  101 </span>removeBomPrefix :: BS.ByteString -&gt; BS.ByteString

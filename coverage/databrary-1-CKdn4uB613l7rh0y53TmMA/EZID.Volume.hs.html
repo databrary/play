@@ -86,7 +86,7 @@ span.spaces    { background: white }
 <span class="lineno">   70 </span>
 <span class="lineno">   71 </span>updateVolume :: Volume -&gt; Maybe Citation -&gt; EZIDM Bool
 <span class="lineno">   72 </span><span class="decl"><span class="istickedoff">updateVolume v = maybe</span>
-<span class="lineno">   73 </span><span class="spaces">  </span><span class="istickedoff">(maybe <span class="nottickedoff">(return False)</span> (addVolumeDOI $ volumeId $ volumeRow v) &lt;=&lt; ezidCreate (volumeDOISuffix $ volumeId $ volumeRow v))</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="istickedoff">(maybe (return <span class="nottickedoff">False</span>) (addVolumeDOI $ volumeId $ volumeRow v) &lt;=&lt; ezidCreate (volumeDOISuffix $ volumeId $ volumeRow v))</span>
 <span class="lineno">   74 </span><span class="spaces">  </span><span class="istickedoff">ezidModify</span>
 <span class="lineno">   75 </span><span class="spaces">  </span><span class="istickedoff">(volumeDOI $ volumeRow v)</span>
 <span class="lineno">   76 </span><span class="spaces">  </span><span class="istickedoff">&lt;=&lt; volumeEZID v</span></span>

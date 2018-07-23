@@ -123,7 +123,7 @@ span.spaces    { background: white }
 <span class="lineno">  107 </span><span class="spaces">    </span><span class="nottickedoff">(servWeb :: Web) &lt;- peek</span>
 <span class="lineno">  108 </span><span class="spaces">    </span><span class="nottickedoff">let version = getWebVersion servWeb</span>
 <span class="lineno">  109 </span><span class="spaces">    </span><span class="nottickedoff">(b :: Maybe BSB.Builder) &lt;- peeks angularRequest</span>
-<span class="lineno">  110 </span><span class="spaces">    </span><span class="nottickedoff">mapM_ (\nojsBldr -&gt; focusIO (angularResult version nojsBldr)) b</span></span>
+<span class="lineno">  110 </span><span class="spaces">    </span><span class="nottickedoff">mapM_ (focusIO . angularResult version) b</span></span>
 
 </pre>
 </body>

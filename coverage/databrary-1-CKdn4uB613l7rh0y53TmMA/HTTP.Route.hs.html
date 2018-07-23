@@ -14,7 +14,7 @@ span.spaces    { background: white }
 </head>
 <body>
 <pre>
-<span class="lineno">    1 </span>{-# LANGUAGE ExistentialQuantification, RecordWildCards, ImpredicativeTypes, GeneralizedNewtypeDeriving #-}
+<span class="lineno">    1 </span>{-# LANGUAGE ExistentialQuantification, ImpredicativeTypes #-}
 <span class="lineno">    2 </span>module HTTP.Route
 <span class="lineno">    3 </span>  ( Route
 <span class="lineno">    4 </span>  , routeURL
@@ -41,7 +41,7 @@ span.spaces    { background: white }
 <span class="lineno">   25 </span>routeURL :: Maybe Request -&gt; R.Request -&gt; Query -&gt; BSB.Builder
 <span class="lineno">   26 </span><span class="decl"><span class="istickedoff">routeURL w r q = bh (R.requestHost r)</span>
 <span class="lineno">   27 </span><span class="spaces">  </span><span class="istickedoff">&lt;&gt; encodePath' (R.requestPath r)</span>
-<span class="lineno">   28 </span><span class="spaces">    </span><span class="istickedoff">((simpleQueryToQuery $ R.paramsQuerySimple $ R.requestQuery r) ++ q)</span>
+<span class="lineno">   28 </span><span class="spaces">    </span><span class="istickedoff">(simpleQueryToQuery (R.paramsQuerySimple $ R.requestQuery r) ++ q)</span>
 <span class="lineno">   29 </span><span class="spaces">  </span><span class="istickedoff">where</span>
 <span class="lineno">   30 </span><span class="spaces">  </span><span class="istickedoff">bh [] = foldMap <span class="nottickedoff">(BSB.byteString . requestHost)</span> w</span>
 <span class="lineno">   31 </span><span class="spaces">  </span><span class="istickedoff">bh [x] = <span class="nottickedoff">BSB.byteString x</span></span>
@@ -50,7 +50,7 @@ span.spaces    { background: white }
 <span class="lineno">   34 </span>routeURI :: Maybe Wai.Request -&gt; R.Request -&gt; Query -&gt; URI
 <span class="lineno">   35 </span><span class="decl"><span class="istickedoff">routeURI req r q = (maybe <span class="nottickedoff">nullURI</span> requestURI req)</span>
 <span class="lineno">   36 </span><span class="spaces">  </span><span class="istickedoff">{ uriPath = uriPath ruri</span>
-<span class="lineno">   37 </span><span class="spaces">  </span><span class="istickedoff">, uriQuery = BSC.unpack $ renderQuery <span class="nottickedoff">True</span> $ (simpleQueryToQuery $ R.paramsQuerySimple $ R.requestQuery r) ++ q</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="istickedoff">, uriQuery = BSC.unpack $ renderQuery <span class="nottickedoff">True</span> $ simpleQueryToQuery (R.paramsQuerySimple $ R.requestQuery r) ++ q</span>
 <span class="lineno">   38 </span><span class="spaces">  </span><span class="istickedoff">} where</span>
 <span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">ruri = R.requestURI r</span></span>
 <span class="lineno">   40 </span>

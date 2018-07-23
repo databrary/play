@@ -14,7 +14,7 @@ span.spaces    { background: white }
 </head>
 <body>
 <pre>
-<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell, TypeFamilies, OverloadedStrings #-}
+<span class="lineno">    1 </span>{-# LANGUAGE TypeFamilies, OverloadedStrings #-}
 <span class="lineno">    2 </span>module Model.Token.Types
 <span class="lineno">    3 </span>  ( Token(..)
 <span class="lineno">    4 </span>  , AccountToken(..)
@@ -50,15 +50,15 @@ span.spaces    { background: white }
 <span class="lineno">   34 </span>  }
 <span class="lineno">   35 </span>
 <span class="lineno">   36 </span>instance Has (Id Token) AccountToken where
-<span class="lineno">   37 </span>  <span class="decl"><span class="istickedoff">view = (view . accountToken)</span></span>
+<span class="lineno">   37 </span>  <span class="decl"><span class="istickedoff">view = view . accountToken</span></span>
 <span class="lineno">   38 </span>instance Has SiteAuth AccountToken where
 <span class="lineno">   39 </span>  <span class="decl"><span class="nottickedoff">view = tokenAccount</span></span>
 <span class="lineno">   40 </span>instance Has Access AccountToken where
-<span class="lineno">   41 </span>  <span class="decl"><span class="istickedoff">view = (view . tokenAccount)</span></span>
+<span class="lineno">   41 </span>  <span class="decl"><span class="istickedoff">view = view . tokenAccount</span></span>
 <span class="lineno">   42 </span>instance Has (Id Party) AccountToken where
-<span class="lineno">   43 </span>  <span class="decl"><span class="istickedoff">view = (view . tokenAccount)</span></span>
+<span class="lineno">   43 </span>  <span class="decl"><span class="istickedoff">view = view . tokenAccount</span></span>
 <span class="lineno">   44 </span>instance Has Account AccountToken where
-<span class="lineno">   45 </span>  <span class="decl"><span class="nottickedoff">view = (view . tokenAccount)</span></span>
+<span class="lineno">   45 </span>  <span class="decl"><span class="nottickedoff">view = view . tokenAccount</span></span>
 <span class="lineno">   46 </span>
 <span class="lineno">   47 </span>data LoginToken = LoginToken
 <span class="lineno">   48 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">loginAccountToken</span></span></span> :: !AccountToken
@@ -72,9 +72,9 @@ span.spaces    { background: white }
 <span class="lineno">   56 </span>  <span class="decl"><span class="nottickedoff">kindOf _ = &quot;token&quot;</span></span>
 <span class="lineno">   57 </span>
 <span class="lineno">   58 </span>instance Has (Id Token) LoginToken where
-<span class="lineno">   59 </span>  <span class="decl"><span class="nottickedoff">view = (view . loginAccountToken)</span></span>
+<span class="lineno">   59 </span>  <span class="decl"><span class="nottickedoff">view = view . loginAccountToken</span></span>
 <span class="lineno">   60 </span>instance Has SiteAuth LoginToken where
-<span class="lineno">   61 </span>  <span class="decl"><span class="nottickedoff">view = (view . loginAccountToken)</span></span>
+<span class="lineno">   61 </span>  <span class="decl"><span class="nottickedoff">view = view . loginAccountToken</span></span>
 <span class="lineno">   62 </span>
 <span class="lineno">   63 </span>data Session = Session
 <span class="lineno">   64 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">sessionAccountToken</span></span></span> :: !AccountToken
@@ -83,13 +83,13 @@ span.spaces    { background: white }
 <span class="lineno">   67 </span>  }
 <span class="lineno">   68 </span>
 <span class="lineno">   69 </span>instance Has (Id Token) Session where
-<span class="lineno">   70 </span>  <span class="decl"><span class="nottickedoff">view = (view . sessionAccountToken)</span></span>
+<span class="lineno">   70 </span>  <span class="decl"><span class="nottickedoff">view = view . sessionAccountToken</span></span>
 <span class="lineno">   71 </span>instance Has Access Session where
-<span class="lineno">   72 </span>  <span class="decl"><span class="istickedoff">view = (view . sessionAccountToken)</span></span>
+<span class="lineno">   72 </span>  <span class="decl"><span class="istickedoff">view = view . sessionAccountToken</span></span>
 <span class="lineno">   73 </span>instance Has (Id Party) Session where
-<span class="lineno">   74 </span>  <span class="decl"><span class="istickedoff">view = (view . sessionAccountToken)</span></span>
+<span class="lineno">   74 </span>  <span class="decl"><span class="istickedoff">view = view . sessionAccountToken</span></span>
 <span class="lineno">   75 </span>instance Has Account Session where
-<span class="lineno">   76 </span>  <span class="decl"><span class="nottickedoff">view = (view . sessionAccountToken)</span></span>
+<span class="lineno">   76 </span>  <span class="decl"><span class="nottickedoff">view = view . sessionAccountToken</span></span>
 <span class="lineno">   77 </span>
 <span class="lineno">   78 </span>data Upload = Upload
 <span class="lineno">   79 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">uploadAccountToken</span></span></span> :: AccountToken
@@ -98,7 +98,7 @@ span.spaces    { background: white }
 <span class="lineno">   82 </span>  }
 <span class="lineno">   83 </span>
 <span class="lineno">   84 </span>instance Has (Id Token) Upload where
-<span class="lineno">   85 </span>  <span class="decl"><span class="istickedoff">view = (view . uploadAccountToken)</span></span>
+<span class="lineno">   85 </span>  <span class="decl"><span class="istickedoff">view = view . uploadAccountToken</span></span>
 <span class="lineno">   86 </span>
 <span class="lineno">   87 </span>makeUpload :: Token -&gt; BS.ByteString -&gt; Int64 -&gt; SiteAuth -&gt; Upload
 <span class="lineno">   88 </span><span class="decl"><span class="istickedoff">makeUpload t n z u = Upload (AccountToken t <span class="nottickedoff">u</span>) n z</span></span>

@@ -14,7 +14,7 @@ span.spaces    { background: white }
 </head>
 <body>
 <pre>
-<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies #-}
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TypeFamilies #-}
 <span class="lineno">    2 </span>module Model.Asset.Types
 <span class="lineno">    3 </span>  ( AssetRow(..)
 <span class="lineno">    4 </span>  , Asset(..)
@@ -53,27 +53,27 @@ span.spaces    { background: white }
 <span class="lineno">   37 </span>  }
 <span class="lineno">   38 </span>
 <span class="lineno">   39 </span>instance Kinded Asset where
-<span class="lineno">   40 </span>  <span class="decl"><span class="istickedoff">kindOf _ = &quot;asset&quot;</span></span>
+<span class="lineno">   40 </span>  <span class="decl"><span class="nottickedoff">kindOf _ = &quot;asset&quot;</span></span>
 <span class="lineno">   41 </span>
 <span class="lineno">   42 </span>instance Has (Id Asset) AssetRow where
 <span class="lineno">   43 </span>  <span class="decl"><span class="nottickedoff">view = assetId</span></span>
 <span class="lineno">   44 </span>instance Has Format AssetRow where
 <span class="lineno">   45 </span>  <span class="decl"><span class="nottickedoff">view = assetFormat</span></span>
 <span class="lineno">   46 </span>instance Has (Id Format) AssetRow where
-<span class="lineno">   47 </span>  <span class="decl"><span class="nottickedoff">view = (formatId . assetFormat)</span></span>
+<span class="lineno">   47 </span>  <span class="decl"><span class="nottickedoff">view = formatId . assetFormat</span></span>
 <span class="lineno">   48 </span>
 <span class="lineno">   49 </span>instance Has AssetRow Asset where
 <span class="lineno">   50 </span>  <span class="decl"><span class="nottickedoff">view = assetRow</span></span>
 <span class="lineno">   51 </span>instance Has (Id Asset) Asset where
-<span class="lineno">   52 </span>  <span class="decl"><span class="nottickedoff">view = (view . assetRow)</span></span>
+<span class="lineno">   52 </span>  <span class="decl"><span class="nottickedoff">view = view . assetRow</span></span>
 <span class="lineno">   53 </span>instance Has Format Asset where
-<span class="lineno">   54 </span>  <span class="decl"><span class="nottickedoff">view = (view . assetRow)</span></span>
+<span class="lineno">   54 </span>  <span class="decl"><span class="nottickedoff">view = view . assetRow</span></span>
 <span class="lineno">   55 </span>instance Has (Id Format) Asset where
-<span class="lineno">   56 </span>  <span class="decl"><span class="nottickedoff">view = (view . assetRow)</span></span>
+<span class="lineno">   56 </span>  <span class="decl"><span class="nottickedoff">view = view . assetRow</span></span>
 <span class="lineno">   57 </span>instance Has Volume Asset where
 <span class="lineno">   58 </span>   <span class="decl"><span class="nottickedoff">view = assetVolume</span></span>
 <span class="lineno">   59 </span>instance Has (Id Volume) Asset where
-<span class="lineno">   60 </span>  <span class="decl"><span class="nottickedoff">view = (volumeId . volumeRow . assetVolume)</span></span>
+<span class="lineno">   60 </span>  <span class="decl"><span class="nottickedoff">view = volumeId . volumeRow . assetVolume</span></span>
 <span class="lineno">   61 </span>
 <span class="lineno">   62 </span>getAssetReleaseMaybe :: Asset -&gt; Maybe Release
 <span class="lineno">   63 </span><span class="decl"><span class="istickedoff">getAssetReleaseMaybe = assetRelease . assetRow</span></span>

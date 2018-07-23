@@ -38,7 +38,7 @@ span.spaces    { background: white }
 <span class="lineno">   22 </span><span class="spaces">  </span><span class="nottickedoff">&lt;$&gt; (&quot;q&quot; .:&gt; deformNonEmpty deform)</span>
 <span class="lineno">   23 </span><span class="spaces">  </span><span class="nottickedoff">&lt;*&gt; (&quot;f&quot; .:&gt; withSubDeforms (\k -&gt; (view k, ) &lt;$&gt; deform))</span>
 <span class="lineno">   24 </span><span class="spaces">  </span><span class="nottickedoff">&lt;*&gt; (&quot;m&quot; .:&gt; withSubDeforms (\k -&gt; (,)</span>
-<span class="lineno">   25 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; (either deformError' return $ maybe (Left &quot;Metric ID not found&quot;) Right . getMetric . Id =&lt;&lt; case k of</span>
+<span class="lineno">   25 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; either deformError' return (maybe (Left &quot;Metric ID not found&quot;) Right . getMetric . Id =&lt;&lt; case k of</span>
 <span class="lineno">   26 </span><span class="spaces">      </span><span class="nottickedoff">FormField t -&gt; textInteger t</span>
 <span class="lineno">   27 </span><span class="spaces">      </span><span class="nottickedoff">FormIndex i -&gt; Right (fromIntegral i))</span>
 <span class="lineno">   28 </span><span class="spaces">    </span><span class="nottickedoff">&lt;*&gt; deform))</span>

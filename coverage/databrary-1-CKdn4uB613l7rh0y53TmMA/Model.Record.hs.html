@@ -42,7 +42,7 @@ span.spaces    { background: white }
 <span class="lineno">   26 </span>import Data.Csv.Contrib (extractColumnDefaulting)
 <span class="lineno">   27 </span>import Has (peek, view)
 <span class="lineno">   28 </span>import Service.DB
-<span class="lineno">   29 </span>import qualified JSON as JSON
+<span class="lineno">   29 </span>import qualified JSON
 <span class="lineno">   30 </span>import Model.SQL
 <span class="lineno">   31 </span>import Model.Audit
 <span class="lineno">   32 </span>import Model.Id
@@ -107,7 +107,7 @@ span.spaces    { background: white }
 <span class="lineno">   91 </span>
 <span class="lineno">   92 </span>extractParticipantFieldRows :: [BS.ByteString] -&gt; Vector CSV.NamedRecord -&gt; [(BS.ByteString, [BS.ByteString])]
 <span class="lineno">   93 </span><span class="decl"><span class="istickedoff">extractParticipantFieldRows participantFieldHeaders records =</span>
-<span class="lineno">   94 </span><span class="spaces">    </span><span class="istickedoff">(zip participantFieldHeaders . fmap (\hdr -&gt; extractColumnDefaulting hdr records)) participantFieldHeaders</span></span>
+<span class="lineno">   94 </span><span class="spaces">    </span><span class="istickedoff">(zip participantFieldHeaders . fmap (`extractColumnDefaulting` records)) participantFieldHeaders</span></span>
 <span class="lineno">   95 </span>
 <span class="lineno">   96 </span>columnSampleJson :: BS.ByteString -&gt; [BS.ByteString] -&gt; JSON.Value
 <span class="lineno">   97 </span><span class="decl"><span class="nottickedoff">columnSampleJson hdr sampleValues =</span>

@@ -89,13 +89,13 @@
 <a name="line-80"></a>  <span class='hs-varid'>fold</span> <span class='hs-layout'>(</span><span class='hs-varid'>getAssetSlotReleaseMaybe</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span>
 <a name="line-81"></a><a name="getAssetSlotReleaseMaybe"></a><span class='hs-definition'>getAssetSlotReleaseMaybe</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>AssetSlot</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>Release</span>
 <a name="line-82"></a><span class='hs-definition'>getAssetSlotReleaseMaybe</span> <span class='hs-keyword'>as</span> <span class='hs-keyglyph'>=</span>
-<a name="line-83"></a>  <span class='hs-layout'>(</span><span class='hs-keyword'>case</span> <span class='hs-keyword'>as</span> <span class='hs-keyword'>of</span>
-<a name="line-84"></a>     <span class='hs-conid'>AssetSlot</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-conid'>Just</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span>
-<a name="line-85"></a>       <span class='hs-varid'>getAssetReleaseMaybe</span> <span class='hs-varid'>a</span> <span class='hs-varop'>&lt;|&gt;</span> <span class='hs-varid'>getSlotReleaseMaybe</span> <span class='hs-varid'>s</span>
-<a name="line-86"></a>     <span class='hs-conid'>AssetSlot</span> <span class='hs-varid'>a</span> <span class='hs-conid'>Nothing</span> <span class='hs-keyglyph'>-&gt;</span>
-<a name="line-87"></a>       <span class='hs-keyword'>if</span> <span class='hs-varid'>not</span> <span class='hs-layout'>(</span><span class='hs-varid'>assetSlotIsDeletedFromItsContainer</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span>
-<a name="line-88"></a>       <span class='hs-keyword'>then</span> <span class='hs-varid'>getAssetReleaseMaybe</span> <span class='hs-varid'>a</span>
-<a name="line-89"></a>       <span class='hs-keyword'>else</span> <span class='hs-conid'>Nothing</span><span class='hs-layout'>)</span> <span class='hs-comment'>-- "deleted" assets are always unreleased (private?), not view a</span>
+<a name="line-83"></a>  <span class='hs-keyword'>case</span> <span class='hs-keyword'>as</span> <span class='hs-keyword'>of</span>
+<a name="line-84"></a>    <span class='hs-conid'>AssetSlot</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-conid'>Just</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span>
+<a name="line-85"></a>      <span class='hs-varid'>getAssetReleaseMaybe</span> <span class='hs-varid'>a</span> <span class='hs-varop'>&lt;|&gt;</span> <span class='hs-varid'>getSlotReleaseMaybe</span> <span class='hs-varid'>s</span>
+<a name="line-86"></a>    <span class='hs-conid'>AssetSlot</span> <span class='hs-varid'>a</span> <span class='hs-conid'>Nothing</span> <span class='hs-keyglyph'>-&gt;</span>
+<a name="line-87"></a>      <span class='hs-keyword'>if</span> <span class='hs-varid'>not</span> <span class='hs-layout'>(</span><span class='hs-varid'>assetSlotIsDeletedFromItsContainer</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span>
+<a name="line-88"></a>      <span class='hs-keyword'>then</span> <span class='hs-varid'>getAssetReleaseMaybe</span> <span class='hs-varid'>a</span>
+<a name="line-89"></a>      <span class='hs-keyword'>else</span> <span class='hs-conid'>Nothing</span> <span class='hs-comment'>-- "deleted" assets are always unreleased (private?), not view a</span>
 <a name="line-90"></a>
 <a name="line-91"></a><a name="assetSlotIsDeletedFromItsContainer"></a><span class='hs-definition'>assetSlotIsDeletedFromItsContainer</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>AssetSlot</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span>
 <a name="line-92"></a><span class='hs-definition'>assetSlotIsDeletedFromItsContainer</span> <span class='hs-layout'>(</span><span class='hs-conid'>AssetSlot</span> <span class='hs-varid'>a</span> <span class='hs-conid'>Nothing</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>volumeId</span> <span class='hs-layout'>(</span><span class='hs-varid'>volumeRow</span> <span class='hs-varop'>$</span> <span class='hs-varid'>assetVolume</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varop'>/=</span> <span class='hs-varid'>coreVolumeId</span>
@@ -107,6 +107,6 @@
 <a name="line-98"></a>    <span class='hs-varid'>pubRel</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>fold</span> <span class='hs-layout'>(</span><span class='hs-varid'>getAssetSlotReleaseMaybe</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span>
 <a name="line-99"></a>  <span class='hs-keyword'>in</span>
 <a name="line-100"></a>    <span class='hs-conid'>EffectiveRelease</span> <span class='hs-layout'>{</span> <span class='hs-varid'>effRelPublic</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>pubRel</span><span class='hs-layout'>,</span> <span class='hs-varid'>effRelPrivate</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ReleasePRIVATE</span> <span class='hs-layout'>}</span>
-<a name="line-101"></a>      
+<a name="line-101"></a>
 </pre></body>
 </html>

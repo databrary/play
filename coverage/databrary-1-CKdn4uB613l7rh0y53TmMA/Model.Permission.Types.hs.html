@@ -88,7 +88,7 @@ span.spaces    { background: white }
 <span class="lineno">   72 </span><span class="spaces">        </span><span class="istickedoff">[65, 68, 77, 73, 78] -&gt; PermissionADMIN</span>
 <span class="lineno">   73 </span><span class="spaces">        </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">error</span></span>
 <span class="lineno">   74 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">(&quot;pgDecode permission: &quot;</span></span>
-<span class="lineno">   75 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">++ (Data.ByteString.Char8.unpack x_a42l2))</span></span></span>
+<span class="lineno">   75 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">++ Data.ByteString.Char8.unpack x_a42l2)</span></span></span>
 <span class="lineno">   76 </span>instance Database.PostgreSQL.Typed.Dynamic.PGRep &quot;permission&quot; Permission
 <span class="lineno">   77 </span>instance Database.PostgreSQL.Typed.Enum.PGEnum Permission
 <span class="lineno">   78 </span>instance Model.Kind.Kinded Permission where
@@ -96,7 +96,7 @@ span.spaces    { background: white }
 <span class="lineno">   80 </span>instance DBEnum Permission
 <span class="lineno">   81 </span>instance Data.Aeson.Types.ToJSON Permission where
 <span class="lineno">   82 </span>  <span class="decl"><span class="istickedoff">toJSON</span>
-<span class="lineno">   83 </span><span class="spaces">    </span><span class="istickedoff">= (Data.Aeson.Types.toJSON . fromEnum)</span></span>
+<span class="lineno">   83 </span><span class="spaces">    </span><span class="istickedoff">= Data.Aeson.Types.toJSON . fromEnum</span></span>
 <span class="lineno">   84 </span>instance Data.Aeson.Types.FromJSON Permission where  -- not used
 <span class="lineno">   85 </span>  <span class="decl"><span class="nottickedoff">parseJSON = parseJSONEnum</span></span>
 <span class="lineno">   86 </span>instance HTTP.Form.Deform.Deform f_a42l3 Permission where

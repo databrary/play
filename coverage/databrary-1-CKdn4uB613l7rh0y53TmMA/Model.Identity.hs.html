@@ -26,7 +26,7 @@ span.spaces    { background: white }
 <span class="lineno">   10 </span>
 <span class="lineno">   11 </span>import Ops
 <span class="lineno">   12 </span>import Has
-<span class="lineno">   13 </span>import qualified JSON as JSON
+<span class="lineno">   13 </span>import qualified JSON
 <span class="lineno">   14 </span>import Model.Id
 <span class="lineno">   15 </span>import Model.Token
 <span class="lineno">   16 </span>import HTTP.Request
@@ -61,7 +61,7 @@ span.spaces    { background: white }
 <span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">identityJSON i = partyJSON (view i) `JSON.foldObjectIntoRec`</span>
 <span class="lineno">   46 </span><span class="spaces"> </span><span class="nottickedoff">(   &quot;authorization&quot; JSON..= accessSite i</span>
 <span class="lineno">   47 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;csverf&quot; `JSON.kvObjectOrEmpty` identityVerf i</span>
-<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;superuser&quot; `JSON.kvObjectOrEmpty` (True `useWhen` (identityAdmin i)))</span></span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;superuser&quot; `JSON.kvObjectOrEmpty` (True `useWhen` identityAdmin i))</span></span>
 
 </pre>
 </body>

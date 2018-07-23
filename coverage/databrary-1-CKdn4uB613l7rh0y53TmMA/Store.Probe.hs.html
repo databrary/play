@@ -88,7 +88,7 @@ span.spaces    { background: white }
 <span class="lineno">   72 </span><span class="spaces">    </span><span class="istickedoff">return $ diffTimeOffset dt</span>
 <span class="lineno">   73 </span><span class="spaces">  </span><span class="istickedoff">where</span>
 <span class="lineno">   74 </span><span class="spaces">    </span><span class="istickedoff">dd = diffDays d' d</span>
-<span class="lineno">   75 </span><span class="spaces">    </span><span class="istickedoff">dt = (fromInteger dd)*day + timeOfDayToTime t</span>
+<span class="lineno">   75 </span><span class="spaces">    </span><span class="istickedoff">dt = fromInteger dd*day + timeOfDayToTime t</span>
 <span class="lineno">   76 </span><span class="spaces">    </span><span class="istickedoff">day2 = 43200</span>
 <span class="lineno">   77 </span><span class="spaces">    </span><span class="istickedoff">day = 2*day2</span>
 <span class="lineno">   78 </span><span class="spaces"></span><span class="istickedoff">probeAutoPosition c _ = <span class="nottickedoff">findAssetContainerEnd c</span></span></span>

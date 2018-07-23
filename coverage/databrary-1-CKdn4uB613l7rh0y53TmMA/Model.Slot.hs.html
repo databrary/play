@@ -14,7 +14,7 @@ span.spaces    { background: white }
 </head>
 <body>
 <pre>
-<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, RecordWildCards, ViewPatterns, TemplateHaskell, QuasiQuotes, DataKinds #-}
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, RecordWildCards, DataKinds #-}
 <span class="lineno">    2 </span>module Model.Slot
 <span class="lineno">    3 </span>  ( module Model.Slot.Types
 <span class="lineno">    4 </span>  , lookupSlot
@@ -26,7 +26,7 @@ span.spaces    { background: white }
 <span class="lineno">   10 </span>import Database.PostgreSQL.Typed.Types
 <span class="lineno">   11 </span>import qualified Data.String
 <span class="lineno">   12 </span>
-<span class="lineno">   13 </span>import qualified JSON as JSON
+<span class="lineno">   13 </span>import qualified JSON
 <span class="lineno">   14 </span>import Service.DB
 <span class="lineno">   15 </span>import Model.Id
 <span class="lineno">   16 </span>import Model.Identity
@@ -86,7 +86,7 @@ span.spaces    { background: white }
 <span class="lineno">   70 </span>
 <span class="lineno">   71 </span>slotJSON :: JSON.ToObject o =&gt; Slot -&gt; JSON.Record (Id Container) o
 <span class="lineno">   72 </span><span class="decl"><span class="nottickedoff">slotJSON Slot{..} = containerJSON False slotContainer -- probably add bool to slotJSON</span>
-<span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">`JSON.foldObjectIntoRec` (segmentJSON slotSegment)</span></span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">`JSON.foldObjectIntoRec` segmentJSON slotSegment</span></span>
 
 </pre>
 </body>

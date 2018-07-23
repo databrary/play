@@ -19,7 +19,7 @@ span.spaces    { background: white }
 <span class="lineno">    3 </span>  ( slotAssetRow
 <span class="lineno">    4 </span>  , makeSlotAsset
 <span class="lineno">    5 </span>  , selectContainerSlotAsset
-<span class="lineno">    6 </span>  -- , selectOrigContainerSlotAsset 
+<span class="lineno">    6 </span>  -- , selectOrigContainerSlotAsset
 <span class="lineno">    7 </span>  , selectAssetSlotAsset
 <span class="lineno">    8 </span>  , selectVolumeSlotAsset
 <span class="lineno">    9 </span>  , selectVolumeSlotIdAsset
@@ -72,7 +72,7 @@ span.spaces    { background: white }
 <span class="lineno">   56 </span>-}
 <span class="lineno">   57 </span>
 <span class="lineno">   58 </span>makeVolumeSlotIdAsset :: SlotId -&gt; AssetRow -&gt; Volume -&gt; (Asset, SlotId)
-<span class="lineno">   59 </span><span class="decl"><span class="istickedoff">makeVolumeSlotIdAsset s ar v = (Asset ar v, s)</span></span>
+<span class="lineno">   59 </span><span class="decl"><span class="nottickedoff">makeVolumeSlotIdAsset s ar v = (Asset ar v, s)</span></span>
 <span class="lineno">   60 </span>
 <span class="lineno">   61 </span>selectVolumeSlotIdAsset :: Selector -- ^ @'Volume' -&gt; ('Asset', 'SlotId')@
 <span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">selectVolumeSlotIdAsset = selectJoin 'makeVolumeSlotIdAsset</span>

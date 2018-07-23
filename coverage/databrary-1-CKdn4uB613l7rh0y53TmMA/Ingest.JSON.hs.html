@@ -106,7 +106,7 @@ span.spaces    { background: white }
 <span class="lineno">   90 </span>
 <span class="lineno">   91 </span>asCategory :: (Monad m) =&gt; JE.ParseT T.Text m Category
 <span class="lineno">   92 </span><span class="decl"><span class="nottickedoff">asCategory =</span>
-<span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">JE.withIntegral (err . getCategory . Id) `catchError` \_ -&gt; do</span>
+<span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">JE.withIntegral (err . getCategory . Id) `catchError` \_ -&gt;</span>
 <span class="lineno">   94 </span><span class="spaces">    </span><span class="nottickedoff">JE.withText (\n -&gt; err $ find ((n ==) . categoryName) allCategories)</span>
 <span class="lineno">   95 </span><span class="spaces">  </span><span class="nottickedoff">where err = maybe (Left &quot;category not found&quot;) Right</span></span>
 <span class="lineno">   96 </span>
@@ -178,7 +178,7 @@ span.spaces    { background: white }
 <span class="lineno">  162 </span><span class="spaces">        </span><span class="istickedoff">inObj <span class="nottickedoff">c</span> $ lift $ addIngestContainer c key</span>
 <span class="lineno">  163 </span><span class="spaces">        </span><span class="istickedoff">return <span class="nottickedoff">c</span>)</span>
 <span class="lineno">  164 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(\c -&gt; inObj c $ do</span></span>
-<span class="lineno">  165 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">unless (all (containerId (containerRow c) ==) cid) $ do</span></span>
+<span class="lineno">  165 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">unless (all (containerId (containerRow c) ==) cid) $</span></span>
 <span class="lineno">  166 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">throwPE &quot;id mismatch&quot;</span></span>
 <span class="lineno">  167 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">top &lt;- fmap join . JE.keyMay &quot;top&quot; $ check (containerTop $ containerRow c) =&lt;&lt; JE.asBool</span></span>
 <span class="lineno">  168 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">name &lt;- fmap join . JE.keyMay &quot;name&quot; $ check (containerName $ containerRow c) =&lt;&lt; JE.perhaps JE.asText</span></span>
@@ -251,7 +251,7 @@ span.spaces    { background: white }
 <span class="lineno">  235 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">return r)</span></span>
 <span class="lineno">  236 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">-- there has been a prior ingest using the same key for this record</span></span>
 <span class="lineno">  237 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(\priorIngestRecord -&gt; inObj priorIngestRecord $ do</span></span>
-<span class="lineno">  238 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">unless (all (recordId (recordRow priorIngestRecord) ==) rid) $ do -- all here refers to either value in maybe or nothing</span></span>
+<span class="lineno">  238 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">unless (all (recordId (recordRow priorIngestRecord) ==) rid) $ -- all here refers to either value in maybe or nothing</span></span>
 <span class="lineno">  239 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">throwPE &quot;id mismatch&quot;</span></span>
 <span class="lineno">  240 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">_ &lt;- JE.key &quot;category&quot; $ do</span></span>
 <span class="lineno">  241 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">(category :: Category) &lt;- asCategory</span></span>
@@ -296,7 +296,7 @@ span.spaces    { background: white }
 <span class="lineno">  280 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">&lt;$&gt; (either throwPE return</span></span>
 <span class="lineno">  281 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">=&lt;&lt; lift (probeFile stageFileRelRaw stageFileRelAbs))</span></span>
 <span class="lineno">  282 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">&lt;*&gt; lift (lookupIngestAsset vol $ stageFileRel file))</span></span>
-<span class="lineno">  283 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">=&lt;&lt; (JE.keyMay &quot;id&quot; $ do</span></span>
+<span class="lineno">  283 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">=&lt;&lt; JE.keyMay &quot;id&quot; (</span></span>
 <span class="lineno">  284 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">maybe (throwPE &quot;asset not found&quot;) (return . (,) Nothing . Just) =&lt;&lt; lift . lookupVolumeAsset vol . Id =&lt;&lt; JE.asIntegral)</span></span>
 <span class="lineno">  285 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">when (isNothing $ fst sa) $ noKey &quot;file&quot;</span></span>
 <span class="lineno">  286 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">orig &lt;- JE.keyMay &quot;replace&quot; $</span></span>

@@ -14,7 +14,7 @@ span.spaces    { background: white }
 </head>
 <body>
 <pre>
-<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, ViewPatterns #-}
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
 <span class="lineno">    2 </span>module Controller.Zip
 <span class="lineno">    3 </span>  ( zipContainer
 <span class="lineno">    4 </span>  , zipVolume
@@ -117,7 +117,7 @@ span.spaces    { background: white }
 <span class="lineno">  101 </span>volumeZipEntry2 :: Bool -&gt; Volume -&gt; (Container, [RecordSlot]) -&gt; IdSet Container -&gt; Maybe BSB.Builder -&gt; [AssetSlot] -&gt; Handler (ZIP.ZipArchive ())
 <span class="lineno">  102 </span><span class="decl"><span class="nottickedoff">volumeZipEntry2 isOrig v top cs csv al = do</span>
 <span class="lineno">  103 </span><span class="spaces">  </span><span class="nottickedoff">(desc, at, ab) &lt;- volumeDescription True v top cs al -- the actual asset slot's assets arent' used any more for containers, now container zip entry does that</span>
-<span class="lineno">  104 </span><span class="spaces">  </span><span class="nottickedoff">let zipDir = (makeFilename $ volumeDownloadName v ++ if idSetIsFull cs then [] else [&quot;PARTIAL&quot;]) &lt;&gt; &quot;/&quot;</span>
+<span class="lineno">  104 </span><span class="spaces">  </span><span class="nottickedoff">let zipDir = makeFilename (volumeDownloadName v ++ if idSetIsFull cs then [] else [&quot;PARTIAL&quot;]) &lt;&gt; &quot;/&quot;</span>
 <span class="lineno">  105 </span><span class="spaces">  </span><span class="nottickedoff">zt &lt;- mapM (ent zipDir) at</span>
 <span class="lineno">  106 </span><span class="spaces">  </span><span class="nottickedoff">zb &lt;- mapM (ent (zipDir &lt;&gt; &quot;sessions/&quot;)) ab</span>
 <span class="lineno">  107 </span><span class="spaces">  </span><span class="nottickedoff">descEntrySelector &lt;- liftIO $ (parseRelFile (BSC.unpack zipDir &lt;&gt; &quot;description.html&quot;) &gt;&gt;= ZIP.mkEntrySelector)</span>
@@ -210,7 +210,7 @@ span.spaces    { background: white }
 <span class="lineno">  194 </span><span class="spaces">  </span><span class="nottickedoff">(v, s, a) &lt;- getVolumeInfo vi</span>
 <span class="lineno">  195 </span><span class="spaces">  </span><span class="nottickedoff">top:cr &lt;- lookupVolumeContainersRecords v</span>
 <span class="lineno">  196 </span><span class="spaces">  </span><span class="nottickedoff">let cr' = filter ((`RS.member` s) . containerId . containerRow . fst) cr</span>
-<span class="lineno">  197 </span><span class="spaces">  </span><span class="nottickedoff">csv &lt;- (null cr') `unlessReturn` (volumeCSV v cr')</span>
+<span class="lineno">  197 </span><span class="spaces">  </span><span class="nottickedoff">csv &lt;- null cr' `unlessReturn` volumeCSV v cr'</span>
 <span class="lineno">  198 </span><span class="spaces">  </span><span class="nottickedoff">zipActs &lt;- volumeZipEntry2 isOrig v top s (buildCSV &lt;$&gt; csv) a</span>
 <span class="lineno">  199 </span><span class="spaces">  </span><span class="nottickedoff">auditVolumeDownload (not $ null a) v</span>
 <span class="lineno">  200 </span><span class="spaces">  </span><span class="nottickedoff">zipResponse2 (BSC.pack $ &quot;databrary-&quot; ++ show (volumeId $ volumeRow v) ++ if idSetIsFull s then &quot;&quot; else &quot;-partial&quot;) zipActs</span></span>

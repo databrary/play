@@ -119,11 +119,11 @@ span.spaces    { background: white }
 <span class="lineno">  103 </span><span class="spaces">  </span><span class="istickedoff">case as of</span>
 <span class="lineno">  104 </span><span class="spaces">    </span><span class="istickedoff">AssetSegment{ segmentAsset = a, assetExcerpt = Just e } -&gt;</span>
 <span class="lineno">  105 </span><span class="spaces">      </span><span class="istickedoff">let</span>
-<span class="lineno">  106 </span><span class="spaces">        </span><span class="istickedoff">rel = </span>
+<span class="lineno">  106 </span><span class="spaces">        </span><span class="istickedoff">rel =</span>
 <span class="lineno">  107 </span><span class="spaces">           </span><span class="istickedoff">fold (</span>
 <span class="lineno">  108 </span><span class="spaces">                </span><span class="istickedoff">excerptRelease e  -- Maybe Release monoid takes the first just, if both just, then max of values</span>
 <span class="lineno">  109 </span><span class="spaces">             </span><span class="istickedoff">&lt;&gt; getAssetSlotReleaseMaybe a) -- TODO: should I expose the guts of getAssetSlotRelease2?</span>
-<span class="lineno">  110 </span><span class="spaces">      </span><span class="istickedoff">in </span>
+<span class="lineno">  110 </span><span class="spaces">      </span><span class="istickedoff">in</span>
 <span class="lineno">  111 </span><span class="spaces">        </span><span class="istickedoff">EffectiveRelease {</span>
 <span class="lineno">  112 </span><span class="spaces">          </span><span class="istickedoff">effRelPublic = rel</span>
 <span class="lineno">  113 </span><span class="spaces">        </span><span class="istickedoff">, effRelPrivate = rel</span>

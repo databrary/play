@@ -7,7 +7,7 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE OverloadedStrings, TemplateHaskell, RecordWildCards #-}</span>
+<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE OverloadedStrings, RecordWildCards #-}</span>
 <a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Service</span><span class='hs-varop'>.</span><span class='hs-conid'>Init</span>
 <a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>withService</span>
 <a name="line-4"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
@@ -88,7 +88,7 @@
 <a name="line-79"></a>        <span class='hs-layout'>,</span> <span class='hs-varid'>serviceNotification</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>notify</span>
 <a name="line-80"></a>        <span class='hs-layout'>,</span> <span class='hs-varid'>serviceDown</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>conf</span> <span class='hs-conid'>C</span><span class='hs-varop'>.!</span> <span class='hs-str'>"store.DOWN"</span>
 <a name="line-81"></a>        <span class='hs-layout'>}</span>
-<a name="line-82"></a>  <span class='hs-varid'>periodic</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>fg</span> <span class='hs-varop'>`thenReturn`</span> <span class='hs-layout'>(</span><span class='hs-varid'>forkPeriodic</span> <span class='hs-varid'>rc</span><span class='hs-layout'>)</span>
+<a name="line-82"></a>  <span class='hs-varid'>periodic</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>fg</span> <span class='hs-varop'>`thenReturn`</span> <span class='hs-varid'>forkPeriodic</span> <span class='hs-varid'>rc</span>
 <a name="line-83"></a>  <span class='hs-varid'>when</span> <span class='hs-varid'>fg</span> <span class='hs-varop'>$</span> <span class='hs-varid'>void</span> <span class='hs-varop'>$</span> <span class='hs-varid'>forkNotifier</span> <span class='hs-varid'>rc</span>
 <a name="line-84"></a>  <span class='hs-varid'>return</span> <span class='hs-varop'>$!</span> <span class='hs-varid'>rc</span>
 <a name="line-85"></a>    <span class='hs-layout'>{</span> <span class='hs-varid'>servicePeriodic</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>periodic</span>

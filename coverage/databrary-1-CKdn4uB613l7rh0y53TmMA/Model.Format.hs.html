@@ -14,7 +14,7 @@ span.spaces    { background: white }
 </head>
 <body>
 <pre>
-<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, RecordWildCards, ViewPatterns #-}
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, ViewPatterns #-}
 <span class="lineno">    2 </span>module Model.Format
 <span class="lineno">    3 </span>  ( module Model.Format.Types
 <span class="lineno">    4 </span>  , mimeTypeTop
@@ -48,7 +48,7 @@ span.spaces    { background: white }
 <span class="lineno">   32 </span>import Data.Monoid ((&lt;&gt;))
 <span class="lineno">   33 </span>import System.Posix.FilePath (RawFilePath, splitExtension, takeExtension, addExtension)
 <span class="lineno">   34 </span>
-<span class="lineno">   35 </span>import qualified JSON as JSON
+<span class="lineno">   35 </span>import qualified JSON
 <span class="lineno">   36 </span>import Model.Id
 <span class="lineno">   37 </span>import Model.Format.Types
 <span class="lineno">   38 </span>

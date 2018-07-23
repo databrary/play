@@ -40,7 +40,7 @@ span.spaces    { background: white }
 <span class="lineno">   24 </span>
 <span class="lineno">   25 </span>import Ops
 <span class="lineno">   26 </span>import Has
-<span class="lineno">   27 </span>import qualified JSON as JSON
+<span class="lineno">   27 </span>import qualified JSON
 <span class="lineno">   28 </span>import Model.Id.Types
 <span class="lineno">   29 </span>import Model.Party
 <span class="lineno">   30 </span>import Model.Identity
@@ -162,10 +162,10 @@ span.spaces    { background: white }
 <span class="lineno">  146 </span><span class="decl"><span class="nottickedoff">postUserAction api = do</span>
 <span class="lineno">  147 </span><span class="spaces">  </span><span class="nottickedoff">auth &lt;- peek</span>
 <span class="lineno">  148 </span><span class="spaces">  </span><span class="nottickedoff">let acct = siteAccount auth</span>
-<span class="lineno">  149 </span><span class="spaces">  </span><span class="nottickedoff">auth' &lt;- runForm ((api == HTML) `thenUse` (htmlUserForm acct)) $ do</span>
+<span class="lineno">  149 </span><span class="spaces">  </span><span class="nottickedoff">auth' &lt;- runForm ((api == HTML) `thenUse` htmlUserForm acct) $ do</span>
 <span class="lineno">  150 </span><span class="spaces">    </span><span class="nottickedoff">csrfForm</span>
 <span class="lineno">  151 </span><span class="spaces">    </span><span class="nottickedoff">-- TODO: pass old password into UpdateUserRequest</span>
-<span class="lineno">  152 </span><span class="spaces">    </span><span class="nottickedoff">&quot;auth&quot; .:&gt; (deformGuard &quot;Incorrect password&quot; . (\pw -&gt; pw `checkPassword` auth) =&lt;&lt; deform)</span>
+<span class="lineno">  152 </span><span class="spaces">    </span><span class="nottickedoff">&quot;auth&quot; .:&gt; (deformGuard &quot;Incorrect password&quot; . (`checkPassword` auth) =&lt;&lt; deform)</span>
 <span class="lineno">  153 </span><span class="spaces">    </span><span class="nottickedoff">email &lt;- &quot;email&quot; .:&gt; deformNonEmpty emailTextForm</span>
 <span class="lineno">  154 </span><span class="spaces">    </span><span class="nottickedoff">passwd &lt;- &quot;password&quot; .:&gt; deformNonEmpty (passwordForm acct)</span>
 <span class="lineno">  155 </span><span class="spaces">    </span><span class="nottickedoff">let _ = UpdateUserRequest () email passwd</span>

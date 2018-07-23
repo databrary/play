@@ -29,7 +29,7 @@ span.spaces    { background: white }
 <span class="lineno">   13 </span>import qualified Text.Blaze.Html5.Attributes as HA
 <span class="lineno">   14 </span>
 <span class="lineno">   15 </span>import Has (view)
-<span class="lineno">   16 </span>import qualified JSON as JSON
+<span class="lineno">   16 </span>import qualified JSON
 <span class="lineno">   17 </span>import Service.Types
 <span class="lineno">   18 </span>import Model.Identity
 <span class="lineno">   19 </span>import Action.Types
@@ -79,7 +79,7 @@ span.spaces    { background: white }
 <span class="lineno">   63 </span><span class="spaces">    </span><span class="nottickedoff">H.link</span>
 <span class="lineno">   64 </span><span class="spaces">      </span><span class="nottickedoff">H.! HA.rel &quot;stylesheet&quot;</span>
 <span class="lineno">   65 </span><span class="spaces">      </span><span class="nottickedoff">H.! HA.href &quot;https://fonts.googleapis.com/css?family=Questrial&quot;</span>
-<span class="lineno">   66 </span><span class="spaces">    </span><span class="nottickedoff">H.script $ do</span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="nottickedoff">H.script $</span>
 <span class="lineno">   67 </span><span class="spaces">      </span><span class="nottickedoff">H.preEscapedString &quot;(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&amp;l='+l:'';j.async=true;j.src= 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f); })(window,document,'script','dataLayer','GTM-NW6PSFL');&quot;</span>
 <span class="lineno">   68 </span><span class="spaces">    </span><span class="nottickedoff">H.script $ do</span>
 <span class="lineno">   69 </span><span class="spaces">      </span><span class="nottickedoff">H.preEscapedString &quot;window.$play={user:&quot;</span>

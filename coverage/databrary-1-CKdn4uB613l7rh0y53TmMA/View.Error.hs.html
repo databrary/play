@@ -27,11 +27,11 @@ span.spaces    { background: white }
 <span class="lineno">   11 </span>import View.Template
 <span class="lineno">   12 </span>
 <span class="lineno">   13 </span>htmlNotFound :: RequestContext -&gt; H.Html
-<span class="lineno">   14 </span><span class="decl"><span class="nottickedoff">htmlNotFound req = htmlTemplate req (Just &quot;Not found&quot;) $ \_ -&gt; do</span>
+<span class="lineno">   14 </span><span class="decl"><span class="nottickedoff">htmlNotFound req = htmlTemplate req (Just &quot;Not found&quot;) $ \_ -&gt;</span>
 <span class="lineno">   15 </span><span class="spaces">  </span><span class="nottickedoff">void $ &quot;The resource you requested may no longer be available.&quot;</span></span>
 <span class="lineno">   16 </span>
 <span class="lineno">   17 </span>htmlForbidden :: RequestContext -&gt; H.Html
-<span class="lineno">   18 </span><span class="decl"><span class="nottickedoff">htmlForbidden req = htmlTemplate req (Just &quot;Access denied&quot;) $ \_ -&gt; do</span>
+<span class="lineno">   18 </span><span class="decl"><span class="nottickedoff">htmlForbidden req = htmlTemplate req (Just &quot;Access denied&quot;) $ \_ -&gt;</span>
 <span class="lineno">   19 </span><span class="spaces">  </span><span class="nottickedoff">void $ &quot;You do not have access to the requested resource.&quot;</span></span>
 
 </pre>

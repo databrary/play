@@ -81,7 +81,7 @@
 <a name="line-72"></a>    <span class='hs-varid'>return</span> <span class='hs-varop'>$</span> <span class='hs-varid'>diffTimeOffset</span> <span class='hs-varid'>dt</span>
 <a name="line-73"></a>  <span class='hs-keyword'>where</span>
 <a name="line-74"></a>    <span class='hs-varid'>dd</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>diffDays</span> <span class='hs-varid'>d'</span> <span class='hs-varid'>d</span>
-<a name="line-75"></a>    <span class='hs-varid'>dt</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>fromInteger</span> <span class='hs-varid'>dd</span><span class='hs-layout'>)</span><span class='hs-varop'>*</span><span class='hs-varid'>day</span> <span class='hs-varop'>+</span> <span class='hs-varid'>timeOfDayToTime</span> <span class='hs-varid'>t</span>
+<a name="line-75"></a>    <span class='hs-varid'>dt</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>fromInteger</span> <span class='hs-varid'>dd</span><span class='hs-varop'>*</span><span class='hs-varid'>day</span> <span class='hs-varop'>+</span> <span class='hs-varid'>timeOfDayToTime</span> <span class='hs-varid'>t</span>
 <a name="line-76"></a>    <span class='hs-varid'>day2</span> <span class='hs-keyglyph'>=</span> <span class='hs-num'>43200</span>
 <a name="line-77"></a>    <span class='hs-varid'>day</span> <span class='hs-keyglyph'>=</span> <span class='hs-num'>2</span><span class='hs-varop'>*</span><span class='hs-varid'>day2</span>
 <a name="line-78"></a><span class='hs-definition'>probeAutoPosition</span> <span class='hs-varid'>c</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>findAssetContainerEnd</span> <span class='hs-varid'>c</span>

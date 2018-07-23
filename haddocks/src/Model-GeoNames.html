@@ -7,7 +7,7 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies #-}</span>
+<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE OverloadedStrings, TypeFamilies #-}</span>
 <a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>GeoNames</span>
 <a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-conid'>GeoName</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
 <a name="line-4"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>geoNameUS</span>
@@ -25,7 +25,7 @@
 <a name="line-16"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>T</span>
 <a name="line-17"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Network</span><span class='hs-varop'>.</span><span class='hs-conid'>HTTP</span><span class='hs-varop'>.</span><span class='hs-conid'>Client</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>HC</span>
 <a name="line-18"></a>
-<a name="line-19"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>JSON</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>JSON</span>
+<a name="line-19"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>JSON</span>
 <a name="line-20"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>HTTP</span><span class='hs-varop'>.</span><span class='hs-conid'>Client</span>
 <a name="line-21"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Id</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
 <a name="line-22"></a>

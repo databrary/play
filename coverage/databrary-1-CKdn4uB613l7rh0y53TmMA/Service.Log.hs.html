@@ -50,7 +50,7 @@ span.spaces    { background: white }
 <span class="lineno">   34 </span>type MonadLog c m = (MonadHas Logs c m, MonadIO m)
 <span class="lineno">   35 </span>
 <span class="lineno">   36 </span>initLog :: FilePath -&gt; C.Config -&gt; IO (Maybe LoggerSet)
-<span class="lineno">   37 </span><span class="decl"><span class="istickedoff">initLog def conf = do</span>
+<span class="lineno">   37 </span><span class="decl"><span class="istickedoff">initLog def conf =</span>
 <span class="lineno">   38 </span><span class="spaces">  </span><span class="istickedoff">case file of</span>
 <span class="lineno">   39 </span><span class="spaces">    </span><span class="istickedoff">&quot;&quot; -&gt; <span class="nottickedoff">return Nothing</span></span>
 <span class="lineno">   40 </span><span class="spaces">    </span><span class="istickedoff">&quot;stdout&quot; -&gt; <span class="nottickedoff">Just</span> &lt;$&gt; newStdoutLoggerSet buf</span>
@@ -122,7 +122,7 @@ span.spaces    { background: white }
 <span class="lineno">  106 </span><span class="spaces">  </span><span class="nottickedoff">rh = Wai.responseHeaders r</span></span>
 <span class="lineno">  107 </span>
 <span class="lineno">  108 </span>logMsg :: ToLogStr a =&gt; Timestamp -&gt; a -&gt; Logs -&gt; IO ()
-<span class="lineno">  109 </span><span class="decl"><span class="istickedoff">logMsg t m Logs{ loggerMessages = Just l } = do</span>
+<span class="lineno">  109 </span><span class="decl"><span class="istickedoff">logMsg t m Logs{ loggerMessages = Just l } =</span>
 <span class="lineno">  110 </span><span class="spaces">  </span><span class="istickedoff">logStr l t $ str m</span>
 <span class="lineno">  111 </span><span class="spaces"></span><span class="istickedoff">logMsg _ _ _ = <span class="nottickedoff">return ()</span></span></span>
 <span class="lineno">  112 </span>

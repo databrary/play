@@ -57,14 +57,14 @@ span.spaces    { background: white }
 <span class="lineno">   41 </span>    -- ^ Just returns the 3rd arg, unless it short-circuits with a 403.
 <span class="lineno">   42 </span><span class="decl"><span class="nottickedoff">checkPermission getCurrentUserPermLevel requestingAccessAtPermLevel obj = do</span>
 <span class="lineno">   43 </span><span class="spaces">  </span><span class="nottickedoff">unless (getCurrentUserPermLevel obj &gt;= requestingAccessAtPermLevel) $ do</span>
-<span class="lineno">   44 </span><span class="spaces">    </span><span class="nottickedoff">resp &lt;- peeks (\reqCtxt -&gt; forbiddenResponse reqCtxt)</span>
+<span class="lineno">   44 </span><span class="spaces">    </span><span class="nottickedoff">resp &lt;- peeks forbiddenResponse</span>
 <span class="lineno">   45 </span><span class="spaces">    </span><span class="nottickedoff">result resp</span>
 <span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">return obj</span></span>
 <span class="lineno">   47 </span>
 <span class="lineno">   48 </span>userCanReadData :: (a -&gt; EffectiveRelease) -&gt; (a -&gt; VolumeRolePolicy) -&gt; a -&gt; Handler a
 <span class="lineno">   49 </span><span class="decl"><span class="nottickedoff">userCanReadData getObjEffectiveRelease getCurrentUserPermLevel obj = do</span>
 <span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">unless (canReadData2 getObjEffectiveRelease getCurrentUserPermLevel obj) $ do</span>
-<span class="lineno">   51 </span><span class="spaces">    </span><span class="nottickedoff">resp &lt;- peeks (\reqCtxt -&gt; forbiddenResponse reqCtxt)</span>
+<span class="lineno">   51 </span><span class="spaces">    </span><span class="nottickedoff">resp &lt;- peeks forbiddenResponse</span>
 <span class="lineno">   52 </span><span class="spaces">    </span><span class="nottickedoff">result resp</span>
 <span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">return obj</span></span>
 <span class="lineno">   54 </span>

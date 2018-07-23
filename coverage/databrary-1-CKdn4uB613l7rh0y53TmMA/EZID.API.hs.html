@@ -14,7 +14,7 @@ span.spaces    { background: white }
 </head>
 <body>
 <pre>
-<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell, OverloadedStrings, RecordWildCards #-}
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 <span class="lineno">    2 </span>module EZID.API
 <span class="lineno">    3 </span>  ( EZIDM
 <span class="lineno">    4 </span>  , runEZIDM
@@ -64,21 +64,21 @@ span.spaces    { background: white }
 <span class="lineno">   48 </span>  }
 <span class="lineno">   49 </span>
 <span class="lineno">   50 </span>instance Has Model.Permission.Types.Access EZIDContext where
-<span class="lineno">   51 </span>  <span class="decl"><span class="nottickedoff">view = (view . ezidContext)</span></span>
+<span class="lineno">   51 </span>  <span class="decl"><span class="nottickedoff">view = view . ezidContext</span></span>
 <span class="lineno">   52 </span>instance Has (Model.Id.Types.Id Model.Party.Types.Party) EZIDContext where
-<span class="lineno">   53 </span>  <span class="decl"><span class="nottickedoff">view = (view . ezidContext)</span></span>
+<span class="lineno">   53 </span>  <span class="decl"><span class="nottickedoff">view = view . ezidContext</span></span>
 <span class="lineno">   54 </span>instance Has Model.Party.Types.Party EZIDContext where
-<span class="lineno">   55 </span>   <span class="decl"><span class="nottickedoff">view = (view . ezidContext)</span></span>
+<span class="lineno">   55 </span>   <span class="decl"><span class="nottickedoff">view = view . ezidContext</span></span>
 <span class="lineno">   56 </span>instance Has Model.Party.Types.SiteAuth EZIDContext where
-<span class="lineno">   57 </span>  <span class="decl"><span class="nottickedoff">view = (view . ezidContext)</span></span>
+<span class="lineno">   57 </span>  <span class="decl"><span class="nottickedoff">view = view . ezidContext</span></span>
 <span class="lineno">   58 </span>instance Has Model.Identity.Types.Identity EZIDContext where
-<span class="lineno">   59 </span>  <span class="decl"><span class="istickedoff">view = (view . <span class="nottickedoff">ezidContext</span>)</span></span>
+<span class="lineno">   59 </span>  <span class="decl"><span class="istickedoff">view = view . <span class="nottickedoff">ezidContext</span></span></span>
 <span class="lineno">   60 </span>instance Has Service.DB.DBConn EZIDContext where
-<span class="lineno">   61 </span>  <span class="decl"><span class="istickedoff">view = (view . ezidContext)</span></span>
+<span class="lineno">   61 </span>  <span class="decl"><span class="istickedoff">view = view . ezidContext</span></span>
 <span class="lineno">   62 </span>instance Has Logs EZIDContext where
-<span class="lineno">   63 </span>  <span class="decl"><span class="istickedoff">view = (view . ezidContext)</span></span>
+<span class="lineno">   63 </span>  <span class="decl"><span class="istickedoff">view = view . ezidContext</span></span>
 <span class="lineno">   64 </span>instance Has HTTPClient EZIDContext where
-<span class="lineno">   65 </span>  <span class="decl"><span class="istickedoff">view = (view . ezidContext)</span></span>
+<span class="lineno">   65 </span>  <span class="decl"><span class="istickedoff">view = view . ezidContext</span></span>
 <span class="lineno">   66 </span>instance Has EZID EZIDContext where
 <span class="lineno">   67 </span>  <span class="decl"><span class="istickedoff">view = contextEZID</span></span>
 <span class="lineno">   68 </span>

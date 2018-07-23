@@ -86,14 +86,14 @@ span.spaces    { background: white }
 <span class="lineno">   70 </span><span class="spaces">        </span><span class="istickedoff">[119, 101, 101, 107, 108, 121] -&gt; <span class="nottickedoff">DeliveryWeekly</span></span>
 <span class="lineno">   71 </span><span class="spaces">        </span><span class="istickedoff">[100, 97, 105, 108, 121] -&gt; <span class="nottickedoff">DeliveryDaily</span></span>
 <span class="lineno">   72 </span><span class="spaces">        </span><span class="istickedoff">[97, 115, 121, 110, 99] -&gt; DeliveryAsync</span>
-<span class="lineno">   73 </span><span class="spaces">        </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">error (&quot;pgDecode notice_delivery: &quot; ++ (BSC.unpack x_a42l0))</span></span></span>
+<span class="lineno">   73 </span><span class="spaces">        </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">error (&quot;pgDecode notice_delivery: &quot; ++ BSC.unpack x_a42l0)</span></span></span>
 <span class="lineno">   74 </span>instance PGRep &quot;notice_delivery&quot; Delivery
 <span class="lineno">   75 </span>instance Database.PostgreSQL.Typed.Enum.PGEnum Delivery
 <span class="lineno">   76 </span>instance Kinded Delivery where
 <span class="lineno">   77 </span>  <span class="decl"><span class="nottickedoff">kindOf _ = &quot;notice_delivery&quot;</span></span>
 <span class="lineno">   78 </span>instance DBEnum Delivery
 <span class="lineno">   79 </span>instance JSON.ToJSON Delivery where
-<span class="lineno">   80 </span>  <span class="decl"><span class="nottickedoff">toJSON = (JSON.toJSON . fromEnum)</span></span>
+<span class="lineno">   80 </span>  <span class="decl"><span class="nottickedoff">toJSON = JSON.toJSON . fromEnum</span></span>
 <span class="lineno">   81 </span>instance JSON.FromJSON Delivery where
 <span class="lineno">   82 </span>  <span class="decl"><span class="nottickedoff">parseJSON = parseJSONEnum</span></span>
 <span class="lineno">   83 </span>instance Deform f_a42l1 Delivery where

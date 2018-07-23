@@ -38,7 +38,7 @@ span.spaces    { background: white }
 <span class="lineno">   22 </span>import Database.PostgreSQL.Typed (pgSQL)
 <span class="lineno">   23 </span>
 <span class="lineno">   24 </span>import Has
-<span class="lineno">   25 </span>import qualified JSON as JSON
+<span class="lineno">   25 </span>import qualified JSON
 <span class="lineno">   26 </span>import Service.DB
 <span class="lineno">   27 </span>import Model.SQL
 <span class="lineno">   28 </span>import Model.Id.Types
@@ -103,12 +103,12 @@ span.spaces    { background: white }
 <span class="lineno">   87 </span><span class="decl"><span class="nottickedoff">removeMatchingNotifications Notification{..} =</span>
 <span class="lineno">   88 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute [pgSQL|DELETE FROM notification</span>
 <span class="lineno">   89 </span><span class="spaces">    </span><span class="nottickedoff">WHERE notice = ${notificationNotice}</span>
-<span class="lineno">   90 </span><span class="spaces">      </span><span class="nottickedoff">AND target = COALESCE(${mfilter (no /=) $ Just $ partyId $ partyRow $ accountParty notificationTarget}, target) </span>
-<span class="lineno">   91 </span><span class="spaces">      </span><span class="nottickedoff">AND agent = COALESCE(${mfilter (no /=) $ Just $ partyId notificationAgent}, agent) </span>
+<span class="lineno">   90 </span><span class="spaces">      </span><span class="nottickedoff">AND target = COALESCE(${mfilter (no /=) $ Just $ partyId $ partyRow $ accountParty notificationTarget}, target)</span>
+<span class="lineno">   91 </span><span class="spaces">      </span><span class="nottickedoff">AND agent = COALESCE(${mfilter (no /=) $ Just $ partyId notificationAgent}, agent)</span>
 <span class="lineno">   92 </span><span class="spaces">      </span><span class="nottickedoff">AND COALESCE(party, -1) = COALESCE(${partyId &lt;$&gt; notificationParty}, party, -1)</span>
 <span class="lineno">   93 </span><span class="spaces">      </span><span class="nottickedoff">AND COALESCE(volume, -1) = COALESCE(${volumeId &lt;$&gt; notificationVolume}, volume, -1)</span>
 <span class="lineno">   94 </span><span class="spaces">      </span><span class="nottickedoff">AND COALESCE(container, -1) = COALESCE(${notificationContainerId}, container, -1)</span>
-<span class="lineno">   95 </span><span class="spaces">      </span><span class="nottickedoff">AND COALESCE(segment, 'empty') &lt;@ ${fromMaybe fullSegment notificationSegment} </span>
+<span class="lineno">   95 </span><span class="spaces">      </span><span class="nottickedoff">AND COALESCE(segment, 'empty') &lt;@ ${fromMaybe fullSegment notificationSegment}</span>
 <span class="lineno">   96 </span><span class="spaces">      </span><span class="nottickedoff">AND COALESCE(asset, -1) = COALESCE(${notificationAssetId}, asset, -1)</span>
 <span class="lineno">   97 </span><span class="spaces">      </span><span class="nottickedoff">AND COALESCE(comment, -1) = COALESCE(${notificationCommentId}, comment, -1)</span>
 <span class="lineno">   98 </span><span class="spaces">      </span><span class="nottickedoff">AND COALESCE(tag, -1) = COALESCE(${tagId &lt;$&gt; notificationTag}, tag, -1)</span>

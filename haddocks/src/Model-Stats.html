@@ -7,7 +7,7 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds, OverloadedStrings #-}</span>
+<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE DataKinds, OverloadedStrings #-}</span>
 <a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Stats</span>
 <a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>lookupSiteStats</span>
 <a name="line-4"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
@@ -42,9 +42,9 @@
 <a name="line-33"></a><a name="lookupSiteStats"></a><span class='hs-definition'>lookupSiteStats</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadDB</span> <span class='hs-varid'>c</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>SiteStats</span>
 <a name="line-34"></a><span class='hs-definition'>lookupSiteStats</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
 <a name="line-35"></a>  <span class='hs-varid'>ac</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>dbQuery</span>
-<a name="line-36"></a>           <span class='hs-layout'>(</span><span class='hs-varid'>fmap</span> 
+<a name="line-36"></a>           <span class='hs-layout'>(</span><span class='hs-varid'>fmap</span>
 <a name="line-37"></a>               <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-keyglyph'>[</span><span class='hs-varid'>csite</span><span class='hs-layout'>,</span> <span class='hs-varid'>ccount</span><span class='hs-keyglyph'>]</span>
-<a name="line-38"></a>                    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>pgDecodeColumn'</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"permission"</span><span class='hs-layout'>)</span> <span class='hs-varid'>csite</span><span class='hs-layout'>,</span> 
+<a name="line-38"></a>                    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>pgDecodeColumn'</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"permission"</span><span class='hs-layout'>)</span> <span class='hs-varid'>csite</span><span class='hs-layout'>,</span>
 <a name="line-39"></a>                        <span class='hs-varid'>pgDecodeColumn'</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeBigInt</span><span class='hs-layout'>)</span> <span class='hs-varid'>ccount</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
 <a name="line-40"></a>               <span class='hs-layout'>(</span><span class='hs-varid'>rawPGSimpleQuery</span> <span class='hs-str'>"SELECT site, count(child) FROM authorize_view WHERE parent = 0 AND child &gt; 4 GROUP BY site"</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
 <a name="line-41"></a>  <span class='hs-varid'>v</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>dbQuery1'</span>

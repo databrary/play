@@ -35,7 +35,7 @@ span.spaces    { background: white }
 <span class="lineno">   19 </span>import qualified Web.Route.Invertible as R
 <span class="lineno">   20 </span>
 <span class="lineno">   21 </span>import Has
-<span class="lineno">   22 </span>import qualified JSON as JSON
+<span class="lineno">   22 </span>import qualified JSON
 <span class="lineno">   23 </span>import Model.Id
 <span class="lineno">   24 </span>import Model.Permission hiding (checkPermission)
 <span class="lineno">   25 </span>import Model.Volume hiding (getVolume)
@@ -74,7 +74,7 @@ span.spaces    { background: white }
 <span class="lineno">   58 </span><span class="spaces">    </span><span class="nottickedoff">T.pack (show containerId) : maybeToList containerName</span></span>
 <span class="lineno">   59 </span>
 <span class="lineno">   60 </span>viewContainer :: ActionRoute (API, (Maybe (Id Volume), Id Container))
-<span class="lineno">   61 </span><span class="decl"><span class="nottickedoff">viewContainer = second (second $ slotContainerId . unId I.:&lt;-&gt;: containerSlotId) `R.mapActionRoute` (viewSlot False)</span></span>
+<span class="lineno">   61 </span><span class="decl"><span class="nottickedoff">viewContainer = second (second $ slotContainerId . unId I.:&lt;-&gt;: containerSlotId) `R.mapActionRoute` viewSlot False</span></span>
 <span class="lineno">   62 </span>
 <span class="lineno">   63 </span>data CreateOrUpdateContainerRequest =
 <span class="lineno">   64 </span>    CreateOrUpdateContainerRequest (Maybe (Maybe T.Text)) (Maybe Bool) (Maybe (Maybe Day)) (Maybe (Maybe Release))
@@ -116,7 +116,7 @@ span.spaces    { background: white }
 <span class="lineno">  100 </span>  -- HTML -&gt; peeks $ otherRouteResponse [] viewContainer (api, (Just vi, containerId $ containerRow c))
 <span class="lineno">  101 </span>
 <span class="lineno">  102 </span>postContainer :: ActionRoute (Id Slot)
-<span class="lineno">  103 </span><span class="decl"><span class="nottickedoff">postContainer = action POST (pathJSON &gt;/&gt; pathSlotId) $ \(ci) -&gt; withAuth $ do</span>
+<span class="lineno">  103 </span><span class="decl"><span class="nottickedoff">postContainer = action POST (pathJSON &gt;/&gt; pathSlotId) $ \ci -&gt; withAuth $ do</span>
 <span class="lineno">  104 </span><span class="spaces">  </span><span class="nottickedoff">c &lt;- getContainer PermissionEDIT Nothing ci False</span>
 <span class="lineno">  105 </span><span class="spaces">  </span><span class="nottickedoff">c' &lt;- runForm (Nothing :: Maybe (RequestContext -&gt; FormHtml a)) $ containerForm c</span>
 <span class="lineno">  106 </span><span class="spaces">  </span><span class="nottickedoff">changeContainer c'</span>
@@ -137,7 +137,7 @@ span.spaces    { background: white }
 <span class="lineno">  121 </span><span class="spaces">  </span><span class="nottickedoff">guardVerfHeader</span>
 <span class="lineno">  122 </span><span class="spaces">  </span><span class="nottickedoff">c &lt;- getContainer PermissionEDIT Nothing ci False</span>
 <span class="lineno">  123 </span><span class="spaces">  </span><span class="nottickedoff">r &lt;- removeContainer c</span>
-<span class="lineno">  124 </span><span class="spaces">  </span><span class="nottickedoff">unless r $ result $ </span>
+<span class="lineno">  124 </span><span class="spaces">  </span><span class="nottickedoff">unless r $ result $</span>
 <span class="lineno">  125 </span><span class="spaces">    </span><span class="nottickedoff">response conflict409 [] $ JSON.recordEncoding $ containerJSON False c -- False because level EDIT</span>
 <span class="lineno">  126 </span><span class="spaces">    </span><span class="nottickedoff">-- HTML -&gt; response conflict409 [] (&quot;This container is not empty.&quot; :: T.Text)</span>
 <span class="lineno">  127 </span><span class="spaces">  </span><span class="nottickedoff">return $ emptyResponse noContent204 []</span></span>

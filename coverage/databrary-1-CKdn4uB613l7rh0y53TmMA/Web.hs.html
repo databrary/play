@@ -57,11 +57,11 @@ span.spaces    { background: white }
 <span class="lineno">   41 </span><span class="spaces">  </span><span class="nottickedoff">rawFilePath webDir</span></span>
 <span class="lineno">   42 </span>
 <span class="lineno">   43 </span>withWebDir :: (WebDir -&gt; IO a) -&gt; IO a
-<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">withWebDir f = getWebDir &gt;&gt;= (\rfp -&gt; f rfp)</span></span>
+<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">withWebDir f = getWebDir &gt;&gt;= f</span></span>
 <span class="lineno">   45 </span>
 <span class="lineno">   46 </span>-- | Convert a relative path from the web root into an expanded path including web root
 <span class="lineno">   47 </span>makeWebFilePath :: RawFilePath -&gt; IO WebFilePath
-<span class="lineno">   48 </span><span class="decl"><span class="nottickedoff">makeWebFilePath r = withWebDir $ \webDirRaw -&gt; do</span>
+<span class="lineno">   48 </span><span class="decl"><span class="nottickedoff">makeWebFilePath r = withWebDir $ \webDirRaw -&gt;</span>
 <span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">return $ WebFilePath r (webDirRaw RFP.&lt;/&gt; r)</span></span>
 <span class="lineno">   50 </span>
 <span class="lineno">   51 </span>splitWebExtensions :: WebFilePath -&gt; IO (WebFilePath, BS.ByteString)

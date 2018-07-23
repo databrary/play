@@ -7,7 +7,7 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE TemplateHaskell #-}</span>
+<pre><a name="line-1"></a>
 <a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Authorize</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
 <a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-conid'>Authorization</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
 <a name="line-4"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Authorize</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
@@ -41,7 +41,7 @@
 <a name="line-32"></a><a name="instance%20Has%20Access%20Authorize"></a><span class='hs-comment'>-- instance Has Authorization Authorize where</span>
 <a name="line-33"></a><a name="instance%20Has%20Access%20Authorize"></a><span class='hs-comment'>--   view = authorization</span>
 <a name="line-34"></a><a name="instance%20Has%20Access%20Authorize"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Access</span> <span class='hs-conid'>Authorize</span> <span class='hs-keyword'>where</span>
-<a name="line-35"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>authorization</span><span class='hs-layout'>)</span>
+<a name="line-35"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>authorization</span>
 <a name="line-36"></a>
 <a name="line-37"></a><a name="mkAuthorizeRequest"></a><span class='hs-definition'>mkAuthorizeRequest</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Party</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Party</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Authorize</span>
 <a name="line-38"></a><span class='hs-definition'>mkAuthorizeRequest</span> <span class='hs-varid'>child</span> <span class='hs-varid'>parent</span> <span class='hs-keyglyph'>=</span>

@@ -62,7 +62,7 @@ span.spaces    { background: white }
 <span class="lineno">   46 </span>
 <span class="lineno">   47 </span>getStorageTempParticipantUpload :: String -&gt; Storage -&gt; RawFilePath
 <span class="lineno">   48 </span><span class="decl"><span class="nottickedoff">getStorageTempParticipantUpload uploadFile s =</span>
-<span class="lineno">   49 </span><span class="spaces">    </span><span class="nottickedoff">(storageTemp s) &lt;/&gt; &quot;participantUpload&quot; &lt;/&gt; BSC.pack uploadFile</span></span>
+<span class="lineno">   49 </span><span class="spaces">    </span><span class="nottickedoff">storageTemp s &lt;/&gt; &quot;participantUpload&quot; &lt;/&gt; BSC.pack uploadFile</span></span>
 <span class="lineno">   50 </span>
 <span class="lineno">   51 </span>type MonadStorage c m = (MonadHas Storage c m, MonadIO m)
 

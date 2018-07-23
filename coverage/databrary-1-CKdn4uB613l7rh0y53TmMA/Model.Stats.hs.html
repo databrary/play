@@ -14,7 +14,7 @@ span.spaces    { background: white }
 </head>
 <body>
 <pre>
-<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds, OverloadedStrings #-}
+<span class="lineno">    1 </span>{-# LANGUAGE DataKinds, OverloadedStrings #-}
 <span class="lineno">    2 </span>module Model.Stats
 <span class="lineno">    3 </span>  ( lookupSiteStats
 <span class="lineno">    4 </span>  ) where
@@ -49,9 +49,9 @@ span.spaces    { background: white }
 <span class="lineno">   33 </span>lookupSiteStats :: MonadDB c m =&gt; m SiteStats
 <span class="lineno">   34 </span><span class="decl"><span class="nottickedoff">lookupSiteStats = do</span>
 <span class="lineno">   35 </span><span class="spaces">  </span><span class="nottickedoff">ac &lt;- dbQuery</span>
-<span class="lineno">   36 </span><span class="spaces">           </span><span class="nottickedoff">(fmap </span>
+<span class="lineno">   36 </span><span class="spaces">           </span><span class="nottickedoff">(fmap</span>
 <span class="lineno">   37 </span><span class="spaces">               </span><span class="nottickedoff">(\[csite, ccount]</span>
-<span class="lineno">   38 </span><span class="spaces">                    </span><span class="nottickedoff">-&gt; (pgDecodeColumn' (PGTypeProxy :: PGTypeName &quot;permission&quot;) csite, </span>
+<span class="lineno">   38 </span><span class="spaces">                    </span><span class="nottickedoff">-&gt; (pgDecodeColumn' (PGTypeProxy :: PGTypeName &quot;permission&quot;) csite,</span>
 <span class="lineno">   39 </span><span class="spaces">                        </span><span class="nottickedoff">pgDecodeColumn' (PGTypeProxy :: PGTypeBigInt) ccount))</span>
 <span class="lineno">   40 </span><span class="spaces">               </span><span class="nottickedoff">(rawPGSimpleQuery &quot;SELECT site, count(child) FROM authorize_view WHERE parent = 0 AND child &gt; 4 GROUP BY site&quot;))</span>
 <span class="lineno">   41 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- dbQuery1'</span>

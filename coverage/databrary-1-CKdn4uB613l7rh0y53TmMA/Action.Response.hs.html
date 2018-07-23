@@ -56,7 +56,7 @@ span.spaces    { background: white }
 <span class="lineno">   40 </span>import qualified Text.Blaze.Html as Html
 <span class="lineno">   41 </span>import qualified Text.Blaze.Html.Renderer.Utf8 as Html
 <span class="lineno">   42 </span>
-<span class="lineno">   43 </span>import qualified JSON as JSON
+<span class="lineno">   43 </span>import qualified JSON
 <span class="lineno">   44 </span>
 <span class="lineno">   45 </span>-- | This class captures Databrary's mechanism for creating 'Response's from the
 <span class="lineno">   46 </span>-- values actually returned by handlers.
@@ -88,11 +88,11 @@ span.spaces    { background: white }
 <span class="lineno">   72 </span>instance ResponseData (Source (CND.ResourceT IO) BS.ByteString) where
 <span class="lineno">   73 </span>    <span class="decl"><span class="nottickedoff">response s h src =</span>
 <span class="lineno">   74 </span><span class="spaces">        </span><span class="nottickedoff">responseStream s h</span>
-<span class="lineno">   75 </span><span class="spaces">            </span><span class="nottickedoff">(\send _ -&gt; do</span>
+<span class="lineno">   75 </span><span class="spaces">            </span><span class="nottickedoff">(\send _ -&gt;</span>
 <span class="lineno">   76 </span><span class="spaces">                </span><span class="nottickedoff">CND.runConduitRes</span>
 <span class="lineno">   77 </span><span class="spaces">                    </span><span class="nottickedoff">(src</span>
-<span class="lineno">   78 </span><span class="spaces">                    </span><span class="nottickedoff">.| (CND.mapM_C</span>
-<span class="lineno">   79 </span><span class="spaces">                        </span><span class="nottickedoff">(\bs -&gt; CND.lift (send (DBB.fromByteString bs))))))</span></span>
+<span class="lineno">   78 </span><span class="spaces">                    </span><span class="nottickedoff">.| CND.mapM_C</span>
+<span class="lineno">   79 </span><span class="spaces">                        </span><span class="nottickedoff">(CND.lift . send . DBB.fromByteString)))</span></span>
 <span class="lineno">   80 </span>
 <span class="lineno">   81 </span>instance ResponseData StreamingBody where
 <span class="lineno">   82 </span>  <span class="decl"><span class="nottickedoff">response = responseStream</span></span>

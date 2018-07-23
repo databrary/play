@@ -26,7 +26,7 @@ span.spaces    { background: white }
 <span class="lineno">   10 </span>
 <span class="lineno">   11 </span>import Ops
 <span class="lineno">   12 </span>-- import Has
-<span class="lineno">   13 </span>import qualified JSON as JSON
+<span class="lineno">   13 </span>import qualified JSON
 <span class="lineno">   14 </span>import Model.Permission
 <span class="lineno">   15 </span>import Model.Id
 <span class="lineno">   16 </span>import Model.Container
@@ -64,12 +64,12 @@ span.spaces    { background: white }
 <span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">top &lt;- containerIsVolumeTop (slotContainer s)</span>
 <span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">forM_ p $ \r -&gt; when (on (/=) (partyId . partyRow . accountParty) (commentWho r) u) $</span>
 <span class="lineno">   50 </span><span class="spaces">    </span><span class="nottickedoff">createNotification (blankNotification (commentWho r) NoticeCommentReply)</span>
-<span class="lineno">   51 </span><span class="spaces">      </span><span class="nottickedoff">{ notificationContainerId = top `unlessUse` ((containerId . containerRow . slotContainer . commentSlot) c')</span>
+<span class="lineno">   51 </span><span class="spaces">      </span><span class="nottickedoff">{ notificationContainerId = top `unlessUse` (containerId . containerRow . slotContainer . commentSlot) c'</span>
 <span class="lineno">   52 </span><span class="spaces">      </span><span class="nottickedoff">, notificationSegment = Just $ (slotSegment . commentSlot) c'</span>
 <span class="lineno">   53 </span><span class="spaces">      </span><span class="nottickedoff">, notificationCommentId = Just $ commentId c'</span>
 <span class="lineno">   54 </span><span class="spaces">      </span><span class="nottickedoff">}</span>
 <span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">createVolumeNotification ((containerVolume . slotContainer . commentSlot) c') $ \n -&gt; (n NoticeCommentVolume)</span>
-<span class="lineno">   56 </span><span class="spaces">    </span><span class="nottickedoff">{ notificationContainerId = top `unlessUse` ((containerId . containerRow . slotContainer . commentSlot) c')</span>
+<span class="lineno">   56 </span><span class="spaces">    </span><span class="nottickedoff">{ notificationContainerId = top `unlessUse` (containerId . containerRow . slotContainer . commentSlot) c'</span>
 <span class="lineno">   57 </span><span class="spaces">    </span><span class="nottickedoff">, notificationSegment = Just $ (slotSegment . commentSlot) c'</span>
 <span class="lineno">   58 </span><span class="spaces">    </span><span class="nottickedoff">, notificationCommentId = Just $ commentId c'</span>
 <span class="lineno">   59 </span><span class="spaces">    </span><span class="nottickedoff">}</span>

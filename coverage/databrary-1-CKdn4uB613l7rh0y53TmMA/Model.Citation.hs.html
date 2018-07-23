@@ -14,7 +14,7 @@ span.spaces    { background: white }
 </head>
 <body>
 <pre>
-<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell, ScopedTypeVariables, DataKinds #-}
+<span class="lineno">    1 </span>{-# LANGUAGE ScopedTypeVariables, DataKinds #-}
 <span class="lineno">    2 </span>module Model.Citation
 <span class="lineno">    3 </span>  ( module Model.Citation.Types
 <span class="lineno">    4 </span>  , lookupVolumeCitation
@@ -43,19 +43,19 @@ span.spaces    { background: white }
 <span class="lineno">   27 </span><span class="decl"><span class="nottickedoff">lookupVolumeCitation vol = do</span>
 <span class="lineno">   28 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_aAhX = unknownPGTypeEnv</span>
 <span class="lineno">   29 </span><span class="spaces">  </span><span class="nottickedoff">mRow &lt;- dbQuery1 -- . fmap ($ Just (volumeName $ volumeRow vol)) $(selectQuery selectVolumeCitation &quot;WHERE volume_citation.volume = ${volumeId $ volumeRow vol}&quot;)</span>
-<span class="lineno">   30 </span><span class="spaces">   </span><span class="nottickedoff">(mapQuery2 </span>
+<span class="lineno">   30 </span><span class="spaces">   </span><span class="nottickedoff">(mapQuery2</span>
 <span class="lineno">   31 </span><span class="spaces">      </span><span class="nottickedoff">((\ _p_aAhY -&gt;</span>
-<span class="lineno">   32 </span><span class="spaces">                       </span><span class="nottickedoff">(Data.ByteString.concat</span>
+<span class="lineno">   32 </span><span class="spaces">                       </span><span class="nottickedoff">Data.ByteString.concat</span>
 <span class="lineno">   33 </span><span class="spaces">                          </span><span class="nottickedoff">[fromString</span>
 <span class="lineno">   34 </span><span class="spaces">                             </span><span class="nottickedoff">&quot;SELECT volume_citation.head,volume_citation.url,volume_citation.year FROM volume_citation WHERE volume_citation.volume = &quot;,</span>
 <span class="lineno">   35 </span><span class="spaces">                           </span><span class="nottickedoff">pgEscapeParameter</span>
-<span class="lineno">   36 </span><span class="spaces">                             </span><span class="nottickedoff">_tenv_aAhX (PGTypeProxy :: PGTypeName &quot;integer&quot;) _p_aAhY]))</span>
+<span class="lineno">   36 </span><span class="spaces">                             </span><span class="nottickedoff">_tenv_aAhX (PGTypeProxy :: PGTypeName &quot;integer&quot;) _p_aAhY])</span>
 <span class="lineno">   37 </span><span class="spaces">         </span><span class="nottickedoff">(volumeId $ volumeRow vol))</span>
 <span class="lineno">   38 </span><span class="spaces">               </span><span class="nottickedoff">(\[_chead_aAhZ, _curl_aAi0, _cyear_aAi1]</span>
 <span class="lineno">   39 </span><span class="spaces">                  </span><span class="nottickedoff">-&gt; (pgDecodeColumnNotNull</span>
-<span class="lineno">   40 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_aAhX (PGTypeProxy :: PGTypeName &quot;text&quot;) _chead_aAhZ, </span>
+<span class="lineno">   40 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_aAhX (PGTypeProxy :: PGTypeName &quot;text&quot;) _chead_aAhZ,</span>
 <span class="lineno">   41 </span><span class="spaces">                      </span><span class="nottickedoff">pgDecodeColumn</span>
-<span class="lineno">   42 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_aAhX (PGTypeProxy :: PGTypeName &quot;text&quot;) _curl_aAi0, </span>
+<span class="lineno">   42 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_aAhX (PGTypeProxy :: PGTypeName &quot;text&quot;) _curl_aAi0,</span>
 <span class="lineno">   43 </span><span class="spaces">                      </span><span class="nottickedoff">pgDecodeColumn</span>
 <span class="lineno">   44 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_aAhX (PGTypeProxy :: PGTypeName &quot;smallint&quot;) _cyear_aAi1)))</span>
 <span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">pure</span>
@@ -123,57 +123,57 @@ span.spaces    { background: white }
 <span class="lineno">  107 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a1iKm</span></span>
 <span class="lineno">  108 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
 <span class="lineno">  109 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span></span>
-<span class="lineno">  110 </span><span class="spaces">                        </span><span class="istickedoff">_cid_a1iKy, </span>
+<span class="lineno">  110 </span><span class="spaces">                        </span><span class="istickedoff">_cid_a1iKy,</span>
 <span class="lineno">  111 </span><span class="spaces">                      </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
 <span class="lineno">  112 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a1iKm</span></span>
 <span class="lineno">  113 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
 <span class="lineno">  114 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span></span>
-<span class="lineno">  115 </span><span class="spaces">                        </span><span class="istickedoff">_cname_a1iKA, </span>
+<span class="lineno">  115 </span><span class="spaces">                        </span><span class="istickedoff">_cname_a1iKA,</span>
 <span class="lineno">  116 </span><span class="spaces">                      </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
 <span class="lineno">  117 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a1iKm</span></span>
 <span class="lineno">  118 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
 <span class="lineno">  119 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span></span>
-<span class="lineno">  120 </span><span class="spaces">                        </span><span class="istickedoff">_cbody_a1iKB, </span>
+<span class="lineno">  120 </span><span class="spaces">                        </span><span class="istickedoff">_cbody_a1iKB,</span>
 <span class="lineno">  121 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span></span>
 <span class="lineno">  122 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a1iKm</span></span>
 <span class="lineno">  123 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
 <span class="lineno">  124 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;character varying&quot;)</span></span>
-<span class="lineno">  125 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_calias_a1iKC</span>, </span>
+<span class="lineno">  125 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_calias_a1iKC</span>,</span>
 <span class="lineno">  126 </span><span class="spaces">                      </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
 <span class="lineno">  127 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a1iKm</span></span>
 <span class="lineno">  128 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
 <span class="lineno">  129 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;character varying&quot;)</span></span>
-<span class="lineno">  130 </span><span class="spaces">                        </span><span class="istickedoff">_cdoi_a1iKD, </span>
+<span class="lineno">  130 </span><span class="spaces">                        </span><span class="istickedoff">_cdoi_a1iKD,</span>
 <span class="lineno">  131 </span><span class="spaces">                      </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
 <span class="lineno">  132 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a1iKm</span></span>
 <span class="lineno">  133 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
 <span class="lineno">  134 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;timestamp with time zone&quot;)</span></span>
-<span class="lineno">  135 </span><span class="spaces">                        </span><span class="istickedoff">_cvolume_creation_a1iKE, </span>
-<span class="lineno">  136 </span><span class="spaces">                      </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  135 </span><span class="spaces">                        </span><span class="istickedoff">_cvolume_creation_a1iKE,</span>
+<span class="lineno">  136 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span></span>
 <span class="lineno">  137 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a1iKm</span></span>
 <span class="lineno">  138 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
 <span class="lineno">  139 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text[]&quot;)</span></span>
-<span class="lineno">  140 </span><span class="spaces">                        </span><span class="istickedoff">_cowners_a1iKF, </span>
-<span class="lineno">  141 </span><span class="spaces">                      </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  140 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_cowners_a1iKF</span>,</span>
+<span class="lineno">  141 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span></span>
 <span class="lineno">  142 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a1iKm</span></span>
 <span class="lineno">  143 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
 <span class="lineno">  144 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;permission&quot;)</span></span>
-<span class="lineno">  145 </span><span class="spaces">                        </span><span class="istickedoff">_cpermission_a1iKG, </span>
-<span class="lineno">  146 </span><span class="spaces">                      </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  145 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_cpermission_a1iKG</span>,</span>
+<span class="lineno">  146 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span></span>
 <span class="lineno">  147 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a1iKm</span></span>
 <span class="lineno">  148 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
 <span class="lineno">  149 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;boolean&quot;)</span></span>
-<span class="lineno">  150 </span><span class="spaces">                        </span><span class="istickedoff">_cshare_full_a1iKH, </span>
+<span class="lineno">  150 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_cshare_full_a1iKH</span>,</span>
 <span class="lineno">  151 </span><span class="spaces">                      </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
 <span class="lineno">  152 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a1iKm</span></span>
 <span class="lineno">  153 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
 <span class="lineno">  154 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span></span>
-<span class="lineno">  155 </span><span class="spaces">                        </span><span class="istickedoff">_chead_a1iKI, </span>
+<span class="lineno">  155 </span><span class="spaces">                        </span><span class="istickedoff">_chead_a1iKI,</span>
 <span class="lineno">  156 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span></span>
 <span class="lineno">  157 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a1iKm</span></span>
 <span class="lineno">  158 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
 <span class="lineno">  159 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;text&quot;)</span></span>
-<span class="lineno">  160 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_curl_a1iKJ</span>, </span>
+<span class="lineno">  160 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_curl_a1iKJ</span>,</span>
 <span class="lineno">  161 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span></span>
 <span class="lineno">  162 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a1iKm</span></span>
 <span class="lineno">  163 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
@@ -190,8 +190,8 @@ span.spaces    { background: white }
 <span class="lineno">  174 </span><span class="spaces">                    </span><span class="istickedoff">(VolumeRow</span>
 <span class="lineno">  175 </span><span class="spaces">                       </span><span class="istickedoff">vid_a1iA0 vname_a1iA1 vbody_a1iA2 <span class="nottickedoff">valias_a1iA3</span> vdoi_a1iA5)</span>
 <span class="lineno">  176 </span><span class="spaces">                    </span><span class="istickedoff">vc_a1iA6)</span>
-<span class="lineno">  177 </span><span class="spaces">                 </span><span class="istickedoff">vowners_a1iA7</span>
-<span class="lineno">  178 </span><span class="spaces">                 </span><span class="istickedoff">(Model.Volume.SQL.makePermInfo vpermission_a1iA8 vfull_a1iA9))</span>
+<span class="lineno">  177 </span><span class="spaces">                 </span><span class="istickedoff"><span class="nottickedoff">vowners_a1iA7</span></span>
+<span class="lineno">  178 </span><span class="spaces">                 </span><span class="istickedoff"><span class="nottickedoff">(Model.Volume.SQL.makePermInfo vpermission_a1iA8 vfull_a1iA9)</span>)</span>
 <span class="lineno">  179 </span><span class="spaces">              </span><span class="istickedoff">(do { cm_a1iAD &lt;- vhead_a1iAa;</span>
 <span class="lineno">  180 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">Just (Citation cm_a1iAD vurl_a1iAb vyear_a1iAd)</span> }))</span>
 <span class="lineno">  181 </span><span class="spaces">      </span><span class="istickedoff">rows)</span></span>
@@ -202,15 +202,15 @@ span.spaces    { background: white }
 <span class="lineno">  186 </span><span class="spaces">  </span><span class="istickedoff">rows &lt;- dbQuery -- (selectQuery selectVolumeLink &quot;WHERE volume_link.volume = ${volumeId $ volumeRow vol}&quot;)</span>
 <span class="lineno">  187 </span><span class="spaces">   </span><span class="istickedoff">(mapQuery2</span>
 <span class="lineno">  188 </span><span class="spaces">      </span><span class="istickedoff">((\ _p_aAiK -&gt;</span>
-<span class="lineno">  189 </span><span class="spaces">                       </span><span class="istickedoff">(Data.ByteString.concat</span>
+<span class="lineno">  189 </span><span class="spaces">                       </span><span class="istickedoff">Data.ByteString.concat</span>
 <span class="lineno">  190 </span><span class="spaces">                          </span><span class="istickedoff">[fromString</span>
 <span class="lineno">  191 </span><span class="spaces">                             </span><span class="istickedoff">&quot;SELECT volume_link.head,volume_link.url FROM volume_link WHERE volume_link.volume = &quot;,</span>
 <span class="lineno">  192 </span><span class="spaces">                           </span><span class="istickedoff">pgEscapeParameter</span>
-<span class="lineno">  193 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">_tenv_aAiJ</span> <span class="nottickedoff">(PGTypeProxy :: PGTypeName &quot;integer&quot;)</span> _p_aAiK]))</span>
+<span class="lineno">  193 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">_tenv_aAiJ</span> <span class="nottickedoff">(PGTypeProxy :: PGTypeName &quot;integer&quot;)</span> _p_aAiK])</span>
 <span class="lineno">  194 </span><span class="spaces">         </span><span class="istickedoff">(volumeId $ volumeRow vol))</span>
 <span class="lineno">  195 </span><span class="spaces">               </span><span class="istickedoff">(\ [_chead_aAiL, _curl_aAiM]</span>
 <span class="lineno">  196 </span><span class="spaces">                  </span><span class="istickedoff">-&gt; (pgDecodeColumnNotNull</span>
-<span class="lineno">  197 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_aAiJ</span> <span class="nottickedoff">(PGTypeProxy :: PGTypeName &quot;text&quot;)</span> _chead_aAiL, </span>
+<span class="lineno">  197 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_aAiJ</span> <span class="nottickedoff">(PGTypeProxy :: PGTypeName &quot;text&quot;)</span> _chead_aAiL,</span>
 <span class="lineno">  198 </span><span class="spaces">                      </span><span class="istickedoff">pgDecodeColumnNotNull</span>
 <span class="lineno">  199 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_aAiJ</span> <span class="nottickedoff">(PGTypeProxy :: PGTypeName &quot;text&quot;)</span> _curl_aAiM)))</span>
 <span class="lineno">  200 </span><span class="spaces">  </span><span class="istickedoff">pure</span>

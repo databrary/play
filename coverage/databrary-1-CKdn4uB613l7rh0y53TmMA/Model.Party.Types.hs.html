@@ -89,14 +89,14 @@ span.spaces    { background: white }
 <span class="lineno">   73 </span>instance Has Party Account where
 <span class="lineno">   74 </span>  <span class="decl"><span class="istickedoff">view = accountParty</span></span>
 <span class="lineno">   75 </span>instance Has (Id Party) Account where
-<span class="lineno">   76 </span>  <span class="decl"><span class="istickedoff">view = (getPartyId . accountParty)</span></span>
+<span class="lineno">   76 </span>  <span class="decl"><span class="istickedoff">view = getPartyId . accountParty</span></span>
 <span class="lineno">   77 </span>
 <span class="lineno">   78 </span>instance Has Access Party where
 <span class="lineno">   79 </span>  <span class="decl"><span class="nottickedoff">view Party{ partyAccess = Just a } = a</span>
 <span class="lineno">   80 </span><span class="spaces">  </span><span class="nottickedoff">view _ = mempty</span></span>
 <span class="lineno">   81 </span>
 <span class="lineno">   82 </span>instance Kinded Party where
-<span class="lineno">   83 </span>  <span class="decl"><span class="istickedoff">kindOf _ = &quot;party&quot;</span></span>
+<span class="lineno">   83 </span>  <span class="decl"><span class="nottickedoff">kindOf _ = &quot;party&quot;</span></span>
 <span class="lineno">   84 </span>
 <span class="lineno">   85 </span>-- | TODO: clarify. This is not necessarily a session, but... some user (human
 <span class="lineno">   86 </span>-- being) who has been granted access to the site. There is a corner case
@@ -110,9 +110,9 @@ span.spaces    { background: white }
 <span class="lineno">   94 </span>instance Has Account SiteAuth where
 <span class="lineno">   95 </span>  <span class="decl"><span class="istickedoff">view = siteAccount</span></span>
 <span class="lineno">   96 </span>instance Has Party SiteAuth where
-<span class="lineno">   97 </span>  <span class="decl"><span class="istickedoff">view = (view . siteAccount)</span></span>
+<span class="lineno">   97 </span>  <span class="decl"><span class="istickedoff">view = view . siteAccount</span></span>
 <span class="lineno">   98 </span>instance Has (Id Party) SiteAuth where
-<span class="lineno">   99 </span>  <span class="decl"><span class="istickedoff">view = (view . siteAccount)</span></span>
+<span class="lineno">   99 </span>  <span class="decl"><span class="istickedoff">view = view . siteAccount</span></span>
 <span class="lineno">  100 </span>instance Has Access SiteAuth where
 <span class="lineno">  101 </span>  <span class="decl"><span class="istickedoff">view = siteAccess</span></span>
 <span class="lineno">  102 </span>

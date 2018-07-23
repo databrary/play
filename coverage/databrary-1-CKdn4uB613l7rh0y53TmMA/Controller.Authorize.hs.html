@@ -35,7 +35,7 @@ span.spaces    { background: white }
 <span class="lineno">   19 </span>
 <span class="lineno">   20 </span>import Ops
 <span class="lineno">   21 </span>import Has (peek, peeks)
-<span class="lineno">   22 </span>import qualified JSON as JSON
+<span class="lineno">   22 </span>import qualified JSON
 <span class="lineno">   23 </span>import Service.DB (MonadDB)
 <span class="lineno">   24 </span>import Service.Mail
 <span class="lineno">   25 </span>import Static.Service
@@ -152,7 +152,7 @@ span.spaces    { background: white }
 <span class="lineno">  136 </span><span class="spaces">      </span><span class="nottickedoff">let maxexp = addGregorianYearsRollOver 2 $ utctDay now -- TODO: use timestamp from actioncontext instead of now?</span>
 <span class="lineno">  137 </span><span class="spaces">          </span><span class="nottickedoff">minexp = fromGregorian 2000 1 1</span>
 <span class="lineno">  138 </span><span class="spaces">      </span><span class="nottickedoff">-- the new version of this authorization (possibly first) should either be ...</span>
-<span class="lineno">  139 </span><span class="spaces">      </span><span class="nottickedoff">a &lt;- runForm ((api == HTML) `thenUse` (htmlAuthorizeForm c')) $ do</span>
+<span class="lineno">  139 </span><span class="spaces">      </span><span class="nottickedoff">a &lt;- runForm ((api == HTML) `thenUse` htmlAuthorizeForm c') $ do</span>
 <span class="lineno">  140 </span><span class="spaces">        </span><span class="nottickedoff">csrfForm</span>
 <span class="lineno">  141 </span><span class="spaces">        </span><span class="nottickedoff">ParentDeleteAuthorizeRequest delete &lt;- ParentDeleteAuthorizeRequest &lt;$&gt; (&quot;delete&quot; .:&gt; deform)</span>
 <span class="lineno">  142 </span><span class="spaces">        </span><span class="nottickedoff">-- 1. Nothing (causing deletion if there was a request or old auth)</span>
@@ -204,7 +204,7 @@ span.spaces    { background: white }
 <span class="lineno">  188 </span>-- Databrary yet, this route enables a user to submit some information on which target parent (AI or institution)
 <span class="lineno">  189 </span>-- they are seeking, to trigger an email to the Databrary site admins, with the hope that the site admins are able
 <span class="lineno">  190 </span>-- to manually get the intended parties into Databrary.
-<span class="lineno">  191 </span>postAuthorizeNotFound :: ActionRoute (PartyTarget)
+<span class="lineno">  191 </span>postAuthorizeNotFound :: ActionRoute PartyTarget
 <span class="lineno">  192 </span><span class="decl"><span class="nottickedoff">postAuthorizeNotFound = action POST (pathJSON &gt;/&gt; pathPartyTarget &lt;/&lt; &quot;notfound&quot;) $ \i -&gt; withAuth $ do</span>
 <span class="lineno">  193 </span><span class="spaces">  </span><span class="nottickedoff">p &lt;- getParty (Just PermissionADMIN) i</span>
 <span class="lineno">  194 </span><span class="spaces">  </span><span class="nottickedoff">agent &lt;- peeks $ fmap accountEmail . partyAccount</span>

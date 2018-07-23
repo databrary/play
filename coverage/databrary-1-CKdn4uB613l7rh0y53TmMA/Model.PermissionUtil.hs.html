@@ -16,13 +16,13 @@ span.spaces    { background: white }
 <pre>
 <span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 <span class="lineno">    2 </span>module Model.PermissionUtil
-<span class="lineno">    3 </span>  ( maskRestrictedString 
+<span class="lineno">    3 </span>  ( maskRestrictedString
 <span class="lineno">    4 </span>  ) where
 <span class="lineno">    5 </span>
 <span class="lineno">    6 </span>import qualified Data.String as ST
 <span class="lineno">    7 </span>
 <span class="lineno">    8 </span>maskRestrictedString :: ST.IsString a =&gt; a -&gt; a
-<span class="lineno">    9 </span><span class="decl"><span class="nottickedoff">maskRestrictedString s = (const (ST.fromString &quot;&quot;)) s</span></span>
+<span class="lineno">    9 </span><span class="decl"><span class="nottickedoff">maskRestrictedString s = const (ST.fromString &quot;&quot;) s</span></span>
 
 </pre>
 </body>

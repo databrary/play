@@ -43,7 +43,7 @@ span.spaces    { background: white }
 <span class="lineno">   27 </span>import Database.PostgreSQL.Typed.Types
 <span class="lineno">   28 </span>
 <span class="lineno">   29 </span>import Has (peek)
-<span class="lineno">   30 </span>import qualified JSON as JSON
+<span class="lineno">   30 </span>import qualified JSON
 <span class="lineno">   31 </span>import Service.DB
 <span class="lineno">   32 </span>import Model.SQL
 <span class="lineno">   33 </span>import Model.Party.Types
@@ -59,27 +59,27 @@ span.spaces    { background: white }
 <span class="lineno">   43 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 $(selectQuery selectTag &quot;$WHERE tag.name = ${n}::varchar&quot;)</span></span>
 <span class="lineno">   44 </span>
 <span class="lineno">   45 </span>lookupTags :: MonadDB c m =&gt; m [Tag]
-<span class="lineno">   46 </span><span class="decl"><span class="istickedoff">lookupTags = do</span>
-<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">let <span class="nottickedoff">_tenv_a6Dq8 = unknownPGTypeEnv</span></span>
-<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">rows &lt;- dbQuery -- (selectQuery selectTag &quot;&quot;)</span>
-<span class="lineno">   49 </span><span class="spaces">    </span><span class="istickedoff">(mapQuery2</span>
-<span class="lineno">   50 </span><span class="spaces">                      </span><span class="istickedoff">(BSC.concat</span>
-<span class="lineno">   51 </span><span class="spaces">                         </span><span class="istickedoff">[Data.String.fromString &quot;SELECT tag.id,tag.name FROM tag &quot;])</span>
-<span class="lineno">   52 </span><span class="spaces">              </span><span class="istickedoff"><span class="nottickedoff">(\ [_cid_a6Dq9, _cname_a6Dqa]</span></span>
-<span class="lineno">   53 </span><span class="spaces">                 </span><span class="istickedoff"><span class="nottickedoff">-&gt; (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span></span>
-<span class="lineno">   54 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6Dq8</span></span>
-<span class="lineno">   55 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
-<span class="lineno">   56 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span></span>
-<span class="lineno">   57 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">_cid_a6Dq9, </span></span>
-<span class="lineno">   58 </span><span class="spaces">                     </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span></span>
-<span class="lineno">   59 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6Dq8</span></span>
-<span class="lineno">   60 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
-<span class="lineno">   61 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;character varying&quot;)</span></span>
-<span class="lineno">   62 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">_cname_a6Dqa))</span>)</span>
-<span class="lineno">   63 </span><span class="spaces">  </span><span class="istickedoff">pure</span>
-<span class="lineno">   64 </span><span class="spaces">    </span><span class="istickedoff">(fmap</span>
-<span class="lineno">   65 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(\ (vid_a6Dpn, vname_a6Dpo) -&gt; Tag vid_a6Dpn vname_a6Dpo)</span></span>
-<span class="lineno">   66 </span><span class="spaces">      </span><span class="istickedoff">rows)</span></span>
+<span class="lineno">   46 </span><span class="decl"><span class="nottickedoff">lookupTags = do</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a6Dq8 = unknownPGTypeEnv</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">rows &lt;- dbQuery -- (selectQuery selectTag &quot;&quot;)</span>
+<span class="lineno">   49 </span><span class="spaces">    </span><span class="nottickedoff">(mapQuery2</span>
+<span class="lineno">   50 </span><span class="spaces">                      </span><span class="nottickedoff">(BSC.concat</span>
+<span class="lineno">   51 </span><span class="spaces">                         </span><span class="nottickedoff">[Data.String.fromString &quot;SELECT tag.id,tag.name FROM tag &quot;])</span>
+<span class="lineno">   52 </span><span class="spaces">              </span><span class="nottickedoff">(\ [_cid_a6Dq9, _cname_a6Dqa]</span>
+<span class="lineno">   53 </span><span class="spaces">                 </span><span class="nottickedoff">-&gt; (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">   54 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Dq8</span>
+<span class="lineno">   55 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">   56 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">   57 </span><span class="spaces">                       </span><span class="nottickedoff">_cid_a6Dq9,</span>
+<span class="lineno">   58 </span><span class="spaces">                     </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">   59 </span><span class="spaces">                       </span><span class="nottickedoff">_tenv_a6Dq8</span>
+<span class="lineno">   60 </span><span class="spaces">                       </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">   61 </span><span class="spaces">                          </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;character varying&quot;)</span>
+<span class="lineno">   62 </span><span class="spaces">                       </span><span class="nottickedoff">_cname_a6Dqa)))</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">pure</span>
+<span class="lineno">   64 </span><span class="spaces">    </span><span class="nottickedoff">(fmap</span>
+<span class="lineno">   65 </span><span class="spaces">      </span><span class="nottickedoff">(\ (vid_a6Dpn, vname_a6Dpo) -&gt; Tag vid_a6Dpn vname_a6Dpo)</span>
+<span class="lineno">   66 </span><span class="spaces">      </span><span class="nottickedoff">rows)</span></span>
 <span class="lineno">   67 </span>
 <span class="lineno">   68 </span>findTags :: MonadDB c m =&gt; TagName -&gt; Int -&gt; m [Tag]
 <span class="lineno">   69 </span><span class="decl"><span class="nottickedoff">findTags (TagName n) lim = -- TagName restrictions obviate pattern escaping</span>
@@ -91,14 +91,14 @@ span.spaces    { background: white }
 <span class="lineno">   75 </span><span class="spaces">  </span><span class="nottickedoff">row &lt;- dbQuery1' -- [pgSQL|!SELECT get_tag(${n})|]</span>
 <span class="lineno">   76 </span><span class="spaces">    </span><span class="nottickedoff">(mapQuery2</span>
 <span class="lineno">   77 </span><span class="spaces">      </span><span class="nottickedoff">((\ _p_a6GtN -&gt;</span>
-<span class="lineno">   78 </span><span class="spaces">                    </span><span class="nottickedoff">(BSC.concat</span>
+<span class="lineno">   78 </span><span class="spaces">                    </span><span class="nottickedoff">BSC.concat</span>
 <span class="lineno">   79 </span><span class="spaces">                       </span><span class="nottickedoff">[Data.String.fromString &quot;SELECT get_tag(&quot;,</span>
 <span class="lineno">   80 </span><span class="spaces">                        </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
 <span class="lineno">   81 </span><span class="spaces">                          </span><span class="nottickedoff">_tenv_a6GtM</span>
 <span class="lineno">   82 </span><span class="spaces">                          </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
 <span class="lineno">   83 </span><span class="spaces">                             </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;character varying&quot;)</span>
 <span class="lineno">   84 </span><span class="spaces">                          </span><span class="nottickedoff">_p_a6GtN,</span>
-<span class="lineno">   85 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot;)&quot;]))</span>
+<span class="lineno">   85 </span><span class="spaces">                        </span><span class="nottickedoff">Data.String.fromString &quot;)&quot;])</span>
 <span class="lineno">   86 </span><span class="spaces">      </span><span class="nottickedoff">n)</span>
 <span class="lineno">   87 </span><span class="spaces">      </span><span class="nottickedoff">(\ [_cget_tag_a6GtO]</span>
 <span class="lineno">   88 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
@@ -109,70 +109,70 @@ span.spaces    { background: white }
 <span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">pure ((`Tag` n) row)</span></span>
 <span class="lineno">   94 </span>
 <span class="lineno">   95 </span>lookupVolumeTagUseRows :: MonadDB c m =&gt; Volume -&gt; m [TagUseRow]
-<span class="lineno">   96 </span><span class="decl"><span class="istickedoff">lookupVolumeTagUseRows v = do</span>
-<span class="lineno">   97 </span><span class="spaces">  </span><span class="istickedoff">let <span class="nottickedoff">_tenv_a6PCr = unknownPGTypeEnv</span></span>
-<span class="lineno">   98 </span><span class="spaces">  </span><span class="istickedoff">rows &lt;- dbQuery -- (selectQuery selectTagUseRow &quot;JOIN container ON tag_use.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container.id&quot;)</span>
-<span class="lineno">   99 </span><span class="spaces">   </span><span class="istickedoff">(mapQuery2</span>
-<span class="lineno">  100 </span><span class="spaces">      </span><span class="istickedoff">((\ _p_a6PCs -&gt;</span>
-<span class="lineno">  101 </span><span class="spaces">                       </span><span class="istickedoff">(BSC.concat</span>
-<span class="lineno">  102 </span><span class="spaces">                          </span><span class="istickedoff">[Data.String.fromString</span>
-<span class="lineno">  103 </span><span class="spaces">                             </span><span class="istickedoff">&quot;SELECT tag_use.who,tag_use.container,tag_use.segment,tag_use.tableoid = 'keyword_use'::regclass,tag.id,tag.name FROM tag_use JOIN tag ON tag_use.tag = tag.id JOIN container ON tag_use.container = container.id WHERE container.volume = &quot;,</span>
-<span class="lineno">  104 </span><span class="spaces">                           </span><span class="istickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
-<span class="lineno">  105 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6PCr</span></span>
-<span class="lineno">  106 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
-<span class="lineno">  107 </span><span class="spaces">                                </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span></span>
-<span class="lineno">  108 </span><span class="spaces">                             </span><span class="istickedoff">_p_a6PCs,</span>
-<span class="lineno">  109 </span><span class="spaces">                           </span><span class="istickedoff">Data.String.fromString &quot; ORDER BY container.id&quot;]))</span>
-<span class="lineno">  110 </span><span class="spaces">         </span><span class="istickedoff">(volumeId $ volumeRow v))</span>
-<span class="lineno">  111 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">(\ </span></span>
-<span class="lineno">  112 </span><span class="spaces">                  </span><span class="istickedoff"><span class="nottickedoff">[_cwho_a6PCt,</span></span>
-<span class="lineno">  113 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">_ccontainer_a6PCu,</span></span>
-<span class="lineno">  114 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">_csegment_a6PCv,</span></span>
-<span class="lineno">  115 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">_ccolumn_a6PCw,</span></span>
-<span class="lineno">  116 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">_cid_a6PCx,</span></span>
-<span class="lineno">  117 </span><span class="spaces">                   </span><span class="istickedoff"><span class="nottickedoff">_cname_a6PCy]</span></span>
-<span class="lineno">  118 </span><span class="spaces">                  </span><span class="istickedoff"><span class="nottickedoff">-&gt; (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span></span>
-<span class="lineno">  119 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6PCr</span></span>
-<span class="lineno">  120 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
-<span class="lineno">  121 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span></span>
-<span class="lineno">  122 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_cwho_a6PCt, </span></span>
-<span class="lineno">  123 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span></span>
-<span class="lineno">  124 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6PCr</span></span>
-<span class="lineno">  125 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
-<span class="lineno">  126 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span></span>
-<span class="lineno">  127 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_ccontainer_a6PCu, </span></span>
-<span class="lineno">  128 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span></span>
-<span class="lineno">  129 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6PCr</span></span>
-<span class="lineno">  130 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
-<span class="lineno">  131 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;segment&quot;)</span></span>
-<span class="lineno">  132 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_csegment_a6PCv, </span></span>
-<span class="lineno">  133 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span></span>
-<span class="lineno">  134 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6PCr</span></span>
-<span class="lineno">  135 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
-<span class="lineno">  136 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;boolean&quot;)</span></span>
-<span class="lineno">  137 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_ccolumn_a6PCw, </span></span>
-<span class="lineno">  138 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span></span>
-<span class="lineno">  139 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6PCr</span></span>
-<span class="lineno">  140 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
-<span class="lineno">  141 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span></span>
-<span class="lineno">  142 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_cid_a6PCx, </span></span>
-<span class="lineno">  143 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span></span>
-<span class="lineno">  144 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6PCr</span></span>
-<span class="lineno">  145 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
-<span class="lineno">  146 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;character varying&quot;)</span></span>
-<span class="lineno">  147 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_cname_a6PCy))</span>)</span>
-<span class="lineno">  148 </span><span class="spaces">  </span><span class="istickedoff">pure</span>
-<span class="lineno">  149 </span><span class="spaces">    </span><span class="istickedoff">(fmap</span>
-<span class="lineno">  150 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(\ (vwho_a6PC1, vcontainer_a6PC2, vsegment_a6PC3, vregclass_a6PC4,</span></span>
-<span class="lineno">  151 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">vid_a6PC5, vname_a6PC6)</span></span>
-<span class="lineno">  152 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">-&gt; ($)</span></span>
-<span class="lineno">  153 </span><span class="spaces">              </span><span class="istickedoff"><span class="nottickedoff">(($)</span></span>
-<span class="lineno">  154 </span><span class="spaces">                 </span><span class="istickedoff"><span class="nottickedoff">(Model.Tag.SQL.makeTagUseRow</span></span>
-<span class="lineno">  155 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">vwho_a6PC1 vcontainer_a6PC2 vsegment_a6PC3)</span></span>
-<span class="lineno">  156 </span><span class="spaces">                 </span><span class="istickedoff"><span class="nottickedoff">vregclass_a6PC4)</span></span>
-<span class="lineno">  157 </span><span class="spaces">              </span><span class="istickedoff"><span class="nottickedoff">(Tag vid_a6PC5 vname_a6PC6))</span></span>
-<span class="lineno">  158 </span><span class="spaces">      </span><span class="istickedoff">rows)</span></span>
-<span class="lineno">  159 </span>     
+<span class="lineno">   96 </span><span class="decl"><span class="nottickedoff">lookupVolumeTagUseRows v = do</span>
+<span class="lineno">   97 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a6PCr = unknownPGTypeEnv</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="nottickedoff">rows &lt;- dbQuery -- (selectQuery selectTagUseRow &quot;JOIN container ON tag_use.container = container.id WHERE container.volume = ${volumeId $ volumeRow v} ORDER BY container.id&quot;)</span>
+<span class="lineno">   99 </span><span class="spaces">   </span><span class="nottickedoff">(mapQuery2</span>
+<span class="lineno">  100 </span><span class="spaces">      </span><span class="nottickedoff">((\ _p_a6PCs -&gt;</span>
+<span class="lineno">  101 </span><span class="spaces">                       </span><span class="nottickedoff">BSC.concat</span>
+<span class="lineno">  102 </span><span class="spaces">                          </span><span class="nottickedoff">[Data.String.fromString</span>
+<span class="lineno">  103 </span><span class="spaces">                             </span><span class="nottickedoff">&quot;SELECT tag_use.who,tag_use.container,tag_use.segment,tag_use.tableoid = 'keyword_use'::regclass,tag.id,tag.name FROM tag_use JOIN tag ON tag_use.tag = tag.id JOIN container ON tag_use.container = container.id WHERE container.volume = &quot;,</span>
+<span class="lineno">  104 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgEscapeParameter</span>
+<span class="lineno">  105 </span><span class="spaces">                             </span><span class="nottickedoff">_tenv_a6PCr</span>
+<span class="lineno">  106 </span><span class="spaces">                             </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  107 </span><span class="spaces">                                </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  108 </span><span class="spaces">                             </span><span class="nottickedoff">_p_a6PCs,</span>
+<span class="lineno">  109 </span><span class="spaces">                           </span><span class="nottickedoff">Data.String.fromString &quot; ORDER BY container.id&quot;])</span>
+<span class="lineno">  110 </span><span class="spaces">         </span><span class="nottickedoff">(volumeId $ volumeRow v))</span>
+<span class="lineno">  111 </span><span class="spaces">               </span><span class="nottickedoff">(\</span>
+<span class="lineno">  112 </span><span class="spaces">                  </span><span class="nottickedoff">[_cwho_a6PCt,</span>
+<span class="lineno">  113 </span><span class="spaces">                   </span><span class="nottickedoff">_ccontainer_a6PCu,</span>
+<span class="lineno">  114 </span><span class="spaces">                   </span><span class="nottickedoff">_csegment_a6PCv,</span>
+<span class="lineno">  115 </span><span class="spaces">                   </span><span class="nottickedoff">_ccolumn_a6PCw,</span>
+<span class="lineno">  116 </span><span class="spaces">                   </span><span class="nottickedoff">_cid_a6PCx,</span>
+<span class="lineno">  117 </span><span class="spaces">                   </span><span class="nottickedoff">_cname_a6PCy]</span>
+<span class="lineno">  118 </span><span class="spaces">                  </span><span class="nottickedoff">-&gt; (Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  119 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6PCr</span>
+<span class="lineno">  120 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  121 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  122 </span><span class="spaces">                        </span><span class="nottickedoff">_cwho_a6PCt,</span>
+<span class="lineno">  123 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  124 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6PCr</span>
+<span class="lineno">  125 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  126 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  127 </span><span class="spaces">                        </span><span class="nottickedoff">_ccontainer_a6PCu,</span>
+<span class="lineno">  128 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  129 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6PCr</span>
+<span class="lineno">  130 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  131 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;segment&quot;)</span>
+<span class="lineno">  132 </span><span class="spaces">                        </span><span class="nottickedoff">_csegment_a6PCv,</span>
+<span class="lineno">  133 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumn</span>
+<span class="lineno">  134 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6PCr</span>
+<span class="lineno">  135 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  136 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;boolean&quot;)</span>
+<span class="lineno">  137 </span><span class="spaces">                        </span><span class="nottickedoff">_ccolumn_a6PCw,</span>
+<span class="lineno">  138 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  139 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6PCr</span>
+<span class="lineno">  140 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  141 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span>
+<span class="lineno">  142 </span><span class="spaces">                        </span><span class="nottickedoff">_cid_a6PCx,</span>
+<span class="lineno">  143 </span><span class="spaces">                      </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span>
+<span class="lineno">  144 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a6PCr</span>
+<span class="lineno">  145 </span><span class="spaces">                        </span><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span>
+<span class="lineno">  146 </span><span class="spaces">                           </span><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;character varying&quot;)</span>
+<span class="lineno">  147 </span><span class="spaces">                        </span><span class="nottickedoff">_cname_a6PCy)))</span>
+<span class="lineno">  148 </span><span class="spaces">  </span><span class="nottickedoff">pure</span>
+<span class="lineno">  149 </span><span class="spaces">    </span><span class="nottickedoff">(fmap</span>
+<span class="lineno">  150 </span><span class="spaces">      </span><span class="nottickedoff">(\ (vwho_a6PC1, vcontainer_a6PC2, vsegment_a6PC3, vregclass_a6PC4,</span>
+<span class="lineno">  151 </span><span class="spaces">          </span><span class="nottickedoff">vid_a6PC5, vname_a6PC6)</span>
+<span class="lineno">  152 </span><span class="spaces">         </span><span class="nottickedoff">-&gt; ($)</span>
+<span class="lineno">  153 </span><span class="spaces">              </span><span class="nottickedoff">(($)</span>
+<span class="lineno">  154 </span><span class="spaces">                 </span><span class="nottickedoff">(Model.Tag.SQL.makeTagUseRow</span>
+<span class="lineno">  155 </span><span class="spaces">                    </span><span class="nottickedoff">vwho_a6PC1 vcontainer_a6PC2 vsegment_a6PC3)</span>
+<span class="lineno">  156 </span><span class="spaces">                 </span><span class="nottickedoff">vregclass_a6PC4)</span>
+<span class="lineno">  157 </span><span class="spaces">              </span><span class="nottickedoff">(Tag vid_a6PC5 vname_a6PC6))</span>
+<span class="lineno">  158 </span><span class="spaces">      </span><span class="nottickedoff">rows)</span></span>
+<span class="lineno">  159 </span>
 <span class="lineno">  160 </span>
 <span class="lineno">  161 </span>addTagUse :: MonadDB c m =&gt; TagUse -&gt; m Bool
 <span class="lineno">  162 </span><span class="decl"><span class="nottickedoff">addTagUse t = either (const False) id &lt;$&gt; do</span>
@@ -180,7 +180,7 @@ span.spaces    { background: white }
 <span class="lineno">  164 </span><span class="spaces">  </span><span class="nottickedoff">dbTryJust (guard . isExclusionViolation)</span>
 <span class="lineno">  165 </span><span class="spaces">    </span><span class="nottickedoff">$ dbExecute1 (if tagKeyword t</span>
 <span class="lineno">  166 </span><span class="spaces">      </span><span class="nottickedoff">then -- (insertTagUse True 't)</span>
-<span class="lineno">  167 </span><span class="spaces">       </span><span class="nottickedoff">(mapQuery2</span>
+<span class="lineno">  167 </span><span class="spaces">       </span><span class="nottickedoff">mapQuery2</span>
 <span class="lineno">  168 </span><span class="spaces">         </span><span class="nottickedoff">((\ _p_a6PDK _p_a6PDL _p_a6PDM _p_a6PDN -&gt;</span>
 <span class="lineno">  169 </span><span class="spaces">                         </span><span class="nottickedoff">(BSC.concat</span>
 <span class="lineno">  170 </span><span class="spaces">                            </span><span class="nottickedoff">[Data.String.fromString</span>
@@ -213,9 +213,9 @@ span.spaces    { background: white }
 <span class="lineno">  197 </span><span class="spaces">           </span><span class="nottickedoff">(containerId $ containerRow $ slotContainer $ tagSlot t)</span>
 <span class="lineno">  198 </span><span class="spaces">           </span><span class="nottickedoff">(slotSegment $ tagSlot t)</span>
 <span class="lineno">  199 </span><span class="spaces">           </span><span class="nottickedoff">(partyId $ partyRow $ accountParty $ tagWho t))</span>
-<span class="lineno">  200 </span><span class="spaces">         </span><span class="nottickedoff">(\[] -&gt; ()))</span>
+<span class="lineno">  200 </span><span class="spaces">         </span><span class="nottickedoff">(\[] -&gt; ())</span>
 <span class="lineno">  201 </span><span class="spaces">      </span><span class="nottickedoff">else -- (insertTagUse False 't))</span>
-<span class="lineno">  202 </span><span class="spaces">       </span><span class="nottickedoff">(mapQuery2</span>
+<span class="lineno">  202 </span><span class="spaces">       </span><span class="nottickedoff">mapQuery2</span>
 <span class="lineno">  203 </span><span class="spaces">         </span><span class="nottickedoff">((\ _p_a6PEI _p_a6PEJ _p_a6PEK _p_a6PEL -&gt;</span>
 <span class="lineno">  204 </span><span class="spaces">                    </span><span class="nottickedoff">(BSC.concat</span>
 <span class="lineno">  205 </span><span class="spaces">                       </span><span class="nottickedoff">[Data.String.fromString</span>
@@ -248,7 +248,7 @@ span.spaces    { background: white }
 <span class="lineno">  232 </span><span class="spaces">           </span><span class="nottickedoff">(containerId $ containerRow $ slotContainer $ tagSlot t)</span>
 <span class="lineno">  233 </span><span class="spaces">           </span><span class="nottickedoff">(slotSegment $ tagSlot t)</span>
 <span class="lineno">  234 </span><span class="spaces">           </span><span class="nottickedoff">(partyId $ partyRow $ accountParty $ tagWho t))</span>
-<span class="lineno">  235 </span><span class="spaces">          </span><span class="nottickedoff">(\[] -&gt; ())))</span></span>
+<span class="lineno">  235 </span><span class="spaces">          </span><span class="nottickedoff">(\[] -&gt; ()))</span></span>
 <span class="lineno">  236 </span>
 <span class="lineno">  237 </span>removeTagUse :: MonadDB c m =&gt; TagUse -&gt; m Int
 <span class="lineno">  238 </span><span class="decl"><span class="nottickedoff">removeTagUse t = do</span>
@@ -256,7 +256,7 @@ span.spaces    { background: white }
 <span class="lineno">  240 </span><span class="spaces">  </span><span class="nottickedoff">dbExecute</span>
 <span class="lineno">  241 </span><span class="spaces">    </span><span class="nottickedoff">(if tagKeyword t</span>
 <span class="lineno">  242 </span><span class="spaces">      </span><span class="nottickedoff">then -- (deleteTagUse True 't)</span>
-<span class="lineno">  243 </span><span class="spaces">       </span><span class="nottickedoff">(mapQuery2</span>
+<span class="lineno">  243 </span><span class="spaces">       </span><span class="nottickedoff">mapQuery2</span>
 <span class="lineno">  244 </span><span class="spaces">          </span><span class="nottickedoff">((\ _p_a6PFs _p_a6PFt _p_a6PFu -&gt;</span>
 <span class="lineno">  245 </span><span class="spaces">                    </span><span class="nottickedoff">(BSC.concat</span>
 <span class="lineno">  246 </span><span class="spaces">                       </span><span class="nottickedoff">[Data.String.fromString</span>
@@ -281,9 +281,9 @@ span.spaces    { background: white }
 <span class="lineno">  265 </span><span class="spaces">            </span><span class="nottickedoff">(tagId $ useTag t)</span>
 <span class="lineno">  266 </span><span class="spaces">            </span><span class="nottickedoff">(containerId $ containerRow $ slotContainer $ tagSlot t)</span>
 <span class="lineno">  267 </span><span class="spaces">            </span><span class="nottickedoff">(slotSegment $ tagSlot t))</span>
-<span class="lineno">  268 </span><span class="spaces">          </span><span class="nottickedoff">(\[] -&gt; ()))</span>
+<span class="lineno">  268 </span><span class="spaces">          </span><span class="nottickedoff">(\[] -&gt; ())</span>
 <span class="lineno">  269 </span><span class="spaces">      </span><span class="nottickedoff">else -- (deleteTagUse False 't))</span>
-<span class="lineno">  270 </span><span class="spaces">       </span><span class="nottickedoff">(mapQuery2</span>
+<span class="lineno">  270 </span><span class="spaces">       </span><span class="nottickedoff">mapQuery2</span>
 <span class="lineno">  271 </span><span class="spaces">         </span><span class="nottickedoff">((\ _p_a6PGC _p_a6PGD _p_a6PGE _p_a6PGF -&gt;</span>
 <span class="lineno">  272 </span><span class="spaces">                    </span><span class="nottickedoff">(BSC.concat</span>
 <span class="lineno">  273 </span><span class="spaces">                       </span><span class="nottickedoff">[Data.String.fromString &quot;DELETE FROM ONLY tag_use WHERE tag = &quot;,</span>
@@ -314,7 +314,7 @@ span.spaces    { background: white }
 <span class="lineno">  298 </span><span class="spaces">           </span><span class="nottickedoff">(containerId $ containerRow $ slotContainer $ tagSlot t)</span>
 <span class="lineno">  299 </span><span class="spaces">           </span><span class="nottickedoff">(slotSegment $ tagSlot t)</span>
 <span class="lineno">  300 </span><span class="spaces">           </span><span class="nottickedoff">(partyId $ partyRow $ accountParty $ tagWho t))</span>
-<span class="lineno">  301 </span><span class="spaces">          </span><span class="nottickedoff">(\[] -&gt; ())))</span></span>
+<span class="lineno">  301 </span><span class="spaces">          </span><span class="nottickedoff">(\[] -&gt; ()))</span></span>
 <span class="lineno">  302 </span>
 <span class="lineno">  303 </span>lookupTopTagWeight :: MonadDB c m =&gt; Int -&gt; m [TagWeight]
 <span class="lineno">  304 </span><span class="decl"><span class="nottickedoff">lookupTopTagWeight lim =</span>
@@ -359,7 +359,7 @@ span.spaces    { background: white }
 <span class="lineno">  343 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6Q2M</span></span>
 <span class="lineno">  344 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>
 <span class="lineno">  345 </span><span class="spaces">                           </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.PGTypeName &quot;integer&quot;)</span></span>
-<span class="lineno">  346 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_cid_a6Q2P, </span></span>
+<span class="lineno">  346 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_cid_a6Q2P,</span></span>
 <span class="lineno">  347 </span><span class="spaces">                      </span><span class="istickedoff"><span class="nottickedoff">Database.PostgreSQL.Typed.Types.pgDecodeColumnNotNull</span></span>
 <span class="lineno">  348 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a6Q2M</span></span>
 <span class="lineno">  349 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">(Database.PostgreSQL.Typed.Types.PGTypeProxy ::</span></span>

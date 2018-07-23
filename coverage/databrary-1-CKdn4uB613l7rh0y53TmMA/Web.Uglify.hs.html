@@ -51,12 +51,12 @@ span.spaces    { background: white }
 <span class="lineno">   35 </span><span class="spaces">  </span><span class="nottickedoff">guard (not $ null inputFiles)</span>
 <span class="lineno">   36 </span><span class="spaces">  </span><span class="nottickedoff">inputFilesAbs &lt;- mapM ((liftIO . unRawFilePath) . webFileAbs) inputFiles</span>
 <span class="lineno">   37 </span><span class="spaces">  </span><span class="nottickedoff">fileToGenAbs &lt;- liftIO $ unRawFilePath $ webFileAbs fileToGen</span>
-<span class="lineno">   38 </span><span class="spaces">  </span><span class="nottickedoff">let fileToGenMap = (webFileAbs fileToGen) RF.&lt;.&gt; &quot;.map&quot;</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="nottickedoff">let fileToGenMap = webFileAbs fileToGen RF.&lt;.&gt; &quot;.map&quot;</span>
 <span class="lineno">   39 </span><span class="spaces">  </span><span class="nottickedoff">fileToGenMapAbs &lt;- liftIO $ unRawFilePath fileToGenMap</span>
 <span class="lineno">   40 </span><span class="spaces">  </span><span class="nottickedoff">webRegenerate (do</span>
 <span class="lineno">   41 </span><span class="spaces">    </span><span class="nottickedoff">print &quot;making minified with command...&quot;</span>
-<span class="lineno">   42 </span><span class="spaces">    </span><span class="nottickedoff">print </span>
-<span class="lineno">   43 </span><span class="spaces">      </span><span class="nottickedoff">(&quot;uglifyjs&quot;, </span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="nottickedoff">print</span>
+<span class="lineno">   43 </span><span class="spaces">      </span><span class="nottickedoff">(&quot;uglifyjs&quot;,</span>
 <span class="lineno">   44 </span><span class="spaces">      </span><span class="nottickedoff">[&quot;--output&quot;, fileToGenAbs</span>
 <span class="lineno">   45 </span><span class="spaces">      </span><span class="nottickedoff">, &quot;--source-map&quot;, fileToGenMapAbs</span>
 <span class="lineno">   46 </span><span class="spaces">      </span><span class="nottickedoff">, &quot;--prefix&quot;, &quot;relative&quot;</span>

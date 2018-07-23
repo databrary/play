@@ -14,7 +14,7 @@ span.spaces    { background: white }
 </head>
 <body>
 <pre>
-<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, ViewPatterns, TupleSections, CPP #-}
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, CPP #-}
 <span class="lineno">    2 </span>module Web.Rules
 <span class="lineno">    3 </span>  ( generateWebFile
 <span class="lineno">    4 </span>  , generateWebFiles
@@ -71,7 +71,7 @@ span.spaces    { background: white }
 <span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">]</span></span>
 <span class="lineno">   56 </span>
 <span class="lineno">   57 </span>generateFixed :: Bool -&gt; WebGenerator
-<span class="lineno">   58 </span><span class="decl"><span class="nottickedoff">generateFixed includeStatic = \fo@(f, _) -&gt; do</span>
+<span class="lineno">   58 </span><span class="decl"><span class="nottickedoff">generateFixed includeStatic = \fo@(f, _) -&gt;</span>
 <span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">case lookup (webFileRel f) $ (if includeStatic then (staticGenerators ++) else id) fixedGenerators of</span>
 <span class="lineno">   60 </span><span class="spaces">    </span><span class="nottickedoff">Just g -&gt; g fo</span>
 <span class="lineno">   61 </span><span class="spaces">    </span><span class="nottickedoff">_ -&gt; mzero</span></span>
@@ -81,7 +81,7 @@ span.spaces    { background: white }
 <span class="lineno">   65 </span>
 <span class="lineno">   66 </span>generateRules :: Bool -&gt; WebGenerator
 <span class="lineno">   67 </span><span class="decl"><span class="nottickedoff">generateRules includeStatic (fileToGen, mPriorFileInfo) = msum $ map (\gen -&gt; gen (fileToGen, mPriorFileInfo))</span>
-<span class="lineno">   68 </span><span class="spaces">  </span><span class="nottickedoff">([ </span>
+<span class="lineno">   68 </span><span class="spaces">  </span><span class="nottickedoff">([</span>
 <span class="lineno">   69 </span><span class="spaces">     </span><span class="nottickedoff">generateFixed includeStatic</span>
 <span class="lineno">   70 </span><span class="spaces">   </span><span class="nottickedoff">, generateCoffeeJS</span>
 <span class="lineno">   71 </span><span class="spaces">   </span><span class="nottickedoff">, generateLib</span>
@@ -97,7 +97,7 @@ span.spaces    { background: white }
 <span class="lineno">   81 </span>
 <span class="lineno">   82 </span>generateWebFile :: Bool -&gt; WebFilePath -&gt; WebGeneratorM WebFileInfo
 <span class="lineno">   83 </span><span class="decl"><span class="nottickedoff">generateWebFile includeStatic f =</span>
-<span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">withExceptT (\val -&gt; label (show (webFileRel f)) val) $ do</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">withExceptT (label (show (webFileRel f))) $ do</span>
 <span class="lineno">   85 </span><span class="spaces">      </span><span class="nottickedoff">mExistingInfo &lt;- gets $ HM.lookup f</span>
 <span class="lineno">   86 </span><span class="spaces">      </span><span class="nottickedoff">r &lt;- generateRules includeStatic (f, mExistingInfo)</span>
 <span class="lineno">   87 </span><span class="spaces">      </span><span class="nottickedoff">fromMaybeM</span>
@@ -110,13 +110,13 @@ span.spaces    { background: white }
 <span class="lineno">   94 </span>generateAll :: WebGeneratorM ()
 <span class="lineno">   95 </span><span class="decl"><span class="nottickedoff">generateAll = do</span>
 <span class="lineno">   96 </span><span class="spaces">  </span><span class="nottickedoff">svg &lt;- liftIO $ findWebFiles &quot;.svg&quot;</span>
-<span class="lineno">   97 </span><span class="spaces">  </span><span class="nottickedoff">(    mapM_ (\webFilePath -&gt; generateWebFile True webFilePath)</span>
+<span class="lineno">   97 </span><span class="spaces">  </span><span class="nottickedoff">mapM_ (generateWebFile True)</span>
 <span class="lineno">   98 </span><span class="spaces">   </span><span class="nottickedoff">&lt;=&lt; mapM (liftIO . makeWebFilePath)</span>
 <span class="lineno">   99 </span><span class="spaces">      </span><span class="nottickedoff">$ mconcat</span>
 <span class="lineno">  100 </span><span class="spaces">          </span><span class="nottickedoff">[ (map fst staticGenerators)</span>
 <span class="lineno">  101 </span><span class="spaces">          </span><span class="nottickedoff">, [&quot;constants.json.gz&quot;, &quot;all.min.js.gz&quot;, &quot;all.min.css.gz&quot;]</span>
 <span class="lineno">  102 </span><span class="spaces">          </span><span class="nottickedoff">, map ((RF.&lt;.&gt; &quot;.gz&quot;) . webFileRel) svg</span>
-<span class="lineno">  103 </span><span class="spaces">          </span><span class="nottickedoff">])</span></span>
+<span class="lineno">  103 </span><span class="spaces">          </span><span class="nottickedoff">]</span></span>
 <span class="lineno">  104 </span>
 <span class="lineno">  105 </span>generateWebFiles :: IO WebFileMap
 <span class="lineno">  106 </span><span class="decl"><span class="nottickedoff">generateWebFiles = do</span>

@@ -42,7 +42,7 @@ span.spaces    { background: white }
 <span class="lineno">   26 </span><span class="spaces">  </span><span class="nottickedoff">-- TODO: should this IO happen higher in call stack before initWeb?</span>
 <span class="lineno">   27 </span><span class="spaces">  </span><span class="nottickedoff">versionFilePath &lt;- getDataFileName versionFile</span>
 <span class="lineno">   28 </span><span class="spaces">  </span><span class="nottickedoff">version &lt;- (TE.encodeUtf8 . T.strip) &lt;$&gt; TIO.readFile versionFilePath -- strip - manually editing can introduce newline</span>
-<span class="lineno">   29 </span><span class="spaces">  </span><span class="nottickedoff">fmap (\mp -&gt; Web mp version) $</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="nottickedoff">fmap (`Web` version) $</span>
 <span class="lineno">   30 </span><span class="spaces"></span><span class="nottickedoff">#ifdef DEVEL</span>
 <span class="lineno">   31 </span><span class="spaces">    </span><span class="nottickedoff">newMVar =&lt;&lt;</span>
 <span class="lineno">   32 </span><span class="spaces"></span><span class="nottickedoff">#endif</span>

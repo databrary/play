@@ -7,7 +7,7 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE OverloadedStrings, RecordWildCards, ViewPatterns #-}</span>
+<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE OverloadedStrings, ViewPatterns #-}</span>
 <a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Format</span>
 <a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-keyword'>module</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Format</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
 <a name="line-4"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>mimeTypeTop</span>
@@ -41,7 +41,7 @@
 <a name="line-32"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Monoid</span> <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&gt;</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
 <a name="line-33"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>System</span><span class='hs-varop'>.</span><span class='hs-conid'>Posix</span><span class='hs-varop'>.</span><span class='hs-conid'>FilePath</span> <span class='hs-layout'>(</span><span class='hs-conid'>RawFilePath</span><span class='hs-layout'>,</span> <span class='hs-varid'>splitExtension</span><span class='hs-layout'>,</span> <span class='hs-varid'>takeExtension</span><span class='hs-layout'>,</span> <span class='hs-varid'>addExtension</span><span class='hs-layout'>)</span>
 <a name="line-34"></a>
-<a name="line-35"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>JSON</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>JSON</span>
+<a name="line-35"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>JSON</span>
 <a name="line-36"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Id</span>
 <a name="line-37"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Format</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
 <a name="line-38"></a>

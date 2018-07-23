@@ -14,7 +14,7 @@ span.spaces    { background: white }
 </head>
 <body>
 <pre>
-<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds #-}
+<span class="lineno">    1 </span>{-# LANGUAGE DataKinds #-}
 <span class="lineno">    2 </span>module Model.VolumeMetric
 <span class="lineno">    3 </span>  ( lookupVolumeMetrics
 <span class="lineno">    4 </span>  , lookupVolumeParticipantMetrics
@@ -57,14 +57,14 @@ span.spaces    { background: white }
 <span class="lineno">   41 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">_tenv_a80O7 (PGTypeProxy :: PGTypeName &quot;integer&quot;) _cmetric_a80O9))</span></span>
 <span class="lineno">   42 </span><span class="spaces">  </span><span class="istickedoff">pure</span>
 <span class="lineno">   43 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(fmap</span></span>
-<span class="lineno">   44 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(\ (vmetric_a80O2) -&gt; id vmetric_a80O2)</span></span>
+<span class="lineno">   44 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">id</span></span>
 <span class="lineno">   45 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">rows)</span></span></span>
 <span class="lineno">   46 </span>
 <span class="lineno">   47 </span>lookupVolumeParticipantMetrics :: (MonadDB c m) =&gt; Volume -&gt; m [Metric]
 <span class="lineno">   48 </span><span class="decl"><span class="nottickedoff">lookupVolumeParticipantMetrics vol = do</span>
 <span class="lineno">   49 </span><span class="spaces">    </span><span class="nottickedoff">volumeActiveMetricIds &lt;- lookupVolumeMetrics vol</span>
 <span class="lineno">   50 </span><span class="spaces">    </span><span class="nottickedoff">-- liftIO (print (&quot;metric ids&quot;, metricIds))</span>
-<span class="lineno">   51 </span><span class="spaces">    </span><span class="nottickedoff">pure ((fmap getMetric' volumeActiveMetricIds) `L.intersect` participantMetrics)</span></span>
+<span class="lineno">   51 </span><span class="spaces">    </span><span class="nottickedoff">pure (fmap getMetric' volumeActiveMetricIds `L.intersect` participantMetrics)</span></span>
 <span class="lineno">   52 </span>
 <span class="lineno">   53 </span>mapQuery :: ByteString -&gt; ([PGValue] -&gt; a) -&gt; PGSimpleQuery a
 <span class="lineno">   54 </span><span class="decl"><span class="istickedoff">mapQuery qry mkResult =</span>
@@ -74,7 +74,7 @@ span.spaces    { background: white }
 <span class="lineno">   58 </span><span class="decl"><span class="istickedoff">addVolumeCategory v c = do</span>
 <span class="lineno">   59 </span><span class="spaces">  </span><span class="istickedoff">let <span class="nottickedoff">_tenv_a6Dpx = unknownPGTypeEnv</span></span>
 <span class="lineno">   60 </span><span class="spaces">  </span><span class="istickedoff">dbQuery -- [pgSQL|INSERT INTO volume_metric SELECT ${volumeId $ volumeRow v}, id FROM metric WHERE category = ${c} AND required IS NOT NULL RETURNING metric|]</span>
-<span class="lineno">   61 </span><span class="spaces">    </span><span class="istickedoff">(mapQuery </span>
+<span class="lineno">   61 </span><span class="spaces">    </span><span class="istickedoff">(mapQuery</span>
 <span class="lineno">   62 </span><span class="spaces">      </span><span class="istickedoff">((\ _p_a6Dpy _p_a6Dpz -&gt;</span>
 <span class="lineno">   63 </span><span class="spaces">                    </span><span class="istickedoff">(Data.ByteString.concat</span>
 <span class="lineno">   64 </span><span class="spaces">                       </span><span class="istickedoff">[Data.String.fromString &quot;INSERT INTO volume_metric SELECT &quot;,</span>

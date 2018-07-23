@@ -72,11 +72,11 @@ span.spaces    { background: white }
 <span class="lineno">   56 </span>instance Has Volume AssetSlot where
 <span class="lineno">   57 </span>  <span class="decl"><span class="nottickedoff">view = view . slotAsset</span></span>
 <span class="lineno">   58 </span>getAssetSlotVolume :: AssetSlot -&gt; Volume
-<span class="lineno">   59 </span><span class="decl"><span class="istickedoff">getAssetSlotVolume = assetVolume . slotAsset</span></span>
+<span class="lineno">   59 </span><span class="decl"><span class="nottickedoff">getAssetSlotVolume = assetVolume . slotAsset</span></span>
 <span class="lineno">   60 </span>instance Has (Id Volume) AssetSlot where
 <span class="lineno">   61 </span>  <span class="decl"><span class="nottickedoff">view = view . slotAsset</span></span>
 <span class="lineno">   62 </span>getAssetSlotVolumePermission2 :: AssetSlot -&gt; VolumeRolePolicy
-<span class="lineno">   63 </span><span class="decl"><span class="istickedoff">getAssetSlotVolumePermission2 = volumeRolePolicy . getAssetSlotVolume</span></span>
+<span class="lineno">   63 </span><span class="decl"><span class="nottickedoff">getAssetSlotVolumePermission2 = volumeRolePolicy . getAssetSlotVolume</span></span>
 <span class="lineno">   64 </span>getAssetSlotFormat :: AssetSlot -&gt; Format
 <span class="lineno">   65 </span><span class="decl"><span class="nottickedoff">getAssetSlotFormat = getAssetFormat . slotAsset</span></span>
 <span class="lineno">   66 </span>
@@ -96,13 +96,13 @@ span.spaces    { background: white }
 <span class="lineno">   80 </span><span class="spaces">  </span><span class="nottickedoff">fold (getAssetSlotReleaseMaybe as)</span></span>
 <span class="lineno">   81 </span>getAssetSlotReleaseMaybe :: AssetSlot -&gt; Maybe Release
 <span class="lineno">   82 </span><span class="decl"><span class="istickedoff">getAssetSlotReleaseMaybe as =</span>
-<span class="lineno">   83 </span><span class="spaces">  </span><span class="istickedoff">(case as of</span>
-<span class="lineno">   84 </span><span class="spaces">     </span><span class="istickedoff">AssetSlot a (Just s) -&gt;</span>
-<span class="lineno">   85 </span><span class="spaces">       </span><span class="istickedoff">getAssetReleaseMaybe a &lt;|&gt; getSlotReleaseMaybe s</span>
-<span class="lineno">   86 </span><span class="spaces">     </span><span class="istickedoff">AssetSlot a Nothing -&gt;</span>
-<span class="lineno">   87 </span><span class="spaces">       </span><span class="istickedoff">if not (assetSlotIsDeletedFromItsContainer as)</span>
-<span class="lineno">   88 </span><span class="spaces">       </span><span class="istickedoff">then getAssetReleaseMaybe a</span>
-<span class="lineno">   89 </span><span class="spaces">       </span><span class="istickedoff">else Nothing)</span></span> -- &quot;deleted&quot; assets are always unreleased (private?), not view a
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="istickedoff">case as of</span>
+<span class="lineno">   84 </span><span class="spaces">    </span><span class="istickedoff">AssetSlot a (Just s) -&gt;</span>
+<span class="lineno">   85 </span><span class="spaces">      </span><span class="istickedoff">getAssetReleaseMaybe a &lt;|&gt; getSlotReleaseMaybe s</span>
+<span class="lineno">   86 </span><span class="spaces">    </span><span class="istickedoff">AssetSlot a Nothing -&gt;</span>
+<span class="lineno">   87 </span><span class="spaces">      </span><span class="istickedoff">if not (assetSlotIsDeletedFromItsContainer as)</span>
+<span class="lineno">   88 </span><span class="spaces">      </span><span class="istickedoff">then getAssetReleaseMaybe a</span>
+<span class="lineno">   89 </span><span class="spaces">      </span><span class="istickedoff">else Nothing</span></span> -- &quot;deleted&quot; assets are always unreleased (private?), not view a
 <span class="lineno">   90 </span>
 <span class="lineno">   91 </span>assetSlotIsDeletedFromItsContainer :: AssetSlot -&gt; Bool
 <span class="lineno">   92 </span><span class="decl"><span class="istickedoff">assetSlotIsDeletedFromItsContainer (AssetSlot a Nothing) = volumeId (volumeRow $ assetVolume a) /= coreVolumeId</span>
@@ -114,7 +114,7 @@ span.spaces    { background: white }
 <span class="lineno">   98 </span><span class="spaces">    </span><span class="istickedoff">pubRel = fold (getAssetSlotReleaseMaybe as)</span>
 <span class="lineno">   99 </span><span class="spaces">  </span><span class="istickedoff">in</span>
 <span class="lineno">  100 </span><span class="spaces">    </span><span class="istickedoff">EffectiveRelease { effRelPublic = pubRel, effRelPrivate = ReleasePRIVATE }</span></span>
-<span class="lineno">  101 </span>      
+<span class="lineno">  101 </span>
 
 </pre>
 </body>

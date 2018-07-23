@@ -7,7 +7,7 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE OverloadedStrings, TemplateHaskell, RecordWildCards, DataKinds #-}</span>
+<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE OverloadedStrings, RecordWildCards, DataKinds #-}</span>
 <a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Metric</span>
 <a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-keyword'>module</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Metric</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
 <a name="line-4"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>allMetrics</span>
@@ -64,7 +64,7 @@
 <a name="line-55"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Read</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>TR</span>
 <a name="line-56"></a>
 <a name="line-57"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Ops</span>
-<a name="line-58"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>JSON</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>JSON</span>
+<a name="line-58"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>JSON</span>
 <a name="line-59"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Id</span>
 <a name="line-60"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Category</span>
 <a name="line-61"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Metric</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
@@ -80,7 +80,7 @@
 <a name="line-71"></a>
 <a name="line-72"></a><a name="allMetrics"></a><span class='hs-comment'>-- TODO: db coherence</span>
 <a name="line-73"></a><span class='hs-definition'>allMetrics</span> <span class='hs-keyglyph'>::</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Metric</span><span class='hs-keyglyph'>]</span>
-<a name="line-74"></a><span class='hs-definition'>allMetrics</span> <span class='hs-keyglyph'>=</span> 
+<a name="line-74"></a><span class='hs-definition'>allMetrics</span> <span class='hs-keyglyph'>=</span>
 <a name="line-75"></a>    <span class='hs-keyglyph'>[</span><span class='hs-conid'>Metric</span>
 <a name="line-76"></a>       <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-num'>1</span><span class='hs-layout'>)</span>
 <a name="line-77"></a>       <span class='hs-layout'>(</span><span class='hs-conid'>Category</span>
@@ -747,7 +747,7 @@
 <a name="line-738"></a>
 <a name="line-739"></a><a name="participantMetricId"></a><span class='hs-definition'>participantMetricId</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Metric</span>
 <a name="line-740"></a><span class='hs-definition'>participantMetricId</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getMetric'</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-num'>1</span><span class='hs-layout'>)</span>
-<a name="line-741"></a>  
+<a name="line-741"></a>
 <a name="line-742"></a><a name="participantMetricInfo"></a><span class='hs-definition'>participantMetricInfo</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Metric</span>
 <a name="line-743"></a><span class='hs-definition'>participantMetricInfo</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getMetric'</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-num'>2</span><span class='hs-layout'>)</span>
 <a name="line-744"></a>
@@ -858,7 +858,7 @@
 <a name="line-849"></a>    <span class='hs-keyword'>if</span> <span class='hs-varid'>val</span> <span class='hs-varop'>==</span> <span class='hs-str'>""</span>
 <a name="line-850"></a>    <span class='hs-keyword'>then</span> <span class='hs-varid'>pure</span> <span class='hs-conid'>Nothing</span>
 <a name="line-851"></a>    <span class='hs-keyword'>else</span> <span class='hs-keyword'>do</span>
-<a name="line-852"></a>        <span class='hs-varid'>age</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-layout'>(</span><span class='hs-conid'>TR</span><span class='hs-varop'>.</span><span class='hs-varid'>readMaybe</span> <span class='hs-layout'>(</span><span class='hs-conid'>BSC</span><span class='hs-varop'>.</span><span class='hs-varid'>unpack</span> <span class='hs-varid'>val</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>Double</span><span class='hs-layout'>)</span>
+<a name="line-852"></a>        <span class='hs-varid'>age</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-conid'>TR</span><span class='hs-varop'>.</span><span class='hs-varid'>readMaybe</span> <span class='hs-layout'>(</span><span class='hs-conid'>BSC</span><span class='hs-varop'>.</span><span class='hs-varid'>unpack</span> <span class='hs-varid'>val</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>Double</span>
 <a name="line-853"></a>        <span class='hs-varid'>pure</span> <span class='hs-layout'>(</span><span class='hs-conid'>Just</span> <span class='hs-varid'>age</span><span class='hs-layout'>)</span>
 <a name="line-854"></a>
 <a name="line-855"></a><a name="validateParticipantBirthWeight"></a><span class='hs-definition'>validateParticipantBirthWeight</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-conid'>Double</span><span class='hs-layout'>)</span>
@@ -866,11 +866,11 @@
 <a name="line-857"></a>    <span class='hs-keyword'>if</span> <span class='hs-varid'>val</span> <span class='hs-varop'>==</span> <span class='hs-str'>""</span>
 <a name="line-858"></a>    <span class='hs-keyword'>then</span> <span class='hs-varid'>pure</span> <span class='hs-conid'>Nothing</span>
 <a name="line-859"></a>    <span class='hs-keyword'>else</span> <span class='hs-keyword'>do</span>
-<a name="line-860"></a>        <span class='hs-varid'>weight</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-layout'>(</span><span class='hs-conid'>TR</span><span class='hs-varop'>.</span><span class='hs-varid'>readMaybe</span> <span class='hs-layout'>(</span><span class='hs-conid'>BSC</span><span class='hs-varop'>.</span><span class='hs-varid'>unpack</span> <span class='hs-varid'>val</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>Double</span><span class='hs-layout'>)</span>
+<a name="line-860"></a>        <span class='hs-varid'>weight</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-conid'>TR</span><span class='hs-varop'>.</span><span class='hs-varid'>readMaybe</span> <span class='hs-layout'>(</span><span class='hs-conid'>BSC</span><span class='hs-varop'>.</span><span class='hs-varid'>unpack</span> <span class='hs-varid'>val</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>Double</span>
 <a name="line-861"></a>        <span class='hs-varid'>pure</span> <span class='hs-layout'>(</span><span class='hs-conid'>Just</span> <span class='hs-varid'>weight</span><span class='hs-layout'>)</span>
 <a name="line-862"></a>
 <a name="line-863"></a><a name="validateParticipantBirthdate"></a><span class='hs-definition'>validateParticipantBirthdate</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-conid'>Time</span><span class='hs-varop'>.</span><span class='hs-conid'>Day</span><span class='hs-layout'>)</span>
-<a name="line-864"></a><span class='hs-definition'>validateParticipantBirthdate</span> <span class='hs-varid'>val</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
+<a name="line-864"></a><span class='hs-definition'>validateParticipantBirthdate</span> <span class='hs-varid'>val</span> <span class='hs-keyglyph'>=</span>
 <a name="line-865"></a>    <span class='hs-keyword'>if</span> <span class='hs-varid'>val</span> <span class='hs-varop'>==</span> <span class='hs-str'>""</span>
 <a name="line-866"></a>    <span class='hs-keyword'>then</span> <span class='hs-varid'>pure</span> <span class='hs-conid'>Nothing</span>
 <a name="line-867"></a>    <span class='hs-keyword'>else</span> <span class='hs-keyword'>do</span>
@@ -878,7 +878,7 @@
 <a name="line-869"></a>        <span class='hs-varid'>pure</span> <span class='hs-layout'>(</span><span class='hs-conid'>Just</span> <span class='hs-varid'>time</span><span class='hs-layout'>)</span>
 <a name="line-870"></a>
 <a name="line-871"></a><a name="validateParticipantLanguage"></a><span class='hs-definition'>validateParticipantLanguage</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-layout'>)</span>
-<a name="line-872"></a><span class='hs-definition'>validateParticipantLanguage</span> <span class='hs-varid'>val</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
+<a name="line-872"></a><span class='hs-definition'>validateParticipantLanguage</span> <span class='hs-varid'>val</span> <span class='hs-keyglyph'>=</span>
 <a name="line-873"></a>    <span class='hs-varid'>pure</span> <span class='hs-layout'>(</span><span class='hs-varid'>valToMaybe</span> <span class='hs-varid'>val</span><span class='hs-layout'>)</span>
 <a name="line-874"></a>
 <a name="line-875"></a><a name="validateInOptions"></a><span class='hs-definition'>validateInOptions</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Metric</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span>
@@ -910,7 +910,7 @@
 <a name="line-901"></a>  <span class='hs-varop'>&lt;&gt;</span> <span class='hs-str'>"type"</span> <span class='hs-conid'>JSON</span><span class='hs-varop'>..=</span> <span class='hs-varid'>show</span> <span class='hs-varid'>metricType</span>
 <a name="line-902"></a>  <span class='hs-varop'>&lt;&gt;</span> <span class='hs-str'>"options"</span> <span class='hs-varop'>`</span><span class='hs-conid'>JSON</span><span class='hs-varop'>.</span><span class='hs-varid'>kvObjectOrEmpty</span><span class='hs-varop'>`</span> <span class='hs-layout'>(</span><span class='hs-keyword'>if</span> <span class='hs-varid'>null</span> <span class='hs-varid'>metricOptions</span> <span class='hs-keyword'>then</span> <span class='hs-varid'>empty</span> <span class='hs-keyword'>else</span> <span class='hs-varid'>pure</span> <span class='hs-varid'>metricOptions</span><span class='hs-layout'>)</span>
 <a name="line-903"></a>  <span class='hs-varop'>&lt;&gt;</span> <span class='hs-str'>"assumed"</span> <span class='hs-varop'>`</span><span class='hs-conid'>JSON</span><span class='hs-varop'>.</span><span class='hs-varid'>kvObjectOrEmpty</span><span class='hs-varop'>`</span> <span class='hs-varid'>metricAssumed</span>
-<a name="line-904"></a>  <span class='hs-varop'>&lt;&gt;</span> <span class='hs-str'>"long"</span> <span class='hs-varop'>`</span><span class='hs-conid'>JSON</span><span class='hs-varop'>.</span><span class='hs-varid'>kvObjectOrEmpty</span><span class='hs-varop'>`</span> <span class='hs-layout'>(</span><span class='hs-conid'>True</span> <span class='hs-varop'>`useWhen`</span> <span class='hs-layout'>(</span><span class='hs-varid'>metricLong</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-904"></a>  <span class='hs-varop'>&lt;&gt;</span> <span class='hs-str'>"long"</span> <span class='hs-varop'>`</span><span class='hs-conid'>JSON</span><span class='hs-varop'>.</span><span class='hs-varid'>kvObjectOrEmpty</span><span class='hs-varop'>`</span> <span class='hs-layout'>(</span><span class='hs-conid'>True</span> <span class='hs-varop'>`useWhen`</span> <span class='hs-varid'>metricLong</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span>
 <a name="line-905"></a>  <span class='hs-varop'>&lt;&gt;</span> <span class='hs-str'>"description"</span> <span class='hs-varop'>`</span><span class='hs-conid'>JSON</span><span class='hs-varop'>.</span><span class='hs-varid'>kvObjectOrEmpty</span><span class='hs-varop'>`</span> <span class='hs-varid'>metricDescription</span>
 <a name="line-906"></a>  <span class='hs-varop'>&lt;&gt;</span> <span class='hs-str'>"required"</span> <span class='hs-varop'>`</span><span class='hs-conid'>JSON</span><span class='hs-varop'>.</span><span class='hs-varid'>kvObjectOrEmpty</span><span class='hs-varop'>`</span> <span class='hs-varid'>metricRequired</span>
 <a name="line-907"></a>

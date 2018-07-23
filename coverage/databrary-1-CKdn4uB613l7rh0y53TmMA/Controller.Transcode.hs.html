@@ -55,7 +55,7 @@ span.spaces    { background: white }
 <span class="lineno">   39 </span><span class="spaces">  </span><span class="nottickedoff">hb &lt;- unhex h</span>
 <span class="lineno">   40 </span><span class="spaces">  </span><span class="nottickedoff">lb &lt;- unhex l</span>
 <span class="lineno">   41 </span><span class="spaces">  </span><span class="nottickedoff">((shiftL hb 4 .|. lb) :) &lt;$&gt; unHex r</span>
-<span class="lineno">   42 </span><span class="spaces">  </span><span class="nottickedoff">where unhex x = (isHexDigit x) `thenUse` (fromIntegral (digitToInt x))</span></span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="nottickedoff">where unhex x = isHexDigit x `thenUse` fromIntegral (digitToInt x)</span></span>
 <span class="lineno">   43 </span>
 <span class="lineno">   44 </span>sha1Form :: DeformHandler f BS.ByteString
 <span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">sha1Form = do</span>

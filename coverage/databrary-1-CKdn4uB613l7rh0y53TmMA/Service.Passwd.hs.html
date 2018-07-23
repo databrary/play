@@ -14,7 +14,7 @@ span.spaces    { background: white }
 </head>
 <body>
 <pre>
-<span class="lineno">    1 </span>{-# LANGUAGE ForeignFunctionInterface, OverloadedStrings, TemplateHaskell #-}
+<span class="lineno">    1 </span>{-# LANGUAGE ForeignFunctionInterface, OverloadedStrings #-}
 <span class="lineno">    2 </span>module Service.Passwd
 <span class="lineno">    3 </span>  ( passwordPolicy
 <span class="lineno">    4 </span>  , passwdCheck
@@ -54,7 +54,7 @@ span.spaces    { background: white }
 <span class="lineno">   38 </span><span class="spaces">      </span><span class="nottickedoff">pw_dict &lt;- getDataFileName &quot;cracklib/pw_dict&quot;</span>
 <span class="lineno">   39 </span><span class="spaces">      </span><span class="nottickedoff">BS.useAsCString (BSC.pack pw_dict) $ \dict -&gt; do</span>
 <span class="lineno">   40 </span><span class="spaces">        </span><span class="nottickedoff">r &lt;- cracklibCheck p dict</span>
-<span class="lineno">   41 </span><span class="spaces">        </span><span class="nottickedoff">(r /= nullPtr) `thenReturn` (BS.packCString r)</span></span>
+<span class="lineno">   41 </span><span class="spaces">        </span><span class="nottickedoff">(r /= nullPtr) `thenReturn` BS.packCString r</span></span>
 
 </pre>
 </body>

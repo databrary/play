@@ -14,7 +14,7 @@ span.spaces    { background: white }
 </head>
 <body>
 <pre>
-<span class="lineno">    1 </span>{-# LANGUAGE DataKinds, TemplateHaskell, DeriveDataTypeable, OverloadedStrings #-}
+<span class="lineno">    1 </span>{-# LANGUAGE DataKinds, DeriveDataTypeable, OverloadedStrings #-}
 <span class="lineno">    2 </span>{-# OPTIONS_GHC -fno-warn-orphans #-}
 <span class="lineno">    3 </span>module Model.Audit.Types
 <span class="lineno">    4 </span>  ( AuditAction(..)
@@ -93,7 +93,7 @@ span.spaces    { background: white }
 <span class="lineno">   77 </span><span class="spaces">          </span><span class="nottickedoff">-&gt; AuditActionSuperuser</span>
 <span class="lineno">   78 </span><span class="spaces">        </span><span class="nottickedoff">_ -&gt; error</span>
 <span class="lineno">   79 </span><span class="spaces">               </span><span class="nottickedoff">(&quot;pgDecode audit.action: &quot;</span>
-<span class="lineno">   80 </span><span class="spaces">                </span><span class="nottickedoff">++ (Data.ByteString.Char8.unpack x_a4NXQ))</span></span>
+<span class="lineno">   80 </span><span class="spaces">                </span><span class="nottickedoff">++ Data.ByteString.Char8.unpack x_a4NXQ)</span></span>
 <span class="lineno">   81 </span>instance Database.PostgreSQL.Typed.Dynamic.PGRep &quot;audit.action&quot; AuditAction
 <span class="lineno">   82 </span>instance Database.PostgreSQL.Typed.Enum.PGEnum AuditAction
 <span class="lineno">   83 </span>instance Model.Kind.Kinded AuditAction where
@@ -101,7 +101,7 @@ span.spaces    { background: white }
 <span class="lineno">   85 </span>instance DBEnum AuditAction
 <span class="lineno">   86 </span>instance Data.Aeson.Types.ToJSON AuditAction where
 <span class="lineno">   87 </span>  <span class="decl"><span class="nottickedoff">toJSON</span>
-<span class="lineno">   88 </span><span class="spaces">    </span><span class="nottickedoff">= (Data.Aeson.Types.toJSON . fromEnum)</span></span>
+<span class="lineno">   88 </span><span class="spaces">    </span><span class="nottickedoff">= Data.Aeson.Types.toJSON . fromEnum</span></span>
 <span class="lineno">   89 </span>instance Data.Aeson.Types.FromJSON AuditAction where
 <span class="lineno">   90 </span>  <span class="decl"><span class="nottickedoff">parseJSON = parseJSONEnum</span></span>
 <span class="lineno">   91 </span>instance HTTP.Form.Deform.Deform f_a4NXR AuditAction where

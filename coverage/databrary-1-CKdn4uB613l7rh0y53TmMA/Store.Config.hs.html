@@ -164,7 +164,7 @@ span.spaces    { background: white }
 <span class="lineno">  148 </span><span class="spaces">    </span><span class="istickedoff">, PT.commentLine = &quot;#&quot;</span>
 <span class="lineno">  149 </span><span class="spaces">    </span><span class="istickedoff">, PT.nestedComments = <span class="nottickedoff">False</span></span>
 <span class="lineno">  150 </span><span class="spaces">    </span><span class="istickedoff">, PT.identStart = P.letter</span>
-<span class="lineno">  151 </span><span class="spaces">    </span><span class="istickedoff">, PT.identLetter = (P.alphaNum &lt;|&gt; P.oneOf &quot;-_&quot;)</span>
+<span class="lineno">  151 </span><span class="spaces">    </span><span class="istickedoff">, PT.identLetter = P.alphaNum &lt;|&gt; P.oneOf &quot;-_&quot;</span>
 <span class="lineno">  152 </span><span class="spaces">    </span><span class="istickedoff">, PT.opStart = <span class="nottickedoff">P.unexpected &quot;operator&quot;</span></span>
 <span class="lineno">  153 </span><span class="spaces">    </span><span class="istickedoff">, PT.opLetter = <span class="nottickedoff">P.unexpected &quot;operator&quot;</span></span>
 <span class="lineno">  154 </span><span class="spaces">    </span><span class="istickedoff">, PT.reservedNames = []</span>
@@ -200,12 +200,12 @@ span.spaces    { background: white }
 <span class="lineno">  184 </span><span class="spaces">  </span><span class="istickedoff">config v = Just &lt;$&gt; config v</span></span>
 <span class="lineno">  185 </span>
 <span class="lineno">  186 </span>instance Configurable Bool where
-<span class="lineno">  187 </span>  <span class="decl"><span class="istickedoff">config (Boolean b) = Just b</span>
-<span class="lineno">  188 </span><span class="spaces">  </span><span class="istickedoff">config _ = <span class="nottickedoff">Nothing</span></span></span>
+<span class="lineno">  187 </span>  <span class="decl"><span class="nottickedoff">config (Boolean b) = Just b</span>
+<span class="lineno">  188 </span><span class="spaces">  </span><span class="nottickedoff">config _ = Nothing</span></span>
 <span class="lineno">  189 </span>
 <span class="lineno">  190 </span>instance Configurable Integer where
-<span class="lineno">  191 </span>  <span class="decl"><span class="istickedoff">config (Integer i) = Just i</span>
-<span class="lineno">  192 </span><span class="spaces">  </span><span class="istickedoff">config _ = <span class="nottickedoff">Nothing</span></span></span>
+<span class="lineno">  191 </span>  <span class="decl"><span class="nottickedoff">config (Integer i) = Just i</span>
+<span class="lineno">  192 </span><span class="spaces">  </span><span class="nottickedoff">config _ = Nothing</span></span>
 <span class="lineno">  193 </span>
 <span class="lineno">  194 </span>instance Configurable BS.ByteString where
 <span class="lineno">  195 </span>  <span class="decl"><span class="istickedoff">config (String s) = Just s</span>
@@ -222,11 +222,11 @@ span.spaces    { background: white }
 <span class="lineno">  206 </span>  <span class="decl"><span class="istickedoff">config v = BSC.unpack &lt;$&gt; config v</span></span>
 <span class="lineno">  207 </span>
 <span class="lineno">  208 </span>configBoundedInt :: forall a . (Integral a, Bounded a) =&gt; Value -&gt; Maybe a
-<span class="lineno">  209 </span><span class="decl"><span class="istickedoff">configBoundedInt = f &lt;=&lt; config where</span>
-<span class="lineno">  210 </span><span class="spaces">  </span><span class="istickedoff">f i = (i &gt;= toInteger (minBound :: a) &amp;&amp; i &lt;= toInteger (maxBound :: a)) `thenUse` (fromInteger i)</span></span>
+<span class="lineno">  209 </span><span class="decl"><span class="nottickedoff">configBoundedInt = f &lt;=&lt; config where</span>
+<span class="lineno">  210 </span><span class="spaces">  </span><span class="nottickedoff">f i = (i &gt;= toInteger (minBound :: a) &amp;&amp; i &lt;= toInteger (maxBound :: a)) `thenUse` fromInteger i</span></span>
 <span class="lineno">  211 </span>
 <span class="lineno">  212 </span>instance Configurable Int where
-<span class="lineno">  213 </span>  <span class="decl"><span class="istickedoff">config = configBoundedInt</span></span>
+<span class="lineno">  213 </span>  <span class="decl"><span class="nottickedoff">config = configBoundedInt</span></span>
 <span class="lineno">  214 </span>
 <span class="lineno">  215 </span>infixl 9 !
 <span class="lineno">  216 </span>(!) :: Configurable a =&gt; Config -&gt; Path -&gt; a

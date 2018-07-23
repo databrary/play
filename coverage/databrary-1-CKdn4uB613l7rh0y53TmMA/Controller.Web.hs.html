@@ -71,7 +71,7 @@ span.spaces    { background: white }
 <span class="lineno">   55 </span>
 <span class="lineno">   56 </span>parseStaticPath :: [T.Text] -&gt; Maybe StaticPath
 <span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">parseStaticPath = fmap (StaticPath . joinPath) . mapM component where</span>
-<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">component c = (TE.encodeUtf8 c) `useWhen` (not (T.null c) &amp;&amp; T.head c /= '.' &amp;&amp; T.all ok c)</span></span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">component c = TE.encodeUtf8 c `useWhen` (not (T.null c) &amp;&amp; T.head c /= '.' &amp;&amp; T.all ok c)</span></span>
 <span class="lineno">   59 </span>
 <span class="lineno">   60 </span>pathStatic :: PathParser (Maybe StaticPath)
 <span class="lineno">   61 </span><span class="decl"><span class="nottickedoff">pathStatic = (parseStaticPath I.:&lt;-&gt;: maybe [] (map TE.decodeLatin1 . splitDirectories . staticFilePath)) &gt;$&lt; R.manyI R.parameter</span></span>

@@ -114,7 +114,7 @@
 <a name="line-105"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>rt</span> <span class='hs-str'>"\"downloadAssetSegment\":{method:\"GET\",route:function(int320,segment1,int322){return \"/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/download\";}},"</span>
 <a name="line-106"></a>  <span class='hs-comment'>-- , jsRoute "downloadAssetSegment" downloadAssetSegment (slot, asset) --download transcoded asset segment</span>
 <a name="line-107"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>rt</span> <span class='hs-str'>"\"downloadOrigAssetSegment\":{method:\"GET\",route:function(int320,segment1,int322){return \"/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/downloadOrig\";}},"</span>
-<a name="line-108"></a>  <span class='hs-comment'>-- , jsRoute "downloadOrigAssetSegment" downloadOrigAssetSegment (slot, asset) --download original asset segment </span>
+<a name="line-108"></a>  <span class='hs-comment'>-- , jsRoute "downloadOrigAssetSegment" downloadOrigAssetSegment (slot, asset) --download original asset segment</span>
 <a name="line-109"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>rt</span> <span class='hs-str'>"\"thumbAssetSegment\":{method:\"GET\",route:function(int320,segment1,int322){return \"/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/thumb\";}},"</span>
 <a name="line-110"></a>  <span class='hs-comment'>-- , jsRoute "thumbAssetSegment" (thumbAssetSegment False) (slot, asset)</span>
 <a name="line-111"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>rt</span> <span class='hs-str'>"\"thumbOrigAssetSegment\":{method:\"GET\",route:function(int320,segment1,int322){return \"/slot/\"+int320+\"/\"+segment1+\"/asset/\"+int322+\"/thumb\";}},"</span>
@@ -204,7 +204,7 @@
 <a name="line-195"></a>
 <a name="line-196"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>rt</span> <span class='hs-str'>"\"postSearch\":{method:\"GET\",route:function(){return \"/api/search\";}},"</span>
 <a name="line-197"></a>  <span class='hs-comment'>-- , jsRoute "postSearch" postSearch (JSON)</span>
-<a name="line-198"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>rt</span> <span class='hs-str'>"\"getFunders\":{method:\"GET\",route:function(){return \"/api/funder\";}},"</span>  
+<a name="line-198"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>rt</span> <span class='hs-str'>"\"getFunders\":{method:\"GET\",route:function(){return \"/api/funder\";}},"</span>
 <a name="line-199"></a>  <span class='hs-comment'>-- , jsRoute "getFunders" queryFunder ()</span>
 <a name="line-200"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>rt</span> <span class='hs-str'>"\"getCitation\":{method:\"GET\",route:function(){return \"/api/cite\";}},"</span>
 <a name="line-201"></a>  <span class='hs-comment'>-- , jsRoute "getCitation" getCitation ()</span>
@@ -338,7 +338,7 @@
 <a name="line-329"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>viewVolume</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ActionRoute</span> <span class='hs-layout'>(</span><span class='hs-conid'>API</span><span class='hs-layout'>,</span> <span class='hs-conid'>Id</span> <span class='hs-conid'>Volume</span><span class='hs-layout'>)</span>
 <a name="line-330"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>viewVolumeCreateHandler</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Action</span>
 <a name="line-331"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>viewVolumeEdit</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ActionRoute</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Volume</span><span class='hs-layout'>)</span>
-<a name="line-332"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>queryVolumes</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ActionRoute</span> <span class='hs-layout'>(</span><span class='hs-conid'>API</span><span class='hs-layout'>)</span>
+<a name="line-332"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>queryVolumes</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ActionRoute</span> <span class='hs-conid'>API</span>
 <a name="line-333"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>thumbVolume</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ActionRoute</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Volume</span><span class='hs-layout'>)</span>
 <a name="line-334"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>csvVolume</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ActionRoute</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Volume</span><span class='hs-layout'>)</span>
 <a name="line-335"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>viewVolumeActivity</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ActionRoute</span> <span class='hs-layout'>(</span><span class='hs-conid'>API</span><span class='hs-layout'>,</span> <span class='hs-conid'>Id</span> <span class='hs-conid'>Volume</span><span class='hs-layout'>)</span>

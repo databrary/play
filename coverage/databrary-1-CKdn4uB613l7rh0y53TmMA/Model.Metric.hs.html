@@ -14,7 +14,7 @@ span.spaces    { background: white }
 </head>
 <body>
 <pre>
-<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TemplateHaskell, RecordWildCards, DataKinds #-}
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, RecordWildCards, DataKinds #-}
 <span class="lineno">    2 </span>module Model.Metric
 <span class="lineno">    3 </span>  ( module Model.Metric.Types
 <span class="lineno">    4 </span>  , allMetrics
@@ -71,7 +71,7 @@ span.spaces    { background: white }
 <span class="lineno">   55 </span>import qualified Text.Read as TR
 <span class="lineno">   56 </span>
 <span class="lineno">   57 </span>import Ops
-<span class="lineno">   58 </span>import qualified JSON as JSON
+<span class="lineno">   58 </span>import qualified JSON
 <span class="lineno">   59 </span>import Model.Id
 <span class="lineno">   60 </span>import Model.Category
 <span class="lineno">   61 </span>import Model.Metric.Types
@@ -87,7 +87,7 @@ span.spaces    { background: white }
 <span class="lineno">   71 </span>
 <span class="lineno">   72 </span>-- TODO: db coherence
 <span class="lineno">   73 </span>allMetrics :: [Metric]
-<span class="lineno">   74 </span><span class="decl"><span class="istickedoff">allMetrics = </span>
+<span class="lineno">   74 </span><span class="decl"><span class="istickedoff">allMetrics =</span>
 <span class="lineno">   75 </span><span class="spaces">    </span><span class="istickedoff">[Metric</span>
 <span class="lineno">   76 </span><span class="spaces">       </span><span class="istickedoff">(Id 1)</span>
 <span class="lineno">   77 </span><span class="spaces">       </span><span class="istickedoff">(Category</span>
@@ -97,7 +97,7 @@ span.spaces    { background: white }
 <span class="lineno">   81 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(Data.Text.pack</span></span>
 <span class="lineno">   82 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">&quot;An individual human subject whose data are used or represented&quot;)</span>))</span>
 <span class="lineno">   83 </span><span class="spaces">       </span><span class="istickedoff">(Data.Text.pack &quot;ID&quot;)</span>
-<span class="lineno">   84 </span><span class="spaces">       </span><span class="istickedoff">(Just Model.Release.Types.ReleasePUBLIC)</span>
+<span class="lineno">   84 </span><span class="spaces">       </span><span class="istickedoff">(Just <span class="nottickedoff">Model.Release.Types.ReleasePUBLIC</span>)</span>
 <span class="lineno">   85 </span><span class="spaces">       </span><span class="istickedoff">MeasureTypeText</span>
 <span class="lineno">   86 </span><span class="spaces">       </span><span class="istickedoff">[]</span>
 <span class="lineno">   87 </span><span class="spaces">       </span><span class="istickedoff">Nothing</span>
@@ -306,7 +306,7 @@ span.spaces    { background: white }
 <span class="lineno">  290 </span><span class="spaces">             </span><span class="istickedoff"><span class="nottickedoff">(Data.Text.pack</span></span>
 <span class="lineno">  291 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">&quot;An individual human subject whose data are used or represented&quot;)</span>))</span>
 <span class="lineno">  292 </span><span class="spaces">       </span><span class="istickedoff">(Data.Text.pack &quot;language&quot;)</span>
-<span class="lineno">  293 </span><span class="spaces">       </span><span class="istickedoff">(Just Model.Release.Types.ReleasePUBLIC)</span>
+<span class="lineno">  293 </span><span class="spaces">       </span><span class="istickedoff">(Just <span class="nottickedoff">Model.Release.Types.ReleasePUBLIC</span>)</span>
 <span class="lineno">  294 </span><span class="spaces">       </span><span class="istickedoff">MeasureTypeText</span>
 <span class="lineno">  295 </span><span class="spaces">       </span><span class="istickedoff">[]</span>
 <span class="lineno">  296 </span><span class="spaces">       </span><span class="istickedoff">(Just <span class="nottickedoff">(Data.ByteString.pack [69, 110, 103, 108, 105, 115, 104])</span>)</span>
@@ -754,7 +754,7 @@ span.spaces    { background: white }
 <span class="lineno">  738 </span>
 <span class="lineno">  739 </span>participantMetricId :: Metric
 <span class="lineno">  740 </span><span class="decl"><span class="istickedoff">participantMetricId = getMetric' (Id 1)</span></span>
-<span class="lineno">  741 </span>  
+<span class="lineno">  741 </span>
 <span class="lineno">  742 </span>participantMetricInfo :: Metric
 <span class="lineno">  743 </span><span class="decl"><span class="istickedoff">participantMetricInfo = getMetric' (Id 2)</span></span>
 <span class="lineno">  744 </span>
@@ -865,7 +865,7 @@ span.spaces    { background: white }
 <span class="lineno">  849 </span><span class="spaces">    </span><span class="istickedoff">if <span class="tickonlyfalse">val == &quot;&quot;</span></span>
 <span class="lineno">  850 </span><span class="spaces">    </span><span class="istickedoff">then <span class="nottickedoff">pure Nothing</span></span>
 <span class="lineno">  851 </span><span class="spaces">    </span><span class="istickedoff">else do</span>
-<span class="lineno">  852 </span><span class="spaces">        </span><span class="istickedoff">age &lt;- (TR.readMaybe (BSC.unpack val) :: Maybe Double)</span>
+<span class="lineno">  852 </span><span class="spaces">        </span><span class="istickedoff">age &lt;- TR.readMaybe (BSC.unpack val) :: Maybe Double</span>
 <span class="lineno">  853 </span><span class="spaces">        </span><span class="istickedoff">pure (Just age)</span></span>
 <span class="lineno">  854 </span>
 <span class="lineno">  855 </span>validateParticipantBirthWeight :: BS.ByteString -&gt; Maybe (Maybe Double)
@@ -873,11 +873,11 @@ span.spaces    { background: white }
 <span class="lineno">  857 </span><span class="spaces">    </span><span class="istickedoff">if val == &quot;&quot;</span>
 <span class="lineno">  858 </span><span class="spaces">    </span><span class="istickedoff">then pure Nothing</span>
 <span class="lineno">  859 </span><span class="spaces">    </span><span class="istickedoff">else do</span>
-<span class="lineno">  860 </span><span class="spaces">        </span><span class="istickedoff">weight &lt;- (TR.readMaybe (BSC.unpack val) :: Maybe Double)</span>
+<span class="lineno">  860 </span><span class="spaces">        </span><span class="istickedoff">weight &lt;- TR.readMaybe (BSC.unpack val) :: Maybe Double</span>
 <span class="lineno">  861 </span><span class="spaces">        </span><span class="istickedoff">pure (Just weight)</span></span>
 <span class="lineno">  862 </span>
 <span class="lineno">  863 </span>validateParticipantBirthdate :: BS.ByteString -&gt; Maybe (Maybe Time.Day)
-<span class="lineno">  864 </span><span class="decl"><span class="istickedoff">validateParticipantBirthdate val = do</span>
+<span class="lineno">  864 </span><span class="decl"><span class="istickedoff">validateParticipantBirthdate val =</span>
 <span class="lineno">  865 </span><span class="spaces">    </span><span class="istickedoff">if val == &quot;&quot;</span>
 <span class="lineno">  866 </span><span class="spaces">    </span><span class="istickedoff">then pure Nothing</span>
 <span class="lineno">  867 </span><span class="spaces">    </span><span class="istickedoff">else do</span>
@@ -885,7 +885,7 @@ span.spaces    { background: white }
 <span class="lineno">  869 </span><span class="spaces">        </span><span class="istickedoff">pure (Just time)</span></span>
 <span class="lineno">  870 </span>
 <span class="lineno">  871 </span>validateParticipantLanguage :: BS.ByteString -&gt; Maybe (Maybe BS.ByteString)
-<span class="lineno">  872 </span><span class="decl"><span class="istickedoff">validateParticipantLanguage val = do</span>
+<span class="lineno">  872 </span><span class="decl"><span class="istickedoff">validateParticipantLanguage val =</span>
 <span class="lineno">  873 </span><span class="spaces">    </span><span class="istickedoff">pure (valToMaybe val)</span></span>
 <span class="lineno">  874 </span>
 <span class="lineno">  875 </span>validateInOptions :: BS.ByteString -&gt; Metric -&gt; Maybe BS.ByteString
@@ -907,7 +907,7 @@ span.spaces    { background: white }
 <span class="lineno">  891 </span><span class="decl"><span class="istickedoff">metricLong = (&quot;description&quot; ==) . metricName</span></span>
 <span class="lineno">  892 </span>
 <span class="lineno">  893 </span>birthdateMetric :: Metric--T MeasureTypeDate
-<span class="lineno">  894 </span><span class="decl"><span class="istickedoff">birthdateMetric = fromJust $ {- castMetric =&lt;&lt; -} find ((&quot;birthdate&quot; ==) . metricName) allMetrics</span></span>
+<span class="lineno">  894 </span><span class="decl"><span class="nottickedoff">birthdateMetric = fromJust $ {- castMetric =&lt;&lt; -} find ((&quot;birthdate&quot; ==) . metricName) allMetrics</span></span>
 <span class="lineno">  895 </span>
 <span class="lineno">  896 </span>metricJSON :: JSON.ToObject o =&gt; Metric -&gt; JSON.Record (Id Metric) o
 <span class="lineno">  897 </span><span class="decl"><span class="nottickedoff">metricJSON m@Metric{..} = JSON.Record metricId $</span>
@@ -917,7 +917,7 @@ span.spaces    { background: white }
 <span class="lineno">  901 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;type&quot; JSON..= show metricType</span>
 <span class="lineno">  902 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;options&quot; `JSON.kvObjectOrEmpty` (if null metricOptions then empty else pure metricOptions)</span>
 <span class="lineno">  903 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;assumed&quot; `JSON.kvObjectOrEmpty` metricAssumed</span>
-<span class="lineno">  904 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;long&quot; `JSON.kvObjectOrEmpty` (True `useWhen` (metricLong m))</span>
+<span class="lineno">  904 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;long&quot; `JSON.kvObjectOrEmpty` (True `useWhen` metricLong m)</span>
 <span class="lineno">  905 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;description&quot; `JSON.kvObjectOrEmpty` metricDescription</span>
 <span class="lineno">  906 </span><span class="spaces">  </span><span class="nottickedoff">&lt;&gt; &quot;required&quot; `JSON.kvObjectOrEmpty` metricRequired</span></span>
 <span class="lineno">  907 </span>

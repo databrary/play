@@ -14,7 +14,7 @@ span.spaces    { background: white }
 </head>
 <body>
 <pre>
-<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell, QuasiQuotes, RecordWildCards, DataKinds #-}
+<span class="lineno">    1 </span>{-# LANGUAGE RecordWildCards, DataKinds #-}
 <span class="lineno">    2 </span>module Model.VolumeState
 <span class="lineno">    3 </span>  ( module Model.VolumeState.Types
 <span class="lineno">    4 </span>  , lookupVolumeState
@@ -38,7 +38,7 @@ span.spaces    { background: white }
 <span class="lineno">   22 </span>lookupVolumeState :: (MonadDB c m) =&gt; Id Volume -&gt; VolumeRolePolicy -&gt; m [VolumeState]
 <span class="lineno">   23 </span><span class="decl"><span class="nottickedoff">lookupVolumeState vid volRolePolicy = do</span>
 <span class="lineno">   24 </span><span class="spaces">  </span><span class="nottickedoff">let _tenv_a7xjl = unknownPGTypeEnv</span>
-<span class="lineno">   25 </span><span class="spaces">  </span><span class="nottickedoff">rows &lt;- </span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="nottickedoff">rows &lt;-</span>
 <span class="lineno">   26 </span><span class="spaces">    </span><span class="nottickedoff">-- (selectQuery selectVolumeState &quot;$WHERE volume = ${volumeId $ volumeRow v} AND (public OR ${(extractPermissionIgnorePolicy . volumeRolePolicy) v &gt;= PermissionEDIT})&quot;)</span>
 <span class="lineno">   27 </span><span class="spaces">     </span><span class="nottickedoff">mapRunPrepQuery</span>
 <span class="lineno">   28 </span><span class="spaces">      </span><span class="nottickedoff">((\ _p_a7xjm _p_a7xjn -&gt;</span>
@@ -57,9 +57,9 @@ span.spaces    { background: white }
 <span class="lineno">   41 </span><span class="spaces">                  </span><span class="nottickedoff">-&gt; (pgDecodeColumnNotNull</span>
 <span class="lineno">   42 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a7xjl</span>
 <span class="lineno">   43 </span><span class="spaces">                        </span><span class="nottickedoff">(PGTypeProxy :: PGTypeName &quot;character varying&quot;)</span>
-<span class="lineno">   44 </span><span class="spaces">                        </span><span class="nottickedoff">_ckey_a7xjo, </span>
+<span class="lineno">   44 </span><span class="spaces">                        </span><span class="nottickedoff">_ckey_a7xjo,</span>
 <span class="lineno">   45 </span><span class="spaces">                      </span><span class="nottickedoff">pgDecodeColumnNotNull</span>
-<span class="lineno">   46 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a7xjl (PGTypeProxy :: PGTypeName &quot;jsonb&quot;) _cvalue_a7xjp, </span>
+<span class="lineno">   46 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a7xjl (PGTypeProxy :: PGTypeName &quot;jsonb&quot;) _cvalue_a7xjp,</span>
 <span class="lineno">   47 </span><span class="spaces">                      </span><span class="nottickedoff">pgDecodeColumnNotNull</span>
 <span class="lineno">   48 </span><span class="spaces">                        </span><span class="nottickedoff">_tenv_a7xjl (PGTypeProxy :: PGTypeName &quot;boolean&quot;) _cpublic_a7xjq))</span>
 <span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">pure</span>

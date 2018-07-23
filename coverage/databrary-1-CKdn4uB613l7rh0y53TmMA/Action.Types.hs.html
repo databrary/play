@@ -14,7 +14,7 @@ span.spaces    { background: white }
 </head>
 <body>
 <pre>
-<span class="lineno">    1 </span>{-# LANGUAGE GeneralizedNewtypeDeriving, TypeFamilies, TemplateHaskell #-}
+<span class="lineno">    1 </span>{-# LANGUAGE GeneralizedNewtypeDeriving, TypeFamilies #-}
 <span class="lineno">    2 </span>module Action.Types
 <span class="lineno">    3 </span>  ( RequestContext(..)
 <span class="lineno">    4 </span>  , Handler(..)
@@ -63,59 +63,59 @@ span.spaces    { background: white }
 <span class="lineno">   47 </span>instance Has ActionContext RequestContext where
 <span class="lineno">   48 </span>  <span class="decl"><span class="nottickedoff">view = requestContext</span></span>
 <span class="lineno">   49 </span>instance Has Service.DB.DBConn RequestContext where
-<span class="lineno">   50 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestContext)</span></span>
+<span class="lineno">   50 </span>  <span class="decl"><span class="nottickedoff">view = view . requestContext</span></span>
 <span class="lineno">   51 </span>instance Has Control.Monad.Trans.Resource.InternalState RequestContext where
-<span class="lineno">   52 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestContext)</span></span>
+<span class="lineno">   52 </span>  <span class="decl"><span class="nottickedoff">view = view . requestContext</span></span>
 <span class="lineno">   53 </span>-- instance Has time-1.6.0.1:Data.Time.Calendar.Days.Day RequestContext where
 <span class="lineno">   54 </span>--   view = (view . requestContext)
 <span class="lineno">   55 </span>instance Has Model.Time.Timestamp RequestContext where
-<span class="lineno">   56 </span>  <span class="decl"><span class="nottickedoff">view = (contextTimestamp . requestContext)</span></span>
+<span class="lineno">   56 </span>  <span class="decl"><span class="nottickedoff">view = contextTimestamp . requestContext</span></span>
 <span class="lineno">   57 </span>instance Has Service.Types.Secret RequestContext where
-<span class="lineno">   58 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestContext)</span></span>
+<span class="lineno">   58 </span>  <span class="decl"><span class="nottickedoff">view = view . requestContext</span></span>
 <span class="lineno">   59 </span>instance Has Service.Entropy.Entropy RequestContext where
-<span class="lineno">   60 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestContext)</span></span>
+<span class="lineno">   60 </span>  <span class="decl"><span class="nottickedoff">view = view . requestContext</span></span>
 <span class="lineno">   61 </span>instance Has Service.Passwd.Passwd RequestContext where
-<span class="lineno">   62 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestContext)</span></span>
+<span class="lineno">   62 </span>  <span class="decl"><span class="nottickedoff">view = view . requestContext</span></span>
 <span class="lineno">   63 </span>instance Has Service.Log.Logs RequestContext where
-<span class="lineno">   64 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestContext)</span></span>
+<span class="lineno">   64 </span>  <span class="decl"><span class="nottickedoff">view = view . requestContext</span></span>
 <span class="lineno">   65 </span>instance Has Service.Mail.Mailer RequestContext where
-<span class="lineno">   66 </span>  <span class="decl"><span class="nottickedoff">view = (serviceMailer . contextService . requestContext)</span></span>
+<span class="lineno">   66 </span>  <span class="decl"><span class="nottickedoff">view = serviceMailer . contextService . requestContext</span></span>
 <span class="lineno">   67 </span>instance Has Service.Messages.Messages RequestContext where
-<span class="lineno">   68 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestContext)</span></span>
+<span class="lineno">   68 </span>  <span class="decl"><span class="nottickedoff">view = view . requestContext</span></span>
 <span class="lineno">   69 </span>-- instance Has Service.DB.DBPool RequestContext where
 <span class="lineno">   70 </span>--   view = (view . requestContext)
 <span class="lineno">   71 </span>instance Has Store.Types.Storage RequestContext where
-<span class="lineno">   72 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestContext)</span></span>
+<span class="lineno">   72 </span>  <span class="decl"><span class="nottickedoff">view = view . requestContext</span></span>
 <span class="lineno">   73 </span>instance Has Store.AV.AV RequestContext where
-<span class="lineno">   74 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestContext)</span></span>
+<span class="lineno">   74 </span>  <span class="decl"><span class="nottickedoff">view = view . requestContext</span></span>
 <span class="lineno">   75 </span>instance Has Web.Types.Web RequestContext where
-<span class="lineno">   76 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestContext)</span></span>
+<span class="lineno">   76 </span>  <span class="decl"><span class="nottickedoff">view = view . requestContext</span></span>
 <span class="lineno">   77 </span>instance Has HTTP.Client.HTTPClient RequestContext where
-<span class="lineno">   78 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestContext)</span></span>
+<span class="lineno">   78 </span>  <span class="decl"><span class="nottickedoff">view = view . requestContext</span></span>
 <span class="lineno">   79 </span>instance Has Static.Service.Static RequestContext where
-<span class="lineno">   80 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestContext)</span></span>
+<span class="lineno">   80 </span>  <span class="decl"><span class="nottickedoff">view = view . requestContext</span></span>
 <span class="lineno">   81 </span>instance Has Ingest.Service.Ingest RequestContext where
-<span class="lineno">   82 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestContext)</span></span>
+<span class="lineno">   82 </span>  <span class="decl"><span class="nottickedoff">view = view . requestContext</span></span>
 <span class="lineno">   83 </span>instance Has Solr.Service.Solr RequestContext where
-<span class="lineno">   84 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestContext)</span></span>
+<span class="lineno">   84 </span>  <span class="decl"><span class="nottickedoff">view = view . requestContext</span></span>
 <span class="lineno">   85 </span>instance Has Service.Notification.Notifications RequestContext where
-<span class="lineno">   86 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestContext)</span></span>
+<span class="lineno">   86 </span>  <span class="decl"><span class="nottickedoff">view = view . requestContext</span></span>
 <span class="lineno">   87 </span>instance Has Service.Types.Service RequestContext where
-<span class="lineno">   88 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestContext)</span></span>
+<span class="lineno">   88 </span>  <span class="decl"><span class="nottickedoff">view = view . requestContext</span></span>
 <span class="lineno">   89 </span>instance Has Request RequestContext where
 <span class="lineno">   90 </span>  <span class="decl"><span class="nottickedoff">view = contextRequest</span></span>
 <span class="lineno">   91 </span>instance Has Identity RequestContext where
 <span class="lineno">   92 </span>  <span class="decl"><span class="nottickedoff">view = requestIdentity</span></span>
 <span class="lineno">   93 </span>instance Has Model.Permission.Types.Access RequestContext where
-<span class="lineno">   94 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestIdentity)</span></span>
+<span class="lineno">   94 </span>  <span class="decl"><span class="nottickedoff">view = view . requestIdentity</span></span>
 <span class="lineno">   95 </span>instance Has (Model.Id.Types.Id Model.Party.Types.Party) RequestContext where
-<span class="lineno">   96 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestIdentity)</span></span>
+<span class="lineno">   96 </span>  <span class="decl"><span class="nottickedoff">view = view . requestIdentity</span></span>
 <span class="lineno">   97 </span>instance Has Model.Party.Types.Account RequestContext where
-<span class="lineno">   98 </span>   <span class="decl"><span class="nottickedoff">view = (siteAccount . view . requestIdentity)</span></span>
+<span class="lineno">   98 </span>   <span class="decl"><span class="nottickedoff">view = siteAccount . view . requestIdentity</span></span>
 <span class="lineno">   99 </span>instance Has Model.Party.Types.Party RequestContext where
-<span class="lineno">  100 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestIdentity)</span></span>
+<span class="lineno">  100 </span>  <span class="decl"><span class="nottickedoff">view = view . requestIdentity</span></span>
 <span class="lineno">  101 </span>instance Has Model.Party.Types.SiteAuth RequestContext where
-<span class="lineno">  102 </span>  <span class="decl"><span class="nottickedoff">view = (view . requestIdentity)</span></span>
+<span class="lineno">  102 </span>  <span class="decl"><span class="nottickedoff">view = view . requestIdentity</span></span>
 <span class="lineno">  103 </span>
 <span class="lineno">  104 </span>-- | The monad in which route handlers run. At the top, each route 'Action'
 <span class="lineno">  105 </span>-- returns a 'Handler' 'Response'

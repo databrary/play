@@ -14,8 +14,8 @@ span.spaces    { background: white }
 </head>
 <body>
 <pre>
-<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies, DataKinds, GeneralizedNewtypeDeriving, DeriveDataTypeable #-}
-<span class="lineno">    2 </span>module Model.Tag.Types
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings, TypeFamilies, DataKinds,
+<span class="lineno">    2 </span>  GeneralizedNewtypeDeriving, DeriveDataTypeable #-}module Model.Tag.Types
 <span class="lineno">    3 </span>  ( TagName(..)
 <span class="lineno">    4 </span>  , validateTag
 <span class="lineno">    5 </span>  , Tag(..)
@@ -36,7 +36,7 @@ span.spaces    { background: white }
 <span class="lineno">   20 </span>
 <span class="lineno">   21 </span>import Ops
 <span class="lineno">   22 </span>import Has (Has(..))
-<span class="lineno">   23 </span>import qualified JSON as JSON
+<span class="lineno">   23 </span>import qualified JSON
 <span class="lineno">   24 </span>import Model.Kind
 <span class="lineno">   25 </span>import Model.Id.Types
 <span class="lineno">   26 </span>import Model.Party.Types
@@ -52,7 +52,7 @@ span.spaces    { background: white }
 <span class="lineno">   36 </span><span class="spaces">  </span><span class="istickedoff">(&quot;^[a-z][-a-z ]+[a-z]$&quot; :: BS.ByteString)</span></span>
 <span class="lineno">   37 </span>
 <span class="lineno">   38 </span>validateTag :: BS.ByteString -&gt; Maybe TagName
-<span class="lineno">   39 </span><span class="decl"><span class="istickedoff">validateTag t = (Regex.matchTest validTag tt) `thenUse` <span class="nottickedoff">(TagName tt)</span> where</span>
+<span class="lineno">   39 </span><span class="decl"><span class="istickedoff">validateTag t = Regex.matchTest validTag tt `thenUse` <span class="nottickedoff">TagName tt</span> where</span>
 <span class="lineno">   40 </span><span class="spaces">  </span><span class="istickedoff">tt = BSC.map toLower $ BSC.unwords $ BSC.words t</span></span>
 <span class="lineno">   41 </span>
 <span class="lineno">   42 </span>instance R.Parameter R.PathString TagName where
@@ -85,11 +85,11 @@ span.spaces    { background: white }
 <span class="lineno">   69 </span>  }
 <span class="lineno">   70 </span>
 <span class="lineno">   71 </span>instance Has (Id Container) TagUse where
-<span class="lineno">   72 </span>  <span class="decl"><span class="nottickedoff">view = (view . tagSlot)</span></span>
+<span class="lineno">   72 </span>  <span class="decl"><span class="nottickedoff">view = view . tagSlot</span></span>
 <span class="lineno">   73 </span>instance Has Model.Volume.Types.Volume TagUse where
-<span class="lineno">   74 </span>  <span class="decl"><span class="nottickedoff">view = (view . tagSlot)</span></span>
+<span class="lineno">   74 </span>  <span class="decl"><span class="nottickedoff">view = view . tagSlot</span></span>
 <span class="lineno">   75 </span>instance Has (Id Model.Volume.Types.Volume) TagUse where
-<span class="lineno">   76 </span>  <span class="decl"><span class="nottickedoff">view = (volumeId . volumeRow . containerVolume . slotContainer . tagSlot)</span></span>
+<span class="lineno">   76 </span>  <span class="decl"><span class="nottickedoff">view = volumeId . volumeRow . containerVolume . slotContainer . tagSlot</span></span>
 <span class="lineno">   77 </span>
 <span class="lineno">   78 </span>data TagUseRow = TagUseRow
 <span class="lineno">   79 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">useTagRow</span></span></span> :: Tag

@@ -7,7 +7,7 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE TemplateHaskell, QuasiQuotes, DataKinds #-}</span>
+<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE DataKinds #-}</span>
 <a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>VolumeMetric</span>
 <a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>lookupVolumeMetrics</span>
 <a name="line-4"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>lookupVolumeParticipantMetrics</span>
@@ -50,14 +50,14 @@
 <a name="line-41"></a>                        <span class='hs-sel'>_tenv_a80O7</span> <span class='hs-layout'>(</span><span class='hs-conid'>PGTypeProxy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>PGTypeName</span> <span class='hs-str'>"integer"</span><span class='hs-layout'>)</span> <span class='hs-sel'>_cmetric_a80O9</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
 <a name="line-42"></a>  <span class='hs-varid'>pure</span>
 <a name="line-43"></a>    <span class='hs-layout'>(</span><span class='hs-varid'>fmap</span>
-<a name="line-44"></a>      <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span> <span class='hs-layout'>(</span><span class='hs-varid'>vmetric_a80O2</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>id</span> <span class='hs-varid'>vmetric_a80O2</span><span class='hs-layout'>)</span>
+<a name="line-44"></a>      <span class='hs-varid'>id</span>
 <a name="line-45"></a>      <span class='hs-varid'>rows</span><span class='hs-layout'>)</span>
 <a name="line-46"></a>
 <a name="line-47"></a><a name="lookupVolumeParticipantMetrics"></a><span class='hs-definition'>lookupVolumeParticipantMetrics</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadDB</span> <span class='hs-varid'>c</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Volume</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Metric</span><span class='hs-keyglyph'>]</span>
 <a name="line-48"></a><span class='hs-definition'>lookupVolumeParticipantMetrics</span> <span class='hs-varid'>vol</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
 <a name="line-49"></a>    <span class='hs-varid'>volumeActiveMetricIds</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>lookupVolumeMetrics</span> <span class='hs-varid'>vol</span>
 <a name="line-50"></a>    <span class='hs-comment'>-- liftIO (print ("metric ids", metricIds))</span>
-<a name="line-51"></a>    <span class='hs-varid'>pure</span> <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-varid'>fmap</span> <span class='hs-varid'>getMetric'</span> <span class='hs-varid'>volumeActiveMetricIds</span><span class='hs-layout'>)</span> <span class='hs-varop'>`</span><span class='hs-conid'>L</span><span class='hs-varop'>.</span><span class='hs-varid'>intersect</span><span class='hs-varop'>`</span> <span class='hs-varid'>participantMetrics</span><span class='hs-layout'>)</span>
+<a name="line-51"></a>    <span class='hs-varid'>pure</span> <span class='hs-layout'>(</span><span class='hs-varid'>fmap</span> <span class='hs-varid'>getMetric'</span> <span class='hs-varid'>volumeActiveMetricIds</span> <span class='hs-varop'>`</span><span class='hs-conid'>L</span><span class='hs-varop'>.</span><span class='hs-varid'>intersect</span><span class='hs-varop'>`</span> <span class='hs-varid'>participantMetrics</span><span class='hs-layout'>)</span>
 <a name="line-52"></a>
 <a name="line-53"></a><a name="mapQuery"></a><span class='hs-definition'>mapQuery</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ByteString</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>[</span><span class='hs-conid'>PGValue</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PGSimpleQuery</span> <span class='hs-varid'>a</span>
 <a name="line-54"></a><span class='hs-definition'>mapQuery</span> <span class='hs-varid'>qry</span> <span class='hs-varid'>mkResult</span> <span class='hs-keyglyph'>=</span>
@@ -67,7 +67,7 @@
 <a name="line-58"></a><span class='hs-definition'>addVolumeCategory</span> <span class='hs-varid'>v</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
 <a name="line-59"></a>  <span class='hs-keyword'>let</span> <span class='hs-sel'>_tenv_a6Dpx</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>unknownPGTypeEnv</span>
 <a name="line-60"></a>  <span class='hs-varid'>dbQuery</span> <span class='hs-comment'>-- [pgSQL|INSERT INTO volume_metric SELECT ${volumeId $ volumeRow v}, id FROM metric WHERE category = ${c} AND required IS NOT NULL RETURNING metric|]</span>
-<a name="line-61"></a>    <span class='hs-layout'>(</span><span class='hs-varid'>mapQuery</span> 
+<a name="line-61"></a>    <span class='hs-layout'>(</span><span class='hs-varid'>mapQuery</span>
 <a name="line-62"></a>      <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span> <span class='hs-sel'>_p_a6Dpy</span> <span class='hs-sel'>_p_a6Dpz</span> <span class='hs-keyglyph'>-&gt;</span>
 <a name="line-63"></a>                    <span class='hs-layout'>(</span><span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-varop'>.</span><span class='hs-varid'>concat</span>
 <a name="line-64"></a>                       <span class='hs-keyglyph'>[</span><span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>String</span><span class='hs-varop'>.</span><span class='hs-varid'>fromString</span> <span class='hs-str'>"INSERT INTO volume_metric SELECT "</span><span class='hs-layout'>,</span>

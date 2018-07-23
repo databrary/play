@@ -37,7 +37,7 @@ span.spaces    { background: white }
 <span class="lineno">   21 </span>
 <span class="lineno">   22 </span>import Ops
 <span class="lineno">   23 </span>import Has
-<span class="lineno">   24 </span>import qualified JSON as JSON
+<span class="lineno">   24 </span>import qualified JSON
 <span class="lineno">   25 </span>import Service.DB
 <span class="lineno">   26 </span>import Model.SQL
 <span class="lineno">   27 </span>import Model.Identity
@@ -146,7 +146,7 @@ span.spaces    { background: white }
 <span class="lineno">  130 </span>
 <span class="lineno">  131 </span>mergeActivityAssetAndSlot :: ActivityTarget -&gt; ActivityTarget -&gt; Maybe ActivityTarget
 <span class="lineno">  132 </span><span class="decl"><span class="nottickedoff">mergeActivityAssetAndSlot (ActivityAsset ar) (ActivityAssetSlot ai si) =</span>
-<span class="lineno">  133 </span><span class="spaces">  </span><span class="nottickedoff">(assetId ar == ai) `thenUse` (ActivityAssetAndSlot ar si)</span>
+<span class="lineno">  133 </span><span class="spaces">  </span><span class="nottickedoff">(assetId ar == ai) `thenUse` ActivityAssetAndSlot ar si</span>
 <span class="lineno">  134 </span><span class="spaces"></span><span class="nottickedoff">mergeActivityAssetAndSlot _ _ = Nothing</span></span>
 <span class="lineno">  135 </span>
 <span class="lineno">  136 </span>mergeAssetAndSlot :: [Activity] -&gt; [Activity]
@@ -238,7 +238,7 @@ span.spaces    { background: white }
 <span class="lineno">  222 </span><span class="decl"><span class="nottickedoff">activityJSON Activity{ activityAudit = Audit{..}, ..} = (auditAction == AuditActionChange &amp;&amp; HM.null new &amp;&amp; HM.null old) `unlessUse`</span>
 <span class="lineno">  223 </span><span class="spaces">  </span><span class="nottickedoff">(new &lt;&gt; key</span>
 <span class="lineno">  224 </span><span class="spaces">    </span><span class="nottickedoff">&lt;&gt; &quot;when&quot; JSON..= auditWhen</span>
-<span class="lineno">  225 </span><span class="spaces">    </span><span class="nottickedoff">&lt;&gt; &quot;action&quot; JSON..= show (auditAction)</span>
+<span class="lineno">  225 </span><span class="spaces">    </span><span class="nottickedoff">&lt;&gt; &quot;action&quot; JSON..= show auditAction</span>
 <span class="lineno">  226 </span><span class="spaces">    </span><span class="nottickedoff">&lt;&gt; &quot;ip&quot; JSON..= show (auditIp auditIdentity)</span>
 <span class="lineno">  227 </span><span class="spaces">    </span><span class="nottickedoff">&lt;&gt; &quot;user&quot; JSON..= auditWho auditIdentity</span>
 <span class="lineno">  228 </span><span class="spaces">    </span><span class="nottickedoff">&lt;&gt; &quot;type&quot; JSON..= typ</span>

@@ -39,7 +39,7 @@ span.spaces    { background: white }
 <span class="lineno">   23 </span>import Model.Asset.Types
 <span class="lineno">   24 </span>
 <span class="lineno">   25 </span>makeAssetRow :: Id Asset -&gt; Id Format -&gt; Maybe Release -&gt; Maybe Offset -&gt; Maybe T.Text -&gt; Maybe BS.ByteString -&gt; Maybe Int64 -&gt; AssetRow
-<span class="lineno">   26 </span><span class="decl"><span class="istickedoff">makeAssetRow i = AssetRow i . getFormat'</span></span>
+<span class="lineno">   26 </span><span class="decl"><span class="istickedoff">makeAssetRow i = AssetRow i . <span class="nottickedoff">getFormat'</span></span></span>
 <span class="lineno">   27 </span>
 <span class="lineno">   28 </span>selectAssetRow :: Selector -- ^ @'AssetRow'@
 <span class="lineno">   29 </span><span class="decl"><span class="nottickedoff">selectAssetRow = selectColumns 'makeAssetRow &quot;asset&quot; [&quot;id&quot;, &quot;format&quot;, &quot;release&quot;, &quot;duration&quot;, &quot;name&quot;, &quot;sha1&quot;, &quot;size&quot;]</span></span>

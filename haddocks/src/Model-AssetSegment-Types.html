@@ -112,11 +112,11 @@
 <a name="line-103"></a>  <span class='hs-keyword'>case</span> <span class='hs-keyword'>as</span> <span class='hs-keyword'>of</span>
 <a name="line-104"></a>    <span class='hs-conid'>AssetSegment</span><span class='hs-layout'>{</span> <span class='hs-varid'>segmentAsset</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-varid'>assetExcerpt</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Just</span> <span class='hs-varid'>e</span> <span class='hs-layout'>}</span> <span class='hs-keyglyph'>-&gt;</span>
 <a name="line-105"></a>      <span class='hs-keyword'>let</span>
-<a name="line-106"></a>        <span class='hs-varid'>rel</span> <span class='hs-keyglyph'>=</span> 
+<a name="line-106"></a>        <span class='hs-varid'>rel</span> <span class='hs-keyglyph'>=</span>
 <a name="line-107"></a>           <span class='hs-varid'>fold</span> <span class='hs-layout'>(</span>
 <a name="line-108"></a>                <span class='hs-varid'>excerptRelease</span> <span class='hs-varid'>e</span>  <span class='hs-comment'>-- Maybe Release monoid takes the first just, if both just, then max of values</span>
 <a name="line-109"></a>             <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>getAssetSlotReleaseMaybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-comment'>-- TODO: should I expose the guts of getAssetSlotRelease2?</span>
-<a name="line-110"></a>      <span class='hs-keyword'>in</span> 
+<a name="line-110"></a>      <span class='hs-keyword'>in</span>
 <a name="line-111"></a>        <span class='hs-conid'>EffectiveRelease</span> <span class='hs-layout'>{</span>
 <a name="line-112"></a>          <span class='hs-varid'>effRelPublic</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>rel</span>
 <a name="line-113"></a>        <span class='hs-layout'>,</span> <span class='hs-varid'>effRelPrivate</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>rel</span>

@@ -75,42 +75,42 @@ span.spaces    { background: white }
 <span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">cc c = isAlphaNum c</span></span>
 <span class="lineno">   60 </span>
 <span class="lineno">   61 </span>quoteQuery :: (Char -&gt; String -&gt; a -&gt; B.Builder) -&gt; a -&gt; B.Builder
-<span class="lineno">   62 </span><span class="decl"><span class="istickedoff">quoteQuery e s = B.char8 '&quot;' &lt;&gt; e '\\' &quot;\&quot;\\&quot; s &lt;&gt; B.char8 '&quot;'</span></span>
+<span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">quoteQuery e s = B.char8 '&quot;' &lt;&gt; e '\\' &quot;\&quot;\\&quot; s &lt;&gt; B.char8 '&quot;'</span></span>
 <span class="lineno">   63 </span>
 <span class="lineno">   64 </span>defaultParams :: B.Builder
-<span class="lineno">   65 </span><span class="decl"><span class="istickedoff">defaultParams = B.string8 &quot;{!dismax qf=\&quot;text_en^0.5 text_gen^0.5 keyword^2 tag_name party_name\&quot; pf=\&quot;keyword^2 tag_name party_name\&quot; ps=3}&quot;</span></span>
+<span class="lineno">   65 </span><span class="decl"><span class="nottickedoff">defaultParams = B.string8 &quot;{!dismax qf=\&quot;text_en^0.5 text_gen^0.5 keyword^2 tag_name party_name\&quot; pf=\&quot;keyword^2 tag_name party_name\&quot; ps=3}&quot;</span></span>
 <span class="lineno">   66 </span>
 <span class="lineno">   67 </span>search :: MonadSolr c m =&gt; SearchQuery -&gt; m (HC.Response BSL.ByteString)
-<span class="lineno">   68 </span><span class="decl"><span class="istickedoff">search SearchQuery{..} = do</span>
-<span class="lineno">   69 </span><span class="spaces">  </span><span class="istickedoff">req &lt;- peeks solrRequest</span>
-<span class="lineno">   70 </span><span class="spaces">  </span><span class="istickedoff">focusIO $ HC.httpLbs req</span>
-<span class="lineno">   71 </span><span class="spaces">    </span><span class="istickedoff">{ HC.path = HC.path req &lt;&gt; &quot;search&quot;</span>
-<span class="lineno">   72 </span><span class="spaces">    </span><span class="istickedoff">, HC.queryString = renderSimpleQuery True query</span>
-<span class="lineno">   73 </span><span class="spaces">    </span><span class="istickedoff">, HC.checkResponse = \_ _ -&gt; putStrLn &quot;Search Error&quot;</span>
-<span class="lineno">   74 </span><span class="spaces">    </span><span class="istickedoff">}</span>
-<span class="lineno">   75 </span><span class="spaces">  </span><span class="istickedoff">where</span>
-<span class="lineno">   76 </span><span class="spaces">  </span><span class="istickedoff">query =</span>
-<span class="lineno">   77 </span><span class="spaces">    </span><span class="istickedoff">[ (&quot;q&quot;, BSL.toStrict $ B.toLazyByteString $ qp &lt;&gt; uw ql)</span>
-<span class="lineno">   78 </span><span class="spaces">    </span><span class="istickedoff">, (&quot;fq&quot;, &quot;content_type:&quot; &lt;&gt; ct)</span>
-<span class="lineno">   79 </span><span class="spaces">    </span><span class="istickedoff">, (&quot;start&quot;, BSC.pack $ show $ paginateOffset searchPaginate)</span>
-<span class="lineno">   80 </span><span class="spaces">    </span><span class="istickedoff">, (&quot;rows&quot;, BSC.pack $ show $ paginateLimit searchPaginate)</span>
-<span class="lineno">   81 </span><span class="spaces">    </span><span class="istickedoff">, (&quot;q.op&quot;, &quot;AND&quot;)</span>
-<span class="lineno">   82 </span><span class="spaces">    </span><span class="istickedoff">]</span>
-<span class="lineno">   83 </span><span class="spaces">    </span><span class="istickedoff">++ maybe <span class="nottickedoff">[]</span> (\q -&gt;</span>
-<span class="lineno">   84 </span><span class="spaces">      </span><span class="istickedoff">[ (&quot;spellcheck&quot;, &quot;true&quot;)</span>
-<span class="lineno">   85 </span><span class="spaces">      </span><span class="istickedoff">, (&quot;spellcheck.q&quot;, TE.encodeUtf8 q)</span>
-<span class="lineno">   86 </span><span class="spaces">      </span><span class="istickedoff">]) searchString</span>
-<span class="lineno">   87 </span><span class="spaces">  </span><span class="istickedoff">(ct, qp, qe) = case searchType of</span>
-<span class="lineno">   88 </span><span class="spaces">    </span><span class="istickedoff">SearchVolumes -&gt; (&quot;volume&quot;, mempty, B.string8 &quot;{!join from=volume_id to=volume_id}&quot;)</span>
-<span class="lineno">   89 </span><span class="spaces">    </span><span class="istickedoff">SearchParties -&gt; <span class="nottickedoff">(&quot;party&quot;, mempty, mempty)</span></span>
-<span class="lineno">   90 </span><span class="spaces">  </span><span class="istickedoff">ql = maybe <span class="nottickedoff">id</span> ((:) . bp . (defaultParams &lt;&gt;) . TE.encodeUtf8Builder) searchString $</span>
-<span class="lineno">   91 </span><span class="spaces">    </span><span class="istickedoff">map <span class="nottickedoff">bt</span> (searchFields ++ map <span class="nottickedoff">(first metricField)</span> searchMetrics)</span>
-<span class="lineno">   92 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">bt (f, v)</span></span>
-<span class="lineno">   93 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">| checkField f &amp;&amp; checkTerm v = bp (TE.encodeUtf8Builder f &lt;&gt; B.string8 &quot;:(&quot; &lt;&gt; (if T.null v then B.char8 '*' else TE.encodeUtf8Builder v) &lt;&gt; B.char8 ')')</span></span>
-<span class="lineno">   94 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">| otherwise = bp (B.string8 &quot;{!dismax qf=&quot; &lt;&gt; quoteQuery escapeTextWith f &lt;&gt; B.char8 '}' &lt;&gt; TE.encodeUtf8Builder v)</span></span>
-<span class="lineno">   95 </span><span class="spaces">  </span><span class="istickedoff">bp v = B.string8 &quot;_query_:&quot; &lt;&gt; quoteQuery escapeLazyByteStringCharsWith (B.toLazyByteString $ qe &lt;&gt; v)</span>
-<span class="lineno">   96 </span><span class="spaces">  </span><span class="istickedoff">uw [] = <span class="nottickedoff">B.string8 &quot;*:*&quot;</span></span>
-<span class="lineno">   97 </span><span class="spaces">  </span><span class="istickedoff">uw (t:l) = t &lt;&gt; foldMap <span class="nottickedoff">(B.char8 ' ' &lt;&gt;)</span> l</span></span>
+<span class="lineno">   68 </span><span class="decl"><span class="nottickedoff">search SearchQuery{..} = do</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="nottickedoff">req &lt;- peeks solrRequest</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="nottickedoff">focusIO $ HC.httpLbs req</span>
+<span class="lineno">   71 </span><span class="spaces">    </span><span class="nottickedoff">{ HC.path = HC.path req &lt;&gt; &quot;search&quot;</span>
+<span class="lineno">   72 </span><span class="spaces">    </span><span class="nottickedoff">, HC.queryString = renderSimpleQuery True query</span>
+<span class="lineno">   73 </span><span class="spaces">    </span><span class="nottickedoff">, HC.checkResponse = \_ _ -&gt; putStrLn &quot;Search Error&quot;</span>
+<span class="lineno">   74 </span><span class="spaces">    </span><span class="nottickedoff">}</span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="nottickedoff">query =</span>
+<span class="lineno">   77 </span><span class="spaces">    </span><span class="nottickedoff">[ (&quot;q&quot;, BSL.toStrict $ B.toLazyByteString $ qp &lt;&gt; uw ql)</span>
+<span class="lineno">   78 </span><span class="spaces">    </span><span class="nottickedoff">, (&quot;fq&quot;, &quot;content_type:&quot; &lt;&gt; ct)</span>
+<span class="lineno">   79 </span><span class="spaces">    </span><span class="nottickedoff">, (&quot;start&quot;, BSC.pack $ show $ paginateOffset searchPaginate)</span>
+<span class="lineno">   80 </span><span class="spaces">    </span><span class="nottickedoff">, (&quot;rows&quot;, BSC.pack $ show $ paginateLimit searchPaginate)</span>
+<span class="lineno">   81 </span><span class="spaces">    </span><span class="nottickedoff">, (&quot;q.op&quot;, &quot;AND&quot;)</span>
+<span class="lineno">   82 </span><span class="spaces">    </span><span class="nottickedoff">]</span>
+<span class="lineno">   83 </span><span class="spaces">    </span><span class="nottickedoff">++ maybe [] (\q -&gt;</span>
+<span class="lineno">   84 </span><span class="spaces">      </span><span class="nottickedoff">[ (&quot;spellcheck&quot;, &quot;true&quot;)</span>
+<span class="lineno">   85 </span><span class="spaces">      </span><span class="nottickedoff">, (&quot;spellcheck.q&quot;, TE.encodeUtf8 q)</span>
+<span class="lineno">   86 </span><span class="spaces">      </span><span class="nottickedoff">]) searchString</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="nottickedoff">(ct, qp, qe) = case searchType of</span>
+<span class="lineno">   88 </span><span class="spaces">    </span><span class="nottickedoff">SearchVolumes -&gt; (&quot;volume&quot;, mempty, B.string8 &quot;{!join from=volume_id to=volume_id}&quot;)</span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="nottickedoff">SearchParties -&gt; (&quot;party&quot;, mempty, mempty)</span>
+<span class="lineno">   90 </span><span class="spaces">  </span><span class="nottickedoff">ql = maybe id ((:) . bp . (defaultParams &lt;&gt;) . TE.encodeUtf8Builder) searchString $</span>
+<span class="lineno">   91 </span><span class="spaces">    </span><span class="nottickedoff">map bt (searchFields ++ map (first metricField) searchMetrics)</span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="nottickedoff">bt (f, v)</span>
+<span class="lineno">   93 </span><span class="spaces">    </span><span class="nottickedoff">| checkField f &amp;&amp; checkTerm v = bp (TE.encodeUtf8Builder f &lt;&gt; B.string8 &quot;:(&quot; &lt;&gt; (if T.null v then B.char8 '*' else TE.encodeUtf8Builder v) &lt;&gt; B.char8 ')')</span>
+<span class="lineno">   94 </span><span class="spaces">    </span><span class="nottickedoff">| otherwise = bp (B.string8 &quot;{!dismax qf=&quot; &lt;&gt; quoteQuery escapeTextWith f &lt;&gt; B.char8 '}' &lt;&gt; TE.encodeUtf8Builder v)</span>
+<span class="lineno">   95 </span><span class="spaces">  </span><span class="nottickedoff">bp v = B.string8 &quot;_query_:&quot; &lt;&gt; quoteQuery escapeLazyByteStringCharsWith (B.toLazyByteString $ qe &lt;&gt; v)</span>
+<span class="lineno">   96 </span><span class="spaces">  </span><span class="nottickedoff">uw [] = B.string8 &quot;*:*&quot;</span>
+<span class="lineno">   97 </span><span class="spaces">  </span><span class="nottickedoff">uw (t:l) = t &lt;&gt; foldMap (B.char8 ' ' &lt;&gt;) l</span></span>
 
 </pre>
 </body>

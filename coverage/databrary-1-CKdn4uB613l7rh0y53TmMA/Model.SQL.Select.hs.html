@@ -100,7 +100,7 @@ span.spaces    { background: white }
 <span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">f &lt;$&gt; outputParser o</span>
 <span class="lineno">   85 </span><span class="spaces"></span><span class="nottickedoff">outputParser (OutputMap True f o) = do</span>
 <span class="lineno">   86 </span><span class="spaces">  </span><span class="nottickedoff">x &lt;- lift $ TH.newName &quot;x&quot;</span>
-<span class="lineno">   87 </span><span class="spaces">  </span><span class="nottickedoff">((TH.VarE 'fmap `TH.AppE` (TH.LamE [TH.VarP x] $ f $ TH.VarE x)) `TH.AppE`)</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="nottickedoff">((TH.VarE 'fmap `TH.AppE` TH.LamE [TH.VarP x] (f $ TH.VarE x)) `TH.AppE`)</span>
 <span class="lineno">   88 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; outputParser (outputMaybe o)</span>
 <span class="lineno">   89 </span><span class="spaces"></span><span class="nottickedoff">outputParser _ = StateT st where</span>
 <span class="lineno">   90 </span><span class="spaces">  </span><span class="nottickedoff">st (i:l) = return (TH.VarE i, l)</span>
@@ -178,7 +178,7 @@ span.spaces    { background: white }
 <span class="lineno">  162 </span>
 <span class="lineno">  163 </span>
 <span class="lineno">  164 </span>takeWhileEnd :: (a -&gt; Bool) -&gt; [a] -&gt; [a]
-<span class="lineno">  165 </span><span class="decl"><span class="nottickedoff">takeWhileEnd p = fst . foldr go ([], False) where</span>
+<span class="lineno">  165 </span><span class="decl"><span class="nottickedoff">takeWhileEnd p = fst . foldr go ([], False) where</span>
 <span class="lineno">  166 </span><span class="spaces">  </span><span class="nottickedoff">go x (rest, done)</span>
 <span class="lineno">  167 </span><span class="spaces">    </span><span class="nottickedoff">| not done &amp;&amp; p x = (x:rest, False)</span>
 <span class="lineno">  168 </span><span class="spaces">    </span><span class="nottickedoff">| otherwise = (rest, True)</span></span>
@@ -197,7 +197,7 @@ span.spaces    { background: white }
 <span class="lineno">  181 </span><span class="spaces">  </span><span class="nottickedoff">cols = outputColumns output</span></span>
 <span class="lineno">  182 </span>
 <span class="lineno">  183 </span>selectDistinctQuery :: Maybe [String] -&gt; Selector -&gt; String -&gt; TH.ExpQ
-<span class="lineno">  184 </span><span class="decl"><span class="nottickedoff">selectDistinctQuery dist (Selector{ selectOutput = o, selectSource = s }) sqlf =</span>
+<span class="lineno">  184 </span><span class="decl"><span class="nottickedoff">selectDistinctQuery dist Selector{ selectOutput = o, selectSource = s } sqlf =</span>
 <span class="lineno">  185 </span><span class="spaces">  </span><span class="nottickedoff">makeQuery flags (\c -&gt; select dist ++ c ++ &quot; FROM &quot; ++ s ++ ' ':sql) o</span>
 <span class="lineno">  186 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
 <span class="lineno">  187 </span><span class="spaces">  </span><span class="nottickedoff">(flags, sql) = parseQueryFlags sqlf</span>

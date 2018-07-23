@@ -7,7 +7,7 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies #-}</span>
+<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE OverloadedStrings, TypeFamilies #-}</span>
 <a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Model</span><span class='hs-varop'>.</span><span class='hs-conid'>Asset</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
 <a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-conid'>AssetRow</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
 <a name="line-4"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Asset</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
@@ -53,20 +53,20 @@
 <a name="line-44"></a><a name="instance%20Has%20Format%20AssetRow"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Format</span> <span class='hs-conid'>AssetRow</span> <span class='hs-keyword'>where</span>
 <a name="line-45"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>assetFormat</span>
 <a name="line-46"></a><a name="instance%20Has%20(Id%20Format)%20AssetRow"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Format</span><span class='hs-layout'>)</span> <span class='hs-conid'>AssetRow</span> <span class='hs-keyword'>where</span>
-<a name="line-47"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>formatId</span> <span class='hs-varop'>.</span> <span class='hs-varid'>assetFormat</span><span class='hs-layout'>)</span>
+<a name="line-47"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>formatId</span> <span class='hs-varop'>.</span> <span class='hs-varid'>assetFormat</span>
 <a name="line-48"></a>
 <a name="line-49"></a><a name="instance%20Has%20AssetRow%20Asset"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>AssetRow</span> <span class='hs-conid'>Asset</span> <span class='hs-keyword'>where</span>
 <a name="line-50"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>assetRow</span>
 <a name="line-51"></a><a name="instance%20Has%20(Id%20Asset)%20Asset"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Asset</span><span class='hs-layout'>)</span> <span class='hs-conid'>Asset</span> <span class='hs-keyword'>where</span>
-<a name="line-52"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>assetRow</span><span class='hs-layout'>)</span>
+<a name="line-52"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>assetRow</span>
 <a name="line-53"></a><a name="instance%20Has%20Format%20Asset"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Format</span> <span class='hs-conid'>Asset</span> <span class='hs-keyword'>where</span>
-<a name="line-54"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>assetRow</span><span class='hs-layout'>)</span>
+<a name="line-54"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>assetRow</span>
 <a name="line-55"></a><a name="instance%20Has%20(Id%20Format)%20Asset"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Format</span><span class='hs-layout'>)</span> <span class='hs-conid'>Asset</span> <span class='hs-keyword'>where</span>
-<a name="line-56"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>assetRow</span><span class='hs-layout'>)</span>
+<a name="line-56"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>view</span> <span class='hs-varop'>.</span> <span class='hs-varid'>assetRow</span>
 <a name="line-57"></a><a name="instance%20Has%20Volume%20Asset"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-conid'>Volume</span> <span class='hs-conid'>Asset</span> <span class='hs-keyword'>where</span>
 <a name="line-58"></a>   <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>assetVolume</span>
 <a name="line-59"></a><a name="instance%20Has%20(Id%20Volume)%20Asset"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Has</span> <span class='hs-layout'>(</span><span class='hs-conid'>Id</span> <span class='hs-conid'>Volume</span><span class='hs-layout'>)</span> <span class='hs-conid'>Asset</span> <span class='hs-keyword'>where</span>
-<a name="line-60"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>volumeId</span> <span class='hs-varop'>.</span> <span class='hs-varid'>volumeRow</span> <span class='hs-varop'>.</span> <span class='hs-varid'>assetVolume</span><span class='hs-layout'>)</span>
+<a name="line-60"></a>  <span class='hs-varid'>view</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>volumeId</span> <span class='hs-varop'>.</span> <span class='hs-varid'>volumeRow</span> <span class='hs-varop'>.</span> <span class='hs-varid'>assetVolume</span>
 <a name="line-61"></a>
 <a name="line-62"></a><a name="getAssetReleaseMaybe"></a><span class='hs-definition'>getAssetReleaseMaybe</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Asset</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>Release</span>
 <a name="line-63"></a><span class='hs-definition'>getAssetReleaseMaybe</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>assetRelease</span> <span class='hs-varop'>.</span> <span class='hs-varid'>assetRow</span>

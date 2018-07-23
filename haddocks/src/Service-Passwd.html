@@ -7,7 +7,7 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE ForeignFunctionInterface, OverloadedStrings, TemplateHaskell #-}</span>
+<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE ForeignFunctionInterface, OverloadedStrings #-}</span>
 <a name="line-2"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Service</span><span class='hs-varop'>.</span><span class='hs-conid'>Passwd</span>
 <a name="line-3"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>passwordPolicy</span>
 <a name="line-4"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>passwdCheck</span>
@@ -47,6 +47,6 @@
 <a name="line-38"></a>      <span class='hs-varid'>pw_dict</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>getDataFileName</span> <span class='hs-str'>"cracklib/pw_dict"</span>
 <a name="line-39"></a>      <span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-varid'>useAsCString</span> <span class='hs-layout'>(</span><span class='hs-conid'>BSC</span><span class='hs-varop'>.</span><span class='hs-varid'>pack</span> <span class='hs-varid'>pw_dict</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>dict</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>do</span>
 <a name="line-40"></a>        <span class='hs-varid'>r</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>cracklibCheck</span> <span class='hs-varid'>p</span> <span class='hs-varid'>dict</span>
-<a name="line-41"></a>        <span class='hs-layout'>(</span><span class='hs-varid'>r</span> <span class='hs-varop'>/=</span> <span class='hs-varid'>nullPtr</span><span class='hs-layout'>)</span> <span class='hs-varop'>`thenReturn`</span> <span class='hs-layout'>(</span><span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-varid'>packCString</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span>
+<a name="line-41"></a>        <span class='hs-layout'>(</span><span class='hs-varid'>r</span> <span class='hs-varop'>/=</span> <span class='hs-varid'>nullPtr</span><span class='hs-layout'>)</span> <span class='hs-varop'>`thenReturn`</span> <span class='hs-conid'>BS</span><span class='hs-varop'>.</span><span class='hs-varid'>packCString</span> <span class='hs-varid'>r</span>
 </pre></body>
 </html>
