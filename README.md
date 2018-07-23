@@ -1,6 +1,6 @@
 # Databrary 
 
-Want to help out? Pleaee reach out via email, commenting on an issue, or whatever works for you. We have significant experience mentoring new developers and Haskell developers. 
+Want to help out? Please reach out via email, commenting on an issue, or whatever works for you. We have significant experience mentoring new developers and Haskell developers.
 
 We have [preliminary library
 documentation](http://databrary.github.io/databrary/) on our GitHub Pages site.
