@@ -8,7 +8,7 @@ if ! [ -e /nix ]; then
     sudo mkdir -m 0755 /nix
 fi
 echo "Changing owner of /nix to $USER using sudo"
-sudo chown -R $USER /nix
+sudo chown -R $USER:$USER /nix
 
 if ! [ -e /etc/nix ]; then
     echo "Creating /etc/nix to house nix.conf using sudo"
