@@ -37,12 +37,9 @@ db: ; $(nix-shell) --run ./init-db-pql.sh
 .PHONY: db
 
 ## Start the dev repl
+# FIXME: ghci-databrary.sh clobbers cabal's config data.
 repl: ; $(nix-shell) --run ./ghci-databrary.sh
 .PHONY: repl
-
-## Start tests in the repl
-repl-test: ; $(nix-shell) --run 'cabal repl test:discovered'
-.PHONY: repl-test
 
 ## Run configure for repltastic tasks
 repl-config: ; $(nix-shell) --run 'cabal configure --datadir=. --datasubdir=. --disable-optimization --enable-tests'
