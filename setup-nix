@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -eu
 
+# TODO: stop creating nix directory, just rely on standard nix install script, don't worry about ordering sudo operaions first
 # perform sudo tasks first
 if ! [ -e /nix ]; then
     echo "Creating /nix directory using sudo"
