@@ -19,7 +19,6 @@ import Model.Identity
 import HTTP.Request
 import Action
 
-
 -- TODO: use Model.checkPermission everywhere instead
 {-# DEPRECATED checkPermissionOld "Use checkPermission instead" #-}
 checkPermissionOld :: Has Permission a => Permission -> a -> Handler a

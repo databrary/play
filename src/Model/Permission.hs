@@ -12,6 +12,9 @@ module Model.Permission
   -- * Checking permissioned objects
   , checkPermission
   , PermissionResponse (..)
+  -- * New
+  , requestAccess
+  , Permissioned (Permissioned)
   ) where
 
 import Data.Monoid ((<>))
@@ -19,6 +22,28 @@ import Data.Monoid ((<>))
 import qualified JSON
 import Model.Release.Types
 import Model.Permission.Types
+
+-- | Represents a permissioned object.
+data Permissioned a = Permissioned
+    { unsafeAccess :: a
+    , grantedPermission :: Permission
+    }
+
+-- | How to get access to a permissioned object. It's not a great design, but it
+-- makes a concrete concept out of an existing pattern in the codebase. A better
+-- design could perhaps couple the access request to the action that needs the
+-- access.
+requestAccess
+    :: Permission
+    -- ^ Requested permission
+    -> Permissioned a
+    -- ^ object
+    -> Maybe a
+    -- ^ Maybe the unwrapped object
+requestAccess requestedPerm obj =
+    if requestedPerm >= grantedPermission obj
+    then Just (unsafeAccess obj)
+    else Nothing
 
 -- |Level at which things become visible. ; TODO: use this somewhere?
 -- permissionVIEW :: Permission

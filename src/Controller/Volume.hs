@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, TupleSections, ScopedTypeVariables #-}
 module Controller.Volume
   ( getVolume
+  , lookupVolumeErr
   , viewVolume
   , viewVolumeEdit
   , viewVolumeCreateHandler
@@ -21,6 +22,7 @@ import Control.Arrow ((&&&), (***))
 import Control.Monad (mfilter, guard, void, when, forM_)
 -- import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.Except
 import Control.Monad.Trans.State.Lazy (StateT(..), evalStateT, get, put)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
@@ -79,6 +81,20 @@ import {-# SOURCE #-} Controller.AssetSegment
 import Controller.Notification
 import View.Form (FormHtml)
 import qualified Model.Volume as Model
+
+-- | Borrowed from "errors" package
+note :: a -> Maybe b -> Either a b
+note x = maybe (Left x) Right
+
+-- | Replacement for getVolume that just wraps the underlying, non-HTTP methods.
+lookupVolumeErr :: Permission -> Id Volume -> Handler Volume
+lookupVolumeErr requestedPerm volId = do
+    x <- runExceptT $ do
+        v <- ExceptT (note notFoundResponse <$> lookupVolumeP volId)
+        ExceptT (pure (note forbiddenResponse (requestAccess requestedPerm v)))
+    case x of
+        Left resp -> result =<< peeks resp
+        Right vol -> pure vol
 
 -- | Convert 'Model.Volume' into HTTP error responses if the lookup fails or is
 -- denied.

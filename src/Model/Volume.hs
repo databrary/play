@@ -8,6 +8,7 @@ module Model.Volume
     ( module Model.Volume.Types
     , coreVolume
     , lookupVolume
+    , lookupVolumeP
     , getVolume
     , LookupResult (..)
     , changeVolume
@@ -94,6 +95,21 @@ coreVolume = Volume
     )
     []
     (RolePublicViewer PublicNoPolicy)
+
+-- | Lookup a 'Volume' by its Id, and wrap it in 'Permissioned'. The plan is for
+-- this to replace 'lookupVolume' entirely.
+lookupVolumeP
+    :: (MonadDB c m, MonadHasIdentity c m)
+    => Id Volume
+    -> m (Maybe (Permissioned Volume))
+lookupVolumeP =
+    fmap
+            (fmap
+                (Permissioned
+                <*> extractPermissionIgnorePolicy . volumeRolePolicy
+                )
+            )
+        . lookupVolume
 
 lookupVolume
     :: (MonadDB c m, MonadHasIdentity c m) => Id Volume -> m (Maybe Volume)
