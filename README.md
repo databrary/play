@@ -46,7 +46,7 @@ You can get an understanding of the full scope of features offered in our featur
 | front end integration |         |          |
 | front end unit        |         |          |
 | back end integration  | [<img src="https://img.shields.io/badge/runscope-passed-brightgreen.svg">](https://www.runscope.com/radar/agq3bvszxaxe/b788db16-d63b-4ea9-ba98-5abc477dd03d/history/4b833fe9-3aa3-4aab-ba66-f2094f22a6df)        | [<img src="https://img.shields.io/badge/coverage-29%25-yellow.svg">](http://databrary.github.io/databrary/coverage-comparison/runscope/hpc_index.html)          |
-| back end unit         | [<img src="https://img.shields.io/badge/tests-passed-brightgreen.svg">](https://github.com/databrary/databrary/blob/gh-pages/databrary-1-discovered.log)        | [<img src="https://img.shields.io/badge/coverage-28%25-yellow.svg">](http://databrary.github.io/databrary/coverage/hpc_index.html)         |
+| back end unit         | [<img src="https://img.shields.io/badge/tests-passed-brightgreen.svg">](https://github.com/databrary/databrary/blob/gh-pages/databrary-1-discovered.log)        | [<img src="https://img.shields.io/badge/coverage-26%25-yellow.svg">](http://databrary.github.io/databrary/coverage/hpc_index.html)         |
 
 ## Upstream - Anticipating and Contributing
 
