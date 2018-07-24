@@ -310,16 +310,11 @@ viewVolumeEdit :: ActionRoute (Id Volume)
 viewVolumeEdit = action GET (pathHTML >/> pathId </< "edit") $ \_ -> withAuth $ do
   angular
   return (okResponse [] ("" :: String)) -- should never get here
-  {-
-  v <- getVolume PermissionEDIT vi
-  cite <- lookupVolumeCitation v
-  peeks $ blankForm . htmlVolumeEdit (Just (v, cite)) -}
 
 viewVolumeCreateHandler :: Action  -- TODO : GET only
 viewVolumeCreateHandler = withAuth $ do
   angular
   return (okResponse [] ("" :: String)) -- should never get here
-  -- peeks $ blankForm . htmlVolumeEdit Nothing
 
 postVolume :: ActionRoute (Id Volume)
 postVolume = action POST (pathJSON >/> pathId) $ \vi -> withAuth $ do
@@ -330,7 +325,6 @@ postVolume = action POST (pathJSON >/> pathId) $ \vi -> withAuth $ do
   r <- changeVolumeCitation v' cite'
   return $ okResponse [] $
     JSON.recordEncoding $ volumeJSONSimple v' `JSON.foldObjectIntoRec` ("citation" JSON..= if r then cite' else cite)
-    -- HTML -> peeks $ otherRouteResponse [] viewVolume arg
 
 data CreateVolumeRequest =
     CreateVolumeRequest (Maybe (Id Party)) CreateOrUpdateVolumeCitationRequest
@@ -360,15 +354,6 @@ createVolume = action POST (pathJSON >/> "volume") $ \() -> withAuth $ do
       , notificationParty = Just $ partyRow owner
       }
   return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v
-  -- HTML -> peeks $ otherRouteResponse [] viewVolume (api, volumeId $ volumeRow v)
-
-{-
-viewVolumeLinks :: ActionRoute (Id Volume)
-viewVolumeLinks = action GET (pathHTML >/> pathId </< "link") $ \vi -> withAuth $ do
-  v <- getVolume PermissionEDIT vi
-  links <- lookupVolumeLinks v
-  peeks $ blankForm . htmlVolumeLinksEdit v links
--}
 
 newtype UpdateVolumeLinksRequest =
     UpdateVolumeLinksRequest [(T.Text, Maybe URI)]

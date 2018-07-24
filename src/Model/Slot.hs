@@ -6,7 +6,6 @@ module Model.Slot
   , slotJSON
   ) where
 
--- import Database.PostgreSQL.Typed (pgSQL)
 import Database.PostgreSQL.Typed.Types
 import qualified Data.String
 

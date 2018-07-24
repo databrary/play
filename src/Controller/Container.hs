@@ -39,7 +39,6 @@ import Controller.Angular
 import Controller.Volume
 import Controller.Notification
 import {-# SOURCE #-} Controller.Slot
--- import View.Container
 import View.Form (FormHtml)
 
 getContainer :: Permission -> Maybe (Id Volume) -> Id Slot -> Bool -> Handler Container

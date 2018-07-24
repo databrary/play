@@ -12,7 +12,6 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy.Char8 as BSLC
--- import qualified Data.HashMap.Strict as HM
 import Data.IORef (readIORef)
 import Data.Maybe
 import Data.Monoid ((<>))
@@ -42,21 +41,17 @@ import Model.Authorize
 import Model.Category
 import Model.Citation
 import Model.Container
--- import Model.Container.TypesTest
 import Model.Factories
 import Model.Format
-import Model.Identity (MonadHasIdentity)
 import Model.Measure
 import Model.Metric
 import Model.Notification
 import Model.Offset
 import Model.Paginate
 import Model.Party
--- import Model.Party.TypesTest
 import Model.Permission
 import Model.Release
 import Model.Record
--- import Model.Record.TypesTest
 import Model.RecordSlot
 import Model.Segment
 import Model.Slot
@@ -64,7 +59,6 @@ import Model.Token
 import Model.Transcode
 import Model.Volume
 import Model.VolumeAccess
--- import Model.VolumeAccess.TypesTest
 import Model.VolumeMetric
 import Service.DB (DBConn, MonadDB)
 import Service.Entropy (initEntropy)
@@ -77,8 +71,6 @@ import Store.AV (initAV)
 import Store.CSV (buildCSV)
 import Store.Types
 import qualified Store.Config as C
--- import Store.Asset
--- import Store.AV
 import Store.Probe
 import Store.Transcode
 import Store.Upload (uploadFile)

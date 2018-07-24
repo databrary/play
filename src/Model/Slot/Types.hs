@@ -46,8 +46,6 @@ instance Kinded Slot where
 
 instance Has Container Slot where
   view = slotContainer
-{- instance Has (Id Model.Volume.Types.Volume) Slot where
-  view = (view . slotContainer) -}
 instance Has Model.Permission.Types.Permission Slot where
   view = view . slotContainer
 instance Has Model.Volume.Types.Volume Slot where
