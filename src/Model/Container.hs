@@ -53,6 +53,8 @@ blankContainer vol = Container
   , containerVolume = vol
   }
 
+-- | Look up a Container by its Id, gated by the running Identity's permission
+-- to view the Volume containing the Container.
 lookupContainer :: (MonadDB c m, MonadHasIdentity c m) => Id Container -> m (Maybe Container)
 lookupContainer ci = do
   ident <- peek

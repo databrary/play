@@ -288,7 +288,7 @@ test_11 = Test.stepsWithTransaction "test_11" $ \step cn2 -> do
          aiCtxt
     step "Then the public can't view the container"
     -- Implementation of getSlot PUBLIC
-    mSlotForAnon <- runWithNoIdent cn2 (lookupSlotByContainerId cid)
+    mSlotForAnon <- runWithNoIdent cn2 (lookupContainerSlot cid)
     isNothing mSlotForAnon @? "expected slot lookup to find nothing"
 
 test_12 :: TestTree
@@ -303,7 +303,7 @@ test_12 = Test.stepsWithTransaction "test_12" $ \step cn2 -> do
          aiCtxt
     step "When the public attempts to view the container"
     -- Implementation of getSlot PUBLIC
-    Just slotForAnon <- runWithNoIdent cn2 (lookupSlotByContainerId cid)
+    Just slotForAnon <- runWithNoIdent cn2 (lookupContainerSlot cid)
     step "Then the public can't see protected parts like the detailed test date"
     (encode . getContainerDate . slotContainer) slotForAnon @?= "2017"
 
@@ -350,7 +350,7 @@ test_12a =
               -- lookup assetslot or container w/contents
               )
         aiCtxt2
-    -- Just slotForAnon <- runWithNoIdent cn2 (lookupSlotByContainerId cid)
+    -- Just slotForAnon <- runWithNoIdent cn2 (lookupContainerSlot cid)
     step "Then one can retrieve the asset"
     (assetRelease . assetRow) foundAsset @?= Just ReleasePUBLIC
     {-
@@ -536,7 +536,7 @@ test_15 = Test.stepsWithTransaction "test_15" $ \step cn2 -> do
               v <- addVolumeSetPublic aiAcct
               c <- makeAddContainer v (Just ReleasePUBLIC) Nothing
               Just v' <- lookupVolume ((volumeId . volumeRow) v)
-              Just s <- lookupSlotByContainerId c
+              Just s <- lookupContainerSlot c
               pure (v', slotContainer s))
          aiCtxt
     step "When the public downloads the volume as a zip"
@@ -776,9 +776,6 @@ mkVolumeSearchQuery searchStr =
 accessIsEq :: Access -> Permission -> Permission -> Assertion
 accessIsEq a site member = a @?= Access { accessSite' = site, accessMember' = member }
 
-lookupSlotByContainerId :: (MonadDB c m, MonadHasIdentity c m) => Id Container -> m (Maybe Slot)
-lookupSlotByContainerId cid = lookupSlot (containerSlotId cid)
-
 setVolumePrivate :: (MonadAudit c m) => Volume -> m ()
 setVolumePrivate v = do
     nobodyVa <- liftIO (mkGroupVolAccess PermissionNONE Nothing nobodyParty v)
@@ -804,10 +801,14 @@ mkGroupVolAccess perm mShareFull prty vol = do
              })
 
 runWithNoIdent :: DBConn -> ReaderT TestContext IO a -> IO a
-runWithNoIdent cn rdr =
-    runReaderT
-        rdr
-        ((mkDbContext cn) { ctxIdentity = Just IdentityNotNeeded, ctxPartyId = Just (Id (-1)), ctxSiteAuth = Just (view IdentityNotNeeded) })
+runWithNoIdent cn rdr = runReaderT
+    rdr
+    ((mkDbContext cn)
+        { ctxIdentity = Just IdentityNotNeeded
+        , ctxPartyId = Just (Id (-1))
+        , ctxSiteAuth = Just (view IdentityNotNeeded)
+        }
+    )
 
 addAuthorizedInvestigatorWithInstitution' :: DBConn -> IO (Account, TestContext)
 addAuthorizedInvestigatorWithInstitution' c =
