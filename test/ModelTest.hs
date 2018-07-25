@@ -189,7 +189,7 @@ test_7 = Test.stepsWithTransaction "test_7" $ \step cn2 -> do
         runWithNoIdent
             cn2
             (requestVolume PermissionREAD ((volumeId . volumeRow) vol))
-    mVol @?= Nothing
+    mVol @?= LookupFailed
 
 volWithId :: Volume -> (Id Volume, Volume)
 volWithId v = (volumeId (volumeRow v), v)
@@ -205,8 +205,9 @@ test_7_accessOwnVolume = Test.stepsWithTransaction "can access own volume" $ \st
     mVol <- runReaderT (requestVolume PermissionREAD volId) aiCtxt
     case mVol of
         -- FIXME: vol' is not equal to vol.
-        Just (volWithId -> (volId', _)) -> volId' @?= volId
-        Nothing -> assertFailure "Access denied"
+        RequestResult (volWithId -> (volId', _)) -> volId' @?= volId
+        LookupFailed -> assertFailure "Lookup failed"
+        RequestDenied -> assertFailure "Access denied"
 
 -- <<<< more cases to handle variations of volume access and inheritance through authorization
 
@@ -227,7 +228,7 @@ test_8 = Test.stepsWithTransaction "test_8" $ \step cn2 -> do
         runReaderT
             (requestVolume PermissionPUBLIC ((volumeId . volumeRow) createdVol))
             affCtxt
-    mVol @?= Nothing
+    mVol @?= LookupFailed
 
 test_9 :: TestTree
 test_9 = Test.stepsWithTransaction "test_9" $ \step cn2 -> do
@@ -244,7 +245,7 @@ test_9 = Test.stepsWithTransaction "test_9" $ \step cn2 -> do
         runReaderT
             (requestVolume PermissionPUBLIC ((volumeId . volumeRow) vol))
             affCtxt
-    mVol @?= Nothing
+    mVol @?= LookupFailed
 
 test_10 :: TestTree
 test_10 = Test.stepsWithTransaction "test_10" $ \step cn2 -> do
@@ -271,7 +272,7 @@ test_10_1 = Test.stepsWithTransaction "Denied elevated access" $ \step cn2 -> do
     (volId, _) <- volWithId <$> runReaderT (addVolumeWithAccess aiAcct) aiCtxt
     step "Then the lab B AI can't access it with edit privileges"
     mVol <- runReaderT (requestVolume PermissionEDIT volId) aiCtxt2
-    mVol @?= Nothing
+    mVol @?= RequestDenied
 
 ----- container ----
 test_11 :: TestTree
