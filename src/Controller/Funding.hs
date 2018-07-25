@@ -12,7 +12,7 @@ import Has (focusIO)
 import qualified JSON
 import Model.Id
 import Model.Permission
-import Model.Volume hiding (getVolume)
+import Model.Volume
 import Model.Funding
 import Model.Funding.FundRef
 import HTTP.Form.Deform

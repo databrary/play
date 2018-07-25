@@ -25,7 +25,6 @@ import qualified System.IO as IO
 import qualified System.Directory as DIR
 import qualified Conduit as CND
 import Path (parseRelFile)
--- import Path.IO (resolveFile')
 
 import Ops
 import Has (view, peek, peeks)
@@ -35,7 +34,7 @@ import Store.CSV (buildCSV)
 import Store.Types
 import Model.Id
 import Model.Permission
-import Model.Volume hiding (getVolume)
+import Model.Volume
 import Model.Container
 import Model.Slot
 import Model.RecordSlot
@@ -66,10 +65,6 @@ assetZipEntry2 isOrig containerDir AssetSlot{ slotAsset = a@Asset{ assetRow = ar
                  True -> getAssetFile $ fromJust origAsset
                  False -> getAssetFile a
   req <- peek
-  -- (t, _) <- assetCreation a
-  -- Just (t, s) <- fileInfo f
-  -- liftIO (print ("downloadname", assetDownloadName False True ar))
-  -- liftIO (print ("format", assetFormat ar))
   let entryName =
         containerDir `BS.append` (case isOrig of
           False -> makeFilename (assetDownloadName True False ar) `addFormatExtension` assetFormat ar

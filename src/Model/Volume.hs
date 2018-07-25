@@ -9,8 +9,6 @@ module Model.Volume
     , coreVolume
     , lookupVolume
     , lookupVolumeP
-    , getVolume
-    , LookupResult (..)
     , changeVolume
     , addVolume
     , auditVolumeDownload
@@ -49,41 +47,6 @@ import Model.Volume.Types
 import Model.VolumeAccess.Types (VolumeAccess(..))
 import Service.DB
 import qualified JSON
-
--- | Captures possible database responses.
--- NOTE: This was designed to mimic existing code and responses. LookupFailed
--- does NOT mean "does not exist". It means that 'lookupVolume' (for example)
--- returned Nothing. This could mean either the id is a valid id, or the user
--- doesn't have access to the volume.
-data LookupResult a
-    = LookupFailed
-    | LookupDenied
-    | LookupFound a
-
--- | Get a 'Volume', if it is available to the given 'Identity' with the desired
--- 'Permission'.
-getVolume
-    :: (MonadDB c ctrl, MonadHasIdentity c ctrl)
-    => Permission -- ^ Desired permission level
-    -> Id Volume -- ^ Id of Volume to get
-    -> ctrl (LookupResult Volume)
-getVolume reqestedPermission volId = do
-    mVol <- lookupVolume volId
-    pure $ case mVol of
-        Nothing -> LookupFailed
-        Just vol ->
-            let
-                grantedPermission =
-                    extractPermissionIgnorePolicy . volumeRolePolicy
-            in
-                case
-                    checkPermission
-                        grantedPermission
-                        vol
-                        reqestedPermission
-                of
-                    PermissionGranted v -> LookupFound v
-                    PermissionDenied -> LookupDenied
 
 coreVolume :: Volume
 -- TODO: load on startup in lookups service module
