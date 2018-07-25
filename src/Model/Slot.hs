@@ -3,12 +3,10 @@ module Model.Slot
   ( module Model.Slot.Types
   , lookupSlot
   , lookupContainerSlot
-  , lookupVolumeSlot
   , auditSlotDownload
   , slotJSON
   ) where
 
-import Control.Monad (mfilter)
 import Database.PostgreSQL.Typed.Types
 import qualified Data.String
 
@@ -20,7 +18,6 @@ import Model.Audit
 import Model.Segment
 import Model.Container
 import Model.Slot.Types
-import Model.Volume
 
 -- | Look up a Slot by its Id, gated by the running Identity's permission to view
 -- the Slot's Container's Volume. :)
@@ -33,21 +30,6 @@ lookupSlot (Id (SlotId cont seg)) =
 -- Slot).
 lookupContainerSlot :: (MonadDB c m, MonadHasIdentity c m) => Id Container -> m (Maybe Slot)
 lookupContainerSlot = lookupSlot . containerSlotId
-
--- | Look up a Slot and confirm that it is associated with the given Volume.
---
--- This method exists, presumably, so that we can construct urls like
--- volume/:volId/slot/:slotId and make sure there's no funny business going on.
-lookupVolumeSlot
-    :: (MonadDB c m, MonadHasIdentity c m)
-    => Id Volume
-    -> Id Slot
-    -> m (Maybe Slot)
-lookupVolumeSlot volId = fmap (mfilter confirmVolume) . lookupSlot
-  where
-    confirmVolume :: Slot -> Bool
-    confirmVolume =
-        (volId ==) . volumeId . volumeRow . containerVolume . slotContainer
 
 auditSlotDownload :: MonadAudit c m => Bool -> Slot -> m ()
 auditSlotDownload success Slot{ slotContainer = c, slotSegment = seg } = do
