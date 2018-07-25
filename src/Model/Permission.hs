@@ -14,7 +14,8 @@ module Model.Permission
   , PermissionResponse (..)
   -- * New
   , requestAccess
-  , Permissioned (Permissioned)
+  , Permissioned
+  , mkPermissioned
   ) where
 
 import Data.Monoid ((<>))
@@ -23,11 +24,22 @@ import qualified JSON
 import Model.Release.Types
 import Model.Permission.Types
 
--- | Represents a permissioned object.
+-- | Represents a permissioned object. The constructor is not exported: use
+-- 'mkPermissioned' and 'requestAccess' instead.
 data Permissioned a = Permissioned
     { unsafeAccess :: a
     , grantedPermission :: Permission
     }
+
+-- | Smart constructor for Permissioned.
+--
+-- As one can tell from the first argument, this assumes that objects already
+-- have some way of being mapped to the permissions granted on them. This is
+-- generally true because of how the existing code works. It might change in the
+-- future, for example if database queries return a 'Permissioned' value
+-- directly, obsoleting this function.
+mkPermissioned :: (a -> Permission) -> a -> Permissioned a
+mkPermissioned getPerm o = Permissioned o (getPerm o)
 
 -- | How to get access to a permissioned object. It's not a great design, but it
 -- makes a concrete concept out of an existing pattern in the codebase. A better

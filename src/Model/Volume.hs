@@ -94,7 +94,7 @@ lookupVolumeP
 lookupVolumeP = fmap (fmap wrapPermission) . lookupVolume
   where
     wrapPermission =
-        Permissioned <*> extractPermissionIgnorePolicy . volumeRolePolicy
+        mkPermissioned (extractPermissionIgnorePolicy . volumeRolePolicy)
 
 lookupVolume
     :: (MonadDB c m, MonadHasIdentity c m) => Id Volume -> m (Maybe Volume)
