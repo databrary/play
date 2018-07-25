@@ -1,33 +1,22 @@
 #!/usr/bin/env bash
 set -eu
 
-# TODO: stop creating nix directory, just rely on standard nix install script, don't worry about ordering sudo operaions first
 # perform sudo tasks first
 if ! [ -e /nix ]; then
     echo "Creating /nix directory using sudo"
     sudo mkdir -m 0755 /nix
 fi
 echo "Changing owner of /nix to $USER using sudo"
-sudo chown -R $USER:$USER /nix
+sudo chown -R $USER /nix
 
 if ! [ -e /etc/nix ]; then
     echo "Creating /etc/nix to house nix.conf using sudo"
     sudo mkdir -p /etc/nix
 fi
 echo "Creating /etc/nix/nix.conf using sudo (overwriting any previous version)"
-# had some issues with reflex-frp derivations when attempting to install/build around 3/2018
-# echo "binary-caches = https://cache.nixos.org/ https://nixcache.reflex-frp.org/" | sudo tee -a /etc/nix/nix.conf
 if [ -e /etc/nix/nix.conf ]; then
     echo "Backing up nix.conf"
     sudo cp /etc/nix/nix.conf /etc/nix/nix.conf.backup
 fi
 sudo sh -c 'echo "binary-caches = https://cache.nixos.org http://devdatabrary2.home.nyu.edu:5000/" > /etc/nix/nix.conf'
 sudo sh -c 'echo "binary-cache-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= devdatabrary2.home.nyu.edu-1:xpI1XOvf7czNv0+0/1ajpgotpOnUMTUBBF9v97D5/yk=" >> /etc/nix/nix.conf'
-
-echo "Manually running nix/install script, fixed to nix 2.0 currently"
-# curl https://nixos.org/nix/install | sh
-cd /tmp
-curl -o install-2.0 https://raw.githubusercontent.com/NixOS/nixos-homepage/master/nix/install-2.0
-chmod +x install-2.0
-sh ./install-2.0
-
