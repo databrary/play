@@ -8,7 +8,6 @@ module Model.Volume
     ( module Model.Volume.Types
     , coreVolume
     , lookupVolume
-    , lookupVolumeP
     , requestVolume
     , RequestResult (..)
     , changeVolume
@@ -85,18 +84,16 @@ requestVolume requestedPerm =
     mkRequest :: Permissioned Volume -> RequestResult Volume
     mkRequest =
         maybe RequestDenied RequestResult . requestAccess requestedPerm
-
--- | Lookup a 'Volume' by its Id, and wrap it in 'Permissioned'. The plan is for
--- this to replace 'lookupVolume' entirely.
-lookupVolumeP
-    :: (MonadDB c m, MonadHasIdentity c m)
-    => Id Volume
-    -> m (Maybe (Permissioned Volume))
-lookupVolumeP = fmap (fmap wrapPermission) . lookupVolume
-  where
+    --
+    lookupVolumeP
+        :: (MonadDB c m, MonadHasIdentity c m)
+        => Id Volume
+        -> m (Maybe (Permissioned Volume))
+    lookupVolumeP = fmap (fmap wrapPermission) . lookupVolume
+    --
     wrapPermission :: Volume -> Permissioned Volume
-    wrapPermission =
-        mkPermissioned (extractPermissionIgnorePolicy . volumeRolePolicy)
+    wrapPermission = mkPermissioned
+        (extractPermissionIgnorePolicy . volumeRolePolicy)
 
 lookupVolume
     :: (MonadDB c m, MonadHasIdentity c m) => Id Volume -> m (Maybe Volume)

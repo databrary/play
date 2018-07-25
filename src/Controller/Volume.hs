@@ -18,7 +18,6 @@ import Control.Applicative ((<|>), optional)
 import Control.Arrow ((&&&), (***))
 import Control.Monad (mfilter, guard, void, when, forM_)
 import Control.Monad.Trans.Class (lift)
-import Control.Monad.Trans.Except
 import Control.Monad.Trans.State.Lazy (StateT(..), evalStateT, get, put)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
@@ -77,10 +76,6 @@ import {-# SOURCE #-} Controller.AssetSegment
 import Controller.Notification
 import View.Form (FormHtml)
 
--- | Borrowed from "errors" package
-note :: a -> Maybe b -> Either a b
-note x = maybe (Left x) Right
-
 -- | Convert 'Model.Volume' into HTTP error responses if the lookup fails or is
 -- denied.
 getVolume
@@ -91,12 +86,11 @@ getVolume
     -> Handler Volume
     -- ^ The volume, as requested (or a short-circuited error response)
 getVolume requestedPerm volId = do
-    x <- runExceptT $ do
-        v <- ExceptT (note notFoundResponse <$> lookupVolumeP volId)
-        ExceptT (pure (note forbiddenResponse (requestAccess requestedPerm v)))
-    case x of
-        Left resp -> result =<< peeks resp
-        Right vol -> pure vol
+    res <- requestVolume requestedPerm volId
+    case res of
+        LookupFailed -> result =<< peeks notFoundResponse
+        RequestDenied -> result =<< peeks forbiddenResponse
+        RequestResult v -> pure v
 
 data VolumeCache = VolumeCache
   { volumeCacheAccess :: Maybe [VolumeAccess]
