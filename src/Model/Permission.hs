@@ -41,7 +41,7 @@ requestAccess
     -> Maybe a
     -- ^ Maybe the unwrapped object
 requestAccess requestedPerm obj =
-    if requestedPerm >= grantedPermission obj
+    if requestedPerm <= grantedPermission obj
     then Just (unsafeAccess obj)
     else Nothing
 
