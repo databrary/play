@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -eu
 
+CACHE_USER="datadeploy"
 # perform sudo tasks first
 if ! [ -e /nix ]; then
     echo "Creating /nix directory using sudo"
     sudo mkdir -m 0755 /nix
 fi
 echo "Changing owner of /nix to $USER using sudo"
-sudo chown -R $USER /nix
+sudo chown -R $CACHE_USER /nix
 
 # this might be cleaner than how nix-serve is currently started...
 # if ! [ -e /etc/nix ]; then
