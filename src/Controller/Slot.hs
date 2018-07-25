@@ -25,6 +25,7 @@ import Controller.Volume (volumeIsPublicRestricted)
 import Controller.Web
 import HTTP.Path.Parser
 import Has (view, peeks)
+import Model.Access
 import Model.Asset
 import Model.AssetSegment
 import Model.AssetSlot
