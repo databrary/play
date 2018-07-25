@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Controller.Slot
     ( getSlot
+    , getSlot'
     , viewSlot
     , slotDownloadName
     , thumbSlot
@@ -40,6 +41,25 @@ import Model.Tag
 import Model.Volume
 import Store.Filename
 import qualified JSON
+
+-- | Convert a 'Slot' into HTTP error responses if the lookup fails or is
+-- denied.
+--
+-- NOTE: Intentionally implemented exactly like getVolume. Implementations
+-- should be collected in a single module and merged.
+getSlot'
+    :: Permission
+    -- ^ Requested permission
+    -> Id Slot
+    -- ^ Slot to look up
+    -> Handler Slot
+    -- ^ The slot, as requested (or a short-circuited error response)
+getSlot' requestedPerm sId = do
+    res <- requestSlot requestedPerm sId
+    case res of
+        LookupFailed -> result =<< peeks notFoundResponse
+        RequestDenied -> result =<< peeks forbiddenResponse
+        RequestResult s -> pure s
 
 getSlot :: Permission -> Maybe (Id Volume) -> Id Slot -> Handler Slot
 getSlot p mv i =

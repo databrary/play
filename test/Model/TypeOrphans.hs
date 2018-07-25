@@ -34,6 +34,9 @@ deriving instance Show AssetSlot
 
 deriving instance Show AssetSegment
 
+deriving instance Eq Container
+deriving instance Show Container
+
 deriving instance Eq ContainerRow
 deriving instance Show ContainerRow
 
@@ -80,7 +83,7 @@ deriving instance Show RecordRow
 deriving instance Eq SharedPolicy
 deriving instance Show SharedPolicy
 
--- deriving instance Eq Slot
+deriving instance Eq Slot
 instance Show Slot where
   show _ = "Slot"
 -- deriving instance Show Slot

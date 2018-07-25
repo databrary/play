@@ -282,14 +282,16 @@ test_11 = Test.stepsWithTransaction "test_11" $ \step cn2 -> do
     step "When the AI creates a private volume with a fully released container"
     -- TODO: should be lookup auth on rootParty
     cid <- runReaderT
-         (do
-              v <- addVolumeSetPrivate aiAcct
-              makeAddContainer v (Just ReleasePUBLIC) Nothing)
-         aiCtxt
+        (do
+            v <- addVolumeSetPrivate aiAcct
+            makeAddContainer v (Just ReleasePUBLIC) Nothing
+        )
+        aiCtxt
     step "Then the public can't view the container"
-    -- Implementation of getSlot PUBLIC
-    mSlotForAnon <- runWithNoIdent cn2 (lookupContainerSlot cid)
-    isNothing mSlotForAnon @? "expected slot lookup to find nothing"
+    mSlotForAnon <- runWithNoIdent
+        cn2
+        (requestSlot PermissionPUBLIC (containerSlotId cid))
+    mSlotForAnon @?= LookupFailed
 
 test_12 :: TestTree
 test_12 = Test.stepsWithTransaction "test_12" $ \step cn2 -> do
