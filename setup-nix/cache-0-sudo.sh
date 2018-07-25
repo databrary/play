@@ -7,7 +7,7 @@ if ! [ -e /nix ]; then
     echo "Creating /nix directory using sudo"
     sudo mkdir -m 0755 /nix
 fi
-echo "Changing owner of /nix to $USER using sudo"
+echo "Changing owner of /nix to $CACHE_USER using sudo"
 sudo chown -R $CACHE_USER /nix
 
 # this might be cleaner than how nix-serve is currently started...
