@@ -2,7 +2,7 @@
 
 set -euo pipefail 
 
-usr=$1
+usr="datadeploy"
 rcvr="$usr@databrary2.home.nyu.edu"
 echo "building Databrary binaries..."
 # if /tmp is too small for major nix builds, create appropriate dir, then use TMPDIR=... build-package-copy-prep ...
@@ -14,6 +14,7 @@ echo "copy closure of Databrary binaries completed..."
 # NOTE: this is overly complex, simplify using multiple lines later
 ssh -t "$rcvr" " \
            nix-env --install $RESULT \
+        && nix-collect-garbage -d \
         && rm -f /home/demo/databraryExeLink \
         && ln -s $RESULT/bin/databrary /home/demo/databraryExeLink \
 "
