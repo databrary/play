@@ -87,11 +87,11 @@ getVolume
     -> Handler Volume
     -- ^ The volume, as requested (or a short-circuited error response)
 getVolume requestedPerm volId = do
-    res <- requestVolume requestedPerm volId
+    res <- accessVolume requestedPerm volId
     case res of
         LookupFailed -> result =<< peeks notFoundResponse
-        RequestDenied -> result =<< peeks forbiddenResponse
-        RequestResult v -> pure v
+        AccessDenied -> result =<< peeks forbiddenResponse
+        AccessResult v -> pure v
 
 data VolumeCache = VolumeCache
   { volumeCacheAccess :: Maybe [VolumeAccess]

@@ -35,6 +35,7 @@ import EZID.Volume (updateEZID)
 import Has
 import HTTP.Client
 import Ingest.JSON
+import Model.Access
 import Model.Asset
 import Model.Audit (MonadAudit)
 import Model.Authorize
@@ -188,7 +189,7 @@ test_7 = Test.stepsWithTransaction "test_7" $ \step cn2 -> do
     mVol <-
         runWithNoIdent
             cn2
-            (requestVolume PermissionREAD ((volumeId . volumeRow) vol))
+            (accessVolume PermissionREAD ((volumeId . volumeRow) vol))
     mVol @?= LookupFailed
 
 volWithId :: Volume -> (Id Volume, Volume)
@@ -202,12 +203,12 @@ test_7_accessOwnVolume = Test.stepsWithTransaction "can access own volume" $ \st
     -- TODO: should be lookup auth on rootParty
     (volId, _) <- volWithId <$> runReaderT (addVolumeSetPrivate aiAcct) aiCtxt
     step "Then the AI can view it"
-    mVol <- runReaderT (requestVolume PermissionREAD volId) aiCtxt
+    mVol <- runReaderT (accessVolume PermissionREAD volId) aiCtxt
     case mVol of
         -- FIXME: vol' is not equal to vol.
-        RequestResult (volWithId -> (volId', _)) -> volId' @?= volId
+        AccessResult (volWithId -> (volId', _)) -> volId' @?= volId
         LookupFailed -> assertFailure "Lookup failed"
-        RequestDenied -> assertFailure "Access denied"
+        AccessDenied -> assertFailure "Access denied"
 
 -- <<<< more cases to handle variations of volume access and inheritance through authorization
 
@@ -226,7 +227,7 @@ test_8 = Test.stepsWithTransaction "test_8" $ \step cn2 -> do
     step "Then the lab B member can't view it"
     mVol <-
         runReaderT
-            (requestVolume PermissionPUBLIC ((volumeId . volumeRow) createdVol))
+            (accessVolume PermissionPUBLIC ((volumeId . volumeRow) createdVol))
             affCtxt
     mVol @?= LookupFailed
 
@@ -243,7 +244,7 @@ test_9 = Test.stepsWithTransaction "test_9" $ \step cn2 -> do
     step "Then their lab member with site access only can't view it"
     mVol <-
         runReaderT
-            (requestVolume PermissionPUBLIC ((volumeId . volumeRow) vol))
+            (accessVolume PermissionPUBLIC ((volumeId . volumeRow) vol))
             affCtxt
     mVol @?= LookupFailed
 
@@ -271,8 +272,8 @@ test_10_1 = Test.stepsWithTransaction "Denied elevated access" $ \step cn2 -> do
     -- NB: partially shared, but effectively same as public
     (volId, _) <- volWithId <$> runReaderT (addVolumeWithAccess aiAcct) aiCtxt
     step "Then the lab B AI can't access it with edit privileges"
-    mVol <- runReaderT (requestVolume PermissionEDIT volId) aiCtxt2
-    mVol @?= RequestDenied
+    mVol <- runReaderT (accessVolume PermissionEDIT volId) aiCtxt2
+    mVol @?= AccessDenied
 
 ----- container ----
 test_11 :: TestTree
@@ -290,7 +291,7 @@ test_11 = Test.stepsWithTransaction "test_11" $ \step cn2 -> do
     step "Then the public can't view the container"
     mSlotForAnon <- runWithNoIdent
         cn2
-        (requestSlot PermissionPUBLIC (containerSlotId cid))
+        (accessSlot PermissionPUBLIC (containerSlotId cid))
     mSlotForAnon @?= LookupFailed
 
 test_12 :: TestTree
@@ -308,12 +309,12 @@ test_12 = Test.stepsWithTransaction "test_12" $ \step cn2 -> do
     step "When the public attempts to view the container"
     slotForAnon <- runWithNoIdent
         cn2
-        (requestSlot PermissionPUBLIC (containerSlotId cid))
+        (accessSlot PermissionPUBLIC (containerSlotId cid))
     step "Then the public can't see protected parts like the detailed test date"
     case slotForAnon of
         LookupFailed -> assertFailure "Lookup failed"
-        RequestDenied -> assertFailure "Access denied"
-        RequestResult s ->
+        AccessDenied -> assertFailure "Access denied"
+        AccessResult s ->
             (encode . getContainerDate . slotContainer) s @?= "2017"
 
 someDay :: Integer -> Day

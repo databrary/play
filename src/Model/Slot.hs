@@ -2,7 +2,6 @@
 module Model.Slot
   ( module Model.Slot.Types
   , lookupSlot
-  , requestSlot
   , lookupContainerSlot
   , auditSlotDownload
   , slotJSON
@@ -18,38 +17,7 @@ import Model.Identity
 import Model.Audit
 import Model.Segment
 import Model.Container
-import Model.Permission
 import Model.Slot.Types
-import Model.Volume
-
--- | Lookup a Slot by its Id, requesting the given permission.
---
--- NOTE: Intentionally implemented exactly like requestVolume. Implementations
--- should be collected in a single module and merged.
-requestSlot
-    :: (MonadDB c m, MonadHasIdentity c m)
-    => Permission
-    -> Id Slot
-    -> m (RequestResult Slot)
-requestSlot requestedPerm = fmap (maybe LookupFailed mkRequest) . lookupSlotP
-  where
-    mkRequest :: Permissioned Slot -> RequestResult Slot
-    mkRequest =
-        maybe RequestDenied RequestResult . requestAccess requestedPerm
-    --
-    lookupSlotP
-        :: (MonadDB c m, MonadHasIdentity c m)
-        => Id Slot
-        -> m (Maybe (Permissioned Slot))
-    lookupSlotP = fmap (fmap wrapPermission) . lookupSlot
-    --
-    wrapPermission :: Slot -> Permissioned Slot
-    wrapPermission = mkPermissioned
-        (extractPermissionIgnorePolicy
-        . volumeRolePolicy
-        . containerVolume
-        . slotContainer
-        )
 
 -- | Look up a Slot by its Id, gated by the running Identity's permission to view
 -- the Slot's Container's Volume. :)

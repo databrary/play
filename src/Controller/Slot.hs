@@ -55,11 +55,11 @@ getSlot
     -> Handler Slot
     -- ^ The slot, as requested (or a short-circuited error response)
 getSlot requestedPerm sId = do
-    res <- requestSlot requestedPerm sId
+    res <- accessSlot requestedPerm sId
     case res of
         LookupFailed -> result =<< peeks notFoundResponse
-        RequestDenied -> result =<< peeks forbiddenResponse
-        RequestResult s -> pure s
+        AccessDenied -> result =<< peeks forbiddenResponse
+        AccessResult s -> pure s
 
 -- | Look up a Slot and confirm that it is associated with the given Volume.
 --
