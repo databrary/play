@@ -19,40 +19,26 @@ import Service.DB
 -- returned Nothing. This could mean either the id is a valid id, or the user
 -- doesn't have access to the volume.
 --
--- TODO: Monad Transformer
+-- TODO: Monad Transformer?
 data AccessResult a
     = LookupFailed
     | AccessDenied
     | AccessResult a
 
 -- | Lookup a Slot by its Id, requesting the given permission.
---
--- NOTE: Intentionally implemented exactly like accessVolume. Implementations
--- should be collected in a single module and merged.
 accessSlot
     :: (MonadDB c m, MonadHasIdentity c m)
     => Permission
     -> Id Slot
     -> m (AccessResult Slot)
-accessSlot requestedPerm = fmap (maybe LookupFailed mkRequest) . lookupSlotP
-  where
-    mkRequest :: Permissioned Slot -> AccessResult Slot
-    mkRequest =
-        maybe AccessDenied AccessResult . requestAccess requestedPerm
-    --
-    lookupSlotP
-        :: (MonadDB c m, MonadHasIdentity c m)
-        => Id Slot
-        -> m (Maybe (Permissioned Slot))
-    lookupSlotP = fmap (fmap wrapPermission) . lookupSlot
-    --
-    wrapPermission :: Slot -> Permissioned Slot
-    wrapPermission = mkPermissioned
-        (extractPermissionIgnorePolicy
-        . volumeRolePolicy
-        . containerVolume
-        . slotContainer
-        )
+accessSlot requestedPerm = accessPermissionedObject
+    lookupSlot
+    (extractPermissionIgnorePolicy
+    . volumeRolePolicy
+    . containerVolume
+    . slotContainer
+    )
+    requestedPerm
 
 -- | Lookup a Volume by its Id, requesting the given permission.
 accessVolume
@@ -60,20 +46,28 @@ accessVolume
     => Permission
     -> Id Volume
     -> m (AccessResult Volume)
-accessVolume requestedPerm =
-    fmap (maybe LookupFailed mkRequest) . lookupVolumeP
+accessVolume requestedPerm = accessPermissionedObject
+    lookupVolume
+    (extractPermissionIgnorePolicy . volumeRolePolicy)
+    requestedPerm
+
+-- | Internal, generic version for accessing a permissioned object. Used as the
+-- basis for the exported accessors.
+accessPermissionedObject
+    :: MonadDB c m
+    => (Id a -> m (Maybe a))
+    -- ^ How to get the object from the database
+    -> (a -> Permission)
+    -- ^ Map the object to the permissions granted on it
+    -> Permission
+    -- ^ Requested access level to the object
+    -> Id a
+    -- ^ Id of the object to access
+    -> m (AccessResult a)
+    -- ^ Access response
+accessPermissionedObject lookupObj getPermission requestedPerm =
+    fmap (maybe LookupFailed mkRequest) . lookupObjP
   where
-    mkRequest :: Permissioned Volume -> AccessResult Volume
     mkRequest =
         maybe AccessDenied AccessResult . requestAccess requestedPerm
-    --
-    lookupVolumeP
-        :: (MonadDB c m, MonadHasIdentity c m)
-        => Id Volume
-        -> m (Maybe (Permissioned Volume))
-    lookupVolumeP = fmap (fmap wrapPermission) . lookupVolume
-    --
-    wrapPermission :: Volume -> Permissioned Volume
-    wrapPermission = mkPermissioned
-        (extractPermissionIgnorePolicy . volumeRolePolicy)
-
+    lookupObjP = fmap (fmap (mkPermissioned getPermission)) . lookupObj
