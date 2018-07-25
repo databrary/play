@@ -82,6 +82,7 @@ requestVolume
 requestVolume requestedPerm =
     fmap (maybe LookupFailed mkRequest) . lookupVolumeP
   where
+    mkRequest :: Permissioned Volume -> RequestResult Volume
     mkRequest =
         maybe RequestDenied RequestResult . requestAccess requestedPerm
 
@@ -93,6 +94,7 @@ lookupVolumeP
     -> m (Maybe (Permissioned Volume))
 lookupVolumeP = fmap (fmap wrapPermission) . lookupVolume
   where
+    wrapPermission :: Volume -> Permissioned Volume
     wrapPermission =
         mkPermissioned (extractPermissionIgnorePolicy . volumeRolePolicy)
 
