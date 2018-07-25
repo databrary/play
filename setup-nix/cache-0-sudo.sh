@@ -20,11 +20,3 @@ sudo chown -R $USER /nix
 #     sudo cp /etc/nix/nix.conf /etc/nix/nix.conf.backup
 # fi
 # sudo sh -c 'echo "secret-key-files = /home/datadeploy/devdatabrary2-nix-store.priv" > /etc/nix/nix.conf'
-
-
-
-
-
-
-
-
