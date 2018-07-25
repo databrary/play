@@ -57,7 +57,7 @@ selectPermissionVolume = addSelects 'setCreation -- setCreation will be waiting 
 
 selectVolume :: TH.Name -- ^ @'Identity'@
   -> Selector -- ^ @'Volume'@
-selectVolume ident = selectJoin 'makeVolume
+selectVolume i = selectJoin 'makeVolume
   [ selectPermissionVolume
   , maybeJoinOn "volume.id = volume_owners.volume" -- join in Maybe [Maybe Text] of owners
     $ selectColumn "volume_owners" "owners"
@@ -65,14 +65,14 @@ selectVolume ident = selectJoin 'makeVolume
       (selector
         ("LATERAL \
          \  (VALUES \
-         \     ( CASE WHEN ${identitySuperuser " ++ identRef ++ "} \
+         \     ( CASE WHEN ${identitySuperuser " ++ is ++ "} \
          \             THEN enum_last(NULL::permission) \
-         \             ELSE volume_access_check(volume.id, ${view " ++ identRef ++ " :: Id Party}) END \
-         \     , CASE WHEN ${identitySuperuser " ++ identRef ++ "} \
+         \             ELSE volume_access_check(volume.id, ${view " ++ is ++ " :: Id Party}) END \
+         \     , CASE WHEN ${identitySuperuser " ++ is ++ "} \
          \             THEN null \
          \             ELSE (select share_full \
          \                   from volume_access_view \
-         \                   where volume = volume.id and party = ${view " ++ identRef ++ " :: Id Party} \
+         \                   where volume = volume.id and party = ${view " ++ is ++ " :: Id Party} \
          \                   limit 1) END ) \
          \  ) AS volume_permission (permission, share_full)")
         -- get rid of "volume_access_check", use query directly
@@ -82,7 +82,7 @@ selectVolume ident = selectJoin 'makeVolume
            [ SelectColumn "volume_permission" "permission"
            , SelectColumn "volume_permission" "share_full"]))
   ]
-  where identRef = nameRef ident
+  where is = nameRef i
 
 volumeKeys :: String -- ^ @'Volume'@
   -> [(String, String)]
