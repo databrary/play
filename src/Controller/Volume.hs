@@ -6,20 +6,17 @@ module Controller.Volume
   , viewVolumeCreateHandler
   , postVolume
   , createVolume
-  -- , viewVolumeLinks
   , postVolumeLinks
   , postVolumeAssist
   , queryVolumes
   , thumbVolume
   , volumeDownloadName
-  -- , volumeJSONQuery
   , volumeIsPublicRestricted
   ) where
 
 import Control.Applicative ((<|>), optional)
 import Control.Arrow ((&&&), (***))
 import Control.Monad (mfilter, guard, void, when, forM_)
--- import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.State.Lazy (StateT(..), evalStateT, get, put)
 import qualified Data.ByteString as BS
@@ -44,7 +41,7 @@ import Model.Enum
 import Model.Id
 import Model.Permission hiding (checkPermission)
 import Model.Authorize
-import Model.Volume hiding (getVolume)
+import Model.Volume
 import Model.VolumeAccess
 import Model.Party
 import Model.Citation
@@ -78,7 +75,6 @@ import Controller.Web
 import {-# SOURCE #-} Controller.AssetSegment
 import Controller.Notification
 import View.Form (FormHtml)
-import qualified Model.Volume as Model
 
 -- | Convert 'Model.Volume' into HTTP error responses if the lookup fails or is
 -- denied.
@@ -89,20 +85,18 @@ getVolume
     -- ^ Volume to look up
     -> Handler Volume
     -- ^ The volume, as requested (or a short-circuited error response)
-getVolume p i = do
-  resp <- Model.getVolume p i
-  case resp of
-    LookupFailed -> result =<< peeks notFoundResponse
-    LookupDenied -> result =<< peeks forbiddenResponse
-    LookupFound v -> pure v
+getVolume requestedPerm volId = do
+    res <- requestVolume requestedPerm volId
+    case res of
+        LookupFailed -> result =<< peeks notFoundResponse
+        RequestDenied -> result =<< peeks forbiddenResponse
+        RequestResult v -> pure v
 
 data VolumeCache = VolumeCache
   { volumeCacheAccess :: Maybe [VolumeAccess]
   , volumeCacheTopContainer :: Maybe Container
   , volumeCacheRecords :: Maybe (HML.HashMap (Id Record) Record)
   }
-
--- type VolumeCacheHandler a = StateT VolumeCache Handler a
 
 instance Monoid VolumeCache where
   mempty = VolumeCache Nothing Nothing Nothing
@@ -157,11 +151,6 @@ volumeJSONField :: Volume -> BS.ByteString -> Maybe BS.ByteString -> StateT Volu
 volumeJSONField vol "access" ma =
   Just . JSON.mapObjects volumeAccessPartyJSON
     <$> cacheVolumeAccess vol (fromMaybe PermissionNONE $ readDBEnum . BSC.unpack =<< ma)
-{-
-volumeJSONField vol "publicaccess" ma = do
-  Just . JSON.toEncoding . show . volumePublicAccessSummary
-    <$> cacheVolumeAccess vol (fromMaybe PermissionNONE $ readDBEnum . BSC.unpack =<< ma)
--}
 volumeJSONField vol "citation" _ =
   Just . JSON.toEncoding <$> lookupVolumeCitation vol
 volumeJSONField vol "links" _ =
@@ -310,16 +299,11 @@ viewVolumeEdit :: ActionRoute (Id Volume)
 viewVolumeEdit = action GET (pathHTML >/> pathId </< "edit") $ \_ -> withAuth $ do
   angular
   return (okResponse [] ("" :: String)) -- should never get here
-  {-
-  v <- getVolume PermissionEDIT vi
-  cite <- lookupVolumeCitation v
-  peeks $ blankForm . htmlVolumeEdit (Just (v, cite)) -}
 
 viewVolumeCreateHandler :: Action  -- TODO : GET only
 viewVolumeCreateHandler = withAuth $ do
   angular
   return (okResponse [] ("" :: String)) -- should never get here
-  -- peeks $ blankForm . htmlVolumeEdit Nothing
 
 postVolume :: ActionRoute (Id Volume)
 postVolume = action POST (pathJSON >/> pathId) $ \vi -> withAuth $ do
@@ -330,7 +314,6 @@ postVolume = action POST (pathJSON >/> pathId) $ \vi -> withAuth $ do
   r <- changeVolumeCitation v' cite'
   return $ okResponse [] $
     JSON.recordEncoding $ volumeJSONSimple v' `JSON.foldObjectIntoRec` ("citation" JSON..= if r then cite' else cite)
-    -- HTML -> peeks $ otherRouteResponse [] viewVolume arg
 
 data CreateVolumeRequest =
     CreateVolumeRequest (Maybe (Id Party)) CreateOrUpdateVolumeCitationRequest
@@ -360,15 +343,6 @@ createVolume = action POST (pathJSON >/> "volume") $ \() -> withAuth $ do
       , notificationParty = Just $ partyRow owner
       }
   return $ okResponse [] $ JSON.recordEncoding $ volumeJSONSimple v
-  -- HTML -> peeks $ otherRouteResponse [] viewVolume (api, volumeId $ volumeRow v)
-
-{-
-viewVolumeLinks :: ActionRoute (Id Volume)
-viewVolumeLinks = action GET (pathHTML >/> pathId </< "link") $ \vi -> withAuth $ do
-  v <- getVolume PermissionEDIT vi
-  links <- lookupVolumeLinks v
-  peeks $ blankForm . htmlVolumeLinksEdit v links
--}
 
 newtype UpdateVolumeLinksRequest =
     UpdateVolumeLinksRequest [(T.Text, Maybe URI)]

@@ -19,7 +19,6 @@ import Model.Identity
 import HTTP.Request
 import Action
 
-
 -- TODO: use Model.checkPermission everywhere instead
 {-# DEPRECATED checkPermissionOld "Use checkPermission instead" #-}
 checkPermissionOld :: Has Permission a => Permission -> a -> Handler a
@@ -30,6 +29,7 @@ checkPermissionOld requiredPermissionLevel objectWithCurrentUserPermLevel =
 --
 -- This function is probably due for another 3 or 4 rewrites: it's a bit
 -- abstract, serving mostly as a description for its arguments.
+-- TODO: Maybe replace with requestAccess
 checkPermission
     :: (a -> Permission)
     -- ^ How to extract the granted permission for current user

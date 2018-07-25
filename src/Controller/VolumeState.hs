@@ -11,7 +11,7 @@ import qualified Web.Route.Invertible as R
 import qualified Data.Aeson as Aeson
 import Model.Id
 import Model.Permission
-import Model.Volume hiding (getVolume)
+import Model.Volume
 import Model.VolumeState
 import HTTP.Path.Parser
 import HTTP.Form.Deform

@@ -2,11 +2,11 @@
 module Model.Slot
   ( module Model.Slot.Types
   , lookupSlot
+  , lookupContainerSlot
   , auditSlotDownload
   , slotJSON
   ) where
 
--- import Database.PostgreSQL.Typed (pgSQL)
 import Database.PostgreSQL.Typed.Types
 import qualified Data.String
 
@@ -19,11 +19,17 @@ import Model.Segment
 import Model.Container
 import Model.Slot.Types
 
--- useTDB
-
+-- | Look up a Slot by its Id, gated by the running Identity's permission to view
+-- the Slot's Container's Volume. :)
 lookupSlot :: (MonadDB c m, MonadHasIdentity c m) => Id Slot -> m (Maybe Slot)
-lookupSlot (Id (SlotId c s)) =
-  fmap (`Slot` s) <$> lookupContainer c
+lookupSlot (Id (SlotId cont seg)) =
+  fmap (`Slot` seg) <$> lookupContainer cont
+
+-- | Look up a Slot by its Container's Id, gated by the running Identity's
+-- permission to view the Volume containing the Container (which contains the
+-- Slot).
+lookupContainerSlot :: (MonadDB c m, MonadHasIdentity c m) => Id Container -> m (Maybe Slot)
+lookupContainerSlot = lookupSlot . containerSlotId
 
 auditSlotDownload :: MonadAudit c m => Bool -> Slot -> m ()
 auditSlotDownload success Slot{ slotContainer = c, slotSegment = seg } = do

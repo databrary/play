@@ -12,7 +12,6 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy.Char8 as BSLC
--- import qualified Data.HashMap.Strict as HM
 import Data.IORef (readIORef)
 import Data.Maybe
 import Data.Monoid ((<>))
@@ -42,21 +41,17 @@ import Model.Authorize
 import Model.Category
 import Model.Citation
 import Model.Container
--- import Model.Container.TypesTest
 import Model.Factories
 import Model.Format
-import Model.Identity (MonadHasIdentity)
 import Model.Measure
 import Model.Metric
 import Model.Notification
 import Model.Offset
 import Model.Paginate
 import Model.Party
--- import Model.Party.TypesTest
 import Model.Permission
 import Model.Release
 import Model.Record
--- import Model.Record.TypesTest
 import Model.RecordSlot
 import Model.Segment
 import Model.Slot
@@ -64,7 +59,6 @@ import Model.Token
 import Model.Transcode
 import Model.Volume
 import Model.VolumeAccess
--- import Model.VolumeAccess.TypesTest
 import Model.VolumeMetric
 import Service.DB (DBConn, MonadDB)
 import Service.Entropy (initEntropy)
@@ -77,8 +71,6 @@ import Store.AV (initAV)
 import Store.CSV (buildCSV)
 import Store.Types
 import qualified Store.Config as C
--- import Store.Asset
--- import Store.AV
 import Store.Probe
 import Store.Transcode
 import Store.Upload (uploadFile)
@@ -196,7 +188,7 @@ test_7 = Test.stepsWithTransaction "test_7" $ \step cn2 -> do
     mVol <-
         runWithNoIdent
             cn2
-            (getVolume PermissionREAD ((volumeId . volumeRow) vol))
+            (requestVolume PermissionREAD ((volumeId . volumeRow) vol))
     mVol @?= LookupFailed
 
 volWithId :: Volume -> (Id Volume, Volume)
@@ -210,12 +202,12 @@ test_7_accessOwnVolume = Test.stepsWithTransaction "can access own volume" $ \st
     -- TODO: should be lookup auth on rootParty
     (volId, _) <- volWithId <$> runReaderT (addVolumeSetPrivate aiAcct) aiCtxt
     step "Then the AI can view it"
-    mVol <- runReaderT (getVolume PermissionREAD volId) aiCtxt
+    mVol <- runReaderT (requestVolume PermissionREAD volId) aiCtxt
     case mVol of
         -- FIXME: vol' is not equal to vol.
-        LookupFound (volWithId -> (volId', _)) -> volId' @?= volId
+        RequestResult (volWithId -> (volId', _)) -> volId' @?= volId
         LookupFailed -> assertFailure "Lookup failed"
-        LookupDenied -> assertFailure "Lookup denied"
+        RequestDenied -> assertFailure "Access denied"
 
 -- <<<< more cases to handle variations of volume access and inheritance through authorization
 
@@ -234,7 +226,7 @@ test_8 = Test.stepsWithTransaction "test_8" $ \step cn2 -> do
     step "Then the lab B member can't view it"
     mVol <-
         runReaderT
-            (getVolume PermissionPUBLIC ((volumeId . volumeRow) createdVol))
+            (requestVolume PermissionPUBLIC ((volumeId . volumeRow) createdVol))
             affCtxt
     mVol @?= LookupFailed
 
@@ -251,7 +243,7 @@ test_9 = Test.stepsWithTransaction "test_9" $ \step cn2 -> do
     step "Then their lab member with site access only can't view it"
     mVol <-
         runReaderT
-            (getVolume PermissionPUBLIC ((volumeId . volumeRow) vol))
+            (requestVolume PermissionPUBLIC ((volumeId . volumeRow) vol))
             affCtxt
     mVol @?= LookupFailed
 
@@ -279,8 +271,8 @@ test_10_1 = Test.stepsWithTransaction "Denied elevated access" $ \step cn2 -> do
     -- NB: partially shared, but effectively same as public
     (volId, _) <- volWithId <$> runReaderT (addVolumeWithAccess aiAcct) aiCtxt
     step "Then the lab B AI can't access it with edit privileges"
-    mVol <- runReaderT (getVolume PermissionEDIT volId) aiCtxt2
-    mVol @?= LookupDenied
+    mVol <- runReaderT (requestVolume PermissionEDIT volId) aiCtxt2
+    mVol @?= RequestDenied
 
 ----- container ----
 test_11 :: TestTree
@@ -296,7 +288,7 @@ test_11 = Test.stepsWithTransaction "test_11" $ \step cn2 -> do
          aiCtxt
     step "Then the public can't view the container"
     -- Implementation of getSlot PUBLIC
-    mSlotForAnon <- runWithNoIdent cn2 (lookupSlotByContainerId cid)
+    mSlotForAnon <- runWithNoIdent cn2 (lookupContainerSlot cid)
     isNothing mSlotForAnon @? "expected slot lookup to find nothing"
 
 test_12 :: TestTree
@@ -311,7 +303,7 @@ test_12 = Test.stepsWithTransaction "test_12" $ \step cn2 -> do
          aiCtxt
     step "When the public attempts to view the container"
     -- Implementation of getSlot PUBLIC
-    Just slotForAnon <- runWithNoIdent cn2 (lookupSlotByContainerId cid)
+    Just slotForAnon <- runWithNoIdent cn2 (lookupContainerSlot cid)
     step "Then the public can't see protected parts like the detailed test date"
     (encode . getContainerDate . slotContainer) slotForAnon @?= "2017"
 
@@ -358,7 +350,7 @@ test_12a =
               -- lookup assetslot or container w/contents
               )
         aiCtxt2
-    -- Just slotForAnon <- runWithNoIdent cn2 (lookupSlotByContainerId cid)
+    -- Just slotForAnon <- runWithNoIdent cn2 (lookupContainerSlot cid)
     step "Then one can retrieve the asset"
     (assetRelease . assetRow) foundAsset @?= Just ReleasePUBLIC
     {-
@@ -544,7 +536,7 @@ test_15 = Test.stepsWithTransaction "test_15" $ \step cn2 -> do
               v <- addVolumeSetPublic aiAcct
               c <- makeAddContainer v (Just ReleasePUBLIC) Nothing
               Just v' <- lookupVolume ((volumeId . volumeRow) v)
-              Just s <- lookupSlotByContainerId c
+              Just s <- lookupContainerSlot c
               pure (v', slotContainer s))
          aiCtxt
     step "When the public downloads the volume as a zip"
@@ -784,9 +776,6 @@ mkVolumeSearchQuery searchStr =
 accessIsEq :: Access -> Permission -> Permission -> Assertion
 accessIsEq a site member = a @?= Access { accessSite' = site, accessMember' = member }
 
-lookupSlotByContainerId :: (MonadDB c m, MonadHasIdentity c m) => Id Container -> m (Maybe Slot)
-lookupSlotByContainerId cid = lookupSlot (containerSlotId cid)
-
 setVolumePrivate :: (MonadAudit c m) => Volume -> m ()
 setVolumePrivate v = do
     nobodyVa <- liftIO (mkGroupVolAccess PermissionNONE Nothing nobodyParty v)
@@ -812,10 +801,14 @@ mkGroupVolAccess perm mShareFull prty vol = do
              })
 
 runWithNoIdent :: DBConn -> ReaderT TestContext IO a -> IO a
-runWithNoIdent cn rdr =
-    runReaderT
-        rdr
-        ((mkDbContext cn) { ctxIdentity = Just IdentityNotNeeded, ctxPartyId = Just (Id (-1)), ctxSiteAuth = Just (view IdentityNotNeeded) })
+runWithNoIdent cn rdr = runReaderT
+    rdr
+    ((mkDbContext cn)
+        { ctxIdentity = Just IdentityNotNeeded
+        , ctxPartyId = Just (Id (-1))
+        , ctxSiteAuth = Just (view IdentityNotNeeded)
+        }
+    )
 
 addAuthorizedInvestigatorWithInstitution' :: DBConn -> IO (Account, TestContext)
 addAuthorizedInvestigatorWithInstitution' c =

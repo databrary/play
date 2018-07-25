@@ -8,8 +8,8 @@ module Model.Volume
     ( module Model.Volume.Types
     , coreVolume
     , lookupVolume
-    , getVolume
-    , LookupResult (..)
+    , requestVolume
+    , RequestResult (..)
     , changeVolume
     , addVolume
     , auditVolumeDownload
@@ -49,41 +49,6 @@ import Model.VolumeAccess.Types (VolumeAccess(..))
 import Service.DB
 import qualified JSON
 
--- | Captures possible database responses.
--- NOTE: This was designed to mimic existing code and responses. LookupFailed
--- does NOT mean "does not exist". It means that 'lookupVolume' (for example)
--- returned Nothing. This could mean either the id is a valid id, or the user
--- doesn't have access to the volume.
-data LookupResult a
-    = LookupFailed
-    | LookupDenied
-    | LookupFound a
-
--- | Get a 'Volume', if it is available to the given 'Identity' with the desired
--- 'Permission'.
-getVolume
-    :: (MonadDB c ctrl, MonadHasIdentity c ctrl)
-    => Permission -- ^ Desired permission level
-    -> Id Volume -- ^ Id of Volume to get
-    -> ctrl (LookupResult Volume)
-getVolume reqestedPermission volId = do
-    mVol <- lookupVolume volId
-    pure $ case mVol of
-        Nothing -> LookupFailed
-        Just vol ->
-            let
-                grantedPermission =
-                    extractPermissionIgnorePolicy . volumeRolePolicy
-            in
-                case
-                    checkPermission
-                        grantedPermission
-                        vol
-                        reqestedPermission
-                of
-                    PermissionGranted v -> LookupFound v
-                    PermissionDenied -> LookupDenied
-
 coreVolume :: Volume
 -- TODO: load on startup in lookups service module
 coreVolume = Volume
@@ -94,6 +59,41 @@ coreVolume = Volume
     )
     []
     (RolePublicViewer PublicNoPolicy)
+
+-- | Captures possible request responses.
+-- NOTE: This was designed to mimic existing code and responses. LookupFailed
+-- does NOT mean "does not exist". It means that 'lookupVolume' (for example)
+-- returned Nothing. This could mean either the id is a valid id, or the user
+-- doesn't have access to the volume.
+--
+-- TODO: Monad Transformer
+data RequestResult a
+    = LookupFailed
+    | RequestDenied
+    | RequestResult a
+
+-- | Lookup a Volume by its Id, requesting the given permission.
+requestVolume
+    :: (MonadDB c m, MonadHasIdentity c m)
+    => Permission
+    -> Id Volume
+    -> m (RequestResult Volume)
+requestVolume requestedPerm =
+    fmap (maybe LookupFailed mkRequest) . lookupVolumeP
+  where
+    mkRequest :: Permissioned Volume -> RequestResult Volume
+    mkRequest =
+        maybe RequestDenied RequestResult . requestAccess requestedPerm
+    --
+    lookupVolumeP
+        :: (MonadDB c m, MonadHasIdentity c m)
+        => Id Volume
+        -> m (Maybe (Permissioned Volume))
+    lookupVolumeP = fmap (fmap wrapPermission) . lookupVolume
+    --
+    wrapPermission :: Volume -> Permissioned Volume
+    wrapPermission = mkPermissioned
+        (extractPermissionIgnorePolicy . volumeRolePolicy)
 
 lookupVolume
     :: (MonadDB c m, MonadHasIdentity c m) => Id Volume -> m (Maybe Volume)

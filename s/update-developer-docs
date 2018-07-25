@@ -1,8 +1,11 @@
 #!/usr/bin/env nix-shell
-#! nix-shell ../shell.nix -i bash
-# FIXME: Add rsync and pup to the env. Use
-# https://discourse.nixos.org/t/best-way-to-augment-a-nix-shell-for-dev-utilities/157/6
-# once we finally update nixpkgs again.
+#! nix-shell --option binary-caches "https://cache.nixos.org http://devdatabrary2.home.nyu.edu:5000" ../shell.nix -i bash
+
+# FIXME:
+# 1. Add rsync and pup to the env. Use
+#    https://discourse.nixos.org/t/best-way-to-augment-a-nix-shell-for-dev-utilities/157/6
+#    once we finally update nixpkgs again.
+# 2. Figure out a better way to duplicate the use of the binary-caches option.
 set -Eeuo pipefail
 
 #
@@ -104,3 +107,5 @@ clean
 build
 report
 summary
+
+# vim: set ft=sh :

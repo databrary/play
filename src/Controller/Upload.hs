@@ -38,7 +38,7 @@ import Service.Log
 import Model.Id
 import Model.Identity (MonadHasIdentity)
 import Model.Permission
-import Model.Volume hiding (getVolume)
+import Model.Volume
 import Model.Format
 import Model.Token
 import Store.Upload

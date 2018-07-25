@@ -22,7 +22,7 @@ import Has
 import qualified JSON
 import Model.Id
 import Model.Permission hiding (checkPermission)
-import Model.Volume hiding (getVolume)
+import Model.Volume
 import Model.Container
 import Model.Segment
 import Model.Slot
@@ -39,7 +39,6 @@ import Controller.Angular
 import Controller.Volume
 import Controller.Notification
 import {-# SOURCE #-} Controller.Slot
--- import View.Container
 import View.Form (FormHtml)
 
 getContainer :: Permission -> Maybe (Id Volume) -> Id Slot -> Bool -> Handler Container

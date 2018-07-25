@@ -23,7 +23,7 @@ import Model.Id
 import Model.Permission
 import Model.Party
 import Model.Authorize
-import Model.Volume hiding (getVolume)
+import Model.Volume
 import Model.VolumeAccess
 import Model.Slot
 import Model.Activity
