@@ -118,11 +118,7 @@ data PermissionResponse a
     -- ^ No.
 
 -- | Decorate some permissioned object with a permission response
--- TODO: Wouldn't it be great if this had type
--- @@Permissioned a -> Permission -> PermissionResponse a@@ ?
---
--- NB: This clashes with 'Controller.Permission.checkPermission', which it
--- should replace.
+-- TODO: Maybe replace with requestAccess
 checkPermission
     :: (a -> Permission) -- ^ Extract the object's permission rules
     -> a -- ^ The object in question
