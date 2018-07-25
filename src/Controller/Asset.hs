@@ -280,9 +280,6 @@ processAsset target = do
   do
       liftIO $ putStrLn "JSON ok response..." --DEBUG
       return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON False as'' -- publicrestrict false because EDIT
-  -- HTML -> do
-  --    liftIO $ putStrLn "returning HTML other route reponse..." --DEBUG
-  --    peeks $ otherRouteResponse [] viewAsset (api, assetId $ assetRow $ slotAsset as'')
 
 postAsset :: ActionRoute (Id Asset)
 postAsset = multipartAction $ action POST (pathJSON >/> pathId) $ \ai -> withAuth $ do
@@ -292,13 +289,6 @@ postAsset = multipartAction $ action POST (pathJSON >/> pathId) $ \ai -> withAut
     response conflict409 [] ("This file has already been replaced." :: T.Text)
   processAsset $ AssetTargetAsset asset
 
-{-
-viewAssetEdit :: ActionRoute (Id Asset)
-viewAssetEdit = action GET (pathHTML >/> pathId </< "edit") $ \ai -> withAuth $ do
-  asset <- getAsset False PermissionEDIT False ai
-  peeks $ blankForm . htmlAssetEdit (AssetTargetAsset asset)
--}
-
 createAsset :: ActionRoute (Id Volume)
 createAsset = multipartAction $ action POST (pathJSON >/> pathId </< "asset") $ \vi -> withAuth $ do
   liftIO $ print "getting volume permission..."
@@ -306,24 +296,10 @@ createAsset = multipartAction $ action POST (pathJSON >/> pathId </< "asset") $ 
   liftIO $ print "processing asset..."
   processAsset $ AssetTargetVolume v
 
-{-
-viewAssetCreate :: ActionRoute (Id Volume)
-viewAssetCreate = action GET (pathHTML >/> pathId </< "asset") $ \vi -> withAuth $ do
-  v <- getVolume PermissionEDIT vi
-  peeks $ blankForm . htmlAssetEdit (AssetTargetVolume v)
--}
-
 createSlotAsset :: ActionRoute (Id Slot)
 createSlotAsset = multipartAction $ action POST (pathJSON >/> pathSlotId </< "asset") $ \si -> withAuth $ do
   v <- getSlot PermissionEDIT Nothing si
   processAsset $ AssetTargetSlot v
-
-{-
-viewSlotAssetCreate :: ActionRoute (Id Slot)
-viewSlotAssetCreate = action GET (pathHTML >/> pathSlotId </< "asset") $ \si -> withAuth $ do
-  s <- getSlot PermissionEDIT Nothing si
-  peeks $ blankForm . htmlAssetEdit (AssetTargetSlot s)
--}
 
 deleteAsset :: ActionRoute (Id Asset)
 deleteAsset = action DELETE (pathJSON >/> pathId) $ \ai -> withAuth $ do
@@ -332,7 +308,6 @@ deleteAsset = action DELETE (pathJSON >/> pathId) $ \ai -> withAuth $ do
   let asset' = asset{ assetSlot = Nothing }
   _ <- changeAssetSlot asset'
   return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON False asset' -- publicRestricted false because EDIT
-  --  HTML -> peeks $ otherRouteResponse [] viewAsset (api, assetId $ assetRow $ slotAsset asset')
 
 downloadAsset :: ActionRoute (Id Asset, Segment)
 downloadAsset = action GET (pathId </> pathSegment </< "download") $ \(ai, seg) -> withAuth $ do

@@ -9,7 +9,6 @@ import Data.Function (on)
 import Data.Text (Text)
 
 import Ops
--- import Has
 import qualified JSON
 import Model.Permission
 import Model.Id
@@ -58,4 +57,3 @@ postComment = action POST (pathJSON >/> pathSlotId </< "comment") $ \si -> withA
     , notificationCommentId = Just $ commentId c'
     }
   return $ okResponse [] $ JSON.recordEncoding $ commentJSON c'
-  -- HTML -> peeks $ otherRouteResponse [] (viewSlot False) (api, (Just (view c'), slotId (commentSlot c')))
