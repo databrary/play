@@ -20,6 +20,7 @@ import Model.Segment
 import Model.Container
 import Model.Permission
 import Model.Slot.Types
+import Model.Volume
 
 -- | Lookup a Slot by its Id, requesting the given permission.
 --

@@ -295,19 +295,26 @@ test_11 = Test.stepsWithTransaction "test_11" $ \step cn2 -> do
 
 test_12 :: TestTree
 test_12 = Test.stepsWithTransaction "test_12" $ \step cn2 -> do
-    step "Given an authorized investigator's created public volume with a container released at Excerpts level"
+    step
+        "Given an authorized investigator's created public volume with a container released at Excerpts level"
     (aiAcct, aiCtxt) <- addAuthorizedInvestigatorWithInstitution' cn2
     -- TODO: should be lookup auth on rootParty
     cid <- runReaderT
-         (do
-              v <- addVolumeWithAccess aiAcct
-              makeAddContainer v (Just ReleaseEXCERPTS) (Just (someDay 2017)))
-         aiCtxt
+        (do
+            v <- addVolumeWithAccess aiAcct
+            makeAddContainer v (Just ReleaseEXCERPTS) (Just (someDay 2017))
+        )
+        aiCtxt
     step "When the public attempts to view the container"
-    -- Implementation of getSlot PUBLIC
-    Just slotForAnon <- runWithNoIdent cn2 (lookupContainerSlot cid)
+    slotForAnon <- runWithNoIdent
+        cn2
+        (requestSlot PermissionPUBLIC (containerSlotId cid))
     step "Then the public can't see protected parts like the detailed test date"
-    (encode . getContainerDate . slotContainer) slotForAnon @?= "2017"
+    case slotForAnon of
+        LookupFailed -> assertFailure "Lookup failed"
+        RequestDenied -> assertFailure "Access denied"
+        RequestResult s ->
+            (encode . getContainerDate . slotContainer) s @?= "2017"
 
 someDay :: Integer -> Day
 someDay yr = fromGregorian yr 1 2

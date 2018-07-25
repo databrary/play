@@ -26,14 +26,13 @@ import Controller.Form
 import Controller.Slot
 import Controller.Notification
 import View.Form (FormHtml)
--- import View.Comment
 
 data CreateOrUpdateCommentRequest = CreateOrUpdateCommentRequest Text (Maybe (Id Comment))
 
 postComment :: ActionRoute (Id Slot)
 postComment = action POST (pathJSON >/> pathSlotId </< "comment") $ \si -> withAuth $ do
   u <- authAccount
-  s <- getSlot PermissionSHARED Nothing si
+  s <- getSlot PermissionSHARED si
   (c, p) <- runForm (Nothing :: Maybe (RequestContext -> FormHtml a)) $ do
     csrfForm
     text <- "text" .:> (deformRequired =<< deform)

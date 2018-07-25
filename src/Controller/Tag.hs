@@ -50,7 +50,7 @@ postTag :: ActionRoute (API, Id Slot, TagId)
 postTag = action POST (pathAPI </>> pathSlotId </> pathTagId) $ \(api, si, TagId kw tn) -> withAuth $ do
   guardVerfHeader
   u <- authAccount
-  s <- getSlot (if kw then PermissionEDIT else PermissionSHARED) Nothing si
+  s <- getSlot (if kw then PermissionEDIT else PermissionSHARED) si
   t <- addTag tn
   let tu = TagUse t kw u s
   r <- addTagUse tu
@@ -68,7 +68,7 @@ deleteTag :: ActionRoute (API, Id Slot, TagId)
 deleteTag = action DELETE (pathAPI </>> pathSlotId </> pathTagId) $ \(api, si, TagId kw tn) -> withAuth $ do
   guardVerfHeader
   u <- authAccount
-  s <- getSlot (if kw then PermissionEDIT else PermissionSHARED) Nothing si
+  s <- getSlot (if kw then PermissionEDIT else PermissionSHARED) si
   t <- maybeAction =<< lookupTag tn
   let tu = TagUse t kw u s
   _r <- removeTagUse tu

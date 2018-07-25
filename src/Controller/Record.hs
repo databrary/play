@@ -100,7 +100,7 @@ data UpdateRecordSlotRequest = UpdateRecordSlotRequest (Maybe Segment)
 
 postRecordSlot :: ActionRoute (Id Slot, Id Record)
 postRecordSlot = action POST (pathJSON >/> pathSlotId </> pathId) $ \(si, ri) -> withAuth $ do
-  slot <- getSlot PermissionEDIT Nothing si
+  slot <- getSlot PermissionEDIT si
   rec <- getRecord PermissionEDIT ri
   UpdateRecordSlotRequest src <- runForm Nothing $ do
     csrfForm
@@ -113,7 +113,7 @@ postRecordSlot = action POST (pathJSON >/> pathSlotId </> pathId) $ \(si, ri) ->
 deleteRecordSlot :: ActionRoute (Id Slot, Id Record)
 deleteRecordSlot = action DELETE (pathJSON >/> pathSlotId </> pathId) $ \(si, ri) -> withAuth $ do
   guardVerfHeader
-  slot <- getSlot PermissionEDIT Nothing si
+  slot <- getSlot PermissionEDIT si
   rec <- getRecord PermissionEDIT ri
   r <- moveRecordSlot (RecordSlot rec slot) emptySegment
   if r
