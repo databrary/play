@@ -9,6 +9,7 @@ module Model.Volume
     , coreVolume
     , lookupVolume
     , lookupVolumeP
+    , requestVolume
     , changeVolume
     , addVolume
     , auditVolumeDownload
@@ -58,6 +59,17 @@ coreVolume = Volume
     )
     []
     (RolePublicViewer PublicNoPolicy)
+
+
+-- | Lookup a Volume by its Id, requesting the given permission.
+requestVolume
+    :: (MonadDB c m, MonadHasIdentity c m)
+    => Permission
+    -> Id Volume
+    -> m (Maybe Volume)
+requestVolume requestedPerm volId = do
+    mv <- lookupVolumeP volId
+    pure (requestAccess requestedPerm =<< mv)
 
 -- | Lookup a 'Volume' by its Id, and wrap it in 'Permissioned'. The plan is for
 -- this to replace 'lookupVolume' entirely.
