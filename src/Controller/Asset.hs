@@ -298,7 +298,7 @@ createAsset = multipartAction $ action POST (pathJSON >/> pathId </< "asset") $ 
 
 createSlotAsset :: ActionRoute (Id Slot)
 createSlotAsset = multipartAction $ action POST (pathJSON >/> pathSlotId </< "asset") $ \si -> withAuth $ do
-  v <- getSlot PermissionEDIT Nothing si
+  v <- getSlot PermissionEDIT si
   processAsset $ AssetTargetSlot v
 
 deleteAsset :: ActionRoute (Id Asset)

@@ -8,8 +8,6 @@ module Model.Volume
     ( module Model.Volume.Types
     , coreVolume
     , lookupVolume
-    , requestVolume
-    , RequestResult (..)
     , changeVolume
     , addVolume
     , auditVolumeDownload
@@ -59,41 +57,6 @@ coreVolume = Volume
     )
     []
     (RolePublicViewer PublicNoPolicy)
-
--- | Captures possible request responses.
--- NOTE: This was designed to mimic existing code and responses. LookupFailed
--- does NOT mean "does not exist". It means that 'lookupVolume' (for example)
--- returned Nothing. This could mean either the id is a valid id, or the user
--- doesn't have access to the volume.
---
--- TODO: Monad Transformer
-data RequestResult a
-    = LookupFailed
-    | RequestDenied
-    | RequestResult a
-
--- | Lookup a Volume by its Id, requesting the given permission.
-requestVolume
-    :: (MonadDB c m, MonadHasIdentity c m)
-    => Permission
-    -> Id Volume
-    -> m (RequestResult Volume)
-requestVolume requestedPerm =
-    fmap (maybe LookupFailed mkRequest) . lookupVolumeP
-  where
-    mkRequest :: Permissioned Volume -> RequestResult Volume
-    mkRequest =
-        maybe RequestDenied RequestResult . requestAccess requestedPerm
-    --
-    lookupVolumeP
-        :: (MonadDB c m, MonadHasIdentity c m)
-        => Id Volume
-        -> m (Maybe (Permissioned Volume))
-    lookupVolumeP = fmap (fmap wrapPermission) . lookupVolume
-    --
-    wrapPermission :: Volume -> Permissioned Volume
-    wrapPermission = mkPermissioned
-        (extractPermissionIgnorePolicy . volumeRolePolicy)
 
 lookupVolume
     :: (MonadDB c m, MonadHasIdentity c m) => Id Volume -> m (Maybe Volume)

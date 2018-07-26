@@ -2,6 +2,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 module Model.TypeOrphans where
 
+import Model.Access (Access (..))
 import Model.Age
 import Model.Asset.Types
 import Model.AssetSegment.Types
@@ -21,7 +22,6 @@ import Model.Record.Types
 import Model.Slot.Types
 import Model.Tag.Types
 import Model.Volume.Types
-import Model.Volume (RequestResult (..))
 
 deriving instance Show Age
 
@@ -33,6 +33,9 @@ deriving instance Show Asset
 deriving instance Show AssetSlot
 
 deriving instance Show AssetSegment
+
+deriving instance Eq Container
+deriving instance Show Container
 
 deriving instance Eq ContainerRow
 deriving instance Show ContainerRow
@@ -80,7 +83,7 @@ deriving instance Show RecordRow
 deriving instance Eq SharedPolicy
 deriving instance Show SharedPolicy
 
--- deriving instance Eq Slot
+deriving instance Eq Slot
 instance Show Slot where
   show _ = "Slot"
 -- deriving instance Show Slot
@@ -98,8 +101,8 @@ deriving instance Show Volume
 deriving instance Eq VolumeRow
 deriving instance Show VolumeRow
 
-deriving instance Show a => Show (RequestResult a)
-deriving instance Eq a => Eq (RequestResult a)
+deriving instance Show a => Show (Access a)
+deriving instance Eq a => Eq (Access a)
 
 deriving instance Show a => Show (PermissionResponse a)
 deriving instance Eq a => Eq (PermissionResponse a)

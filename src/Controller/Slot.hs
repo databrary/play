@@ -1,12 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Controller.Slot
     ( getSlot
+    , getVolumeSlot
     , viewSlot
     , slotDownloadName
     , thumbSlot
     ) where
 
-import Control.Monad (when, mfilter)
+import Control.Monad (when)
 import Data.Maybe (isJust)
 import Data.Monoid ((<>))
 import Network.HTTP.Types.Status (movedPermanently301)
@@ -20,11 +21,11 @@ import Controller.Angular
 import {-# SOURCE #-} Controller.AssetSegment
 import Controller.Container
 import Controller.Paths
-import Controller.Permission
 import Controller.Volume (volumeIsPublicRestricted)
 import Controller.Web
 import HTTP.Path.Parser
 import Has (view, peeks)
+import Model.Access
 import Model.Asset
 import Model.AssetSegment
 import Model.AssetSlot
@@ -41,22 +42,43 @@ import Model.Volume
 import Store.Filename
 import qualified JSON
 
-getSlot :: Permission -> Maybe (Id Volume) -> Id Slot -> Handler Slot
-getSlot p mv i =
-    checkPermissionOld p
-        =<< maybeAction
-        . maybe
-            id
-            (\v ->
-                mfilter
-                    $ (v ==)
-                    . volumeId
-                    . volumeRow
-                    . containerVolume
-                    . slotContainer
-            )
-            mv
-        =<< lookupSlot i
+-- | Convert a 'Slot' into HTTP error responses if the lookup fails or is
+-- denied.
+--
+-- NOTE: Intentionally implemented exactly like getVolume. Implementations
+-- should be collected in a single module and merged.
+getSlot
+    :: Permission
+    -- ^ Requested permission
+    -> Id Slot
+    -- ^ Slot to look up
+    -> Handler Slot
+    -- ^ The slot, as requested (or a short-circuited error response)
+getSlot requestedPerm sId = do
+    res <- accessSlot requestedPerm sId
+    case res of
+        LookupFailed -> result =<< peeks notFoundResponse
+        AccessDenied -> result =<< peeks forbiddenResponse
+        Access s -> pure s
+
+-- | Look up a Slot and confirm that it is associated with the given Volume.
+--
+-- This method exists, presumably, so that we can construct urls like
+-- volume/:volId/slot/:slotId and make sure there's no funny business going on.
+getVolumeSlot
+    :: Id Volume
+    -- ^ Associated Volume
+    -> Permission
+    -- ^ Requested permission
+    -> Id Slot
+    -- ^ Slot to look up
+    -> Handler Slot
+    -- ^ The slot, as requested (or a short-circuited error response)
+getVolumeSlot volId requestedPerm sId = do
+    s <- getSlot requestedPerm sId
+    if volumeId (volumeRow (containerVolume (slotContainer s))) == volId
+        then pure s
+        else result =<< peeks notFoundResponse
 
 slotJSONField
     :: Bool
@@ -112,7 +134,7 @@ viewSlot viewOrig =
     action GET (pathAPI </> pathMaybe pathId </> pathSlotId)
         $ \(api, (vi, i)) -> withAuth $ do
             when (api == HTML && isJust vi) angular
-            c <- getSlot PermissionPUBLIC vi i
+            c <- (maybe getSlot getVolumeSlot vi) PermissionPUBLIC i
             let v = (containerVolume . slotContainer) c
             _ <- maybeAction
                 (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted
@@ -151,7 +173,7 @@ thumbSlot :: ActionRoute (Maybe (Id Volume), Id Slot)
 thumbSlot =
     action GET (pathMaybe pathId </> pathSlotId </< "thumb") $ \(vi, i) ->
         withAuth $ do
-            s <- getSlot PermissionPUBLIC vi i
+            s <- (maybe getSlot getVolumeSlot vi) PermissionPUBLIC i
             let v = (containerVolume . slotContainer) s
             _ <- maybeAction
                 (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted, duplicated from above
