@@ -52,7 +52,7 @@ You can get an understanding of the full scope of features offered in our featur
 
 Anticipating features and libraries:
 
-- https://github.com/qfpl/sv/issues/6
+
 - https://github.com/bos/aeson/issues/578
 - https://github.com/jhickner/smtp-mail/issues/2
 - https://github.com/mrkkrp/zip/issues/20
