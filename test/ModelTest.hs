@@ -207,8 +207,8 @@ test_7_accessOwnVolume = Test.stepsWithTransaction "can access own volume" $ \st
     case mVol of
         -- FIXME: vol' is not equal to vol.
         AccessResult (volWithId -> (volId', _)) -> volId' @?= volId
-        LookupFailed -> assertFailure "Lookup failed"
-        AccessDenied -> assertFailure "Access denied"
+        LookupFailed -> assertFailure "Expected Access; got LookupFailed"
+        AccessDenied -> assertFailure "Expected Access; got AccessDenied"
 
 -- <<<< more cases to handle variations of volume access and inheritance through authorization
 
@@ -312,8 +312,8 @@ test_12 = Test.stepsWithTransaction "test_12" $ \step cn2 -> do
         (accessSlot PermissionPUBLIC (containerSlotId cid))
     step "Then the public can't see protected parts like the detailed test date"
     case slotForAnon of
-        LookupFailed -> assertFailure "Lookup failed"
-        AccessDenied -> assertFailure "Access denied"
+        LookupFailed -> assertFailure "Expected Access; got LookupFailed"
+        AccessDenied -> assertFailure "Expected Access; got AccessDenied"
         AccessResult s ->
             (encode . getContainerDate . slotContainer) s @?= "2017"
 
