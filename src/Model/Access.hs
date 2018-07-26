@@ -2,7 +2,7 @@
 module Model.Access
     ( accessSlot
     , accessVolume
-    , AccessResult (..)
+    , Access (..)
     ) where
 
 import Model.Container.Types
@@ -20,17 +20,17 @@ import Service.DB
 -- doesn't have access to the volume.
 --
 -- TODO: Monad Transformer?
-data AccessResult a
+data Access a
     = LookupFailed
     | AccessDenied
-    | AccessResult a
+    | Access a
 
 -- | Lookup a Slot by its Id, requesting the given permission.
 accessSlot
     :: (MonadDB c m, MonadHasIdentity c m)
     => Permission
     -> Id Slot
-    -> m (AccessResult Slot)
+    -> m (Access Slot)
 accessSlot requestedPerm = accessPermissionedObject
     lookupSlot
     (extractPermissionIgnorePolicy
@@ -45,7 +45,7 @@ accessVolume
     :: (MonadDB c m, MonadHasIdentity c m)
     => Permission
     -> Id Volume
-    -> m (AccessResult Volume)
+    -> m (Access Volume)
 accessVolume requestedPerm = accessPermissionedObject
     lookupVolume
     (extractPermissionIgnorePolicy . volumeRolePolicy)
@@ -63,11 +63,11 @@ accessPermissionedObject
     -- ^ Requested access level to the object
     -> Id a
     -- ^ Id of the object to access
-    -> m (AccessResult a)
+    -> m (Access a)
     -- ^ Access response
 accessPermissionedObject lookupObj getPermission requestedPerm =
     fmap (maybe LookupFailed mkRequest) . lookupObjP
   where
     mkRequest =
-        maybe AccessDenied AccessResult . requestAccess requestedPerm
+        maybe AccessDenied Access . requestAccess requestedPerm
     lookupObjP = fmap (fmap (mkPermissioned getPermission)) . lookupObj

@@ -59,7 +59,7 @@ getSlot requestedPerm sId = do
     case res of
         LookupFailed -> result =<< peeks notFoundResponse
         AccessDenied -> result =<< peeks forbiddenResponse
-        AccessResult s -> pure s
+        Access s -> pure s
 
 -- | Look up a Slot and confirm that it is associated with the given Volume.
 --

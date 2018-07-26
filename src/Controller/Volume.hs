@@ -91,7 +91,7 @@ getVolume requestedPerm volId = do
     case res of
         LookupFailed -> result =<< peeks notFoundResponse
         AccessDenied -> result =<< peeks forbiddenResponse
-        AccessResult v -> pure v
+        Access v -> pure v
 
 data VolumeCache = VolumeCache
   { volumeCacheAccess :: Maybe [VolumeAccess]
