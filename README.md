@@ -35,9 +35,9 @@ You can get an understanding of the full scope of features offered in our featur
 
 |            | docs  |
 |------------|---|
-| functional | [docs](https://github.com/databrary/design/blob/master/overview.md)  |
-| internal routes | [docs](http://databrary.github.io/databrary/route-doc/#)  |
-| front end  | [<img src="https://img.shields.io/badge/jsdoc-generated-brightgreen.svg">](http://databrary.github.io/databrary/frontend-doc/)  |
+| functional | [docs](https://github.com/databrary/design/blob/master/overview.md) |
+| internal routes  | [<img src="https://img.shields.io/badge/redoc-generated-brightgreen.svg">](http://databrary.github.io/databrary/route-doc/#) |
+| front end  | [<img src="https://img.shields.io/badge/jsdoc-generated-brightgreen.svg">](http://databrary.github.io/databrary/frontend-doc/) |
 | back end   | [<img src="https://img.shields.io/badge/haddocks-generated-brightgreen.svg">](http://databrary.github.io/databrary/haddocks/) |
 
 |                       | results | coverage |
