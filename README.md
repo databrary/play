@@ -31,6 +31,12 @@ Try browsing around a site with example data here: http://sandbox1.databrary.org
 
 You can get an understanding of the full scope of features offered in our feature catalog ([pdf](http://databrary.github.io/databrary/Databrary_Feature_Catalog.pdf)). Some pages have changed since this catalog was produced. 
 
+## Related Work (Open Source)
+
+- https://github.com/IQSS/dataverse
+- https://github.com/DSpace/DSpace
+- https://github.com/CenterForOpenScience/osf.io
+
 ## Testing, Requirements, Implementation Documentation
 
 |            | docs  |
