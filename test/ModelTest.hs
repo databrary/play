@@ -206,7 +206,7 @@ test_7_accessOwnVolume = Test.stepsWithTransaction "can access own volume" $ \st
     mVol <- runReaderT (accessVolume PermissionREAD volId) aiCtxt
     case mVol of
         -- FIXME: vol' is not equal to vol.
-        Access (volWithId -> (volId', _)) -> volId' @?= volId
+        AccessResult (volWithId -> (volId', _)) -> volId' @?= volId
         LookupFailed -> assertFailure "Expected Access; got LookupFailed"
         AccessDenied -> assertFailure "Expected Access; got AccessDenied"
 
@@ -314,7 +314,7 @@ test_12 = Test.stepsWithTransaction "test_12" $ \step cn2 -> do
     case slotForAnon of
         LookupFailed -> assertFailure "Expected Access; got LookupFailed"
         AccessDenied -> assertFailure "Expected Access; got AccessDenied"
-        Access s ->
+        AccessResult s ->
             (encode . getContainerDate . slotContainer) s @?= "2017"
 
 someDay :: Integer -> Day

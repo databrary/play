@@ -2,7 +2,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 module Model.TypeOrphans where
 
-import Model.Access (Access (..))
+import Model.Access (AccessResult (..))
 import Model.Age
 import Model.Asset.Types
 import Model.AssetSegment.Types
@@ -101,8 +101,8 @@ deriving instance Show Volume
 deriving instance Eq VolumeRow
 deriving instance Show VolumeRow
 
-deriving instance Show a => Show (Access a)
-deriving instance Eq a => Eq (Access a)
+deriving instance Show a => Show (AccessResult a)
+deriving instance Eq a => Eq (AccessResult a)
 
 deriving instance Show a => Show (PermissionResponse a)
 deriving instance Eq a => Eq (PermissionResponse a)
