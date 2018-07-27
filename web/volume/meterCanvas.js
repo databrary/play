@@ -22,7 +22,7 @@ app.directive('volumeMeterCanvas', [
 
           meterContext.beginPath();
           meterContext.arc(meterCanvas.width/2,meterCanvas.height/2,radius,-Math.PI/2,2*Math.PI*$scope.meter-Math.PI/2);
-          meterContext.strokeStyle="#5CAABC";
+          meterContext.strokeStyle="#367585";
           meterContext.stroke();
           meterContext.closePath();
 
