@@ -52,14 +52,13 @@ You can get an understanding of the full scope of features offered in our featur
 
 Anticipating features and libraries:
 
-
-- https://github.com/bos/aeson/issues/578
-- https://github.com/jhickner/smtp-mail/issues/2
-- https://github.com/mrkkrp/zip/issues/20
-- https://github.com/tathougies/beam
-- https://github.com/haskell-servant/servant-swagger
-- https://github.com/hedgehogqa/haskell-hedgehog/issues/113
-- https://github.com/ezyang/ldap-haskell
+- aeson [JSON parsing with accumulative errors](https://github.com/bos/aeson/issues/578)
+- smtp-mail [issue](https://github.com/jhickner/smtp-mail/issues/2)
+- zip [Blind Archive Support](https://github.com/mrkkrp/zip/issues/20)
+- [beam](https://github.com/tathougies/beam)
+- [servant-swagger](https://github.com/haskell-servant/servant-swagger)
+- hedgehog [State machine testing multiple results](https://github.com/hedgehogqa/haskell-hedgehog/issues/113)
+- [ldap-haskell](https://github.com/ezyang/ldap-haskell)
 
 Recent contributions:
 
