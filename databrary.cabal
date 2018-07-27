@@ -34,36 +34,14 @@ library
   c-sources: src/Store/avFrame.c
   ghc-options: -Wall -Wredundant-constraints -Wno-type-defaults
   exposed-modules:
-    Paths_databrary
-    Blaze.ByteString.Builder.Html.Word
-    Data.ByteString.Builder.Escape
-    Data.Csv.Contrib
-    Data.RangeSet.Parse
-    API
-    Warp
-    Solr.Service
     Solr.Search
     Solr.Tag
     Solr.Index
     Solr.Document
     JSON
     DatabraryMain
-    Web
-    Routes.JS
-    Routes
     Static.Fillin
-    Static.Service
-    Action.Form
-    Action.Run
-    Action.Types
-    Action.Route
-    Action.Response
-    Action.Request
-    Action.Servant
-    Has
-    Context
     EZID.Volume
-    EZID.Service
     EZID.DataCite
     EZID.API
     EZID.ANVL
@@ -94,7 +72,6 @@ library
     Model.Paginate.SQL
     Model.AssetSlot
     Model.Segment
-    Model.Enum
     Model.Metric
     Model.Container.Types
     Model.Container.SQL
@@ -170,33 +147,8 @@ library
     Model.Offset
     Model.Volume.Types
     Model.Volume.SQL
-    StringUtil
-    View.Format
-    View.Volume
-    View.Token
-    View.Authorize
-    View.Container
-    View.Form
-    View.Error
-    View.Party
-    View.Periodic
-    View.Login
-    View.Register
-    View.Email
-    View.Template
-    View.Zip
-    View.Notification
-    View.Root
-    View.Angular
-    View.Paginate
-    View.Ingest
-    View.VolumeAccess
-    View.Html
-    View.Transcode
-    Files
     Store.Upload
     Store.AssetSegment
-    Store.Service
     Store.Probe
     Store.CSV
     Store.Filename
@@ -210,40 +162,15 @@ library
     Store.Config
     Service.Mail
     Service.Entropy
-    Service.DB
     Service.Periodic
     Service.Crypto
     Service.Messages
     Service.Notification
     Service.Types
-    Service.Init
     Service.Log
     Service.Passwd
-    Web.Service
-    Web.Routes
-    Web.Cache
-    Web.JSHint
-    Web.Uglify
-    Web.Generate
-    Web.GZip
-    Web.Libs
-    Web.Messages
-    Web.Coffee
-    Web.Constants
-    Web.Files
-    Web.Types
-    Web.Rules
-    Web.Templates
-    Web.Info
-    Web.All
-    Web.Stylus
-    Action
-    Ingest.Service
     Ingest.JSON
-    Ingest.Action
-    HTTP
     Controller.Format
-    Controller.Paths
     Controller.Upload
     Controller.Volume
     Controller.Activity
@@ -256,7 +183,6 @@ library
     Controller.Authorize
     Controller.Citation
     Controller.Container
-    Controller.Form
     Controller.Metric
     Controller.CSV
     Controller.Permission
@@ -278,21 +204,97 @@ library
     Controller.Tag
     Controller.VolumeAccess
     Controller.Transcode
-    HTTP.File
+    -- for testing
+    Action.Request
+    Blaze.ByteString.Builder.Html.Word
+    Context
+    Control.Invert
+    Controller.Form
+    Data.ByteString.Builder.Escape
+    Data.Csv.Contrib
+    Data.RangeSet.Parse
+    EZID.Service
+    Files
+    Has
     HTTP.Cookie
+    HTTP.Form.Deform
+    HTTP.Client
+    HTTP.Request
+    Ingest.Service
+    Model.Enum
+    Ops
+    Service.DB
+    Service.Init
+    Solr.Service
+    Static.Service
+    Store.Service
+    StringUtil
+    View.Html
+    Web.Types
+  other-modules:
+    Paths_databrary
+    Action
+    Action.Form
+    Action.Run
+    Action.Types
+    Action.Route
+    Action.Response
+    Action.Servant
+    API
+    Controller.Paths
+    HTTP
+    HTTP.File
     HTTP.Form
     HTTP.Path.Parser
     HTTP.Method.Map
     HTTP.Form.Data
-    HTTP.Form.Deform
     HTTP.Form.Errors
     HTTP.Form.View
     HTTP.Parse
     HTTP.Route
-    HTTP.Client
-    HTTP.Request
-    Ops
-    Control.Invert
+    Ingest.Action
+    Routes.JS
+    Routes
+    View.Format
+    View.Volume
+    View.Token
+    View.Authorize
+    View.Container
+    View.Form
+    View.Error
+    View.Party
+    View.Periodic
+    View.Login
+    View.Register
+    View.Email
+    View.Template
+    View.Zip
+    View.Notification
+    View.Root
+    View.Angular
+    View.Paginate
+    View.Ingest
+    View.Transcode
+    View.VolumeAccess
+    Warp
+    Web
+    Web.Service
+    Web.Routes
+    Web.Cache
+    Web.JSHint
+    Web.Uglify
+    Web.Generate
+    Web.GZip
+    Web.Libs
+    Web.Messages
+    Web.Coffee
+    Web.Constants
+    Web.Files
+    Web.Rules
+    Web.Templates
+    Web.Info
+    Web.All
+    Web.Stylus
 
   autogen-modules: Paths_databrary
 
