@@ -13,8 +13,8 @@
           <ul class="toolbar-nav-ul inline-block flat cf">
             <li ng-class="{'hide-tablet hide-desktop':hover!=='nav'}">
               <a href="" class="toolbar-nav-toggle" ng-click="hoverToggle('nav', $event)">
-                <img src="/web/icons/navmenu.svg" class="toolbar-icon icon" ng-show="hover!=='nav'">
-                <img src="/web/icons/backarrow.svg" class="toolbar-icon icon" ng-show="hover==='nav'">
+                <img src="/web/icons/navmenu.svg" class="toolbar-icon icon" ng-show="hover!=='nav'" alt="open menu icon">
+                <img src="/web/icons/backarrow.svg" class="toolbar-icon icon" ng-show="hover==='nav'" alt="close menu icon">
               </a>
             </li>
             <li ng-class="{'hide-mobile':hover!=='nav'}">
@@ -72,25 +72,25 @@
 
         <span ng-if="page.models.Login.isLoggedIn()">
           <a href="" ng-click="hoverToggle('notifications', $event)" tooltip="'Notifications'">
-            <span class="toolbar-icon icon notification" ng-class="{new:page.models.Login.user.notifications}"></span>
+            <span class="toolbar-icon icon notification" ng-class="{new:page.models.Login.user.notifications}" role="img" aria-label="notifications icon"></span>
             <span class="hide-mobile hide-tablet">My Notifications</span>
           </a>
 
           <a href="" ng-class="::{'toolbar-superuser': page.models.Login.user.superuser !== undefined, on: !!page.models.Login.user.superuser}" ng-click="hoverToggle('user', $event)">
-            <img ng-src="{{::page.models.Login.user.avatarRoute()}}" class="toolbar-avatar">
+            <img ng-src="{{::page.models.Login.user.avatarRoute()}}" class="toolbar-avatar" alt="user avatar">
             <span class="username hide-mobile hide-tablet" ng-bind="::page.models.Login.user.name"></span>
           </a>
         </span>
 
         <a href="" ng-click="hoverToggle('search', $event)" class="toolbar-search-toggle">
-          <img src="/web/icons/search.svg" class="toolbar-icon icon">
+          <img src="/web/icons/search.svg" class="toolbar-icon icon" alt="search icon">
           <span class="hide-mobile hide-tablet">Search</span>
         </a>
 
         <span class="sep"></span>
 
         <a href="//databrary.org/about/support.html" id="toolbar-contact" target="_blank" tooltip="'Get help or contact us with comments, problems, and suggestions'">
-          <span class="toolbar-icon icon contact"></span>
+          <span class="toolbar-icon icon contact" role="img" aria-label="contact icon"></span>
           <span class="hide-mobile hide-tablet">Contact</span>
         </a>
 
@@ -116,7 +116,7 @@
           </div>
 
           <div class="user-icon">
-            <img ng-src="{{::page.models.Login.user.avatarRoute(96)}}" class="toolbar-hover-avatar">
+            <img ng-src="{{::page.models.Login.user.avatarRoute(96)}}" class="toolbar-hover-avatar" alt="user avatar">
           </div>
         </div>
       </section>
