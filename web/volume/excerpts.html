@@ -7,11 +7,11 @@
     <section ng-if="!!current" class="panel-excerpts-player-frame">
       <div ng-repeat="current in [current]">
         <header>
-          <a ng-href="{{::current.slotRoute()}}" class="icon line session tool" tooltip="'session.jump' | message:'highlight'"></a>
-          <a ng-if="::!current.pending && current.checkPermission(page.constants.permission.VIEW)" ng-href="{{::current.route()}}" class="icon line download tool" tooltip="'excerpts.download' | message"></a>
+          <a ng-href="{{::current.slotRoute()}}" class="icon line session tool" tooltip="'session.jump' | message:'highlight'"><span class="accessible-hidden">Go to file edit page</span></a>
+          <a ng-if="::!current.pending && current.checkPermission(page.constants.permission.VIEW)" ng-href="{{::current.route()}}" class="icon line download tool" tooltip="'excerpts.download' | message"><span class="accessible-hidden">Download file</span></a>
           <h1 class="panel-excerpts-player-heading">
-            <div ng-if="::releases" class="release icon line" ng-class="::page.constants.release[current.release]" hint="release-{{::page.constants.release[current.release]}}"></div>
-            <img class="icon" ng-src="{{::current.icon}}" hint="format-{{::current.format.extension}}">
+            <div ng-if="::releases" class="release icon line" ng-class="::page.constants.release[current.release]" hint="release-{{::page.constants.release[current.release]}}" role="img" aria-label="{{::page.constants.release[current.release]}} release level"></div>
+            <img class="icon" ng-src="{{::current.icon}}" hint="format-{{::current.format.extension}}" alt="format-{{::current.format.extension}} + ' icon'">
             <span ng-bind="::current.displayName"></span>
           </h1>
         </header>
@@ -27,19 +27,19 @@
     <div class="row">
       <div ng-repeat="(ri, el) in ::excerpts track by ri">
           <div class="panel-excerpts-type" ng-if="::el.release">
-            <span class="release icon" ng-class="::el.release" hint="release-{{::el.release}}"></span>
+            <span class="release icon" ng-class="::el.release" hint="release-{{::el.release}}" role="img" aria-label="{{::el.release}} release level"></span>
             <span message="{{::'release.'+el.release+'.title'}}" hint="release-{{::el.release}}"></span>
           </div>
           <div class="panel-excerpts-box small" ng-repeat="excerpt in ::el">
             <div class="panel-excerpts-binder" ng-class="{'panel-excerpts-list-current':excerpt===current}">
               <div class="panel-excerpts-actions">
-                <img class="icon" ng-src="{{::excerpt.icon}}" hint="format-{{::excerpt.format.extension}}">
-                <a ng-href="{{::excerpt.slotRoute()}}" class="icon session tool" tooltip="'session.jump' | message:'highlight'"></a>
+                <img class="icon" ng-src="{{::excerpt.icon}}" hint="format-{{::excerpt.format.extension}}" alt="format-{{::excerpt.format.extension}} icon">
+                <a ng-href="{{::excerpt.slotRoute()}}" class="icon session tool" tooltip="'session.jump' | message:'highlight'"><span class="accessible-hidden">Go to file edit page</span></a>
               </div>
               <div ng-click="setCurrent(excerpt)" class="panel-excerpts-icon">
                 <div ng-if="::hasThumbnail(excerpt)">
                   <figure class="clickable" fill>
-                    <img ng-src="{{::excerpt.thumbRoute(109)}}">
+                    <img ng-src="{{::excerpt.thumbRoute(109)}}" alt="thumbnail image for the highlighted content">
                   </figure>
                 </div>
                 <div ng-if="::!hasThumbnail(excerpt)">

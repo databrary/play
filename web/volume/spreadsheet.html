@@ -40,10 +40,10 @@
 <div class="spreadsheet-dynamic-section" ng-if="::editing && views.length > 1">
   <div class="spreadsheet-dynamic-info">
     <a href="" ng-click="showConsents=false" ng-show="showConsents">
-      <span class="icon question-mark spreadsheet-help"></span>
+      <span class="icon question-mark spreadsheet-help" role="img" aria-label="question mark icon to hide content"></span>
     </a>
     <a href="" ng-click="showConsents=true" ng-hide="showConsents">
-      <span class="icon question-mark spreadsheet-help"></span>
+      <span class="icon question-mark spreadsheet-help" role="img" aria-label="question mark icon to show content"></span>
     </a>
     <video controls="" preload="metadata" seek="clip" style="max-width:91%;margin:2%;" ng-show="showConsents" class="margin-vertical">
       <source ng-src="https://nyu.databrary.org/slot/27587/0,183810/asset/122478/download?inline=true" type="video/mp4" src="https://nyu.databrary.org/slot/27587/0,183810/asset/122478/download?inline=true">
@@ -122,7 +122,7 @@
   <span class="spreadsheet-pivot-part">
     <button ng-click="state.save()">Save</button>
     <button ng-click="state.delete()">
-      <span class="icon trash2"></span>
+      <span class="icon trash2" role="img" aria-label="delete icon"></span>
       Delete
     </button>
   </span>
