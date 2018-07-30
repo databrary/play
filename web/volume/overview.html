@@ -7,8 +7,12 @@
       <h1 class="view-title">
         <span ng-bind="::volume.name"></span>
         <div class="view-title-buttons inline-block" ng-if="::volume.checkPermission(page.permission.EDIT)">
-          <a href="" class="button green selected icon view-icon"></a>
-          <a ng-href="{{::volume.editRoute('overview')}}" class="button white icon edit"></a>
+          <a href="" class="button green selected icon view-icon">
+            <span class="accessible-hidden">view volume icon</span>
+          </a>
+          <a ng-href="{{::volume.editRoute('overview')}}" class="button white icon edit">
+            <span class="accessible-hidden">edit volume icon</span>
+          </a>
           <a ng-href="{{::page.router.volumeActivity([volume.id])}}" class="button mini white view-title-text">Volume history</a>
         </div>
       </h1>
@@ -101,7 +105,7 @@
   </div>
 
   <div class="col-desktop-6 col-tablet-3 col-mobile-6">
-    <img class="panel-overview-volume-thumb" ng-src="{{::volume.thumbRoute()}}" ng-if="volume.publicsharefull !== false">
+    <img class="panel-overview-volume-thumb" ng-src="{{::volume.thumbRoute()}}" ng-if="volume.publicsharefull !== false" alt="highlighted image of this volume">
     <div ng-if="::volume.accessPreset != null" class="panel-overview-volume-access foot">
       <span class="icon" ng-class="::'access'+{{::volume.accessPreset}}"></span>
       <span message="access.preset.description{{::volume.accessPreset}}"></span> 
