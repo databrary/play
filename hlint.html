@@ -29,19 +29,31 @@ function insertRule(s)
 
 // SHOW/HIDE LOGIC //
 
-var last = "";
-
-function show(id)
+/**
+ * @param {bool} [initialise=false] - Used to signal we are loading the page, so
+ the current location doesn't match our presumed state.
+ */
+function show(id, initialise=false)
 {
-    if (id == last) return;
-    if (id == "")
+    var last;
+    if (initialise)
+    {
+        last = "";
+    }
+    else
+    {
+        last = document.location.hash.slice(1);
+    }
+
+    if (id === last) return;
+    if (id.length === 0)
     {
         deleteRules(3);
         insertRule(".all {font-weight: bold;}");
     }
     else
     {
-        if (last == "")
+        if (last.length === 0)
         {
             deleteRules(1);
             insertRule("#content div {display:none;}");
@@ -54,7 +66,7 @@ function show(id)
         insertRule("#" + id + "{font-weight:bold;}");
     }
 
-    last = id;
+    document.location.hash = '#'.concat(id);
 }
 
 </script>
@@ -163,118 +175,106 @@ document.body.className = "script";
 <li><a id="hint14" href="javascript:show('hint14')">Warning: Use sortOn (1)</a></li>
 <li><a id="hint15" href="javascript:show('hint15')">Warning: Use unless (1)</a></li>
 <li><a id="hint16" href="javascript:show('hint16')">Suggestion: Reduce duplication (2)</a></li>
-<li><a id="hint17" href="javascript:show('hint17')">Suggestion: Redundant $ (41)</a></li>
-<li><a id="hint18" href="javascript:show('hint18')">Suggestion: Redundant bracket (9)</a></li>
-<li><a id="hint19" href="javascript:show('hint19')">Suggestion: Redundant where (1)</a></li>
-<li><a id="hint20" href="javascript:show('hint20')">Suggestion: Use /= (1)</a></li>
-<li><a id="hint21" href="javascript:show('hint21')">Suggestion: Use : (1)</a></li>
-<li><a id="hint22" href="javascript:show('hint22')">Suggestion: Use &lt;$&gt; (1)</a></li>
-<li><a id="hint23" href="javascript:show('hint23')">Suggestion: Use &lt;=&lt; (2)</a></li>
-<li><a id="hint24" href="javascript:show('hint24')">Suggestion: Use String (3)</a></li>
-<li><a id="hint25" href="javascript:show('hint25')">Suggestion: Use const (4)</a></li>
-<li><a id="hint26" href="javascript:show('hint26')">Suggestion: Use if (6)</a></li>
-<li><a id="hint27" href="javascript:show('hint27')">Suggestion: Use infix (1)</a></li>
-<li><a id="hint28" href="javascript:show('hint28')">Suggestion: Use let (1)</a></li>
-<li><a id="hint29" href="javascript:show('hint29')">Suggestion: Use list comprehension (1)</a></li>
-<li><a id="hint30" href="javascript:show('hint30')">Suggestion: Use newtype instead of data (12)</a></li>
-<li><a id="hint31" href="javascript:show('hint31')">Suggestion: Use uncurry (6)</a></li>
+<li><a id="hint17" href="javascript:show('hint17')">Suggestion: Redundant bracket (9)</a></li>
+<li><a id="hint18" href="javascript:show('hint18')">Suggestion: Redundant where (1)</a></li>
+<li><a id="hint19" href="javascript:show('hint19')">Suggestion: Use /= (1)</a></li>
+<li><a id="hint20" href="javascript:show('hint20')">Suggestion: Use : (1)</a></li>
+<li><a id="hint21" href="javascript:show('hint21')">Suggestion: Use &lt;=&lt; (2)</a></li>
+<li><a id="hint22" href="javascript:show('hint22')">Suggestion: Use String (3)</a></li>
+<li><a id="hint23" href="javascript:show('hint23')">Suggestion: Use const (4)</a></li>
+<li><a id="hint24" href="javascript:show('hint24')">Suggestion: Use if (6)</a></li>
+<li><a id="hint25" href="javascript:show('hint25')">Suggestion: Use infix (1)</a></li>
+<li><a id="hint26" href="javascript:show('hint26')">Suggestion: Use let (1)</a></li>
+<li><a id="hint27" href="javascript:show('hint27')">Suggestion: Use list comprehension (1)</a></li>
+<li><a id="hint28" href="javascript:show('hint28')">Suggestion: Use newtype instead of data (12)</a></li>
+<li><a id="hint29" href="javascript:show('hint29')">Suggestion: Use uncurry (6)</a></li>
 </ul>
 
 <p><a class="all" href="javascript:show('')">All files</a></p>
 <ul>
-<li><a id="file0" href="javascript:show('file0')">src/Action/Form.hs (2)</a></li>
+<li><a id="file0" href="javascript:show('file0')">src/Action/Form.hs (1)</a></li>
 <li><a id="file1" href="javascript:show('file1')">src/Action/Request.hs (1)</a></li>
 <li><a id="file2" href="javascript:show('file2')">src/Controller/Asset.hs (1)</a></li>
 <li><a id="file3" href="javascript:show('file3')">src/Controller/AssetSegment.hs (1)</a></li>
-<li><a id="file4" href="javascript:show('file4')">src/Controller/Citation.hs (2)</a></li>
-<li><a id="file5" href="javascript:show('file5')">src/Controller/Container.hs (2)</a></li>
-<li><a id="file6" href="javascript:show('file6')">src/Controller/Excerpt.hs (1)</a></li>
-<li><a id="file7" href="javascript:show('file7')">src/Controller/Funding.hs (2)</a></li>
-<li><a id="file8" href="javascript:show('file8')">src/Controller/Ingest.hs (9)</a></li>
-<li><a id="file9" href="javascript:show('file9')">src/Controller/Login.hs (2)</a></li>
-<li><a id="file10" href="javascript:show('file10')">src/Controller/Metric.hs (1)</a></li>
-<li><a id="file11" href="javascript:show('file11')">src/Controller/Party.hs (3)</a></li>
-<li><a id="file12" href="javascript:show('file12')">src/Controller/Paths.hs (1)</a></li>
-<li><a id="file13" href="javascript:show('file13')">src/Controller/Periodic.hs (2)</a></li>
-<li><a id="file14" href="javascript:show('file14')">src/Controller/Permission.hs (1)</a></li>
-<li><a id="file15" href="javascript:show('file15')">src/Controller/Record.hs (4)</a></li>
-<li><a id="file16" href="javascript:show('file16')">src/Controller/Register.hs (5)</a></li>
-<li><a id="file17" href="javascript:show('file17')">src/Controller/Search.hs (1)</a></li>
-<li><a id="file18" href="javascript:show('file18')">src/Controller/Slot.hs (3)</a></li>
-<li><a id="file19" href="javascript:show('file19')">src/Controller/Tag.hs (1)</a></li>
-<li><a id="file20" href="javascript:show('file20')">src/Controller/Token.hs (1)</a></li>
-<li><a id="file21" href="javascript:show('file21')">src/Controller/Transcode.hs (1)</a></li>
-<li><a id="file22" href="javascript:show('file22')">src/Controller/Volume.hs (3)</a></li>
-<li><a id="file23" href="javascript:show('file23')">src/Controller/VolumeAccess.hs (1)</a></li>
-<li><a id="file24" href="javascript:show('file24')">src/Controller/Zip.hs (13)</a></li>
-<li><a id="file25" href="javascript:show('file25')">src/Data/ByteString/Builder/Escape.hs (3)</a></li>
-<li><a id="file26" href="javascript:show('file26')">src/Data/Csv/Contrib.hs (5)</a></li>
-<li><a id="file27" href="javascript:show('file27')">src/Files.hs (1)</a></li>
-<li><a id="file28" href="javascript:show('file28')">src/HTTP/Form/Deform.hs (2)</a></li>
-<li><a id="file29" href="javascript:show('file29')">src/HTTP/Form/View.hs (2)</a></li>
-<li><a id="file30" href="javascript:show('file30')">src/HTTP/Method/Map.hs (1)</a></li>
-<li><a id="file31" href="javascript:show('file31')">src/Ingest/JSON.hs (3)</a></li>
-<li><a id="file32" href="javascript:show('file32')">src/JSON.hs (3)</a></li>
-<li><a id="file33" href="javascript:show('file33')">src/Model/Access.hs (2)</a></li>
-<li><a id="file34" href="javascript:show('file34')">src/Model/Activity.hs (1)</a></li>
-<li><a id="file35" href="javascript:show('file35')">src/Model/AssetSegment/Types.hs (1)</a></li>
-<li><a id="file36" href="javascript:show('file36')">src/Model/AssetSlot.hs (1)</a></li>
-<li><a id="file37" href="javascript:show('file37')">src/Model/Authorize.hs (3)</a></li>
-<li><a id="file38" href="javascript:show('file38')">src/Model/Authorize/SQL.hs (1)</a></li>
-<li><a id="file39" href="javascript:show('file39')">src/Model/Citation.hs (1)</a></li>
-<li><a id="file40" href="javascript:show('file40')">src/Model/Comment.hs (1)</a></li>
-<li><a id="file41" href="javascript:show('file41')">src/Model/Funding.hs (2)</a></li>
-<li><a id="file42" href="javascript:show('file42')">src/Model/Funding/FundRef.hs (1)</a></li>
-<li><a id="file43" href="javascript:show('file43')">src/Model/Identity/Types.hs (1)</a></li>
-<li><a id="file44" href="javascript:show('file44')">src/Model/Ingest.hs (9)</a></li>
-<li><a id="file45" href="javascript:show('file45')">src/Model/Measure.hs (1)</a></li>
-<li><a id="file46" href="javascript:show('file46')">src/Model/Notification/SQL.hs (2)</a></li>
-<li><a id="file47" href="javascript:show('file47')">src/Model/Party.hs (2)</a></li>
-<li><a id="file48" href="javascript:show('file48')">src/Model/Party/SQL.hs (3)</a></li>
-<li><a id="file49" href="javascript:show('file49')">src/Model/PermissionUtil.hs (2)</a></li>
-<li><a id="file50" href="javascript:show('file50')">src/Model/Record.hs (1)</a></li>
-<li><a id="file51" href="javascript:show('file51')">src/Model/SQL/Select.hs (1)</a></li>
-<li><a id="file52" href="javascript:show('file52')">src/Model/Tag.hs (2)</a></li>
-<li><a id="file53" href="javascript:show('file53')">src/Model/Token.hs (1)</a></li>
-<li><a id="file54" href="javascript:show('file54')">src/Model/Transcode.hs (2)</a></li>
-<li><a id="file55" href="javascript:show('file55')">src/Model/Volume/SQL.hs (2)</a></li>
-<li><a id="file56" href="javascript:show('file56')">src/Model/VolumeAccess/SQL.hs (1)</a></li>
-<li><a id="file57" href="javascript:show('file57')">src/Model/VolumeMetric.hs (1)</a></li>
-<li><a id="file58" href="javascript:show('file58')">src/Ops.hs (1)</a></li>
-<li><a id="file59" href="javascript:show('file59')">src/Routes.hs (3)</a></li>
-<li><a id="file60" href="javascript:show('file60')">src/Service/DB.hs (3)</a></li>
-<li><a id="file61" href="javascript:show('file61')">src/Service/Init.hs (1)</a></li>
-<li><a id="file62" href="javascript:show('file62')">src/Service/Mail.hs (1)</a></li>
-<li><a id="file63" href="javascript:show('file63')">src/Solr/Index.hs (2)</a></li>
-<li><a id="file64" href="javascript:show('file64')">src/Store/AssetSegment.hs (1)</a></li>
-<li><a id="file65" href="javascript:show('file65')">src/View/Error.hs (2)</a></li>
-<li><a id="file66" href="javascript:show('file66')">src/View/Form.hs (2)</a></li>
-<li><a id="file67" href="javascript:show('file67')">src/View/Ingest.hs (1)</a></li>
-<li><a id="file68" href="javascript:show('file68')">src/View/Login.hs (1)</a></li>
-<li><a id="file69" href="javascript:show('file69')">src/View/Notification.hs (1)</a></li>
-<li><a id="file70" href="javascript:show('file70')">src/Warp.hs (2)</a></li>
-<li><a id="file71" href="javascript:show('file71')">src/Web/All.hs (2)</a></li>
-<li><a id="file72" href="javascript:show('file72')">src/Web/Files.hs (1)</a></li>
-<li><a id="file73" href="javascript:show('file73')">src/Web/GZip.hs (1)</a></li>
-<li><a id="file74" href="javascript:show('file74')">src/Web/Generate.hs (2)</a></li>
-<li><a id="file75" href="javascript:show('file75')">src/Web/JSHint.hs (1)</a></li>
-<li><a id="file76" href="javascript:show('file76')">src/Web/Libs.hs (3)</a></li>
-<li><a id="file77" href="javascript:show('file77')">src/Web/Messages.hs (1)</a></li>
-<li><a id="file78" href="javascript:show('file78')">src/Web/Rules.hs (2)</a></li>
-<li><a id="file79" href="javascript:show('file79')">src/Web/Service.hs (4)</a></li>
-<li><a id="file80" href="javascript:show('file80')">src/Web/Stylus.hs (1)</a></li>
-<li><a id="file81" href="javascript:show('file81')">src/Web/Uglify.hs (2)</a></li>
+<li><a id="file4" href="javascript:show('file4')">src/Controller/Citation.hs (1)</a></li>
+<li><a id="file5" href="javascript:show('file5')">src/Controller/Excerpt.hs (1)</a></li>
+<li><a id="file6" href="javascript:show('file6')">src/Controller/Funding.hs (2)</a></li>
+<li><a id="file7" href="javascript:show('file7')">src/Controller/Ingest.hs (9)</a></li>
+<li><a id="file8" href="javascript:show('file8')">src/Controller/Login.hs (1)</a></li>
+<li><a id="file9" href="javascript:show('file9')">src/Controller/Metric.hs (1)</a></li>
+<li><a id="file10" href="javascript:show('file10')">src/Controller/Paths.hs (1)</a></li>
+<li><a id="file11" href="javascript:show('file11')">src/Controller/Periodic.hs (1)</a></li>
+<li><a id="file12" href="javascript:show('file12')">src/Controller/Permission.hs (1)</a></li>
+<li><a id="file13" href="javascript:show('file13')">src/Controller/Record.hs (4)</a></li>
+<li><a id="file14" href="javascript:show('file14')">src/Controller/Register.hs (3)</a></li>
+<li><a id="file15" href="javascript:show('file15')">src/Controller/Search.hs (1)</a></li>
+<li><a id="file16" href="javascript:show('file16')">src/Controller/Slot.hs (3)</a></li>
+<li><a id="file17" href="javascript:show('file17')">src/Controller/Tag.hs (1)</a></li>
+<li><a id="file18" href="javascript:show('file18')">src/Controller/Token.hs (1)</a></li>
+<li><a id="file19" href="javascript:show('file19')">src/Controller/Transcode.hs (1)</a></li>
+<li><a id="file20" href="javascript:show('file20')">src/Controller/Volume.hs (2)</a></li>
+<li><a id="file21" href="javascript:show('file21')">src/Controller/VolumeAccess.hs (1)</a></li>
+<li><a id="file22" href="javascript:show('file22')">src/Controller/Zip.hs (5)</a></li>
+<li><a id="file23" href="javascript:show('file23')">src/Data/ByteString/Builder/Escape.hs (3)</a></li>
+<li><a id="file24" href="javascript:show('file24')">src/Data/Csv/Contrib.hs (5)</a></li>
+<li><a id="file25" href="javascript:show('file25')">src/Files.hs (1)</a></li>
+<li><a id="file26" href="javascript:show('file26')">src/HTTP/Form/Deform.hs (2)</a></li>
+<li><a id="file27" href="javascript:show('file27')">src/HTTP/Form/View.hs (2)</a></li>
+<li><a id="file28" href="javascript:show('file28')">src/HTTP/Method/Map.hs (1)</a></li>
+<li><a id="file29" href="javascript:show('file29')">src/Ingest/JSON.hs (1)</a></li>
+<li><a id="file30" href="javascript:show('file30')">src/JSON.hs (3)</a></li>
+<li><a id="file31" href="javascript:show('file31')">src/Model/Access.hs (2)</a></li>
+<li><a id="file32" href="javascript:show('file32')">src/Model/AssetSegment/Types.hs (1)</a></li>
+<li><a id="file33" href="javascript:show('file33')">src/Model/AssetSlot.hs (1)</a></li>
+<li><a id="file34" href="javascript:show('file34')">src/Model/Authorize.hs (2)</a></li>
+<li><a id="file35" href="javascript:show('file35')">src/Model/Authorize/SQL.hs (1)</a></li>
+<li><a id="file36" href="javascript:show('file36')">src/Model/Citation.hs (1)</a></li>
+<li><a id="file37" href="javascript:show('file37')">src/Model/Comment.hs (1)</a></li>
+<li><a id="file38" href="javascript:show('file38')">src/Model/Funding.hs (2)</a></li>
+<li><a id="file39" href="javascript:show('file39')">src/Model/Funding/FundRef.hs (1)</a></li>
+<li><a id="file40" href="javascript:show('file40')">src/Model/Identity/Types.hs (1)</a></li>
+<li><a id="file41" href="javascript:show('file41')">src/Model/Ingest.hs (9)</a></li>
+<li><a id="file42" href="javascript:show('file42')">src/Model/Measure.hs (1)</a></li>
+<li><a id="file43" href="javascript:show('file43')">src/Model/Party.hs (1)</a></li>
+<li><a id="file44" href="javascript:show('file44')">src/Model/Party/SQL.hs (1)</a></li>
+<li><a id="file45" href="javascript:show('file45')">src/Model/PermissionUtil.hs (2)</a></li>
+<li><a id="file46" href="javascript:show('file46')">src/Model/Record.hs (1)</a></li>
+<li><a id="file47" href="javascript:show('file47')">src/Model/Tag.hs (2)</a></li>
+<li><a id="file48" href="javascript:show('file48')">src/Model/Token.hs (1)</a></li>
+<li><a id="file49" href="javascript:show('file49')">src/Model/Transcode.hs (2)</a></li>
+<li><a id="file50" href="javascript:show('file50')">src/Model/Volume/SQL.hs (2)</a></li>
+<li><a id="file51" href="javascript:show('file51')">src/Model/VolumeAccess/SQL.hs (1)</a></li>
+<li><a id="file52" href="javascript:show('file52')">src/Model/VolumeMetric.hs (1)</a></li>
+<li><a id="file53" href="javascript:show('file53')">src/Ops.hs (1)</a></li>
+<li><a id="file54" href="javascript:show('file54')">src/Routes.hs (3)</a></li>
+<li><a id="file55" href="javascript:show('file55')">src/Service/DB.hs (1)</a></li>
+<li><a id="file56" href="javascript:show('file56')">src/Service/Init.hs (1)</a></li>
+<li><a id="file57" href="javascript:show('file57')">src/Service/Mail.hs (1)</a></li>
+<li><a id="file58" href="javascript:show('file58')">src/View/Form.hs (2)</a></li>
+<li><a id="file59" href="javascript:show('file59')">src/View/Notification.hs (1)</a></li>
+<li><a id="file60" href="javascript:show('file60')">src/Warp.hs (1)</a></li>
+<li><a id="file61" href="javascript:show('file61')">src/Web/All.hs (2)</a></li>
+<li><a id="file62" href="javascript:show('file62')">src/Web/Files.hs (1)</a></li>
+<li><a id="file63" href="javascript:show('file63')">src/Web/GZip.hs (1)</a></li>
+<li><a id="file64" href="javascript:show('file64')">src/Web/Generate.hs (2)</a></li>
+<li><a id="file65" href="javascript:show('file65')">src/Web/JSHint.hs (1)</a></li>
+<li><a id="file66" href="javascript:show('file66')">src/Web/Libs.hs (3)</a></li>
+<li><a id="file67" href="javascript:show('file67')">src/Web/Messages.hs (1)</a></li>
+<li><a id="file68" href="javascript:show('file68')">src/Web/Rules.hs (2)</a></li>
+<li><a id="file69" href="javascript:show('file69')">src/Web/Service.hs (2)</a></li>
+<li><a id="file70" href="javascript:show('file70')">src/Web/Stylus.hs (1)</a></li>
+<li><a id="file71" href="javascript:show('file71')">src/Web/Uglify.hs (2)</a></li>
 </ul>
 
 </div>
 <div id="content" valign="top" width="100%">
 <p>
     Report generated by <a href="http://community.haskell.org/~ndm/hlint/">HLint</a>
-v2.1.7
+v2.1.8
     - a tool to suggest improvements to your Haskell code.
 </p>
 
-<div class="hint9 file27">
+<div class="hint9 file25">
 src/Files.hs:32:1: Warning: Use fewer imports<br/>
 Found<br/>
 <pre><span class='hs-keyword'>import</span> <span class='hs-conid'>System.Posix.Types</span> <span class='hs-layout'>(</span><span class='hs-conid'>FileMode</span><span class='hs-layout'>)</span>
@@ -286,7 +286,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint1 file32">
+<div class="hint1 file30">
 src/JSON.hs:109:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>mapRecords</span> <span class='hs-varid'>toRecord</span> <span class='hs-varid'>objs</span>
@@ -296,7 +296,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint18 file32">
+<div class="hint17 file30">
 src/JSON.hs:144:33: Suggestion: Redundant bracket<br/>
 Found<br/>
 <pre><span class='hs-layout'>(</span><span class='hs-varid'>objToPair</span> <span class='hs-varid'>k</span> <span class='hs-varid'>encodedObj</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>seriesRest</span></pre>
@@ -305,7 +305,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint1 file32">
+<div class="hint1 file30">
 src/JSON.hs:149:5: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>objToPair</span> <span class='hs-varid'>key</span> <span class='hs-varid'>encObj</span>
@@ -315,7 +315,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint1 file58">
+<div class="hint1 file53">
 src/Ops.hs:76:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>flatMapM</span> <span class='hs-varid'>justAction</span> <span class='hs-varid'>mVal</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>maybe</span> <span class='hs-layout'>(</span><span class='hs-varid'>return</span> <span class='hs-conid'>Nothing</span><span class='hs-layout'>)</span> <span class='hs-varid'>justAction</span> <span class='hs-varid'>mVal</span></pre>
@@ -324,7 +324,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint5 file59">
+<div class="hint5 file54">
 src/Routes.hs:101:5: Warning: Redundant lambda<br/>
 Found<br/>
 <pre><span class='hs-definition'>hn0</span> <span class='hs-varid'>act</span>
@@ -334,7 +334,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint5 file59">
+<div class="hint5 file54">
 src/Routes.hs:103:5: Warning: Redundant lambda<br/>
 Found<br/>
 <pre><span class='hs-definition'>hn</span> <span class='hs-varid'>mkAction</span>
@@ -346,7 +346,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint5 file59">
+<div class="hint5 file54">
 src/Routes.hs:105:5: Warning: Redundant lambda<br/>
 Found<br/>
 <pre><span class='hs-definition'>hnm</span> <span class='hs-varid'>mkAction</span>
@@ -360,7 +360,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint1 file70">
+<div class="hint1 file60">
 src/Warp.hs:34:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>runWarp</span> <span class='hs-varid'>conf</span> <span class='hs-varid'>rc</span> <span class='hs-varid'>app</span>
@@ -380,7 +380,7 @@ Found<br/>
                          <span class='hs-varid'>logMsg</span> <span class='hs-varid'>t</span>
                            <span class='hs-layout'>(</span><span class='hs-varid'>maybe</span> <span class='hs-varid'>id</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;&gt;</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>m</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-str'>"\n"</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>msg</span> <span class='hs-varop'>$</span> <span class='hs-varid'>toLogStr</span> <span class='hs-varop'>$</span> <span class='hs-varid'>show</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span>
                            <span class='hs-layout'>(</span><span class='hs-varid'>serviceLogs</span> <span class='hs-varid'>rc</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-                   <span class='hs-varop'>$</span> <span class='hs-conid'>Warp.setHTTP2Disabled</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Warp.defaultSettings</span><span class='hs-layout'>)</span>
+                   <span class='hs-varop'>$</span> <span class='hs-conid'>Warp.setHTTP2Disabled</span> <span class='hs-conid'>Warp.defaultSettings</span><span class='hs-layout'>)</span>
       <span class='hs-varid'>app</span></pre>
 Perhaps<br/>
 <pre><span class='hs-definition'>runWarp</span> <span class='hs-varid'>conf</span> <span class='hs-varid'>rc</span>
@@ -400,25 +400,7 @@ Perhaps<br/>
                          <span class='hs-varid'>logMsg</span> <span class='hs-varid'>t</span>
                            <span class='hs-layout'>(</span><span class='hs-varid'>maybe</span> <span class='hs-varid'>id</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;&gt;</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>m</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-str'>"\n"</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>msg</span> <span class='hs-varop'>$</span> <span class='hs-varid'>toLogStr</span> <span class='hs-varop'>$</span> <span class='hs-varid'>show</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span>
                            <span class='hs-layout'>(</span><span class='hs-varid'>serviceLogs</span> <span class='hs-varid'>rc</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-                   <span class='hs-varop'>$</span> <span class='hs-conid'>Warp.setHTTP2Disabled</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Warp.defaultSettings</span><span class='hs-layout'>)</span></pre>
-
-</div>
-
-<div class="hint17 file70">
-src/Warp.hs:47:7: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-conid'>Warp.setHTTP2Disabled</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Warp.defaultSettings</span></pre>
-Perhaps<br/>
-<pre><span class='hs-conid'>Warp.setHTTP2Disabled</span> <span class='hs-conid'>Warp.defaultSettings</span></pre>
-
-</div>
-
-<div class="hint17 file0">
-src/Action/Form.hs:22:8: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>peeks</span> <span class='hs-varop'>$</span> <span class='hs-layout'>(</span><span class='hs-conid'>FormData</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Map.fromList</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Wai.queryString</span><span class='hs-layout'>)</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>peeks</span> <span class='hs-layout'>(</span><span class='hs-conid'>FormData</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Map.fromList</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Wai.queryString</span><span class='hs-layout'>)</span></pre>
+                   <span class='hs-varop'>$</span> <span class='hs-conid'>Warp.setHTTP2Disabled</span> <span class='hs-conid'>Warp.defaultSettings</span><span class='hs-layout'>)</span></pre>
 
 </div>
 
@@ -465,7 +447,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint30 file4">
+<div class="hint28 file4">
 src/Controller/Citation.hs:15:1: Suggestion: Use newtype instead of data<br/>
 Found<br/>
 <pre><span class='hs-keyword'>data</span> <span class='hs-conid'>GetCitationRequest</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>GetCitationRequest</span> <span class='hs-conid'>URI</span></pre>
@@ -474,34 +456,7 @@ Perhaps<br/>
 <span class='note'>Note: decreases laziness</span>
 </div>
 
-<div class="hint17 file4">
-src/Controller/Citation.hs:19:29: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>runForm</span> <span class='hs-conid'>Nothing</span> <span class='hs-varop'>$</span> <span class='hs-layout'>(</span><span class='hs-conid'>GetCitationRequest</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-layout'>(</span><span class='hs-str'>"url"</span> <span class='hs-varop'>.:&gt;</span> <span class='hs-varid'>deform</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>runForm</span> <span class='hs-conid'>Nothing</span> <span class='hs-layout'>(</span><span class='hs-conid'>GetCitationRequest</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-layout'>(</span><span class='hs-str'>"url"</span> <span class='hs-varop'>.:&gt;</span> <span class='hs-varid'>deform</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span></pre>
-
-</div>
-
-<div class="hint17 file5">
-src/Controller/Container.hs:84:3: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>when</span> <span class='hs-layout'>(</span><span class='hs-varid'>isJust</span> <span class='hs-varid'>vi</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-varid'>angular</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>when</span> <span class='hs-layout'>(</span><span class='hs-varid'>isJust</span> <span class='hs-varid'>vi</span><span class='hs-layout'>)</span> <span class='hs-varid'>angular</span></pre>
-
-</div>
-
-<div class="hint17 file5">
-src/Controller/Container.hs:88:12: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>okResponse</span> <span class='hs-conid'>[]</span> <span class='hs-varop'>$</span> <span class='hs-layout'>(</span><span class='hs-str'>""</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span><span class='hs-layout'>)</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>okResponse</span> <span class='hs-conid'>[]</span> <span class='hs-layout'>(</span><span class='hs-str'>""</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span><span class='hs-layout'>)</span></pre>
-
-</div>
-
-<div class="hint30 file6">
+<div class="hint28 file5">
 src/Controller/Excerpt.hs:35:1: Suggestion: Use newtype instead of data<br/>
 Found<br/>
 <pre><span class='hs-keyword'>data</span> <span class='hs-conid'>CreateOrUpdateExcerptRequest</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>CreateOrUpdateExcerptRequest</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span>
@@ -512,7 +467,7 @@ Perhaps<br/>
 <span class='note'>Note: decreases laziness</span>
 </div>
 
-<div class="hint30 file7">
+<div class="hint28 file6">
 src/Controller/Funding.hs:42:1: Suggestion: Use newtype instead of data<br/>
 Found<br/>
 <pre><span class='hs-keyword'>data</span> <span class='hs-conid'>CreateOrUpdateVolumeFundingRequest</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>CreateOrUpdateVolumeFundingRequest</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>T.Text</span><span class='hs-keyglyph'>]</span></pre>
@@ -521,7 +476,7 @@ Perhaps<br/>
 <span class='note'>Note: decreases laziness</span>
 </div>
 
-<div class="hint25 file7">
+<div class="hint23 file6">
 src/Controller/Funding.hs:51:100: Suggestion: Use const<br/>
 Found<br/>
 <pre><span class='hs-keyglyph'>\</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>deform</span></pre>
@@ -530,7 +485,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint9 file8">
+<div class="hint9 file7">
 src/Controller/Ingest.hs:39:1: Warning: Use fewer imports<br/>
 Found<br/>
 <pre><span class='hs-keyword'>import</span> <span class='hs-conid'>Model.Metric</span> <span class='hs-layout'>(</span><span class='hs-conid'>Metric</span><span class='hs-layout'>)</span>
@@ -542,7 +497,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint16 file8">
+<div class="hint16 file7">
 src/Controller/Ingest.hs:65:3: Suggestion: Reduce duplication<br/>
 Found<br/>
 <pre><span class='hs-definition'>checkMemberADMIN</span>
@@ -554,7 +509,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint30 file8">
+<div class="hint28 file7">
 src/Controller/Ingest.hs:101:1: Suggestion: Use newtype instead of data<br/>
 Found<br/>
 <pre><span class='hs-keyword'>data</span> <span class='hs-conid'>DetectParticipantCSVRequest</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>DetectParticipantCSVRequest</span> <span class='hs-layout'>(</span><span class='hs-conid'>FileInfo</span>
@@ -565,7 +520,7 @@ Perhaps<br/>
 <span class='note'>Note: decreases laziness</span>
 </div>
 
-<div class="hint1 file8">
+<div class="hint1 file7">
 src/Controller/Ingest.hs:148:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>uniqueUploadName</span> <span class='hs-varid'>siteAuth</span> <span class='hs-varid'>vol</span> <span class='hs-varid'>uploadName</span>
@@ -581,7 +536,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint1 file8">
+<div class="hint1 file7">
 src/Controller/Ingest.hs:203:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>runImport</span> <span class='hs-varid'>vol</span> <span class='hs-varid'>records</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mapM</span> <span class='hs-layout'>(</span><span class='hs-varid'>createOrUpdateRecord</span> <span class='hs-varid'>vol</span><span class='hs-layout'>)</span> <span class='hs-varid'>records</span></pre>
@@ -590,7 +545,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint11 file8">
+<div class="hint11 file7">
 src/Controller/Ingest.hs:285:24: Warning: Use fromMaybe<br/>
 Found<br/>
 <pre><span class='hs-definition'>maybe</span> <span class='hs-layout'>(</span><span class='hs-varid'>error</span> <span class='hs-str'>"id missing"</span><span class='hs-layout'>)</span> <span class='hs-varid'>id</span></pre>
@@ -599,7 +554,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint11 file8">
+<div class="hint11 file7">
 src/Controller/Ingest.hs:286:17: Warning: Use fromMaybe<br/>
 Found<br/>
 <pre><span class='hs-definition'>maybe</span> <span class='hs-layout'>(</span><span class='hs-varid'>error</span> <span class='hs-str'>"id empty"</span><span class='hs-layout'>)</span> <span class='hs-varid'>id</span></pre>
@@ -608,7 +563,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint13 file8">
+<div class="hint13 file7">
 src/Controller/Ingest.hs:296:18: Warning: Use mapM_<br/>
 Found<br/>
 <pre><span class='hs-definition'>mapM</span> <span class='hs-layout'>(</span><span class='hs-varid'>runMeasureUpdate</span> <span class='hs-varid'>newParticipantShell</span><span class='hs-layout'>)</span> <span class='hs-varid'>measureActs</span></pre>
@@ -617,7 +572,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint13 file8">
+<div class="hint13 file7">
 src/Controller/Ingest.hs:299:18: Warning: Use mapM_<br/>
 Found<br/>
 <pre><span class='hs-definition'>mapM</span> <span class='hs-layout'>(</span><span class='hs-varid'>runMeasureUpdate</span> <span class='hs-varid'>oldRecord</span><span class='hs-layout'>)</span> <span class='hs-varid'>measureActs</span></pre>
@@ -626,16 +581,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint17 file9">
-src/Controller/Login.hs:77:13: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>action</span> <span class='hs-conid'>POST</span> <span class='hs-layout'>(</span><span class='hs-varid'>pathAPI</span> <span class='hs-varop'>&lt;/&lt;</span> <span class='hs-str'>"user"</span> <span class='hs-varop'>&lt;/&lt;</span> <span class='hs-str'>"login"</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-varid'>postLoginAction</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>action</span> <span class='hs-conid'>POST</span> <span class='hs-layout'>(</span><span class='hs-varid'>pathAPI</span> <span class='hs-varop'>&lt;/&lt;</span> <span class='hs-str'>"user"</span> <span class='hs-varop'>&lt;/&lt;</span> <span class='hs-str'>"login"</span><span class='hs-layout'>)</span> <span class='hs-varid'>postLoginAction</span></pre>
-
-</div>
-
-<div class="hint5 file9">
+<div class="hint5 file8">
 src/Controller/Login.hs:83:1: Warning: Redundant lambda<br/>
 Found<br/>
 <pre><span class='hs-definition'>postLoginAction</span>
@@ -695,7 +641,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint29 file10">
+<div class="hint27 file9">
 src/Controller/Metric.hs:31:28: Suggestion: Use list comprehension<br/>
 Found<br/>
 <pre><span class='hs-keyword'>if</span> <span class='hs-varid'>metricAdded</span> <span class='hs-keyword'>then</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>metricId'</span><span class='hs-keyglyph'>]</span> <span class='hs-keyword'>else</span> <span class='hs-conid'>[]</span></pre>
@@ -704,34 +650,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint17 file11">
-src/Controller/Party.hs:294:27: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>partyId</span> <span class='hs-varop'>$</span> <span class='hs-varid'>partyRow1</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>partyId</span> <span class='hs-varid'>partyRow1</span></pre>
-
-</div>
-
-<div class="hint17 file11">
-src/Controller/Party.hs:295:25: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>partySortName</span> <span class='hs-varop'>$</span> <span class='hs-varid'>partyRow1</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>partySortName</span> <span class='hs-varid'>partyRow1</span></pre>
-
-</div>
-
-<div class="hint17 file11">
-src/Controller/Party.hs:296:35: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>partyPreName</span> <span class='hs-varop'>$</span> <span class='hs-varid'>partyRow1</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>partyPreName</span> <span class='hs-varid'>partyRow1</span></pre>
-
-</div>
-
-<div class="hint0 file12">
+<div class="hint0 file10">
 src/Controller/Paths.hs:34:19: Error: Parse error<br/>
 Found<br/>
 <pre>  <span class='hs-keyword'>type</span> <span class='hs-conid'>PathParameter</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Parameter</span> <span class='hs-conid'>PathString</span>
@@ -743,7 +662,7 @@ Found<br/>
 
 </div>
 
-<div class="hint30 file13">
+<div class="hint28 file11">
 src/Controller/Periodic.hs:44:1: Suggestion: Use newtype instead of data<br/>
 Found<br/>
 <pre><span class='hs-keyword'>data</span> <span class='hs-conid'>RunPeriodicRequest</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>RunPeriodicRequest</span> <span class='hs-conid'>Bool</span></pre>
@@ -752,18 +671,7 @@ Perhaps<br/>
 <span class='note'>Note: decreases laziness</span>
 </div>
 
-<div class="hint17 file13">
-src/Controller/Periodic.hs:50:27: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>runForm</span> <span class='hs-layout'>(</span><span class='hs-conid'>Just</span> <span class='hs-varid'>htmlPeriodic</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span>
-  <span class='hs-layout'>(</span><span class='hs-conid'>RunPeriodicRequest</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-layout'>(</span><span class='hs-str'>"weekly"</span> <span class='hs-varop'>.:&gt;</span> <span class='hs-varid'>deform</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>runForm</span> <span class='hs-layout'>(</span><span class='hs-conid'>Just</span> <span class='hs-varid'>htmlPeriodic</span><span class='hs-layout'>)</span>
-  <span class='hs-layout'>(</span><span class='hs-conid'>RunPeriodicRequest</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-layout'>(</span><span class='hs-str'>"weekly"</span> <span class='hs-varop'>.:&gt;</span> <span class='hs-varid'>deform</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span></pre>
-
-</div>
-
-<div class="hint1 file14">
+<div class="hint1 file12">
 src/Controller/Permission.hs:25:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>checkPermissionOld</span> <span class='hs-varid'>requiredPermissionLevel</span>
@@ -775,7 +683,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint30 file15">
+<div class="hint28 file13">
 src/Controller/Record.hs:54:1: Suggestion: Use newtype instead of data<br/>
 Found<br/>
 <pre><span class='hs-keyword'>data</span> <span class='hs-conid'>CreateRecordRequest</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>CreateRecordRequest</span> <span class='hs-conid'>Category</span></pre>
@@ -784,7 +692,7 @@ Perhaps<br/>
 <span class='note'>Note: decreases laziness</span>
 </div>
 
-<div class="hint30 file15">
+<div class="hint28 file13">
 src/Controller/Record.hs:66:1: Suggestion: Use newtype instead of data<br/>
 Found<br/>
 <pre><span class='hs-keyword'>data</span> <span class='hs-conid'>ManageRecordMeasureRequest</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ManageRecordMeasureRequest</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span>
@@ -795,7 +703,7 @@ Perhaps<br/>
 <span class='note'>Note: decreases laziness</span>
 </div>
 
-<div class="hint1 file15">
+<div class="hint1 file13">
 src/Controller/Record.hs:72:7: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>mkMeasure</span> <span class='hs-varid'>datum</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Measure</span> <span class='hs-varid'>record</span> <span class='hs-varid'>met</span> <span class='hs-varid'>datum</span></pre>
@@ -804,7 +712,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint30 file15">
+<div class="hint28 file13">
 src/Controller/Record.hs:99:1: Suggestion: Use newtype instead of data<br/>
 Found<br/>
 <pre><span class='hs-keyword'>data</span> <span class='hs-conid'>UpdateRecordSlotRequest</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>UpdateRecordSlotRequest</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span>
@@ -815,17 +723,7 @@ Perhaps<br/>
 <span class='note'>Note: decreases laziness</span>
 </div>
 
-<div class="hint17 file16">
-src/Controller/Register.hs:72:16: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>action</span> <span class='hs-conid'>POST</span> <span class='hs-layout'>(</span><span class='hs-varid'>pathAPI</span> <span class='hs-varop'>&lt;/&lt;</span> <span class='hs-str'>"user"</span> <span class='hs-varop'>&lt;/&lt;</span> <span class='hs-str'>"register"</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span>
-  <span class='hs-varid'>postRegisterAction</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>action</span> <span class='hs-conid'>POST</span> <span class='hs-layout'>(</span><span class='hs-varid'>pathAPI</span> <span class='hs-varop'>&lt;/&lt;</span> <span class='hs-str'>"user"</span> <span class='hs-varop'>&lt;/&lt;</span> <span class='hs-str'>"register"</span><span class='hs-layout'>)</span> <span class='hs-varid'>postRegisterAction</span></pre>
-
-</div>
-
-<div class="hint5 file16">
+<div class="hint5 file14">
 src/Controller/Register.hs:77:1: Warning: Redundant lambda<br/>
 Found<br/>
 <pre><span class='hs-definition'>postRegisterAction</span>
@@ -899,18 +797,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint17 file16">
-src/Controller/Register.hs:137:21: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>action</span> <span class='hs-conid'>POST</span> <span class='hs-layout'>(</span><span class='hs-varid'>pathAPI</span> <span class='hs-varop'>&lt;/&lt;</span> <span class='hs-str'>"user"</span> <span class='hs-varop'>&lt;/&lt;</span> <span class='hs-str'>"password"</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span>
-  <span class='hs-varid'>postPasswordResetAction</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>action</span> <span class='hs-conid'>POST</span> <span class='hs-layout'>(</span><span class='hs-varid'>pathAPI</span> <span class='hs-varop'>&lt;/&lt;</span> <span class='hs-str'>"user"</span> <span class='hs-varop'>&lt;/&lt;</span> <span class='hs-str'>"password"</span><span class='hs-layout'>)</span>
-  <span class='hs-varid'>postPasswordResetAction</span></pre>
-
-</div>
-
-<div class="hint30 file16">
+<div class="hint28 file14">
 src/Controller/Register.hs:139:1: Suggestion: Use newtype instead of data<br/>
 Found<br/>
 <pre><span class='hs-keyword'>data</span> <span class='hs-conid'>PasswordResetRequest</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>PasswordResetRequest</span> <span class='hs-conid'>BSC.ByteString</span></pre>
@@ -919,7 +806,7 @@ Perhaps<br/>
 <span class='note'>Note: decreases laziness</span>
 </div>
 
-<div class="hint5 file16">
+<div class="hint5 file14">
 src/Controller/Register.hs:142:1: Warning: Redundant lambda<br/>
 Found<br/>
 <pre><span class='hs-definition'>postPasswordResetAction</span>
@@ -963,7 +850,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint5 file17">
+<div class="hint5 file15">
 src/Controller/Search.hs:36:1: Warning: Redundant lambda<br/>
 Found<br/>
 <pre><span class='hs-definition'>postSearchHandler</span>
@@ -981,7 +868,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint26 file18">
+<div class="hint24 file16">
 src/Controller/Slot.hs:89:38: Suggestion: Use if<br/>
 Found<br/>
 <pre><span class='hs-keyword'>case</span> <span class='hs-varid'>getOrig</span> <span class='hs-keyword'>of</span>
@@ -998,7 +885,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint18 file18">
+<div class="hint17 file16">
 src/Controller/Slot.hs:137:18: Suggestion: Redundant bracket<br/>
 Found<br/>
 <pre><span class='hs-layout'>(</span><span class='hs-varid'>maybe</span> <span class='hs-varid'>getSlot</span> <span class='hs-varid'>getVolumeSlot</span> <span class='hs-varid'>vi</span><span class='hs-layout'>)</span> <span class='hs-conid'>PermissionPUBLIC</span></pre>
@@ -1007,7 +894,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint18 file18">
+<div class="hint17 file16">
 src/Controller/Slot.hs:176:18: Suggestion: Redundant bracket<br/>
 Found<br/>
 <pre><span class='hs-layout'>(</span><span class='hs-varid'>maybe</span> <span class='hs-varid'>getSlot</span> <span class='hs-varid'>getVolumeSlot</span> <span class='hs-varid'>vi</span><span class='hs-layout'>)</span> <span class='hs-conid'>PermissionPUBLIC</span></pre>
@@ -1016,7 +903,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint16 file19">
+<div class="hint16 file17">
 src/Controller/Tag.hs:51:3: Suggestion: Reduce duplication<br/>
 Found<br/>
 <pre><span class='hs-definition'>guardVerfHeader</span>
@@ -1028,7 +915,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint9 file20">
+<div class="hint9 file18">
 src/Controller/Token.hs:9:1: Warning: Use fewer imports<br/>
 Found<br/>
 <pre><span class='hs-keyword'>import</span> <span class='hs-conid'>Control.Monad</span> <span class='hs-layout'>(</span><span class='hs-varid'>mfilter</span><span class='hs-layout'>)</span>
@@ -1040,7 +927,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint30 file21">
+<div class="hint28 file19">
 src/Controller/Transcode.hs:96:1: Suggestion: Use newtype instead of data<br/>
 Found<br/>
 <pre><span class='hs-keyword'>data</span> <span class='hs-conid'>UpdateTranscodeRequest</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>UpdateTranscodeRequest</span> <span class='hs-conid'>TranscodeAction</span></pre>
@@ -1049,7 +936,7 @@ Perhaps<br/>
 <span class='note'>Note: decreases laziness</span>
 </div>
 
-<div class="hint18 file22">
+<div class="hint17 file20">
 src/Controller/Volume.hs:194:6: Suggestion: Redundant bracket<br/>
 Found<br/>
 <pre><span class='hs-layout'>(</span><span class='hs-conid'>Just</span> <span class='hs-varop'>.</span> <span class='hs-conid'>JSON.toEncoding</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>metricsCaching</span></pre>
@@ -1058,16 +945,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint17 file22">
-src/Controller/Volume.hs:221:5: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>runVolumeCache</span> <span class='hs-varop'>$</span> <span class='hs-varid'>expandedVolJSONcaching</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>runVolumeCache</span> <span class='hs-varid'>expandedVolJSONcaching</span></pre>
-
-</div>
-
-<div class="hint15 file22">
+<div class="hint15 file20">
 src/Controller/Volume.hs:295:3: Warning: Use unless<br/>
 Found<br/>
 <pre><span class='hs-definition'>when</span> <span class='hs-layout'>(</span><span class='hs-varid'>not</span> <span class='hs-varid'>empty</span><span class='hs-layout'>)</span></pre>
@@ -1076,7 +954,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint7 file23">
+<div class="hint7 file21">
 src/Controller/VolumeAccess.hs:68:56: Warning: Use /=<br/>
 Found<br/>
 <pre><span class='hs-definition'>not</span> <span class='hs-varop'>.</span> <span class='hs-layout'>(</span><span class='hs-varop'>==</span> <span class='hs-conid'>FormDatumNone</span><span class='hs-layout'>)</span></pre>
@@ -1085,7 +963,7 @@ Perhaps<br/>
 <span class='note'>Note: incorrect if either value is NaN</span>
 </div>
 
-<div class="hint26 file24">
+<div class="hint24 file22">
 src/Controller/Zip.hs:64:13: Suggestion: Use if<br/>
 Found<br/>
 <pre><span class='hs-keyword'>case</span> <span class='hs-varid'>isOrig</span> <span class='hs-keyword'>of</span>
@@ -1097,7 +975,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint26 file24">
+<div class="hint24 file22">
 src/Controller/Zip.hs:69:35: Suggestion: Use if<br/>
 Found<br/>
 <pre><span class='hs-keyword'>case</span> <span class='hs-varid'>isOrig</span> <span class='hs-keyword'>of</span>
@@ -1115,62 +993,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint17 file24">
-src/Controller/Zip.hs:72:20: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>liftIO</span> <span class='hs-varop'>$</span>
-  <span class='hs-layout'>(</span><span class='hs-varid'>parseRelFile</span> <span class='hs-layout'>(</span><span class='hs-conid'>BSC.unpack</span> <span class='hs-varid'>entryName</span><span class='hs-layout'>)</span> <span class='hs-varop'>&gt;&gt;=</span> <span class='hs-conid'>ZIP.mkEntrySelector</span><span class='hs-layout'>)</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>liftIO</span>
-  <span class='hs-layout'>(</span><span class='hs-varid'>parseRelFile</span> <span class='hs-layout'>(</span><span class='hs-conid'>BSC.unpack</span> <span class='hs-varid'>entryName</span><span class='hs-layout'>)</span> <span class='hs-varop'>&gt;&gt;=</span> <span class='hs-conid'>ZIP.mkEntrySelector</span><span class='hs-layout'>)</span></pre>
-
-</div>
-
-<div class="hint17 file24">
-src/Controller/Zip.hs:102:24: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>liftIO</span> <span class='hs-varop'>$</span>
-  <span class='hs-layout'>(</span><span class='hs-varid'>parseRelFile</span> <span class='hs-layout'>(</span><span class='hs-conid'>BSC.unpack</span> <span class='hs-varid'>zipDir</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-str'>"description.html"</span><span class='hs-layout'>)</span> <span class='hs-varop'>&gt;&gt;=</span>
-     <span class='hs-conid'>ZIP.mkEntrySelector</span><span class='hs-layout'>)</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>liftIO</span>
-  <span class='hs-layout'>(</span><span class='hs-varid'>parseRelFile</span> <span class='hs-layout'>(</span><span class='hs-conid'>BSC.unpack</span> <span class='hs-varid'>zipDir</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-str'>"description.html"</span><span class='hs-layout'>)</span> <span class='hs-varop'>&gt;&gt;=</span>
-     <span class='hs-conid'>ZIP.mkEntrySelector</span><span class='hs-layout'>)</span></pre>
-
-</div>
-
-<div class="hint17 file24">
-src/Controller/Zip.hs:103:26: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>liftIO</span> <span class='hs-varop'>$</span>
-  <span class='hs-layout'>(</span><span class='hs-varid'>parseRelFile</span> <span class='hs-layout'>(</span><span class='hs-conid'>BSC.unpack</span> <span class='hs-varid'>zipDir</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-str'>"spreadsheet.csv"</span><span class='hs-layout'>)</span> <span class='hs-varop'>&gt;&gt;=</span>
-     <span class='hs-conid'>ZIP.mkEntrySelector</span><span class='hs-layout'>)</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>liftIO</span>
-  <span class='hs-layout'>(</span><span class='hs-varid'>parseRelFile</span> <span class='hs-layout'>(</span><span class='hs-conid'>BSC.unpack</span> <span class='hs-varid'>zipDir</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-str'>"spreadsheet.csv"</span><span class='hs-layout'>)</span> <span class='hs-varop'>&gt;&gt;=</span>
-     <span class='hs-conid'>ZIP.mkEntrySelector</span><span class='hs-layout'>)</span></pre>
-
-</div>
-
-<div class="hint17 file24">
-src/Controller/Zip.hs:131:9: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>liftIO</span> <span class='hs-varop'>$</span> <span class='hs-layout'>(</span><span class='hs-conid'>IO.hSeek</span> <span class='hs-varid'>h</span> <span class='hs-conid'>IO.SeekFromEnd</span> <span class='hs-num'>0</span> <span class='hs-varop'>&gt;&gt;</span> <span class='hs-conid'>IO.hTell</span> <span class='hs-varid'>h</span><span class='hs-layout'>)</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>liftIO</span> <span class='hs-layout'>(</span><span class='hs-conid'>IO.hSeek</span> <span class='hs-varid'>h</span> <span class='hs-conid'>IO.SeekFromEnd</span> <span class='hs-num'>0</span> <span class='hs-varop'>&gt;&gt;</span> <span class='hs-conid'>IO.hTell</span> <span class='hs-varid'>h</span><span class='hs-layout'>)</span></pre>
-
-</div>
-
-<div class="hint17 file24">
-src/Controller/Zip.hs:137:35: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>show</span> <span class='hs-varop'>$</span> <span class='hs-varid'>sz</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>show</span> <span class='hs-varid'>sz</span></pre>
-
-</div>
-
-<div class="hint26 file24">
+<div class="hint24 file22">
 src/Controller/Zip.hs:147:17: Suggestion: Use if<br/>
 Found<br/>
 <pre><span class='hs-keyword'>case</span> <span class='hs-varid'>isOrig</span> <span class='hs-keyword'>of</span>
@@ -1187,16 +1010,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint17 file24">
-src/Controller/Zip.hs:154:14: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>containerZipEntry2</span> <span class='hs-varid'>isOrig</span> <span class='hs-varid'>prefix</span> <span class='hs-varid'>c</span> <span class='hs-varop'>$</span> <span class='hs-varid'>checkedAssetSlots</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>containerZipEntry2</span> <span class='hs-varid'>isOrig</span> <span class='hs-varid'>prefix</span> <span class='hs-varid'>c</span> <span class='hs-varid'>checkedAssetSlots</span></pre>
-
-</div>
-
-<div class="hint26 file24">
+<div class="hint24 file22">
 src/Controller/Zip.hs:159:17: Suggestion: Use if<br/>
 Found<br/>
 <pre><span class='hs-keyword'>case</span> <span class='hs-varid'>isOrig</span> <span class='hs-keyword'>of</span>
@@ -1209,25 +1023,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint17 file24">
-src/Controller/Zip.hs:167:24: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>not</span> <span class='hs-varop'>$</span> <span class='hs-varid'>isEmpty</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>not</span> <span class='hs-varid'>isEmpty</span></pre>
-
-</div>
-
-<div class="hint17 file24">
-src/Controller/Zip.hs:177:110: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>slotContainer</span> <span class='hs-varop'>$</span> <span class='hs-varid'>c</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>slotContainer</span> <span class='hs-varid'>c</span></pre>
-
-</div>
-
-<div class="hint26 file24">
+<div class="hint24 file22">
 src/Controller/Zip.hs:185:17: Suggestion: Use if<br/>
 Found<br/>
 <pre><span class='hs-keyword'>case</span> <span class='hs-varid'>isOrig</span> <span class='hs-keyword'>of</span>
@@ -1239,7 +1035,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint24 file25">
+<div class="hint22 file23">
 src/Data/ByteString/Builder/Escape.hs:18:21: Suggestion: Use String<br/>
 Found<br/>
 <pre><span class='hs-conid'>Char</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Char</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>BoundedPrim</span> <span class='hs-conid'>Word8</span></pre>
@@ -1248,7 +1044,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint24 file25">
+<div class="hint22 file23">
 src/Data/ByteString/Builder/Escape.hs:32:34: Suggestion: Use String<br/>
 Found<br/>
 <pre><span class='hs-conid'>Char</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Char</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>L.ByteString</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Builder</span></pre>
@@ -1257,7 +1053,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint24 file25">
+<div class="hint22 file23">
 src/Data/ByteString/Builder/Escape.hs:35:19: Suggestion: Use String<br/>
 Found<br/>
 <pre><span class='hs-conid'>Char</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Char</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Text</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Builder</span></pre>
@@ -1266,7 +1062,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint1 file26">
+<div class="hint1 file24">
 src/Data/Csv/Contrib.hs:53:5: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>getSample</span> <span class='hs-varid'>vals</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>take</span> <span class='hs-varid'>maxSamples</span> <span class='hs-varop'>.</span> <span class='hs-conid'>L.nub</span><span class='hs-layout'>)</span> <span class='hs-varid'>vals</span></pre>
@@ -1275,7 +1071,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint11 file26">
+<div class="hint11 file24">
 src/Data/Csv/Contrib.hs:60:31: Warning: Use fromMaybe<br/>
 Found<br/>
 <pre><span class='hs-definition'>maybe</span> <span class='hs-str'>""</span> <span class='hs-varid'>id</span></pre>
@@ -1284,7 +1080,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint1 file26">
+<div class="hint1 file24">
 src/Data/Csv/Contrib.hs:79:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>parseCsvWithHeader</span> <span class='hs-varid'>contents</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>runCsvParser</span> <span class='hs-conid'>ATTO.parseOnly</span> <span class='hs-varid'>contents</span></pre>
@@ -1293,7 +1089,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint1 file26">
+<div class="hint1 file24">
 src/Data/Csv/Contrib.hs:93:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>scrub</span> <span class='hs-varid'>rows</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>fmap</span> <span class='hs-varid'>scrubRow</span> <span class='hs-varid'>rows</span></pre>
@@ -1302,7 +1098,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint1 file26">
+<div class="hint1 file24">
 src/Data/Csv/Contrib.hs:97:5: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>scrubRow</span> <span class='hs-varid'>row</span>
@@ -1312,7 +1108,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint10 file28">
+<div class="hint10 file26">
 src/HTTP/Form/Deform.hs:60:5: Warning: Use fmap<br/>
 Found<br/>
 <pre><span class='hs-definition'>liftM</span></pre>
@@ -1321,7 +1117,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint1 file28">
+<div class="hint1 file26">
 src/HTTP/Form/Deform.hs:132:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-layout'>(</span><span class='hs-varop'>.:&gt;</span><span class='hs-layout'>)</span> <span class='hs-varid'>keyName</span> <span class='hs-varid'>subDeform</span>
@@ -1331,7 +1127,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint10 file29">
+<div class="hint10 file27">
 src/HTTP/Form/View.hs:30:5: Warning: Use fmap<br/>
 Found<br/>
 <pre><span class='hs-definition'>liftM</span></pre>
@@ -1340,7 +1136,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint10 file29">
+<div class="hint10 file27">
 src/HTTP/Form/View.hs:35:5: Warning: Use fmap<br/>
 Found<br/>
 <pre><span class='hs-definition'>liftM</span></pre>
@@ -1349,7 +1145,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint30 file30">
+<div class="hint28 file28">
 src/HTTP/Method/Map.hs:19:1: Suggestion: Use newtype instead of data<br/>
 Found<br/>
 <pre><span class='hs-keyword'>data</span> <span class='hs-conid'>MethodMapException</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>MethodMapConflict</span> <span class='hs-conid'>StdMethod</span>
@@ -1360,16 +1156,7 @@ Perhaps<br/>
 <span class='note'>Note: decreases laziness</span>
 </div>
 
-<div class="hint17 file31">
-src/Ingest/JSON.hs:142:12: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-conid'>JE.key</span> <span class='hs-str'>"key"</span> <span class='hs-varop'>$</span> <span class='hs-varid'>asKey</span></pre>
-Perhaps<br/>
-<pre><span class='hs-conid'>JE.key</span> <span class='hs-str'>"key"</span> <span class='hs-varid'>asKey</span></pre>
-
-</div>
-
-<div class="hint25 file31">
+<div class="hint23 file29">
 src/Ingest/JSON.hs:206:28: Suggestion: Use const<br/>
 Found<br/>
 <pre><span class='hs-keyglyph'>\</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>asSegment</span></pre>
@@ -1378,16 +1165,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint17 file31">
-src/Ingest/JSON.hs:221:27: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-conid'>JE.key</span> <span class='hs-str'>"key"</span> <span class='hs-varop'>$</span> <span class='hs-varid'>asKey</span></pre>
-Perhaps<br/>
-<pre><span class='hs-conid'>JE.key</span> <span class='hs-str'>"key"</span> <span class='hs-varid'>asKey</span></pre>
-
-</div>
-
-<div class="hint1 file33">
+<div class="hint1 file31">
 src/Model/Access.hs:34:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>accessSlot</span> <span class='hs-varid'>requestedPerm</span>
@@ -1403,7 +1181,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint1 file33">
+<div class="hint1 file31">
 src/Model/Access.hs:49:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>accessVolume</span> <span class='hs-varid'>requestedPerm</span>
@@ -1417,18 +1195,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint17 file34">
-src/Model/Activity.hs:94:19: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>selectQuery</span> <span class='hs-varid'>selectActivityAccount</span> <span class='hs-varop'>$</span>
-  <span class='hs-str'>"WHERE account.id = ${partyId $ partyRow p} ORDER BY audit_time"</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>selectQuery</span> <span class='hs-varid'>selectActivityAccount</span>
-  <span class='hs-str'>"WHERE account.id = ${partyId $ partyRow p} ORDER BY audit_time"</span></pre>
-
-</div>
-
-<div class="hint9 file36">
+<div class="hint9 file33">
 src/Model/AssetSlot.hs:26:1: Warning: Use fewer imports<br/>
 Found<br/>
 <pre><span class='hs-keyword'>import</span> <span class='hs-conid'>Data.Maybe</span> <span class='hs-layout'>(</span><span class='hs-varid'>fromMaybe</span><span class='hs-layout'>,</span> <span class='hs-varid'>isNothing</span><span class='hs-layout'>)</span>
@@ -1440,7 +1207,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint25 file37">
+<div class="hint23 file34">
 src/Model/Authorize.hs:52:6: Suggestion: Use const<br/>
 Found<br/>
 <pre><span class='hs-keyglyph'>\</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>-&gt;</span>
@@ -1457,7 +1224,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint25 file37">
+<div class="hint23 file34">
 src/Model/Authorize.hs:63:6: Suggestion: Use const<br/>
 Found<br/>
 <pre><span class='hs-keyglyph'>\</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>-&gt;</span>
@@ -1474,24 +1241,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint17 file37">
-src/Model/Authorize.hs:89:3: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>dbQuery1</span> <span class='hs-varop'>$</span>
-  <span class='hs-varop'>$</span><span class='hs-layout'>(</span>
-    <span class='hs-varid'>selectQuery</span> <span class='hs-layout'>(</span><span class='hs-varid'>selectAuthorizeParent</span> <span class='hs-chr'>'</span><span class='hs-varid'>child</span> <span class='hs-chr'>'</span><span class='hs-varid'>ident</span><span class='hs-layout'>)</span>
-      <span class='hs-str'>"$WHERE authorize.parent = ${parent} AND (expires IS NULL OR expires &gt; CURRENT_TIMESTAMP)"</span>
-    <span class='hs-layout'>)</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>dbQuery1</span>
-  <span class='hs-varop'>$</span><span class='hs-layout'>(</span>
-    <span class='hs-varid'>selectQuery</span> <span class='hs-layout'>(</span><span class='hs-varid'>selectAuthorizeParent</span> <span class='hs-chr'>'</span><span class='hs-varid'>child</span> <span class='hs-chr'>'</span><span class='hs-varid'>ident</span><span class='hs-layout'>)</span>
-      <span class='hs-str'>"$WHERE authorize.parent = ${parent} AND (expires IS NULL OR expires &gt; CURRENT_TIMESTAMP)"</span>
-    <span class='hs-layout'>)</span></pre>
-
-</div>
-
-<div class="hint3 file39">
+<div class="hint3 file36">
 src/Model/Citation.hs:46:5: Warning: Functor law<br/>
 Found<br/>
 <pre><span class='hs-definition'>fmap</span> <span class='hs-layout'>(</span><span class='hs-varop'>$</span> <span class='hs-conid'>Just</span> <span class='hs-layout'>(</span><span class='hs-varid'>volumeName</span> <span class='hs-varop'>$</span> <span class='hs-varid'>volumeRow</span> <span class='hs-varid'>vol</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
@@ -1508,7 +1258,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint1 file40">
+<div class="hint1 file37">
 src/Model/Comment.hs:343:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>makeCommentRow</span> <span class='hs-varid'>i</span> <span class='hs-varid'>c</span> <span class='hs-varid'>s</span> <span class='hs-varid'>w</span> <span class='hs-varid'>t</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>CommentRow</span> <span class='hs-varid'>i</span> <span class='hs-varid'>w</span> <span class='hs-layout'>(</span><span class='hs-conid'>SlotId</span> <span class='hs-varid'>c</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-varid'>t</span> <span class='hs-varid'>x</span></pre>
@@ -1517,7 +1267,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint31 file41">
+<div class="hint29 file38">
 src/Model/Funding.hs:51:8: Suggestion: Use uncurry<br/>
 Found<br/>
 <pre><span class='hs-keyglyph'>\</span> <span class='hs-layout'>(</span><span class='hs-varid'>vid_a13Ft</span><span class='hs-layout'>,</span> <span class='hs-varid'>vname_a13Fu</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Funder</span> <span class='hs-varid'>vid_a13Ft</span> <span class='hs-varid'>vname_a13Fu</span></pre>
@@ -1526,7 +1276,7 @@ Perhaps<br/>
 <span class='note'>Note: increases laziness</span>
 </div>
 
-<div class="hint31 file41">
+<div class="hint29 file38">
 src/Model/Funding.hs:76:12: Suggestion: Use uncurry<br/>
 Found<br/>
 <pre><span class='hs-keyglyph'>\</span> <span class='hs-layout'>(</span><span class='hs-varid'>vid_a1vMW</span><span class='hs-layout'>,</span> <span class='hs-varid'>vname_a1vMX</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Funder</span> <span class='hs-varid'>vid_a1vMW</span> <span class='hs-varid'>vname_a1vMX</span></pre>
@@ -1535,7 +1285,7 @@ Perhaps<br/>
 <span class='note'>Note: increases laziness</span>
 </div>
 
-<div class="hint3 file44">
+<div class="hint3 file41">
 src/Model/Ingest.hs:61:14: Warning: Functor law<br/>
 Found<br/>
 <pre><span class='hs-definition'>fmap</span> <span class='hs-layout'>(</span><span class='hs-varop'>$</span> <span class='hs-varid'>vol</span><span class='hs-layout'>)</span>
@@ -1636,7 +1386,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint3 file44">
+<div class="hint3 file41">
 src/Model/Ingest.hs:151:14: Warning: Functor law<br/>
 Found<br/>
 <pre><span class='hs-definition'>fmap</span> <span class='hs-layout'>(</span><span class='hs-varop'>$</span> <span class='hs-varid'>vol</span><span class='hs-layout'>)</span>
@@ -1727,7 +1477,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint3 file44">
+<div class="hint3 file41">
 src/Model/Ingest.hs:233:14: Warning: Functor law<br/>
 Found<br/>
 <pre><span class='hs-definition'>fmap</span> <span class='hs-layout'>(</span><span class='hs-varop'>`Asset`</span> <span class='hs-varid'>vol</span><span class='hs-layout'>)</span>
@@ -1848,7 +1598,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint1 file44">
+<div class="hint1 file41">
 src/Model/Ingest.hs:360:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>attemptParseRows</span> <span class='hs-varid'>participantFieldMapping</span> <span class='hs-varid'>contents</span>
@@ -1862,7 +1612,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint1 file44">
+<div class="hint1 file41">
 src/Model/Ingest.hs:432:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>extractColumnsDistinctSampleJson</span> <span class='hs-varid'>maxSamples</span> <span class='hs-varid'>hdrs</span> <span class='hs-varid'>records</span>
@@ -1876,7 +1626,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint31 file44">
+<div class="hint29 file41">
 src/Model/Ingest.hs:433:13: Suggestion: Use uncurry<br/>
 Found<br/>
 <pre><span class='hs-keyglyph'>\</span> <span class='hs-layout'>(</span><span class='hs-varid'>colHdr</span><span class='hs-layout'>,</span> <span class='hs-varid'>vals</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>columnSampleJson</span> <span class='hs-varid'>colHdr</span> <span class='hs-varid'>vals</span></pre>
@@ -1885,7 +1635,7 @@ Perhaps<br/>
 <span class='note'>Note: increases laziness</span>
 </div>
 
-<div class="hint1 file44">
+<div class="hint1 file41">
 src/Model/Ingest.hs:438:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>extractColumnsInitialJson</span> <span class='hs-varid'>maxRows</span> <span class='hs-varid'>hdrs</span> <span class='hs-varid'>records</span>
@@ -1899,7 +1649,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint31 file44">
+<div class="hint29 file41">
 src/Model/Ingest.hs:439:13: Suggestion: Use uncurry<br/>
 Found<br/>
 <pre><span class='hs-keyglyph'>\</span> <span class='hs-layout'>(</span><span class='hs-varid'>colHdr</span><span class='hs-layout'>,</span> <span class='hs-varid'>vals</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>columnSampleJson</span> <span class='hs-varid'>colHdr</span> <span class='hs-varid'>vals</span></pre>
@@ -1908,7 +1658,7 @@ Perhaps<br/>
 <span class='note'>Note: increases laziness</span>
 </div>
 
-<div class="hint1 file44">
+<div class="hint1 file41">
 src/Model/Ingest.hs:463:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>participantFieldMappingToJSON</span> <span class='hs-varid'>fldMap</span>
@@ -1919,7 +1669,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint9 file45">
+<div class="hint9 file42">
 src/Model/Measure.hs:18:1: Warning: Use fewer imports<br/>
 Found<br/>
 <pre><span class='hs-keyword'>import</span> <span class='hs-conid'>Database.PostgreSQL.Typed.Types</span>
@@ -1932,7 +1682,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint18 file47">
+<div class="hint17 file43">
 src/Model/Party.hs:945:11: Suggestion: Redundant bracket<br/>
 Found<br/>
 <pre><span class='hs-keyglyph'>\</span> <span class='hs-sel'>_p_a6QXP</span> <span class='hs-keyglyph'>-&gt;</span>
@@ -1959,16 +1709,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint17 file47">
-src/Model/Party.hs:984:57: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>partyRow</span> <span class='hs-varop'>$</span> <span class='hs-varid'>staffParty</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>partyRow</span> <span class='hs-varid'>staffParty</span></pre>
-
-</div>
-
-<div class="hint1 file49">
+<div class="hint1 file45">
 src/Model/PermissionUtil.hs:9:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>maskRestrictedString</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>const</span> <span class='hs-layout'>(</span><span class='hs-conid'>ST.fromString</span> <span class='hs-str'>""</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span></pre>
@@ -1977,7 +1718,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint2 file49">
+<div class="hint2 file45">
 src/Model/PermissionUtil.hs:9:26: Warning: Evaluate<br/>
 Found<br/>
 <pre><span class='hs-definition'>const</span> <span class='hs-layout'>(</span><span class='hs-conid'>ST.fromString</span> <span class='hs-str'>""</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span></pre>
@@ -1986,7 +1727,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint12 file50">
+<div class="hint12 file46">
 src/Model/Record.hs:62:10: Warning: Use isJust<br/>
 Found<br/>
 <pre><span class='hs-definition'>maybe</span> <span class='hs-conid'>False</span> <span class='hs-layout'>(</span><span class='hs-varid'>const</span> <span class='hs-conid'>True</span><span class='hs-layout'>)</span></pre>
@@ -1995,7 +1736,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint31 file52">
+<div class="hint29 file47">
 src/Model/Tag.hs:65:8: Suggestion: Use uncurry<br/>
 Found<br/>
 <pre><span class='hs-keyglyph'>\</span> <span class='hs-layout'>(</span><span class='hs-varid'>vid_a6Dpn</span><span class='hs-layout'>,</span> <span class='hs-varid'>vname_a6Dpo</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Tag</span> <span class='hs-varid'>vid_a6Dpn</span> <span class='hs-varid'>vname_a6Dpo</span></pre>
@@ -2004,7 +1745,7 @@ Perhaps<br/>
 <span class='note'>Note: increases laziness</span>
 </div>
 
-<div class="hint31 file52">
+<div class="hint29 file47">
 src/Model/Tag.hs:354:8: Suggestion: Use uncurry<br/>
 Found<br/>
 <pre><span class='hs-keyglyph'>\</span> <span class='hs-layout'>(</span><span class='hs-varid'>vid_a6Q1R</span><span class='hs-layout'>,</span> <span class='hs-varid'>vname_a6Q1S</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Tag</span> <span class='hs-varid'>vid_a6Q1R</span> <span class='hs-varid'>vname_a6Q1S</span></pre>
@@ -2013,7 +1754,7 @@ Perhaps<br/>
 <span class='note'>Note: increases laziness</span>
 </div>
 
-<div class="hint3 file53">
+<div class="hint3 file48">
 src/Model/Token.hs:678:10: Warning: Functor law<br/>
 Found<br/>
 <pre><span class='hs-definition'>fmap</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span> <span class='hs-varid'>mkTok</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>mkTok</span> <span class='hs-varid'>nobodySiteAuth</span><span class='hs-layout'>)</span>
@@ -2032,7 +1773,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint18 file54">
+<div class="hint17 file49">
 src/Model/Transcode.hs:65:13: Suggestion: Redundant bracket<br/>
 Found<br/>
 <pre><span class='hs-keyglyph'>\</span> <span class='hs-sel'>_p_a9v0p</span> <span class='hs-keyglyph'>-&gt;</span>
@@ -2055,7 +1796,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint3 file54">
+<div class="hint3 file49">
 src/Model/Transcode.hs:953:5: Warning: Functor law<br/>
 Found<br/>
 <pre><span class='hs-definition'>fmap</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span> <span class='hs-varid'>mk</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>mk</span> <span class='hs-varid'>orig</span><span class='hs-layout'>)</span>
@@ -2126,7 +1867,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint3 file57">
+<div class="hint3 file52">
 src/Model/VolumeMetric.hs:43:6: Warning: Functor law<br/>
 Found<br/>
 <pre><span class='hs-definition'>fmap</span> <span class='hs-varid'>id</span></pre>
@@ -2135,7 +1876,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint1 file35">
+<div class="hint1 file32">
 src/Model/AssetSegment/Types.hs:55:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>newAssetSegment</span> <span class='hs-varid'>a</span> <span class='hs-varid'>s</span> <span class='hs-varid'>e</span>
@@ -2146,7 +1887,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint0 file38">
+<div class="hint0 file35">
 src/Model/Authorize/SQL.hs:100:46: Error: Parse error<br/>
 Found<br/>
 <pre>  <span class='hs-varid'>selectAuthorizeActivity</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>TH.Name</span> <span class='hs-comment'>-- ^@'Identity'@</span>
@@ -2158,7 +1899,7 @@ Found<br/>
 
 </div>
 
-<div class="hint14 file42">
+<div class="hint14 file39">
 src/Model/Funding/FundRef.hs:71:17: Warning: Use sortOn<br/>
 Found<br/>
 <pre><span class='hs-definition'>sortBy</span> <span class='hs-layout'>(</span><span class='hs-varid'>comparing</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Down</span> <span class='hs-varop'>.</span> <span class='hs-conid'>T.length</span><span class='hs-layout'>)</span></pre>
@@ -2167,7 +1908,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint6 file43">
+<div class="hint6 file40">
 src/Model/Identity/Types.hs:1:1: Warning: Unused LANGUAGE pragma<br/>
 Found<br/>
 <pre><span class='hs-comment'>{-# LANGUAGE TemplateHaskell, LambdaCase #-}</span></pre>
@@ -2176,25 +1917,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint17 file46">
-src/Model/Notification/SQL.hs:56:5: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>maybeJoinOn</span> <span class='hs-str'>"notification.volume = volume.id"</span> <span class='hs-varop'>$</span> <span class='hs-varid'>selectVolumeRow</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>maybeJoinOn</span> <span class='hs-str'>"notification.volume = volume.id"</span> <span class='hs-varid'>selectVolumeRow</span></pre>
-
-</div>
-
-<div class="hint17 file46">
-src/Model/Notification/SQL.hs:58:5: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>maybeJoinOn</span> <span class='hs-str'>"notification.tag = tag.id"</span> <span class='hs-varop'>$</span> <span class='hs-varid'>selectTag</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>maybeJoinOn</span> <span class='hs-str'>"notification.tag = tag.id"</span> <span class='hs-varid'>selectTag</span></pre>
-
-</div>
-
-<div class="hint1 file48">
+<div class="hint1 file44">
 src/Model/Party/SQL.hs:48:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>makeParty</span> <span class='hs-varid'>pr</span> <span class='hs-varid'>mMkAcct</span> <span class='hs-varid'>perm</span> <span class='hs-varid'>mAccess</span>
@@ -2204,50 +1927,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint17 file48">
-src/Model/Party/SQL.hs:120:21: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>selectMap</span>
-  <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-varop'>`TH.AppE`</span> <span class='hs-conid'>TH.VarE</span> <span class='hs-varid'>ident</span><span class='hs-layout'>)</span> <span class='hs-varop'>.</span>
-     <span class='hs-layout'>(</span><span class='hs-varop'>`TH.AppE`</span> <span class='hs-conid'>TH.ConE</span> <span class='hs-chr'>'</span><span class='hs-conid'>Nothing</span><span class='hs-layout'>)</span> <span class='hs-varop'>.</span>
-       <span class='hs-layout'>(</span><span class='hs-conid'>TH.VarE</span> <span class='hs-chr'>'</span><span class='hs-varid'>permissionParty</span> <span class='hs-varop'>`TH.AppE`</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-  <span class='hs-varop'>$</span> <span class='hs-varid'>selectPermissionParty</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>selectMap</span>
-  <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-varop'>`TH.AppE`</span> <span class='hs-conid'>TH.VarE</span> <span class='hs-varid'>ident</span><span class='hs-layout'>)</span> <span class='hs-varop'>.</span>
-     <span class='hs-layout'>(</span><span class='hs-varop'>`TH.AppE`</span> <span class='hs-conid'>TH.ConE</span> <span class='hs-chr'>'</span><span class='hs-conid'>Nothing</span><span class='hs-layout'>)</span> <span class='hs-varop'>.</span>
-       <span class='hs-layout'>(</span><span class='hs-conid'>TH.VarE</span> <span class='hs-chr'>'</span><span class='hs-varid'>permissionParty</span> <span class='hs-varop'>`TH.AppE`</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-  <span class='hs-varid'>selectPermissionParty</span></pre>
-
-</div>
-
-<div class="hint17 file48">
-src/Model/Party/SQL.hs:155:23: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>selectMap</span>
-  <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-varop'>`TH.AppE`</span> <span class='hs-conid'>TH.VarE</span> <span class='hs-varid'>ident</span><span class='hs-layout'>)</span> <span class='hs-varop'>.</span>
-     <span class='hs-layout'>(</span><span class='hs-varop'>`TH.AppE`</span> <span class='hs-conid'>TH.ConE</span> <span class='hs-chr'>'</span><span class='hs-conid'>Nothing</span><span class='hs-layout'>)</span> <span class='hs-varop'>.</span>
-       <span class='hs-layout'>(</span><span class='hs-conid'>TH.VarE</span> <span class='hs-chr'>'</span><span class='hs-varid'>permissionParty</span> <span class='hs-varop'>`TH.AppE`</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-  <span class='hs-varop'>$</span> <span class='hs-varid'>selectPermissionAccount</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>selectMap</span>
-  <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-varop'>`TH.AppE`</span> <span class='hs-conid'>TH.VarE</span> <span class='hs-varid'>ident</span><span class='hs-layout'>)</span> <span class='hs-varop'>.</span>
-     <span class='hs-layout'>(</span><span class='hs-varop'>`TH.AppE`</span> <span class='hs-conid'>TH.ConE</span> <span class='hs-chr'>'</span><span class='hs-conid'>Nothing</span><span class='hs-layout'>)</span> <span class='hs-varop'>.</span>
-       <span class='hs-layout'>(</span><span class='hs-conid'>TH.VarE</span> <span class='hs-chr'>'</span><span class='hs-varid'>permissionParty</span> <span class='hs-varop'>`TH.AppE`</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-  <span class='hs-varid'>selectPermissionAccount</span></pre>
-
-</div>
-
-<div class="hint17 file51">
-src/Model/SQL/Select.hs:73:5: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>return</span> <span class='hs-varop'>$</span> <span class='hs-layout'>(</span><span class='hs-conid'>TH.BindS</span> <span class='hs-layout'>(</span><span class='hs-conid'>TH.VarP</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-conop'>:</span> <span class='hs-varid'>bl</span><span class='hs-layout'>,</span> <span class='hs-conid'>TH.VarE</span> <span class='hs-varid'>n</span> <span class='hs-conop'>:</span> <span class='hs-varid'>al</span><span class='hs-layout'>)</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>return</span> <span class='hs-layout'>(</span><span class='hs-conid'>TH.BindS</span> <span class='hs-layout'>(</span><span class='hs-conid'>TH.VarP</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-conop'>:</span> <span class='hs-varid'>bl</span><span class='hs-layout'>,</span> <span class='hs-conid'>TH.VarE</span> <span class='hs-varid'>n</span> <span class='hs-conop'>:</span> <span class='hs-varid'>al</span><span class='hs-layout'>)</span></pre>
-
-</div>
-
-<div class="hint1 file55">
+<div class="hint1 file50">
 src/Model/Volume/SQL.hs:30:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>setCreation</span> <span class='hs-varid'>r</span> <span class='hs-varid'>mCreate</span> <span class='hs-varid'>owners</span> <span class='hs-varid'>rolePolicy</span>
@@ -2259,7 +1939,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint1 file55">
+<div class="hint1 file50">
 src/Model/Volume/SQL.hs:45:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>makeVolume</span> <span class='hs-varid'>vol</span> <span class='hs-varid'>own</span> <span class='hs-varid'>rolePolicy</span>
@@ -2277,7 +1957,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint0 file56">
+<div class="hint0 file51">
 src/Model/VolumeAccess/SQL.hs:108:43: Error: Parse error<br/>
 Found<br/>
 <pre>  <span class='hs-varid'>selectVolumeActivity</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>TH.Name</span> <span class='hs-comment'>-- ^@'Identity'@</span>
@@ -2289,7 +1969,7 @@ Found<br/>
 
 </div>
 
-<div class="hint4 file60">
+<div class="hint4 file55">
 src/Service/DB.hs:82:59: Warning: Redundant bracket<br/>
 Found<br/>
 <pre><span class='hs-layout'>(</span><span class='hs-conid'>PGSimple.close</span><span class='hs-layout'>)</span></pre>
@@ -2298,25 +1978,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint17 file60">
-src/Service/DB.hs:163:11: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>return</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Nothing</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>return</span> <span class='hs-conid'>Nothing</span></pre>
-
-</div>
-
-<div class="hint17 file60">
-src/Service/DB.hs:227:11: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>return</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Nothing</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>return</span> <span class='hs-conid'>Nothing</span></pre>
-
-</div>
-
-<div class="hint28 file61">
+<div class="hint26 file56">
 src/Service/Init.hs:41:23: Suggestion: Use let<br/>
 Found<br/>
 <pre><span class='hs-keyword'>do</span> <span class='hs-varid'>time</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>getCurrentTime</span>
@@ -2389,7 +2051,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint30 file62">
+<div class="hint28 file57">
 src/Service/Mail.hs:56:1: Suggestion: Use newtype instead of data<br/>
 Found<br/>
 <pre><span class='hs-keyword'>data</span> <span class='hs-conid'>Mailer</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mailer</span><span class='hs-layout'>{</span><span class='hs-varid'>mlr</span> <span class='hs-keyglyph'>::</span>
@@ -2400,56 +2062,7 @@ Perhaps<br/>
 <span class='note'>Note: decreases laziness</span>
 </div>
 
-<div class="hint17 file63">
-src/Solr/Index.hs:223:19: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>runInvert</span> <span class='hs-varop'>$</span>
-  <span class='hs-layout'>(</span><span class='hs-varid'>runReaderT</span> <span class='hs-layout'>(</span><span class='hs-varid'>writeUpdate</span> <span class='hs-varid'>writeAllDocuments</span><span class='hs-layout'>)</span> <span class='hs-varid'>ctx</span> <span class='hs-keyglyph'>::</span>
-     <span class='hs-conid'>InvertM</span> <span class='hs-conid'>BS.ByteString</span> <span class='hs-conid'>()</span><span class='hs-layout'>)</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>runInvert</span>
-  <span class='hs-layout'>(</span><span class='hs-varid'>runReaderT</span> <span class='hs-layout'>(</span><span class='hs-varid'>writeUpdate</span> <span class='hs-varid'>writeAllDocuments</span><span class='hs-layout'>)</span> <span class='hs-varid'>ctx</span> <span class='hs-keyglyph'>::</span>
-     <span class='hs-conid'>InvertM</span> <span class='hs-conid'>BS.ByteString</span> <span class='hs-conid'>()</span><span class='hs-layout'>)</span></pre>
-
-</div>
-
-<div class="hint17 file63">
-src/Solr/Index.hs:225:15: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>wf</span> <span class='hs-varop'>$</span> <span class='hs-layout'>(</span><span class='hs-varid'>fold</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>w</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IO</span> <span class='hs-conid'>BSC.ByteString</span><span class='hs-layout'>)</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>wf</span> <span class='hs-layout'>(</span><span class='hs-varid'>fold</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>w</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IO</span> <span class='hs-conid'>BSC.ByteString</span><span class='hs-layout'>)</span></pre>
-
-</div>
-
-<div class="hint17 file64">
-src/Store/AssetSegment.hs:54:5: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>unless</span> <span class='hs-layout'>(</span><span class='hs-conid'>BS.null</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-varid'>loop</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>unless</span> <span class='hs-layout'>(</span><span class='hs-conid'>BS.null</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>loop</span></pre>
-
-</div>
-
-<div class="hint17 file65">
-src/View/Error.hs:15:3: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>void</span> <span class='hs-varop'>$</span> <span class='hs-str'>"The resource you requested may no longer be available."</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>void</span> <span class='hs-str'>"The resource you requested may no longer be available."</span></pre>
-
-</div>
-
-<div class="hint17 file65">
-src/View/Error.hs:19:3: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>void</span> <span class='hs-varop'>$</span> <span class='hs-str'>"You do not have access to the requested resource."</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>void</span> <span class='hs-str'>"You do not have access to the requested resource."</span></pre>
-
-</div>
-
-<div class="hint18 file66">
+<div class="hint17 file58">
 src/View/Form.hs:59:22: Suggestion: Redundant bracket<br/>
 Found<br/>
 <pre><span class='hs-layout'>(</span><span class='hs-conid'>BS.null</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varop'>`unlessUse`</span> <span class='hs-varid'>b</span></pre>
@@ -2458,7 +2071,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint8 file66">
+<div class="hint8 file58">
 src/View/Form.hs:124:11: Warning: Use elem<br/>
 Found<br/>
 <pre><span class='hs-definition'>any</span> <span class='hs-layout'>(</span><span class='hs-varid'>v</span> <span class='hs-varop'>==</span><span class='hs-layout'>)</span></pre>
@@ -2467,25 +2080,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint17 file67">
-src/View/Ingest.hs:44:7: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>field</span> <span class='hs-str'>"json"</span> <span class='hs-varop'>$</span> <span class='hs-varid'>inputFile</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>field</span> <span class='hs-str'>"json"</span> <span class='hs-varid'>inputFile</span></pre>
-
-</div>
-
-<div class="hint17 file68">
-src/View/Login.hs:25:3: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>field</span> <span class='hs-str'>"auth"</span> <span class='hs-varop'>$</span> <span class='hs-varid'>inputPassword</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>field</span> <span class='hs-str'>"auth"</span> <span class='hs-varid'>inputPassword</span></pre>
-
-</div>
-
-<div class="hint1 file69">
+<div class="hint1 file59">
 src/View/Notification.hs:248:3: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>link</span> <span class='hs-varid'>u</span> <span class='hs-varid'>a</span> <span class='hs-varid'>q</span> <span class='hs-varid'>h</span>
@@ -2495,7 +2090,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint5 file71">
+<div class="hint5 file61">
 src/Web/All.hs:42:1: Warning: Redundant lambda<br/>
 Found<br/>
 <pre><span class='hs-definition'>generateAllJS</span>
@@ -2513,7 +2108,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint5 file71">
+<div class="hint5 file61">
 src/Web/All.hs:49:1: Warning: Redundant lambda<br/>
 Found<br/>
 <pre><span class='hs-definition'>generateAllCSS</span>
@@ -2527,7 +2122,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint23 file72">
+<div class="hint21 file62">
 src/Web/Files.hs:40:28: Suggestion: Use &lt;=&lt;<br/>
 Found<br/>
 <pre><span class='hs-keyglyph'>\</span> <span class='hs-varid'>webDirRaw</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>mapM</span> <span class='hs-varid'>makeWebFilePath</span> <span class='hs-varop'>=&lt;&lt;</span> <span class='hs-varid'>listFiles</span> <span class='hs-varid'>webDirRaw</span></pre>
@@ -2536,7 +2131,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint20 file73">
+<div class="hint19 file63">
 src/Web/GZip.hs:21:6: Suggestion: Use /=<br/>
 Found<br/>
 <pre><span class='hs-definition'>takeExtension</span> <span class='hs-varid'>b'</span> <span class='hs-varop'>`notElem`</span> <span class='hs-keyglyph'>[</span><span class='hs-str'>".png"</span><span class='hs-keyglyph'>]</span></pre>
@@ -2545,7 +2140,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint5 file74">
+<div class="hint5 file64">
 src/Web/Generate.hs:64:1: Warning: Redundant lambda<br/>
 Found<br/>
 <pre><span class='hs-definition'>staticWebGenerate</span> <span class='hs-varid'>g</span>
@@ -2571,7 +2166,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint5 file74">
+<div class="hint5 file64">
 src/Web/Generate.hs:76:1: Warning: Redundant lambda<br/>
 Found<br/>
 <pre><span class='hs-definition'>webLinkDataFile</span> <span class='hs-varid'>s</span>
@@ -2601,7 +2196,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint19 file75">
+<div class="hint18 file65">
 src/Web/JSHint.hs:21:1: Suggestion: Redundant where<br/>
 Found<br/>
 <pre><span class='hs-definition'>checkJSHint</span>
@@ -2647,7 +2242,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint21 file76">
+<div class="hint20 file66">
 src/Web/Libs.hs:34:3: Suggestion: Use :<br/>
 Found<br/>
 <pre><span class='hs-keyglyph'>[</span><span class='hs-layout'>(</span><span class='hs-str'>"jquery-ui"</span><span class='hs-layout'>,</span> <span class='hs-str'>"jquery-ui-dist"</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>]</span> <span class='hs-varop'>++</span>
@@ -2658,7 +2253,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint5 file76">
+<div class="hint5 file66">
 src/Web/Libs.hs:42:1: Warning: Redundant lambda<br/>
 Found<br/>
 <pre><span class='hs-definition'>generateLib</span>
@@ -2692,7 +2287,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint23 file76">
+<div class="hint21 file66">
 src/Web/Libs.hs:77:26: Suggestion: Use &lt;=&lt;<br/>
 Found<br/>
 <pre><span class='hs-keyglyph'>\</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>makeWebFilePath</span> <span class='hs-varop'>=&lt;&lt;</span> <span class='hs-varid'>rawFilePath</span> <span class='hs-varid'>f</span></pre>
@@ -2701,7 +2296,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint5 file77">
+<div class="hint5 file67">
 src/Web/Messages.hs:19:1: Warning: Redundant lambda<br/>
 Found<br/>
 <pre><span class='hs-definition'>generateMessagesJS</span>
@@ -2739,7 +2334,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint5 file78">
+<div class="hint5 file68">
 src/Web/Rules.hs:58:1: Warning: Redundant lambda<br/>
 Found<br/>
 <pre><span class='hs-definition'>generateFixed</span> <span class='hs-varid'>includeStatic</span>
@@ -2763,7 +2358,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint18 file78">
+<div class="hint17 file68">
 src/Web/Rules.hs:100:11: Suggestion: Redundant bracket<br/>
 Found<br/>
 <pre><span class='hs-keyglyph'>[</span><span class='hs-layout'>(</span><span class='hs-varid'>map</span> <span class='hs-varid'>fst</span> <span class='hs-varid'>staticGenerators</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span>
@@ -2776,7 +2371,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint18 file79">
+<div class="hint17 file69">
 src/Web/Service.hs:28:14: Suggestion: Redundant bracket<br/>
 Found<br/>
 <pre><span class='hs-layout'>(</span><span class='hs-conid'>TE.encodeUtf8</span> <span class='hs-varop'>.</span> <span class='hs-conid'>T.strip</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-conid'>TIO.readFile</span> <span class='hs-varid'>versionFilePath</span></pre>
@@ -2785,25 +2380,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint22 file79">
-src/Web/Service.hs:29:3: Suggestion: Use &lt;$&gt;<br/>
-Found<br/>
-<pre><span class='hs-definition'>fmap</span> <span class='hs-layout'>(</span><span class='hs-varop'>`Web`</span> <span class='hs-varid'>version</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-varid'>loadWebFileMap</span></pre>
-Perhaps<br/>
-<pre><span class='hs-layout'>(</span><span class='hs-varop'>`Web`</span> <span class='hs-varid'>version</span><span class='hs-layout'>)</span> <span class='hs-conid'>Control.Applicative</span><span class='hs-varop'>.&lt;$&gt;</span> <span class='hs-varid'>loadWebFileMap</span></pre>
-
-</div>
-
-<div class="hint17 file79">
-src/Web/Service.hs:29:3: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>fmap</span> <span class='hs-layout'>(</span><span class='hs-varop'>`Web`</span> <span class='hs-varid'>version</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-varid'>loadWebFileMap</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>fmap</span> <span class='hs-layout'>(</span><span class='hs-varop'>`Web`</span> <span class='hs-varid'>version</span><span class='hs-layout'>)</span> <span class='hs-varid'>loadWebFileMap</span></pre>
-
-</div>
-
-<div class="hint1 file79">
+<div class="hint1 file69">
 src/Web/Service.hs:36:1: Warning: Eta reduce<br/>
 Found<br/>
 <pre><span class='hs-definition'>getWebVersion</span> <span class='hs-varid'>web</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>webVersion</span> <span class='hs-varid'>web</span></pre>
@@ -2812,7 +2389,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint5 file80">
+<div class="hint5 file70">
 src/Web/Stylus.hs:17:1: Warning: Redundant lambda<br/>
 Found<br/>
 <pre><span class='hs-definition'>generateStylusCSS</span>
@@ -2850,7 +2427,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint27 file81">
+<div class="hint25 file71">
 src/Web/Uglify.hs:25:36: Suggestion: Use infix<br/>
 Found<br/>
 <pre><span class='hs-definition'>isPrefixOf</span> <span class='hs-str'>"lib/"</span> <span class='hs-layout'>(</span><span class='hs-varid'>webFileRel</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span></pre>
@@ -2859,7 +2436,7 @@ Perhaps<br/>
 
 </div>
 
-<div class="hint5 file81">
+<div class="hint5 file71">
 src/Web/Uglify.hs:33:1: Warning: Redundant lambda<br/>
 Found<br/>
 <pre><span class='hs-definition'>generateUglifyJS</span>
@@ -2916,5 +2493,8 @@ Perhaps<br/>
 </div>
 
 </div>
+<script type='text/javascript'>
+show(window.location.hash.slice(1), true);
+</script>
 </body>
 </html>
