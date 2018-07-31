@@ -74,7 +74,7 @@ checkPassword :: BS.ByteString -> SiteAuth -> Bool
 checkPassword p = any (`BCrypt.validatePassword` p) . accountPasswd
 
 postLogin :: ActionRoute API
-postLogin = action POST (pathAPI </< "user" </< "login") $ postLoginAction
+postLogin = action POST (pathAPI </< "user" </< "login") postLoginAction
 
 data LoginRequest = LoginRequest BS.ByteString BS.ByteString Bool
 

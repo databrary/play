@@ -117,7 +117,7 @@ permissionParty mkPartyOrAcct mGrantedAccessFromPartyToViewer viewingIdent =
 
 selectParty :: TH.Name -- ^ 'Identity'
   -> Selector -- ^ @'Party'@
-selectParty ident = selectMap ((`TH.AppE` TH.VarE ident) . (`TH.AppE` TH.ConE 'Nothing) . (TH.VarE 'permissionParty `TH.AppE`)) $
+selectParty ident = selectMap ((`TH.AppE` TH.VarE ident) . (`TH.AppE` TH.ConE 'Nothing) . (TH.VarE 'permissionParty `TH.AppE`))
   selectPermissionParty
 
 makePartyAuthorization :: Party -> Maybe Access -> (Party, Maybe Permission)
@@ -152,7 +152,7 @@ selectPermissionAccount = selectJoin 'makeAccount
 
 selectAccount :: TH.Name -- ^ 'Identity'
   -> Selector -- ^ @'Account'@
-selectAccount ident = selectMap ((`TH.AppE` TH.VarE ident) . (`TH.AppE` TH.ConE 'Nothing) . (TH.VarE 'permissionParty `TH.AppE`)) $
+selectAccount ident = selectMap ((`TH.AppE` TH.VarE ident) . (`TH.AppE` TH.ConE 'Nothing) . (TH.VarE 'permissionParty `TH.AppE`))
   selectPermissionAccount
 
 -- | Build an account, using ADMIN permission and (ADMIN,ADMIN) access object.

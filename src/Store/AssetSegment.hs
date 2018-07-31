@@ -51,7 +51,7 @@ stream s h = loop where
   loop = do
     b <- BS.hGetSome h defaultChunkSize
     s b
-    unless (BS.null b) $ loop
+    unless (BS.null b) loop
 
 genVideoClip :: AV -> RawFilePath -> Maybe (Range.Range Offset) -> Maybe Word16 -> Either Stream RawFilePath -> IO ()
 genVideoClip _ src (Just clip) _ dst | Nothing <- Range.getPoint clip = do

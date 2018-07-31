@@ -47,7 +47,7 @@ postPeriodicHandler :: Action
 postPeriodicHandler = withAuth $ do
   checkMemberADMIN
   t <- peeks servicePeriodic
-  RunPeriodicRequest w <- runForm (Just htmlPeriodic) $ (RunPeriodicRequest <$> ("weekly" .:> deform))
+  RunPeriodicRequest w <- runForm (Just htmlPeriodic) (RunPeriodicRequest <$> ("weekly" .:> deform))
   liftIO $ mapM_ (`throwTo` if w then PeriodWeekly else PeriodDaily) t
   return $ okResponse [] (maybe "no" (const "ok") t :: String)
 
