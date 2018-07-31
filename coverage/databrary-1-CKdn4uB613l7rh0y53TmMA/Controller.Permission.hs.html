@@ -35,17 +35,17 @@ span.spaces    { background: white }
 <span class="lineno">   19 </span>import HTTP.Request
 <span class="lineno">   20 </span>import Action
 <span class="lineno">   21 </span>
-<span class="lineno">   22 </span>
-<span class="lineno">   23 </span>-- TODO: use Model.checkPermission everywhere instead
-<span class="lineno">   24 </span>{-# DEPRECATED checkPermissionOld &quot;Use checkPermission instead&quot; #-}
-<span class="lineno">   25 </span>checkPermissionOld :: Has Permission a =&gt; Permission -&gt; a -&gt; Handler a
-<span class="lineno">   26 </span><span class="decl"><span class="nottickedoff">checkPermissionOld requiredPermissionLevel objectWithCurrentUserPermLevel =</span>
-<span class="lineno">   27 </span><span class="spaces">  </span><span class="nottickedoff">checkPermission view requiredPermissionLevel objectWithCurrentUserPermLevel</span></span>
-<span class="lineno">   28 </span>
-<span class="lineno">   29 </span>-- | Determine if the requested permission is granted, or throw an HTTP 403.
-<span class="lineno">   30 </span>--
-<span class="lineno">   31 </span>-- This function is probably due for another 3 or 4 rewrites: it's a bit
-<span class="lineno">   32 </span>-- abstract, serving mostly as a description for its arguments.
+<span class="lineno">   22 </span>-- TODO: use Model.checkPermission everywhere instead
+<span class="lineno">   23 </span>{-# DEPRECATED checkPermissionOld &quot;Use checkPermission instead&quot; #-}
+<span class="lineno">   24 </span>checkPermissionOld :: Has Permission a =&gt; Permission -&gt; a -&gt; Handler a
+<span class="lineno">   25 </span><span class="decl"><span class="nottickedoff">checkPermissionOld requiredPermissionLevel objectWithCurrentUserPermLevel =</span>
+<span class="lineno">   26 </span><span class="spaces">  </span><span class="nottickedoff">checkPermission view requiredPermissionLevel objectWithCurrentUserPermLevel</span></span>
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>-- | Determine if the requested permission is granted, or throw an HTTP 403.
+<span class="lineno">   29 </span>--
+<span class="lineno">   30 </span>-- This function is probably due for another 3 or 4 rewrites: it's a bit
+<span class="lineno">   31 </span>-- abstract, serving mostly as a description for its arguments.
+<span class="lineno">   32 </span>-- TODO: Maybe replace with requestAccess
 <span class="lineno">   33 </span>checkPermission
 <span class="lineno">   34 </span>    :: (a -&gt; Permission)
 <span class="lineno">   35 </span>    -- ^ How to extract the granted permission for current user

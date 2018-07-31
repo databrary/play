@@ -56,7 +56,7 @@ span.spaces    { background: white }
 <span class="lineno">   40 </span>import Model.Permission hiding (checkPermission)
 <span class="lineno">   41 </span>import Model.Release
 <span class="lineno">   42 </span>import Model.Id
-<span class="lineno">   43 </span>import Model.Volume hiding (getVolume)
+<span class="lineno">   43 </span>import Model.Volume
 <span class="lineno">   44 </span>import Model.Container
 <span class="lineno">   45 </span>import Model.Token
 <span class="lineno">   46 </span>import Model.Format
@@ -296,81 +296,56 @@ span.spaces    { background: white }
 <span class="lineno">  280 </span><span class="spaces">  </span><span class="nottickedoff">do</span>
 <span class="lineno">  281 </span><span class="spaces">      </span><span class="nottickedoff">liftIO $ putStrLn &quot;JSON ok response...&quot; --DEBUG</span>
 <span class="lineno">  282 </span><span class="spaces">      </span><span class="nottickedoff">return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON False as''</span></span> -- publicrestrict false because EDIT
-<span class="lineno">  283 </span>  -- HTML -&gt; do
-<span class="lineno">  284 </span>  --    liftIO $ putStrLn &quot;returning HTML other route reponse...&quot; --DEBUG
-<span class="lineno">  285 </span>  --    peeks $ otherRouteResponse [] viewAsset (api, assetId $ assetRow $ slotAsset as'')
-<span class="lineno">  286 </span>
-<span class="lineno">  287 </span>postAsset :: ActionRoute (Id Asset)
-<span class="lineno">  288 </span><span class="decl"><span class="nottickedoff">postAsset = multipartAction $ action POST (pathJSON &gt;/&gt; pathId) $ \ai -&gt; withAuth $ do</span>
-<span class="lineno">  289 </span><span class="spaces">  </span><span class="nottickedoff">asset &lt;- getAsset False PermissionEDIT False ai</span>
-<span class="lineno">  290 </span><span class="spaces">  </span><span class="nottickedoff">r &lt;- assetIsReplaced (slotAsset asset)</span>
-<span class="lineno">  291 </span><span class="spaces">  </span><span class="nottickedoff">when r $ result $</span>
-<span class="lineno">  292 </span><span class="spaces">    </span><span class="nottickedoff">response conflict409 [] (&quot;This file has already been replaced.&quot; :: T.Text)</span>
-<span class="lineno">  293 </span><span class="spaces">  </span><span class="nottickedoff">processAsset $ AssetTargetAsset asset</span></span>
-<span class="lineno">  294 </span>
-<span class="lineno">  295 </span>{-
-<span class="lineno">  296 </span>viewAssetEdit :: ActionRoute (Id Asset)
-<span class="lineno">  297 </span>viewAssetEdit = action GET (pathHTML &gt;/&gt; pathId &lt;/&lt; &quot;edit&quot;) $ \ai -&gt; withAuth $ do
-<span class="lineno">  298 </span>  asset &lt;- getAsset False PermissionEDIT False ai
-<span class="lineno">  299 </span>  peeks $ blankForm . htmlAssetEdit (AssetTargetAsset asset)
-<span class="lineno">  300 </span>-}
-<span class="lineno">  301 </span>
-<span class="lineno">  302 </span>createAsset :: ActionRoute (Id Volume)
-<span class="lineno">  303 </span><span class="decl"><span class="nottickedoff">createAsset = multipartAction $ action POST (pathJSON &gt;/&gt; pathId &lt;/&lt; &quot;asset&quot;) $ \vi -&gt; withAuth $ do</span>
-<span class="lineno">  304 </span><span class="spaces">  </span><span class="nottickedoff">liftIO $ print &quot;getting volume permission...&quot;</span>
-<span class="lineno">  305 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
-<span class="lineno">  306 </span><span class="spaces">  </span><span class="nottickedoff">liftIO $ print &quot;processing asset...&quot;</span>
-<span class="lineno">  307 </span><span class="spaces">  </span><span class="nottickedoff">processAsset $ AssetTargetVolume v</span></span>
-<span class="lineno">  308 </span>
-<span class="lineno">  309 </span>{-
-<span class="lineno">  310 </span>viewAssetCreate :: ActionRoute (Id Volume)
-<span class="lineno">  311 </span>viewAssetCreate = action GET (pathHTML &gt;/&gt; pathId &lt;/&lt; &quot;asset&quot;) $ \vi -&gt; withAuth $ do
-<span class="lineno">  312 </span>  v &lt;- getVolume PermissionEDIT vi
-<span class="lineno">  313 </span>  peeks $ blankForm . htmlAssetEdit (AssetTargetVolume v)
-<span class="lineno">  314 </span>-}
-<span class="lineno">  315 </span>
-<span class="lineno">  316 </span>createSlotAsset :: ActionRoute (Id Slot)
-<span class="lineno">  317 </span><span class="decl"><span class="nottickedoff">createSlotAsset = multipartAction $ action POST (pathJSON &gt;/&gt; pathSlotId &lt;/&lt; &quot;asset&quot;) $ \si -&gt; withAuth $ do</span>
-<span class="lineno">  318 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getSlot PermissionEDIT Nothing si</span>
-<span class="lineno">  319 </span><span class="spaces">  </span><span class="nottickedoff">processAsset $ AssetTargetSlot v</span></span>
-<span class="lineno">  320 </span>
-<span class="lineno">  321 </span>{-
-<span class="lineno">  322 </span>viewSlotAssetCreate :: ActionRoute (Id Slot)
-<span class="lineno">  323 </span>viewSlotAssetCreate = action GET (pathHTML &gt;/&gt; pathSlotId &lt;/&lt; &quot;asset&quot;) $ \si -&gt; withAuth $ do
-<span class="lineno">  324 </span>  s &lt;- getSlot PermissionEDIT Nothing si
-<span class="lineno">  325 </span>  peeks $ blankForm . htmlAssetEdit (AssetTargetSlot s)
-<span class="lineno">  326 </span>-}
-<span class="lineno">  327 </span>
-<span class="lineno">  328 </span>deleteAsset :: ActionRoute (Id Asset)
-<span class="lineno">  329 </span><span class="decl"><span class="nottickedoff">deleteAsset = action DELETE (pathJSON &gt;/&gt; pathId) $ \ai -&gt; withAuth $ do</span>
-<span class="lineno">  330 </span><span class="spaces">  </span><span class="nottickedoff">guardVerfHeader</span>
-<span class="lineno">  331 </span><span class="spaces">  </span><span class="nottickedoff">asset &lt;- getAsset False PermissionEDIT False ai</span>
-<span class="lineno">  332 </span><span class="spaces">  </span><span class="nottickedoff">let asset' = asset{ assetSlot = Nothing }</span>
-<span class="lineno">  333 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- changeAssetSlot asset'</span>
-<span class="lineno">  334 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON False asset'</span></span> -- publicRestricted false because EDIT
-<span class="lineno">  335 </span>  --  HTML -&gt; peeks $ otherRouteResponse [] viewAsset (api, assetId $ assetRow $ slotAsset asset')
-<span class="lineno">  336 </span>
-<span class="lineno">  337 </span>downloadAsset :: ActionRoute (Id Asset, Segment)
-<span class="lineno">  338 </span><span class="decl"><span class="nottickedoff">downloadAsset = action GET (pathId &lt;/&gt; pathSegment &lt;/&lt; &quot;download&quot;) $ \(ai, seg) -&gt; withAuth $ do</span>
-<span class="lineno">  339 </span><span class="spaces">  </span><span class="nottickedoff">a &lt;- getAsset False PermissionPUBLIC True ai</span>
-<span class="lineno">  340 </span><span class="spaces">  </span><span class="nottickedoff">inline &lt;- peeks $ lookupQueryParameters &quot;inline&quot;</span>
-<span class="lineno">  341 </span><span class="spaces">  </span><span class="nottickedoff">serveAssetSegment (null inline) $ newAssetSegment a seg Nothing</span></span>
-<span class="lineno">  342 </span>
-<span class="lineno">  343 </span>downloadOrigAsset :: ActionRoute (Id Asset, Segment)
-<span class="lineno">  344 </span><span class="decl"><span class="nottickedoff">downloadOrigAsset = action GET (pathId &lt;/&gt; pathSegment &lt;/&lt; &quot;downloadOrig&quot;) $ \(ai, seg) -&gt; withAuth $ do</span>
-<span class="lineno">  345 </span><span class="spaces">  </span><span class="nottickedoff">a &lt;- getAsset True PermissionPUBLIC True ai</span>
-<span class="lineno">  346 </span><span class="spaces">  </span><span class="nottickedoff">inline &lt;- peeks $ lookupQueryParameters &quot;inline&quot;</span>
-<span class="lineno">  347 </span><span class="spaces">  </span><span class="nottickedoff">serveAssetSegment (null inline) $ newAssetSegment a seg Nothing</span></span>
-<span class="lineno">  348 </span>
-<span class="lineno">  349 </span>thumbAsset :: ActionRoute (Id Asset, Segment)
-<span class="lineno">  350 </span><span class="decl"><span class="nottickedoff">thumbAsset = action GET (pathId &lt;/&gt; pathSegment &lt;/&lt; &quot;thumb&quot;) $ \(ai, seg) -&gt; withAuth $ do</span>
-<span class="lineno">  351 </span><span class="spaces">  </span><span class="nottickedoff">a &lt;- getAsset False PermissionPUBLIC False ai</span>
-<span class="lineno">  352 </span><span class="spaces">  </span><span class="nottickedoff">let as = assetSegmentInterp 0.25 $ newAssetSegment a seg Nothing</span>
-<span class="lineno">  353 </span><span class="spaces">  </span><span class="nottickedoff">if formatIsImage (view as)</span>
-<span class="lineno">  354 </span><span class="spaces">    </span><span class="nottickedoff">&amp;&amp; assetBacked (view as)</span>
-<span class="lineno">  355 </span><span class="spaces">    </span><span class="nottickedoff">&amp;&amp; canReadData2 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as</span>
-<span class="lineno">  356 </span><span class="spaces">    </span><span class="nottickedoff">then peeks $ otherRouteResponse [] downloadAsset (view as, assetSegment as)</span>
-<span class="lineno">  357 </span><span class="spaces">    </span><span class="nottickedoff">else peeks $ otherRouteResponse [] formatIcon (view as)</span></span>
+<span class="lineno">  283 </span>
+<span class="lineno">  284 </span>postAsset :: ActionRoute (Id Asset)
+<span class="lineno">  285 </span><span class="decl"><span class="nottickedoff">postAsset = multipartAction $ action POST (pathJSON &gt;/&gt; pathId) $ \ai -&gt; withAuth $ do</span>
+<span class="lineno">  286 </span><span class="spaces">  </span><span class="nottickedoff">asset &lt;- getAsset False PermissionEDIT False ai</span>
+<span class="lineno">  287 </span><span class="spaces">  </span><span class="nottickedoff">r &lt;- assetIsReplaced (slotAsset asset)</span>
+<span class="lineno">  288 </span><span class="spaces">  </span><span class="nottickedoff">when r $ result $</span>
+<span class="lineno">  289 </span><span class="spaces">    </span><span class="nottickedoff">response conflict409 [] (&quot;This file has already been replaced.&quot; :: T.Text)</span>
+<span class="lineno">  290 </span><span class="spaces">  </span><span class="nottickedoff">processAsset $ AssetTargetAsset asset</span></span>
+<span class="lineno">  291 </span>
+<span class="lineno">  292 </span>createAsset :: ActionRoute (Id Volume)
+<span class="lineno">  293 </span><span class="decl"><span class="nottickedoff">createAsset = multipartAction $ action POST (pathJSON &gt;/&gt; pathId &lt;/&lt; &quot;asset&quot;) $ \vi -&gt; withAuth $ do</span>
+<span class="lineno">  294 </span><span class="spaces">  </span><span class="nottickedoff">liftIO $ print &quot;getting volume permission...&quot;</span>
+<span class="lineno">  295 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getVolume PermissionEDIT vi</span>
+<span class="lineno">  296 </span><span class="spaces">  </span><span class="nottickedoff">liftIO $ print &quot;processing asset...&quot;</span>
+<span class="lineno">  297 </span><span class="spaces">  </span><span class="nottickedoff">processAsset $ AssetTargetVolume v</span></span>
+<span class="lineno">  298 </span>
+<span class="lineno">  299 </span>createSlotAsset :: ActionRoute (Id Slot)
+<span class="lineno">  300 </span><span class="decl"><span class="nottickedoff">createSlotAsset = multipartAction $ action POST (pathJSON &gt;/&gt; pathSlotId &lt;/&lt; &quot;asset&quot;) $ \si -&gt; withAuth $ do</span>
+<span class="lineno">  301 </span><span class="spaces">  </span><span class="nottickedoff">v &lt;- getSlot PermissionEDIT si</span>
+<span class="lineno">  302 </span><span class="spaces">  </span><span class="nottickedoff">processAsset $ AssetTargetSlot v</span></span>
+<span class="lineno">  303 </span>
+<span class="lineno">  304 </span>deleteAsset :: ActionRoute (Id Asset)
+<span class="lineno">  305 </span><span class="decl"><span class="nottickedoff">deleteAsset = action DELETE (pathJSON &gt;/&gt; pathId) $ \ai -&gt; withAuth $ do</span>
+<span class="lineno">  306 </span><span class="spaces">  </span><span class="nottickedoff">guardVerfHeader</span>
+<span class="lineno">  307 </span><span class="spaces">  </span><span class="nottickedoff">asset &lt;- getAsset False PermissionEDIT False ai</span>
+<span class="lineno">  308 </span><span class="spaces">  </span><span class="nottickedoff">let asset' = asset{ assetSlot = Nothing }</span>
+<span class="lineno">  309 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- changeAssetSlot asset'</span>
+<span class="lineno">  310 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ JSON.recordEncoding $ assetSlotJSON False asset'</span></span> -- publicRestricted false because EDIT
+<span class="lineno">  311 </span>
+<span class="lineno">  312 </span>downloadAsset :: ActionRoute (Id Asset, Segment)
+<span class="lineno">  313 </span><span class="decl"><span class="nottickedoff">downloadAsset = action GET (pathId &lt;/&gt; pathSegment &lt;/&lt; &quot;download&quot;) $ \(ai, seg) -&gt; withAuth $ do</span>
+<span class="lineno">  314 </span><span class="spaces">  </span><span class="nottickedoff">a &lt;- getAsset False PermissionPUBLIC True ai</span>
+<span class="lineno">  315 </span><span class="spaces">  </span><span class="nottickedoff">inline &lt;- peeks $ lookupQueryParameters &quot;inline&quot;</span>
+<span class="lineno">  316 </span><span class="spaces">  </span><span class="nottickedoff">serveAssetSegment (null inline) $ newAssetSegment a seg Nothing</span></span>
+<span class="lineno">  317 </span>
+<span class="lineno">  318 </span>downloadOrigAsset :: ActionRoute (Id Asset, Segment)
+<span class="lineno">  319 </span><span class="decl"><span class="nottickedoff">downloadOrigAsset = action GET (pathId &lt;/&gt; pathSegment &lt;/&lt; &quot;downloadOrig&quot;) $ \(ai, seg) -&gt; withAuth $ do</span>
+<span class="lineno">  320 </span><span class="spaces">  </span><span class="nottickedoff">a &lt;- getAsset True PermissionPUBLIC True ai</span>
+<span class="lineno">  321 </span><span class="spaces">  </span><span class="nottickedoff">inline &lt;- peeks $ lookupQueryParameters &quot;inline&quot;</span>
+<span class="lineno">  322 </span><span class="spaces">  </span><span class="nottickedoff">serveAssetSegment (null inline) $ newAssetSegment a seg Nothing</span></span>
+<span class="lineno">  323 </span>
+<span class="lineno">  324 </span>thumbAsset :: ActionRoute (Id Asset, Segment)
+<span class="lineno">  325 </span><span class="decl"><span class="nottickedoff">thumbAsset = action GET (pathId &lt;/&gt; pathSegment &lt;/&lt; &quot;thumb&quot;) $ \(ai, seg) -&gt; withAuth $ do</span>
+<span class="lineno">  326 </span><span class="spaces">  </span><span class="nottickedoff">a &lt;- getAsset False PermissionPUBLIC False ai</span>
+<span class="lineno">  327 </span><span class="spaces">  </span><span class="nottickedoff">let as = assetSegmentInterp 0.25 $ newAssetSegment a seg Nothing</span>
+<span class="lineno">  328 </span><span class="spaces">  </span><span class="nottickedoff">if formatIsImage (view as)</span>
+<span class="lineno">  329 </span><span class="spaces">    </span><span class="nottickedoff">&amp;&amp; assetBacked (view as)</span>
+<span class="lineno">  330 </span><span class="spaces">    </span><span class="nottickedoff">&amp;&amp; canReadData2 getAssetSegmentRelease2 getAssetSegmentVolumePermission2 as</span>
+<span class="lineno">  331 </span><span class="spaces">    </span><span class="nottickedoff">then peeks $ otherRouteResponse [] downloadAsset (view as, assetSegment as)</span>
+<span class="lineno">  332 </span><span class="spaces">    </span><span class="nottickedoff">else peeks $ otherRouteResponse [] formatIcon (view as)</span></span>
 
 </pre>
 </body>

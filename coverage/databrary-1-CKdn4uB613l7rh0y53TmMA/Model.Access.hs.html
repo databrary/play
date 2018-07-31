@@ -1,0 +1,93 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="lineno">    1 </span>-- | A collection of access request methods.
+<span class="lineno">    2 </span>module Model.Access
+<span class="lineno">    3 </span>    ( accessSlot
+<span class="lineno">    4 </span>    , accessVolume
+<span class="lineno">    5 </span>    , AccessResult (..)
+<span class="lineno">    6 </span>    ) where
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>import Model.Container.Types
+<span class="lineno">    9 </span>import Model.Id.Types
+<span class="lineno">   10 </span>import Model.Identity.Types
+<span class="lineno">   11 </span>import Model.Permission
+<span class="lineno">   12 </span>import Model.Slot
+<span class="lineno">   13 </span>import Model.Volume
+<span class="lineno">   14 </span>import Service.DB
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>-- | Captures possible request responses.
+<span class="lineno">   17 </span>-- NOTE: This was designed to mimic existing code and responses. LookupFailed
+<span class="lineno">   18 </span>-- does NOT mean &quot;does not exist&quot;. It means that 'lookupVolume' (for example)
+<span class="lineno">   19 </span>-- returned Nothing. This could mean either the id is a valid id, or the user
+<span class="lineno">   20 </span>-- doesn't have access to the volume.
+<span class="lineno">   21 </span>--
+<span class="lineno">   22 </span>-- TODO: Monad Transformer?
+<span class="lineno">   23 </span>data AccessResult a
+<span class="lineno">   24 </span>    = LookupFailed
+<span class="lineno">   25 </span>    | AccessDenied
+<span class="lineno">   26 </span>    | AccessResult a
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>-- | Lookup a Slot by its Id, requesting the given permission.
+<span class="lineno">   29 </span>accessSlot
+<span class="lineno">   30 </span>    :: (MonadDB c m, MonadHasIdentity c m)
+<span class="lineno">   31 </span>    =&gt; Permission
+<span class="lineno">   32 </span>    -&gt; Id Slot
+<span class="lineno">   33 </span>    -&gt; m (AccessResult Slot)
+<span class="lineno">   34 </span><span class="decl"><span class="istickedoff">accessSlot requestedPerm = accessPermissionedObject</span>
+<span class="lineno">   35 </span><span class="spaces">    </span><span class="istickedoff">lookupSlot</span>
+<span class="lineno">   36 </span><span class="spaces">    </span><span class="istickedoff">(extractPermissionIgnorePolicy</span>
+<span class="lineno">   37 </span><span class="spaces">    </span><span class="istickedoff">. volumeRolePolicy</span>
+<span class="lineno">   38 </span><span class="spaces">    </span><span class="istickedoff">. containerVolume</span>
+<span class="lineno">   39 </span><span class="spaces">    </span><span class="istickedoff">. slotContainer</span>
+<span class="lineno">   40 </span><span class="spaces">    </span><span class="istickedoff">)</span>
+<span class="lineno">   41 </span><span class="spaces">    </span><span class="istickedoff">requestedPerm</span></span>
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>-- | Lookup a Volume by its Id, requesting the given permission.
+<span class="lineno">   44 </span>accessVolume
+<span class="lineno">   45 </span>    :: (MonadDB c m, MonadHasIdentity c m)
+<span class="lineno">   46 </span>    =&gt; Permission
+<span class="lineno">   47 </span>    -&gt; Id Volume
+<span class="lineno">   48 </span>    -&gt; m (AccessResult Volume)
+<span class="lineno">   49 </span><span class="decl"><span class="istickedoff">accessVolume requestedPerm = accessPermissionedObject</span>
+<span class="lineno">   50 </span><span class="spaces">    </span><span class="istickedoff">lookupVolume</span>
+<span class="lineno">   51 </span><span class="spaces">    </span><span class="istickedoff">(extractPermissionIgnorePolicy . volumeRolePolicy)</span>
+<span class="lineno">   52 </span><span class="spaces">    </span><span class="istickedoff">requestedPerm</span></span>
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>-- | Internal, generic version for accessing a permissioned object. Used as the
+<span class="lineno">   55 </span>-- basis for the exported accessors.
+<span class="lineno">   56 </span>accessPermissionedObject
+<span class="lineno">   57 </span>    :: MonadDB c m
+<span class="lineno">   58 </span>    =&gt; (Id a -&gt; m (Maybe a))
+<span class="lineno">   59 </span>    -- ^ How to get the object from the database
+<span class="lineno">   60 </span>    -&gt; (a -&gt; Permission)
+<span class="lineno">   61 </span>    -- ^ Map the object to the permissions granted on it
+<span class="lineno">   62 </span>    -&gt; Permission
+<span class="lineno">   63 </span>    -- ^ Requested access level to the object
+<span class="lineno">   64 </span>    -&gt; Id a
+<span class="lineno">   65 </span>    -- ^ Id of the object to access
+<span class="lineno">   66 </span>    -&gt; m (AccessResult a)
+<span class="lineno">   67 </span>    -- ^ Access response
+<span class="lineno">   68 </span><span class="decl"><span class="istickedoff">accessPermissionedObject lookupObj getPermission requestedPerm =</span>
+<span class="lineno">   69 </span><span class="spaces">    </span><span class="istickedoff">fmap (maybe LookupFailed mkRequest) . lookupObjP</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   71 </span><span class="spaces">    </span><span class="istickedoff">mkRequest =</span>
+<span class="lineno">   72 </span><span class="spaces">        </span><span class="istickedoff">maybe AccessDenied AccessResult . requestAccess requestedPerm</span>
+<span class="lineno">   73 </span><span class="spaces">    </span><span class="istickedoff">lookupObjP = fmap (fmap (mkPermissioned getPermission)) . lookupObj</span></span>
+
+</pre>
+</body>
+</html>

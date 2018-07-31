@@ -16,101 +16,196 @@ span.spaces    { background: white }
 <pre>
 <span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
 <span class="lineno">    2 </span>module Controller.Slot
-<span class="lineno">    3 </span>  ( getSlot
-<span class="lineno">    4 </span>  , viewSlot
-<span class="lineno">    5 </span>  , slotDownloadName
-<span class="lineno">    6 </span>  , thumbSlot
-<span class="lineno">    7 </span>  ) where
-<span class="lineno">    8 </span>
-<span class="lineno">    9 </span>import Control.Monad (when, mfilter)
-<span class="lineno">   10 </span>import qualified Data.ByteString as BS
-<span class="lineno">   11 </span>import qualified Data.ByteString.Char8 as BSC
-<span class="lineno">   12 </span>import Data.Maybe (isJust)
-<span class="lineno">   13 </span>import Data.Monoid ((&lt;&gt;))
-<span class="lineno">   14 </span>import qualified Data.Text as T
-<span class="lineno">   15 </span>import Network.HTTP.Types.Status (movedPermanently301)
-<span class="lineno">   16 </span>import qualified Network.Wai as Wai
-<span class="lineno">   17 </span>
-<span class="lineno">   18 </span>import Has (view, peeks)
-<span class="lineno">   19 </span>import qualified JSON
-<span class="lineno">   20 </span>import Model.Id
-<span class="lineno">   21 </span>import Model.Permission hiding (checkPermission)
-<span class="lineno">   22 </span>import Model.Volume
-<span class="lineno">   23 </span>import Model.Container
-<span class="lineno">   24 </span>import Model.Slot
-<span class="lineno">   25 </span>import Model.Asset
-<span class="lineno">   26 </span>import Model.AssetSlot
-<span class="lineno">   27 </span>import Model.AssetSegment
-<span class="lineno">   28 </span>import Model.Excerpt
-<span class="lineno">   29 </span>import Model.Record
-<span class="lineno">   30 </span>import Model.RecordSlot
-<span class="lineno">   31 </span>import Model.Tag
+<span class="lineno">    3 </span>    ( getSlot
+<span class="lineno">    4 </span>    , getVolumeSlot
+<span class="lineno">    5 </span>    , viewSlot
+<span class="lineno">    6 </span>    , slotDownloadName
+<span class="lineno">    7 </span>    , thumbSlot
+<span class="lineno">    8 </span>    ) where
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import Control.Monad (when)
+<span class="lineno">   11 </span>import Data.Maybe (isJust)
+<span class="lineno">   12 </span>import Data.Monoid ((&lt;&gt;))
+<span class="lineno">   13 </span>import Network.HTTP.Types.Status (movedPermanently301)
+<span class="lineno">   14 </span>import qualified Data.ByteString as BS
+<span class="lineno">   15 </span>import qualified Data.ByteString.Char8 as BSC
+<span class="lineno">   16 </span>import qualified Data.Text as T
+<span class="lineno">   17 </span>import qualified Network.Wai as Wai
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import Action
+<span class="lineno">   20 </span>import Controller.Angular
+<span class="lineno">   21 </span>import {-# SOURCE #-} Controller.AssetSegment
+<span class="lineno">   22 </span>import Controller.Container
+<span class="lineno">   23 </span>import Controller.Paths
+<span class="lineno">   24 </span>import Controller.Volume (volumeIsPublicRestricted)
+<span class="lineno">   25 </span>import Controller.Web
+<span class="lineno">   26 </span>import HTTP.Path.Parser
+<span class="lineno">   27 </span>import Has (view, peeks)
+<span class="lineno">   28 </span>import Model.Access
+<span class="lineno">   29 </span>import Model.Asset
+<span class="lineno">   30 </span>import Model.AssetSegment
+<span class="lineno">   31 </span>import Model.AssetSlot
 <span class="lineno">   32 </span>import Model.Comment
-<span class="lineno">   33 </span>import Store.Filename
-<span class="lineno">   34 </span>import HTTP.Path.Parser
-<span class="lineno">   35 </span>import Action
-<span class="lineno">   36 </span>import Controller.Paths
-<span class="lineno">   37 </span>import Controller.Permission
-<span class="lineno">   38 </span>import Controller.Angular
-<span class="lineno">   39 </span>import Controller.Container
-<span class="lineno">   40 </span>import Controller.Volume (volumeIsPublicRestricted)
-<span class="lineno">   41 </span>import Controller.Web
-<span class="lineno">   42 </span>import {-# SOURCE #-} Controller.AssetSegment
-<span class="lineno">   43 </span>
-<span class="lineno">   44 </span>getSlot :: Permission -&gt; Maybe (Id Volume) -&gt; Id Slot -&gt; Handler Slot
-<span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">getSlot p mv i =</span>
-<span class="lineno">   46 </span><span class="spaces">  </span><span class="nottickedoff">checkPermissionOld p =&lt;&lt; maybeAction . maybe id (\v -&gt; mfilter $ (v ==) . volumeId . volumeRow . containerVolume . slotContainer) mv =&lt;&lt; lookupSlot i</span></span>
-<span class="lineno">   47 </span>
-<span class="lineno">   48 </span>slotJSONField :: Bool -&gt; Slot -&gt; BS.ByteString -&gt; Maybe BS.ByteString -&gt; Handler (Maybe JSON.Encoding)
-<span class="lineno">   49 </span><span class="decl"><span class="nottickedoff">slotJSONField getOrig o &quot;assets&quot; _ =</span>
-<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">case getOrig of</span>
-<span class="lineno">   51 </span><span class="spaces">       </span><span class="nottickedoff">True -&gt; Just . JSON.mapRecords (assetSlotJSON False) &lt;$&gt; lookupOrigSlotAssets o -- public restricted consult volume soon</span>
-<span class="lineno">   52 </span><span class="spaces">       </span><span class="nottickedoff">False -&gt; Just . JSON.mapRecords (assetSlotJSON False) &lt;$&gt; lookupSlotAssets o</span>
-<span class="lineno">   53 </span><span class="spaces"></span><span class="nottickedoff">slotJSONField _ o &quot;records&quot; _ =  -- recordJSON should decide public restricted based on volume</span>
-<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">Just . JSON.mapRecords</span>
-<span class="lineno">   55 </span><span class="spaces">    </span><span class="nottickedoff">(\r -&gt;</span>
-<span class="lineno">   56 </span><span class="spaces">       </span><span class="nottickedoff">recordSlotJSON False r `JSON.foldObjectIntoRec` (&quot;record&quot; JSON..=: recordJSON False (slotRecord r))) &lt;$&gt; lookupSlotRecords o</span>
-<span class="lineno">   57 </span><span class="spaces"></span><span class="nottickedoff">slotJSONField _ o &quot;tags&quot; n = do</span>
-<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">tc &lt;- lookupSlotTagCoverage o (maybe 64 fst $ BSC.readInt =&lt;&lt; n)</span>
-<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">return $ Just $ JSON.pairs $ JSON.recordMap $ map tagCoverageJSON tc</span>
-<span class="lineno">   60 </span><span class="spaces"></span><span class="nottickedoff">slotJSONField _ o &quot;comments&quot; n = do</span>
-<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">c &lt;- lookupSlotComments o (maybe 64 fst $ BSC.readInt =&lt;&lt; n)</span>
-<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">return $ Just $ JSON.mapRecords commentJSON c</span>
-<span class="lineno">   63 </span><span class="spaces"></span><span class="nottickedoff">slotJSONField _ o &quot;excerpts&quot; _ =</span>
-<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">Just . JSON.mapObjects (\e -&gt; excerptJSON e &lt;&gt; &quot;asset&quot; JSON..= (view e :: Id Asset)) &lt;$&gt; lookupSlotExcerpts o</span>
-<span class="lineno">   65 </span><span class="spaces"></span><span class="nottickedoff">slotJSONField _ o &quot;filename&quot; _ =</span>
-<span class="lineno">   66 </span><span class="spaces">  </span><span class="nottickedoff">return $ Just $ JSON.toEncoding $ makeFilename $ slotDownloadName o</span>
-<span class="lineno">   67 </span><span class="spaces"></span><span class="nottickedoff">slotJSONField _ _ _ _ = return Nothing</span></span>
-<span class="lineno">   68 </span>
-<span class="lineno">   69 </span>slotJSONQuery :: Bool -&gt; Slot -&gt; JSON.Query -&gt; Handler (JSON.Record (Id Container) JSON.Series)
-<span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">slotJSONQuery origQ o q = (slotJSON o `JSON.foldObjectIntoRec`) &lt;$&gt; JSON.jsonQuery (slotJSONField origQ o) q</span></span>
-<span class="lineno">   71 </span>
-<span class="lineno">   72 </span>slotDownloadName :: Slot -&gt; [T.Text]
-<span class="lineno">   73 </span><span class="decl"><span class="nottickedoff">slotDownloadName s = containerDownloadName (slotContainer s)</span></span>
-<span class="lineno">   74 </span>
-<span class="lineno">   75 </span>viewSlot :: Bool -&gt; ActionRoute (API, (Maybe (Id Volume), Id Slot))
-<span class="lineno">   76 </span><span class="decl"><span class="nottickedoff">viewSlot viewOrig = action GET (pathAPI &lt;/&gt; pathMaybe pathId &lt;/&gt; pathSlotId) $ \(api, (vi, i)) -&gt; withAuth $ do</span>
-<span class="lineno">   77 </span><span class="spaces">  </span><span class="nottickedoff">when (api == HTML &amp;&amp; isJust vi) angular</span>
-<span class="lineno">   78 </span><span class="spaces">  </span><span class="nottickedoff">c &lt;- getSlot PermissionPUBLIC vi i</span>
-<span class="lineno">   79 </span><span class="spaces">  </span><span class="nottickedoff">let v = (containerVolume . slotContainer) c</span>
-<span class="lineno">   80 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted</span>
-<span class="lineno">   81 </span><span class="spaces">  </span><span class="nottickedoff">case api of</span>
-<span class="lineno">   82 </span><span class="spaces">    </span><span class="nottickedoff">JSON -&gt; okResponse [] &lt;$&gt; (slotJSONQuery viewOrig c =&lt;&lt; peeks Wai.queryString)</span>
-<span class="lineno">   83 </span><span class="spaces">    </span><span class="nottickedoff">HTML</span>
-<span class="lineno">   84 </span><span class="spaces">      </span><span class="nottickedoff">| isJust vi -&gt; return $ okResponse [] $ BSC.pack $ show $ containerId $ containerRow $ slotContainer c</span>
-<span class="lineno">   85 </span><span class="spaces">      </span><span class="nottickedoff">| otherwise -&gt;</span>
-<span class="lineno">   86 </span><span class="spaces">          </span><span class="nottickedoff">peeks $ redirectRouteResponse movedPermanently301 [] (viewSlot viewOrig) (api, (Just ((volumeId . volumeRow . containerVolume . slotContainer) c), slotId c))</span></span>
-<span class="lineno">   87 </span>
-<span class="lineno">   88 </span>thumbSlot :: ActionRoute (Maybe (Id Volume), Id Slot)
-<span class="lineno">   89 </span><span class="decl"><span class="nottickedoff">thumbSlot = action GET (pathMaybe pathId &lt;/&gt; pathSlotId &lt;/&lt; &quot;thumb&quot;) $ \(vi, i) -&gt; withAuth $ do</span>
-<span class="lineno">   90 </span><span class="spaces">  </span><span class="nottickedoff">s &lt;- getSlot PermissionPUBLIC vi i</span>
-<span class="lineno">   91 </span><span class="spaces">  </span><span class="nottickedoff">let v = (containerVolume . slotContainer) s</span>
-<span class="lineno">   92 </span><span class="spaces">  </span><span class="nottickedoff">_ &lt;- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted, duplicated from above</span>
-<span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">e &lt;- lookupSlotSegmentThumb s</span>
-<span class="lineno">   94 </span><span class="spaces">  </span><span class="nottickedoff">maybe</span>
-<span class="lineno">   95 </span><span class="spaces">    </span><span class="nottickedoff">(peeks $ otherRouteResponse [] webFile (Just $ staticPath [&quot;images&quot;, &quot;draft.png&quot;]))</span>
-<span class="lineno">   96 </span><span class="spaces">    </span><span class="nottickedoff">(\as -&gt; peeks $ otherRouteResponse [] downloadAssetSegment (slotId $ view as, assetId $ assetRow $ view as))</span>
-<span class="lineno">   97 </span><span class="spaces">    </span><span class="nottickedoff">e</span></span>
+<span class="lineno">   33 </span>import Model.Container
+<span class="lineno">   34 </span>import Model.Excerpt
+<span class="lineno">   35 </span>import Model.Id
+<span class="lineno">   36 </span>import Model.Permission hiding (checkPermission)
+<span class="lineno">   37 </span>import Model.Record
+<span class="lineno">   38 </span>import Model.RecordSlot
+<span class="lineno">   39 </span>import Model.Slot
+<span class="lineno">   40 </span>import Model.Tag
+<span class="lineno">   41 </span>import Model.Volume
+<span class="lineno">   42 </span>import Store.Filename
+<span class="lineno">   43 </span>import qualified JSON
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>-- | Convert a 'Slot' into HTTP error responses if the lookup fails or is
+<span class="lineno">   46 </span>-- denied.
+<span class="lineno">   47 </span>--
+<span class="lineno">   48 </span>-- NOTE: Intentionally implemented exactly like getVolume. Implementations
+<span class="lineno">   49 </span>-- should be collected in a single module and merged.
+<span class="lineno">   50 </span>getSlot
+<span class="lineno">   51 </span>    :: Permission
+<span class="lineno">   52 </span>    -- ^ Requested permission
+<span class="lineno">   53 </span>    -&gt; Id Slot
+<span class="lineno">   54 </span>    -- ^ Slot to look up
+<span class="lineno">   55 </span>    -&gt; Handler Slot
+<span class="lineno">   56 </span>    -- ^ The slot, as requested (or a short-circuited error response)
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">getSlot requestedPerm sId = do</span>
+<span class="lineno">   58 </span><span class="spaces">    </span><span class="nottickedoff">res &lt;- accessSlot requestedPerm sId</span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="nottickedoff">case res of</span>
+<span class="lineno">   60 </span><span class="spaces">        </span><span class="nottickedoff">LookupFailed -&gt; result =&lt;&lt; peeks notFoundResponse</span>
+<span class="lineno">   61 </span><span class="spaces">        </span><span class="nottickedoff">AccessDenied -&gt; result =&lt;&lt; peeks forbiddenResponse</span>
+<span class="lineno">   62 </span><span class="spaces">        </span><span class="nottickedoff">AccessResult s -&gt; pure s</span></span>
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>-- | Look up a Slot and confirm that it is associated with the given Volume.
+<span class="lineno">   65 </span>--
+<span class="lineno">   66 </span>-- This method exists, presumably, so that we can construct urls like
+<span class="lineno">   67 </span>-- volume/:volId/slot/:slotId and make sure there's no funny business going on.
+<span class="lineno">   68 </span>getVolumeSlot
+<span class="lineno">   69 </span>    :: Id Volume
+<span class="lineno">   70 </span>    -- ^ Associated Volume
+<span class="lineno">   71 </span>    -&gt; Permission
+<span class="lineno">   72 </span>    -- ^ Requested permission
+<span class="lineno">   73 </span>    -&gt; Id Slot
+<span class="lineno">   74 </span>    -- ^ Slot to look up
+<span class="lineno">   75 </span>    -&gt; Handler Slot
+<span class="lineno">   76 </span>    -- ^ The slot, as requested (or a short-circuited error response)
+<span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">getVolumeSlot volId requestedPerm sId = do</span>
+<span class="lineno">   78 </span><span class="spaces">    </span><span class="nottickedoff">s &lt;- getSlot requestedPerm sId</span>
+<span class="lineno">   79 </span><span class="spaces">    </span><span class="nottickedoff">if volumeId (volumeRow (containerVolume (slotContainer s))) == volId</span>
+<span class="lineno">   80 </span><span class="spaces">        </span><span class="nottickedoff">then pure s</span>
+<span class="lineno">   81 </span><span class="spaces">        </span><span class="nottickedoff">else result =&lt;&lt; peeks notFoundResponse</span></span>
+<span class="lineno">   82 </span>
+<span class="lineno">   83 </span>slotJSONField
+<span class="lineno">   84 </span>    :: Bool
+<span class="lineno">   85 </span>    -&gt; Slot
+<span class="lineno">   86 </span>    -&gt; BS.ByteString
+<span class="lineno">   87 </span>    -&gt; Maybe BS.ByteString
+<span class="lineno">   88 </span>    -&gt; Handler (Maybe JSON.Encoding)
+<span class="lineno">   89 </span><span class="decl"><span class="nottickedoff">slotJSONField getOrig o &quot;assets&quot; _ = case getOrig of</span>
+<span class="lineno">   90 </span><span class="spaces">    </span><span class="nottickedoff">True -&gt;</span>
+<span class="lineno">   91 </span><span class="spaces">        </span><span class="nottickedoff">Just . JSON.mapRecords (assetSlotJSON False) &lt;$&gt; lookupOrigSlotAssets o -- public restricted consult volume soon</span>
+<span class="lineno">   92 </span><span class="spaces">    </span><span class="nottickedoff">False -&gt;</span>
+<span class="lineno">   93 </span><span class="spaces">        </span><span class="nottickedoff">Just . JSON.mapRecords (assetSlotJSON False) &lt;$&gt; lookupSlotAssets o</span>
+<span class="lineno">   94 </span><span class="spaces"></span><span class="nottickedoff">slotJSONField _ o &quot;records&quot; _ =  -- recordJSON should decide public restricted based on volume</span>
+<span class="lineno">   95 </span><span class="spaces">    </span><span class="nottickedoff">Just</span>
+<span class="lineno">   96 </span><span class="spaces">        </span><span class="nottickedoff">. JSON.mapRecords</span>
+<span class="lineno">   97 </span><span class="spaces">            </span><span class="nottickedoff">(\r -&gt;</span>
+<span class="lineno">   98 </span><span class="spaces">                </span><span class="nottickedoff">recordSlotJSON False r</span>
+<span class="lineno">   99 </span><span class="spaces">                    </span><span class="nottickedoff">`JSON.foldObjectIntoRec` (&quot;record&quot; JSON..=: recordJSON</span>
+<span class="lineno">  100 </span><span class="spaces">                                                </span><span class="nottickedoff">False</span>
+<span class="lineno">  101 </span><span class="spaces">                                                </span><span class="nottickedoff">(slotRecord r)</span>
+<span class="lineno">  102 </span><span class="spaces">                                             </span><span class="nottickedoff">)</span>
+<span class="lineno">  103 </span><span class="spaces">            </span><span class="nottickedoff">)</span>
+<span class="lineno">  104 </span><span class="spaces">        </span><span class="nottickedoff">&lt;$&gt; lookupSlotRecords o</span>
+<span class="lineno">  105 </span><span class="spaces"></span><span class="nottickedoff">slotJSONField _ o &quot;tags&quot; n = do</span>
+<span class="lineno">  106 </span><span class="spaces">    </span><span class="nottickedoff">tc &lt;- lookupSlotTagCoverage o (maybe 64 fst $ BSC.readInt =&lt;&lt; n)</span>
+<span class="lineno">  107 </span><span class="spaces">    </span><span class="nottickedoff">return $ Just $ JSON.pairs $ JSON.recordMap $ map tagCoverageJSON tc</span>
+<span class="lineno">  108 </span><span class="spaces"></span><span class="nottickedoff">slotJSONField _ o &quot;comments&quot; n = do</span>
+<span class="lineno">  109 </span><span class="spaces">    </span><span class="nottickedoff">c &lt;- lookupSlotComments o (maybe 64 fst $ BSC.readInt =&lt;&lt; n)</span>
+<span class="lineno">  110 </span><span class="spaces">    </span><span class="nottickedoff">return $ Just $ JSON.mapRecords commentJSON c</span>
+<span class="lineno">  111 </span><span class="spaces"></span><span class="nottickedoff">slotJSONField _ o &quot;excerpts&quot; _ =</span>
+<span class="lineno">  112 </span><span class="spaces">    </span><span class="nottickedoff">Just</span>
+<span class="lineno">  113 </span><span class="spaces">        </span><span class="nottickedoff">. JSON.mapObjects</span>
+<span class="lineno">  114 </span><span class="spaces">            </span><span class="nottickedoff">(\e -&gt; excerptJSON e &lt;&gt; &quot;asset&quot; JSON..= (view e :: Id Asset))</span>
+<span class="lineno">  115 </span><span class="spaces">        </span><span class="nottickedoff">&lt;$&gt; lookupSlotExcerpts o</span>
+<span class="lineno">  116 </span><span class="spaces"></span><span class="nottickedoff">slotJSONField _ o &quot;filename&quot; _ =</span>
+<span class="lineno">  117 </span><span class="spaces">    </span><span class="nottickedoff">return $ Just $ JSON.toEncoding $ makeFilename $ slotDownloadName o</span>
+<span class="lineno">  118 </span><span class="spaces"></span><span class="nottickedoff">slotJSONField _ _ _ _ = return Nothing</span></span>
+<span class="lineno">  119 </span>
+<span class="lineno">  120 </span>slotJSONQuery
+<span class="lineno">  121 </span>    :: Bool
+<span class="lineno">  122 </span>    -&gt; Slot
+<span class="lineno">  123 </span>    -&gt; JSON.Query
+<span class="lineno">  124 </span>    -&gt; Handler (JSON.Record (Id Container) JSON.Series)
+<span class="lineno">  125 </span><span class="decl"><span class="nottickedoff">slotJSONQuery origQ o q =</span>
+<span class="lineno">  126 </span><span class="spaces">    </span><span class="nottickedoff">(slotJSON o `JSON.foldObjectIntoRec`)</span>
+<span class="lineno">  127 </span><span class="spaces">        </span><span class="nottickedoff">&lt;$&gt; JSON.jsonQuery (slotJSONField origQ o) q</span></span>
+<span class="lineno">  128 </span>
+<span class="lineno">  129 </span>slotDownloadName :: Slot -&gt; [T.Text]
+<span class="lineno">  130 </span><span class="decl"><span class="nottickedoff">slotDownloadName s = containerDownloadName (slotContainer s)</span></span>
+<span class="lineno">  131 </span>
+<span class="lineno">  132 </span>viewSlot :: Bool -&gt; ActionRoute (API, (Maybe (Id Volume), Id Slot))
+<span class="lineno">  133 </span><span class="decl"><span class="nottickedoff">viewSlot viewOrig =</span>
+<span class="lineno">  134 </span><span class="spaces">    </span><span class="nottickedoff">action GET (pathAPI &lt;/&gt; pathMaybe pathId &lt;/&gt; pathSlotId)</span>
+<span class="lineno">  135 </span><span class="spaces">        </span><span class="nottickedoff">$ \(api, (vi, i)) -&gt; withAuth $ do</span>
+<span class="lineno">  136 </span><span class="spaces">            </span><span class="nottickedoff">when (api == HTML &amp;&amp; isJust vi) angular</span>
+<span class="lineno">  137 </span><span class="spaces">            </span><span class="nottickedoff">c &lt;- (maybe getSlot getVolumeSlot vi) PermissionPUBLIC i</span>
+<span class="lineno">  138 </span><span class="spaces">            </span><span class="nottickedoff">let v = (containerVolume . slotContainer) c</span>
+<span class="lineno">  139 </span><span class="spaces">            </span><span class="nottickedoff">_ &lt;- maybeAction</span>
+<span class="lineno">  140 </span><span class="spaces">                </span><span class="nottickedoff">(if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted</span>
+<span class="lineno">  141 </span><span class="spaces">            </span><span class="nottickedoff">case api of</span>
+<span class="lineno">  142 </span><span class="spaces">                </span><span class="nottickedoff">JSON -&gt;</span>
+<span class="lineno">  143 </span><span class="spaces">                    </span><span class="nottickedoff">okResponse []</span>
+<span class="lineno">  144 </span><span class="spaces">                        </span><span class="nottickedoff">&lt;$&gt; (slotJSONQuery viewOrig c =&lt;&lt; peeks Wai.queryString)</span>
+<span class="lineno">  145 </span><span class="spaces">                </span><span class="nottickedoff">HTML</span>
+<span class="lineno">  146 </span><span class="spaces">                    </span><span class="nottickedoff">| isJust vi</span>
+<span class="lineno">  147 </span><span class="spaces">                    </span><span class="nottickedoff">-&gt; return</span>
+<span class="lineno">  148 </span><span class="spaces">                        </span><span class="nottickedoff">$ okResponse []</span>
+<span class="lineno">  149 </span><span class="spaces">                        </span><span class="nottickedoff">$ BSC.pack</span>
+<span class="lineno">  150 </span><span class="spaces">                        </span><span class="nottickedoff">$ show</span>
+<span class="lineno">  151 </span><span class="spaces">                        </span><span class="nottickedoff">$ containerId</span>
+<span class="lineno">  152 </span><span class="spaces">                        </span><span class="nottickedoff">$ containerRow</span>
+<span class="lineno">  153 </span><span class="spaces">                        </span><span class="nottickedoff">$ slotContainer c</span>
+<span class="lineno">  154 </span><span class="spaces">                    </span><span class="nottickedoff">| otherwise</span>
+<span class="lineno">  155 </span><span class="spaces">                    </span><span class="nottickedoff">-&gt; peeks $ redirectRouteResponse</span>
+<span class="lineno">  156 </span><span class="spaces">                        </span><span class="nottickedoff">movedPermanently301</span>
+<span class="lineno">  157 </span><span class="spaces">                        </span><span class="nottickedoff">[]</span>
+<span class="lineno">  158 </span><span class="spaces">                        </span><span class="nottickedoff">(viewSlot viewOrig)</span>
+<span class="lineno">  159 </span><span class="spaces">                        </span><span class="nottickedoff">( api</span>
+<span class="lineno">  160 </span><span class="spaces">                        </span><span class="nottickedoff">, ( Just</span>
+<span class="lineno">  161 </span><span class="spaces">                            </span><span class="nottickedoff">((volumeId</span>
+<span class="lineno">  162 </span><span class="spaces">                             </span><span class="nottickedoff">. volumeRow</span>
+<span class="lineno">  163 </span><span class="spaces">                             </span><span class="nottickedoff">. containerVolume</span>
+<span class="lineno">  164 </span><span class="spaces">                             </span><span class="nottickedoff">. slotContainer</span>
+<span class="lineno">  165 </span><span class="spaces">                             </span><span class="nottickedoff">)</span>
+<span class="lineno">  166 </span><span class="spaces">                                </span><span class="nottickedoff">c</span>
+<span class="lineno">  167 </span><span class="spaces">                            </span><span class="nottickedoff">)</span>
+<span class="lineno">  168 </span><span class="spaces">                          </span><span class="nottickedoff">, slotId c</span>
+<span class="lineno">  169 </span><span class="spaces">                          </span><span class="nottickedoff">)</span>
+<span class="lineno">  170 </span><span class="spaces">                        </span><span class="nottickedoff">)</span></span>
+<span class="lineno">  171 </span>
+<span class="lineno">  172 </span>thumbSlot :: ActionRoute (Maybe (Id Volume), Id Slot)
+<span class="lineno">  173 </span><span class="decl"><span class="nottickedoff">thumbSlot =</span>
+<span class="lineno">  174 </span><span class="spaces">    </span><span class="nottickedoff">action GET (pathMaybe pathId &lt;/&gt; pathSlotId &lt;/&lt; &quot;thumb&quot;) $ \(vi, i) -&gt;</span>
+<span class="lineno">  175 </span><span class="spaces">        </span><span class="nottickedoff">withAuth $ do</span>
+<span class="lineno">  176 </span><span class="spaces">            </span><span class="nottickedoff">s &lt;- (maybe getSlot getVolumeSlot vi) PermissionPUBLIC i</span>
+<span class="lineno">  177 </span><span class="spaces">            </span><span class="nottickedoff">let v = (containerVolume . slotContainer) s</span>
+<span class="lineno">  178 </span><span class="spaces">            </span><span class="nottickedoff">_ &lt;- maybeAction</span>
+<span class="lineno">  179 </span><span class="spaces">                </span><span class="nottickedoff">(if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted, duplicated from above</span>
+<span class="lineno">  180 </span><span class="spaces">            </span><span class="nottickedoff">e &lt;- lookupSlotSegmentThumb s</span>
+<span class="lineno">  181 </span><span class="spaces">            </span><span class="nottickedoff">maybe</span>
+<span class="lineno">  182 </span><span class="spaces">                </span><span class="nottickedoff">(peeks $ otherRouteResponse</span>
+<span class="lineno">  183 </span><span class="spaces">                    </span><span class="nottickedoff">[]</span>
+<span class="lineno">  184 </span><span class="spaces">                    </span><span class="nottickedoff">webFile</span>
+<span class="lineno">  185 </span><span class="spaces">                    </span><span class="nottickedoff">(Just $ staticPath [&quot;images&quot;, &quot;draft.png&quot;])</span>
+<span class="lineno">  186 </span><span class="spaces">                </span><span class="nottickedoff">)</span>
+<span class="lineno">  187 </span><span class="spaces">                </span><span class="nottickedoff">(\as -&gt; peeks $ otherRouteResponse</span>
+<span class="lineno">  188 </span><span class="spaces">                    </span><span class="nottickedoff">[]</span>
+<span class="lineno">  189 </span><span class="spaces">                    </span><span class="nottickedoff">downloadAssetSegment</span>
+<span class="lineno">  190 </span><span class="spaces">                    </span><span class="nottickedoff">(slotId $ view as, assetId $ assetRow $ view as)</span>
+<span class="lineno">  191 </span><span class="spaces">                </span><span class="nottickedoff">)</span>
+<span class="lineno">  192 </span><span class="spaces">                </span><span class="nottickedoff">e</span></span>
 
 </pre>
 </body>

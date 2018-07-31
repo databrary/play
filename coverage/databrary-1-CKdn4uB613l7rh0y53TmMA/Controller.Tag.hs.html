@@ -66,7 +66,7 @@ span.spaces    { background: white }
 <span class="lineno">   50 </span><span class="decl"><span class="nottickedoff">postTag = action POST (pathAPI &lt;/&gt;&gt; pathSlotId &lt;/&gt; pathTagId) $ \(api, si, TagId kw tn) -&gt; withAuth $ do</span>
 <span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">guardVerfHeader</span>
 <span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">u &lt;- authAccount</span>
-<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">s &lt;- getSlot (if kw then PermissionEDIT else PermissionSHARED) Nothing si</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">s &lt;- getSlot (if kw then PermissionEDIT else PermissionSHARED) si</span>
 <span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">t &lt;- addTag tn</span>
 <span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">let tu = TagUse t kw u s</span>
 <span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">r &lt;- addTagUse tu</span>
@@ -84,7 +84,7 @@ span.spaces    { background: white }
 <span class="lineno">   68 </span><span class="decl"><span class="nottickedoff">deleteTag = action DELETE (pathAPI &lt;/&gt;&gt; pathSlotId &lt;/&gt; pathTagId) $ \(api, si, TagId kw tn) -&gt; withAuth $ do</span>
 <span class="lineno">   69 </span><span class="spaces">  </span><span class="nottickedoff">guardVerfHeader</span>
 <span class="lineno">   70 </span><span class="spaces">  </span><span class="nottickedoff">u &lt;- authAccount</span>
-<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">s &lt;- getSlot (if kw then PermissionEDIT else PermissionSHARED) Nothing si</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">s &lt;- getSlot (if kw then PermissionEDIT else PermissionSHARED) si</span>
 <span class="lineno">   72 </span><span class="spaces">  </span><span class="nottickedoff">t &lt;- maybeAction =&lt;&lt; lookupTag tn</span>
 <span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">let tu = TagUse t kw u s</span>
 <span class="lineno">   74 </span><span class="spaces">  </span><span class="nottickedoff">_r &lt;- removeTagUse tu</span>
