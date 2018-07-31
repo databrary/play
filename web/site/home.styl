@@ -125,6 +125,8 @@ html
 
 .arrow-a
   text-align center
+  display block
+  width 74px
   &:hover
     .arrow-down
       border 0.5em solid #7fdfff
@@ -576,27 +578,19 @@ div
     vertical-align top
     font-size 1.1em
 
-.alignleft, .alignright
-  width 200px
-  height 200px
-  border-radius 50%
-  margin-bottom 30px
-
-.alignleft
-  float left
-  margin-right 50px
-  @media screen and (max-width:grid-mobile-width)
-    float none
-    margin 0 auto
-
-.alignright
-  float right
-  margin-left 50px
-  @media screen and (max-width:grid-mobile-width)
-    float none
-    margin 0 auto
-
 .center-container 
+  a
+    display inline-block
+    float left
+    margin-right 50px
+    img
+      width 200px
+      height 200px
+      border-radius 50%
+      margin-bottom 30px
+    @media screen and (max-width:grid-mobile-width)
+      float none
+      margin 0 auto
   @media screen and (max-width:grid-mobile-width)
     width 100%
     text-align center

@@ -10,10 +10,10 @@
         <button class="login-button">Login</button>
       </a>
       <a ng-href="{{::page.router.profile()}}" ng-show="::page.models.Login.isLoggedIn()">
-        <button class="login-button">Your Profile</button>
+        <button class="login-button" tabindex="-1">Your Profile</button>
       </a>
       <a ng-href="{{::page.router.register()}}">
-        <button class="register-button">Register</button>
+        <button class="register-button" tabindex="-1">Register</button>
       </a>
     </div>
     <div class="home-max-width">
@@ -68,7 +68,7 @@
         <p>Read Databrary's <a href="https://www.databrary.org/resources/data-sharing-manifesto.html">Data Sharing Manifesto</a>, and login or register now to get started.</p>
       </div>
     </div>
-    <div class="arrow-container"><a class="arrow-a"><span class="arrow-down"></span></a></div>
+    <div class="arrow-container"><a class="arrow-a" href="#"><span class="arrow-down"></span></a></div>
   </div>
   <div class="p-container section">
   <h2 class="header">Video as data and documentation</h2>
@@ -166,7 +166,7 @@
       <!--  /stream  -->
     </div>
     <!-- NYU Slider -->
-    <div class="arrow-container"><a class="arrow-a"><span class="arrow-down"></span></a></div>
+    <div class="arrow-container"><a class="arrow-a" href="#"><span class="arrow-down"></span></a></div>
   </div>
   <!--testimonials begins-->
   <div class="testimonial-container section">
@@ -175,7 +175,7 @@
       <div class="testimonial">
         <div class="center-container">
           <a target="_blank" href="/party/546">
-            <img src="/web/images/testimonials/kathy-hirsh-pasek.jpg" class="alignleft">
+            <img src="/web/images/testimonials/kathy-hirsh-pasek.jpg">
           </a>
         </div>
         <div class="text">
@@ -189,7 +189,7 @@
       <div class="testimonial">
         <div class="center-container">
           <a target="_blank" href="/party/11">
-            <img src="/web/images/testimonials/catherine_tamis_leMonda.jpg" class="alignleft">
+            <img src="/web/images/testimonials/catherine_tamis_leMonda.jpg">
           </a>
         </div>
         <div class="text">
@@ -203,7 +203,7 @@
       <div class="testimonial">
         <div class="center-container">
           <a target="_blank" href="https://www.databrary.org/community/board.html">
-            <img src="/web/images/testimonials/todd_gureckis.jpg" class="alignleft">
+            <img src="/web/images/testimonials/todd_gureckis.jpg">
           </a>
         </div>
         <div class="text">
@@ -217,7 +217,7 @@
       <div class="testimonial">
         <div class="center-container">
           <a target="_blank" href="/party/32">
-            <img src="/web/images/testimonials/lana_karasik.jpg" class="alignleft">
+            <img src="/web/images/testimonials/lana_karasik.jpg">
           </a>
         </div>
         <div class="text">
@@ -231,7 +231,7 @@
       <div class="testimonial">
         <div class="center-container">
           <a target="_blank" href="/party/1117">
-            <img src="/web/images/testimonials/vikram_jaswal.jpg" class="alignleft">
+            <img src="/web/images/testimonials/vikram_jaswal.jpg">
           </a>
         </div>
         <div class="text">
@@ -247,7 +247,7 @@
       <div class="stream-nav right" ng-click="plusDivs(+1)">
       </div>
     </div>
-    <div class="arrow-container"><a class="arrow-a"><span class="arrow-down"></span></a></div>
+    <div class="arrow-container"><a class="arrow-a" href="#"><span class="arrow-down"></span></a></div>
   </div>
   <!--testimonials ends-->
   <!--stat begins-->
