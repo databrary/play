@@ -82,14 +82,17 @@ html
   margin 0 auto
   max-width 1100px
 
-.green-top
+.four-recs > a
+  margin 0 20px 20px 0
   width 100%
   max-width 500px
+  display inline-block
+  vertical-align top
+
+.green-top
   padding 15px
   border-radius 3px
-  margin 0 20px 20px 0
   color #333
-  display inline-block
   vertical-align top
   text-align left
   border-top 3px solid #b2ddd4
@@ -362,6 +365,8 @@ div
     &.features
       width calc(100% - .4rem)
       height 100%
+      &>a
+        display block
       span
         font-size 2.666666666666667rem
         font-weight 600
@@ -658,6 +663,8 @@ div
       margin 20px 10px
     vertical-align middle
     position relative
+    a
+      display block
     img
       width 100%
       height auto
