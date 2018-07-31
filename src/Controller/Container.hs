@@ -81,11 +81,11 @@ containerForm c = do
 
 viewContainerEdit :: ActionRoute (Maybe (Id Volume), Id Slot)
 viewContainerEdit = action GET (pathHTML >/> pathMaybe pathId </> pathSlotId </< "edit") $ \(vi, ci) -> withAuth $ do
-  when (isJust vi) $ angular
+  when (isJust vi) angular
   c <- getContainer PermissionEDIT vi ci False
   unless (isJust vi) $
     result =<< peeks (redirectRouteResponse movedPermanently301 [] viewContainerEdit (Just ((volumeId . volumeRow . containerVolume) c), containerSlotId (view c)))
-  return $ okResponse [] $ ("" :: String) -- should never get here
+  return $ okResponse [] ("" :: String) -- should never get here
   -- peeks $ blankForm . htmlContainerEdit (Right c)
 
 createContainer :: ActionRoute (Id Volume)

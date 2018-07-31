@@ -69,7 +69,7 @@ assetZipEntry2 isOrig containerDir AssetSlot{ slotAsset = a@Asset{ assetRow = ar
         containerDir `BS.append` (case isOrig of
           False -> makeFilename (assetDownloadName True False ar) `addFormatExtension` assetFormat ar
           True -> makeFilename (assetDownloadName False True ar) `addFormatExtension` assetFormat ar)
-  entrySelector <- liftIO $ (parseRelFile (BSC.unpack entryName) >>= ZIP.mkEntrySelector)
+  entrySelector <- liftIO (parseRelFile (BSC.unpack entryName) >>= ZIP.mkEntrySelector)
   return
     (do
        ZIP.sinkEntry ZIP.Store (CND.sourceFileBS (BSC.unpack f)) entrySelector
@@ -99,8 +99,8 @@ volumeZipEntry2 isOrig v top cs csv al = do
   let zipDir = makeFilename (volumeDownloadName v ++ if idSetIsFull cs then [] else ["PARTIAL"]) <> "/"
   zt <- mapM (ent zipDir) at
   zb <- mapM (ent (zipDir <> "sessions/")) ab
-  descEntrySelector <- liftIO $ (parseRelFile (BSC.unpack zipDir <> "description.html") >>= ZIP.mkEntrySelector)
-  spreadEntrySelector <- liftIO $ (parseRelFile (BSC.unpack zipDir <> "spreadsheet.csv") >>= ZIP.mkEntrySelector)
+  descEntrySelector <- liftIO (parseRelFile (BSC.unpack zipDir <> "description.html") >>= ZIP.mkEntrySelector)
+  spreadEntrySelector <- liftIO (parseRelFile (BSC.unpack zipDir <> "spreadsheet.csv") >>= ZIP.mkEntrySelector)
   return
     (do
        sequence_ zt
@@ -128,13 +128,13 @@ zipResponse2 n zipAddActions = do
   liftIO $ ZIP.createBlindArchive h $ do
     ZIP.setArchiveComment (TE.decodeUtf8 comment)
     zipAddActions
-  sz <- liftIO $ (IO.hSeek h IO.SeekFromEnd 0 >> IO.hTell h)
+  sz <- liftIO (IO.hSeek h IO.SeekFromEnd 0 >> IO.hTell h)
   liftIO $ IO.hSeek h IO.AbsoluteSeek 0
   return $ okResponse
     [ (hContentType, "application/zip")
     , ("content-disposition", "attachment; filename=" <> quoteHTTP (n <.> "zip"))
     , (hCacheControl, "max-age=31556926, private")
-    , (hContentLength, BSC.pack $ show $ sz)
+    , (hContentLength, BSC.pack $ show sz)
     ] (CND.bracketP (return h) IO.hClose CND.sourceHandle :: CND.Source (CND.ResourceT IO) BS.ByteString)
 
 checkAsset :: AssetSlot -> Bool
@@ -151,7 +151,7 @@ containerZipEntryCorrectAssetSlots2 isOrig prefix c = do
                       return $ pdfs ++ origs
                      False -> return c'
   let checkedAssetSlots = filter checkAsset assetSlots
-  zipActs <- containerZipEntry2 isOrig prefix c $ checkedAssetSlots
+  zipActs <- containerZipEntry2 isOrig prefix c checkedAssetSlots
   pure (zipActs, null checkedAssetSlots)
 
 zipContainer :: Bool -> ActionRoute (Maybe (Id Volume), Id Slot)
@@ -164,7 +164,7 @@ zipContainer isOrig =
     let v = containerVolume c
     _ <- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted
     (zipActs, isEmpty) <- containerZipEntryCorrectAssetSlots2 isOrig "" c
-    auditSlotDownload (not $ isEmpty) (containerSlot c)
+    auditSlotDownload (not isEmpty) (containerSlot c)
     zipResponse2 ("databrary-" <> BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) <> "-" <> BSC.pack (show $ containerId $ containerRow c)) zipActs
 
 getVolumeInfo :: Id Volume -> Handler (Volume, IdSet Container, [AssetSlot])
@@ -174,7 +174,7 @@ getVolumeInfo vi = do
   s <- peeks requestIdSet
   -- let isMember = maybe (const False) (\c -> RS.member (containerId $ containerRow $ slotContainer $ c))
   -- non-exhaustive pattern found here ...v , implment in case of Nothing (Keep in mind originalAssets will not have containers, or Volumes)
-  a <- filter (\a@AssetSlot{ assetSlot = Just c } -> checkAsset a && RS.member (containerId $ containerRow $ slotContainer $ c) s) <$> lookupVolumeAssetSlots v False
+  a <- filter (\a@AssetSlot{ assetSlot = Just c } -> checkAsset a && RS.member (containerId $ containerRow $ slotContainer c) s) <$> lookupVolumeAssetSlots v False
   return (v, s, a)
 
 filterFormat :: [AssetSlot] -> (Format -> Bool)-> [AssetSlot]

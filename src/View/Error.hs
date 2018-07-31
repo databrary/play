@@ -12,8 +12,8 @@ import View.Template
 
 htmlNotFound :: RequestContext -> H.Html
 htmlNotFound req = htmlTemplate req (Just "Not found") $ \_ ->
-  void $ "The resource you requested may no longer be available."
+  void "The resource you requested may no longer be available."
 
 htmlForbidden :: RequestContext -> H.Html
 htmlForbidden req = htmlTemplate req (Just "Access denied") $ \_ ->
-  void $ "You do not have access to the requested resource."
+  void "You do not have access to the requested resource."

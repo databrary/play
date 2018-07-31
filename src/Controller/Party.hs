@@ -291,9 +291,9 @@ csvDuplicatePartiesHandler = withAuth $ do
   checkMemberADMIN
   ps <- getDuplicateParties
   return $ csvResponse
-    [ [ BSC.pack $ show $ partyId $ partyRow1
-      , TE.encodeUtf8 $ partySortName $ partyRow1
-      , maybeEmpty TE.encodeUtf8 (partyPreName $ partyRow1)
+    [ [ BSC.pack $ show $ partyId partyRow1
+      , TE.encodeUtf8 $ partySortName partyRow1
+      , maybeEmpty TE.encodeUtf8 (partyPreName partyRow1)
       ]
     | partyRow1 <- ps ] "party"
   where

@@ -16,6 +16,6 @@ data GetCitationRequest = GetCitationRequest URI
 
 getCitationHandler :: Action -- TODO: GET only
 getCitationHandler = withoutAuth $ do
-  GetCitationRequest url <- runForm Nothing $ (GetCitationRequest <$> ("url" .:> deform))
+  GetCitationRequest url <- runForm Nothing (GetCitationRequest <$> ("url" .:> deform))
   cite <- maybeAction =<< focusIO (lookupCitation url)
   return $ okResponse [] $ JSON.toEncoding cite

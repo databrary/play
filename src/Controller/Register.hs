@@ -69,7 +69,7 @@ viewRegisterAction = withAuth $ do
     (\_ -> peeks $ otherRouteResponse [] viewParty (HTML, TargetProfile))
 
 postRegister :: ActionRoute API
-postRegister = action POST (pathAPI </< "user" </< "register") $ postRegisterAction
+postRegister = action POST (pathAPI </< "user" </< "register") postRegisterAction
 
 data RegisterRequest = RegisterRequest T.Text (Maybe T.Text) BSC.ByteString (Maybe T.Text) Bool
 
@@ -134,7 +134,7 @@ viewPasswordResetAction = withoutAuth $ do
   peeks $ blankForm . htmlPasswordReset
 
 postPasswordReset :: ActionRoute API
-postPasswordReset = action POST (pathAPI </< "user" </< "password") $ postPasswordResetAction
+postPasswordReset = action POST (pathAPI </< "user" </< "password") postPasswordResetAction
 
 data PasswordResetRequest = PasswordResetRequest BSC.ByteString
 

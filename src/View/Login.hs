@@ -22,7 +22,7 @@ htmlLogin = htmlForm "Login" postLogin HTML (do
 
 htmlUserForm :: Account -> RequestContext -> FormHtml f
 htmlUserForm a = htmlForm "Edit account" postUser HTML (do
-  field "auth" $ inputPassword
+  field "auth" inputPassword
   field "email" $ inputText $ Just $ BSC.unpack $ accountEmail a
   "password" .:> do
     field "once" inputPassword

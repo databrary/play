@@ -41,5 +41,5 @@ htmlIngestForm v s = htmlForm
     _ -> do
       field "run" $ inputCheckbox False
       field "overwrite" $ inputCheckbox False
-      field "json" $ inputFile)
+      field "json" inputFile)
   (htmlIngestStatus s)

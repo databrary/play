@@ -70,7 +70,7 @@ outputParser (OutputJoin mb f ol) = do
     n <- lift $ TH.newName "cm"
     a <- outputParser (outputMaybe o)
     (bl, al) <- bindArgs m l
-    return $ (TH.BindS (TH.VarP n) a : bl, TH.VarE n : al)
+    return (TH.BindS (TH.VarP n) a : bl, TH.VarE n : al)
   bindArgs (True:m) (o:l) = do
     a <- outputParser o
     second (a:) <$> bindArgs m l
