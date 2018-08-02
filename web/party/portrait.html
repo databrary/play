@@ -1,7 +1,8 @@
 <aside class="portrait ng-cloak">
   <a ng-href="{{::party.route()}}">
+    <span class="accessible-hidden">Go to user page</span>
     <figure class="figure-avatar" ng-class="::{inst: party.institution}">
-      <img ng-src="{{::party.avatarRoute()}}">
+      <img ng-src="{{::party.avatarRoute()}}" alt="user avatar">
     </figure>
   </a>
 

@@ -84,27 +84,27 @@ htmlFooter = H.footer H.! HA.id "site-footer" H.! HA.class_ "site-footer" $
       H.ul H.! HA.class_ "site-footer-grants" $ do
         H.li $
           H.a H.! HA.href "http://www.nyu.edu" $
-            H.img H.! HA.src "/web/images/grants/nyu-small.jpg" H.! HA.class_ "nyu"
+            H.img H.! HA.src "/web/images/grants/nyu-small.jpg" H.! HA.class_ "nyu" H.! HA.alt "funder NYU logo"
         H.li $
           H.a H.! HA.href "http://www.psu.edu" $
-            H.img H.! HA.src "/web/images/grants/pennstate.png" H.! HA.class_ "psu"
+            H.img H.! HA.src "/web/images/grants/pennstate.png" H.! HA.class_ "psu" H.! HA.alt "funder Penn State logo"
         H.li $
           H.a H.! HA.href "http://www.nsf.gov/awardsearch/showAward?AWD_ID=1238599&HistoricalAwards=false" $ do
-            H.img H.! HA.src "/web/images/grants/nsf.png" H.! HA.class_ "nsf"
+            H.img H.! HA.src "/web/images/grants/nsf.png" H.! HA.class_ "nsf" H.! HA.alt "funder NSF logo"
             " BCS-1238599"
         H.li $
           H.a H.! HA.href "http://projectreporter.nih.gov/project_info_description.cfm?aid=8531595&icde=15908155&ddparam=&ddvalue=&ddsub=&cr=1&csb=default&cs=ASC" $ do
-            H.img H.! HA.src "/web/images/grants/nih.png" H.! HA.class_ "nih"
+            H.img H.! HA.src "/web/images/grants/nih.png" H.! HA.class_ "nih" H.! HA.alt "funder NICHD logo"
             " U01-HD-076595"
         H.li $
           H.a H.! HA.href "https://www.srcd.org/" $
-            H.img H.! HA.src "/web/images/grants/srcd.png" H.! HA.class_ "srcd"
+            H.img H.! HA.src "/web/images/grants/srcd.png" H.! HA.class_ "srcd" H.! HA.alt "funder SRCD logo"
         H.li $
           H.a H.! HA.href "https://sloan.org/" $
-            H.img H.! HA.src "/web/images/grants/sloan.png" H.! HA.class_ "sloan"
+            H.img H.! HA.src "/web/images/grants/sloan.png" H.! HA.class_ "sloan" H.! HA.alt "funder Sloan logo"
         H.li $
           H.a H.! HA.href "http://www.legofoundation.com" $
-            H.img H.! HA.src "/web/images/grants/lego.png" H.! HA.class_ "lego"
+            H.img H.! HA.src "/web/images/grants/lego.png" H.! HA.class_ "lego" H.! HA.alt "funder Lego logo"
       H.div H.! HA.class_ "site-footer-legal col" $
         H.p $ do
           void "Each dataset on Databrary represents an individual work owned by the party who contributed it. Data on Databrary are provided for non-commercial use and are subject to the terms of use outlined in the "
