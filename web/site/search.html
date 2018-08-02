@@ -31,8 +31,8 @@
         <div class="search-filter">
           Contains data released<br/>
           <input type="radio" ng-model="fields.release" ng-value="::undefined" ng-change="searchVolumes()" id="anyRelease"><label for="anyRelease">At any level</label><br/>
-          <input type="radio" ng-model="fields.release" value="EXCERPTS OR PUBLIC" ng-change="searchVolumes()" id="excerpt"><label for="excerpt"><span class="icon release EXCERPTS" hint="release-EXCERPTS"></span>For presentation use</label><br/>
-          <input type="radio" ng-model="fields.release" value="PUBLIC" ng-change="searchVolumes()" id="public"><label for="public"><span class="icon release PUBLIC" hint="release-PUBLIC"></span>For public use</label>
+          <input type="radio" ng-model="fields.release" value="EXCERPTS OR PUBLIC" ng-change="searchVolumes()" id="excerpt"><label for="excerpt"><span class="icon release EXCERPTS" hint="release-EXCERPTS" role="img" aria-label="learning audiences icon"></span>For presentation use</label><br/>
+          <input type="radio" ng-model="fields.release" value="PUBLIC" ng-change="searchVolumes()" id="public"><label for="public"><span class="icon release PUBLIC" hint="release-PUBLIC" role="img" aria-label="public icon"></span>For public use</label>
         </div>
         <div class="search-filter">
           Contains tag

@@ -53,10 +53,8 @@ selectTargetNotification = selectJoin '($)
     $ selectPartyRow `fromAlias` "agent"
   , maybeJoinOn "notification.party = nparty.id"
     $ selectPartyRow `fromAlias` "nparty"
-  , maybeJoinOn "notification.volume = volume.id"
-    $ selectVolumeRow
-  , maybeJoinOn "notification.tag = tag.id"
-    $ selectTag
+  , maybeJoinOn "notification.volume = volume.id" selectVolumeRow
+  , maybeJoinOn "notification.tag = tag.id" selectTag
   ]
 
 selectNotification :: Selector -- ^ @'Notification'@

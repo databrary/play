@@ -981,7 +981,7 @@ instance Monoid PartyFilter where
 partyFilter :: PartyFilter -> Identity -> BS.ByteString
 partyFilter PartyFilter{..} ident = BS.concat
   [ withq partyFilterAuthorization (const " JOIN authorize_view ON party.id = child AND parent = 0")
-  , " WHERE id > 0 AND id != ", pgLiteralRep (partyId $ partyRow $ staffParty)
+  , " WHERE id > 0 AND id != ", pgLiteralRep (partyId $ partyRow staffParty)
   , withq partyFilterQuery (\n -> " AND " <> queryVal <> " ILIKE " <> pgLiteralRep (wordPat n))
   , withq partyFilterAuthorization (\a -> " AND site = " <> pgSafeLiteral a)
   , withq partyFilterInstitution (\i -> if i then " AND account.id IS NULL" else " AND account.password IS NOT NULL")

@@ -139,7 +139,7 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
     => Container -> String -> JE.ParseT T.Text m Container
   container topc dir = do
     cid <- JE.keyMay "id" $ Id <$> JE.asIntegral
-    key <- JE.key "key" $ asKey
+    key <- JE.key "key" asKey
     c' <- lift (lookupIngestContainer vol key)
     c <- maybe
       (do
@@ -218,7 +218,7 @@ ingestJSON vol jdata run overwrite = runExceptT $ do
   record = do
     -- handle record shell
     (rid :: Maybe (Id Record)) <- JE.keyMay "id" $ Id <$> JE.asIntegral -- insert = nothing, update = just id
-    (key :: IngestKey) <- JE.key "key" $ asKey
+    (key :: IngestKey) <- JE.key "key" asKey
     (mIngestRecord :: Maybe Record) <- lift (lookupIngestRecord vol key)
     (r :: Record) <- maybe
       -- first run of any ingest for this record. could be updating or insert, but need an ingest entry

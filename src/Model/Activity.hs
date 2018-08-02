@@ -91,7 +91,7 @@ lookupPartyActivity p = do
   pa <- chainPrev (const ())
     <$> dbQuery $(selectQuery selectActivityParty $ "WHERE party.id = ${partyId $ partyRow p} AND " ++ activityQual)
   ca <- chainPrev (const ()) . maskPasswords
-    <$> dbQuery $(selectQuery selectActivityAccount $ "WHERE account.id = ${partyId $ partyRow p} ORDER BY audit_time") -- unqual: include logins
+    <$> dbQuery $(selectQuery selectActivityAccount "WHERE account.id = ${partyId $ partyRow p} ORDER BY audit_time") -- unqual: include logins
   aa <- chainPrev (partyId . partyRow . authorizeChild . authorization . activityAuthorize)
     <$> dbQuery $(selectQuery (selectActivityAuthorize 'p 'ident) $ "WHERE " ++ activityQual)
   return $ mergeActivities [pa, ca, aa]

@@ -218,7 +218,7 @@ volumeJSONQuery vol mAccesses q =
       expandedVolJSONcaching :: StateT VolumeCache Handler (JSON.Record (Id Volume) JSON.Series)
       expandedVolJSONcaching = (\series -> volumeJSON vol mAccesses `JSON.foldObjectIntoRec` series) <$> seriesCaching
   in
-    runVolumeCache $ expandedVolJSONcaching
+    runVolumeCache expandedVolJSONcaching
 
 volumeDownloadName :: Volume -> [T.Text]
 volumeDownloadName v =

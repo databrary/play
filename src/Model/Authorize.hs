@@ -86,7 +86,7 @@ lookupAuthorize aFilter child parent =
 lookupAuthorizeParent :: (MonadDB c m, MonadHasIdentity c m) => Party -> Id Party -> m (Maybe Authorize)
 lookupAuthorizeParent child parent = do
   ident <- peek
-  dbQuery1 $ $(selectQuery (selectAuthorizeParent 'child 'ident) "$WHERE authorize.parent = ${parent} AND (expires IS NULL OR expires > CURRENT_TIMESTAMP)")
+  dbQuery1 $(selectQuery (selectAuthorizeParent 'child 'ident) "$WHERE authorize.parent = ${parent} AND (expires IS NULL OR expires > CURRENT_TIMESTAMP)")
 
 -- | Get the core active authorization entry between a child and parent, after inheritance has been applied.
 -- Override authorize_view for the corner case of nobody as both parent and child.

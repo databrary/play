@@ -482,11 +482,14 @@ app.directive 'spreadsheet', [
               icon = a.appendChild(document.createElement('img'))
               asset = info.asset
               icon.src = asset.icon
+              icon.alt = "format-" + asset.format.extension + "-icon"
               icon.className = "format hint-format-" + asset.format.extension
               t = {asset:asset.id}
               a.setAttribute('href', if Editing then slot.editRoute(t) else slot.route(t))
               icon = cell.appendChild(document.createElement('span'))
               icon.className = 'icon release ' + constants.release[asset.release] + ' hint-release-' + constants.release[asset.release]
+              icon.setAttribute("role", "img")
+              icon.setAttribute("aria-label", constants.release[asset.release] + " release level") 
             else
               if Editing && Key.id == info.c
                 cell.classList.add('folder-type') # XXX not necessarily!?
@@ -498,6 +501,9 @@ app.directive 'spreadsheet', [
                 a = cell.appendChild(document.createElement('a'))
                 a.className = "session icon hint-action-slot"
                 a.setAttribute('href', if Editing then slot.editRoute() else slot.route())
+                span = a.appendChild(document.createElement('span'))
+                span.className = "accessible-hidden"
+                span.innerHTML = "open this folder"
           switch info.metric.id
             when 'name'
               v ?= ''

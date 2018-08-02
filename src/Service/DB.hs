@@ -160,7 +160,7 @@ dbQuery1 :: (MonadDB c m, PGQuery q a, Show q) => q -> m (Maybe a)
 dbQuery1 q = do
   r <- dbQuery q
   case r of
-    [] -> return $ Nothing
+    [] -> return Nothing
     [x] -> return $ Just x
     _ -> fail $ "pgQuery1 " ++ show q ++ ": too many results"
 
@@ -224,6 +224,6 @@ mapRunPrepQuery1 :: (MonadDB c m) => (BS.ByteString, [PGValue], [Bool]) -> ([PGV
 mapRunPrepQuery1 args@(q, _, _) mkResult = do
   rows <- mapRunPrepQuery args mkResult
   case rows of
-    [] -> return $ Nothing
+    [] -> return Nothing
     [x] -> return $ Just x
     _ -> fail $ "pgQuery1 " ++ show q ++ ": too many results"

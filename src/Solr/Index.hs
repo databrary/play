@@ -220,9 +220,9 @@ updateIndex = do
             , HC.method = methodPost
             , HC.requestBody = HC.RequestBodyStreamChunked $ \wf -> do
               (w :: IO (Maybe BSC.ByteString)) <-
-                  runInvert $
+                  runInvert
                       (runReaderT (writeUpdate writeAllDocuments) ctx :: InvertM BS.ByteString ())
-              wf $ (fold <$> w :: IO BSC.ByteString) :: IO ()
+              wf (fold <$> w :: IO BSC.ByteString) :: IO ()
             , HC.requestHeaders = (hContentType, "application/json") : HC.requestHeaders req
             , HC.responseTimeout = HC.responseTimeoutMicro 100000000
             }

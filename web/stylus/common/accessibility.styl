@@ -1,12 +1,13 @@
 // styles
 
-.accessible-hidden
+.accessible-hidden, a.skip-main
   position absolute
   left -10000px
   top auto
   width 1px
   height 1px
   overflow hidden
+  z-index -999
 
 :focus
   padding 5px
@@ -22,4 +23,19 @@ input:focus
 #map_wrapper
   background-color transparent !important
   & *
-    background-color transparent !important
+    background-color transparent !important  
+
+a.skip-main:focus, a.skip-main:active 
+  color #2c3e51
+  background-color #e5e5e5
+  left auto
+  top auto
+  width 30%
+  height auto
+  overflow auto
+  margin 0 35% 10px 35%
+  padding 7px
+  text-align center
+  font-size 1.2em
+  z-index 999
+
