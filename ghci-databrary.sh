@@ -25,7 +25,8 @@ if [ ! -d "cracklib" ]; then
 fi
 if [ ! -d "node_modules" ]; then
   echo linking node_modules
-  ln -sf $(dirname $(which coffee))/../../../lib/node_modules node_modules # FIXME: Bryan
+  # needed two dirnames instead of using ../.. because node's fs library choked otherwise  
+  ln -sfn $(dirname $(dirname $(which coffee)))/bin/node_modules node_modules # FIXME: Bryan
 fi
 # make store related dirs
 mkdir -p cache/tmp stage tmp trans upload
