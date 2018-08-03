@@ -23,10 +23,12 @@ if [ ! -d "cracklib" ]; then
   mkdir -p cracklib
   cp -r /tmp/usr/share/cracklib/pw_dict* cracklib
 fi
-if [ ! -d "node_modules" ]; then
-  echo linking node_modules
-  ln -sf $(dirname $(which coffee))/../../../lib/node_modules node_modules # FIXME: Bryan
-fi
+
+# note: do this every time, so that node modules automatically updates when nix store version changes
+echo linking node_modules
+# note: needed two dirnames instead of using ../.. because node's fs library choked otherwise  
+ln -sfn $(dirname $(dirname $(which coffee)))/lib/node_modules node_modules # FIXME: Bryan
+
 # make store related dirs
 mkdir -p cache/tmp stage tmp trans upload
 if [ ! -d "store" ]; then
