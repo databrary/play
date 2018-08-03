@@ -77,6 +77,14 @@ Recent contributions:
 
 Nix Cache - [<img src="https://img.shields.io/uptimerobot/status/m780713505-7d8d87840b9cd6213c96b467.svg">](https://stats.uptimerobot.com/K8JYvs7XW)
 
+## Open Source Report Card
+
+We try our best to use open source throughout our source code, our development and our operations. Here is where we stand currently.
+
+Open source tools: ghc, all haskell libraries, nixpkgs, centos, ubuntu, nixos, redoc/swagger, solr/openjdk, postgresql, nginx
+
+Non-open source tools: runscope, katalon, github, jira, confluence, aws, macos, slurm, mailtrap, gmail, slack, google drive, skype
+
 ## License
 
 Copyright (C) 2013-2018 New York University
