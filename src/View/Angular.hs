@@ -32,7 +32,7 @@ versionedWebURL :: BS.ByteString -> BS.ByteString -> H.AttributeValue
 versionedWebURL version p = actionValue webFile (Just $ StaticPath p) ([(version,Nothing)] :: Query)
 
 htmlAngular :: BS.ByteString -> [WebFilePath] -> [WebFilePath] -> BSB.Builder -> RequestContext -> H.Html
-htmlAngular assetsVersion cssDeps jsDeps nojs reqCtx = H.docTypeHtml H.! ngAttribute "app" "databraryModule" $ do
+htmlAngular assetsVersion cssDeps jsDeps nojs reqCtx = H.docTypeHtml H.! ngAttribute "app" "databraryModule" H.! H.customAttribute "lang" "en" $ do
   H.head $ do
     htmlHeader Nothing def
     H.noscript $
