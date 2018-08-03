@@ -24,7 +24,7 @@
       <input-age ng-switch-when="age" ng-model="filt.value" key-enter="filter.change()" class="volume-filter-part no-focus"></input-age>
       <select ng-switch-when="release" ng-model="filt.value" ng-options="c as 'release.'+page.constants.release[c]+'.title' | message for c in ::page.constants.releases" ng-change="filter.change()" class="volume-filter-part no-focus select-clear-style"></select>
     </span>
-    <button ng-click="filter.remove($index)" class="volume-filter-remove icon trash neutral" ></button>
+    <button ng-click="filter.remove($index)" class="volume-filter-remove icon trash neutral" aria-label="remove filer"></button>
   </div>
   <small ng-show="filter.count" class="reminder"><ng-pluralize count="filter.count" when="{one:'One row',other:'{} rows'}"></ng-pluralize> hidden. </small>
   <small ng-hide="filter.list.length > 1" class="reminder">Click anywhere in the spreadsheet to add filters</small>
