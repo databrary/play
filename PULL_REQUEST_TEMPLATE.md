@@ -9,13 +9,13 @@
 <!--- Please describe in detail how you tested your changes. -->
 
 ## Types of changes
-<!--- What types of changes does your code introduce? Put an `x` in all the boxes that apply: -->
-- [ ] Style, layout change
-- [ ] Refactor
-- [ ] Test
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Devops, scripts
+<!--- What types of changes does your code introduce? Please delete all entries that do not apply --->
+- Style, layout change
+- Refactor
+- Test
+- Bug fix
+- New feature
+- Devops, scripts
 
 <!--- ## Checklist: --->
 <!--- Go over all the following points, and put an `x` in all the boxes that apply. -->
