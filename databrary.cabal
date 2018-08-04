@@ -417,6 +417,34 @@ Executable databrary
   -- pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
   -- extra-libraries: crack, crypto
 
+Executable databrary-load-fake
+  hs-source-dirs: app-databrary-load-fake
+  main-is: Main.hs
+
+  build-depends:
+    databrary
+    , base >= 4.8.2.0
+    , aeson
+    -- , array
+    -- , attoparsec
+    -- , bytestring
+    -- , containers
+    -- , mtl
+    -- , postgresql-typed
+    -- , resourcet
+    , transformers
+    -- , text
+    , time
+    -- , unordered-containers
+    -- , vector
+    , wai
+                
+  default-language: Haskell2010
+  default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
+
+  ghc-options: -threaded -Wall
+  ghc-options: -with-rtsopts -N
+  
 Executable generate
   hs-source-dirs: app-generate, src
   main-is: generate.hs
