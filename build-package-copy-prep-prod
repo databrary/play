@@ -7,6 +7,7 @@ rcvr="$usr@databrary.home.nyu.edu"
 echo "building Databrary binaries..."
 # if /tmp is too small for major nix builds, create appropriate dir, then use TMPDIR=... build-package-copy-prep ...
 RESULT="$(nix-build --attr databrary --show-trace)"
+ssh -t "$rcvr" "nix-collect-garbage -d"
 nix-copy-closure --to "$rcvr" "$RESULT"
 echo "copy closure of Databrary binaries completed..."
 
@@ -14,7 +15,6 @@ echo "copy closure of Databrary binaries completed..."
 # NOTE: this is overly complex, simplify using multiple lines later
 ssh -t "$rcvr" " \
            nix-env --install $RESULT \
-        && nix-collect-garbage -d \
         && rm -f /home/databrary/databraryExeLink \
         && ln -s $RESULT/bin/databrary /home/databrary/databraryExeLink \
 "
