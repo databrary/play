@@ -18,7 +18,8 @@
 </div>
 
 <div ng-if="::!editing" class="spreadsheet-report-manage">
-  <select ng-options="k as k for (k,s) in volume.state" ng-model="state.name" ng-change="state.restore()" class="width-auto spreadsheet-pivot-part">
+  <label for="reportselect" class="accessible-hidden">select report</label>
+  <select id="reportselect" ng-options="k as k for (k,s) in volume.state" ng-model="state.name" ng-change="state.restore()" class="width-auto spreadsheet-pivot-part">
     <option value=''>Show saved display mode...</option>
   </select>
   <wbr>
@@ -114,10 +115,11 @@
   <b>Save current display mode </b>
   <span class="small reminder">This will replace any previously saved versions with the same name</span>
   </div>
-  <input type="text" name="state" ng-model="state.name" ng-maxlength="64" class="width-auto" placeholder="Name display mode..." /><wbr>
+  <label for="name-display" class="accessible-hidden">name the current display</label>
+  <input id="name-display" type="text" name="state" ng-model="state.name" ng-maxlength="64" class="width-auto" placeholder="Name display mode..." /><wbr>
   <span class="spreadsheet-pivot-part" tooltip="'Make this display mode available to anyone with access to the volume, rather than only to other editors'">
-    <input type="checkbox" name="public" ng-model="state.public" class="width-auto"/>
-    <label for="public" class="option">Make public</label>
+    <input id="make-public" type="checkbox" name="public" ng-model="state.public" class="width-auto"/>
+    <label for="make-public" class="option">Make public</label>
   </span>
   <span class="spreadsheet-pivot-part">
     <button ng-click="state.save()">Save</button>

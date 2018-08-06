@@ -6,6 +6,7 @@ app.directive('validator', [
     var pre = function ($scope, $element, $attrs) {
       $scope.validator = {};
       $scope.validator.label = $attrs.label && constants.message($attrs.label,{sce:$sce.HTML});
+      $scope.validator.validatorId = $attrs.validatorId;
       if ('required' in $attrs)
         $scope.validator.label += ' (required)';
       $scope.validator.prefix = $scope.validator.label ? '<strong>' + $scope.validator.label + ':</strong> ' : '';

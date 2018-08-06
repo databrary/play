@@ -6,8 +6,8 @@
       </footer>
 
       <div class="panel-comments-body">
-        <validator name="text" label="comments.text.title" noclientval>
-          <textarea name="text" ng-model="commentReplyForm.data.text" ng-minlength="3"></textarea>
+        <validator name="text" label="comments.text.title" noclientval validator-id="comment-volume">
+          <textarea id="comment-volume" name="text" ng-model="commentReplyForm.data.text" ng-minlength="3"></textarea>
         </validator>
 
         <button type="submit" class="green mini" ng-click="commentReplyForm.save()" ng-disabled="commentReplyForm.$pristine || commentReplyForm.$invalid" message="comments.post"></button>

@@ -28,4 +28,12 @@ app.directive 'inputAge', [
         $scope.$on 'displayService-toggleAge', ctrl.$render
 
         return
+
+      post: ($scope, $element, $attrs) ->
+        input = $element[0].firstChild
+        select = $element[0].children[1]
+        input.setAttribute('id', $attrs.inputId) if $attrs.inputId
+        select.setAttribute('id', $attrs.selectId) if $attrs.selectId
+
+        return
 ]

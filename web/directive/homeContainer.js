@@ -118,7 +118,7 @@ app.directive('homeContainer', [
             var index = Math.floor(Math.random() * tmp.length);
             var removed = tmp.splice(index, 1);
             // Since we are only removing one element
-            var removedHtml = '<div id="first-tile" class="block features full-height"><a target="_blank" href="/volume/' + removed[0][0] + '"><span class="accessible-hidden">Video for ' + removed[0][4] + '</span><div class="asset-display"><video ' + removed[0][1] + ' poster="' + removed[0][2] + '"><source type="video/mp4" src="' + removed[0][3] + '"></video></div></a><p class="citation">' + removed[0][4] + ' <em>Databrary</em>. <a href="http://doi.org/10.17910/' + removed[0][5] + '" target="_blank">http://doi.org/10.17910/' + removed[0][5] + '</a>.</p></div>';
+            var removedHtml = '<div class="block features full-height"><a target="_blank" href="/volume/' + removed[0][0] + '"><span class="accessible-hidden">Video for ' + removed[0][4] + '</span><div class="asset-display"><video ' + removed[0][1] + ' poster="' + removed[0][2] + '"><source type="video/mp4" src="' + removed[0][3] + '"></video></div></a><p class="citation">' + removed[0][4] + ' <em>Databrary</em>. <a href="http://doi.org/10.17910/' + removed[0][5] + '" target="_blank">http://doi.org/10.17910/' + removed[0][5] + '</a>.</p></div>';
             ret.push(removedHtml);
           }
           return ret;  
