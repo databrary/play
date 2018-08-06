@@ -20,13 +20,22 @@ import Service.DB
 main :: IO ()
 main = do
     -- TODO add a test mode where this is wrapped in a transaction
-    ctx <- baseCtxt
-    Just auth <- runReaderT (lookupSiteAuthByEmail False "test@databrary.org") ctx
-    let superAdminAcct = siteAccount auth
-        superAdminCtx = setCtxtIdentInfo ctx auth
+    cn <- loadPGDatabase >>= pgConnect
+    Just auth <- runReaderT (lookupSiteAuthByEmail False "test@databrary.org") cn
+    let superAdminCtx =
+            (\(pid, ident) ->
+                 Ctxt
+                     { ctxConn = cn
+                     , ctxRequest = Wai.defaultRequest
+                     , ctxPartyId = pid
+                     , ctxSiteAuth = auth
+                     , ctxIdentity = ident
+                     })
+            (extractIdentInfo auth)
+        superAdminAcct = siteAccount auth
     _ <- (flip runReaderT) superAdminCtx (do
         addVolumeWithAccess superAdminAcct)
-    print ("Finished adding fake data." :: String)
+    putStrLn "Finished adding fake data."
 
 -- make a volume
 addVolumeWithAccess :: MonadAudit c m => Account -> m Volume
@@ -47,17 +56,13 @@ addVolumeWithAccess a = do
 -- build up parameters for size of data to generate from yaml file
 
 -- make context
-setCtxtIdentInfo :: Ctxt -> SiteAuth -> Ctxt
-setCtxtIdentInfo ctx auth =
+extractIdentInfo :: SiteAuth -> (Id Party, Identity)
+extractIdentInfo auth =
   let
       pid = (partyId . partyRow . accountParty . siteAccount) auth
       ident = fakeIdentSessFromAuth auth True
   in
-      ctx
-          { ctxPartyId = pid
-          , ctxSiteAuth = auth
-          , ctxIdentity = ident
-          }
+      (pid, ident)
 
 fakeIdentSessFromAuth :: SiteAuth -> Bool -> Identity
 fakeIdentSessFromAuth a su =
@@ -66,18 +71,6 @@ fakeIdentSessFromAuth a su =
          (AccountToken (Token (Id "id") (UTCTime (fromGregorian 2017 1 2) (secondsToDiffTime 0))) a)
          "verf"
          su)
-
-baseCtxt :: IO Ctxt
-baseCtxt = do
-    cn <- loadPGDatabase >>= pgConnect
-    pure
-        (Ctxt
-             { ctxConn = cn
-             , ctxRequest = Wai.defaultRequest
-             , ctxPartyId = undefined
-             , ctxSiteAuth = undefined
-             , ctxIdentity = undefined
-             })
 
 data Ctxt = Ctxt
     { ctxRequest :: Wai.Request
