@@ -2,7 +2,8 @@
   <b>Filter by </b>
   <div class="volume-filter foot-2" ng-repeat="filt in filter.list">
     <span class="volume-filter-label"><span ng-if="::filt.category.id!=='slot'" ng-bind="::filt.category.name"></span> {{::filt.metric.name}}</span>
-    <select class="volume-filter-part no-focus select-clear-style" ng-model="filt.op" ng-change="filter.change()">
+    <label class="accessible-hidden"></label>
+    <select id="" class="volume-filter-part no-focus select-clear-style" ng-model="filt.op" ng-change="filter.change()">
       <option value="">any</option>
       <option ng-if="::filt.metric.type==='top'" value="true">materials</option>
       <option ng-if="::filt.metric.type==='top'" value="false">sessions</option>

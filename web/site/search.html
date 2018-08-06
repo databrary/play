@@ -5,7 +5,8 @@
       <div class="col">
         <h1 class="view-title">
           <span>Search</span>
-          <input class="search-input no-focus" type="search" ng-model="query" key-enter="search()"/>
+          <label for="main-search" clsas="accessible-hidden">search</label>
+          <input id="main-search" class="search-input no-focus" type="search" ng-model="query" key-enter="search()"/>
         </h1>
       </div>
     </div>
@@ -35,12 +36,12 @@
           <input type="radio" ng-model="fields.release" value="PUBLIC" ng-change="searchVolumes()" id="public"><label for="public"><span class="icon release PUBLIC" hint="release-PUBLIC" role="img" aria-label="public icon"></span>For public use</label>
         </div>
         <div class="search-filter">
-          Contains tag
-          <input-completer input-name="tag" ng-model="fields.tag_name" completer="tagSearch($input)" pattern="[a-zA-Z][a-zA-Z -]{1,30}[a-zA-Z]" submit="searchVolumes()"></input-completer>
+          <label for="tagsearch">Contains tag</label>
+          <input-completer input-id="tagsearch" input-name="tag" ng-model="fields.tag_name" completer="tagSearch($input)" pattern="[a-zA-Z][a-zA-Z -]{1,30}[a-zA-Z]" submit="searchVolumes()"></input-completer>
         </div>
         <div class="search-filter">
-          Contains files of type
-          <select ng-model="fields.format_id" ng-options="'\\'+f.id as f.name+' ('+f.extension+')' for f in ::formats | orderBy: customSortformat track by f.id||f.substr(1)" ng-change="searchVolumes()">
+          <label for="filetypeselect">Contains files of type</label>
+          <select id="filetypeselect" ng-model="fields.format_id" ng-options="'\\'+f.id as f.name+' ('+f.extension+')' for f in ::formats | orderBy: customSortformat track by f.id||f.substr(1)" ng-change="searchVolumes()">
             <option value="">Any</option>
           </select>
         </div>
@@ -48,8 +49,12 @@
         <div class="search-filter">
           <span>Participants' age</span><br>
           <div ui-slider="{range:true}" min="{{::ageRange[0]}}" max="{{::ageRange[1]}}" use-decimals step="0.01" ng-model="ageSlider" ng-model-options="{getterSetter:true}"></div>
-          <input-age ng-model="fields.record_age[0]" class="inline-block"></input-age> &ndash; 
-          <input-age ng-model="fields.record_age[1]" class="inline-block"></input-age>
+          <label for="age-begin-input" class="accessible-hidden">lower limit of age</label>
+          <label for="age-begin-select" class="accessible-hidden">age units</label>
+          <input-age ng-model="fields.record_age[0]" class="inline-block" input-id="age-begin-input" select-id="age-begin-select"></input-age> &ndash; 
+          <label for="age-end-input" class="accessible-hidden">upper limit of age</label>
+          <label for="age-end-select" class="accessible-hidden">age units</label>
+          <input-age ng-model="fields.record_age[1]" class="inline-block" input-id="age-end-input" select-id="age-end-select"></input-age>
         </div>
         <div class="search-filter">
           <button class="mini green" ng-disabled="searchForm.$pristine || searchForm.$invalid" ng-click="searchVolumes()">Apply filters</button>
@@ -128,7 +133,8 @@
           <a class="button" ng-click="searchPage(1)">1</a> 
           <a class="button" ng-click="searchPage(pageCurrent-1)"><span class="icon backward"></span><span>Previous</span></a> 
         </div>
-        <input type="number" class="no-focus" ng-model="pageCurrent" min="1" max="{{pageCount}}" key-enter="searchPage(pageCurrent)"/>
+        <label for="pagination" class="accessible-hidden">search result page</label>
+        <input id="pagination"type="number" class="no-focus" ng-model="pageCurrent" min="1" max="{{pageCount}}" key-enter="searchPage(pageCurrent)"/>
         <div class="search-forward" ng-if="::pageCurrent != pageCount">
           <a class="button" ng-click="searchPage(pageCurrent+1)"><span>Next</span><span class="icon forward"></span></a> 
           <a class="button" ng-click="searchPage(pageCount)" ng-bind="::pageCount"></a>

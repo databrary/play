@@ -125,7 +125,8 @@
         <div class="toolbar-search">
           <ng-form class="search-form">
             <div class="search-form-search">
-              <input type="search" ng-model="search.data.q" focus placeholder="Search data" key-enter="search()" class="no-focus"/>
+              <label for="toolbar-search" class="accessible-hidden">search</label>
+              <input id="toolbar-search" type="search" ng-model="search.data.q" focus placeholder="Search data" key-enter="search()" class="no-focus"/>
             </div>
           </ng-form>
         </div>

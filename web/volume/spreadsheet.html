@@ -18,7 +18,8 @@
 </div>
 
 <div ng-if="::!editing" class="spreadsheet-report-manage">
-  <select ng-options="k as k for (k,s) in volume.state" ng-model="state.name" ng-change="state.restore()" class="width-auto spreadsheet-pivot-part">
+  <label for="reportselect" class="accessible-hidden">select report</label>
+  <select id="reportselect" ng-options="k as k for (k,s) in volume.state" ng-model="state.name" ng-change="state.restore()" class="width-auto spreadsheet-pivot-part">
     <option value=''>Show saved display mode...</option>
   </select>
   <wbr>
