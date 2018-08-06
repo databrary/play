@@ -8,6 +8,7 @@
           </div>
         </div>
       </aside>
+      <label for="tag-add" class="accessible-hidden">add tag</label>
       <input-completer input-id="tag-add" ng-mouseenter="tagAddForm.showTip=true" ng-mouseleave="tagAddForm.showTip=false" input-name="newName" ng-model="tagAddForm.name" placeholder="Add new {{::keyword ? 'keyword' : 'tag'}}..." completer="tagAddForm.search($input)" submit="tagAddForm.submit($input)" pattern="[a-zA-Z][a-zA-Z -]{1,30}[a-zA-Z]"></input-completer>
     </div>
   </div>
