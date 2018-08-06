@@ -97,11 +97,11 @@ span.spaces    { background: white }
 <span class="lineno">   81 </span>
 <span class="lineno">   82 </span>viewContainerEdit :: ActionRoute (Maybe (Id Volume), Id Slot)
 <span class="lineno">   83 </span><span class="decl"><span class="nottickedoff">viewContainerEdit = action GET (pathHTML &gt;/&gt; pathMaybe pathId &lt;/&gt; pathSlotId &lt;/&lt; &quot;edit&quot;) $ \(vi, ci) -&gt; withAuth $ do</span>
-<span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">when (isJust vi) $ angular</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="nottickedoff">when (isJust vi) angular</span>
 <span class="lineno">   85 </span><span class="spaces">  </span><span class="nottickedoff">c &lt;- getContainer PermissionEDIT vi ci False</span>
 <span class="lineno">   86 </span><span class="spaces">  </span><span class="nottickedoff">unless (isJust vi) $</span>
 <span class="lineno">   87 </span><span class="spaces">    </span><span class="nottickedoff">result =&lt;&lt; peeks (redirectRouteResponse movedPermanently301 [] viewContainerEdit (Just ((volumeId . volumeRow . containerVolume) c), containerSlotId (view c)))</span>
-<span class="lineno">   88 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] $ (&quot;&quot; :: String)</span></span> -- should never get here
+<span class="lineno">   88 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse [] (&quot;&quot; :: String)</span></span> -- should never get here
 <span class="lineno">   89 </span>  -- peeks $ blankForm . htmlContainerEdit (Right c)
 <span class="lineno">   90 </span>
 <span class="lineno">   91 </span>createContainer :: ActionRoute (Id Volume)

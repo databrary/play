@@ -67,7 +67,7 @@ span.spaces    { background: white }
 <span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">loop = do</span>
 <span class="lineno">   52 </span><span class="spaces">    </span><span class="nottickedoff">b &lt;- BS.hGetSome h defaultChunkSize</span>
 <span class="lineno">   53 </span><span class="spaces">    </span><span class="nottickedoff">s b</span>
-<span class="lineno">   54 </span><span class="spaces">    </span><span class="nottickedoff">unless (BS.null b) $ loop</span></span>
+<span class="lineno">   54 </span><span class="spaces">    </span><span class="nottickedoff">unless (BS.null b) loop</span></span>
 <span class="lineno">   55 </span>
 <span class="lineno">   56 </span>genVideoClip :: AV -&gt; RawFilePath -&gt; Maybe (Range.Range Offset) -&gt; Maybe Word16 -&gt; Either Stream RawFilePath -&gt; IO ()
 <span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">genVideoClip _ src (Just clip) _ dst | Nothing &lt;- Range.getPoint clip = do</span>

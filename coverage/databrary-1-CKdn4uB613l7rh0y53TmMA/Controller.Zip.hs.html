@@ -85,7 +85,7 @@ span.spaces    { background: white }
 <span class="lineno">   69 </span><span class="spaces">        </span><span class="nottickedoff">containerDir `BS.append` (case isOrig of</span>
 <span class="lineno">   70 </span><span class="spaces">          </span><span class="nottickedoff">False -&gt; makeFilename (assetDownloadName True False ar) `addFormatExtension` assetFormat ar</span>
 <span class="lineno">   71 </span><span class="spaces">          </span><span class="nottickedoff">True -&gt; makeFilename (assetDownloadName False True ar) `addFormatExtension` assetFormat ar)</span>
-<span class="lineno">   72 </span><span class="spaces">  </span><span class="nottickedoff">entrySelector &lt;- liftIO $ (parseRelFile (BSC.unpack entryName) &gt;&gt;= ZIP.mkEntrySelector)</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="nottickedoff">entrySelector &lt;- liftIO (parseRelFile (BSC.unpack entryName) &gt;&gt;= ZIP.mkEntrySelector)</span>
 <span class="lineno">   73 </span><span class="spaces">  </span><span class="nottickedoff">return</span>
 <span class="lineno">   74 </span><span class="spaces">    </span><span class="nottickedoff">(do</span>
 <span class="lineno">   75 </span><span class="spaces">       </span><span class="nottickedoff">ZIP.sinkEntry ZIP.Store (CND.sourceFileBS (BSC.unpack f)) entrySelector</span>
@@ -115,8 +115,8 @@ span.spaces    { background: white }
 <span class="lineno">   99 </span><span class="spaces">  </span><span class="nottickedoff">let zipDir = makeFilename (volumeDownloadName v ++ if idSetIsFull cs then [] else [&quot;PARTIAL&quot;]) &lt;&gt; &quot;/&quot;</span>
 <span class="lineno">  100 </span><span class="spaces">  </span><span class="nottickedoff">zt &lt;- mapM (ent zipDir) at</span>
 <span class="lineno">  101 </span><span class="spaces">  </span><span class="nottickedoff">zb &lt;- mapM (ent (zipDir &lt;&gt; &quot;sessions/&quot;)) ab</span>
-<span class="lineno">  102 </span><span class="spaces">  </span><span class="nottickedoff">descEntrySelector &lt;- liftIO $ (parseRelFile (BSC.unpack zipDir &lt;&gt; &quot;description.html&quot;) &gt;&gt;= ZIP.mkEntrySelector)</span>
-<span class="lineno">  103 </span><span class="spaces">  </span><span class="nottickedoff">spreadEntrySelector &lt;- liftIO $ (parseRelFile (BSC.unpack zipDir &lt;&gt; &quot;spreadsheet.csv&quot;) &gt;&gt;= ZIP.mkEntrySelector)</span>
+<span class="lineno">  102 </span><span class="spaces">  </span><span class="nottickedoff">descEntrySelector &lt;- liftIO (parseRelFile (BSC.unpack zipDir &lt;&gt; &quot;description.html&quot;) &gt;&gt;= ZIP.mkEntrySelector)</span>
+<span class="lineno">  103 </span><span class="spaces">  </span><span class="nottickedoff">spreadEntrySelector &lt;- liftIO (parseRelFile (BSC.unpack zipDir &lt;&gt; &quot;spreadsheet.csv&quot;) &gt;&gt;= ZIP.mkEntrySelector)</span>
 <span class="lineno">  104 </span><span class="spaces">  </span><span class="nottickedoff">return</span>
 <span class="lineno">  105 </span><span class="spaces">    </span><span class="nottickedoff">(do</span>
 <span class="lineno">  106 </span><span class="spaces">       </span><span class="nottickedoff">sequence_ zt</span>
@@ -144,13 +144,13 @@ span.spaces    { background: white }
 <span class="lineno">  128 </span><span class="spaces">  </span><span class="nottickedoff">liftIO $ ZIP.createBlindArchive h $ do</span>
 <span class="lineno">  129 </span><span class="spaces">    </span><span class="nottickedoff">ZIP.setArchiveComment (TE.decodeUtf8 comment)</span>
 <span class="lineno">  130 </span><span class="spaces">    </span><span class="nottickedoff">zipAddActions</span>
-<span class="lineno">  131 </span><span class="spaces">  </span><span class="nottickedoff">sz &lt;- liftIO $ (IO.hSeek h IO.SeekFromEnd 0 &gt;&gt; IO.hTell h)</span>
+<span class="lineno">  131 </span><span class="spaces">  </span><span class="nottickedoff">sz &lt;- liftIO (IO.hSeek h IO.SeekFromEnd 0 &gt;&gt; IO.hTell h)</span>
 <span class="lineno">  132 </span><span class="spaces">  </span><span class="nottickedoff">liftIO $ IO.hSeek h IO.AbsoluteSeek 0</span>
 <span class="lineno">  133 </span><span class="spaces">  </span><span class="nottickedoff">return $ okResponse</span>
 <span class="lineno">  134 </span><span class="spaces">    </span><span class="nottickedoff">[ (hContentType, &quot;application/zip&quot;)</span>
 <span class="lineno">  135 </span><span class="spaces">    </span><span class="nottickedoff">, (&quot;content-disposition&quot;, &quot;attachment; filename=&quot; &lt;&gt; quoteHTTP (n &lt;.&gt; &quot;zip&quot;))</span>
 <span class="lineno">  136 </span><span class="spaces">    </span><span class="nottickedoff">, (hCacheControl, &quot;max-age=31556926, private&quot;)</span>
-<span class="lineno">  137 </span><span class="spaces">    </span><span class="nottickedoff">, (hContentLength, BSC.pack $ show $ sz)</span>
+<span class="lineno">  137 </span><span class="spaces">    </span><span class="nottickedoff">, (hContentLength, BSC.pack $ show sz)</span>
 <span class="lineno">  138 </span><span class="spaces">    </span><span class="nottickedoff">] (CND.bracketP (return h) IO.hClose CND.sourceHandle :: CND.Source (CND.ResourceT IO) BS.ByteString)</span></span>
 <span class="lineno">  139 </span>
 <span class="lineno">  140 </span>checkAsset :: AssetSlot -&gt; Bool
@@ -167,7 +167,7 @@ span.spaces    { background: white }
 <span class="lineno">  151 </span><span class="spaces">                      </span><span class="nottickedoff">return $ pdfs ++ origs</span>
 <span class="lineno">  152 </span><span class="spaces">                     </span><span class="nottickedoff">False -&gt; return c'</span>
 <span class="lineno">  153 </span><span class="spaces">  </span><span class="nottickedoff">let checkedAssetSlots = filter checkAsset assetSlots</span>
-<span class="lineno">  154 </span><span class="spaces">  </span><span class="nottickedoff">zipActs &lt;- containerZipEntry2 isOrig prefix c $ checkedAssetSlots</span>
+<span class="lineno">  154 </span><span class="spaces">  </span><span class="nottickedoff">zipActs &lt;- containerZipEntry2 isOrig prefix c checkedAssetSlots</span>
 <span class="lineno">  155 </span><span class="spaces">  </span><span class="nottickedoff">pure (zipActs, null checkedAssetSlots)</span></span>
 <span class="lineno">  156 </span>
 <span class="lineno">  157 </span>zipContainer :: Bool -&gt; ActionRoute (Maybe (Id Volume), Id Slot)
@@ -180,7 +180,7 @@ span.spaces    { background: white }
 <span class="lineno">  164 </span><span class="spaces">    </span><span class="nottickedoff">let v = containerVolume c</span>
 <span class="lineno">  165 </span><span class="spaces">    </span><span class="nottickedoff">_ &lt;- maybeAction (if volumeIsPublicRestricted v then Nothing else Just ()) -- block if restricted</span>
 <span class="lineno">  166 </span><span class="spaces">    </span><span class="nottickedoff">(zipActs, isEmpty) &lt;- containerZipEntryCorrectAssetSlots2 isOrig &quot;&quot; c</span>
-<span class="lineno">  167 </span><span class="spaces">    </span><span class="nottickedoff">auditSlotDownload (not $ isEmpty) (containerSlot c)</span>
+<span class="lineno">  167 </span><span class="spaces">    </span><span class="nottickedoff">auditSlotDownload (not isEmpty) (containerSlot c)</span>
 <span class="lineno">  168 </span><span class="spaces">    </span><span class="nottickedoff">zipResponse2 (&quot;databrary-&quot; &lt;&gt; BSC.pack (show $ volumeId $ volumeRow $ containerVolume c) &lt;&gt; &quot;-&quot; &lt;&gt; BSC.pack (show $ containerId $ containerRow c)) zipActs</span></span>
 <span class="lineno">  169 </span>
 <span class="lineno">  170 </span>getVolumeInfo :: Id Volume -&gt; Handler (Volume, IdSet Container, [AssetSlot])
@@ -190,7 +190,7 @@ span.spaces    { background: white }
 <span class="lineno">  174 </span><span class="spaces">  </span><span class="nottickedoff">s &lt;- peeks requestIdSet</span>
 <span class="lineno">  175 </span><span class="spaces">  </span><span class="nottickedoff">-- let isMember = maybe (const False) (\c -&gt; RS.member (containerId $ containerRow $ slotContainer $ c))</span>
 <span class="lineno">  176 </span><span class="spaces">  </span><span class="nottickedoff">-- non-exhaustive pattern found here ...v , implment in case of Nothing (Keep in mind originalAssets will not have containers, or Volumes)</span>
-<span class="lineno">  177 </span><span class="spaces">  </span><span class="nottickedoff">a &lt;- filter (\a@AssetSlot{ assetSlot = Just c } -&gt; checkAsset a &amp;&amp; RS.member (containerId $ containerRow $ slotContainer $ c) s) &lt;$&gt; lookupVolumeAssetSlots v False</span>
+<span class="lineno">  177 </span><span class="spaces">  </span><span class="nottickedoff">a &lt;- filter (\a@AssetSlot{ assetSlot = Just c } -&gt; checkAsset a &amp;&amp; RS.member (containerId $ containerRow $ slotContainer c) s) &lt;$&gt; lookupVolumeAssetSlots v False</span>
 <span class="lineno">  178 </span><span class="spaces">  </span><span class="nottickedoff">return (v, s, a)</span></span>
 <span class="lineno">  179 </span>
 <span class="lineno">  180 </span>filterFormat :: [AssetSlot] -&gt; (Format -&gt; Bool)-&gt; [AssetSlot]

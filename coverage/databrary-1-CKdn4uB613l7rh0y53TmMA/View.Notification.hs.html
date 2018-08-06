@@ -181,9 +181,9 @@ span.spaces    { background: white }
 <span class="lineno">  165 </span>mailNotifications :: Messages -&gt; [Notification] -&gt; TL.Text
 <span class="lineno">  166 </span><span class="decl"><span class="istickedoff">mailNotifications msg ~l@(Notification{ notificationTarget = u }:_) =</span>
 <span class="lineno">  167 </span><span class="spaces">  </span><span class="istickedoff">TL.fromChunks [&quot;Dear &quot;, partyName target, &quot;,\n&quot;]</span>
-<span class="lineno">  168 </span><span class="spaces">  </span><span class="istickedoff">&lt;&gt; foldMap (\n -&gt; '\n' `TL.cons` mailNotification <span class="nottickedoff">msg</span> n `TL.snoc` <span class="nottickedoff">'\n'</span>) l</span>
-<span class="lineno">  169 </span><span class="spaces">  </span><span class="istickedoff">&lt;&gt; <span class="nottickedoff">&quot;\nYou can change your notification settings or unsubscribe here: &quot;</span></span>
-<span class="lineno">  170 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">&lt;&gt; partyEditLink mailLink target target [(&quot;page&quot;, &quot;notifications&quot;)] `TL.snoc` '\n'</span></span>
+<span class="lineno">  168 </span><span class="spaces">  </span><span class="istickedoff">&lt;&gt; foldMap (\n -&gt; '\n' `TL.cons` mailNotification <span class="nottickedoff">msg</span> n `TL.snoc` '\n') l</span>
+<span class="lineno">  169 </span><span class="spaces">  </span><span class="istickedoff">&lt;&gt; &quot;\nYou can change your notification settings or unsubscribe here: &quot;</span>
+<span class="lineno">  170 </span><span class="spaces">  </span><span class="istickedoff">&lt;&gt; partyEditLink mailLink target target [(&quot;page&quot;, &quot;notifications&quot;)] `TL.snoc` '\n'</span>
 <span class="lineno">  171 </span><span class="spaces">  </span><span class="istickedoff">where</span>
 <span class="lineno">  172 </span><span class="spaces">  </span><span class="istickedoff">target = partyRow (accountParty u)</span></span>
 <span class="lineno">  173 </span>

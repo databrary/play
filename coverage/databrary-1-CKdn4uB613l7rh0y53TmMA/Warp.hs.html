@@ -60,13 +60,12 @@ span.spaces    { background: white }
 <span class="lineno">   44 </span><span class="spaces">      </span><span class="nottickedoff">t &lt;- getCurrentTime</span>
 <span class="lineno">   45 </span><span class="spaces">      </span><span class="nottickedoff">msg &lt;- mapM (\q -&gt; requestLog t q Nothing $ Warp.exceptionResponseForDebug e) req</span>
 <span class="lineno">   46 </span><span class="spaces">      </span><span class="nottickedoff">logMsg t (maybe id (\m -&gt; (&lt;&gt;) (m &lt;&gt; &quot;\n&quot;)) msg $ toLogStr $ show e) (serviceLogs rc))</span>
-<span class="lineno">   47 </span><span class="spaces">    </span><span class="nottickedoff">$ Warp.setHTTP2Disabled</span>
-<span class="lineno">   48 </span><span class="spaces">    </span><span class="nottickedoff">$ Warp.defaultSettings)</span>
-<span class="lineno">   49 </span><span class="spaces">    </span><span class="nottickedoff">app</span>
-<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
-<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">oneOrMany c = C.config c &lt;|&gt; return &lt;$&gt; C.config c</span>
-<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">run (Just k) (Just (cert:chain)) = WarpTLS.runTLS (WarpTLS.tlsSettingsChain cert chain k)</span>
-<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">run _ _ = Warp.runSettings</span></span>
+<span class="lineno">   47 </span><span class="spaces">    </span><span class="nottickedoff">$ Warp.setHTTP2Disabled Warp.defaultSettings)</span>
+<span class="lineno">   48 </span><span class="spaces">    </span><span class="nottickedoff">app</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="nottickedoff">oneOrMany c = C.config c &lt;|&gt; return &lt;$&gt; C.config c</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">run (Just k) (Just (cert:chain)) = WarpTLS.runTLS (WarpTLS.tlsSettingsChain cert chain k)</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">run _ _ = Warp.runSettings</span></span>
 
 </pre>
 </body>

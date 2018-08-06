@@ -35,7 +35,7 @@ span.spaces    { background: white }
 <span class="lineno">   19 </span><span class="decl"><span class="nottickedoff">getFormData fileLimits = do</span>
 <span class="lineno">   20 </span><span class="spaces">  </span><span class="nottickedoff">(mkFormData</span>
 <span class="lineno">   21 </span><span class="spaces">   </span><span class="nottickedoff">:: Map.Map BS.ByteString BS.ByteString -&gt; Maybe JSON.Value -&gt; Map.Map BS.ByteString (FileInfo a) -&gt; FormData a)</span>
-<span class="lineno">   22 </span><span class="spaces">    </span><span class="nottickedoff">&lt;- peeks $ (FormData . Map.fromList . Wai.queryString)</span>
+<span class="lineno">   22 </span><span class="spaces">    </span><span class="nottickedoff">&lt;- peeks (FormData . Map.fromList . Wai.queryString)</span>
 <span class="lineno">   23 </span><span class="spaces">  </span><span class="nottickedoff">(c :: Content a) &lt;- parseRequestContent getFileMaxSizeByFieldName</span>
 <span class="lineno">   24 </span><span class="spaces">  </span><span class="nottickedoff">return $ case c of</span>
 <span class="lineno">   25 </span><span class="spaces">    </span><span class="nottickedoff">ContentForm formParams formFiles -&gt; mkFormData (Map.fromList formParams) Nothing    (Map.fromList formFiles)</span>

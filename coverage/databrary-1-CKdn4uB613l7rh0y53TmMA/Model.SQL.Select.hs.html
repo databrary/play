@@ -86,7 +86,7 @@ span.spaces    { background: white }
 <span class="lineno">   70 </span><span class="spaces">    </span><span class="nottickedoff">n &lt;- lift $ TH.newName &quot;cm&quot;</span>
 <span class="lineno">   71 </span><span class="spaces">    </span><span class="nottickedoff">a &lt;- outputParser (outputMaybe o)</span>
 <span class="lineno">   72 </span><span class="spaces">    </span><span class="nottickedoff">(bl, al) &lt;- bindArgs m l</span>
-<span class="lineno">   73 </span><span class="spaces">    </span><span class="nottickedoff">return $ (TH.BindS (TH.VarP n) a : bl, TH.VarE n : al)</span>
+<span class="lineno">   73 </span><span class="spaces">    </span><span class="nottickedoff">return (TH.BindS (TH.VarP n) a : bl, TH.VarE n : al)</span>
 <span class="lineno">   74 </span><span class="spaces">  </span><span class="nottickedoff">bindArgs (True:m) (o:l) = do</span>
 <span class="lineno">   75 </span><span class="spaces">    </span><span class="nottickedoff">a &lt;- outputParser o</span>
 <span class="lineno">   76 </span><span class="spaces">    </span><span class="nottickedoff">second (a:) &lt;$&gt; bindArgs m l</span>

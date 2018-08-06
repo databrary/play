@@ -155,7 +155,7 @@ span.spaces    { background: white }
 <span class="lineno">  139 </span><span class="spaces">    </span><span class="istickedoff">=&gt; Container -&gt; String -&gt; JE.ParseT T.Text m Container</span>
 <span class="lineno">  140 </span><span class="spaces">  </span><span class="istickedoff">container topc dir = do</span>
 <span class="lineno">  141 </span><span class="spaces">    </span><span class="istickedoff">cid &lt;- JE.keyMay &quot;id&quot; $ <span class="nottickedoff">Id &lt;$&gt; JE.asIntegral</span></span>
-<span class="lineno">  142 </span><span class="spaces">    </span><span class="istickedoff">key &lt;- JE.key &quot;key&quot; $ asKey</span>
+<span class="lineno">  142 </span><span class="spaces">    </span><span class="istickedoff">key &lt;- JE.key &quot;key&quot; asKey</span>
 <span class="lineno">  143 </span><span class="spaces">    </span><span class="istickedoff">c' &lt;- lift (lookupIngestContainer vol key)</span>
 <span class="lineno">  144 </span><span class="spaces">    </span><span class="istickedoff">c &lt;- maybe</span>
 <span class="lineno">  145 </span><span class="spaces">      </span><span class="istickedoff">(do</span>
@@ -234,7 +234,7 @@ span.spaces    { background: white }
 <span class="lineno">  218 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">record = do</span></span>
 <span class="lineno">  219 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">-- handle record shell</span></span>
 <span class="lineno">  220 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(rid :: Maybe (Id Record)) &lt;- JE.keyMay &quot;id&quot; $ Id &lt;$&gt; JE.asIntegral -- insert = nothing, update = just id</span></span>
-<span class="lineno">  221 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(key :: IngestKey) &lt;- JE.key &quot;key&quot; $ asKey</span></span>
+<span class="lineno">  221 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(key :: IngestKey) &lt;- JE.key &quot;key&quot; asKey</span></span>
 <span class="lineno">  222 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(mIngestRecord :: Maybe Record) &lt;- lift (lookupIngestRecord vol key)</span></span>
 <span class="lineno">  223 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(r :: Record) &lt;- maybe</span></span>
 <span class="lineno">  224 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">-- first run of any ingest for this record. could be updating or insert, but need an ingest entry</span></span>

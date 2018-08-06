@@ -85,7 +85,7 @@ span.spaces    { background: white }
 <span class="lineno">   69 </span><span class="spaces">    </span><span class="nottickedoff">(\_ -&gt; peeks $ otherRouteResponse [] viewParty (HTML, TargetProfile))</span></span>
 <span class="lineno">   70 </span>
 <span class="lineno">   71 </span>postRegister :: ActionRoute API
-<span class="lineno">   72 </span><span class="decl"><span class="nottickedoff">postRegister = action POST (pathAPI &lt;/&lt; &quot;user&quot; &lt;/&lt; &quot;register&quot;) $ postRegisterAction</span></span>
+<span class="lineno">   72 </span><span class="decl"><span class="nottickedoff">postRegister = action POST (pathAPI &lt;/&lt; &quot;user&quot; &lt;/&lt; &quot;register&quot;) postRegisterAction</span></span>
 <span class="lineno">   73 </span>
 <span class="lineno">   74 </span>data RegisterRequest = RegisterRequest T.Text (Maybe T.Text) BSC.ByteString (Maybe T.Text) Bool
 <span class="lineno">   75 </span>
@@ -150,7 +150,7 @@ span.spaces    { background: white }
 <span class="lineno">  134 </span><span class="spaces">  </span><span class="nottickedoff">peeks $ blankForm . htmlPasswordReset</span></span>
 <span class="lineno">  135 </span>
 <span class="lineno">  136 </span>postPasswordReset :: ActionRoute API
-<span class="lineno">  137 </span><span class="decl"><span class="nottickedoff">postPasswordReset = action POST (pathAPI &lt;/&lt; &quot;user&quot; &lt;/&lt; &quot;password&quot;) $ postPasswordResetAction</span></span>
+<span class="lineno">  137 </span><span class="decl"><span class="nottickedoff">postPasswordReset = action POST (pathAPI &lt;/&lt; &quot;user&quot; &lt;/&lt; &quot;password&quot;) postPasswordResetAction</span></span>
 <span class="lineno">  138 </span>
 <span class="lineno">  139 </span>data PasswordResetRequest = PasswordResetRequest BSC.ByteString
 <span class="lineno">  140 </span>

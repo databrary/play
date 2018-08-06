@@ -107,7 +107,7 @@ span.spaces    { background: white }
 <span class="lineno">   91 </span><span class="spaces">  </span><span class="nottickedoff">pa &lt;- chainPrev (const ())</span>
 <span class="lineno">   92 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; dbQuery $(selectQuery selectActivityParty $ &quot;WHERE party.id = ${partyId $ partyRow p} AND &quot; ++ activityQual)</span>
 <span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">ca &lt;- chainPrev (const ()) . maskPasswords</span>
-<span class="lineno">   94 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; dbQuery $(selectQuery selectActivityAccount $ &quot;WHERE account.id = ${partyId $ partyRow p} ORDER BY audit_time&quot;) -- unqual: include logins</span>
+<span class="lineno">   94 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; dbQuery $(selectQuery selectActivityAccount &quot;WHERE account.id = ${partyId $ partyRow p} ORDER BY audit_time&quot;) -- unqual: include logins</span>
 <span class="lineno">   95 </span><span class="spaces">  </span><span class="nottickedoff">aa &lt;- chainPrev (partyId . partyRow . authorizeChild . authorization . activityAuthorize)</span>
 <span class="lineno">   96 </span><span class="spaces">    </span><span class="nottickedoff">&lt;$&gt; dbQuery $(selectQuery (selectActivityAuthorize 'p 'ident) $ &quot;WHERE &quot; ++ activityQual)</span>
 <span class="lineno">   97 </span><span class="spaces">  </span><span class="nottickedoff">return $ mergeActivities [pa, ca, aa]</span></span>

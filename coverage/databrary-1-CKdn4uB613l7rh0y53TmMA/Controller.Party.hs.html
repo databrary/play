@@ -307,9 +307,9 @@ span.spaces    { background: white }
 <span class="lineno">  291 </span><span class="spaces">  </span><span class="nottickedoff">checkMemberADMIN</span>
 <span class="lineno">  292 </span><span class="spaces">  </span><span class="nottickedoff">ps &lt;- getDuplicateParties</span>
 <span class="lineno">  293 </span><span class="spaces">  </span><span class="nottickedoff">return $ csvResponse</span>
-<span class="lineno">  294 </span><span class="spaces">    </span><span class="nottickedoff">[ [ BSC.pack $ show $ partyId $ partyRow1</span>
-<span class="lineno">  295 </span><span class="spaces">      </span><span class="nottickedoff">, TE.encodeUtf8 $ partySortName $ partyRow1</span>
-<span class="lineno">  296 </span><span class="spaces">      </span><span class="nottickedoff">, maybeEmpty TE.encodeUtf8 (partyPreName $ partyRow1)</span>
+<span class="lineno">  294 </span><span class="spaces">    </span><span class="nottickedoff">[ [ BSC.pack $ show $ partyId partyRow1</span>
+<span class="lineno">  295 </span><span class="spaces">      </span><span class="nottickedoff">, TE.encodeUtf8 $ partySortName partyRow1</span>
+<span class="lineno">  296 </span><span class="spaces">      </span><span class="nottickedoff">, maybeEmpty TE.encodeUtf8 (partyPreName partyRow1)</span>
 <span class="lineno">  297 </span><span class="spaces">      </span><span class="nottickedoff">]</span>
 <span class="lineno">  298 </span><span class="spaces">    </span><span class="nottickedoff">| partyRow1 &lt;- ps ] &quot;party&quot;</span>
 <span class="lineno">  299 </span><span class="spaces">  </span><span class="nottickedoff">where</span>

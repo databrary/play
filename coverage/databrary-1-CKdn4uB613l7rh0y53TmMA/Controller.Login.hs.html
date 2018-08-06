@@ -90,7 +90,7 @@ span.spaces    { background: white }
 <span class="lineno">   74 </span><span class="decl"><span class="istickedoff">checkPassword p = any (`BCrypt.validatePassword` p) . accountPasswd</span></span>
 <span class="lineno">   75 </span>
 <span class="lineno">   76 </span>postLogin :: ActionRoute API
-<span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">postLogin = action POST (pathAPI &lt;/&lt; &quot;user&quot; &lt;/&lt; &quot;login&quot;) $ postLoginAction</span></span>
+<span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">postLogin = action POST (pathAPI &lt;/&lt; &quot;user&quot; &lt;/&lt; &quot;login&quot;) postLoginAction</span></span>
 <span class="lineno">   78 </span>
 <span class="lineno">   79 </span>data LoginRequest = LoginRequest BS.ByteString BS.ByteString Bool
 <span class="lineno">   80 </span>

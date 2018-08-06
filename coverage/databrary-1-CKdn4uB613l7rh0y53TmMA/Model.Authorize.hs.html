@@ -102,7 +102,7 @@ span.spaces    { background: white }
 <span class="lineno">   86 </span>lookupAuthorizeParent :: (MonadDB c m, MonadHasIdentity c m) =&gt; Party -&gt; Id Party -&gt; m (Maybe Authorize)
 <span class="lineno">   87 </span><span class="decl"><span class="nottickedoff">lookupAuthorizeParent child parent = do</span>
 <span class="lineno">   88 </span><span class="spaces">  </span><span class="nottickedoff">ident &lt;- peek</span>
-<span class="lineno">   89 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 $ $(selectQuery (selectAuthorizeParent 'child 'ident) &quot;$WHERE authorize.parent = ${parent} AND (expires IS NULL OR expires &gt; CURRENT_TIMESTAMP)&quot;)</span></span>
+<span class="lineno">   89 </span><span class="spaces">  </span><span class="nottickedoff">dbQuery1 $(selectQuery (selectAuthorizeParent 'child 'ident) &quot;$WHERE authorize.parent = ${parent} AND (expires IS NULL OR expires &gt; CURRENT_TIMESTAMP)&quot;)</span></span>
 <span class="lineno">   90 </span>
 <span class="lineno">   91 </span>-- | Get the core active authorization entry between a child and parent, after inheritance has been applied.
 <span class="lineno">   92 </span>-- Override authorize_view for the corner case of nobody as both parent and child.

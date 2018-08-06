@@ -234,7 +234,7 @@ span.spaces    { background: white }
 <span class="lineno">  218 </span><span class="spaces">      </span><span class="nottickedoff">expandedVolJSONcaching :: StateT VolumeCache Handler (JSON.Record (Id Volume) JSON.Series)</span>
 <span class="lineno">  219 </span><span class="spaces">      </span><span class="nottickedoff">expandedVolJSONcaching = (\series -&gt; volumeJSON vol mAccesses `JSON.foldObjectIntoRec` series) &lt;$&gt; seriesCaching</span>
 <span class="lineno">  220 </span><span class="spaces">  </span><span class="nottickedoff">in</span>
-<span class="lineno">  221 </span><span class="spaces">    </span><span class="nottickedoff">runVolumeCache $ expandedVolJSONcaching</span></span>
+<span class="lineno">  221 </span><span class="spaces">    </span><span class="nottickedoff">runVolumeCache expandedVolJSONcaching</span></span>
 <span class="lineno">  222 </span>
 <span class="lineno">  223 </span>volumeDownloadName :: Volume -&gt; [T.Text]
 <span class="lineno">  224 </span><span class="decl"><span class="nottickedoff">volumeDownloadName v =</span>

@@ -38,7 +38,7 @@ span.spaces    { background: white }
 <span class="lineno">   22 </span>
 <span class="lineno">   23 </span>htmlUserForm :: Account -&gt; RequestContext -&gt; FormHtml f
 <span class="lineno">   24 </span><span class="decl"><span class="nottickedoff">htmlUserForm a = htmlForm &quot;Edit account&quot; postUser HTML (do</span>
-<span class="lineno">   25 </span><span class="spaces">  </span><span class="nottickedoff">field &quot;auth&quot; $ inputPassword</span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="nottickedoff">field &quot;auth&quot; inputPassword</span>
 <span class="lineno">   26 </span><span class="spaces">  </span><span class="nottickedoff">field &quot;email&quot; $ inputText $ Just $ BSC.unpack $ accountEmail a</span>
 <span class="lineno">   27 </span><span class="spaces">  </span><span class="nottickedoff">&quot;password&quot; .:&gt; do</span>
 <span class="lineno">   28 </span><span class="spaces">    </span><span class="nottickedoff">field &quot;once&quot; inputPassword</span>

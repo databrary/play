@@ -169,7 +169,7 @@
 <a name="line-160"></a><span class='hs-definition'>dbQuery1</span> <span class='hs-varid'>q</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
 <a name="line-161"></a>  <span class='hs-varid'>r</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>dbQuery</span> <span class='hs-varid'>q</span>
 <a name="line-162"></a>  <span class='hs-keyword'>case</span> <span class='hs-varid'>r</span> <span class='hs-keyword'>of</span>
-<a name="line-163"></a>    <span class='hs-conid'>[]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>return</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Nothing</span>
+<a name="line-163"></a>    <span class='hs-conid'>[]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>return</span> <span class='hs-conid'>Nothing</span>
 <a name="line-164"></a>    <span class='hs-keyglyph'>[</span><span class='hs-varid'>x</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>return</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Just</span> <span class='hs-varid'>x</span>
 <a name="line-165"></a>    <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>fail</span> <span class='hs-varop'>$</span> <span class='hs-str'>"pgQuery1 "</span> <span class='hs-varop'>++</span> <span class='hs-varid'>show</span> <span class='hs-varid'>q</span> <span class='hs-varop'>++</span> <span class='hs-str'>": too many results"</span>
 <a name="line-166"></a>
@@ -233,7 +233,7 @@
 <a name="line-224"></a><span class='hs-definition'>mapRunPrepQuery1</span> <span class='hs-varid'>args</span><span class='hs-keyglyph'>@</span><span class='hs-layout'>(</span><span class='hs-varid'>q</span><span class='hs-layout'>,</span> <span class='hs-keyword'>_</span><span class='hs-layout'>,</span> <span class='hs-keyword'>_</span><span class='hs-layout'>)</span> <span class='hs-varid'>mkResult</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
 <a name="line-225"></a>  <span class='hs-varid'>rows</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>mapRunPrepQuery</span> <span class='hs-varid'>args</span> <span class='hs-varid'>mkResult</span>
 <a name="line-226"></a>  <span class='hs-keyword'>case</span> <span class='hs-varid'>rows</span> <span class='hs-keyword'>of</span>
-<a name="line-227"></a>    <span class='hs-conid'>[]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>return</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Nothing</span>
+<a name="line-227"></a>    <span class='hs-conid'>[]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>return</span> <span class='hs-conid'>Nothing</span>
 <a name="line-228"></a>    <span class='hs-keyglyph'>[</span><span class='hs-varid'>x</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>return</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Just</span> <span class='hs-varid'>x</span>
 <a name="line-229"></a>    <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>fail</span> <span class='hs-varop'>$</span> <span class='hs-str'>"pgQuery1 "</span> <span class='hs-varop'>++</span> <span class='hs-varid'>show</span> <span class='hs-varid'>q</span> <span class='hs-varop'>++</span> <span class='hs-str'>": too many results"</span>
 </pre></body>

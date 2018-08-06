@@ -82,8 +82,8 @@ span.spaces    { background: white }
 <span class="lineno">   66 </span><span class="decl"><span class="istickedoff">wrapText n = TL.unlines . concatMap wrap . TL.lines where</span>
 <span class="lineno">   67 </span><span class="spaces">  </span><span class="istickedoff">wrap s</span>
 <span class="lineno">   68 </span><span class="spaces">    </span><span class="istickedoff">| short s = [s]</span>
-<span class="lineno">   69 </span><span class="spaces">    </span><span class="istickedoff">| (h:l) &lt;- TL.breakOnAll &quot; &quot; s = let (p,r) = fb <span class="nottickedoff">h</span> l in p : wrap (TL.tail r)</span>
-<span class="lineno">   70 </span><span class="spaces">    </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = [s]</span>
+<span class="lineno">   69 </span><span class="spaces">    </span><span class="istickedoff">| (h:l) &lt;- TL.breakOnAll &quot; &quot; s = let (p,r) = fb h l in p : wrap (TL.tail r)</span>
+<span class="lineno">   70 </span><span class="spaces">    </span><span class="istickedoff">| <span class="nottickedoff">otherwise</span> = <span class="nottickedoff">[s]</span></span>
 <span class="lineno">   71 </span><span class="spaces">  </span><span class="istickedoff">fb p [] = p</span>
 <span class="lineno">   72 </span><span class="spaces">  </span><span class="istickedoff">fb p (h@(t,_):l)</span>
 <span class="lineno">   73 </span><span class="spaces">    </span><span class="istickedoff">| short t = fb h l</span>
@@ -97,15 +97,15 @@ span.spaces    { background: white }
 <span class="lineno">   81 </span><span class="decl"><span class="istickedoff">mailHeader = TL.empty</span></span>
 <span class="lineno">   82 </span>
 <span class="lineno">   83 </span>mailFooter :: TL.Text
-<span class="lineno">   84 </span><span class="decl"><span class="nottickedoff">mailFooter = &quot;\n\</span>
-<span class="lineno">   85 </span><span class="spaces">  </span><span class="nottickedoff">\Sincerely,\n\</span>
-<span class="lineno">   86 </span><span class="spaces">  </span><span class="nottickedoff">\The Databrary Team\n\</span>
-<span class="lineno">   87 </span><span class="spaces">  </span><span class="nottickedoff">\-- \n\</span>
-<span class="lineno">   88 </span><span class="spaces">  </span><span class="nottickedoff">\Databrary\n\</span>
-<span class="lineno">   89 </span><span class="spaces">  </span><span class="nottickedoff">\196 Mercer Street, Suite 807\n\</span>
-<span class="lineno">   90 </span><span class="spaces">  </span><span class="nottickedoff">\212-998-5800\n\</span>
-<span class="lineno">   91 </span><span class="spaces">  </span><span class="nottickedoff">\contact@databrary.org\n\</span>
-<span class="lineno">   92 </span><span class="spaces">  </span><span class="nottickedoff">\databrary.org\n&quot;</span></span>
+<span class="lineno">   84 </span><span class="decl"><span class="istickedoff">mailFooter = &quot;\n\</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="istickedoff">\Sincerely,\n\</span>
+<span class="lineno">   86 </span><span class="spaces">  </span><span class="istickedoff">\The Databrary Team\n\</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="istickedoff">\-- \n\</span>
+<span class="lineno">   88 </span><span class="spaces">  </span><span class="istickedoff">\Databrary\n\</span>
+<span class="lineno">   89 </span><span class="spaces">  </span><span class="istickedoff">\196 Mercer Street, Suite 807\n\</span>
+<span class="lineno">   90 </span><span class="spaces">  </span><span class="istickedoff">\212-998-5800\n\</span>
+<span class="lineno">   91 </span><span class="spaces">  </span><span class="istickedoff">\contact@databrary.org\n\</span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="istickedoff">\databrary.org\n&quot;</span></span>
 <span class="lineno">   93 </span>
 <span class="lineno">   94 </span>sendMail :: MonadMail c m =&gt; [Either BS.ByteString Account] -&gt; [Either BS.ByteString Account] -&gt; T.Text -&gt; TL.Text -&gt; m ()
 <span class="lineno">   95 </span><span class="decl"><span class="istickedoff">sendMail [] [] _ _ = <span class="nottickedoff">return ()</span></span>
@@ -116,7 +116,7 @@ span.spaces    { background: white }
 <span class="lineno">  100 </span><span class="spaces">  </span><span class="istickedoff">Just (host, port :: Int, user, pass) &lt;- fmap decode $ liftIO $ LBS.readFile &quot;config/email&quot;</span>
 <span class="lineno">  101 </span><span class="spaces">  </span><span class="istickedoff">focusIO $ logMsg t $ &quot;mail &quot; &lt;&gt; BS.intercalate <span class="nottickedoff">&quot;, &quot;</span> (map (either <span class="nottickedoff">id</span> accountEmail) to) &lt;&gt; &quot;: &quot; &lt;&gt; TE.encodeUtf8 subj</span>
 <span class="lineno">  102 </span><span class="spaces">  </span><span class="istickedoff">liftIO $ mlr mailer <span class="nottickedoff">(MailHost host)</span> <span class="nottickedoff">(MailPort port)</span> <span class="nottickedoff">(MailUser user)</span> <span class="nottickedoff">(MailPass pass)</span> $ addPart</span>
-<span class="lineno">  103 </span><span class="spaces">    </span><span class="istickedoff">[Part <span class="nottickedoff">&quot;text/plain; charset=utf-8&quot;</span> <span class="nottickedoff">None</span> <span class="nottickedoff">Nothing</span> <span class="nottickedoff">[]</span> $ TLE.encodeUtf8 $ mailHeader &lt;&gt; wrapText 78 body &lt;&gt; <span class="nottickedoff">mailFooter</span>] baseMail</span>
+<span class="lineno">  103 </span><span class="spaces">    </span><span class="istickedoff">[Part <span class="nottickedoff">&quot;text/plain; charset=utf-8&quot;</span> <span class="nottickedoff">None</span> <span class="nottickedoff">Nothing</span> <span class="nottickedoff">[]</span> $ TLE.encodeUtf8 $ mailHeader &lt;&gt; wrapText 78 body &lt;&gt; mailFooter] baseMail</span>
 <span class="lineno">  104 </span><span class="spaces">    </span><span class="istickedoff">{ mailTo = map addr to</span>
 <span class="lineno">  105 </span><span class="spaces">    </span><span class="istickedoff">, mailCc = <span class="nottickedoff">map addr cc</span></span>
 <span class="lineno">  106 </span><span class="spaces">    </span><span class="istickedoff">, mailHeaders = <span class="nottickedoff">[(&quot;Subject&quot;, subj)]</span></span>

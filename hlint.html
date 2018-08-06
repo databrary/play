@@ -29,10 +29,6 @@ function insertRule(s)
 
 // SHOW/HIDE LOGIC //
 
-/**
- * @param {bool} [initialise=false] - Used to signal we are loading the page, so
- the current location doesn't match our presumed state.
- */
 function show(id, initialise=false)
 {
     var last;
@@ -42,7 +38,7 @@ function show(id, initialise=false)
     }
     else
     {
-        last = document.location.hash.slice(1);
+        last = window.location.hash.slice(1);
     }
 
     if (id === last) return;
@@ -66,7 +62,7 @@ function show(id, initialise=false)
         insertRule("#" + id + "{font-weight:bold;}");
     }
 
-    document.location.hash = '#'.concat(id);
+    window.location.hash = '#'.concat(id);
 }
 
 </script>

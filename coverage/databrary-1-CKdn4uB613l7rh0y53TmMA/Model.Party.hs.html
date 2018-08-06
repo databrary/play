@@ -997,7 +997,7 @@ span.spaces    { background: white }
 <span class="lineno">  981 </span>partyFilter :: PartyFilter -&gt; Identity -&gt; BS.ByteString
 <span class="lineno">  982 </span><span class="decl"><span class="nottickedoff">partyFilter PartyFilter{..} ident = BS.concat</span>
 <span class="lineno">  983 </span><span class="spaces">  </span><span class="nottickedoff">[ withq partyFilterAuthorization (const &quot; JOIN authorize_view ON party.id = child AND parent = 0&quot;)</span>
-<span class="lineno">  984 </span><span class="spaces">  </span><span class="nottickedoff">, &quot; WHERE id &gt; 0 AND id != &quot;, pgLiteralRep (partyId $ partyRow $ staffParty)</span>
+<span class="lineno">  984 </span><span class="spaces">  </span><span class="nottickedoff">, &quot; WHERE id &gt; 0 AND id != &quot;, pgLiteralRep (partyId $ partyRow staffParty)</span>
 <span class="lineno">  985 </span><span class="spaces">  </span><span class="nottickedoff">, withq partyFilterQuery (\n -&gt; &quot; AND &quot; &lt;&gt; queryVal &lt;&gt; &quot; ILIKE &quot; &lt;&gt; pgLiteralRep (wordPat n))</span>
 <span class="lineno">  986 </span><span class="spaces">  </span><span class="nottickedoff">, withq partyFilterAuthorization (\a -&gt; &quot; AND site = &quot; &lt;&gt; pgSafeLiteral a)</span>
 <span class="lineno">  987 </span><span class="spaces">  </span><span class="nottickedoff">, withq partyFilterInstitution (\i -&gt; if i then &quot; AND account.id IS NULL&quot; else &quot; AND account.password IS NOT NULL&quot;)</span>
