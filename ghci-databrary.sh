@@ -50,6 +50,6 @@ if [ ! -e "config/email" ]; then
 fi
 # rm -rf dist   # add this back when changing ffmpeg versions, c artifacts don't regenerate properly
 if [ "$skip_ghci" = false ] ; then
-    cabal configure --datadir=. --datasubdir=.
+    cabal configure --enable-tests --datadir=. --datasubdir=.
     cabal repl lib:databrary
 fi
