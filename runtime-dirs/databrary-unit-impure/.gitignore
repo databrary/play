@@ -23,7 +23,6 @@ dist-reports
 /npm-debug.log
 
 # application config
-/databrary.conf
 /config/email
 
 # IDE config

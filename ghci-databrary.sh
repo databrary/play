@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
+skip_ghci=false
+if [ "$1" == "--skip-ghci" ]; then
+    skip_ghci=true
+fi
+
 # this is replacing default.nix installation of this script into nix store, remove that soon
 # default.nix should still reference the nix store items this depends on!!
 git_root_dir=$(git rev-parse --show-toplevel)
@@ -44,5 +49,7 @@ if [ ! -e "config/email" ]; then
   cp ${git_root_dir}/install/config.email config/email
 fi
 # rm -rf dist   # add this back when changing ffmpeg versions, c artifacts don't regenerate properly
-cabal configure --datadir=. --datasubdir=.
-cabal repl lib:databrary
+if [ "$skip_ghci" = false ] ; then
+    cabal configure --datadir=. --datasubdir=.
+    cabal repl lib:databrary
+fi
