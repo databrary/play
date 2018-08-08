@@ -64,10 +64,12 @@
               <p message="password.advice" message-html></p>
 
               <validator name="once" label="password.once">
+                <label for="fieldPassword" class="accessible-hidden">password</label>
                 <input id="fieldPassword" name="once" type="password" ng-model="passwordForm.data.once" autocomplete="new-password">
               </validator>
 
               <validator name="again" label="password.again">
+                <label for="fieldPasswordAgain" class="accessible-hidden">password again</label>
                 <input id="fieldPasswordAgain" name="again" type="password" ng-model="passwordForm.data.again" autocomplete="new-password" key-enter="passwordForm.save()">
               </validator>
 
@@ -100,15 +102,15 @@
             </div>
             <div class="radio-set">
               <div>
-                <input type="radio" ng-model="authSearchForm.principal" ng-value="'principal'">
-                <label class="option">
+                <input id="authinvestinput" type="radio" ng-model="authSearchForm.principal" ng-value="'principal'">
+                <label for="authinvestinput" class="option">
                   <strong>Authorized Investigator</strong>
                 </label>
               </div>
 
               <div>
-                <input type="radio" ng-model="authSearchForm.principal" ng-value="'affiliate'">
-                <label class="option">
+                <input id="affiliateinput" type="radio" ng-model="authSearchForm.principal" ng-value="'affiliate'">
+                <label for="affiliateinput" class="option">
                   <strong>Affiliate</strong>
                 </label>
               </div>
