@@ -9,11 +9,11 @@
         <header>
           <a ng-href="{{::current.slotRoute()}}" class="icon line session tool" tooltip="'session.jump' | message:'highlight'"><span class="accessible-hidden">Go to file edit page</span></a>
           <a ng-if="::!current.pending && current.checkPermission(page.constants.permission.VIEW)" ng-href="{{::current.route()}}" class="icon line download tool" tooltip="'excerpts.download' | message"><span class="accessible-hidden">Download file</span></a>
-          <h1 class="panel-excerpts-player-heading">
+          <div class="panel-excerpts-player-heading">
             <div ng-if="::releases" class="release icon line" ng-class="::page.constants.release[current.release]" hint="release-{{::page.constants.release[current.release]}}" role="img" aria-label="{{::page.constants.release[current.release]}} release level"></div>
             <img class="icon" ng-src="{{::current.icon}}" hint="format-{{::current.format.extension}}" alt="format-{{::current.format.extension}} + ' icon'">
             <span ng-bind="::current.displayName"></span>
-          </h1>
+          </div>
         </header>
 
         <asset-display asset="current"></asset-display>
