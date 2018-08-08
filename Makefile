@@ -2,14 +2,15 @@
 # debugging.
 
 # Not everything is cached in our own cache, so use both
-NIX_OPTIONS := --option binary-caches "https://cache.nixos.org http://devdatabrary2.home.nyu.edu:5000"
 
 # These below intentionally use '='to pick up following changes to NIX_OPTIONS
+NIX_OPTIONS = --option binary-caches "https://cache.nixos.org http://devdatabrary2.home.nyu.edu:5000"
 nix-build-args = $(NIX_OPTIONS) --drv-link $(PWD)/derivation --cores 0 -A databrary
 nix-shell-args = $(NIX_OPTIONS) #--pure Commented for now because git DNE
 
 ifdef BUILDDEV
 nix-build-args += --keep-failed
+NIX_OPTIONS += --show-trace
 endif
 
 # Sneaky options used in recursing make. Not for human consumption.
