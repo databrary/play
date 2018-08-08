@@ -1,11 +1,13 @@
 <article class="view home-view" home-container>
   <div class="home-bigbuttons section white">
     <div class="heading">
+      <h1 class="accessible-hidden">Discover Databrary</h1>
       <div class="logo-white" role="img" aria-label="Databrary logo"></div>
       <span class="tag-flip">Video data library for behavioral scientists</span>
       <span class="tag-flip">Discover more, faster</span>
     </div>
     <div class="login-register">
+      <h2 class="accessible-hidden">Login or register</h2>
       <a ng-href="{{::page.router.login()}}" class="modal-button" ng-hide="::page.models.Login.isLoggedIn()">
         <button class="login-button">Login</button>
       </a>
@@ -17,6 +19,7 @@
       </a>
     </div>
     <div class="home-max-width">
+      <h2 class="accessible-hidden">Search or share data on Databrary</h2>
       <div>
         <a ng-href="{{::page.router.search()}}?volume">
           <div class="green-top">

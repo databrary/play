@@ -12,7 +12,7 @@
     </div>
     <div class="col-desktop-3 col-tablet-3 col-mobile-6">
       <div class="search-left-section foot-2" ng-if="::!!volumes">
-        <legend>Volume filters</legend>
+        <h2 class="legend">Volume filters</h2>
         <div class="search-volume-types search-filter">
           <div>
             <input id="volWSess" type="checkbox" ng-model="fields.container_top" ng-true-value="'false'" ng-false-value="undefined" ng-change="searchVolumes()"/>
@@ -82,19 +82,19 @@
       </small>
 
       <div class="search-results-section" ng-if="::!!volumes">
-        <h3>
+        <h2 class="h2-h3">
           Shared Volumes
           <small ng-click="searchVolumes()" ng-class="::{'search-results-showall':!!parties}">
             <ng-pluralize count="::volumes.count" when="{0:'No matches',one:'One match',other:'{} matches'}"></ng-pluralize>
           </small>
-        </h3>
+        </h2>
 
         <ul class="row search-volume-results foot-2 flat">
           <li ng-repeat="volume in ::volumes">
-            <h1 class="search-volume-result-title">
+            <h3 class="search-volume-result-title">
               <button ng-click="expandVolume(volume)" ng-class="{'expanded': expanded.volume === volume, 'expand': expanded.volume !== volume}" class="white icon" tooltip="'search.volume.expand' | message" aria-label="View or hide volume highlights"></button>
               <a ng-href="{{::volume.route()}}" ng-bind="::volume.name"></a>
-            </h1>
+            </h3>
 
             <div class="volume-list-investigators">
               <volume-owners></volume-owners>
