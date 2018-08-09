@@ -5,22 +5,22 @@
   "repository": "databrary/databrary",
   "private": true,
   "dependencies": {
-    "@flowjs/ng-flow": "2.7.1",
-    "angular": "~1.4",
-    "angular-route": "~1.4",
+    "@flowjs/ng-flow": "^2.7.8",
+    "angular": "1.5.11",
+    "angular-route": "1.5.11",
     "angular-ui-slider": "0.4.0",
-    "autoprefixer-stylus": "^0.9.4",
+    "autoprefixer-stylus": "0.14.0",
     "coffee-script": "^1.7.1",
-    "jquery": "^1.12.3",
+    "jquery": "^3.3.1",
     "jquery-ui-dist": "^1.12.1",
     "jshint": "~2.8.0",
     "lodash": "^3.0.0",
     "nib": "^1.1.2",
     "normalize.styl": "^3.0.0",
     "pivottable": "^2.0",
-    "uglify-js": "^2.8.29",
     "stylus": "^0.54.5",
-    "stylus-loader": "^3.0.1"
+    "stylus-loader": "^3.0.1",
+    "uglify-js": "^2.8.29"
   },
   "scripts": {}
 }

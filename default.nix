@@ -3,6 +3,13 @@
 }:
 
 let
+  dbName = "databrary-nix-db";
+  src =
+    builtins.filterSource
+      (path: _type: ! builtins.elem
+          (baseNameOf path)
+          [dbName ".git" "result" "node_modules" "dist"])
+      ./.;
   reflex-platform = import
     ((import <nixpkgs> {}).fetchFromGitHub {
       owner= "reflex-frp";
@@ -13,7 +20,7 @@ let
   # Definition of nixpkgs, version controlled by Reflex-FRP
   nixpkgs = reflex-platform.nixpkgs;
   inherit (nixpkgs.lib) id;
-  nodePackages = import ./node-default.nix { pkgs = nixpkgs; };
+  nodePackages = import ./node-default.nix { pkgs = nixpkgs; inherit src; };
   inherit (nixpkgs) fetchFromGitHub writeScriptBin cpio wget;
   # nixpkgs functions used to regulate Haskell overrides
   inherit (nixpkgs.haskell.lib)
@@ -37,7 +44,7 @@ let
           ((if coverage then doCoverage else id)
             (noSharedObjs
               (self.callPackage ./databrary.nix {
-                inherit postgresql nodePackages coreutils;
+                inherit postgresql nodePackages coreutils src dbName;
                 # ffmpeg override with with --enable-libfdk-aac and --enable-nonfree flags set
                 ffmpeg = nixpkgs.ffmpeg-full.override {
                   nonfreeLicensing = true;
