@@ -82,7 +82,7 @@ span.spaces    { background: white }
 <span class="lineno">   66 </span><span class="decl"><span class="istickedoff">wrapText n = TL.unlines . concatMap wrap . TL.lines where</span>
 <span class="lineno">   67 </span><span class="spaces">  </span><span class="istickedoff">wrap s</span>
 <span class="lineno">   68 </span><span class="spaces">    </span><span class="istickedoff">| short s = [s]</span>
-<span class="lineno">   69 </span><span class="spaces">    </span><span class="istickedoff">| (h:l) &lt;- TL.breakOnAll &quot; &quot; s = let (p,r) = fb h l in p : wrap (TL.tail r)</span>
+<span class="lineno">   69 </span><span class="spaces">    </span><span class="istickedoff">| (h:l) &lt;- TL.breakOnAll &quot; &quot; s = let (p,r) = fb <span class="nottickedoff">h</span> l in p : wrap (TL.tail r)</span>
 <span class="lineno">   70 </span><span class="spaces">    </span><span class="istickedoff">| <span class="nottickedoff">otherwise</span> = <span class="nottickedoff">[s]</span></span>
 <span class="lineno">   71 </span><span class="spaces">  </span><span class="istickedoff">fb p [] = p</span>
 <span class="lineno">   72 </span><span class="spaces">  </span><span class="istickedoff">fb p (h@(t,_):l)</span>
