@@ -37,9 +37,7 @@ service operations, make them easier to discover
         1.  [Run](Local-Dev-Environment/Build-and-Run.md)
     3.  Run Tests
         1.  [Run back end unit tests](Running-Tests.md)
-        2.  Run smoke test (done)
         3.  Run functional tests locally (done - video)
-        4.  Exercise local development automation (partially done)
     4.  Generate Reports
         1.  [Generate and publish developer documentation](Update-Github-Pages.md)
 8.  Test or Review Server
@@ -70,9 +68,8 @@ service operations, make them easier to discover
         2.  Tear down demo server (draft done)
     2.  Deploy, Run
         1.  Run on demo server (done)
-10. Smoketest (databrary2.home.nyu.edu)
-    1.  Deploy, Run
-        1.  Build and deploy to smoketest server (done)
+10. Smoketest (databrary2.home.nyu.edu) (aka Stage or Staging)
+    1.  [Deploy, Run](Smoketest-and-Prod--Build-and-Run.md)
     2.  Run Tests
         1.  Run functional tests against smoketest server (done - video)
 11. Production Static Web Content
@@ -92,5 +89,3 @@ service operations, make them easier to discover
             (draft done)
         4.  Repair transcoding node connectivity if compute cluster
             changes ssh public key (draft done)
-
-In progress guides for a possible future version of this page.
