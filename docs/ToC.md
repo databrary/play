@@ -15,8 +15,8 @@ service operations, make them easier to discover
     3.  "In which situation do you need to read this doc"
     4.  Guidance through the forest of docs
 3.  Outstanding Questions
-    1.  dev.databrary.org CNAME → devbrary.databrary.org →
-        128.122.236.158 → canonical name: devbrary.admin.ed.nyu.edu
+    1.  dev.databrary.org CNAME → devbrary.databrary.org →
+        128.122.236.158 → canonical name: devbrary.admin.ed.nyu.edu
         1.  Has a lot of users for past employees
 4.  System Requirements
     1.  HPC cluster with Slurm
@@ -25,7 +25,7 @@ service operations, make them easier to discover
     3.  Server for static web content and PDF email generation
         1.  dev.databrary.org bastion to access it
     4.  NYU NFS mount / disk storage (**may be Databrary-specific within
-        NYU** **?**)
+        NYU?**)
         1.  Temp space for upload procedure
         2.  Permanent storage of researcher's primary-source video data
         3.  Pass files between web node and transcoding node
@@ -72,17 +72,18 @@ service operations, make them easier to discover
         1.  [Build development
             environment](https://github.com/databrary/databrary/blob/39de1752ecffae20db926a6492ece132a3c14e2b/docs/Local-Dev-Environment/Build.md)
         2.  Tear down development environment (Kanishka)
-    2.  Deploy, Run
-        1.  Run
+    2.  Deploy,
+            Run
+        1.  <span>[Run](https://github.com/databrary/databrary/blob/a2425eff038417b7963bb7392a52320a1c827cf3/docs/Local-Dev-Environment/Build-and-Run.md)</span>
     3.  Run Tests
         1.  [Run back end unit
-            tests](https://projects.databrary.org/confluence/display/DD/How+to+run+tests)
+            tests](https://github.com/databrary/databrary/blob/bfd788e14c948af9c648a443a2026ab168e0ab59/docs/Running-Tests.md)
         2.  Run smoke test (done)
         3.  Run functional tests locally (done - video)
         4.  Exercise local development automation (partially done)
     4.  Generate Reports
         1.  [Generate and publish developer
-            documentation](https://projects.databrary.org/confluence/display/DD/How+to+update+Databrary%27s+GitHub+Pages)
+            documentation](https://github.com/databrary/databrary/blob/5ac040d3f5b340f0fd01a2dcdbeb420c1f5d8ecf/docs/Update-Github-Pages.md)
 8.  Test or Review Server
     1.  Provision
         1.  Build test server
