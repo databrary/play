@@ -1,12 +1,12 @@
-Purpose: List all the documents we have about running Databrary web
-service operations, make them easier to discover
+Documents related to building and running Databrary, copied quickly from a
+collection of drafts formerly located on Confluence.
 
 ### Definitions
 1.  hpc
 2.  smoketest
 3.  ezid
 
-### Feedback
+### Documentation Feedback
 1.  What is the context for the instructions? When would you want to
     run them? When do you care? What is the order that you need to
     look at them in?
@@ -14,18 +14,20 @@ service operations, make them easier to discover
 3.  "In which situation do you need to read this doc"
 4.  Guidance through the forest of docs
 
-###  Outstanding Questions
+###  Outstanding Questions/Concerns
 1.  dev.databrary.org CNAME → devbrary.databrary.org →
     128.122.236.158 → canonical name: devbrary.admin.ed.nyu.edu
     1.  Has a lot of users for past employees
+    2.  Required for accessing the static site; apparently unused for anything
+        else.
+1.  Auxiliary things?
+    1.  PDF email generation service
 
 -------
 
 ## Table of Contents
 
 1.  [System Requirements](System-Requirements.md)
-1.  TODO Auxiliary things?
-    1.  PDF email generation service
 1.  Cache server
     1.  Provision
         1.  Build cache on bastion server
@@ -58,8 +60,7 @@ service operations, make them easier to discover
         2.  Run back end integration tests against test server
             ([apitest1.databrary.org](http://apitest1.databrary.org))
             (draft done)
-        3.  Run functional tests against test or review server (done -
-            video)
+        3.  Run functional tests against test or review server (done - video)
     4.  Monitor
         1.  Setup uptime monitoring for cache server (Bryan)
 1.  Sandbox (sandbox1.databrary.org)
