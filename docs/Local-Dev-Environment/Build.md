@@ -2,9 +2,9 @@ Note: The commands below are intentionally verbose currently, to
 encourage people to understand what they are using, so that we become
 more fluent and understand how to customize further when needed.
 
-# INITIAL STARTUP
+## Initial startup
 
-### STEP 0
+### Step 0
 
 From anywhere on your machine, run the following to download the nix
 setup script and run it. When this is complete, you will have the base
@@ -16,7 +16,7 @@ additional private nix
     $ curl -L https://rawgit.com/databrary/databrary/master/setup-nix/0-sudo.sh | bash
     $ curl -L https://rawgit.com/databrary/databrary/master/setup-nix/1.sh | bash
 
-### STEP 1
+### Step 1
 
 From the root directory of this project, run
 
@@ -28,7 +28,7 @@ Note: When you have finished your development session, **make sure to
 stop the interpreter from step 2 first**, then use Ctrl-d or \\q is used
 to shutdown psql and database. See "note 1" below for more information.
 
-### STEP 2
+### Step 2
 
 In a separate shell, from the same root directory of this project, run
 
@@ -44,9 +44,11 @@ In a separate shell, from the same root directory of this project, run
 Note: There will be some delay the first time this runs after cloning,
 as it downloads large packages initially.
 
-Point your browser to localhost:8000
+Point your browser to localhost:8000.
 
-### HOT RELOAD FOR FRONTEND DEVELOPERS
+-----
+
+### Hot reload for frontend developers
 
 After running the steps provided above, in a separate terminal you can
 run the following script to watch for any changes the developer makes to
