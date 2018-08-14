@@ -1,23 +1,26 @@
 Purpose: List all the documents we have about running Databrary web
 service operations, make them easier to discover
 
+### Definitions
+1.  hpc
+2.  smoketest
+3.  ezid
+### Feedback
+1.  What is the context for the instructions? When would you want to
+    run them? When do you care? What is the order that you need to
+    look at them in?
+2.  *Motivate* the instructions
+3.  "In which situation do you need to read this doc"
+4.  Guidance through the forest of docs
+###  Outstanding Questions
+1.  dev.databrary.org CNAME → devbrary.databrary.org →
+    128.122.236.158 → canonical name: devbrary.admin.ed.nyu.edu
+    1.  Has a lot of users for past employees
 
+-------
 
-1.  Definitions
-    1.  hpc
-    2.  smoketest
-    3.  ezid
-2.  Feedback
-    1.  What is the context for the instructions? When would you want to
-        run them? When do you care? What is the order that you need to
-        look at them in?
-    2.  *Motivate* the instructions
-    3.  "In which situation do you need to read this doc"
-    4.  Guidance through the forest of docs
-3.  Outstanding Questions
-    1.  dev.databrary.org CNAME → devbrary.databrary.org →
-        128.122.236.158 → canonical name: devbrary.admin.ed.nyu.edu
-        1.  Has a lot of users for past employees
+## Table of Contents
+
 4.  [System Requirements](System-Requirements.md)
 5.  TODO Auxiliary things?
     1.  PDF email generation service
@@ -27,21 +30,18 @@ service operations, make them easier to discover
             ([devdatabrary2.home.nyu.edu](http://devdatabrary2.home.nyu.edu))
 7.  Local Dev Environment
     1.  Provision
-        1.  [Build development
-            environment](https://github.com/databrary/databrary/blob/39de1752ecffae20db926a6492ece132a3c14e2b/docs/Local-Dev-Environment/Build.md)
+        1.  [Build development environment](Local-Dev-Environment/Build.md)
         2.  Tear down development environment (Kanishka)
     2.  Deploy,
             Run
-        1.  <span>[Run](https://github.com/databrary/databrary/blob/a2425eff038417b7963bb7392a52320a1c827cf3/docs/Local-Dev-Environment/Build-and-Run.md)</span>
+        1.  [Run](Local-Dev-Environment/Build-and-Run.md)
     3.  Run Tests
-        1.  [Run back end unit
-            tests](https://github.com/databrary/databrary/blob/bfd788e14c948af9c648a443a2026ab168e0ab59/docs/Running-Tests.md)
+        1.  [Run back end unit tests](Running-Tests.md)
         2.  Run smoke test (done)
         3.  Run functional tests locally (done - video)
         4.  Exercise local development automation (partially done)
     4.  Generate Reports
-        1.  [Generate and publish developer
-            documentation](https://github.com/databrary/databrary/blob/5ac040d3f5b340f0fd01a2dcdbeb420c1f5d8ecf/docs/Update-Github-Pages.md)
+        1.  [Generate and publish developer documentation](Update-Github-Pages.md)
 8.  Test or Review Server
     1.  Provision
         1.  Build test server
@@ -83,9 +83,7 @@ service operations, make them easier to discover
     2.  Monitor
         1.  Setup uptime monitoring (Bryan)
     3.  Recover
-        1.  [Restart the production
-            service](https://github.com/databrary/databrary/wiki/Restart-the-production-service)
-            (done)
+        1.  [Restart the production service](Restart-the-production-service.md)
         2.  Manually start the service after production machine reboot
             (Kanishka)
         3.  [Manually resubmit transcoding failures after scheduled
