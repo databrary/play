@@ -168,7 +168,7 @@ app.controller('volume/slot', [
           style['border-top-left-radius'] = '0px'
           style['border-bottom-left-radius'] = '0px'
           if r < 0
-            style.border = '#f26363 3px solid'
+            style.border = '#e61313 3px solid'
           else
             style['border-left'] = '0px'
         else if l < 1
@@ -178,7 +178,7 @@ app.controller('volume/slot', [
           style['border-top-right-radius'] = '0px'
           style['border-bottom-right-radius'] = '0px'
           if l > 1
-            style.border = '#f26363 3px solid'
+            style.border = '#e61313 3px solid'
           else
             style['border-right'] = '0px'
         else if r > 0
@@ -368,7 +368,7 @@ app.controller('volume/slot', [
       h = Math.max(player.offsetHeight + up.clientY - down.clientY, playerMinHeight)
       if up.type == 'mousemove'
         bar.style.top = h - player.offsetHeight + 'px'
-        bar.style.borderTop = "2px solid #f26363"
+        bar.style.borderTop = "2px solid #e61313"
       else
         frame.style.overflow = 'hidden'
         bar.style.top = '0px'
