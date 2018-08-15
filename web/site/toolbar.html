@@ -3,12 +3,12 @@
     Welcome to the <strong>Databrary demo site</strong>. Explore Databrary in action and try out some of our features here!
   </div>
   <div class="wrap toolbar-main" ng-class="{'hover-nav-bg':hover==='nav'}">
+    <a class="skip-main" href="#main">Skip to main content</a>
     <div class="row">
       <div class="title cf col-desktop-7" ng-class="{'col-tablet-5 col-mobile-3': (hover!=='nav')&&page.models.Login.isLoggedIn(), 'col-tablet-5 col-mobile-2': (hover!=='nav')&&!page.models.Login.isLoggedIn(),'col-mobile-5':hover==='nav'}">
         <div class="toolbar-site">
           <a ng-class="::{sandbox:page.constants.sandbox}" ng-href="{{::page.router.index()}}" title="Databrary: An Open Data Library" role="img" aria-label="Databrary logo"></a>
         </div>
-
         <nav class="toolbar-nav cf">
           <ul class="toolbar-nav-ul inline-block flat cf">
             <li ng-class="{'hide-tablet hide-desktop':hover!=='nav'}">
