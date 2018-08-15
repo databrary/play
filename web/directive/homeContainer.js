@@ -51,11 +51,13 @@ app.directive('homeContainer', [
               for (i = 0; i < x.length; i++) {
                  x[i].style.opacity = "0";
                  x[i].style.zIndex = "0";
+                 x[i].getElementsByTagName("a")[0].setAttribute("tabindex", "-1");
               }
               myIndex++;
               if (myIndex > x.length) {myIndex = 1}    
               x[myIndex-1].style.opacity = "1";
               x[myIndex-1].style.zIndex = "2"; 
+              x[myIndex-1].getElementsByTagName("a")[0].setAttribute("tabindex", "0");
               slideIndex = myIndex;
             
               setTimeout(carousel, 8000);
@@ -73,9 +75,11 @@ app.directive('homeContainer', [
           for (i = 0; i < x.length; i++) {
               x[i].style.opacity = "0";
               x[i].style.zIndex = "0";
+              x[i].getElementsByTagName("a")[0].setAttribute("tabindex", "-1");
           }
           x[slideIndex-1].style.opacity = "1";
           x[slideIndex-1].style.zIndex = "2";
+          x[slideIndex-1].getElementsByTagName("a")[0].setAttribute("tabindex", "0");
         }
 
         $scope.plusDivs = function(n) {
