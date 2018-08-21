@@ -18,7 +18,13 @@ additional private nix
 
 ### Step 1
 
-From the root directory of this project, run
+Clone databrary repository
+
+    $ git clone https://github.com/databrary/databrary.git
+
+### Step 2
+
+From the root directory of databrary project, run
 
     # Start the postgresql server along with creating required schemas, if missing.
     # Note: use Ctrl-d or \q to close psql and shutdown database.
@@ -28,7 +34,7 @@ Note: When you have finished your development session, **make sure to
 stop the interpreter from step 2 first**, then use Ctrl-d or \\q is used
 to shutdown psql and database. See "note 1" below for more information.
 
-### Step 2
+### Step 3
 
 In a separate shell, from the same root directory of this project, run
 
