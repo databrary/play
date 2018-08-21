@@ -1,11 +1,6 @@
 Documents related to building and running Databrary, copied quickly from a
 collection of drafts formerly located on Confluence.
 
-### Definitions
-1.  hpc
-2.  smoketest
-3.  ezid
-
 ### Documentation Feedback
 1.  What is the context for the instructions? When would you want to
     run them? When do you care? What is the order that you need to
@@ -20,10 +15,39 @@ collection of drafts formerly located on Confluence.
     1.  Has a lot of users for past employees
     2.  Required for accessing the static site; apparently unused for anything
         else.
-1.  Auxiliary things?
-    1.  PDF email generation service
+1.  PDF email generation service
 
 -------
+
+## Systems
+
+### Bastion server
+#### Canonical domain name
+devdatabrary2.home.nyu.edu
+#### Uses
+* Bastion (access point for other systems on the NYU network, accessible to
+  anyone on the VPN)
+* Project-specific Nix cache. With it, an initial build takes minutes, instead
+  of tens of hours.
+
+### Dev preview servers
+#### Canonical domain names
+* dev1.databrary.org
+* dev8.databrary.org
+#### Uses
+* Preview
+### Runscope target
+#### Canonical domain name
+apitest1.databrary.org
+
+
+### Sandbox server
+#### Canonical domain name
+sandbox1.databrary.org
+
+
+
+
 
 ## Table of Contents
 
@@ -34,7 +58,7 @@ collection of drafts formerly located on Confluence.
             ([devdatabrary2.home.nyu.edu](http://devdatabrary2.home.nyu.edu))
 1.  Local Dev Environment
     1.  Provision
-        1.  [Build development environment](Local-Dev-Environment/Build.md)
+        1.  [Build development environment](Local-Dev-Environment/Build-and-Run.md)
     2.  Deploy, Run
         1.  [Run](Local-Dev-Environment/Build-and-Run.md)
     3.  Run Tests
