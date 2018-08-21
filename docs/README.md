@@ -57,14 +57,11 @@ sandbox1.databrary.org
         1.  Build cache on bastion server
             ([devdatabrary2.home.nyu.edu](http://devdatabrary2.home.nyu.edu))
 1.  Local Dev Environment
-    1.  Provision
-        1.  [Build development environment](Local-Dev-Environment/Build-and-Run.md)
-    2.  Deploy, Run
-        1.  [Run](Local-Dev-Environment/Build-and-Run.md)
-    3.  Run Tests
+    1.  [Build and Run](Local-Dev-Environment/Build-and-Run.md)
+    1.  Run Tests
         1.  [Run back end unit tests](Running-Tests.md)
-        3.  Run functional tests locally (done - video)
-    4.  Generate Reports
+        1.  Run functional tests locally (done - video)
+    1.  Generate Reports
         1.  [Generate and publish developer documentation](Update-Github-Pages.md)
 1.  Test or Review Server
     1.  Provision
