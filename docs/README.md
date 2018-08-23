@@ -1,5 +1,19 @@
-Documents related to building and running Databrary, copied quickly from a
-collection of drafts formerly located on Confluence.
+# Databrary wind-down
+
+While this document will eventually be the home page for documentation about
+running the Databrary service, currently it also the project page for winding
+down Databrary at the end of August, 2018.
+
+## Tasks
+
+* [ ] Dump relevant docs from Confluence into this directory
+* [ ] Back up the sandbox database
+* [ ] Shut down dev2.databrary.org, dev8.databrary.org, and any other
+  devXX.databrary.org servers
+* [ ] Shut down sandbox1.databrary.org
+* [ ]
+
+## Scratch Space
 
 ### Documentation Feedback
 1. What is the context for the instructions? When would you want to
@@ -36,21 +50,11 @@ devdatabrary2.home.nyu.edu
 * Project-specific Nix cache. With it, an initial build takes minutes, instead
   of tens of hours.
 
-### Dev preview servers
-#### Canonical domain names
-* dev1.databrary.org
-* dev8.databrary.org
+### App server
+#### Canonical domain name
+databrary2.home.nyu.edu
 #### Uses
-* Preview
-### Runscope target
-#### Canonical domain name
-apitest1.databrary.org
-
-
-### Sandbox server
-#### Canonical domain name
-sandbox1.databrary.org
-
+* Runs the Databrary application
 
 
 ## Auxiliary services
