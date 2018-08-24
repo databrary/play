@@ -29,6 +29,16 @@ Flag sandbox
   default: False
   manual: True
 
+-- Databrary uses the ffmpeg package, but doesn't actually use "libffmpeg",
+-- which doesn't exist. This causes a poor interaction between Cabal and Nix. To
+-- fix it, I present the following unbuildable component. It lets us use
+-- cabal2nix's output without modification (together with pkgconfig-depends
+-- below).
+executable dummy-ffmpeg-referrer
+  buildable: False
+  extra-libraries: ffmpeg
+  main-is: dummy-ffmpeg-referrer.hs
+
 library
   hs-source-dirs: src
   c-sources: src/Store/avFrame.c
@@ -376,6 +386,8 @@ library
     servant-server >= 0.11,
     stringsearch >= 0.3.6.6
                 
+  pkgconfig-depends: libavcodec
+
   default-language: Haskell2010
   default-extensions:
     ConstraintKinds,
@@ -390,9 +402,6 @@ library
     cpp-options: -DDEVEL
   if flag(sandbox)
     cpp-options: -DSANDBOX
-
-  pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
-  extra-libraries: crack, crypto
 
 Executable databrary
   hs-source-dirs: app-databrary
@@ -413,9 +422,6 @@ Executable databrary
     ghc-options: -with-rtsopts -N
   if flag(sandbox)
     cpp-options: -DSANDBOX
-
-  -- pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
-  -- extra-libraries: crack, crypto
 
 Executable generate
   hs-source-dirs: app-generate, src
