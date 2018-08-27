@@ -45,7 +45,10 @@ Flag sandbox
 -- cabal2nix's output without modification (together with pkgconfig-depends
 -- below).
 --
--- 2. We also depend on postgres as a build tool.
+-- 2. We also depend on postgres as a build tool. FIXME: we actually depend on
+-- the *library*. We depend on having a running database to build the project,
+-- but that's another thing altogether. So, maybe we can just move postgres into
+-- extra-libraries.
 executable dummy-ffmpeg-referrer
   buildable: False
   extra-libraries: ffmpeg, postgresql95

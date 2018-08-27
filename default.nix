@@ -2,6 +2,7 @@ let
     pkgs' = import ./nixpkgs.nix;
     hlib = pkgs'.haskell.lib;
 
+    # QUESTION: Make this a derivation that depends on postgres?
     dbMakefile = ./db.makefile;
 
     haskellOverrides = hsSelf: hsSuper: {
@@ -22,7 +23,8 @@ let
         # Need a version <= 0.10 for postgresql-typed-0.4.5
         #
         # FIXME: dontCheck: wants a postgres service available (this is doable,
-        # but I can't be bothered right now).
+        # but I can't be bothered right now). EDIT: Now even easier since we
+        # have dbMakefile available.
         postgresql-binary = hlib.dontCheck
             (hsSelf.callHackage  "postgresql-binary" "0.10" {});
 
