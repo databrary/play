@@ -1,7 +1,8 @@
 let
     pkgs' = import ./nixpkgs.nix;
-
     hlib = pkgs'.haskell.lib;
+
+    dbMakefile = ./db.makefile;
 
     haskellOverrides = hsSelf: hsSuper: {
         #################
@@ -31,22 +32,58 @@ let
             (hlib.doJailbreak (hsSelf.callHackage "hjsonschema" "0.9.0.0" {}));
 
         # hjsonpointer-0.3.0.2 needed for hjsonschema-0.9.0.0
-        hjsonpointer =  hlib.doJailbreak (hsSelf.callHackage "hjsonpointer" "0.3.0.2" {});
+        hjsonpointer = hlib.doJailbreak
+            (hsSelf.callHackage "hjsonpointer" "0.3.0.2" {});
 
+        # Customized blind streaming zip library. FIXME: Upstream this
+        # WARNING: This package's tests take 5-10 minutes.
+        zip = hsSelf.callCabal2nix "zip"
+            (pkgs'.fetchFromGitHub
+                {
+                    owner = "robertleegdm";
+                    repo = "zip";
+                    rev = "594d57a09f6b957ba0fb54151f49e10a2eba4fdd";
+                    sha256 = "1kbkd67rjvnhxp3p18pqbdv50vxr4k5d1mziyf7hhv5nkpv4g32c";
+                }
+            )
+            {};
 
         ################
         # Local packages
         ################
-        databrary = hsSelf.callCabal2nix "databrary" ./backend {
-            # TODO: This should be specified as an overlay, but our version of nixpkgs (aka
-            # reflex-platform) doesn't support them.
-            ffmpeg = pkgs'.ffmpeg-full.override {
-                nonfreeLicensing = true;
-                fdkaacExtlib = true;
-            };
-            # This is supplied by the ffmpeg package.
-            libavcodec = null;
-        };
+        databrary = hlib.dontHaddock (
+            (hsSelf.callCabal2nix
+                "databrary"
+                ./backend
+                {
+                    # TODO: This should be specified as an overlay, but our
+                    # version of nixpkgs (aka reflex-platform) doesn't support
+                    # them.
+                    ffmpeg = pkgs'.ffmpeg-full.override
+                        {
+                            nonfreeLicensing = true;
+                            fdkaacExtlib = true;
+                        };
+                    # These are supplied by the ffmpeg package.
+                    libavcodec = null;
+                    libavformat = null;
+                    libswscale = null;
+
+                    # Name clash. We want the system package, not the haskell
+                    # package.
+                    crack = pkgs'.cracklib;
+                }
+            ).overrideAttrs (_:
+                {
+                    preBuild = ''
+                        export PGHOST=$(pwd)/.postgres-work
+                        export PGDATABASE=default
+                        export PGUSER=$(whoami)
+                        make -f ${dbMakefile}
+                    '';
+                }
+            )
+        );
     };
 
     pkgs = {

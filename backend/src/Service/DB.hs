@@ -34,6 +34,7 @@
   , pgConnect
   ) where
 
+import Control.Applicative
 import Control.Exception (tryJust, bracket)
 import Control.Monad (unless)
 import Control.Monad.IO.Class (MonadIO)
@@ -52,12 +53,13 @@ import Database.PostgreSQL.Typed.Types (PGValue)
 import qualified Language.Haskell.TH as TH
 import Network (PortID(..))
 import System.IO.Unsafe (unsafePerformIO)
+import System.Environment (lookupEnv)
 
 import Has
 import qualified Store.Config as C
 
-confPGDatabase :: C.Config -> PGDatabase
-confPGDatabase conf = defaultPGDatabase
+confPGDatabase :: C.Config -> BS.ByteString -> PGDatabase
+confPGDatabase conf user = defaultPGDatabase
   { pgDBHost = fromMaybe "localhost" host
   , pgDBPort = if isJust host
      then PortNumber (maybe 5432 fromInteger $ conf C.! "port")
@@ -69,23 +71,30 @@ confPGDatabase conf = defaultPGDatabase
   }
   where
   host = conf C.! "host"
-  user = conf C.! "user"
 
+-- | Fallback to using the config file (for backward compatibility? I guess?),
+-- but use the environment first.
+ioUser :: C.Config -> IO BS.ByteString
+ioUser conf = do
+    pguser <- fmap BS.pack <$> lookupEnv "PGUSER"
+    user <- fmap BS.pack <$> lookupEnv "USER"
+    let confUser = conf C.! "user"
+    pure (fromMaybe confUser (pguser <|> user))
 
 data DBPool = DBPool (Pool PGConnection) (Pool PGSimple.Connection)
 type DBConn = PGConnection
 
 initDB :: C.Config -> IO DBPool
-initDB conf =
+initDB conf = do
+    db <- (fmap . confPGDatabase <*> ioUser) conf
     DBPool
         <$> createPool' (pgConnect db) pgDisconnect
-        <*> createPool' (PGSimple.connect simpleConnInfo) (PGSimple.close)
+        <*> createPool' (PGSimple.connect (simpleConnInfo db)) (PGSimple.close)
   where
     createPool' :: IO a -> (a -> IO ()) -> IO (Pool a)
     createPool' get release =
         createPool get release stripes (fromInteger idle) conn
-    db = confPGDatabase conf
-    simpleConnInfo = PGSimple.defaultConnectInfo
+    simpleConnInfo db = PGSimple.defaultConnectInfo
         { PGSimple.connectHost     = pgDBHost db
         , PGSimple.connectPort     = case pgDBPort db of
             PortNumber x -> fromIntegral x -- x is opaque
@@ -178,7 +187,10 @@ dbTransaction' f = do
 -- For connections outside runtime:
 
 loadPGDatabase :: IO PGDatabase
-loadPGDatabase = confPGDatabase . C.get "db" <$> C.load "databrary.conf"
+loadPGDatabase = do
+    dbConf <- C.get "db" <$> C.load "databrary.conf"
+    user <- ioUser dbConf
+    pure (confPGDatabase dbConf user)
 
 runDBConnection :: DBM a -> IO a
 runDBConnection f = bracket
