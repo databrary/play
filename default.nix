@@ -81,6 +81,14 @@ let
                         export PGUSER=$(whoami)
                         make -f ${dbMakefile}
                     '';
+                    postCheck = ''
+                        make -f ${dbMakefile} stop
+                    '';
+                    # FIXME: Untested. Can't remember off the top of my head if
+                    # this is the right attribute to set.
+                    failureHook = ''
+                        make -f ${dbMakefile} stop
+                    '';
                 }
             )
         );
