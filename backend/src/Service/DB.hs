@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances, FlexibleContexts,
   MultiParamTypeClasses, ConstraintKinds, TypeFamilies,
-  OverloadedStrings #-}module Service.DB
+  OverloadedStrings #-}
+module Service.DB
   ( DBPool
   , DBConn
   , initDB
@@ -74,8 +75,8 @@ confPGDatabase conf user = defaultPGDatabase
 
 -- | Fallback to using the config file (for backward compatibility? I guess?),
 -- but use the environment first.
-ioUser :: C.Config -> IO BS.ByteString
-ioUser conf = do
+getDBUser :: C.Config -> IO BS.ByteString
+getDBUser conf = do
     pguser <- fmap BS.pack <$> lookupEnv "PGUSER"
     user <- fmap BS.pack <$> lookupEnv "USER"
     let confUser = conf C.! "user"
@@ -86,7 +87,7 @@ type DBConn = PGConnection
 
 initDB :: C.Config -> IO DBPool
 initDB conf = do
-    db <- (fmap . confPGDatabase <*> ioUser) conf
+    db <- (fmap . confPGDatabase <*> getDBUser) conf
     DBPool
         <$> createPool' (pgConnect db) pgDisconnect
         <*> createPool' (PGSimple.connect (simpleConnInfo db)) (PGSimple.close)
@@ -189,7 +190,7 @@ dbTransaction' f = do
 loadPGDatabase :: IO PGDatabase
 loadPGDatabase = do
     dbConf <- C.get "db" <$> C.load "databrary.conf"
-    user <- ioUser dbConf
+    user <- getDBUser dbConf
     pure (confPGDatabase dbConf user)
 
 runDBConnection :: DBM a -> IO a
