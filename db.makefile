@@ -25,9 +25,10 @@ db_exists := psql -lqt | cut -f1 -d \| | grep -qw
 
 .PHONY: database service cluster stop clean
 
-data: database schema/* ; cat schema/* | psql
+database: service schema/*
+	$(db_exists) $(PGDATABASE) || createdb $(PGDATABASE)
 
-database: service ; $(db_exists) $(PGDATABASE) || createdb $(PGDATABASE)
+data: database schema/* ; cat schema/* | psql
 
 service: cluster ; $(pg_isready) || $(pg_start)
 

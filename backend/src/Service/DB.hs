@@ -33,6 +33,12 @@ module Service.DB
   -- FIXME: added for tests
   , loadPGDatabase
   , pgConnect
+  -- * DB configuration lookup
+  --
+  -- $getDBDoc
+  , getDBUser
+  , getDBDatabase
+  , getDBHost
   ) where
 
 import Control.Applicative
@@ -44,7 +50,7 @@ import Control.Monad.Trans.Reader (ReaderT(..))
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.Char8 as BS
 import Data.IORef (IORef, newIORef, atomicModifyIORef')
-import Data.Maybe (fromMaybe, isJust, fromJust)
+import Data.Maybe (fromMaybe, isJust)
 import Data.Pool (Pool, withResource, createPool, destroyAllResources)
 import qualified Database.PostgreSQL.Simple as PGSimple
 import Database.PostgreSQL.Typed.Protocol
@@ -52,29 +58,36 @@ import Database.PostgreSQL.Typed.Query
 import Database.PostgreSQL.Typed.TH (withTPGConnection, useTPGDatabase)
 import Database.PostgreSQL.Typed.Types (PGValue)
 import qualified Language.Haskell.TH as TH
-import Network (PortID(..))
+import Network (PortID(..), HostName)
+import System.Directory (doesFileExist, doesDirectoryExist)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Environment (lookupEnv)
+import qualified System.FilePath as FilePath
 
 import Has
 import qualified Store.Config as C
 
-confPGDatabase :: C.Config -> BS.ByteString -> PGDatabase
-confPGDatabase conf user = defaultPGDatabase
-  { pgDBHost = fromMaybe "localhost" host
-  , pgDBPort = if isJust host
-     then PortNumber (maybe 5432 fromInteger $ conf C.! "port")
-     else UnixSocket (fromJust $ conf C.! "sock")
+confPGDatabase :: C.Config -> BS.ByteString -> HostName -> PortID -> PGDatabase
+confPGDatabase conf user host port = defaultPGDatabase
+  { pgDBHost = host
+  , pgDBPort = port
   , pgDBName = fromMaybe user $ conf C.! "db"
   , pgDBUser = user
   , pgDBPass = fromMaybe "" $ conf C.! "pass"
   , pgDBDebug = fromMaybe False $ conf C.! "debug"
   }
-  where
-  host = conf C.! "host"
 
--- | Fallback to using the config file (for backward compatibility? I guess?),
--- but use the environment first.
+-- |
+-- $getDBDoc
+--
+-- postgresql-typed uses its own env vars, separate from those used by Postgres.
+-- This pains me. The getDBFoo functions create a connection configuration using
+-- the original vars when possible, falling back to Databrary's original legacy
+-- config file if necessary.
+--
+--
+
+-- | Uses PGUSER and/or USER, falls back to \"user\".
 getDBUser :: C.Config -> IO BS.ByteString
 getDBUser conf = do
     pguser <- fmap BS.pack <$> lookupEnv "PGUSER"
@@ -82,12 +95,95 @@ getDBUser conf = do
     let confUser = conf C.! "user"
     pure (fromMaybe confUser (pguser <|> user))
 
+-- | Uses PGDATABASE, falls back to \"name\".
+getDBDatabase :: C.Config -> IO BS.ByteString
+getDBDatabase conf = do
+    pgdb <- fmap BS.pack <$> lookupEnv "PGDATABASE"
+    let confdb = conf C.! "db"
+    pure (fromMaybe confdb pgdb)
+
+-- | Postgres is smart enough to choose a TCP connection or Unix socket based on
+-- the format of PGHOST. postgresql-typed, however, uses a combination of host
+-- and "port", and the latter can be a port or a socket. This follows the
+-- deprecated Network.PortID type, which doesn't make any sense anyway.
+--
+-- I will duplicate Postgres' logic and use a combination of PGHOST and PGPORT,
+-- falling back to \"host\" and \"port\"/\"sock\" using legacy Databrary logic
+-- (further falling back to \"localhost\" and port 5432.)
+--
+-- To further constrain the possibilities, PGHOST will be a sentinel. If PGHOST
+-- is defined, the conf file will be skipped entirely. If PGHOST is *not*
+-- defined, PGPORT will be skipped entirely.
+getDBHost :: C.Config -> IO (HostName, PortID)
+getDBHost conf = do
+    menvHost <- lookupEnv "PGHOST"
+    envHostIsDir <- maybe (pure False) doesDirectoryExist menvHost
+    envPort <- fromMaybe "5432" <$> lookupEnv "PGPORT"
+    let mconfHost = conf C.! "host"
+        confPort =
+            -- Legacy handling of "port" versus "sock".
+            if isJust mconfHost
+            then fromMaybe "5432" (conf C.! "port")
+            else conf C.! "sock"
+    confPortIsFile <- doesFileExist confPort
+    pure
+        (calculateDBHost
+            menvHost
+            envHostIsDir
+            envPort
+            mconfHost
+            confPort
+            confPortIsFile
+        )
+
+-- | Pure meat of getDBHost for unit testing
+--
+-- >>> calculateDBHost (Just "x") "5432" (Just "ignored") (Just "ignored")
+-- ("x", PortNumber 5432)
+--
+-- >>> calculateDBHost (Just ".") "5444" (Just "ignored") (Just "ignored")
+-- ("localhost", UnixSocket "./.s.PGSQL.5444")
+--
+calculateDBHost
+    :: Maybe String
+    -- ^ host from env
+    -> Bool
+    -- ^ does the former arg correspond to a local directory?
+    -> String
+    -- ^ port from env (or fallback of \"5432\")
+    -> Maybe String
+    -- ^ host from conf file
+    -> String
+    -- ^ port from conf file (or fallback of \"5432\")
+    -> Bool
+    -- ^ does the former arg correspond to a local file?
+    -> (HostName, PortID)
+calculateDBHost menvHost envHostIsDir envPort mconfHost confPort confPortIsFile =
+    case menvHost of
+        Just envHost
+            | envHostIsDir ->
+                ( "localhost"
+                , UnixSocket (envHost FilePath.</> ".s.PGSQL." ++ envPort))
+            | otherwise ->
+                (envHost, PortNumber (fromIntegral (read envPort)))
+        Nothing -> -- No env host
+            case mconfHost of
+                Just confHost ->
+                    (confHost, PortNumber (fromIntegral (read confPort)))
+                Nothing
+                    | confPortIsFile ->
+                        ("localhost", UnixSocket confPort)
+                    | otherwise ->
+                        ("localhost", PortNumber (fromIntegral (read confPort)))
+
 data DBPool = DBPool (Pool PGConnection) (Pool PGSimple.Connection)
 type DBConn = PGConnection
 
 initDB :: C.Config -> IO DBPool
 initDB conf = do
-    db <- (fmap . confPGDatabase <*> getDBUser) conf
+    (host, port) <- getDBHost conf
+    user <- getDBUser conf
+    let db = confPGDatabase conf user host port
     DBPool
         <$> createPool' (pgConnect db) pgDisconnect
         <*> createPool' (PGSimple.connect (simpleConnInfo db)) (PGSimple.close)
@@ -191,7 +287,8 @@ loadPGDatabase :: IO PGDatabase
 loadPGDatabase = do
     dbConf <- C.get "db" <$> C.load "databrary.conf"
     user <- getDBUser dbConf
-    pure (confPGDatabase dbConf user)
+    (host, port) <- getDBHost dbConf
+    pure (confPGDatabase dbConf user host port)
 
 runDBConnection :: DBM a -> IO a
 runDBConnection f = bracket

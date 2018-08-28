@@ -81,7 +81,7 @@ let
                         export PGHOST=$(pwd)/.postgres-work
                         export PGDATABASE=default
                         export PGUSER=$(whoami)
-                        make -f ${dbMakefile}
+                        make -f ${dbMakefile} data
                     '';
                     postCheck = ''
                         make -f ${dbMakefile} stop

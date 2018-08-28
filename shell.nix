@@ -1,1 +1,1 @@
-(import ./. {}).databrary-dev.env
+(import ./.).env
