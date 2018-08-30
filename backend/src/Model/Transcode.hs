@@ -12,18 +12,13 @@ module Model.Transcode
   , checkAlreadyTranscoded
   ) where
 
--- import Database.PostgreSQL.Typed (pgSQL)
---import Database.PostgreSQL.Typed.Query
 import Database.PostgreSQL.Typed.Types
--- import qualified Data.ByteString
--- import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Lazy as BSL
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import qualified Data.String
--- import Database.PostgreSQL.Typed.Query (pgSQL)
 
 import Has
 import Service.DB
@@ -32,7 +27,6 @@ import Service.Crypto
 import Store.Types
 import Store.AV
 import Store.Probe
--- import Model.SQL
 import Model.Audit
 import Model.Id
 import Model.Party
@@ -50,10 +44,20 @@ import Model.Volume.SQL
 defaultTranscodeOptions :: TranscodeArgs
 defaultTranscodeOptions = ["-vf", "pad=iw+mod(iw\\,2):ih+mod(ih\\,2)"]
 
+-- | Sign a string comprised of (assetSHA1 + transcodeId).
+--
+-- >>> transcodeAuth (Transcode _) (Secret "aoeuidhtns")
+-- "FIXME"
 transcodeAuth :: Transcode -> Secret -> BS.ByteString
-transcodeAuth t = signature $ BSL.toStrict $ BSB.toLazyByteString
-  $ maybe id ((<>) . BSB.byteString) (assetSHA1 $ assetRow $ transcodeOrig t)
-  $ BSB.int32LE (unId $ transcodeId t)
+transcodeAuth t =
+    signature
+        $ BSL.toStrict
+        $ BSB.toLazyByteString
+        $ maybe
+            id
+            ((<>) . BSB.byteString)
+            (assetSHA1 $ assetRow $ transcodeOrig t)
+        $ BSB.int32LE (unId $ transcodeId t)
 
 lookupTranscode :: MonadDB c m => Id Transcode -> m (Maybe Transcode)
 lookupTranscode a = do
@@ -340,6 +344,61 @@ lookupTranscode a = do
                  vc_a9uZP
                  []))
       mRow)
+    {-  (a formatted version of the above query)
+    SELECT
+        transcode.segment,
+        transcode.options,
+        transcode.start,
+        transcode.process,
+        transcode.log,
+        party.id,
+        party.name,
+        party.prename,
+        party.orcid,
+        party.affiliation,
+        party.url,
+        account.email,
+        account.password,
+        authorize_view.site,
+        authorize_view.member,
+        asset.id,
+        asset.format,
+        asset.release,
+        asset.duration,
+        asset.name,
+        asset.sha1,
+        asset.size,
+        orig.id,
+        orig.format,
+        orig.release,
+        orig.duration,
+        orig.name,
+        orig.sha1,
+        orig.size,
+        volume.id,
+        volume.name,
+        volume.body,
+        volume.alias,
+        volume.doi,
+        volume_creation(volume.id)
+    FROM transcode
+    JOIN party
+        -- subjoin
+        JOIN account
+        USING (id)
+        LEFT JOIN authorize_view
+        ON account.id = authorize_view.child
+        AND authorize_view.parent = 0
+    ON transcode.owner = party.id
+    JOIN asset
+    ON transcode.asset = asset.id
+    JOIN asset AS orig
+    ON transcode.orig = orig.id
+    JOIN volume
+    ON asset.volume = volume.id
+    AND orig.volume = volume.id
+    WHERE transcode.asset = :transcodeId
+    -}
 
 lookupActiveTranscodes :: MonadDB c m => m [Transcode]
 lookupActiveTranscodes = do
@@ -620,11 +679,6 @@ lookupActiveTranscodes = do
                  []))
       rows)
 
-minAppend :: Ord a => Maybe a -> Maybe a -> Maybe a
-minAppend (Just x) (Just y) = Just $ min x y
-minAppend Nothing x = x
-minAppend x Nothing = x
-
 addTranscode :: (MonadHas SiteAuth c m, MonadAudit c m, MonadStorage c m) => Asset -> Segment -> TranscodeArgs -> Probe -> m Transcode
 addTranscode orig seg@(Segment rng) opts (ProbeAV _ fmt av) = do
   own <- peek
@@ -728,9 +782,21 @@ addTranscode orig seg@(Segment rng) opts (ProbeAV _ fmt av) = do
   where
   dur = maybe id (flip (-) . max 0) (lowerBound rng) <$>
     minAppend (avProbeLength av) (upperBound rng)
-addTranscode _ _ _ _ = fail "addTranscode: invalid probe type"
+  minAppend :: Ord a => Maybe a -> Maybe a -> Maybe a
+  minAppend (Just x) (Just y) = Just $ min x y
+  minAppend Nothing x = x
+  minAppend x Nothing = x
 
-updateTranscode :: MonadDB c m => Transcode -> Maybe TranscodePID -> Maybe String -> m Transcode
+addTranscode _ _ _ ProbePlain {} = fail "addTranscode: invalid probe type"
+
+-- | Update the pid and log of a 'Transcode'. The pid is replaced; the log is
+-- concatenated. The WHERE filters by assetId and the existing pid.
+updateTranscode
+    :: MonadDB c m
+    => Transcode
+    -> Maybe TranscodePID
+    -> Maybe String
+    -> m Transcode
 updateTranscode tc pid logs = do
   let _tenv_a9v7W = unknownPGTypeEnv
   r <- dbQuery1 -- [pgSQL|UPDATE transcode SET process = ${pid}, log = COALESCE(COALESCE(log || E'\n', '') || ${logs}, log) WHERE asset = ${assetId $ assetRow $ transcodeAsset tc} AND COALESCE(process, 0) = ${fromMaybe 0 $ transcodeProcess tc} RETURNING log|]
@@ -778,7 +844,19 @@ updateTranscode tc pid logs = do
     , transcodeLog = l
     }) r
 
-findTranscode :: MonadDB c m => Asset -> Segment -> TranscodeArgs -> m (Maybe Transcode)
+-- | Look up a transcode job using the original asset/segment pair, as well as
+-- particular args of the job.
+--
+-- FIXME: Not sure why the args are relevant.
+findTranscode
+    :: MonadDB c m
+    => Asset
+    -- ^ target, part 1
+    -> Segment
+    -- ^ target, part 2
+    -> TranscodeArgs
+    -- ^ args we want to match for
+    -> m (Maybe Transcode)
 findTranscode orig seg opts = do
   -- dbQuery1 $ ($ orig) <$> $(selectQuery selectOrigTranscode "WHERE transcode.orig = ${assetId $ assetRow orig} AND transcode.segment = ${seg} AND transcode.options = ${map Just opts} AND asset.volume = ${volumeId $ volumeRow $ assetVolume orig} LIMIT 1")
   let _tenv_a9v93 = unknownPGTypeEnv
@@ -992,6 +1070,9 @@ findTranscode orig seg opts = do
                  vsize_a9v8w))
       mRow))
 
+-- | Look up a transcode by its original asset.
+--
+-- FIXME: this should be implemented in terms of findTranscode
 findMatchingTranscode :: MonadDB c m => Transcode -> m (Maybe Transcode)
 findMatchingTranscode t@Transcode{..} = do
   let _tenv_a9vgl = unknownPGTypeEnv
@@ -1298,8 +1379,18 @@ findMatchingTranscode t@Transcode{..} = do
                  []))
       mRow)
 
+-- | Compare an asset to a probe result, matching sha1 and format, and
+-- confirming the asset has a duration.
+--
+-- FIXME: Presumably asset.duration is being used as a sentinel for some
+-- information relating to the question, "Is this already transcoded?" But what
+-- does it signify, exactly? What does it mean if asset.duration is null?
 checkAlreadyTranscoded :: MonadDB c m => Asset -> Probe -> m Bool
-checkAlreadyTranscoded Asset{ assetRow = AssetRow { assetFormat = fmt, assetSHA1 = Just sha1 } } ProbeAV{ probeTranscode = tfmt, probeAV = av }
+checkAlreadyTranscoded
+  Asset
+    { assetRow = AssetRow { assetFormat = fmt, assetSHA1 = Just sha1 } }
+  ProbeAV
+    { probeTranscode = tfmt, probeAV = av }
   | fmt == tfmt && avProbeCheckFormat fmt av = do
     let _tenv_a9vmk = unknownPGTypeEnv
     (Just (Just (1 :: Int32)) ==) <$> dbQuery1 -- [pgSQL|SELECT 1 FROM asset WHERE asset.sha1 = ${sha1} AND asset.format = ${formatId fmt} AND asset.duration IS NOT NULL LIMIT 1|]
@@ -1326,4 +1417,7 @@ checkAlreadyTranscoded Asset{ assetRow = AssetRow { assetFormat = fmt, assetSHA1
                      (Database.PostgreSQL.Typed.Types.PGTypeProxy ::
                         Database.PostgreSQL.Typed.Types.PGTypeName "integer")
                      _ccolumn_a9vmn)))
-checkAlreadyTranscoded _ _ = return False
+  | otherwise = return False
+checkAlreadyTranscoded
+  Asset{ assetRow = AssetRow { assetSHA1 = Nothing } } ProbeAV {} = return False
+checkAlreadyTranscoded _ ProbePlain {} = return False

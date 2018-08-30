@@ -6,11 +6,53 @@
 #SBATCH --nodes=1
 #SBATCH --mem=1024m 
 
+# FIXME: Use set -Eeuo pipefail
+
+# FIXME: Why do we name this script itself SLURM?
 SLURM=$0
 if [[ $SLURM != /* ]] ; then
     SLURM=$PWD/$SLURM
 fi
 
+usage="
+Usage:
+
+        $0 -i ID -d DIR -r URL -f FORMAT -v VERSION [-m MOUNT]
+
+                Execute a transcode job, possibly within a SLURM environment.
+
+        $0 -i ID -d DIR -r URL -f FORMAT -v VERSION [-m MOUNT] -h
+
+                Prepare a SLURM job by calling sbatch with this script.
+
+	$0 -i ID -d DIR -k PID [-h]
+
+                Kill the job with pid \$PID. Specifying -h uses scancel (for
+                SLURM). Also removes the input and output files.
+
+Options:
+
+        ID
+
+                Job (or maybe file) ID.
+
+        FMT
+
+                Format to transcode to. Options are mp4 or mp3.
+
+        VERSION
+
+                FIXME: I think this is a counter to differentiate different
+                transcoding runs. It is added to the output file's metadata.
+
+        MOUNT
+
+                If specified, this points to a SMB share mount point. At some
+                point (FIXME: when?) the input file is rsync'd from this mount
+                point to a local directory.
+"
+
+# FIXME: -k (kill) and -h (hpc) do not take arguments.
 while getopts 'i:h:d:v:m:k:s:r:f:' opt ; do case "$opt" in
     i) id=$OPTARG ;;
     h) hpc=$OPTARG ;;
@@ -19,6 +61,7 @@ while getopts 'i:h:d:v:m:k:s:r:f:' opt ; do case "$opt" in
     m) mount=$OPTARG ;;
 
     k) kill=$OPTARG ;;
+    # FIXME: Unused
     s) ;;
     r) url=$OPTARG ;;
     f) fmt=$OPTARG ;;
@@ -28,11 +71,15 @@ esac ; done
 shift $[OPTIND-1]
 args=("$@")
 
+# FIXME: version is required
 if [[ -z $id || -z $dir || -z $kill && ( -z $url || -z $fmt ) ]] ; then
     echo "$0: usage error: $*" >&2
     exit 1
 fi
 
+# FIXME: How to do we make sure this only runs when it is supposed to? And when
+# is that, exactly? Is it done when creating the SLURM job, or when executing
+# that job? (I presume the former.)
 if [[ -n $mount ]] ; then
     rsync "$mount/$dir/$id" "$dir/$id" || exit 1
 fi
@@ -58,17 +105,22 @@ if [[ ! -f $IN ]] ; then
     exit 1
 fi
 
+# FIXME: Consider using IFS=$'\n' rather than depend on significant whitespace.
 IFS='
 '
 if [[ -n $hpc ]] ; then
     rate=80000
     sec=$[60+`stat -c %s "$IN"`/$rate]
+    # FIXME: magic number
     if [[ $sec -gt 604800 ]] ; then
         sec=604800
     fi
     min=$[$sec/60]
     echo "${args[*]}" > $id.args
     exec sbatch --job-name="${dir##*/}$id" --export="dir=$PWD,id=$id,fmt=$fmt,url=$url,version=$version" -t $min "$SLURM"
+
+    # -- NOT REACHED --
+
 elif [[ -n $SLURM_JOB_NAME ]] ; then # if SLURM_JOB_NAME is non zero length
   # remove everything in the name past the first dot .
     PID=${SLURM_JOBID%%.*}
@@ -79,6 +131,7 @@ fi
 exec >$LOG 2>&1
 
 case $fmt in
+    # FIXME: Magic arguments
     mp4) outargs=(-f mp4 -g 60 -c:v libx264 -pix_fmt yuvj420p -c:a libfdk_aac) ;;
     mp3) outargs=(-f mp3 -c:a libmp3lame -q:a 1) ;;
     *)
@@ -86,8 +139,10 @@ case $fmt in
         exit 1
 esac
 
+# FIXME: Don't rely on sleep. What 'server' are we waiting on, anyway?
 sleep 5 # hope server knows job has started by now
 
+# FIXME: Is this ls just for debugging?
 ls -s "$IN"
 ffmpeg -loglevel warning -benchmark -threads ${SLURM_NTASKS:-1} -i "$IN" -map_metadata -1 -metadata comment="databrary.org ${dir##*/}/$version" -metadata description="http://databrary.org/asset/$id" "${args[@]}" -threads ${SLURM_NTASKS:-1} "${outargs[@]}" -y "$OUT"
 r=$?
@@ -99,6 +154,5 @@ else
     rm -f "$id.args"
 fi
 # sha1 arg is split to work around weird HPC error:
+# FIXME: What weird error?
 curl -sSk --data-urlencode "pid=$PID" --data-urlencode "res=$r" ${sha1:+--data-urlencode} ${sha1:+"sha1=${sha1%% *}"} --data-urlencode "log@$LOG" "$url"
-
-

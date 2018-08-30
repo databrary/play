@@ -24,16 +24,20 @@ data TempFile = TempFile
   , tempFilePath :: RawFilePath
   }
 
-makeTempFileAs :: RawFilePath -> (Handle -> IO ()) -> InternalState -> IO TempFile
-makeTempFileAs d g rs = bracket
-  (runInternalState (allocate (mkstemp d) (removeLink . fst)) rs)
-  (hClose . snd . snd)
-  (\(k, (f, h)) -> TempFile k f <$ g h)
+makeTempFileAs
+    :: RawFilePath -> (Handle -> IO ()) -> InternalState -> IO TempFile
+makeTempFileAs d initializeHandle rs = bracket
+    (runInternalState (allocate (mkstemp d) (removeLink . fst)) rs)
+    (hClose . snd . snd)
+    (\(k, (f, h)) -> TempFile k f <$ initializeHandle h)
 
-makeTempFile :: (MonadStorage c m, MonadHas InternalState c m) => (Handle -> IO ()) -> m TempFile
-makeTempFile f = do
-  tmp <- peeks storageTemp
-  focusIO $ makeTempFileAs tmp f
+makeTempFile
+    :: (MonadStorage c m, MonadHas InternalState c m)
+    => (Handle -> IO ())
+    -> m TempFile
+makeTempFile initializeHandle = do
+    tmp <- peeks storageTemp
+    focusIO $ makeTempFileAs tmp initializeHandle
 
 releaseTempFile :: TempFile -> InternalState -> IO ()
 releaseTempFile = runInternalState . release . tempFileRelease

@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+-- | FIXME: Replace with standard library methods
 module Service.Crypto
   ( signature
   , MonadSign

@@ -77,8 +77,9 @@ probeAutoPosition
     day = 2*day2
 probeAutoPosition c _ = findAssetContainerEnd c
 
--- |Test if this represents a file in standard format.
+-- | Test if this represents a file in standard format.
 avProbeCheckFormat :: Format -> AVProbe -> Bool
+-- FIXME: What is this magic string?
 avProbeCheckFormat fmt AVProbe{ avProbeFormat = "mov,mp4,m4a,3gp,3g2,mj2", avProbeStreams = ((AVMediaTypeVideo,"h264"):s) }
   -- Note: isPrefixOf use here is terse/counterinteruitive. should explicitly test for empty list
   | fmt == videoFormat = s `isPrefixOf` [(AVMediaTypeAudio,"aac")]

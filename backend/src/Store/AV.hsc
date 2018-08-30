@@ -353,6 +353,7 @@ avLockmgr p o
   s = castPtrToStablePtr <$> peek p
   s :: IO (StablePtr (MVar ()))
 
+-- | Represents the capability to use av functions.
 data AV = AV 
 
 initAV :: IO AV
@@ -392,6 +393,7 @@ instance Storable AVMediaType where
     AVMediaTypeSubtitle   -> #{const AVMEDIA_TYPE_SUBTITLE}
     AVMediaTypeAttachment -> #{const AVMEDIA_TYPE_ATTACHMENT}
 
+-- | Result of calling avProbe
 data AVProbe = AVProbe
   { avProbeFormat :: BS.ByteString
   , avProbeDuration :: DiffTime

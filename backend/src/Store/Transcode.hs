@@ -46,17 +46,40 @@ import Action.Run
 
 import {-# SOURCE #-} Controller.Transcode
 
-ctlTranscode :: (MonadDB c m, MonadHas Timestamp c m, MonadLog c m, MonadStorage c m) => Transcode -> TranscodeArgs -> m (ExitCode, String, String)
+ctlTranscode
+    :: (MonadDB c m, MonadHas Timestamp c m, MonadLog c m, MonadStorage c m)
+    => Transcode
+    -> TranscodeArgs
+    -> m (ExitCode, String, String)
 ctlTranscode tc args = do
-  t <- peek
-  Just ctl <- peeks storageTranscoder
-  let args'
-        = "-i" : show (transcodeId tc)
-        : "-f" : BSC.unpack (head $ formatExtension $ assetFormat $ assetRow $ transcodeAsset tc)
-        : args
-  r@(c, o, e) <- liftIO $ runTranscoder ctl args'
-  focusIO $ logMsg t ("transcode " ++ unwords args' ++ ": " ++ case c of { ExitSuccess -> "" ; ExitFailure i -> ": exit " ++ show i ++ "\n" } ++ o ++ e)
-  return r
+    t <- peek
+    Just ctl <- peeks storageTranscoder
+    let
+        args' =
+            "-i"
+                : show (transcodeId tc)
+                : "-f"
+                : BSC.unpack
+                    (head
+                    $ formatExtension
+                    $ assetFormat
+                    $ assetRow
+                    $ transcodeAsset tc
+                    )
+                : args
+    r@(c, o, e) <- liftIO $ runTranscoder ctl args'
+    focusIO $ logMsg
+        t
+        ("transcode "
+        ++ unwords args'
+        ++ ": "
+        ++ case c of
+            ExitSuccess -> ""
+            ExitFailure i -> ": exit " ++ show i ++ "\n"
+        ++ o
+        ++ e
+        )
+    return r
 
 transcodeArgs :: (MonadStorage c m, MonadHas Secret c m, MonadAudit c m) => Transcode -> m TranscodeArgs
 transcodeArgs t@Transcode{..} = do
@@ -116,18 +139,47 @@ stopTranscode tc@Transcode{ transcodeProcess = Just pid } | pid >= 0 = do
   return tc'
 stopTranscode tc = return tc
 
+-- | Process the payload of a transcode callback. This is run as
+-- 'ReIdentified' as the owner of the transcode job.
+--
+-- This task moves the new file into storage and updates relevant database
+-- entries.
 collectTranscode
-  :: (MonadHas AV c m, MonadDB c m, MonadHas InternalState c m, MonadLog c m, MonadStorage c m, MonadHas Timestamp c m, MonadAudit c m)
-  => Transcode -> Int -> Maybe BS.ByteString -> String -> m ()
+  :: ( MonadHas AV c m
+     , MonadDB c m
+     , MonadHas InternalState c m
+     , MonadLog c m
+     , MonadStorage c m
+     , MonadHas Timestamp c m
+     , MonadAudit c m
+     )
+  => Transcode
+  -- ^ Transcode task that was processed
+  -> Int
+  -- ^ Return value of the transcoding job
+  -> Maybe BS.ByteString
+  -- ^ SHA1 of the new file, maybe?
+  -> String
+  -- ^ Transcoding log
+  -> m ()
 collectTranscode tc 0 sha1 logs = do
+  -- @Just (-2)@ Looks to be a sentinel that means, "The job is done but the
+  -- file hasn't been copied to a local path yet"
   tc' <- updateTranscode tc (Just (-2)) (Just logs)
   f <- makeTempFile (const $ return ())
+  -- move the file to a temp path
   (r, out, err) <- ctlTranscode tc ["-c", BSC.unpack $ tempFilePath f]
+  -- Re-update the transcode entry, clearing the @Just (-2)@ sentinel and
+  -- appending the copy log.
   _ <- updateTranscode tc' Nothing (Just $ out ++ err)
   if r /= ExitSuccess
     then fail $ "collectTranscode " ++ show (transcodeId tc) ++ ": " ++ show r ++ "\n" ++ out ++ err
     else do
       av <- focusIO $ avProbe (tempFilePath f)
+      -- FIXME: Not sure what's happening here. It's checking the format of the
+      -- original file against the avProbe of the new file. But why does the
+      -- avProbe list a ton of formats? Why are confirming the format of the
+      -- input now, rather than after the fact?
       unless (avProbeCheckFormat (assetFormat $ assetRow $ transcodeAsset tc) av)
         $ fail $ "collectTranscode " ++ show (transcodeId tc) ++ ": format error"
       let dur = avProbeLength av

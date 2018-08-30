@@ -50,13 +50,20 @@ sha1Form = do
 data RemoteTranscodeResultRequest =
     RemoteTranscodeResultRequest BS.ByteString (Maybe TranscodePID) Int (Maybe BS.ByteString) String
 
+-- | Callback for transcode jobs.
+--
+-- Does some sanity checks and auth checks, parses post data, then calls
+-- 'collectTranscode' to do the real work.
 remoteTranscode :: ActionRoute (Id Transcode)
 remoteTranscode = action POST (pathJSON >/> pathId) $ \ti -> withoutAuth $ do
   t <- maybeAction =<< lookupTranscode ti
   withReAuth (transcodeOwner t) $ do
     auth <- peeks $ transcodeAuth t
     RemoteTranscodeResultRequest _ _ res sha1 logs <- runForm Nothing $ do
+      -- CSRF protection
       reqAuth <- "auth" .:> (deformCheck "Invalid authentication" (constEq auth :: BS.ByteString -> Bool) =<< deform)
+      -- not sure about 'pid'. Why doesn't the transcode sha (checked in
+      -- auth) include the pid?
       reqPid <- "pid" .:> (deformCheck "PID mismatch" (transcodeProcess t ==) =<< deformNonEmpty deform)
       RemoteTranscodeResultRequest
         <$> pure reqAuth
@@ -95,14 +102,26 @@ instance Deform f TranscodeAction where
 
 data UpdateTranscodeRequest = UpdateTranscodeRequest TranscodeAction
 
+-- | Admin access for controlling transcode jobs.
 postTranscode :: ActionRoute (Id Transcode)
-postTranscode = action POST (pathHTML >/> "admin" >/> pathId) $ \ti -> withAuth $ do
-  t <- maybeAction =<< lookupTranscode ti
-  UpdateTranscodeRequest act <- runForm Nothing $
-    UpdateTranscodeRequest <$> ("action" .:> deform)
-  case act of
-    TranscodeStart | isNothing (transcodeProcess t) -> void $ startTranscode t
-    TranscodeStop -> void $ stopTranscode t
-    TranscodeFail | isNothing (assetSize $ assetRow $ transcodeAsset t) -> void $ changeAsset (transcodeAsset t){ assetRow = (assetRow $ transcodeAsset t){ assetSize = Just (-1) } } Nothing
-    _ -> fail "Invalid action"
-  peeks $ otherRouteResponse [] viewTranscodes ()
+postTranscode = action POST (pathHTML >/> "admin" >/> pathId) $ \ti ->
+    withAuth $ do
+        t <- maybeAction =<< lookupTranscode ti
+        UpdateTranscodeRequest act <-
+            runForm Nothing $ UpdateTranscodeRequest <$> ("action" .:> deform)
+        case act of
+            TranscodeStart | isNothing (transcodeProcess t) ->
+                void $ startTranscode t
+            TranscodeStop -> void $ stopTranscode t
+            TranscodeFail
+                | isNothing (assetSize $ assetRow $ transcodeAsset t) -> void
+                    (changeAsset
+                        (transcodeAsset t)
+                            { assetRow = (assetRow $ transcodeAsset t)
+                                { assetSize = Just (-1)
+                                }
+                            }
+                        Nothing
+                    )
+            _ -> fail "Invalid action"
+        peeks $ otherRouteResponse [] viewTranscodes ()

@@ -5,9 +5,6 @@ module Model.AssetRevision.Types
 import Model.Asset.Types
 
 data AssetRevision = AssetRevision
-  { revisionAsset :: !Asset
-  , revisionOrig :: !Asset
+  { {- revisedAsset ? -} revisionAsset :: !Asset
+  , {- originalAsset ? -} revisionOrig :: !Asset
   }
-
--- makeAssetRevision :: Asset -> Asset -> AssetRevision
--- makeAssetRevision o a = AssetRevision a o
