@@ -32,7 +32,7 @@ service operations, make them easier to discover
             ([devdatabrary2.home.nyu.edu](http://devdatabrary2.home.nyu.edu))
 1.  Local Dev Environment
     1.  Provision
-        1.  [Build development environment](Local-Dev-Environment/Build.md)
+        1.  [Build development environment](Local-Dev-Environment/Build-and-Run.md)
     2.  Deploy, Run
         1.  [Run](Local-Dev-Environment/Build-and-Run.md)
     3.  Run Tests
