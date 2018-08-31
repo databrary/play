@@ -22,8 +22,10 @@ import Model.Permission.Types
 import Model.Audit.SQL
 import Model.Volume.Types
 
+import qualified Text.Read.Located
+
 parseOwner :: T.Text -> VolumeOwner
-parseOwner t = (Id $ read $ T.unpack i, T.tail n) where
+parseOwner t = (Id $ Text.Read.Located.read $ T.unpack i, T.tail n) where
   (i, n) = T.breakOn ":" t
 
 setCreation :: VolumeRow -> Maybe Timestamp -> [VolumeOwner] -> VolumeRolePolicy -> Volume

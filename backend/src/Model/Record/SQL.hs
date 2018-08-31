@@ -22,8 +22,10 @@ import Model.Category
 import Model.Metric
 import Model.Record.Types
 
+import qualified Text.Read.Located
+
 parseMeasure :: Record -> BSC.ByteString -> Measure
-parseMeasure r s = Measure r (getMetric' (Id (read (BSC.unpack m)))) (BSC.tail d) where
+parseMeasure r s = Measure r (getMetric' (Id (Text.Read.Located.read (BSC.unpack m)))) (BSC.tail d) where
   (m, d) = BSC.splitAt (fromMaybe (error $ "parseMeasure " ++ show (recordId $ recordRow r) ++ ": " ++ BSC.unpack s) $ BSC.elemIndex ':' s) s
 
 makeRecord :: Id Record -> Id Category -> [Maybe BSC.ByteString] -> Maybe Release -> Volume -> Record

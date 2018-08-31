@@ -63,6 +63,7 @@ import System.Directory (doesFileExist, doesDirectoryExist)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Environment (lookupEnv)
 import qualified System.FilePath as FilePath
+import qualified Text.Read.Located
 
 import Has
 import qualified Store.Config as C
@@ -165,16 +166,16 @@ calculateDBHost menvHost envHostIsDir envPort mconfHost confPort confPortIsFile 
                 ( "localhost"
                 , UnixSocket (envHost FilePath.</> ".s.PGSQL." ++ envPort))
             | otherwise ->
-                (envHost, PortNumber (fromIntegral (read envPort)))
+                (envHost, PortNumber (fromIntegral (Text.Read.Located.read envPort)))
         Nothing -> -- No env host
             case mconfHost of
                 Just confHost ->
-                    (confHost, PortNumber (fromIntegral (read confPort)))
+                    (confHost, PortNumber (fromIntegral (Text.Read.Located.read confPort)))
                 Nothing
                     | confPortIsFile ->
                         ("localhost", UnixSocket confPort)
                     | otherwise ->
-                        ("localhost", PortNumber (fromIntegral (read confPort)))
+                        ("localhost", PortNumber (fromIntegral (Text.Read.Located.read confPort)))
 
 data DBPool = DBPool (Pool PGConnection) (Pool PGSimple.Connection)
 type DBConn = PGConnection
