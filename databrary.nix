@@ -14,8 +14,8 @@
 , utf8-string, vector, wai, wai-extra, wai-route, warp, warp-tls
 , web-inv-route, xml, zip, zlib
 , gargoyle, gargoyle-postgresql, postgresql
-, nodePackages, nodejs, dbName, jdk
-, cpio, coreutils, src
+, nodePackages, nodejs, dbName ? "databrary-nix-db", jdk
+, cpio, coreutils
 }:
 let
   # Override the drv with these attrs. (Can't put them in mkDerivation directly
@@ -33,7 +33,12 @@ in
 (mkDerivation rec {
   pname = "databrary";
   version = "1";
-  inherit src;
+  src =
+    builtins.filterSource
+      (path: _type: ! builtins.elem
+          (baseNameOf path)
+          [dbName ".git" "result" "node_modules" "dist"])
+      ./.;
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [
