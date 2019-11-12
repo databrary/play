@@ -65,6 +65,8 @@ if [[ -n $hpc ]] ; then
     sec=$[60+`stat -c %s "$IN"`/$rate]
     if [[ $sec -gt 604800 ]] ; then
         sec=604800
+    elif [[ $sec -lt 43200 ]] ; then
+	sec=43200
     fi
     min=$[$sec/60]
     echo "${args[*]}" > $id.args
