@@ -99,7 +99,7 @@ postRegisterAction = \api -> withoutAuth $ do
   resetPasswordMail (Right auth)
     "Databrary account created"
     $ \(Just url) ->
-      "Thank you for registering with  Please use this link to complete your registration:\n\n"
+      "Thank you for registering with Databrary. Please use this link to complete your registration:\n\n"
       <> url <> "\n\n\
       \By clicking the above link, you also indicate that you have read and understand the Databrary Access agreement, which you can download here: http://databrary.org/policies/agreement.pdf\n\n\
       \Once you've validated your e-mail, you will be able to request authorization to be granted full access to \n"
