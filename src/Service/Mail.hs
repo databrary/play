@@ -86,7 +86,7 @@ mailFooter = "\n\
   \The Databrary Team\n\
   \-- \n\
   \Databrary\n\
-  \196 Mercer Street, Suite 807\n\
+  \4 Washington Place, Room 409\n\
   \212-998-5800\n\
   \contact@databrary.org\n\
   \databrary.org\n"

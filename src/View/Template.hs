@@ -53,7 +53,7 @@ htmlAddress =
     H.strong $
       void "Databrary"
     H.br
-    void "196 Mercer Street, Room 807 | New York, NY 10012"
+    void "4 Washington Place, Room 409 | New York, NY 10003"
     H.br
     void "212.998.5800"
 
