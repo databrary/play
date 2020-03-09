@@ -97,6 +97,26 @@
                   <li>Postdocs</li>
                 </ul>
               </p>
+          
+<!-- Todo:
+I have added fields in the form of dropdown options for Designation and Research permission.
+We need to figure out how to use these values in the email that is sent to Andrea in the next step.
+--> 
+                <label for="designation">Please select your designation:</label>
+                  <select id="designation">
+                    <option value="faculty">Faculty</option>
+                    <option value="post-doc">Post-doc</option>
+                    <option value="staff">Staff</option>
+                    <option value="student">Student</option>
+                  </select>
+          
+                <label for="research-permission">Please select your research permission level:</label>
+                  <select id="research-permission">
+                    <option value="authorized-independent">Authorized to conduct independent research</option>
+                    <option value="authorized-supervised">Authorized to conduct research under supervision</option>
+                    <option value="not-authorized">Not authorized to conduct research</option>
+                  </select>
+          
               <p>Select the appropriate option below, then search for your institution or sponsor. If they are not listed, select 'Other' to provide more information.
               </p>
             </div>
