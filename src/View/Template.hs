@@ -63,9 +63,9 @@ htmlCopyrightTermsPrivacy =
   H.p H.! HA.class_ "footer-address" $ do
     void "Copyright &copy; 2014-2020"
     void " | "
-    void "terms" "https://databrary.org/about/policies/terms.html" "Terms of Use"
+    H.a H.! HA.href "https://databrary.org/about/policies/terms.html" $ "Terms of Use"
     void " | "
-    void "privacy" "https://databrary.org/about/policies/privacy.html" "Privacy Policy"
+    H.a H.! HA.href "https://databrary.org/about/policies/privacy.html" $ "Privacy Policy"
     H.br
 
 htmlSocialMedia :: H.Html
