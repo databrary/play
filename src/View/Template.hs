@@ -43,7 +43,8 @@ htmlHeader canon hasjs = do
   H.link
     H.! HA.rel "start"
     H.! actionLink viewRoot HTML hasjs
-  forM_ ["news", "about", "access", "community"] $ \l -> H.link
+  -- forM_ ["news", "about", "access", "community"] $ \l -> H.link
+  forM_ ["about", "support"] $ \l -> H.link
     H.! HA.rel l
     H.! HA.href ("//databrary.org/" <> l <> ".html")
 
@@ -56,6 +57,16 @@ htmlAddress =
     void "4 Washington Place, Room 409 | New York, NY 10003"
     H.br
     void "212.998.5800"
+
+htmlCopyrightTermsPrivacy :: H.Html
+htmlCopyrightTermsPrivacy =
+  H.p H.! HA.class_ "footer-address" $ do
+    void "Copyright &copy; 2014-2020"
+    void " | "
+    void "terms" "https://databrary.org/about/policies/terms.html" "Terms of Use"
+    void " | "
+    void "privacy" "https://databrary.org/about/policies/privacy.html" "Privacy Policy"
+    H.br
 
 htmlSocialMedia :: H.Html
 htmlSocialMedia =
@@ -70,8 +81,8 @@ htmlSocialMedia =
     void " "
     sm "linkedin" "https://www.linkedin.com/company/databrary-project" "LinkedIn"
     void " "
-    sm "google-plus" "https://plus.google.com/u/1/111083162045777800330/posts" "Google+"
-    void " "
+    -- sm "google-plus" "https://plus.google.com/u/1/111083162045777800330/posts" "Google+"
+    -- void " "
     sm "github" "https://github.com/databrary/" "GitHub"
 
 htmlFooter :: H.Html
@@ -79,6 +90,7 @@ htmlFooter = H.footer H.! HA.id "site-footer" H.! HA.class_ "site-footer" $
   H.div H.! HA.class_ "wrap" $
     H.div H.! HA.class_ "row" $ do
       H.div H.! HA.class_ "site-footer-social-address" $ do
+        htmlCopyrightTermsPrivacy
         htmlAddress
         htmlSocialMedia
       H.ul H.! HA.class_ "site-footer-grants" $ do
@@ -103,16 +115,18 @@ htmlFooter = H.footer H.! HA.id "site-footer" H.! HA.class_ "site-footer" $
           H.a H.! HA.href "https://sloan.org/" $
             H.img H.! HA.src "/web/images/grants/sloan.png" H.! HA.class_ "sloan" H.! HA.alt "funder Sloan logo"
         H.li $
-          H.a H.! HA.href "http://www.legofoundation.com" $
+          H.a H.! HA.href "https://www.legofoundation.com" $
             H.img H.! HA.src "/web/images/grants/lego.png" H.! HA.class_ "lego" H.! HA.alt "funder Lego logo"
       H.div H.! HA.class_ "site-footer-legal col" $
         H.p $ do
-          void "Each dataset on Databrary represents an individual work owned by the party who contributed it. Data on Databrary are provided for non-commercial use and are subject to the terms of use outlined in the "
-          H.a H.! HA.href "//databrary.org/access/policies/agreement.html" H.! HA.target "_blank" $
-            "Databrary Access Agreement"
-          void ". ["
-          H.string $ showVersion version
-          "]"
+          void "Each dataset on Databrary represents an individual work owned by the party who contributed it. Use of Databrary is subject to the"
+          H.a H.! HA.href "https://databrary.org/about/policies/terms.html" H.! HA.target "_blank" $
+            "Terms & Conditions of Use" 
+          void "and the "
+          H.a H.! HA.href "https://databrary.org/about/agreement/agreement.html" H.! HA.target "_blank" $
+            "Databrary Access Agreement."           
+          -- H.string $ showVersion version
+          -- "]"
 
 htmlTemplate :: RequestContext -> Maybe T.Text -> (JSOpt -> H.Html) -> H.Html
 htmlTemplate req title body = H.docTypeHtml $ do
@@ -141,7 +155,8 @@ htmlTemplate req title body = H.docTypeHtml $ do
                   H.li $ H.a
                     H.! actionLink viewRoot HTML hasjs
                     $ "Databrary"
-                  forM_ ["news", "about", "access", "community"] $ \l ->
+                  -- forM_ ["news", "about", "access", "community"] $ \l ->
+                  forM_ ["about", "support"] $ \l ->                    
                     H.li $ H.a H.! HA.href (H.stringValue $ "//databrary.org/" ++ l ++ ".html") $
                       H.string l
               H.ul
