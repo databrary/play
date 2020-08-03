@@ -90,8 +90,8 @@ htmlFooter = H.footer H.! HA.id "site-footer" H.! HA.class_ "site-footer" $
   H.div H.! HA.class_ "wrap" $
     H.div H.! HA.class_ "row" $ do
       H.div H.! HA.class_ "site-footer-social-address" $ do
-        htmlCopyrightTermsPrivacy
         htmlAddress
+        htmlCopyrightTermsPrivacy
         htmlSocialMedia
       H.ul H.! HA.class_ "site-footer-grants" $ do
         H.li $
