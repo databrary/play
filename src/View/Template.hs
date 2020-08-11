@@ -60,12 +60,12 @@ htmlAddress =
 
 htmlCopyrightTermsPrivacy :: H.Html
 htmlCopyrightTermsPrivacy =
-  H.p H.! HA.class_ "footer-address" $ do
-    void "Copyright &copy; 2014-2020"
+  H.p H.! HA.class_ "footer-copyright" $ do
+    void "Copyright (C) 2014-2020"
     void " | "
-    void "terms" "https://databrary.org/about/policies/terms.html" "Terms of Use"
+    H.a H.! HA.href "https://databrary.org/about/policies/terms.html" $ "Terms of Use"
     void " | "
-    void "privacy" "https://databrary.org/about/policies/privacy.html" "Privacy Policy"
+    H.a H.! HA.href "https://databrary.org/about/policies/privacy.html" $ "Privacy Policy"
     H.br
 
 htmlSocialMedia :: H.Html
@@ -90,8 +90,8 @@ htmlFooter = H.footer H.! HA.id "site-footer" H.! HA.class_ "site-footer" $
   H.div H.! HA.class_ "wrap" $
     H.div H.! HA.class_ "row" $ do
       H.div H.! HA.class_ "site-footer-social-address" $ do
-        htmlCopyrightTermsPrivacy
         htmlAddress
+        htmlCopyrightTermsPrivacy
         htmlSocialMedia
       H.ul H.! HA.class_ "site-footer-grants" $ do
         H.li $
