@@ -61,7 +61,7 @@ htmlAddress =
 htmlCopyrightTermsPrivacy :: H.Html
 htmlCopyrightTermsPrivacy =
   H.p H.! HA.class_ "footer-copyright" $ do
-    void "Copyright (C) 2014-2020"
+    void "Copyright © 2014-2020"
     void " | "
     H.a H.! HA.href "https://databrary.org/about/policies/terms.html" $ "Terms of Use"
     void " | "
@@ -90,7 +90,7 @@ htmlFooter = H.footer H.! HA.id "site-footer" H.! HA.class_ "site-footer" $
   H.div H.! HA.class_ "wrap" $
     H.div H.! HA.class_ "row" $ do
       H.div H.! HA.class_ "site-footer-social-address" $ do
-        htmlAddress
+        -- htmlAddress
         htmlCopyrightTermsPrivacy
         htmlSocialMedia
       H.ul H.! HA.class_ "site-footer-grants" $ do
@@ -119,10 +119,10 @@ htmlFooter = H.footer H.! HA.id "site-footer" H.! HA.class_ "site-footer" $
             H.img H.! HA.src "/web/images/grants/lego.png" H.! HA.class_ "lego" H.! HA.alt "funder Lego logo"
       H.div H.! HA.class_ "site-footer-legal col" $
         H.p $ do
-          void "Each dataset on Databrary represents an individual work owned by the party who contributed it. Use of Databrary is subject to the"
+          void "Each dataset on Databrary represents an individual work owned by the party who contributed it. Use of Databrary is subject to the "
           H.a H.! HA.href "https://databrary.org/about/policies/terms.html" H.! HA.target "_blank" $
             "Terms & Conditions of Use" 
-          void "and the "
+          void " and the "
           H.a H.! HA.href "https://databrary.org/about/agreement/agreement.html" H.! HA.target "_blank" $
             "Databrary Access Agreement."           
           -- H.string $ showVersion version
