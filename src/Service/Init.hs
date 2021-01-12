@@ -89,6 +89,7 @@ initService fg conf = do
   initTranscoder_ c = initTranscoder TranscoderConfig
       { transcoderHost = c C.! "host"
       , transcoderDir = c C.! "dir"
+      , transcoderMount = c C.! "mount"
       }
   initStorage_ :: C.Config -> IO Storage
   initStorage_ = initStorage . mkLocConf <*> initTranscoder_ . (C.! "transcode")
