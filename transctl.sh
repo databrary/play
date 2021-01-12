@@ -44,11 +44,14 @@ if [[ -n $test ]] ; then
                 # NOT REACHED: getopts will have already thrown an error.
 		false
 	elif [[ -n $host ]] ; then
+		echo "ssh into $host"
 		ssh "$host" test -d "$dir"
 		if [[ -n $mount ]] ; then
+			echo "Copy $cmd to $mount/$hcmd"
 			cp -pf "$cmd" "$mount/$hcmd"
 			ssh "$host" rsync -p "$mount/$hcmd" "$hcmd"
 		else
+			echo "rsync $cmd to $host:$hcmd"
 			rsync -p "$cmd" "$host:$hcmd"
 		fi
 	else
@@ -82,12 +85,16 @@ if [[ -n $collect ]] ; then
 	fi
 elif [[ -n $host ]] ; then
 	if [[ -z $kill ]] ; then
+		echo "host $host"
 		if [[ -n $mount ]] ; then
+			echo "ln $src to $mount/$dir/$id"
 			ln -fT "$src" "$mount/$dir/$id"
 		else
+			echo "rsync $src to $host:$dir/$id"
 			rsync "$src" "$host:$dir/$id"
 		fi
 	fi
+	echo "run $hcmd in $host"
 	# grab only job id from e.g. "Submitted batch job 234324324"
 	ssh "$host" "$hcmd" `escape "$@"` | sed 's/^[^0-9]*\([0-9]\+\)$/\1/'
 elif [[ -n $kill ]] ; then
