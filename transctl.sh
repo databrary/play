@@ -70,14 +70,19 @@ if [[ -z $id || -z $dir || -z $collect$kill && ( -z $src || -z $url || -z $fmt )
 fi
 
 if [[ -n $collect ]] ; then
+	echo "Collect $collect"
 	if [[ -n $host ]] ; then
+		echo "Collect from host $host"
 		if [[ -n $mount ]] ; then
+			echo "Collect from $dir/$id.$fmt to $mount/$dir/$id.$fmt"
 			ssh "$host" rsync "$dir/$id.$fmt" "$mount/$dir/$id.$fmt"
 			mv "$mount/$dir/$id.$fmt" "$collect"
 			rm -f "$mount/$dir/$id"
 		else
+			echo "Collect from $host:$dir/$id.$fmt to $collect"
 			rsync "$host:$dir/$id.$fmt" "$collect"
 		fi
+		echo "Collect ssh and remove $dir/$id and $dir/$id.$fmt"
 		ssh "$host" rm -f "$dir/$id" "$dir/$id.$fmt"
 	else
 		mv "$dir/$id.$fmt" "$collect"
