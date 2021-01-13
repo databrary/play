@@ -41,6 +41,8 @@ fi
 
 cd $dir || exit 1
 
+module load ffmpeg/4.2.4
+
 IN=$id
 OUT=$id.$fmt
 LOG=$id.log
