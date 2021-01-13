@@ -30,7 +30,7 @@ initTranscoder tconf@TranscoderConfig {..} = case (transcoderHost, transcoderDir
                     (["-v", showVersion version]
                     ++ maybe [] (\d -> ["-d", d]) transcoderDir
                     ++ maybe [] (\h -> ["-h", h]) transcoderHost
-                    ++ maybe [] (\m -> ["-m", m]) transcoderMount
+                    -- ++ maybe [] (\m -> ["-m", m]) transcoderMount
                     )
                     tconf
         (r, out, err) <- runTranscoder t ["-t"]
