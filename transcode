@@ -34,6 +34,8 @@ if [[ -z $id || -z $dir || -z $kill && ( -z $url || -z $fmt ) ]] ; then
 fi
 
 if [[ -n $mount ]] ; then
+    echo "Found mount=$mount" >&2
+    echo "rsync $mount/$dir/$id $dir/$id" >&2
     rsync "$mount/$dir/$id" "$dir/$id" || exit 1
 fi
 
@@ -80,7 +82,7 @@ elif [[ -n $SLURM_JOB_NAME ]] ; then # if SLURM_JOB_NAME is non zero length
 else
     PID=$$
 fi
-echo "Process PID=$PID"
+echo "Process PID=$PID" >&2
 exec >$LOG 2>&1
 
 case $fmt in
