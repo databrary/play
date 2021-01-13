@@ -88,7 +88,7 @@ echo "Process PID=$PID" >&2
 exec >$LOG 2>&1
 
 case $fmt in
-    mp4) outargs=(-f mp4 -g 60 -c:v libx264 -pix_fmt yuvj420p -c:a libfdk_aac) ;;
+    mp4) outargs=(-f mp4 -g 60 -c:v libx264 -pix_fmt yuvj420p) ;;
     mp3) outargs=(-f mp3 -c:a libmp3lame -q:a 1) ;;
     *)
         echo "Unknown format $fmt" >&2
