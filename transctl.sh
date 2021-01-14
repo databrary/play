@@ -44,14 +44,11 @@ if [[ -n $test ]] ; then
                 # NOT REACHED: getopts will have already thrown an error.
 		false
 	elif [[ -n $host ]] ; then
-		echo "ssh into $host"
 		ssh "$host" test -d "$dir"
 		if [[ -n $mount ]] ; then
-			echo "Copy $cmd to $mount/$hcmd"
 			cp -pf "$cmd" "$mount/$hcmd"
 			ssh "$host" rsync -p "$mount/$hcmd" "$hcmd"
 		else
-			echo "rsync $cmd to $host:$hcmd"
 			rsync -p "$cmd" "$host:$hcmd"
 		fi
 	else
@@ -70,19 +67,19 @@ if [[ -z $id || -z $dir || -z $collect$kill && ( -z $src || -z $url || -z $fmt )
 fi
 
 if [[ -n $collect ]] ; then
-	echo "Collect $collect"
+	echo "Collect $collect" >&2
 	if [[ -n $host ]] ; then
-		echo "Collect from host $host"
+		echo "Collect from host $host" >&2
 		if [[ -n $mount ]] ; then
-			echo "Collect from $dir/$id.$fmt to $mount/$dir/$id.$fmt"
+			echo "Collect from $dir/$id.$fmt to $mount/$dir/$id.$fmt" >&2
 			ssh "$host" rsync "$dir/$id.$fmt" "$mount/$dir/$id.$fmt"
 			mv "$mount/$dir/$id.$fmt" "$collect"
 			rm -f "$mount/$dir/$id"
 		else
-			echo "Collect from $host:$dir/$id.$fmt to $collect"
+			echo "Collect from $host:$dir/$id.$fmt to $collect" >&2
 			rsync "$host:$dir/$id.$fmt" "$collect"
 		fi
-		echo "Collect ssh and remove $dir/$id and $dir/$id.$fmt"
+		echo "Collect ssh and remove $dir/$id and $dir/$id.$fmt" >&2
 		ssh "$host" rm -f "$dir/$id" "$dir/$id.$fmt"
 	else
 		mv "$dir/$id.$fmt" "$collect"
@@ -90,16 +87,13 @@ if [[ -n $collect ]] ; then
 	fi
 elif [[ -n $host ]] ; then
 	if [[ -z $kill ]] ; then
-		echo "host $host"
 		if [[ -n $mount ]] ; then
-			echo "ln $src to $mount/$dir/$id"
 			ln -fT "$src" "$mount/$dir/$id"
 		else
-			echo "rsync $src to $host:$dir/$id"
 			rsync "$src" "$host:$dir/$id"
 		fi
 	fi
-	echo "run $hcmd in $host"
+
 	# grab only job id from e.g. "Submitted batch job 234324324"
 	ssh "$host" "$hcmd" `escape "$@"` | sed 's/^[^0-9]*\([0-9]\+\)$/\1/'
 elif [[ -n $kill ]] ; then
