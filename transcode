@@ -78,10 +78,11 @@ elif [[ -n $SLURM_JOB_NAME ]] ; then # if SLURM_JOB_NAME is non zero length
 else
     PID=$$
 fi
+
 exec >$LOG 2>&1
 
 case $fmt in
-    mp4) outargs=(-f mp4 -g 60 -c:v libx264 -pix_fmt yuvj420p -c:a libfdk_aac) ;;
+    mp4) outargs=(-f mp4 -g 60 -c:v libx264 -pix_fmt yuvj420p) ;;
     mp3) outargs=(-f mp3 -c:a libmp3lame -q:a 1) ;;
     *)
         echo "Unknown format $fmt" >&2
@@ -90,7 +91,10 @@ esac
 
 sleep 5 # hope server knows job has started by now
 
+module load ffmpeg/4.2.4
+
 ls -s "$IN"
+
 ffmpeg -loglevel warning -benchmark -threads ${SLURM_NTASKS:-1} -i "$IN" -map_metadata -1 -metadata comment="databrary.org ${dir##*/}/$version" -metadata description="http://databrary.org/asset/$id" "${args[@]}" -threads ${SLURM_NTASKS:-1} "${outargs[@]}" -y "$OUT"
 r=$?
 [[ -f "$OUT" ]] && ls -s "$OUT"
@@ -100,6 +104,7 @@ else
     sha1=`sha1sum "$OUT"`
     rm -f "$id.args"
 fi
+
 # sha1 arg is split to work around weird HPC error:
 curl -sSk --data-urlencode "pid=$PID" --data-urlencode "res=$r" ${sha1:+--data-urlencode} ${sha1:+"sha1=${sha1%% *}"} --data-urlencode "log@$LOG" "$url"
 
