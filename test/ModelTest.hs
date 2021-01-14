@@ -419,7 +419,7 @@ test_12b = localOption (mkTimeout (20 * 10^(6 :: Int))) $ Test.stepsWithResource
             step "Then one can retrieve the resulting asset"
             (assetRelease . assetRow) foundAsset @?= Just ReleasePUBLIC
             (assetName . assetRow) foundAsset @?= Just "small.webm"
-            (assetDuration . assetRow) foundAsset @?= Just (Offset 5.62)
+            (assetDuration . assetRow) foundAsset @?= Just (Offset 5.599)
 
 -- | Can either detect event in log, look for completed output, or wait for process to stop.
 -- Currently, detect event in log.
