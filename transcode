@@ -41,8 +41,6 @@ fi
 
 cd $dir || exit 1
 
-module load ffmpeg/4.2.4
-
 IN=$id
 OUT=$id.$fmt
 LOG=$id.log
@@ -96,6 +94,8 @@ case $fmt in
 esac
 
 sleep 5 # hope server knows job has started by now
+
+module load ffmpeg/4.2.4
 
 ls -s "$IN"
 echo "Run ffmpeg" >&2
