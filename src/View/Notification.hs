@@ -60,7 +60,7 @@ mailNotification msg Notification{..} = case notificationNotice of
       "You have been authorized under " <> party <> ", "
       <> if p == PermissionNONE then "for group/lab-only access."
          else "as a Databrary " <> TL.fromStrict (authorizeSiteTitle p msg) <> ". \
-      \Your authorization allows you to access all the shared data in  \
+      \Your authorization allows you to access all the shared data on Databrary  \
       \Our primary goal is to inspire you to reuse shared videos on Databrary to ask new questions outside the scope of the original study. \
       \You will also find illustrative video excerpts that you can use for teaching and to learn about other researchers' methods and procedures.\
       \\n\n\
@@ -68,17 +68,17 @@ mailNotification msg Notification{..} = case notificationNotice of
       \Your data will remain private and accessible only to your lab members and collaborators until you are ready to share with the Databrary community. \
       \When you are ready, sharing is as easy as clicking a button!\
       \\n\n\
-      \You can use our template Databrary release form to obtain permission for sharing the data you collect from your participants, which can be found here: http://databrary.org/access/policies/release-template.html.\n\
+      \You can use our template Databrary release form to obtain permission for sharing the data you collect from your participants, which can be found here: https://databrary.org/support/irb/release-template.html.\n\
       \The release form can be added to new or existing IRB protocols. \
       \It is completely adaptable and can be customized to suit your needs. \
-      \We also offer additional information and helpful tips about managing and sharing your video data in our User Guide: http://databrary.org/access/guide. \
-      \Information about downloading data from Databrary and other useful instructions can be found in the Frequently Asked Questions: https://www.databrary.org/resources/faq.html.\n\
+      \We also offer additional information and helpful tips about managing and sharing your video data in our Databrary Access Guide: https://databrary.org/about/agreement/agreement-annex-III.html. \
+      \Ethics-related support may be found here: https://databrary.org/support/irb.html. \
       \As soon as your protocol is amended to allow you to share data, you can start uploading your data from each new session. \
       \Don't wait until your study is complete to upload your videos. \
       \It's much easier to upload data after each data collection while your study is in progress!\
       \\n\n\
       \We are dedicated to providing assistance to the Databrary community. \
-      \Please contact us at support@databrary.org with questions or for help getting started.\
+      \Please contact us at contact@databrary.org with questions or for help getting started.\
       \\n"
     | otherwise ->
       "Your authorization under " <> party <> " has been revoked. To review and apply for authorizations, go to: "
