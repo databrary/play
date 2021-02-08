@@ -91,6 +91,12 @@ htmlAngular assetsVersion cssDeps jsDeps nojs reqCtx = H.docTypeHtml H.! ngAttri
         $ "simple version"
       H.preEscapedString " of this page."
     H.preEscapedString "<toolbar></toolbar>"
+    H.script H.! HA.src "https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" H.! H.customAttribute "integrity" "sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" H.! H.customAttribute  "crossorigin" "" 
+      $ return ()
+    H.script H.! HA.src "https://gitcdn.link/repo/leaflet-extras/leaflet-providers/master/leaflet-providers.js" 
+      $ return ()
+    H.script H.! HA.src "https://gitcdn.link/repo/gilmore-lab/databrary-analytics/master/institutions-investigators/js/institutions.js"
+      $ return ()
     H.preEscapedString $ "<main ng-view id=\"main\" class=\"main"
 #ifdef SANDBOX
       <> " sandbox"
@@ -114,12 +120,6 @@ htmlAngular assetsVersion cssDeps jsDeps nojs reqCtx = H.docTypeHtml H.! ngAttri
           "[" >> H.span "loading" >> "]"
     H.script
       $ H.preEscapedString "document.getElementById('loading').style.display='block';"
-    H.script H.! HA.src "https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" H.! H.customAttribute "integrity" "sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" H.! H.customAttribute  "crossorigin" "" 
-      $ return ()
-    H.script H.! HA.src "https://gitcdn.link/repo/leaflet-extras/leaflet-providers/master/leaflet-providers.js" 
-      $ return ()
-    H.script H.! HA.src "https://gitcdn.link/repo/gilmore-lab/databrary-analytics/master/institutions-investigators/js/institutions.js"
-      $ return ()
   where
   title =
 #ifdef SANDBOX
