@@ -26,7 +26,7 @@ ngAttribute :: String -> H.AttributeValue -> H.Attribute
 ngAttribute = H.customAttribute . H.stringTag . ("ng-" <>)
 
 cAttribute :: String -> H.AttributeValue -> H.Attribute
-cAttribute = H.customAttribute . H.stringTag . (<>)
+cAttribute = H.customAttribute . H.stringTag . ("" <>)
 
 webURL :: BS.ByteString -> H.AttributeValue -- TODO: stop using this?
 webURL p = actionValue webFile (Just $ StaticPath p) ([] :: Query)
@@ -117,10 +117,10 @@ htmlAngular assetsVersion cssDeps jsDeps nojs reqCtx = H.docTypeHtml H.! ngAttri
           "[" >> H.span "loading" >> "]"
     H.script
       $ H.preEscapedString "document.getElementById('loading').style.display='block';"
-    H.script
-      H.! HA.src "https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
-      H.! cAttribute "integrity" "sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
-      H.! cAttribute "crossorigin" ""
+    -- H.script
+    --   H.! HA.src "https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    --   H.! cAttribute "integrity" "sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    --   H.! cAttribute "crossorigin" ""
     H.script
       H.! HA.src "https://gitcdn.link/repo/leaflet-extras/leaflet-providers/master/leaflet-providers.js"
     H.script
