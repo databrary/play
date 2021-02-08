@@ -91,13 +91,6 @@ app.directive('homeContainer', [
           stopCarousel = true;
         })
 
-        jQuery(function($) {
-          // Asynchronously Load the map API 
-          var script = document.createElement('script');
-          script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyBZRvCMW10DAK5WKF9QCgtNWdmhkwpGinc&callback=initMap";
-          document.getElementsByTagName("main")[0].appendChild(script);
-        });
-
         function getUnique(count) {
           var arrayVideo = [
             ["554", "controls", "", "/slot/23424/0,41984/asset/102588/download?inline=true", "Trehub, S.E. &amp; Cirelli, L. (2017). Naturalistic Examples of Infant/Toddler Musical Engagement.", "B7.554"],
