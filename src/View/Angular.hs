@@ -114,7 +114,7 @@ htmlAngular assetsVersion cssDeps jsDeps nojs reqCtx = H.docTypeHtml H.! ngAttri
           "[" >> H.span "loading" >> "]"
     H.script
       $ H.preEscapedString "document.getElementById('loading').style.display='block';"
-    H.script H.! HA.src "https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" H.! H.customAttribute "integrity" "sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" H.! H.customAttribute  "crossorigin" "" 
+    H.script H.! HA.src "https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" H.! H.customAttribute "integrity" "sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" H.! H.customAttribute  "crossorigin" "" 
       $ return ()
     H.script H.! HA.src "https://gitcdn.link/repo/leaflet-extras/leaflet-providers/master/leaflet-providers.js" 
       $ return ()
