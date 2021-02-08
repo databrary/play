@@ -68,12 +68,6 @@ htmlAngular assetsVersion cssDeps jsDeps nojs reqCtx = H.docTypeHtml H.! ngAttri
       H.! HA.href "https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
       H.! H.customAttribute "integrity" "sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
       H.! H.customAttribute "crossorigin" ""
-    H.script H.! HA.src "https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" H.! H.customAttribute "integrity" "sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" H.! H.customAttribute  "crossorigin" "" 
-      $ return ()
-    H.script H.! HA.src "https://gitcdn.link/repo/leaflet-extras/leaflet-providers/master/leaflet-providers.js" 
-      $ return ()
-    H.script H.! HA.src "https://gitcdn.link/repo/gilmore-lab/databrary-analytics/master/institutions-investigators/js/institutions.js"
-      $ return ()
     H.script $
       H.preEscapedString "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src= 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f); })(window,document,'script','dataLayer','GTM-NW6PSFL');"
     H.script $ do
@@ -120,6 +114,12 @@ htmlAngular assetsVersion cssDeps jsDeps nojs reqCtx = H.docTypeHtml H.! ngAttri
           "[" >> H.span "loading" >> "]"
     H.script
       $ H.preEscapedString "document.getElementById('loading').style.display='block';"
+    H.script H.! HA.src "https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" H.! H.customAttribute "integrity" "sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" H.! H.customAttribute  "crossorigin" "" 
+      $ return ()
+    H.script H.! HA.src "https://gitcdn.link/repo/leaflet-extras/leaflet-providers/master/leaflet-providers.js" 
+      $ return ()
+    H.script H.! HA.src "https://gitcdn.link/repo/gilmore-lab/databrary-analytics/master/institutions-investigators/js/institutions.js"
+      $ return ()
     H.script
       $ H.preEscapedString "var mymap = L.map('map_canvas').setView([24.215527, -12.885834], 2);L.tileLayer.provider('Esri.WorldStreetMap').addTo(mymap);markers.map((place) => { L.marker([place[1], place[2]]).bindPopup(place[0]).addTo(mymap) });"
   where
