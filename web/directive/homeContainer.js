@@ -91,6 +91,13 @@ app.directive('homeContainer', [
           stopCarousel = true;
         })
 
+        jQuery(function($) {
+          // Asynchronously Load the map API 
+          var script = document.createElement('script');
+          script.innerHTML = "var mymap = L.map('map_canvas').setView([24.215527, -12.885834], 2);L.tileLayer.provider('Esri.WorldStreetMap').addTo(mymap);markers.map((place) => { L.marker([place[1], place[2]]).bindPopup(place[0]).addTo(mymap) });";
+          document.getElementsByTagName("main")[0].appendChild(script);
+        });
+
         function getUnique(count) {
           var arrayVideo = [
             ["554", "controls", "", "/slot/23424/0,41984/asset/102588/download?inline=true", "Trehub, S.E. &amp; Cirelli, L. (2017). Naturalistic Examples of Infant/Toddler Musical Engagement.", "B7.554"],

@@ -120,8 +120,6 @@ htmlAngular assetsVersion cssDeps jsDeps nojs reqCtx = H.docTypeHtml H.! ngAttri
       $ return ()
     H.script H.! HA.src "https://gitcdn.link/repo/gilmore-lab/databrary-analytics/master/institutions-investigators/js/institutions.js"
       $ return ()
-    H.script
-      $ H.preEscapedString "var mymap = L.map('map_canvas').setView([24.215527, -12.885834], 2);L.tileLayer.provider('Esri.WorldStreetMap').addTo(mymap);markers.map((place) => { L.marker([place[1], place[2]]).bindPopup(place[0]).addTo(mymap) });"
   where
   title =
 #ifdef SANDBOX
