@@ -94,7 +94,7 @@ app.directive('homeContainer', [
         jQuery(function($) {
           // Asynchronously Load the map API 
           var script = document.createElement('script');
-          script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyBZRvCMW10DAK5WKF9QCgtNWdmhkwpGinc&callback=initMap";
+          script.innerHTML = "var mymap = L.map('map_canvas').setView([24.215527, -12.885834], 2);L.tileLayer.provider('Esri.WorldStreetMap').addTo(mymap);markers.map((place) => { L.marker([place[1], place[2]]).bindPopup(place[0]).addTo(mymap) });";
           document.getElementsByTagName("main")[0].appendChild(script);
         });
 
