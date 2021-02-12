@@ -61,7 +61,7 @@ htmlAddress =
 htmlCopyrightTermsPrivacy :: H.Html
 htmlCopyrightTermsPrivacy =
   H.p H.! HA.class_ "footer-copyright" $ do
-    void "Copyright © 2014-2020"
+    void "Copyright © 2014-2021"
     void " | "
     H.a H.! HA.href "https://databrary.org/about/policies/terms.html" $ "Terms of Use"
     void " | "
@@ -104,6 +104,10 @@ htmlFooter = H.footer H.! HA.id "site-footer" H.! HA.class_ "site-footer" $
           H.a H.! HA.href "http://www.nsf.gov/awardsearch/showAward?AWD_ID=1238599&HistoricalAwards=false" $ do
             H.img H.! HA.src "/web/images/grants/nsf.png" H.! HA.class_ "nsf" H.! HA.alt "funder NSF logo"
             " BCS-1238599"
+        H.li $
+          H.a H.! HA.href "https://www.nsf.gov/awardsearch/showAward?AWD_ID=2032713&HistoricalAwards=false" $ do
+            H.img H.! HA.src "/web/images/grants/nsf.png" H.! HA.class_ "nsf" H.! HA.alt "funder NSF logo"
+            " OAC-2032713"
         H.li $
           H.a H.! HA.href "http://projectreporter.nih.gov/project_info_description.cfm?aid=8531595&icde=15908155&ddparam=&ddvalue=&ddsub=&cr=1&csb=default&cs=ASC" $ do
             H.img H.! HA.src "/web/images/grants/nih.png" H.! HA.class_ "nih" H.! HA.alt "funder NICHD logo"
