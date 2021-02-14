@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+#
+# Loads the library in the repl.
+
+nix-shell --option binary-caches "https://cache.nixos.org http://devdatabrary2.home.nyu.edu:5000" \
+    --run 'cabal repl lib:databrary'

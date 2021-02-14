@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+#
+# Repeatedly loads and runs the test suite in ghcid.
+#
+# There are two levels to this. On the outer level, entr reloads ghcid whenever
+# files change in src, since cabal repl won't notice them. On the inner level,
+# ghcid runs :reload when test source files change.
+#
+# Just to keep things interesting, ghcid is run within nix-shell, which both
+# makes sure ghcid is available, and makes sure cabal can access library
+# dependencies.
+
+find src -regex '.*\.l?hsc?' \
+    | entr -scdr "nix-shell --option binary-caches \"https://cache.nixos.org http://devdatabrary2.home.nyu.edu:5000\" \
+        --run 'ghcid -c \"cabal repl test:discovered\" -T \":run Main.main --hide-successes --timeout 1s\"'"
